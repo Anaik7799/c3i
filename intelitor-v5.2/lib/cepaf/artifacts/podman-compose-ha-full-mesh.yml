@@ -1,0 +1,777 @@
+# podman-compose-ha-full-mesh.yml
+# SIL-6 High Availability Full Mesh - 3-Node App Cluster
+# WHAT: HA cluster with load balancing, Zenoh 2oo3, CEPAF, Tailscale
+# WHY: Production-grade HA with automatic failover and mesh networking
+# CONSTRAINTS: Requires rootless Podman 5.4.1+, ~35GB RAM
+# STAMP: SC-SIL6-001, SC-MESH-001, SC-CLU-002, SC-CNT-009
+
+version: '3.8'
+
+networks:
+  indrajaal-ha-mesh:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.0.0/16
+          gateway: 172.31.0.1
+
+services:
+  # =============================================================================
+  # LOAD BALANCER - HAProxy (172.31.0.5)
+  # =============================================================================
+
+  haproxy:
+    image: docker.io/haproxy:2.9-alpine
+    container_name: indrajaal-haproxy
+    hostname: haproxy.indrajaal
+    networks:
+      indrajaal-ha-mesh:
+        ipv4_address: 172.31.0.5
+    ports:
+      - "4000:4000"     # Phoenix (load balanced)
+      - "4001:4001"     # Health endpoint
+      - "8404:8404"     # HAProxy stats
+    volumes:
+      - ./haproxy-ha.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    healthcheck:
+      test: ["CMD", "haproxy", "-c", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - app-1
+      - app-2
+      - app-3
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: load-balancer
+      environment: ha-mesh
+      sil.level: "6"
+
+  # =============================================================================
+  # DATA TIER - PostgreSQL + TimescaleDB (172.31.0.20)
+  # =============================================================================
+
+  indrajaal-db:
+    image: localhost/indrajaal-timescaledb-demo:nixos-devenv
+    container_name: indrajaal-db-ha
+    hostname: db.indrajaal
+    networks:
+      indrajaal-ha-mesh:
+        ipv4_address: 172.31.0.20
+    environment:
+      POSTGRES_DB: indrajaal_prod
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGPORT: "5433"
+      TS_TUNE_MEMORY: 4GB
+      TS_TUNE_NUM_CPUS: 4
+      PGDATA: /var/lib/postgresql/pgdata
+    ports:
+      - "5433:5433"
+    volumes:
+      - ha_db_data:/var/lib/postgresql/pgdata:z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d indrajaal_prod -p 5433"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '4'
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: database
+      environment: ha-mesh
+      sil.level: "6"
+
+  # =============================================================================
+  # OBSERVABILITY TIER (172.31.0.30)
+  # =============================================================================
+
+  indrajaal-obs:
+    image: localhost/indrajaal-obs-unified:nixos-devenv
+    container_name: indrajaal-obs-ha
+    hostname: obs.indrajaal
+    networks:
+      indrajaal-ha-mesh:
+        ipv4_address: 172.31.0.30
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://localhost:4317
+      OTEL_SERVICE_NAME: indrajaal-obs-ha
+      LOG_LEVEL: info
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: indrajaal
+      GF_SERVER_HTTP_PORT: "3000"
+    ports:
+      - "3000:3000"     # Grafana
+      - "3100:3100"     # Loki
+      - "3301:3301"     # SigNoz
+      - "4317:4317"     # OTEL gRPC
+      - "4318:4318"     # OTEL HTTP
+      - "9090:9090"     # Prometheus
+    volumes:
+      - ha_obs_data:/data:z
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: observability
+      environment: ha-mesh
+
+  # =============================================================================
+  # ZENOH 2oo3 QUORUM MESH (172.31.0.40-43)
+  # =============================================================================
+
+  zenoh-router-1:
+    image: eclipse/zenoh:1.0.0
+    container_name: zenoh-ha-1
+    hostname: zenoh-1.indrajaal
+    networks:
+      indrajaal-ha-mesh:
+        ipv4_address: 172.31.0.40
+    environment:
+      RUST_LOG: info
+      ZENOH_ROUTER_ID: ha-router-1
+    ports:
+      - "7447:7447"
+      - "8000:8000"
+    volumes:
+      - ../../../config/zenoh/zenoh-router-1.json5:/zenoh.json5:ro
+    command: ["-c", "/zenoh.json5"]
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  zenoh-router-2:
+    image: eclipse/zenoh:1.0.0
+    container_name: zenoh-ha-2
+    hostname: zenoh-2.indrajaal
+    networks:
+      indrajaal-ha-mesh:
+        ipv4_address: 172.31.0.41
+    environment:
+      RUST_LOG: info
+      ZENOH_ROUTER_ID: ha-router-2
+    ports:
+      - "7448:7447"
+      - "8001:8000"
+    volumes:
+      - ../../../config/zenoh/zenoh-router-2.json5:/zenoh.json5:ro
+    command: ["-c", "/zenoh.json5"]
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  zenoh-router-3:
+    image: eclipse/zenoh:1.0.0
+    container_name: zenoh-ha-3
+    hostname: zenoh-3.indrajaal
+    networks:
+      indrajaal-ha-mesh:
+        ipv4_address: 172.31.0.42
+    environment:
+      RUST_LOG: info
+      ZENOH_ROUTER_ID: ha-router-3
+    ports:
+      - "7449:7447"
+      - "8002:8000"
+    volumes:
+      - ../../../config/zenoh/zenoh-router-3.json5:/zenoh.json5:ro
+    command: ["-c", "/zenoh.json5"]
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  zenoh-router:
+    image: eclipse/zenoh:1.0.0
+    container_name: zenoh-ha-proxy
+    hostname: zenoh.indrajaal
+    networks:
+      indrajaal-ha-mesh:
+        ipv4_address: 172.31.0.43
+    depends_on:
+      zenoh-router-1:
+        condition: service_healthy
+      zenoh-router-2:
+        condition: service_healthy
+      zenoh-router-3:
+        condition: service_healthy
+    environment:
+      RUST_LOG: info
+      ZENOH_ROUTER_ID: ha-proxy
+    volumes:
+      - ../../../config/zenoh/zenoh.json5:/zenoh.json5:ro
+    command: ["-c", "/zenoh.json5"]
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # =============================================================================
+  # COGNITIVE PLANE - CEPAF Bridge + Cortex (172.31.0.50-51)
+  # =============================================================================
+
+  cepaf-bridge:
+    image: localhost/cepaf-bridge:latest
+    container_name: cepaf-bridge-ha
+    hostname: cepaf-bridge.indrajaal
+    stdin_open: true
+    tty: true
+    networks:
+      indrajaal-ha-mesh:
+        ipv4_address: 172.31.0.50
+    depends_on:
+      zenoh-router:
+        condition: service_healthy
+    environment:
+      CEPAF_BRIDGE_PORT: "9876"
+      CEPAF_BRIDGE_HOST: "0.0.0.0"
+      DOTNET_RUNNING_IN_CONTAINER: "true"
+      LOG_LEVEL: debug
+      # Zenoh Full Configuration
+      ZENOH_ENABLED: "true"
+      ZENOH_ROUTER_ENDPOINT: tcp/zenoh.indrajaal:7447
+      ZENOH_ROUTER_HOST: zenoh.indrajaal
+      ZENOH_ROUTER_PORT: "7447"
+      ZENOH_PROTOCOL: tcp
+      ZENOH_MODE: client
+      ZENOH_CONNECT_TIMEOUT_MS: "5000"
+      ZENOH_RETRY_PERIOD_MS: "1000"
+      ZENOH_MAX_RETRIES: "10"
+      ZENOH_BUFFER_SIZE: "65535"
+      ZENOH_PUB_RELIABILITY: reliable
+      ZENOH_SUB_RELIABILITY: reliable
+      ZENOH_KEY_EXPR_PREFIX: indrajaal/cepaf
+      ZENOH_SESSION_LEASE_MS: "10000"
+      ZENOH_KEEP_ALIVE_MS: "2500"
+      ZENOH_LOG_LEVEL: debug
+      ZENOH_TOPIC_BRIDGE: indrajaal/bridge
+      ZENOH_TOPIC_COMMANDS: indrajaal/commands
+      ZENOH_TOPIC_RESPONSES: indrajaal/responses
+    ports:
+      - "9876:9876"
+    volumes:
+      - /run/user/1000/podman/podman.sock:/run/podman/podman.sock:ro
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 9876 || exit 0"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: cepaf-bridge
+      environment: ha-mesh
+      zenoh.enabled: "true"
+
+  indrajaal-cortex:
+    image: localhost/indrajaal-cortex:latest
+    container_name: indrajaal-cortex-ha
+    hostname: cortex.indrajaal
+    networks:
+      indrajaal-ha-mesh:
+        ipv4_address: 172.31.0.51
+    depends_on:
+      cepaf-bridge:
+        condition: service_healthy
+    environment:
+      CORTEX_PORT: "9877"
+      CEPAF_BRIDGE_URL: http://cepaf-bridge.indrajaal:9876
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://obs.indrajaal:4317
+      OTEL_SERVICE_NAME: indrajaal-cortex
+      DOTNET_RUNNING_IN_CONTAINER: "true"
+      LOG_LEVEL: debug
+      # Zenoh Full Configuration
+      ZENOH_ENABLED: "true"
+      ZENOH_ROUTER_ENDPOINT: tcp/zenoh.indrajaal:7447
+      ZENOH_ROUTER_HOST: zenoh.indrajaal
+      ZENOH_ROUTER_PORT: "7447"
+      ZENOH_PROTOCOL: tcp
+      ZENOH_MODE: client
+      ZENOH_CONNECT_TIMEOUT_MS: "5000"
+      ZENOH_RETRY_PERIOD_MS: "1000"
+      ZENOH_MAX_RETRIES: "10"
+      ZENOH_BUFFER_SIZE: "65535"
+      ZENOH_PUB_RELIABILITY: reliable
+      ZENOH_SUB_RELIABILITY: reliable
+      ZENOH_KEY_EXPR_PREFIX: indrajaal/cortex
+      ZENOH_SESSION_LEASE_MS: "10000"
+      ZENOH_KEEP_ALIVE_MS: "2500"
+      ZENOH_LOG_LEVEL: debug
+      ZENOH_TOPIC_CORTEX: indrajaal/cortex
+      ZENOH_TOPIC_AI: indrajaal/ai
+      ZENOH_TOPIC_DECISIONS: indrajaal/decisions
+    ports:
+      - "9877:9877"
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f dotnet || exit 0"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: cortex
+      environment: ha-mesh
+      zenoh.enabled: "true"
+
+  # =============================================================================
+  # APPLICATION TIER - 3-Node HA Cluster (172.31.0.10-12)
+  # =============================================================================
+
+  app-1:
+    image: localhost/indrajaal-app-unified:nixos-devenv
+    container_name: indrajaal-ex-app-1
+    hostname: app-1.indrajaal
+    networks:
+      indrajaal-ha-mesh:
+        ipv4_address: 172.31.0.10
+    depends_on:
+      indrajaal-db:
+        condition: service_healthy
+      indrajaal-obs:
+        condition: service_started
+      zenoh-router:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: ecto://postgres:postgres@db.indrajaal:5433/indrajaal_prod
+      POSTGRES_HOST: db.indrajaal
+      POSTGRES_PORT: "5433"
+
+      # Phoenix
+      PHX_HOST: localhost
+      PHX_PORT: "4000"
+      SECRET_KEY_BASE: ha_mesh_secret_key_base_64_chars_minimum_change_me_in_production
+
+      # Erlang Clustering
+      CLUSTERING_ENABLED: "true"
+      RELEASE_NODE: indrajaal@app-1.indrajaal
+      RELEASE_COOKIE: ha_mesh_cookie_sil6
+      CLUSTER_NODES: "indrajaal@app-1.indrajaal,indrajaal@app-2.indrajaal,indrajaal@app-3.indrajaal"
+
+      # Prajna Cockpit
+      PRAJNA_COCKPIT_ENABLED: "true"
+      PRAJNA_DARK_MODE: "true"
+      PRAJNA_AI_COPILOT_ENABLED: "true"
+
+      # Observability - FRACTAL DEBUG + QUADPLEX LOGGING
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://obs.indrajaal:4317
+      OTEL_SERVICE_NAME: indrajaal-ex-app-1
+      LOG_LEVEL: debug
+      VERBOSE_LOGGING: "true"
+      DASHBOARD_MODE: "true"
+      OODA_VERBOSE: "true"
+      # Fractal Logging (7-Level Directed Telescope)
+      FRACTAL_LOGGING_ENABLED: "true"
+      FRACTAL_LOG_LEVEL: debug
+      FRACTAL_TELESCOPE_ENABLED: "true"
+      FRACTAL_L1_FUNCTION: "true"
+      FRACTAL_L2_COMPONENT: "true"
+      FRACTAL_L3_HOLON: "true"
+      FRACTAL_L4_CONTAINER: "true"
+      FRACTAL_L5_NODE: "true"
+      FRACTAL_L6_CLUSTER: "true"
+      FRACTAL_L7_FEDERATION: "true"
+      # Quadplex Logging (4 outputs)
+      QUADPLEX_LOGGING: "true"
+      QUADPLEX_CONSOLE: "true"
+      QUADPLEX_FILE: "true"
+      QUADPLEX_OTEL: "true"
+      QUADPLEX_ZENOH: "true"
+      QUADPLEX_LOG_PATH: /app/data/logs
+      # Full Observability
+      TELEMETRY_VERBOSE: "true"
+      SENTINEL_VERBOSE: "true"
+      METRICS_DETAILED: "true"
+      TRACE_ALL_REQUESTS: "true"
+
+      # Zenoh Mesh - Full Configuration
+      ZENOH_ENABLED: "true"
+      ZENOH_ROUTER_ENDPOINT: tcp/zenoh.indrajaal:7447
+      ZENOH_ROUTER_HOST: zenoh.indrajaal
+      ZENOH_ROUTER_PORT: "7447"
+      ZENOH_WEBSOCKET_PORT: "8448"
+      ZENOH_REST_PORT: "8000"
+      ZENOH_PROTOCOL: tcp
+      ZENOH_MODE: client
+      ZENOH_PEER_DISCOVERY: "true"
+      ZENOH_GOSSIP_ENABLED: "false"
+      ZENOH_SCOUTING_MULTICAST: "false"
+      ZENOH_CONNECT_TIMEOUT_MS: "5000"
+      ZENOH_RETRY_PERIOD_MS: "1000"
+      ZENOH_MAX_RETRIES: "10"
+      ZENOH_BUFFER_SIZE: "65535"
+      ZENOH_BATCH_SIZE: "65535"
+      ZENOH_QUEUE_SIZE: "1024"
+      ZENOH_PUB_RELIABILITY: reliable
+      ZENOH_SUB_RELIABILITY: reliable
+      ZENOH_KEY_EXPR_PREFIX: indrajaal/ha
+      ZENOH_SESSION_LEASE_MS: "10000"
+      ZENOH_KEEP_ALIVE_MS: "2500"
+      ZENOH_LOG_LEVEL: debug
+      # Zenoh Topics
+      ZENOH_TOPIC_KPI: indrajaal/kpi
+      ZENOH_TOPIC_METRICS: indrajaal/metrics
+      ZENOH_TOPIC_HEALTH: indrajaal/health
+      ZENOH_TOPIC_AGENTS: indrajaal/agents
+      ZENOH_TOPIC_SAFETY: indrajaal/safety
+      ZENOH_TOPIC_CLUSTER: indrajaal/cluster
+      # NIF Configuration
+      SKIP_ZENOH_NIF: "1"
+      SKIP_LINEAGE_NIF: "1"
+      RUSTLER_SKIP_COMPILE: "true"
+
+      # Cognitive Plane
+      CEPAF_BRIDGE_URL: http://cepaf-bridge.indrajaal:9876
+      CORTEX_URL: http://cortex.indrajaal:9877
+
+      # Tailscale
+      TAILSCALE_ENABLED: "true"
+      TAILSCALE_SOCKET: /var/run/tailscale/tailscaled.sock
+
+      # Framework
+      PHICS_ENABLED: "true"
+      NO_TIMEOUT: "true"
+      PATIENT_MODE: enabled
+      SIL_LEVEL: "6"
+      HA_MODE: "true"
+      NODE_ID: "1"
+      LANG: "en_US.UTF-8"
+      LC_ALL: "en_US.UTF-8"
+      ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16"
+      # HA Mode: Per-node holon data isolation (SC-HOLON-008)
+      HOLON_DATA_PATH: /app/data/holons
+    command: ["sh", "-c", "mkdir -p /app/data/holons && mix local.hex --force && mix local.rebar --force && (test -d deps/phoenix || mix deps.get) && mix compile && mix phx.server"]
+    expose:
+      - "4000"
+      - "4001"
+    volumes:
+      - ha_app1_data:/app/data:z
+      - ha_build_cache:/workspace/_build:z
+      - ha_deps_cache:/workspace/deps:z
+      - ../../../:/workspace:z
+      - /var/run/tailscale:/var/run/tailscale:ro
+      - /usr/bin/tailscale:/usr/bin/tailscale:ro
+      - /usr/sbin/tailscaled:/usr/sbin/tailscaled:ro
+    working_dir: /workspace
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4000/ > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 30
+      start_period: 900s
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '6'
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: application
+      environment: ha-mesh
+      ha.node: "1"
+      sil.level: "6"
+
+  app-2:
+    image: localhost/indrajaal-app-unified:nixos-devenv
+    container_name: indrajaal-ex-app-2
+    hostname: app-2.indrajaal
+    networks:
+      indrajaal-ha-mesh:
+        ipv4_address: 172.31.0.11
+    depends_on:
+      app-1:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ecto://postgres:postgres@db.indrajaal:5433/indrajaal_prod
+      POSTGRES_HOST: db.indrajaal
+      POSTGRES_PORT: "5433"
+      PHX_HOST: localhost
+      PHX_PORT: "4000"
+      SECRET_KEY_BASE: ha_mesh_secret_key_base_64_chars_minimum_change_me_in_production
+      CLUSTERING_ENABLED: "true"
+      RELEASE_NODE: indrajaal@app-2.indrajaal
+      RELEASE_COOKIE: ha_mesh_cookie_sil6
+      CLUSTER_NODES: "indrajaal@app-1.indrajaal,indrajaal@app-2.indrajaal,indrajaal@app-3.indrajaal"
+      PRAJNA_COCKPIT_ENABLED: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://obs.indrajaal:4317
+      OTEL_SERVICE_NAME: indrajaal-ex-app-2
+      LOG_LEVEL: debug
+      VERBOSE_LOGGING: "true"
+      FRACTAL_LOGGING_ENABLED: "true"
+      FRACTAL_LOG_LEVEL: debug
+      FRACTAL_TELESCOPE_ENABLED: "true"
+      QUADPLEX_LOGGING: "true"
+      QUADPLEX_CONSOLE: "true"
+      QUADPLEX_FILE: "true"
+      QUADPLEX_OTEL: "true"
+      QUADPLEX_ZENOH: "true"
+      TELEMETRY_VERBOSE: "true"
+      # Zenoh Mesh - Full Configuration
+      ZENOH_ENABLED: "true"
+      ZENOH_ROUTER_ENDPOINT: tcp/zenoh.indrajaal:7447
+      ZENOH_ROUTER_HOST: zenoh.indrajaal
+      ZENOH_ROUTER_PORT: "7447"
+      ZENOH_WEBSOCKET_PORT: "8448"
+      ZENOH_REST_PORT: "8000"
+      ZENOH_PROTOCOL: tcp
+      ZENOH_MODE: client
+      ZENOH_PEER_DISCOVERY: "true"
+      ZENOH_GOSSIP_ENABLED: "false"
+      ZENOH_SCOUTING_MULTICAST: "false"
+      ZENOH_CONNECT_TIMEOUT_MS: "5000"
+      ZENOH_RETRY_PERIOD_MS: "1000"
+      ZENOH_MAX_RETRIES: "10"
+      ZENOH_BUFFER_SIZE: "65535"
+      ZENOH_BATCH_SIZE: "65535"
+      ZENOH_QUEUE_SIZE: "1024"
+      ZENOH_PUB_RELIABILITY: reliable
+      ZENOH_SUB_RELIABILITY: reliable
+      ZENOH_KEY_EXPR_PREFIX: indrajaal/ha
+      ZENOH_SESSION_LEASE_MS: "10000"
+      ZENOH_KEEP_ALIVE_MS: "2500"
+      ZENOH_LOG_LEVEL: debug
+      ZENOH_TOPIC_KPI: indrajaal/kpi
+      ZENOH_TOPIC_METRICS: indrajaal/metrics
+      ZENOH_TOPIC_HEALTH: indrajaal/health
+      ZENOH_TOPIC_AGENTS: indrajaal/agents
+      ZENOH_TOPIC_SAFETY: indrajaal/safety
+      ZENOH_TOPIC_CLUSTER: indrajaal/cluster
+      SKIP_ZENOH_NIF: "1"
+      SKIP_LINEAGE_NIF: "1"
+      RUSTLER_SKIP_COMPILE: "true"
+      CEPAF_BRIDGE_URL: http://cepaf-bridge.indrajaal:9876
+      CORTEX_URL: http://cortex.indrajaal:9877
+      TAILSCALE_ENABLED: "true"
+      TAILSCALE_SOCKET: /var/run/tailscale/tailscaled.sock
+      PHICS_ENABLED: "true"
+      NO_TIMEOUT: "true"
+      PATIENT_MODE: enabled
+      SIL_LEVEL: "6"
+      HA_MODE: "true"
+      NODE_ID: "2"
+      LANG: "en_US.UTF-8"
+      ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16"
+      # HA Mode: Per-node holon data isolation (SC-HOLON-008)
+      HOLON_DATA_PATH: /app/data/holons
+    command: ["sh", "-c", "mkdir -p /app/data/holons && sleep 30 && mix local.hex --force && mix local.rebar --force && mix phx.server"]
+    expose:
+      - "4000"
+      - "4001"
+    volumes:
+      - ha_app2_data:/app/data:z
+      - ha_build_cache:/workspace/_build:z
+      - ha_deps_cache:/workspace/deps:z
+      - ../../../:/workspace:z
+      - /var/run/tailscale:/var/run/tailscale:ro
+      - /usr/bin/tailscale:/usr/bin/tailscale:ro
+      - /usr/sbin/tailscaled:/usr/sbin/tailscaled:ro
+    working_dir: /workspace
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4000/ > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 30
+      start_period: 900s
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '6'
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: application
+      ha.node: "2"
+      sil.level: "6"
+
+  app-3:
+    image: localhost/indrajaal-app-unified:nixos-devenv
+    container_name: indrajaal-ex-app-3
+    hostname: app-3.indrajaal
+    networks:
+      indrajaal-ha-mesh:
+        ipv4_address: 172.31.0.12
+    depends_on:
+      app-1:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ecto://postgres:postgres@db.indrajaal:5433/indrajaal_prod
+      POSTGRES_HOST: db.indrajaal
+      POSTGRES_PORT: "5433"
+      PHX_HOST: localhost
+      PHX_PORT: "4000"
+      SECRET_KEY_BASE: ha_mesh_secret_key_base_64_chars_minimum_change_me_in_production
+      CLUSTERING_ENABLED: "true"
+      RELEASE_NODE: indrajaal@app-3.indrajaal
+      RELEASE_COOKIE: ha_mesh_cookie_sil6
+      CLUSTER_NODES: "indrajaal@app-1.indrajaal,indrajaal@app-2.indrajaal,indrajaal@app-3.indrajaal"
+      PRAJNA_COCKPIT_ENABLED: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://obs.indrajaal:4317
+      OTEL_SERVICE_NAME: indrajaal-ex-app-3
+      LOG_LEVEL: debug
+      VERBOSE_LOGGING: "true"
+      FRACTAL_LOGGING_ENABLED: "true"
+      FRACTAL_LOG_LEVEL: debug
+      FRACTAL_TELESCOPE_ENABLED: "true"
+      QUADPLEX_LOGGING: "true"
+      QUADPLEX_CONSOLE: "true"
+      QUADPLEX_FILE: "true"
+      QUADPLEX_OTEL: "true"
+      QUADPLEX_ZENOH: "true"
+      TELEMETRY_VERBOSE: "true"
+      # Zenoh Mesh - Full Configuration
+      ZENOH_ENABLED: "true"
+      ZENOH_ROUTER_ENDPOINT: tcp/zenoh.indrajaal:7447
+      ZENOH_ROUTER_HOST: zenoh.indrajaal
+      ZENOH_ROUTER_PORT: "7447"
+      ZENOH_WEBSOCKET_PORT: "8448"
+      ZENOH_REST_PORT: "8000"
+      ZENOH_PROTOCOL: tcp
+      ZENOH_MODE: client
+      ZENOH_PEER_DISCOVERY: "true"
+      ZENOH_GOSSIP_ENABLED: "false"
+      ZENOH_SCOUTING_MULTICAST: "false"
+      ZENOH_CONNECT_TIMEOUT_MS: "5000"
+      ZENOH_RETRY_PERIOD_MS: "1000"
+      ZENOH_MAX_RETRIES: "10"
+      ZENOH_BUFFER_SIZE: "65535"
+      ZENOH_BATCH_SIZE: "65535"
+      ZENOH_QUEUE_SIZE: "1024"
+      ZENOH_PUB_RELIABILITY: reliable
+      ZENOH_SUB_RELIABILITY: reliable
+      ZENOH_KEY_EXPR_PREFIX: indrajaal/ha
+      ZENOH_SESSION_LEASE_MS: "10000"
+      ZENOH_KEEP_ALIVE_MS: "2500"
+      ZENOH_LOG_LEVEL: debug
+      ZENOH_TOPIC_KPI: indrajaal/kpi
+      ZENOH_TOPIC_METRICS: indrajaal/metrics
+      ZENOH_TOPIC_HEALTH: indrajaal/health
+      ZENOH_TOPIC_AGENTS: indrajaal/agents
+      ZENOH_TOPIC_SAFETY: indrajaal/safety
+      ZENOH_TOPIC_CLUSTER: indrajaal/cluster
+      SKIP_ZENOH_NIF: "1"
+      SKIP_LINEAGE_NIF: "1"
+      RUSTLER_SKIP_COMPILE: "true"
+      CEPAF_BRIDGE_URL: http://cepaf-bridge.indrajaal:9876
+      CORTEX_URL: http://cortex.indrajaal:9877
+      TAILSCALE_ENABLED: "true"
+      TAILSCALE_SOCKET: /var/run/tailscale/tailscaled.sock
+      PHICS_ENABLED: "true"
+      NO_TIMEOUT: "true"
+      PATIENT_MODE: enabled
+      SIL_LEVEL: "6"
+      HA_MODE: "true"
+      NODE_ID: "3"
+      LANG: "en_US.UTF-8"
+      ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16"
+      # HA Mode: Per-node holon data isolation (SC-HOLON-008)
+      HOLON_DATA_PATH: /app/data/holons
+    command: ["sh", "-c", "mkdir -p /app/data/holons && sleep 60 && mix local.hex --force && mix local.rebar --force && mix phx.server"]
+    expose:
+      - "4000"
+      - "4001"
+    volumes:
+      - ha_app3_data:/app/data:z
+      - ha_build_cache:/workspace/_build:z
+      - ha_deps_cache:/workspace/deps:z
+      - ../../../:/workspace:z
+      - /var/run/tailscale:/var/run/tailscale:ro
+      - /usr/bin/tailscale:/usr/bin/tailscale:ro
+      - /usr/sbin/tailscaled:/usr/sbin/tailscaled:ro
+    working_dir: /workspace
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4000/ > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 30
+      start_period: 900s
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '6'
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: application
+      ha.node: "3"
+      sil.level: "6"
+
+volumes:
+  ha_db_data:
+  ha_obs_data:
+  ha_app1_data:
+  ha_app2_data:
+  ha_app3_data:
+  ha_build_cache:
+  ha_deps_cache:
+
+# =============================================================================
+# Architecture: SIL-6 HA Full Mesh (12 Containers)
+# =============================================================================
+#
+# ┌────────────────────────────────────────────────────────────────────────────┐
+# │                    SIL-6 HA FULL MESH (12 Containers)                       │
+# ├────────────────────────────────────────────────────────────────────────────┤
+# │                                                                             │
+# │  ┌─────────────────────────────────────────────────────────────────────┐   │
+# │  │ LOAD BALANCER                                                        │   │
+# │  │  ┌─────────────────────────────────────────────────────────────┐    │   │
+# │  │  │ haproxy :4000 (LB) :8404 (stats)  172.31.0.5                │    │   │
+# │  │  └─────────────────────────────────────────────────────────────┘    │   │
+# │  └─────────────────────────────────────────────────────────────────────┘   │
+# │                             │                                               │
+# │              ┌──────────────┼──────────────┐                               │
+# │              ▼              ▼              ▼                               │
+# │  ┌─────────────────────────────────────────────────────────────────────┐   │
+# │  │ APPLICATION CLUSTER (Erlang Distributed)                             │   │
+# │  │  ┌───────────────┐ ┌───────────────┐ ┌───────────────┐              │   │
+# │  │  │ app-1         │ │ app-2         │ │ app-3         │              │   │
+# │  │  │ 172.31.0.10   │ │ 172.31.0.11   │ │ 172.31.0.12   │              │   │
+# │  │  │ :4000         │ │ :4000         │ │ :4000         │              │   │
+# │  │  └───────────────┘ └───────────────┘ └───────────────┘              │   │
+# │  └─────────────────────────────────────────────────────────────────────┘   │
+# │                             │                                               │
+# │                             ▼ Zenoh Pub/Sub                                │
+# │  ┌─────────────────────────────────────────────────────────────────────┐   │
+# │  │ ZENOH 2oo3 QUORUM                                                    │   │
+# │  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐                    │   │
+# │  │  │router-1 │ │router-2 │ │router-3 │ │ proxy   │                    │   │
+# │  │  │.40:7447 │ │.41:7448 │ │.42:7449 │ │.43      │                    │   │
+# │  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘                    │   │
+# │  └─────────────────────────────────────────────────────────────────────┘   │
+# │                                                                             │
+# │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐                │
+# │  │ DB :5433       │  │ OBS :3000/:4317│  │ CEPAF :9876/77 │                │
+# │  │ 172.31.0.20    │  │ 172.31.0.30    │  │ 172.31.0.50-51 │                │
+# │  └────────────────┘  └────────────────┘  └────────────────┘                │
+# │                                                                             │
+# └────────────────────────────────────────────────────────────────────────────┘

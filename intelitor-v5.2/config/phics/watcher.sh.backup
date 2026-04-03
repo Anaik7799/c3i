@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "🔥 Starting PHICS file watcher..."
+inotifywait -m -r -e modify,create,delete,move \
+  --include '\.(ex|exs|heex|eex|js|css)$' \
+  /workspace/lib /workspace/assets /workspace/test |
+while read path action file; do
+  echo "📝 File changed: $path$file ($action)"
+  curl -s http://localhost:4001/phoenix/live_reload/frame || true
+  echo "$(date): $path$file ($action)" >> /workspace/.phics/logs/changes.log
+done

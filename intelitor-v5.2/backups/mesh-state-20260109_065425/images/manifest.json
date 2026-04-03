@@ -1,0 +1,1748 @@
+[
+    {
+        "Id": "4e51591c89c0d369576fadbc6920bc06bdde8fbfec08654112742736d14be849",
+        "ParentId": "b0b8855efff5c7ec5f116aa6e0dce93a6c80df8f265a5fd434eb36c87312fa08",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/indrajaal-obs-sil4@sha256:ab80274a98e91e573304f0273e8d0f54bb2121d13a69ccc2714e66ad8080fe3a"
+        ],
+        "Size": 512244331,
+        "SharedSize": 0,
+        "VirtualSize": 512244331,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "maintainer": "signoz"
+        },
+        "Containers": 0,
+        "Digest": "sha256:ab80274a98e91e573304f0273e8d0f54bb2121d13a69ccc2714e66ad8080fe3a",
+        "History": [
+            "localhost/indrajaal-obs-sil4:latest"
+        ],
+        "Names": [
+            "localhost/indrajaal-obs-sil4:latest"
+        ],
+        "Created": 1767911781,
+        "CreatedAt": "2026-01-08T22:36:21Z"
+    },
+    {
+        "Id": "87db082de94e81a60bdfa938f528e84e35601556a546693236af4aeb9f49c865",
+        "ParentId": "cf88ff774738d6d7e4231872f94dad2350182375bf2321b114eb589df12c1c7d",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/indrajaal-app@sha256:d28c5896111ae54ec929baa206479480a4a8f125c1cc512f4aee9e5a650514e6"
+        ],
+        "Size": 12803811958,
+        "SharedSize": 0,
+        "VirtualSize": 12803811958,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 0,
+        "Digest": "sha256:d28c5896111ae54ec929baa206479480a4a8f125c1cc512f4aee9e5a650514e6",
+        "History": [
+            "localhost/indrajaal-app:latest"
+        ],
+        "Names": [
+            "localhost/indrajaal-app:latest"
+        ],
+        "Created": 1767905977,
+        "CreatedAt": "2026-01-08T20:59:37Z"
+    },
+    {
+        "Id": "79927f9292ac009e2a56f02ff48c378e86ada2302905558d117501a9dc9f0e6c",
+        "ParentId": "f0a9cfb92e54767aaf66d9ad23cb996196a3de84e12dd20713832549cb0518d6",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/indrajaal-cortex@sha256:d863fad45ec6152a852e49ef917f4060ffe56bc9ad30f692418b98a6c38c4883"
+        ],
+        "Size": 552253722,
+        "SharedSize": 0,
+        "VirtualSize": 552253722,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Digest": "sha256:d863fad45ec6152a852e49ef917f4060ffe56bc9ad30f692418b98a6c38c4883",
+        "History": [
+            "localhost/indrajaal-cortex:latest"
+        ],
+        "Names": [
+            "localhost/indrajaal-cortex:latest"
+        ],
+        "Created": 1767905753,
+        "CreatedAt": "2026-01-08T20:55:53Z"
+    },
+    {
+        "Id": "80b7cd05f6dca1c8d56aa1a27537d905ce6e067af85ccd08698afdce7426fc36",
+        "ParentId": "618ca1da1a638816277e927feb3d4b4c8f78d0db98dc086b4a3295973ea02558",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 4012918569,
+        "SharedSize": 0,
+        "VirtualSize": 4012918569,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:41e2fdf6997f3b881c5aadd90e084806c3a345904ebcd006c23e62229a5cbf83",
+        "History": [
+            "docker.io/library/92403c05946a708781d2b499726e011df01d218927dc81ddcc3ebf6d3982526c-tmp:latest"
+        ],
+        "Created": 1767905741,
+        "CreatedAt": "2026-01-08T20:55:41Z"
+    },
+    {
+        "Id": "daf3a824e9dcee1c2d7f17a0fe84b15f0d79fdaba2fd36a981d961ca27e0cf13",
+        "ParentId": "681356885af720c91210422f3d660b8f70600840ec4e8b311d41674db4e3e9bc",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/indrajaal-sopv51-elixir-app@sha256:2acdef91af72dbc37e1ed437b7fbcf86062a74ac2f216b10880875234245100b"
+        ],
+        "Size": 12803809398,
+        "SharedSize": 0,
+        "VirtualSize": 12803809398,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 0,
+        "Digest": "sha256:2acdef91af72dbc37e1ed437b7fbcf86062a74ac2f216b10880875234245100b",
+        "History": [
+            "localhost/indrajaal-sopv51-elixir-app:nixos-25.05-devenv"
+        ],
+        "Names": [
+            "localhost/indrajaal-sopv51-elixir-app:nixos-25.05-devenv"
+        ],
+        "Created": 1767905081,
+        "CreatedAt": "2026-01-08T20:44:41Z"
+    },
+    {
+        "Id": "0f1b2b5a71113ded891d5fae925a76c2f1dbc6d1b8ba366bd9931fb559278db4",
+        "ParentId": "4897524aa07654a0d0e6e42255d21ddcf84d1812f3d283c8442e374034f86e3e",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/indrajaal-obs@sha256:dcc59c89c6bef89cef90d2eb9d29fbdc2dae9b873e3b02639644d8a1d29de7de"
+        ],
+        "Size": 512244331,
+        "SharedSize": 0,
+        "VirtualSize": 512244331,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "maintainer": "signoz"
+        },
+        "Containers": 0,
+        "Digest": "sha256:dcc59c89c6bef89cef90d2eb9d29fbdc2dae9b873e3b02639644d8a1d29de7de",
+        "History": [
+            "localhost/indrajaal-obs:latest"
+        ],
+        "Names": [
+            "localhost/indrajaal-obs:latest"
+        ],
+        "Created": 1767904932,
+        "CreatedAt": "2026-01-08T20:42:12Z"
+    },
+    {
+        "Id": "7e261030ba8c7ee018168236684e27e4b8a0c2471b5dcdbd0241fe47fb03880b",
+        "ParentId": "58c7f7a632873375c5259dbec54b3dc5bb7134d1f3894de6d37bcecbd1c43196",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 14925358598,
+        "SharedSize": 0,
+        "VirtualSize": 14925358598,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:83c3b1cf1263793d68188d1cd7ccc4ef0503806af8cd4c498f4712228cf17aad",
+        "History": [
+            "localhost/indrajaal-sopv51-elixir-app:nixos-25.05-devenv",
+            "localhost/indrajaal-app:latest"
+        ],
+        "Created": 1767851068,
+        "CreatedAt": "2026-01-08T05:44:28Z"
+    },
+    {
+        "Id": "7f2bdf2d73dd9f821d54be545b27b727e14d02d9f8c15cf8b6f572777f5d4360",
+        "ParentId": "e52723cc4840363d7d3c207b239ed63d42b8235f587e1baaead519fb82a7828d",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 14925357576,
+        "SharedSize": 0,
+        "VirtualSize": 14925357576,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:2d6501f6108791c38e8b51d375b69bb9b6c8193e088d1676fa65129678ee32cc",
+        "History": [
+            "localhost/indrajaal-sopv51-elixir-app:nixos-25.05-devenv"
+        ],
+        "Created": 1767850037,
+        "CreatedAt": "2026-01-08T05:27:17Z"
+    },
+    {
+        "Id": "7990f7fec92b91e1fa971b9d9f9428fba9a81d96ebff0aff5cd1dad55b5e2a49",
+        "ParentId": "73038c0eb13edd3434e18fc7d0eb99f681f8229bd0afd99d3338fbbc1b866344",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 512244331,
+        "SharedSize": 0,
+        "VirtualSize": 512244331,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "maintainer": "signoz"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:d1e51c77f502a6ec8a913a4210ccc5d7be00b2824ab3758880b682e0ee5aa99e",
+        "History": [
+            "localhost/indrajaal-obs:latest"
+        ],
+        "Created": 1767849804,
+        "CreatedAt": "2026-01-08T05:23:24Z"
+    },
+    {
+        "Id": "0374df138fdf46998b9d2e766db6893d31a6bb3ac21e643cea59ae2b1bb5c131",
+        "ParentId": "22ee16c6de68a5cb5a1a070150e50ec232953a2c53cce91fc2480b53db1999af",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/indrajaal-db@sha256:75cf73f512d711cd79c681e66df272f5f36b70a770ec02f169835f5fb15ef08d",
+            "localhost/indrajaal-timescaledb-demo@sha256:75cf73f512d711cd79c681e66df272f5f36b70a770ec02f169835f5fb15ef08d"
+        ],
+        "Size": 875242410,
+        "SharedSize": 0,
+        "VirtualSize": 875242410,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "maintainer": "Timescale https://www.timescale.com"
+        },
+        "Containers": 1,
+        "Digest": "sha256:75cf73f512d711cd79c681e66df272f5f36b70a770ec02f169835f5fb15ef08d",
+        "History": [
+            "localhost/indrajaal-db:latest",
+            "localhost/indrajaal-timescaledb-demo:nixos-devenv"
+        ],
+        "Names": [
+            "localhost/indrajaal-timescaledb-demo:nixos-devenv",
+            "localhost/indrajaal-db:latest"
+        ],
+        "Created": 1767849786,
+        "CreatedAt": "2026-01-08T05:23:06Z"
+    },
+    {
+        "Id": "0374df138fdf46998b9d2e766db6893d31a6bb3ac21e643cea59ae2b1bb5c131",
+        "ParentId": "22ee16c6de68a5cb5a1a070150e50ec232953a2c53cce91fc2480b53db1999af",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/indrajaal-db@sha256:75cf73f512d711cd79c681e66df272f5f36b70a770ec02f169835f5fb15ef08d",
+            "localhost/indrajaal-timescaledb-demo@sha256:75cf73f512d711cd79c681e66df272f5f36b70a770ec02f169835f5fb15ef08d"
+        ],
+        "Size": 875242410,
+        "SharedSize": 0,
+        "VirtualSize": 875242410,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "maintainer": "Timescale https://www.timescale.com"
+        },
+        "Containers": 1,
+        "Digest": "sha256:75cf73f512d711cd79c681e66df272f5f36b70a770ec02f169835f5fb15ef08d",
+        "History": [
+            "localhost/indrajaal-db:latest",
+            "localhost/indrajaal-timescaledb-demo:nixos-devenv"
+        ],
+        "Names": [
+            "localhost/indrajaal-timescaledb-demo:nixos-devenv",
+            "localhost/indrajaal-db:latest"
+        ],
+        "Created": 1767849786,
+        "CreatedAt": "2026-01-08T05:23:06Z"
+    },
+    {
+        "Id": "8eadfb1f15fc176beaf9a78be70bf3becdfc29ad1e9b49ce5718c98853f4e7c1",
+        "ParentId": "cfb1c2ec5cd52b5fa60eb1f0b43277eda206e9b7a09bac39fcf16071299e5c99",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 4008898858,
+        "SharedSize": 0,
+        "VirtualSize": 4008898858,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:869cad372f1778b67e241610256902eaa1c1c0187f83a24972ac437d4dd0878d",
+        "History": [
+            "docker.io/library/e43f0fe22d9f0ca748f71df43adcab43fa0ea25f1d280274b72311f961be0e35-tmp:latest"
+        ],
+        "Created": 1767843865,
+        "CreatedAt": "2026-01-08T03:44:25Z"
+    },
+    {
+        "Id": "cb4e27dab445be49b3b22ec0409c1bfb7ed38864155250dbf70d9e34d86eb381",
+        "ParentId": "7e23e6f171bd57efa8c099ddd9d43e14de16624bc157ebb0a4875866e0b34612",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 4008868650,
+        "SharedSize": 0,
+        "VirtualSize": 4008868650,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:cc47b81d28f628af2e45f1f586fc90d64af6942691a3a36ae47fdc2b95531ff1",
+        "History": [
+            "docker.io/library/130b07610d4625249e9f495997e8f884520155ff41e1f6e63c8dc60ff51c79d3-tmp:latest"
+        ],
+        "Created": 1767826950,
+        "CreatedAt": "2026-01-07T23:02:30Z"
+    },
+    {
+        "Id": "3936944ab28b18bf4aed2304e26bd9c4f8c4ec8729a6dd980ca7c3a50847b51d",
+        "ParentId": "b519617fed237225aaff23ae24c7d8deae4f61498fba34f85c1906547b10c851",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/intelitor-v52_indrajaal-cortex@sha256:764b268dffaa26159e5a452c5f2280d586c5b7c24693bccd7b79fa8849baa26f"
+        ],
+        "Size": 552252701,
+        "SharedSize": 0,
+        "VirtualSize": 552252701,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Digest": "sha256:764b268dffaa26159e5a452c5f2280d586c5b7c24693bccd7b79fa8849baa26f",
+        "History": [
+            "localhost/intelitor-v52_indrajaal-cortex:latest"
+        ],
+        "Names": [
+            "localhost/intelitor-v52_indrajaal-cortex:latest"
+        ],
+        "Created": 1767822479,
+        "CreatedAt": "2026-01-07T21:47:59Z"
+    },
+    {
+        "Id": "88a91398f855e08fc096e1e9b1d7884b04b1567524a50be5327727a973ff9329",
+        "ParentId": "73b1c91ce5633283329ea145ba8ef0d8f0ff194d27bba842df6f1cdd354bca61",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 4011012906,
+        "SharedSize": 0,
+        "VirtualSize": 4011012906,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:5db61c5013a732c6fe8c0f76b3f8bd4d006a892cb0fe25bffad079fc20d9ee28",
+        "History": [
+            "docker.io/library/9d8c28ce5310afc4e98ed5d1eb762153870ff60294bfa0c41546afee56d1cee4-tmp:latest"
+        ],
+        "Created": 1767822466,
+        "CreatedAt": "2026-01-07T21:47:46Z"
+    },
+    {
+        "Id": "b7b00409f4611982e5f7d8a08dd64a0351cb26a03fcfb9c2e5c0b88ad8be14d6",
+        "ParentId": "19a538440f73bf486a69c825e1eb5480597d1e9cbe943ff6caa04cd6b20f9d4c",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 3659078433,
+        "SharedSize": 0,
+        "VirtualSize": 3659078433,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:53ed7b13ef202364bf560b8cf53f04cd74a10077b212b495c5ab8227233b72dd",
+        "History": [
+            "docker.io/library/4f0c204ca3ea498a3414caa95ed0edf08913f332cf307a2dea23c6307e6f5d31-tmp:latest"
+        ],
+        "Created": 1767822268,
+        "CreatedAt": "2026-01-07T21:44:28Z"
+    },
+    {
+        "Id": "426375c791b7901d1a2cb547bac0540d36e892794cf07413c7c1139294f327a2",
+        "ParentId": "d7d65de9d3dff2fd0b9afad819fdff154961e9860f0378aee055d36a81b71aed",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 3659077921,
+        "SharedSize": 0,
+        "VirtualSize": 3659077921,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:34da1d9c0f6ebebecf5b3f5bbe7ed7880a6a3ab4624c7094a7abbd413b452981",
+        "History": [
+            "docker.io/library/1d34a9f33e6905cc45a73159c4796cf2f002ef9e093a606cf6e65c1b799c4afe-tmp:latest"
+        ],
+        "Created": 1767821105,
+        "CreatedAt": "2026-01-07T21:25:05Z"
+    },
+    {
+        "Id": "d860003c5d60e9df0c4f8dae66ac64479ded9e052e9f21487d44386c601090b7",
+        "ParentId": "60791f4156829190b586dc52897d8d522e732aac628ce4f08301e13ecac63dd4",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 3657960224,
+        "SharedSize": 0,
+        "VirtualSize": 3657960224,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:293e1bfd5f8f7737f096b4fc820e0c9c858a72e62eb58f5c37d4742fbe221c59",
+        "History": [
+            "docker.io/library/1b3fa65ca05a2b9222e7d326dbee7967cfdbad1d2cb6244068f112f8da364f27-tmp:latest"
+        ],
+        "Created": 1767810870,
+        "CreatedAt": "2026-01-07T18:34:30Z"
+    },
+    {
+        "Id": "3dc6d67ef0456472ab2f5649be11c4f785398014cf8453a196491734a6a29e9b",
+        "ParentId": "261e07e8f8bd029e1156cf0c747757c73a1b81a190f81d8d1d7f5a7d839a499a",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 552232733,
+        "SharedSize": 0,
+        "VirtualSize": 552232733,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:b96cb9f2747916be0a5c79d11cbac60d06040d5a5e50ad5c8609943dc808a0b6",
+        "History": [
+            "localhost/intelitor-v52_indrajaal-cortex:latest"
+        ],
+        "Created": 1767807087,
+        "CreatedAt": "2026-01-07T17:31:27Z"
+    },
+    {
+        "Id": "38674e853235d5b07cb6f7588e79c7faf751f446e98ecc4f2f682318fceb7bb2",
+        "ParentId": "bacee6c64cc4c9cca0168e08c7f3076ddfbd574bd65e1e1d99005097e4090c99",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 4003376938,
+        "SharedSize": 0,
+        "VirtualSize": 4003376938,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:7f7b8542bcba4ae0fec058324313909ec744a8bf28b81af6216a3e26f47113fe",
+        "History": [
+            "docker.io/library/1111cee13d1a3b4fd5c8fba9319933bb82c4fa4f4be6b903e99f84decf2d6f3e-tmp:latest"
+        ],
+        "Created": 1767807069,
+        "CreatedAt": "2026-01-07T17:31:09Z"
+    },
+    {
+        "Id": "e9e501c14fdfa13c1308efb10dc874f9ab8fb20c94dbee4454c8e2dc91bd7bed",
+        "ParentId": "3a71bf312a429133403f1280e5f8d2455f0c0f2a78083027006cc59a3085ea49",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 552233245,
+        "SharedSize": 0,
+        "VirtualSize": 552233245,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:268c8d3b8ce94ad001ae314802d41bb59a83140c98543329198aa1415d68d556",
+        "History": [
+            "localhost/indrajaal-cortex:latest"
+        ],
+        "Created": 1767805333,
+        "CreatedAt": "2026-01-07T17:02:13Z"
+    },
+    {
+        "Id": "5b6ae364e1fff065e6a8209f46f479e00af6f7cb26e056e08c0af67a03103efe",
+        "ParentId": "6ef5315fc3c62315fff4b048cc7962946e7f7174a26a4b6ad96dacd1561afa05",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 4003377449,
+        "SharedSize": 0,
+        "VirtualSize": 4003377449,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:1717e8109a3231bab1df574001bc80aeb5599414b43676f886e7f50299ec4c3d",
+        "History": [
+            "docker.io/library/b8353461dce8146e7b44d91337439d8bb10821bde4e5da4e68575912874022b8-tmp:latest"
+        ],
+        "Created": 1767805316,
+        "CreatedAt": "2026-01-07T17:01:56Z"
+    },
+    {
+        "Id": "805f2d2ff17ddc8d7ac9be3fd26c8bd28cadd445be29cf56eb9cfd5cace6b935",
+        "ParentId": "5abbc7e47a0e6142ddd24445ddd94628d47b50deebd318d7b359ba39162e32fc",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 14568456896,
+        "SharedSize": 0,
+        "VirtualSize": 14568456896,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:bddd69ac69e399906896b4d5f58cd16d74d8576c3343557a3f7b6db17c3f1277",
+        "History": [
+            "localhost/indrajaal-app:latest"
+        ],
+        "Created": 1767805249,
+        "CreatedAt": "2026-01-07T17:00:49Z"
+    },
+    {
+        "Id": "8f63c31dea0a2c31a3abce1bce0b78439a9b690473a7c55d0b432cb8cf96f1a4",
+        "ParentId": "09fe34a94fd329ccf30844862951356da522445ff20df0d6915583c53443bb15",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 14565659327,
+        "SharedSize": 0,
+        "VirtualSize": 14565659327,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:7c3d45b07033b447959504e4025930417828b3a104ee71164c4f982cb6086225",
+        "History": [
+            "localhost/indrajaal-app:latest"
+        ],
+        "Created": 1767789983,
+        "CreatedAt": "2026-01-07T12:46:23Z"
+    },
+    {
+        "Id": "8e8ceb1eccf2fe9c200db1ff7c032e6a15efc87f0a1911be901188d747261075",
+        "ParentId": "e2c9af2f03e21cf47d2f7f1922811d58ba767f908d881a90b4dc49a357a3bcdf",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 11932240077,
+        "SharedSize": 0,
+        "VirtualSize": 11932240077,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:c6d6dc83743c58d4a62b94bbf550e735424ab829160bc2c99a08a27fb7267d8d",
+        "History": [
+            "docker.io/library/c433073fa1b4b0d63f418b45408efd196f93645f286ffc9adb66c2225895b1c5-tmp:latest"
+        ],
+        "Created": 1767788723,
+        "CreatedAt": "2026-01-07T12:25:23Z"
+    },
+    {
+        "Id": "dcdeb23904bc29bd0a84e1d598e3bb920b2d0e1b407b42cae0005169fc7ad1dd",
+        "ParentId": "c1f83c293df370ef31dba7acc87076f7cf5d98e2cfbffa7d42c5cdb6e3d08783",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 552233245,
+        "SharedSize": 0,
+        "VirtualSize": 552233245,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:30716b5a36b8dfb8fbae0f58d4d658fa32cdae6369c9a3c6861f6e5e9343f7de",
+        "History": [
+            "localhost/indrajaal-cortex:latest"
+        ],
+        "Created": 1767784445,
+        "CreatedAt": "2026-01-07T11:14:05Z"
+    },
+    {
+        "Id": "c3616f8212d9e532d8e77893cb4616565d0afe18d650cb3abfe0c8de00fd0db3",
+        "ParentId": "c5b7645c9f7fc258554e3f472eb016530251497452c283e35367791ef81ddb05",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 4003312937,
+        "SharedSize": 0,
+        "VirtualSize": 4003312937,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:b9547b5ffdf2a3ce29a36504a4ce88865aa86930bf0f0db58e7e516d49ff2d4e",
+        "History": [
+            "docker.io/library/d4495d4dcf56e2434127046685071ba246f91b3cfb48b815737ccda22d0642d7-tmp:latest"
+        ],
+        "Created": 1767784424,
+        "CreatedAt": "2026-01-07T11:13:44Z"
+    },
+    {
+        "Id": "cc6cbce899466ed0a6f2c4bdb69e6d3a1ef84270a3ed60c4972cea3117e7aedf",
+        "ParentId": "236b2b17f383ae1aeb605d9e0b556d2dd1de5d6ca225e411788ecde2d28c2a24",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 12115229382,
+        "SharedSize": 0,
+        "VirtualSize": 12115229382,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:32f05db3851d90baf67c9b62692033587467914550d6dc801e7f77d9c7d3b5be",
+        "History": [
+            "localhost/indrajaal-app:latest"
+        ],
+        "Created": 1767783692,
+        "CreatedAt": "2026-01-07T11:01:32Z"
+    },
+    {
+        "Id": "6eac28208fd18b319edc73cfadbda5965719f590a56bdc9b5f92faf9ddfe6ffd",
+        "ParentId": "898eb8ca020c7b5a337567448842ef6a61cb4ab9c817982a0720d46b7c1b04fb",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 552229661,
+        "SharedSize": 0,
+        "VirtualSize": 552229661,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:c970b561b747bc42662e92ee2ffa0c89a42cfe77e434185b5035fd22988eb868",
+        "History": [
+            "localhost/indrajaal-cortex:latest"
+        ],
+        "Created": 1767783413,
+        "CreatedAt": "2026-01-07T10:56:53Z"
+    },
+    {
+        "Id": "9409dcda8d2da9c3db6d8b0b7237b4245b559425351a14fb23937e593bdc4134",
+        "ParentId": "2e61fdbc7f712227ca12c0e114ac45031e2c16c8e2e6fa4d22b8547ade73c2d9",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 4003352362,
+        "SharedSize": 0,
+        "VirtualSize": 4003352362,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:6d4d7c1f5145a3ea9c9365ba2af012112ce57240a2a9a617776bac74ab49b32f",
+        "History": [
+            "docker.io/library/a2b14cce375fad5778512ca0af2b70e16760a8eee9254c56a88ebb14bd8edfff-tmp:latest"
+        ],
+        "Created": 1767783389,
+        "CreatedAt": "2026-01-07T10:56:29Z"
+    },
+    {
+        "Id": "caf7fbcd999fbadfbe0b2b71477013daa1948c4ef8ff3e8a886b3ba98d025559",
+        "ParentId": "cf03018f9971fac76e890899c83fa6df1e7614f65571d7eaf7fe6a8d846d495b",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 3311583521,
+        "SharedSize": 0,
+        "VirtualSize": 3311583521,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:241b27c40547a42e4cd4a3f32ecb1fb4e59dbdd4338f64acb7fca98725cfd4e6",
+        "History": [
+            "docker.io/library/ad9df2ed424de697b513f16356e162854cda6cd8537b5c97b44502650013dcde-tmp:latest"
+        ],
+        "Created": 1767783207,
+        "CreatedAt": "2026-01-07T10:53:27Z"
+    },
+    {
+        "Id": "1ac6dee46fbe1df85f1c4a95d342ee4eefcabe3611f9720289f5f7e32ffa9bf6",
+        "ParentId": "d74bb0afefa6e94250a3076711801b5317424576c31a7fc0fece8d68a65d056e",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 930466427,
+        "SharedSize": 0,
+        "VirtualSize": 930466427,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:53c9d34d4c17af25f9fdcc89f73718d2545e1d010ab5c4a8aef44ca12fd2e671",
+        "History": [
+            "docker.io/library/a966954447df6eb4d135700e56dc5eb56459a8c15a0f9472a8e4bb77e2fbc103-tmp:latest"
+        ],
+        "Created": 1767782925,
+        "CreatedAt": "2026-01-07T10:48:45Z"
+    },
+    {
+        "Id": "c0e7f4df33b81f85038fd9edd4c5951ac0ede55f1636f8d2e05dc117d10205f5",
+        "ParentId": "1485fce394445bd2c6960ec4d3098d98e1113997f0b0b0e983022fb3a45d8380",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 209174809,
+        "SharedSize": 0,
+        "VirtualSize": 209174809,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:ea963053812f3d2afffcdaf244cade49bf96443c2a91368cc0650104c9c399ca",
+        "History": [
+            "localhost/intelitor-v52_indrajaal-cortex:latest"
+        ],
+        "Created": 1767771613,
+        "CreatedAt": "2026-01-07T07:40:13Z"
+    },
+    {
+        "Id": "99ae49b2e215dab42a5b478453e6ef18f9068ebac817f49370d0882a30cf1b8a",
+        "ParentId": "1bee8e98674000de562dc80264eab867a0c5586cf4fd786ae83ea95c57f73a67",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 926437474,
+        "SharedSize": 0,
+        "VirtualSize": 926437474,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:fc3003193335d42245561bfff17f5705c877cffe4381634698a8f39d1b2d761a",
+        "History": [
+            "docker.io/library/ffcc5b160e841a1daf8482201b9c77d4e42b94bbe55b30862ddcb534d23bda38-tmp:latest"
+        ],
+        "Created": 1767771612,
+        "CreatedAt": "2026-01-07T07:40:12Z"
+    },
+    {
+        "Id": "62e5861e3d09b88b1970e544803d20f404ddb77289f1d414278eb57482749d01",
+        "ParentId": "f07748dd1902293a309260b3fea232d1feb655021e4b921ec5d943c7e92528f0",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 12114832070,
+        "SharedSize": 0,
+        "VirtualSize": 12114832070,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:7b0464cecb2ea00c566726100888a09793af3632710d7e5525178cdb775bc224",
+        "History": [
+            "localhost/indrajaal-app:latest"
+        ],
+        "Created": 1767771205,
+        "CreatedAt": "2026-01-07T07:33:25Z"
+    },
+    {
+        "Id": "d706a8ac7d6327ea28ffcd10ad6595acc491ddcaa49bf2ec270bfe787fd8e476",
+        "ParentId": "8ace61762275f0c0d876f213ca568d5a750039022ac2c71c38d72ea483ba0594",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 12114757750,
+        "SharedSize": 0,
+        "VirtualSize": 12114757750,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:6af3199ae180905a86f2f4054050530e29c0e9ffb3bc6ab2944c9864f9bdfe5f",
+        "History": [
+            "localhost/indrajaal-app:latest"
+        ],
+        "Created": 1767770942,
+        "CreatedAt": "2026-01-07T07:29:02Z"
+    },
+    {
+        "Id": "c0459bd3e1a586022c6d6c605789a4ae4436c263646cb74ce4c7555ce54f0b44",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "docker.io/otel/opentelemetry-collector-contrib@sha256:7794d89a5ddc75049bb9d351aa1115a166c4614b939b50d41092ef5d1f2817aa",
+            "docker.io/otel/opentelemetry-collector-contrib@sha256:f051aff195ad50ed5ad9d95bcdd51d7258200c937def3797cf830366ed62e034"
+        ],
+        "Size": 355635671,
+        "SharedSize": 0,
+        "VirtualSize": 355635671,
+        "Labels": {
+            "org.opencontainers.image.created": "2026-01-06T17:48:40Z",
+            "org.opencontainers.image.licenses": "Apache-2.0",
+            "org.opencontainers.image.name": "opentelemetry-collector-releases",
+            "org.opencontainers.image.revision": "c2cf2d80fd860ac6656ec01b6447a09eefb6fbce",
+            "org.opencontainers.image.source": "https://github.com/open-telemetry/opentelemetry-collector-releases",
+            "org.opencontainers.image.version": "0.143.1"
+        },
+        "Containers": 0,
+        "Digest": "sha256:f051aff195ad50ed5ad9d95bcdd51d7258200c937def3797cf830366ed62e034",
+        "History": [
+            "docker.io/otel/opentelemetry-collector-contrib:latest"
+        ],
+        "Names": [
+            "docker.io/otel/opentelemetry-collector-contrib:latest"
+        ],
+        "Created": 1767721777,
+        "CreatedAt": "2026-01-06T17:49:37Z"
+    },
+    {
+        "Id": "a63b0e1c96ffae60861fb061c6a8627dae1051f851713a4890aeaf6bf4ce71ab",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "docker.io/timescale/timescaledb@sha256:64e885d2cd7e809da3cdd263a2933951f8d41ab593897f585dfdb8f3d5996299",
+            "docker.io/timescale/timescaledb@sha256:8ab414f7f73fd47dfa643097f1a753e2ac009c70fcb0de5717d0e79d21e7b7d6"
+        ],
+        "Size": 875232727,
+        "SharedSize": 0,
+        "VirtualSize": 875232727,
+        "Labels": {
+            "maintainer": "Timescale https://www.timescale.com"
+        },
+        "Containers": 0,
+        "Digest": "sha256:8ab414f7f73fd47dfa643097f1a753e2ac009c70fcb0de5717d0e79d21e7b7d6",
+        "History": [
+            "docker.io/timescale/timescaledb:latest-pg17"
+        ],
+        "Names": [
+            "docker.io/timescale/timescaledb:latest-pg17"
+        ],
+        "Created": 1767608202,
+        "CreatedAt": "2026-01-05T10:16:42Z"
+    },
+    {
+        "Id": "5408acd9222e3e0eb97f6b157082dd39b59f5bce835bae06cc7c615d2bf998c5",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 875099157,
+        "SharedSize": 0,
+        "VirtualSize": 875099157,
+        "Labels": {
+            "io.buildah.version": "1.42.0",
+            "maintainer": "Timescale https://www.timescale.com"
+        },
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:47554bf3c9fc1155f828f2ac003fbc558c81df5ac17e7d0cf4a75298d37646c7",
+        "History": [
+            "localhost/indrajaal-db:latest"
+        ],
+        "Created": 1767599749,
+        "CreatedAt": "2026-01-05T07:55:49Z"
+    },
+    {
+        "Id": "b1262cc358ac6d33d7a8f2a46b988ce47da2e31c530d6f9eb3a81f96ca8efeef",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "docker.io/library/redis@sha256:079e73d0c2975174d6e01922554f4f2bc5fcdd7a0bf0108e368a253479a34b79",
+            "docker.io/library/redis@sha256:f6f58ac6355513c91d7b4d4f3b60b60cfead6ebb94c52643c0135ba5079a28f7"
+        ],
+        "Size": 120223142,
+        "SharedSize": 0,
+        "VirtualSize": 120223142,
+        "Labels": null,
+        "Containers": 0,
+        "Digest": "sha256:f6f58ac6355513c91d7b4d4f3b60b60cfead6ebb94c52643c0135ba5079a28f7",
+        "History": [
+            "docker.io/library/redis:7"
+        ],
+        "Names": [
+            "docker.io/library/redis:7"
+        ],
+        "Created": 1767051653,
+        "CreatedAt": "2025-12-29T23:40:53Z"
+    },
+    {
+        "Id": "0651d9c277ea79d6da6f39febf4a57f7e8f024dac472dc72f52dde25a5aec0cd",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/indrajaal-obs-unified@sha256:784f0a9e2beea3c08368f600a665cd95107789f9d7298c6b31b00c5c5eaf640e",
+            "localhost/intelitor-observability@sha256:784f0a9e2beea3c08368f600a665cd95107789f9d7298c6b31b00c5c5eaf640e"
+        ],
+        "Size": 7804146731,
+        "SharedSize": 0,
+        "VirtualSize": 7804146731,
+        "Labels": {
+            "io.buildah.version": "1.39.3",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea"
+        },
+        "Containers": 1,
+        "Digest": "sha256:784f0a9e2beea3c08368f600a665cd95107789f9d7298c6b31b00c5c5eaf640e",
+        "History": [
+            "localhost/intelitor-observability:nixos",
+            "localhost/indrajaal-obs-unified:nixos-devenv",
+            "localhost/indrajaal-obs:latest"
+        ],
+        "Names": [
+            "localhost/indrajaal-obs-unified:nixos-devenv",
+            "localhost/intelitor-observability:nixos"
+        ],
+        "Created": 1766533701,
+        "CreatedAt": "2025-12-23T23:48:21Z"
+    },
+    {
+        "Id": "0651d9c277ea79d6da6f39febf4a57f7e8f024dac472dc72f52dde25a5aec0cd",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/indrajaal-obs-unified@sha256:784f0a9e2beea3c08368f600a665cd95107789f9d7298c6b31b00c5c5eaf640e",
+            "localhost/intelitor-observability@sha256:784f0a9e2beea3c08368f600a665cd95107789f9d7298c6b31b00c5c5eaf640e"
+        ],
+        "Size": 7804146731,
+        "SharedSize": 0,
+        "VirtualSize": 7804146731,
+        "Labels": {
+            "io.buildah.version": "1.39.3",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea"
+        },
+        "Containers": 1,
+        "Digest": "sha256:784f0a9e2beea3c08368f600a665cd95107789f9d7298c6b31b00c5c5eaf640e",
+        "History": [
+            "localhost/intelitor-observability:nixos",
+            "localhost/indrajaal-obs-unified:nixos-devenv",
+            "localhost/indrajaal-obs:latest"
+        ],
+        "Names": [
+            "localhost/indrajaal-obs-unified:nixos-devenv",
+            "localhost/intelitor-observability:nixos"
+        ],
+        "Created": 1766533701,
+        "CreatedAt": "2025-12-23T23:48:21Z"
+    },
+    {
+        "Id": "6a9d44332f26a564764dec8e17250c86c276f3755c5e68b90181a803b6b99136",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/indrajaal-app-unified@sha256:254e2489394753f0265b3c0acae96957d7f8f7f2e85a3ff4e0ad240c82da68cd",
+            "localhost/intelitor-sopv51-elixir-app@sha256:254e2489394753f0265b3c0acae96957d7f8f7f2e85a3ff4e0ad240c82da68cd"
+        ],
+        "Size": 9394479593,
+        "SharedSize": 0,
+        "VirtualSize": 9394479593,
+        "Labels": {
+            "io.buildah.version": "1.39.3",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 1,
+        "Digest": "sha256:254e2489394753f0265b3c0acae96957d7f8f7f2e85a3ff4e0ad240c82da68cd",
+        "History": [
+            "localhost/intelitor-sopv51-elixir-app:nixos-25.05-devenv",
+            "localhost/intelitor-sopv51-elixir-app:elixir-1.19-otp28",
+            "localhost/indrajaal-sopv51-elixir-app:nixos-25.05-devenv",
+            "localhost/indrajaal-app-unified:nixos-devenv",
+            "localhost/indrajaal-app:latest",
+            "localhost/intelitor-app:latest"
+        ],
+        "Names": [
+            "localhost/indrajaal-app-unified:nixos-devenv",
+            "localhost/intelitor-sopv51-elixir-app:elixir-1.19-otp28",
+            "localhost/intelitor-sopv51-elixir-app:nixos-25.05-devenv"
+        ],
+        "Created": 1766463745,
+        "CreatedAt": "2025-12-23T04:22:25Z"
+    },
+    {
+        "Id": "6a9d44332f26a564764dec8e17250c86c276f3755c5e68b90181a803b6b99136",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/indrajaal-app-unified@sha256:254e2489394753f0265b3c0acae96957d7f8f7f2e85a3ff4e0ad240c82da68cd",
+            "localhost/intelitor-sopv51-elixir-app@sha256:254e2489394753f0265b3c0acae96957d7f8f7f2e85a3ff4e0ad240c82da68cd"
+        ],
+        "Size": 9394479593,
+        "SharedSize": 0,
+        "VirtualSize": 9394479593,
+        "Labels": {
+            "io.buildah.version": "1.39.3",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 1,
+        "Digest": "sha256:254e2489394753f0265b3c0acae96957d7f8f7f2e85a3ff4e0ad240c82da68cd",
+        "History": [
+            "localhost/intelitor-sopv51-elixir-app:nixos-25.05-devenv",
+            "localhost/intelitor-sopv51-elixir-app:elixir-1.19-otp28",
+            "localhost/indrajaal-sopv51-elixir-app:nixos-25.05-devenv",
+            "localhost/indrajaal-app-unified:nixos-devenv",
+            "localhost/indrajaal-app:latest",
+            "localhost/intelitor-app:latest"
+        ],
+        "Names": [
+            "localhost/indrajaal-app-unified:nixos-devenv",
+            "localhost/intelitor-sopv51-elixir-app:elixir-1.19-otp28",
+            "localhost/intelitor-sopv51-elixir-app:nixos-25.05-devenv"
+        ],
+        "Created": 1766463745,
+        "CreatedAt": "2025-12-23T04:22:25Z"
+    },
+    {
+        "Id": "6a9d44332f26a564764dec8e17250c86c276f3755c5e68b90181a803b6b99136",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/indrajaal-app-unified@sha256:254e2489394753f0265b3c0acae96957d7f8f7f2e85a3ff4e0ad240c82da68cd",
+            "localhost/intelitor-sopv51-elixir-app@sha256:254e2489394753f0265b3c0acae96957d7f8f7f2e85a3ff4e0ad240c82da68cd"
+        ],
+        "Size": 9394479593,
+        "SharedSize": 0,
+        "VirtualSize": 9394479593,
+        "Labels": {
+            "io.buildah.version": "1.39.3",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 1,
+        "Digest": "sha256:254e2489394753f0265b3c0acae96957d7f8f7f2e85a3ff4e0ad240c82da68cd",
+        "History": [
+            "localhost/intelitor-sopv51-elixir-app:nixos-25.05-devenv",
+            "localhost/intelitor-sopv51-elixir-app:elixir-1.19-otp28",
+            "localhost/indrajaal-sopv51-elixir-app:nixos-25.05-devenv",
+            "localhost/indrajaal-app-unified:nixos-devenv",
+            "localhost/indrajaal-app:latest",
+            "localhost/intelitor-app:latest"
+        ],
+        "Names": [
+            "localhost/indrajaal-app-unified:nixos-devenv",
+            "localhost/intelitor-sopv51-elixir-app:elixir-1.19-otp28",
+            "localhost/intelitor-sopv51-elixir-app:nixos-25.05-devenv"
+        ],
+        "Created": 1766463745,
+        "CreatedAt": "2025-12-23T04:22:25Z"
+    },
+    {
+        "Id": "5a05de95468ca94bec10fe9e7dfc6b9c106c291dab423e13c22c698ff53c6c28",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/intelitor-obs@sha256:e9a7a3222f39bf88088533451459fcc6ad34c6072014224288dbe3e38b5f8d9a",
+            "localhost/sopv51-base@sha256:e9a7a3222f39bf88088533451459fcc6ad34c6072014224288dbe3e38b5f8d9a"
+        ],
+        "Size": 5142431159,
+        "SharedSize": 0,
+        "VirtualSize": 5142431159,
+        "Labels": {
+            "io.buildah.version": "1.39.3",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea"
+        },
+        "Containers": 3,
+        "Digest": "sha256:e9a7a3222f39bf88088533451459fcc6ad34c6072014224288dbe3e38b5f8d9a",
+        "History": [
+            "localhost/sopv51-base:latest",
+            "localhost/intelitor-obs:latest",
+            "localhost/intelitor-observability:nixos",
+            "localhost/intelitor-prometheus-demo:nixos-devenv"
+        ],
+        "Names": [
+            "localhost/intelitor-obs:latest",
+            "localhost/sopv51-base:latest"
+        ],
+        "Created": 1766435852,
+        "CreatedAt": "2025-12-22T20:37:32Z"
+    },
+    {
+        "Id": "5a05de95468ca94bec10fe9e7dfc6b9c106c291dab423e13c22c698ff53c6c28",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/intelitor-obs@sha256:e9a7a3222f39bf88088533451459fcc6ad34c6072014224288dbe3e38b5f8d9a",
+            "localhost/sopv51-base@sha256:e9a7a3222f39bf88088533451459fcc6ad34c6072014224288dbe3e38b5f8d9a"
+        ],
+        "Size": 5142431159,
+        "SharedSize": 0,
+        "VirtualSize": 5142431159,
+        "Labels": {
+            "io.buildah.version": "1.39.3",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea"
+        },
+        "Containers": 3,
+        "Digest": "sha256:e9a7a3222f39bf88088533451459fcc6ad34c6072014224288dbe3e38b5f8d9a",
+        "History": [
+            "localhost/sopv51-base:latest",
+            "localhost/intelitor-obs:latest",
+            "localhost/intelitor-observability:nixos",
+            "localhost/intelitor-prometheus-demo:nixos-devenv"
+        ],
+        "Names": [
+            "localhost/intelitor-obs:latest",
+            "localhost/sopv51-base:latest"
+        ],
+        "Created": 1766435852,
+        "CreatedAt": "2025-12-22T20:37:32Z"
+    },
+    {
+        "Id": "290d6ba9e6683e4f33d77090cbcff00e48f47aeb8c286bb5025a59c7c675ef4a",
+        "ParentId": "28be8e59302af77867b31d59be06f731b6c579d5ecfba4df990be00299d0f160",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 8996289574,
+        "SharedSize": 0,
+        "VirtualSize": 8996289574,
+        "Labels": {
+            "io.buildah.version": "1.39.3",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 1,
+        "Dangling": true,
+        "Digest": "sha256:7fbdcbc640636e989a1965976fa385ff10d94084ca92e21f8d6a762c5654598a",
+        "History": [
+            "docker.io/library/410033f325f02f1c44a2fef5b8554aaab775e2d5732a5ebd51de03dfae206917-tmp:latest"
+        ],
+        "Created": 1766406301,
+        "CreatedAt": "2025-12-22T12:25:01Z"
+    },
+    {
+        "Id": "bb28cd509a63e41f0419327e15129c6a22f28616937759a117af557b2de0a2a4",
+        "ParentId": "28be8e59302af77867b31d59be06f731b6c579d5ecfba4df990be00299d0f160",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 8994465830,
+        "SharedSize": 0,
+        "VirtualSize": 8994465830,
+        "Labels": {
+            "io.buildah.version": "1.39.3",
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251221_96204ea",
+            "sopv51.build.timestamp": "1754131950",
+            "sopv51.git.branch": "feature/nixos-container-infrastructure",
+            "sopv51.git.commit": "14744f6823c3da92c6c25a829023c0a7817d74e3",
+            "sopv51.phics.enabled": "true",
+            "sopv51.version": "5.1.0"
+        },
+        "Containers": 1,
+        "Dangling": true,
+        "Digest": "sha256:5d8182e933f582551c0b71875e1da59a2b25f4bafc7b0c4adfe91b69f4cdd4df",
+        "History": [
+            "docker.io/library/1fe5614300640b6f507ea5654ca6b7b07d9d29076991016ab07acb4c5d794aa7-tmp:latest"
+        ],
+        "Created": 1766404788,
+        "CreatedAt": "2025-12-22T11:59:48Z"
+    },
+    {
+        "Id": "5cdab57891eadfc05b9c76519b4b1be6ba2ac1c3bb8fdedd90fdcf7fc9b40242",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "docker.io/grafana/grafana@sha256:2175aaa91c96733d86d31cf270d5310b278654b03f5718c59de12a865380a31f",
+            "docker.io/grafana/grafana@sha256:7c064e627d9cb50c3485c9ded5ca0222de89a08e41403322a0c3ca6f1777a8d1"
+        ],
+        "Size": 756307063,
+        "SharedSize": 0,
+        "VirtualSize": 756307063,
+        "Labels": {
+            "maintainer": "Grafana Labs \u003chello@grafana.com\u003e",
+            "org.opencontainers.image.source": "https://github.com/grafana/grafana"
+        },
+        "Containers": 0,
+        "Digest": "sha256:2175aaa91c96733d86d31cf270d5310b278654b03f5718c59de12a865380a31f",
+        "History": [
+            "docker.io/grafana/grafana:latest"
+        ],
+        "Names": [
+            "docker.io/grafana/grafana:latest"
+        ],
+        "Created": 1766070942,
+        "CreatedAt": "2025-12-18T15:15:42Z"
+    },
+    {
+        "Id": "dfa84a0f72cb7ebecd81c4ecf9a0e4e19462f35d27f0291ef0844ab539d1c4da",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "docker.io/library/elixir@sha256:5e1a7f084f0e489c4c69238d02d9630691e67b69a955580fc3d13647c999f403",
+            "docker.io/library/elixir@sha256:98b6c14bb43ae084a8a4e8344b8cac3b7a36379a149c86d211fd69197e3f2335",
+            "localhost:5000/intelitor-app@sha256:5e1a7f084f0e489c4c69238d02d9630691e67b69a955580fc3d13647c999f403",
+            "localhost:5000/intelitor-app@sha256:98b6c14bb43ae084a8a4e8344b8cac3b7a36379a149c86d211fd69197e3f2335"
+        ],
+        "Size": 106272862,
+        "SharedSize": 0,
+        "VirtualSize": 106272862,
+        "Labels": {
+            "org.opencontainers.image.version": "28.3"
+        },
+        "Containers": 2,
+        "Digest": "sha256:5e1a7f084f0e489c4c69238d02d9630691e67b69a955580fc3d13647c999f403",
+        "History": [
+            "localhost:5000/intelitor-app:nixos-devenv",
+            "docker.io/library/elixir:1.19-alpine",
+            "localhost:5000/intelitor-sopv51-elixir-app:nixos-devenv"
+        ],
+        "Names": [
+            "docker.io/library/elixir:1.19-alpine",
+            "localhost:5000/intelitor-app:nixos-devenv"
+        ],
+        "Created": 1766021047,
+        "CreatedAt": "2025-12-18T01:24:07Z"
+    },
+    {
+        "Id": "dfa84a0f72cb7ebecd81c4ecf9a0e4e19462f35d27f0291ef0844ab539d1c4da",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "docker.io/library/elixir@sha256:5e1a7f084f0e489c4c69238d02d9630691e67b69a955580fc3d13647c999f403",
+            "docker.io/library/elixir@sha256:98b6c14bb43ae084a8a4e8344b8cac3b7a36379a149c86d211fd69197e3f2335",
+            "localhost:5000/intelitor-app@sha256:5e1a7f084f0e489c4c69238d02d9630691e67b69a955580fc3d13647c999f403",
+            "localhost:5000/intelitor-app@sha256:98b6c14bb43ae084a8a4e8344b8cac3b7a36379a149c86d211fd69197e3f2335"
+        ],
+        "Size": 106272862,
+        "SharedSize": 0,
+        "VirtualSize": 106272862,
+        "Labels": {
+            "org.opencontainers.image.version": "28.3"
+        },
+        "Containers": 2,
+        "Digest": "sha256:5e1a7f084f0e489c4c69238d02d9630691e67b69a955580fc3d13647c999f403",
+        "History": [
+            "localhost:5000/intelitor-app:nixos-devenv",
+            "docker.io/library/elixir:1.19-alpine",
+            "localhost:5000/intelitor-sopv51-elixir-app:nixos-devenv"
+        ],
+        "Names": [
+            "docker.io/library/elixir:1.19-alpine",
+            "localhost:5000/intelitor-app:nixos-devenv"
+        ],
+        "Created": 1766021047,
+        "CreatedAt": "2025-12-18T01:24:07Z"
+    },
+    {
+        "Id": "04da2b0513cd78d8d29d60575cef80813c5496c15a801921e47efdf0feba39e5",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "docker.io/library/nginx@sha256:8491795299c8e739b7fcc6285d531d9812ce2666e07bd3dd8db00020ad132295",
+            "docker.io/library/nginx@sha256:dcfed685de6f232a6cefc043f92d8b0d64c8d1edf650a61805f2c7a3d745b749"
+        ],
+        "Size": 55167679,
+        "SharedSize": 0,
+        "VirtualSize": 55167679,
+        "Labels": {
+            "maintainer": "NGINX Docker Maintainers \u003cdocker-maint@nginx.com\u003e"
+        },
+        "Containers": 0,
+        "Digest": "sha256:8491795299c8e739b7fcc6285d531d9812ce2666e07bd3dd8db00020ad132295",
+        "History": [
+            "docker.io/library/nginx:alpine"
+        ],
+        "Names": [
+            "docker.io/library/nginx:alpine"
+        ],
+        "Created": 1766020444,
+        "CreatedAt": "2025-12-18T01:14:04Z"
+    },
+    {
+        "Id": "e7b39c54cdeca0d2aae83114bb605753a5f5bc511fe8be7590e38f6d9f915dad",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "docker.io/library/alpine@sha256:1882fa4569e0c591ea092d3766c4893e19b8901a8e649de7067188aba3cc0679",
+            "docker.io/library/alpine@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62"
+        ],
+        "Size": 8736353,
+        "SharedSize": 0,
+        "VirtualSize": 8736353,
+        "Labels": null,
+        "Containers": 0,
+        "Digest": "sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62",
+        "History": [
+            "docker.io/library/alpine:latest"
+        ],
+        "Names": [
+            "docker.io/library/alpine:latest"
+        ],
+        "Created": 1766016749,
+        "CreatedAt": "2025-12-18T00:12:29Z"
+    },
+    {
+        "Id": "8ddf2f4215ff731c0022349edf8b26125ec76aacc03203ca968bd04a9c7e896d",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "docker.io/tailscale/tailscale@sha256:89bb5a69cd880fbeafaa67e9e7c35e4fe0ac2ccabb54e0e9e210cc7540962d64",
+            "docker.io/tailscale/tailscale@sha256:d6734d69fd7d31b1861589e347463954aa6097f9a61aa4f8f763ba94bfe0e5b9"
+        ],
+        "Size": 103722077,
+        "SharedSize": 0,
+        "VirtualSize": 103722077,
+        "Labels": null,
+        "Containers": 1,
+        "Digest": "sha256:d6734d69fd7d31b1861589e347463954aa6097f9a61aa4f8f763ba94bfe0e5b9",
+        "History": [
+            "docker.io/tailscale/tailscale:stable"
+        ],
+        "Names": [
+            "docker.io/tailscale/tailscale:stable"
+        ],
+        "Created": 1765923757,
+        "CreatedAt": "2025-12-16T22:22:37Z"
+    },
+    {
+        "Id": "4873a0c91ce657607666069f94179b986353cff0451c6b4e47d9b16808d1952d",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "mcr.microsoft.com/dotnet/sdk@sha256:d1823fecac3689a2eb959e02ee3bfe1c2142392808240039097ad70644566190",
+            "mcr.microsoft.com/dotnet/sdk@sha256:ec137e19c38302ecd38a7203992b01699c0d7dd94fb2a2749e7c6e09be742dbb"
+        ],
+        "Size": 891313322,
+        "SharedSize": 0,
+        "VirtualSize": 891313322,
+        "Labels": {
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Digest": "sha256:d1823fecac3689a2eb959e02ee3bfe1c2142392808240039097ad70644566190",
+        "History": [
+            "mcr.microsoft.com/dotnet/sdk:10.0"
+        ],
+        "Names": [
+            "mcr.microsoft.com/dotnet/sdk:10.0"
+        ],
+        "Created": 1765232844,
+        "CreatedAt": "2025-12-08T22:27:24Z"
+    },
+    {
+        "Id": "f62dd3c847adc74e49efc40e187b8a1191cc528bafa174377d26a0dccf7a2f20",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "mcr.microsoft.com/dotnet/runtime@sha256:325e9e0c2121b578a81129365989af6030b666a08d1ec7120145d220d524a1ee",
+            "mcr.microsoft.com/dotnet/runtime@sha256:8176523fb362a0e2a9b6874d23a99793723609dfbac25083fb0949f979064dee"
+        ],
+        "Size": 206821458,
+        "SharedSize": 0,
+        "VirtualSize": 206821458,
+        "Labels": {
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "24.04"
+        },
+        "Containers": 0,
+        "Digest": "sha256:325e9e0c2121b578a81129365989af6030b666a08d1ec7120145d220d524a1ee",
+        "History": [
+            "mcr.microsoft.com/dotnet/runtime:10.0"
+        ],
+        "Names": [
+            "mcr.microsoft.com/dotnet/runtime:10.0"
+        ],
+        "Created": 1765232756,
+        "CreatedAt": "2025-12-08T22:25:56Z"
+    },
+    {
+        "Id": "0dd204b652ad1541ba0da7fe4b8a02b322866ce4954c1a8c33875c407b6e0315",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "docker.io/signoz/signoz-otel-collector@sha256:1669dad211a49931d4fec98f621bde1f7e25e79f25c1f9846a27dabe435cba50",
+            "docker.io/signoz/signoz-otel-collector@sha256:34cf633dc115cefe6f8699ccdae72118e65e42c3bc73462d0cb6643f62b81430"
+        ],
+        "Size": 512240121,
+        "SharedSize": 0,
+        "VirtualSize": 512240121,
+        "Labels": {
+            "maintainer": "signoz"
+        },
+        "Containers": 0,
+        "Digest": "sha256:34cf633dc115cefe6f8699ccdae72118e65e42c3bc73462d0cb6643f62b81430",
+        "History": [
+            "docker.io/signoz/signoz-otel-collector:latest"
+        ],
+        "Names": [
+            "docker.io/signoz/signoz-otel-collector:latest"
+        ],
+        "Created": 1764586724,
+        "CreatedAt": "2025-12-01T10:58:44Z"
+    },
+    {
+        "Id": "ed1948bc49226d23132b436b536b1fd11994562260d57b7e23ef7f50807c3fbc",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "docker.io/eclipse/zenoh@sha256:6469335835de4c2ac5cfeac9b8d2bc441cb19707a93e3351277cf7693fd476e9",
+            "docker.io/eclipse/zenoh@sha256:aaf7153e38b1b4a6fdf0810d7dd50a1940e749a02880ea46a8b382870258b9b5"
+        ],
+        "Size": 34461552,
+        "SharedSize": 0,
+        "VirtualSize": 34461552,
+        "Labels": {
+            "org.opencontainers.image.licenses": "EPL-2.0 OR Apache-2.0",
+            "org.opencontainers.image.source": "https://github.com/eclipse-zenoh/zenoh"
+        },
+        "Containers": 0,
+        "Digest": "sha256:6469335835de4c2ac5cfeac9b8d2bc441cb19707a93e3351277cf7693fd476e9",
+        "History": [
+            "docker.io/eclipse/zenoh:1.3.4"
+        ],
+        "Names": [
+            "docker.io/eclipse/zenoh:1.3.4"
+        ],
+        "Created": 1745488726,
+        "CreatedAt": "2025-04-24T09:58:46Z"
+    },
+    {
+        "Id": "26b2eb03618e749084668eaff68cff8f81dda12d06ac641be7a6398b82a6f25b",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "docker.io/library/registry@sha256:46faa9a1ae6813194b53921a370f2f4f8c5e1aae228a89bceafef5847a6a3278",
+            "docker.io/library/registry@sha256:a3d8aaa63ed8681a604f1dea0aa03f100d5895b6a58ace528858a7b332415373"
+        ],
+        "Size": 26014639,
+        "SharedSize": 0,
+        "VirtualSize": 26014639,
+        "Labels": null,
+        "Containers": 0,
+        "Digest": "sha256:a3d8aaa63ed8681a604f1dea0aa03f100d5895b6a58ace528858a7b332415373",
+        "History": [
+            "docker.io/library/registry:2"
+        ],
+        "Names": [
+            "docker.io/library/registry:2"
+        ],
+        "Created": 1696272161,
+        "CreatedAt": "2023-10-02T18:42:41Z"
+    },
+    {
+        "Id": "3503a0aa2cc47cc04f4d9b46f5fcc23052300c54fb52200de115557a1fe85b4d",
+        "ParentId": "de9fa08768e7ef08e6a2403692f369618d3a738e605e2659ce4cd09f543853e3",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 818087605,
+        "SharedSize": 0,
+        "VirtualSize": 818087605,
+        "Labels": {
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251223_3c3e5cb"
+        },
+        "Containers": 1,
+        "Dangling": true,
+        "Digest": "sha256:c0690d1a194845cd2cdb1d4d628d699d13cd8c9ee393aa3fde5954b2a1020f83",
+        "History": [
+            "docker.io/library/b529521935f8a02ee13eaaf20229e6ef9fe68f33d1da7dc252b9c66b2746f2eb-tmp:latest"
+        ],
+        "Created": 315532800,
+        "CreatedAt": "1980-01-01T00:00:00Z"
+    },
+    {
+        "Id": "7d8d82eba6a187b0c5de7ea031b1d8ee7133d8d12c9bcb69a44e08c24f6c47c5",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/intelitor-timescaledb-demo@sha256:126476573150add6bc7be13695b382c4865c3ba323bc454cad1658116720f87b"
+        ],
+        "Size": 875090474,
+        "SharedSize": 0,
+        "VirtualSize": 875090474,
+        "Labels": {
+            "maintainer": "Timescale https://www.timescale.com"
+        },
+        "Containers": 0,
+        "Digest": "sha256:126476573150add6bc7be13695b382c4865c3ba323bc454cad1658116720f87b",
+        "History": [
+            "localhost/intelitor-timescaledb-demo:nixos-devenv",
+            "localhost/indrajaal-timescaledb-demo:nixos-devenv"
+        ],
+        "Names": [
+            "localhost/intelitor-timescaledb-demo:nixos-devenv"
+        ],
+        "Created": 315532800,
+        "CreatedAt": "1980-01-01T00:00:00Z"
+    },
+    {
+        "Id": "8c2fc634c4968653ba2edef7275b01d5c147e0196944ba35422e858bc003d9c6",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "localhost/indrajaal-app-hardened@sha256:640d596a33f4f3fbd341a1f5137fa54228d1d3413810147c85999640db89c1a2"
+        ],
+        "Size": 4482854820,
+        "SharedSize": 0,
+        "VirtualSize": 4482854820,
+        "Labels": null,
+        "Containers": 0,
+        "Digest": "sha256:640d596a33f4f3fbd341a1f5137fa54228d1d3413810147c85999640db89c1a2",
+        "History": [
+            "localhost/indrajaal-app-hardened:latest",
+            "localhost/indrajaal-app:latest"
+        ],
+        "Names": [
+            "localhost/indrajaal-app-hardened:latest"
+        ],
+        "Created": 1,
+        "CreatedAt": "1970-01-01T00:00:01Z"
+    },
+    {
+        "Id": "b76638a7004d1e997835b99997c8bf0d302100dc783e91a1ba2dbf48bc7426b2",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 4482854849,
+        "SharedSize": 0,
+        "VirtualSize": 4482854849,
+        "Labels": null,
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:89f9b5b3f285c8f02de628ffbd8281da1639289cfad22f49ae78760db721a390",
+        "History": [
+            "localhost/indrajaal-app-hardened:latest",
+            "localhost/indrajaal-app:latest"
+        ],
+        "Created": 1,
+        "CreatedAt": "1970-01-01T00:00:01Z"
+    },
+    {
+        "Id": "a6b76e245666503357f1d38d22dbf802d02042e1fa72e6665aaa6b0535081931",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [],
+        "Size": 4482086721,
+        "SharedSize": 0,
+        "VirtualSize": 4482086721,
+        "Labels": null,
+        "Containers": 0,
+        "Dangling": true,
+        "Digest": "sha256:98b8d9450016d3d871ba5094234513bbc25c4341519e147ebfa2963258c68f73",
+        "History": [
+            "localhost/indrajaal-app-hardened:latest",
+            "localhost/indrajaal-app:latest"
+        ],
+        "Created": 1,
+        "CreatedAt": "1970-01-01T00:00:01Z"
+    },
+    {
+        "Id": "de9fa08768e7ef08e6a2403692f369618d3a738e605e2659ce4cd09f543853e3",
+        "ParentId": "",
+        "RepoTags": null,
+        "RepoDigests": [
+            "ghcr.io/nixos/nix@sha256:c0ff5f0384719e0a8ccf31cfaeee84d652dcc67c03d2248acef2666817d71254"
+        ],
+        "Size": 529225513,
+        "SharedSize": 0,
+        "VirtualSize": 529225513,
+        "Labels": {
+            "org.opencontainers.image.description": "Nix container image",
+            "org.opencontainers.image.source": "https://github.com/NixOS/nix",
+            "org.opencontainers.image.title": "Nix",
+            "org.opencontainers.image.vendor": "Nix project",
+            "org.opencontainers.image.version": "2.34.0pre20251223_3c3e5cb"
+        },
+        "Containers": 1,
+        "Digest": "sha256:c0ff5f0384719e0a8ccf31cfaeee84d652dcc67c03d2248acef2666817d71254",
+        "History": [
+            "ghcr.io/nixos/nix:latest"
+        ],
+        "Names": [
+            "ghcr.io/nixos/nix:latest"
+        ],
+        "Created": 1,
+        "CreatedAt": "1970-01-01T00:00:01Z"
+    }
+]

@@ -1,0 +1,242 @@
+name: STAMP/TDG/GDE Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  MIX_ENV: test
+  STAMP_COMPLIANCE_THRESHOLD: 95
+  TDG_COVERAGE_MINIMUM: 98
+  GDE_VALIDATION_ENABLED: true
+
+jobs:
+  stamp-validation:
+    name: STAMP Safety Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: '1.18.1'
+        otp-version: '27.1'
+        
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          deps
+          _build
+        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-mix-
+          
+    - name: Install dependencies
+      run: mix deps.get
+      
+    - name: Run STAMP validation
+      run: |
+        mix stamp.validate --comprehensive --junit-output
+        mix stamp.compliance --threshold $STAMP_COMPLIANCE_THRESHOLD
+        
+    - name: Check for safety violations
+      run: |
+        mix stamp.check --critical-only --fail-on-violations
+        
+    - name: Upload STAMP reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: stamp-reports
+        path: |
+          reports/stamp-compliance.xml
+          reports/safety-violations.json
+
+  tdg-validation:
+    name: TDG Compliance Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: '1.18.1'
+        otp-version: '27.1'
+        
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          deps
+          _build
+        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+        
+    - name: Install dependencies
+      run: mix deps.get
+      
+    - name: Compile without warnings
+      run: mix compile --warnings-as-errors
+      
+    - name: Check TDG compliance
+      run: |
+        mix tdg.validate --comprehensive
+        mix tdg.coverage --threshold $TDG_COVERAGE_MINIMUM --fail-under
+        
+    - name: Verify property-based tests
+      run: |
+        mix test --only property
+        
+    - name: Generate coverage report
+      run: mix coveralls.json
+      
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./cover/excoveralls.json
+        flags: tdg
+        name: tdg-coverage
+
+  gde-validation:
+    name: GDE Goal Tracking
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: '1.18.1'
+        otp-version: '27.1'
+        
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          deps
+          _build
+        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+        
+    - name: Install dependencies
+      run: mix deps.get
+      
+    - name: Validate GDE configuration
+      run: |
+        mix gde.validate --config
+        mix gde.goals --verify-definitions
+        
+    - name: Check goal tracking
+      run: |
+        mix gde.progress --ci-mode --export metrics.json
+        
+    - name: Verify automated interventions
+      run: |
+        mix gde.interventions --validate --dry-run
+
+  integrated-validation:
+    name: Integrated STAMP/TDG/GDE Check
+    runs-on: ubuntu-latest
+    needs: [stamp-validation, tdg-validation, gde-validation]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: '1.18.1'
+        otp-version: '27.1'
+        
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          deps
+          _build
+        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+        
+    - name: Install dependencies
+      run: mix deps.get
+      
+    - name: Run integrated tests
+      run: |
+        mix test test/stamp_tdg_gde_integration_test.exs
+        
+    - name: Generate compliance report
+      run: |
+        mix compliance.report --format json --output compliance-report.json
+        
+    - name: Check overall health
+      run: |
+        mix health.check --stamp --tdg --gde --required
+        
+    - name: Comment PR with results
+      uses: actions/github-script@v6
+      if: github.event_name == 'pull_request'
+      with:
+        script: |
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync('compliance-report.json'));
+          
+          const comment = `## STAMP/TDG/GDE Validation Results
+          
+          ✅ **Overall Compliance**: ${report.overall_compliance}%
+          
+          ### STAMP Safety
+          - Compliance: ${report.stamp.compliance}%
+          - Violations: ${report.stamp.violations}
+          - UCAs Addressed: ${report.stamp.ucas_addressed}
+          
+          ### TDG Quality
+          - Coverage: ${report.tdg.coverage}%
+          - Property Tests: ${report.tdg.property_tests}
+          - AI Code Tested: ${report.tdg.ai_code_tested}%
+          
+          ### GDE Progress
+          - Active Goals: ${report.gde.active_goals}
+          - On Track: ${report.gde.on_track}%
+          - At Risk: ${report.gde.at_risk}
+          
+          [View Full Report](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  performance-benchmark:
+    name: Performance Impact Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: '1.18.1'
+        otp-version: '27.1'
+        
+    - name: Run performance benchmarks
+      run: |
+        mix run benchmarks/stamp_tdg_gde_bench.exs
+        
+    - name: Compare with baseline
+      run: |
+        mix benchmark.compare --baseline main --threshold 5
+        
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v3
+      with:
+        name: benchmark-results
+        path: benchmarks/results/

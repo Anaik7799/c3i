@@ -1,0 +1,12 @@
+#!/bin/bash
+# Podman wrapper script for Ultimate Demo Launcher
+# Routes podman commands to the correct Nix store path
+
+PODMAN_PATH="/nix/store/321x5ws9rl2i93g6xjs5wpa8dbxhzak2-podman-5.4.1/bin/podman"
+
+if [ "$1" = "podman" ]; then
+    shift
+    exec "$PODMAN_PATH" "$@"
+else
+    exec "$@"
+fi

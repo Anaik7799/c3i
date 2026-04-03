@@ -1,0 +1,194 @@
+# Cepaf.Podman CI/CD Pipeline
+# Builds, tests, and packages the F# Podman client library
+name: Cepaf.Podman CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - 'tests/**'
+      - 'tools/**'
+      - '*.sln'
+      - '.github/workflows/cepaf-podman.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - 'tests/**'
+      - 'tools/**'
+      - '*.sln'
+      - '.github/workflows/cepaf-podman.yml'
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  build:
+    name: Build & Test (.NET ${{ matrix.dotnet-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        dotnet-version: ['8.0.x']
+        include:
+          - os: ubuntu-latest
+            dotnet-version: '8.0.x'
+            primary: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Display .NET info
+        run: |
+          dotnet --info
+          echo "SDK Version: $(dotnet --version)"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.fsproj', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore Cepaf.sln
+
+      - name: Build solution (Debug)
+        run: dotnet build Cepaf.sln --configuration Debug --no-restore
+
+      - name: Build solution (Release)
+        run: dotnet build Cepaf.sln --configuration Release --no-restore
+
+      - name: Run Cepaf.Tests
+        run: |
+          dotnet test test/Cepaf.Tests/Cepaf.Tests.fsproj \
+            --configuration Release \
+            --no-build \
+            --verbosity normal \
+            --logger "trx;LogFileName=cepaf-tests.trx" \
+            --results-directory ./test-results
+        continue-on-error: true
+
+      - name: Run Cepaf.Podman.Tests
+        run: |
+          dotnet test tests/Cepaf.Podman.Tests/Cepaf.Podman.Tests.fsproj \
+            --configuration Release \
+            --no-build \
+            --verbosity normal \
+            --logger "trx;LogFileName=cepaf-podman-tests.trx" \
+            --results-directory ./test-results
+        continue-on-error: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}-${{ matrix.dotnet-version }}
+          path: ./test-results/*.trx
+          retention-days: 30
+
+      - name: Test Report Summary
+        uses: dorny/test-reporter@v1
+        if: always() && matrix.primary
+        with:
+          name: Test Results
+          path: './test-results/*.trx'
+          reporter: dotnet-trx
+          fail-on-error: false
+
+  package:
+    name: Build NuGet Package
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.fsproj', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore Cepaf.sln
+
+      - name: Build Release
+        run: dotnet build Cepaf.sln --configuration Release --no-restore
+
+      - name: Pack Cepaf.Podman
+        run: |
+          dotnet pack src/Cepaf.Podman/Cepaf.Podman.fsproj \
+            --configuration Release \
+            --no-build \
+            --output ./artifacts/packages
+
+      - name: Upload NuGet package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts/packages/*.nupkg
+          retention-days: 30
+
+      - name: Upload Symbol package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-symbols
+          path: ./artifacts/packages/*.snupkg
+          retention-days: 30
+
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore Cepaf.sln
+
+      - name: Build with warnings as errors
+        run: |
+          dotnet build Cepaf.sln \
+            --configuration Release \
+            --no-restore \
+            /p:TreatWarningsAsErrors=true \
+            /warnaserror
+        continue-on-error: true
+
+      - name: Format check
+        run: dotnet format Cepaf.sln --verify-no-changes --verbosity diagnostic
+        continue-on-error: true

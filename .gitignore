@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+_build/
+deps/
+.elixir_ls/
+
+# Compiled artifacts
+bin/
+*.so
+*.o
+*.plt
+*.plt.hash
+erl_crash.dump
+
+# Rust build artifacts
+target/
+
+# Secret files
+.env
+.env.local
+
+# Large files in .opencode
+.opencode/bin/

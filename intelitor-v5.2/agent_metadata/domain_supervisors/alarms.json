@@ -1,0 +1,12 @@
+{
+  "domain": "alarms",
+  "agent_type": "domain_supervisor",
+  "agent_id": "DS-03",
+  "authority_level": "domain",
+  "coordination_scope": "domain_specific",
+  "creation_timestamp": "2025-09-14T22:49:26.696972Z",
+  "sopv511_compliance": true,
+  "specialization": "alarms",
+  "reporting_to": "ED-001",
+  "warning_focus": "alarm processing unused parameters"
+}

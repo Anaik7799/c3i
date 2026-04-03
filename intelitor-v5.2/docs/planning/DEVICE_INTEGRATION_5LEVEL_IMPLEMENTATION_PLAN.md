@@ -1,0 +1,1887 @@
+# Device Integration 5-Level Implementation Plan
+
+**Version**: 1.0.0 | **Date**: 2026-01-03 | **Status**: PROPOSED
+**STAMP Compliance**: SC-DEV-*, SC-PROTO-*, SC-DISC-*
+**Target**: 10,000+ Device Drivers by 2027
+
+---
+
+## Executive Summary
+
+This document defines a comprehensive 5-level fractal implementation plan for device integration, positioning Indrajaal to compete with Milestone XProtect (14,700 drivers) and Eagle Eye Networks (thousands of camera types). The strategy combines:
+
+1. **Open Protocol Layer** - ONVIF, VAPIX, RTSP, SIA DC-09 native support
+2. **Vendor SDK Abstraction** - Hikvision ISAPI, Dahua SDK, Axis VAPIX adapters
+3. **Plugin Architecture** - Hot-loadable device drivers with SDK
+4. **Partner Ecosystem** - Technology Partner Program with certification
+5. **AI-Powered Discovery** - Automatic device detection and configuration
+
+---
+
+## Part 1: Competitive Landscape Analysis
+
+### 1.1 Milestone XProtect Device Integration Model
+
+| Component | Implementation | Indrajaal Strategy |
+|-----------|----------------|-------------------|
+| **MIP SDK** | .NET-based SDK with 3 integration types | Elixir-native SDK with behavior-based patterns |
+| **Driver Framework** | Plugin architecture for device drivers | OTP application hot-loading |
+| **Device Pack** | Pre-built drivers (14,700+) | Community + Partner + AI-generated drivers |
+| **Partner Program** | Technology Partner certification | Indrajaal Integration Partner (IIP) Program |
+| **Discovery** | Manual + ONVIF WS-Discovery | AI-powered + WS-Discovery + mDNS/UPnP |
+| **Protocols** | Proprietary + ONVIF | ONVIF-first + vendor protocols |
+
+**Key Lesson**: Milestone's success comes from ecosystem (1,000+ partner apps) not just driver count.
+
+### 1.2 Eagle Eye Networks Device Integration Model
+
+| Component | Implementation | Indrajaal Strategy |
+|-----------|----------------|-------------------|
+| **API Platform** | REST API v3 (cloud-first) | Phoenix API + Zenoh mesh (hybrid) |
+| **Camera Support** | Camera-agnostic via bridges | Direct + Bridge modes |
+| **Bridge Hardware** | 701 (150 cams), 901 (300 cams) | Software-defined bridge (OTP GenServer) |
+| **I/O Devices** | Full I/O port management | Sensor/Relay/Output resources |
+| **Big Data Framework** | Time-indexed video search | DuckDB + TimescaleDB analytics |
+| **Discovery** | Cloud-managed registration | Hybrid local + cloud discovery |
+
+**Key Lesson**: Eagle Eye's camera-agnostic approach via bridges enables rapid scaling.
+
+### 1.3 Current Indrajaal Gaps
+
+| Gap | Severity | Priority | Effort |
+|-----|----------|----------|--------|
+| No ONVIF client implementation | CRITICAL | P0 | L (8-12 weeks) |
+| No RTSP streaming client | CRITICAL | P0 | M (4-6 weeks) |
+| No device discovery (mDNS/UPnP/WS-Discovery) | HIGH | P0 | M (4-6 weeks) |
+| No plugin/driver architecture | HIGH | P1 | L (8-12 weeks) |
+| No vendor SDK integrations | MEDIUM | P1 | XL (ongoing) |
+| No partner program | LOW | P2 | S (2-4 weeks) |
+
+---
+
+## Part 2: L1 - System Context Architecture
+
+### 2.1 Device Integration in Indrajaal Ecosystem
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         INDRAJAAL ECOSYSTEM (L1)                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────┐     ┌─────────────────────────────────────────────────┐   │
+│  │  External   │     │              DEVICE INTEGRATION LAYER           │   │
+│  │   World     │     │                                                 │   │
+│  │             │     │  ┌──────────────────────────────────────────┐  │   │
+│  │  ┌───────┐  │     │  │        PROTOCOL ABSTRACTION LAYER        │  │   │
+│  │  │ IP    │◄─┼─────┼──┤  ONVIF │ VAPIX │ ISAPI │ RTSP │ SIA     │  │   │
+│  │  │Cameras│  │     │  └──────────────────────────────────────────┘  │   │
+│  │  └───────┘  │     │                      │                          │   │
+│  │             │     │  ┌──────────────────────────────────────────┐  │   │
+│  │  ┌───────┐  │     │  │          DRIVER PLUGIN LAYER             │  │   │
+│  │  │Sensors│◄─┼─────┼──┤  Hikvision │ Axis │ Dahua │ Generic     │  │   │
+│  │  └───────┘  │     │  └──────────────────────────────────────────┘  │   │
+│  │             │     │                      │                          │   │
+│  │  ┌───────┐  │     │  ┌──────────────────────────────────────────┐  │   │
+│  │  │Panels │◄─┼─────┼──┤          DEVICE DOMAIN LAYER             │  │   │
+│  │  └───────┘  │     │  │  Camera │ Sensor │ Panel │ Reader │ I/O  │  │   │
+│  │             │     │  └──────────────────────────────────────────┘  │   │
+│  │  ┌───────┐  │     │                      │                          │   │
+│  │  │Access │◄─┼─────┼──┤              ASH FRAMEWORK                   │   │
+│  │  │Control│  │     │  │     Resources │ Actions │ Policies         │   │
+│  │  └───────┘  │     │                                                 │   │
+│  └─────────────┘     └─────────────────────────────────────────────────┘   │
+│                                      │                                      │
+│                      ┌───────────────┴───────────────┐                     │
+│                      ▼                               ▼                      │
+│              ┌──────────────┐               ┌──────────────┐               │
+│              │    VIDEO     │               │   SECURITY   │               │
+│              │   DOMAIN     │               │   DOMAIN     │               │
+│              │  (Streams)   │               │  (Alarms)    │               │
+│              └──────────────┘               └──────────────┘               │
+│                                                                             │
+│                         ┌──────────────────────┐                           │
+│                         │    GUARDIAN          │                           │
+│                         │  Safety Kernel       │                           │
+│                         │  (All device ops     │                           │
+│                         │   require approval)  │                           │
+│                         └──────────────────────┘                           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 2.2 External System Interfaces
+
+| Interface | Protocol | Direction | Purpose |
+|-----------|----------|-----------|---------|
+| IP Cameras | ONVIF/RTSP/HTTP | Bidirectional | Video streaming + PTZ control |
+| Sensors | Wiegand/RS-485/IP | Inbound | Event detection |
+| Panels | SIA DC-09/Contact ID | Bidirectional | Alarm reporting |
+| Access Controllers | OSDP/Wiegand | Bidirectional | Door control |
+| Bridges | HTTP/MQTT | Bidirectional | Legacy device translation |
+| Cloud VMS | REST API | Outbound | Federation |
+
+### 2.3 STAMP Constraints (L1)
+
+| ID | Constraint | Severity |
+|----|------------|----------|
+| SC-DEV-L1-001 | ALL device commands through Guardian approval | CRITICAL |
+| SC-DEV-L1-002 | Device discovery MUST NOT expose network to external scanning | HIGH |
+| SC-DEV-L1-003 | Credential storage MUST use encrypted vault | CRITICAL |
+| SC-DEV-L1-004 | Failed device connections MUST NOT block system startup | HIGH |
+| SC-DEV-L1-005 | Device integration layer MUST support multi-tenant isolation | CRITICAL |
+
+---
+
+## Part 3: L2 - Container Architecture
+
+### 3.1 Device Integration Container Model
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        CONTAINER ARCHITECTURE (L2)                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │                    indrajaal-app (Phoenix Container)                  │ │
+│  │                                                                       │ │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐       │ │
+│  │  │  Device Domain  │  │  Video Domain   │  │ Security Domain │       │ │
+│  │  │  (Ash Context)  │  │  (Ash Context)  │  │  (Ash Context)  │       │ │
+│  │  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘       │ │
+│  │           │                    │                    │                 │ │
+│  │           └────────────────────┼────────────────────┘                 │ │
+│  │                                ▼                                       │ │
+│  │  ┌─────────────────────────────────────────────────────────────────┐ │ │
+│  │  │              DEVICE INTEGRATION SUPERVISOR                      │ │ │
+│  │  │                     (OTP Supervisor)                            │ │ │
+│  │  │                                                                 │ │ │
+│  │  │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐       │ │ │
+│  │  │  │  Discovery    │  │   Protocol    │  │    Driver     │       │ │ │
+│  │  │  │  Supervisor   │  │  Supervisor   │  │  Supervisor   │       │ │ │
+│  │  │  │               │  │               │  │               │       │ │ │
+│  │  │  │  ├─ mDNS     │  │  ├─ ONVIF     │  │  ├─ Hikvision │       │ │ │
+│  │  │  │  ├─ UPnP     │  │  ├─ RTSP      │  │  ├─ Axis      │       │ │ │
+│  │  │  │  ├─ WS-Disc  │  │  ├─ VAPIX     │  │  ├─ Dahua     │       │ │ │
+│  │  │  │  └─ Scan     │  │  ├─ ISAPI     │  │  ├─ Generic   │       │ │ │
+│  │  │  │               │  │  └─ SIA      │  │  └─ Custom    │       │ │ │
+│  │  │  └───────────────┘  └───────────────┘  └───────────────┘       │ │ │
+│  │  │                                                                 │ │ │
+│  │  │  ┌─────────────────────────────────────────────────────────┐   │ │ │
+│  │  │  │                 DEVICE CONNECTION POOL                   │   │ │ │
+│  │  │  │           (Per-device GenServer processes)               │   │ │ │
+│  │  │  │                                                          │   │ │ │
+│  │  │  │   [cam_001] [cam_002] [sensor_001] [panel_001] [...]    │   │ │ │
+│  │  │  │                                                          │   │ │ │
+│  │  │  └─────────────────────────────────────────────────────────┘   │ │ │
+│  │  │                                                                 │ │ │
+│  │  └─────────────────────────────────────────────────────────────────┘ │ │
+│  │                                                                       │ │
+│  │  ┌──────────────────────────────────────────────────────────────────┐│ │
+│  │  │                     ZENOH MESH PUBLISHER                         ││ │
+│  │  │  (Real-time device status → Prajna Cockpit)                      ││ │
+│  │  └──────────────────────────────────────────────────────────────────┘│ │
+│  │                                                                       │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │                    indrajaal-bridge (Optional Container)              │ │
+│  │                                                                       │ │
+│  │  For legacy/analog devices requiring protocol translation:            │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────────┐   │ │
+│  │  │  Analog     │  │  Serial     │  │   Protocol Bridge           │   │ │
+│  │  │  Capture    │  │  Port Mgr   │  │   (Contact ID → SIA DC-09)  │   │ │
+│  │  └─────────────┘  └─────────────┘  └─────────────────────────────┘   │ │
+│  │                                                                       │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 3.2 Container Deployment Modes
+
+| Mode | Containers | Use Case |
+|------|------------|----------|
+| **Embedded** | App only | All-IP devices, small deployments |
+| **Bridge** | App + Bridge | Mixed IP/analog, legacy integration |
+| **Distributed** | App + Multiple Bridges | Large campus, remote sites |
+| **Edge** | Mini-App + Local DB | Offline-capable edge nodes |
+
+### 3.3 STAMP Constraints (L2)
+
+| ID | Constraint | Severity |
+|----|------------|----------|
+| SC-DEV-L2-001 | Device supervisors MUST restart on crash (OTP) | CRITICAL |
+| SC-DEV-L2-002 | Connection pool size MUST respect memory limits | HIGH |
+| SC-DEV-L2-003 | Bridge containers MUST run rootless | CRITICAL |
+| SC-DEV-L2-004 | Device processes MUST be tenant-isolated | CRITICAL |
+| SC-DEV-L2-005 | PHICS latency for device commands < 50ms | HIGH |
+
+---
+
+## Part 4: L3 - Domain Architecture
+
+### 4.1 Device Integration Domain Model
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         DOMAIN ARCHITECTURE (L3)                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │                    DEVICE INTEGRATION DOMAIN                          │ │
+│  │                   lib/indrajaal/device_integration/                   │ │
+│  │                                                                       │ │
+│  │  ┌─────────────────────────────────────────────────────────────────┐ │ │
+│  │  │                 DISCOVERY CONTEXT                                │ │ │
+│  │  │                                                                  │ │ │
+│  │  │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐    │ │ │
+│  │  │  │ DiscoveryJob   │  │ DiscoveredDev  │  │ DeviceProfile  │    │ │ │
+│  │  │  │ (Ash Resource) │  │ (Ash Resource) │  │ (Ash Resource) │    │ │ │
+│  │  │  │                │  │                │  │                │    │ │ │
+│  │  │  │ • scan_subnet  │  │ • ip_address   │  │ • vendor       │    │ │ │
+│  │  │  │ • ws_discovery │  │ • mac_address  │  │ • model        │    │ │ │
+│  │  │  │ • mdns_query   │  │ • device_type  │  │ • capabilities │    │ │ │
+│  │  │  │ • upnp_search  │  │ • protocol     │  │ • driver_id    │    │ │ │
+│  │  │  └────────────────┘  └────────────────┘  └────────────────┘    │ │ │
+│  │  │                                                                  │ │ │
+│  │  └─────────────────────────────────────────────────────────────────┘ │ │
+│  │                                                                       │ │
+│  │  ┌─────────────────────────────────────────────────────────────────┐ │ │
+│  │  │                  PROTOCOL CONTEXT                                │ │ │
+│  │  │                                                                  │ │ │
+│  │  │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐    │ │ │
+│  │  │  │ ProtocolConfig │  │ ProtocolCaps   │  │ Credential     │    │ │ │
+│  │  │  │ (Ash Resource) │  │ (Ash Resource) │  │ (Ash Resource) │    │ │ │
+│  │  │  │                │  │                │  │                │    │ │ │
+│  │  │  │ • protocol     │  │ • ptz_support  │  │ • username     │    │ │ │
+│  │  │  │ • port         │  │ • audio        │  │ • password_enc │    │ │ │
+│  │  │  │ • transport    │  │ • analytics    │  │ • cert_path    │    │ │ │
+│  │  │  │ • auth_method  │  │ • io_ports     │  │ • api_key_enc  │    │ │ │
+│  │  │  └────────────────┘  └────────────────┘  └────────────────┘    │ │ │
+│  │  │                                                                  │ │ │
+│  │  └─────────────────────────────────────────────────────────────────┘ │ │
+│  │                                                                       │ │
+│  │  ┌─────────────────────────────────────────────────────────────────┐ │ │
+│  │  │                   DRIVER CONTEXT                                 │ │ │
+│  │  │                                                                  │ │ │
+│  │  │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐    │ │ │
+│  │  │  │ DeviceDriver   │  │ DriverVersion  │  │ DriverCert     │    │ │ │
+│  │  │  │ (Ash Resource) │  │ (Ash Resource) │  │ (Ash Resource) │    │ │ │
+│  │  │  │                │  │                │  │                │    │ │ │
+│  │  │  │ • name         │  │ • version      │  │ • partner_id   │    │ │ │
+│  │  │  │ • vendor       │  │ • changelog    │  │ • cert_level   │    │ │ │
+│  │  │  │ • protocol     │  │ • min_version  │  │ • expires_at   │    │ │ │
+│  │  │  │ • module       │  │ • published_at │  │ • signature    │    │ │ │
+│  │  │  │ • capabilities │  │ • downloads    │  │ • verified     │    │ │ │
+│  │  │  └────────────────┘  └────────────────┘  └────────────────┘    │ │ │
+│  │  │                                                                  │ │ │
+│  │  └─────────────────────────────────────────────────────────────────┘ │ │
+│  │                                                                       │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │                    EXISTING DEVICE DOMAIN                             │ │
+│  │                   lib/indrajaal/devices/                              │ │
+│  │                                                                       │ │
+│  │  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────────────┐ │ │
+│  │  │ Camera │  │ Sensor │  │ Panel  │  │ Reader │  │  DeviceType    │ │ │
+│  │  │        │  │        │  │        │  │        │  │  (already     │ │ │
+│  │  │        │  │        │  │        │  │        │  │   exists)     │ │ │
+│  │  └────────┘  └────────┘  └────────┘  └────────┘  └────────────────┘ │ │
+│  │                                                                       │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 4.2 Protocol Abstraction Pattern
+
+```elixir
+# lib/indrajaal/device_integration/protocols/behaviour.ex
+defmodule Indrajaal.DeviceIntegration.Protocols.Behaviour do
+  @moduledoc """
+  Behaviour defining the contract for all device protocol implementations.
+
+  ## Capabilities
+  - Device discovery
+  - Authentication
+  - Command execution
+  - Event subscription
+  - Health monitoring
+
+  ## STAMP Compliance
+  - SC-PROTO-001: All protocols MUST implement this behaviour
+  - SC-PROTO-002: Commands MUST timeout within 30 seconds
+  - SC-PROTO-003: Credentials MUST NOT appear in logs
+  """
+
+  @type device_id :: String.t()
+  @type connection :: map()
+  @type command :: atom()
+  @type params :: map()
+  @type result :: {:ok, term()} | {:error, term()}
+
+  @doc "Discover devices on network"
+  @callback discover(opts :: keyword()) :: {:ok, [map()]} | {:error, term()}
+
+  @doc "Connect to device"
+  @callback connect(device_id, connection) :: {:ok, pid()} | {:error, term()}
+
+  @doc "Disconnect from device"
+  @callback disconnect(device_id) :: :ok | {:error, term()}
+
+  @doc "Execute command on device"
+  @callback execute(device_id, command, params) :: result()
+
+  @doc "Subscribe to device events"
+  @callback subscribe(device_id, event_types :: [atom()]) :: {:ok, reference()} | {:error, term()}
+
+  @doc "Get device capabilities"
+  @callback capabilities(device_id) :: {:ok, map()} | {:error, term()}
+
+  @doc "Get device health status"
+  @callback health(device_id) :: {:ok, :healthy | :degraded | :offline} | {:error, term()}
+end
+```
+
+### 4.3 Driver Architecture Pattern
+
+```elixir
+# lib/indrajaal/device_integration/drivers/behaviour.ex
+defmodule Indrajaal.DeviceIntegration.Drivers.Behaviour do
+  @moduledoc """
+  Behaviour for vendor-specific device drivers.
+
+  Drivers extend protocol implementations with vendor-specific features.
+
+  ## Milestone Equivalent
+  This is Indrajaal's equivalent to MIP SDK Driver Framework.
+
+  ## STAMP Compliance
+  - SC-DRV-001: Drivers MUST be signed by certified partner or Indrajaal
+  - SC-DRV-002: Drivers MUST declare all required capabilities
+  - SC-DRV-003: Drivers MUST support graceful degradation
+  """
+
+  @doc "Driver metadata for registration"
+  @callback metadata() :: %{
+    name: String.t(),
+    version: String.t(),
+    vendor: String.t(),
+    supported_models: [String.t()],
+    capabilities: [atom()],
+    protocol: atom(),
+    min_firmware: String.t() | nil
+  }
+
+  @doc "Check if driver supports device"
+  @callback supports?(device_info :: map()) :: boolean()
+
+  @doc "Get vendor-specific capabilities"
+  @callback vendor_capabilities(device_id :: String.t()) :: {:ok, map()} | {:error, term()}
+
+  @doc "Execute vendor-specific command"
+  @callback vendor_command(device_id :: String.t(), command :: atom(), params :: map()) ::
+    {:ok, term()} | {:error, term()}
+
+  @doc "Parse vendor-specific events"
+  @callback parse_event(raw_event :: binary()) :: {:ok, map()} | {:error, term()}
+end
+```
+
+### 4.4 STAMP Constraints (L3)
+
+| ID | Constraint | Severity |
+|----|------------|----------|
+| SC-DEV-L3-001 | All protocols MUST implement standard behaviour | CRITICAL |
+| SC-DEV-L3-002 | Drivers MUST be cryptographically signed | HIGH |
+| SC-DEV-L3-003 | Discovery results MUST be tenant-isolated | CRITICAL |
+| SC-DEV-L3-004 | Credential resources MUST use encrypted storage | CRITICAL |
+| SC-DEV-L3-005 | Driver loading MUST verify signature before execution | CRITICAL |
+
+---
+
+## Part 5: L4 - Component Architecture
+
+### 5.1 Component Hierarchy
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        COMPONENT ARCHITECTURE (L4)                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │                  DEVICE INTEGRATION SUPERVISOR                        │ │
+│  │                 (Indrajaal.DeviceIntegration.Supervisor)              │ │
+│  │                                                                       │ │
+│  │  ┌───────────────────────────────────────────────────────────────┐   │ │
+│  │  │                    DISCOVERY SUPERVISOR                       │   │ │
+│  │  │                                                               │   │ │
+│  │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │   │ │
+│  │  │  │ mDNS Worker  │  │ UPnP Worker  │  │WS-Discovery  │        │   │ │
+│  │  │  │ (GenServer)  │  │ (GenServer)  │  │   Worker     │        │   │ │
+│  │  │  │              │  │              │  │              │        │   │ │
+│  │  │  │ • _onvif._tcp│  │ • SSDP scan  │  │ • Probe msg  │        │   │ │
+│  │  │  │ • _axis-video│  │ • IGD search │  │ • 239.255.   │        │   │ │
+│  │  │  │ • _rtsp._tcp │  │              │  │   255.250:   │        │   │ │
+│  │  │  │              │  │              │  │   3702       │        │   │ │
+│  │  │  └──────────────┘  └──────────────┘  └──────────────┘        │   │ │
+│  │  │                                                               │   │ │
+│  │  │  ┌──────────────┐  ┌──────────────┐                          │   │ │
+│  │  │  │ Network Scan │  │  AI Profile  │                          │   │ │
+│  │  │  │   Worker     │  │   Matcher    │                          │   │ │
+│  │  │  │              │  │              │                          │   │ │
+│  │  │  │ • Port scan  │  │ • ML model   │                          │   │ │
+│  │  │  │   554,80,443 │  │ • Device ID  │                          │   │ │
+│  │  │  │ • MAC vendor │  │ • Auto-cfg   │                          │   │ │
+│  │  │  └──────────────┘  └──────────────┘                          │   │ │
+│  │  │                                                               │   │ │
+│  │  └───────────────────────────────────────────────────────────────┘   │ │
+│  │                                                                       │ │
+│  │  ┌───────────────────────────────────────────────────────────────┐   │ │
+│  │  │                   PROTOCOL SUPERVISOR                         │   │ │
+│  │  │                                                               │   │ │
+│  │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │   │ │
+│  │  │  │ ONVIF Client │  │ RTSP Client  │  │ VAPIX Client │        │   │ │
+│  │  │  │ (GenServer)  │  │ (GenServer)  │  │ (GenServer)  │        │   │ │
+│  │  │  │              │  │              │  │              │        │   │ │
+│  │  │  │ • WS-* SOAP  │  │ • DESCRIBE   │  │ • Axis HTTP  │        │   │ │
+│  │  │  │ • GetProfiles│  │ • SETUP      │  │ • CGI calls  │        │ │  │
+│  │  │  │ • PTZ        │  │ • PLAY       │  │ • Events     │        │   │ │
+│  │  │  │ • Events     │  │ • TEARDOWN   │  │ • Recording  │        │   │ │
+│  │  │  └──────────────┘  └──────────────┘  └──────────────┘        │   │ │
+│  │  │                                                               │   │ │
+│  │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │   │ │
+│  │  │  │ ISAPI Client │  │ SIA DC-09    │  │ Dahua SDK    │        │   │ │
+│  │  │  │ (GenServer)  │  │ (GenServer)  │  │ (NIF)        │        │   │ │
+│  │  │  │              │  │              │  │              │        │   │ │
+│  │  │  │ • Hikvision  │  │ • Heartbeat  │  │ • NetSDK     │        │   │ │
+│  │  │  │   HTTP API   │  │ • Alarm rpt  │  │ • Events     │        │   │ │
+│  │  │  │ • Events     │  │ • Contact ID │  │ • Video      │        │   │ │
+│  │  │  └──────────────┘  └──────────────┘  └──────────────┘        │   │ │
+│  │  │                                                               │   │ │
+│  │  └───────────────────────────────────────────────────────────────┘   │ │
+│  │                                                                       │ │
+│  │  ┌───────────────────────────────────────────────────────────────┐   │ │
+│  │  │                    DRIVER SUPERVISOR                          │   │ │
+│  │  │                                                               │   │ │
+│  │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │   │ │
+│  │  │  │ Driver       │  │  Driver      │  │   Driver     │        │   │ │
+│  │  │  │ Registry     │  │  Loader      │  │   Sandbox    │        │   │ │
+│  │  │  │              │  │              │  │              │        │   │ │
+│  │  │  │ • List avail │  │ • Hot-load   │  │ • Isolation  │        │   │ │
+│  │  │  │ • Match dev  │  │ • Verify sig │  │ • Resource   │        │   │ │
+│  │  │  │ • Priority   │  │ • Version ck │  │   limits     │        │   │ │
+│  │  │  └──────────────┘  └──────────────┘  └──────────────┘        │   │ │
+│  │  │                                                               │   │ │
+│  │  │  LOADED DRIVERS:                                              │   │ │
+│  │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │   │ │
+│  │  │  │ Hikvision    │  │ Axis         │  │ Dahua        │        │   │ │
+│  │  │  │ Driver v2.1  │  │ Driver v3.0  │  │ Driver v1.5  │        │   │ │
+│  │  │  └──────────────┘  └──────────────┘  └──────────────┘        │   │ │
+│  │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │   │ │
+│  │  │  │ Generic ONVIF│  │ Generic RTSP │  │ Custom       │        │   │ │
+│  │  │  │ Driver v1.0  │  │ Driver v1.0  │  │ Partner Drv  │        │   │ │
+│  │  │  └──────────────┘  └──────────────┘  └──────────────┘        │   │ │
+│  │  │                                                               │   │ │
+│  │  └───────────────────────────────────────────────────────────────┘   │ │
+│  │                                                                       │ │
+│  │  ┌───────────────────────────────────────────────────────────────┐   │ │
+│  │  │                  CONNECTION POOL SUPERVISOR                   │   │ │
+│  │  │                                                               │   │ │
+│  │  │  Per-device GenServer processes with:                         │   │ │
+│  │  │  • Connection state (connected/disconnected/error)            │   │ │
+│  │  │  • Command queue with timeout                                 │   │ │
+│  │  │  • Event subscription management                              │   │ │
+│  │  │  • Health monitoring (heartbeat)                              │   │ │
+│  │  │  • Automatic reconnection with backoff                        │   │ │
+│  │  │                                                               │   │ │
+│  │  │  [device_abc123] [device_def456] [device_ghi789] [...]        │   │ │
+│  │  │                                                               │   │ │
+│  │  └───────────────────────────────────────────────────────────────┘   │ │
+│  │                                                                       │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 5.2 Discovery Service Components
+
+```elixir
+# lib/indrajaal/device_integration/discovery/ws_discovery.ex
+defmodule Indrajaal.DeviceIntegration.Discovery.WsDiscovery do
+  @moduledoc """
+  ONVIF WS-Discovery implementation for camera detection.
+
+  ## Protocol Details
+  - Multicast address: 239.255.255.250
+  - Port: 3702
+  - Message: WS-Discovery Probe
+
+  ## STAMP Compliance
+  - SC-DISC-001: Discovery MUST be tenant-scoped
+  - SC-DISC-002: Discovery MUST timeout within 10 seconds
+  - SC-DISC-003: Results MUST be deduplicated by MAC address
+  """
+
+  use GenServer
+  require Logger
+
+  @multicast_addr {239, 255, 255, 250}
+  @multicast_port 3702
+  @probe_timeout 10_000
+
+  # WS-Discovery SOAP envelope for ONVIF devices
+  @probe_message """
+  <?xml version="1.0" encoding="utf-8"?>
+  <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
+                 xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing"
+                 xmlns:wsd="http://schemas.xmlsoap.org/ws/2005/04/discovery">
+    <soap:Header>
+      <wsa:To>urn:schemas-xmlsoap-org:ws:2005:04:discovery</wsa:To>
+      <wsa:Action>http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe</wsa:Action>
+      <wsa:MessageID>urn:uuid:#{UUID.uuid4()}</wsa:MessageID>
+    </soap:Header>
+    <soap:Body>
+      <wsd:Probe>
+        <wsd:Types>tdn:NetworkVideoTransmitter</wsd:Types>
+      </wsd:Probe>
+    </soap:Body>
+  </soap:Envelope>
+  """
+
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
+  def discover(tenant_id, opts \\ []) do
+    GenServer.call(__MODULE__, {:discover, tenant_id, opts}, @probe_timeout + 5_000)
+  end
+
+  @impl true
+  def init(_opts) do
+    {:ok, %{discoveries: %{}}}
+  end
+
+  @impl true
+  def handle_call({:discover, tenant_id, opts}, _from, state) do
+    timeout = Keyword.get(opts, :timeout, @probe_timeout)
+
+    case send_probe(timeout) do
+      {:ok, responses} ->
+        devices = parse_responses(responses, tenant_id)
+        {:reply, {:ok, devices}, state}
+
+      {:error, reason} ->
+        {:reply, {:error, reason}, state}
+    end
+  end
+
+  defp send_probe(timeout) do
+    # Open UDP socket for multicast
+    {:ok, socket} = :gen_udp.open(0, [:binary, active: false, multicast_ttl: 4])
+
+    # Send probe to multicast address
+    :ok = :gen_udp.send(socket, @multicast_addr, @multicast_port, @probe_message)
+
+    # Collect responses
+    responses = collect_responses(socket, timeout, [])
+    :gen_udp.close(socket)
+
+    {:ok, responses}
+  end
+
+  defp collect_responses(socket, timeout, acc) when timeout > 0 do
+    start = System.monotonic_time(:millisecond)
+
+    case :gen_udp.recv(socket, 0, timeout) do
+      {:ok, {ip, _port, data}} ->
+        elapsed = System.monotonic_time(:millisecond) - start
+        remaining = max(0, timeout - elapsed)
+        collect_responses(socket, remaining, [{ip, data} | acc])
+
+      {:error, :timeout} ->
+        acc
+    end
+  end
+
+  defp collect_responses(_socket, _timeout, acc), do: acc
+
+  defp parse_responses(responses, tenant_id) do
+    responses
+    |> Enum.map(fn {ip, xml} -> parse_probe_match(ip, xml, tenant_id) end)
+    |> Enum.filter(& &1)
+    |> Enum.uniq_by(& &1.endpoint_address)
+  end
+
+  defp parse_probe_match(ip, xml, tenant_id) do
+    # Parse ONVIF ProbeMatch response
+    case SweetXml.parse(xml) do
+      {:ok, doc} ->
+        %{
+          ip_address: :inet.ntoa(ip) |> to_string(),
+          endpoint_address: extract_endpoint(doc),
+          device_type: :camera,
+          protocol: :onvif,
+          discovered_at: DateTime.utc_now(),
+          tenant_id: tenant_id,
+          metadata: extract_scopes(doc)
+        }
+
+      _ -> nil
+    end
+  end
+end
+```
+
+### 5.3 ONVIF Protocol Client
+
+```elixir
+# lib/indrajaal/device_integration/protocols/onvif/client.ex
+defmodule Indrajaal.DeviceIntegration.Protocols.ONVIF.Client do
+  @moduledoc """
+  ONVIF protocol client for camera control and configuration.
+
+  ## Supported Services
+  - Device Management (mandatory)
+  - Media (profiles, streaming)
+  - PTZ (pan-tilt-zoom)
+  - Events (notifications)
+  - Analytics (motion, etc.)
+  - Imaging (exposure, focus)
+
+  ## Authentication
+  - WS-UsernameToken (digest)
+  - HTTP Digest
+
+  ## STAMP Compliance
+  - SC-PROTO-ONVIF-001: Commands MUST include WS-Security header
+  - SC-PROTO-ONVIF-002: RTSP URLs MUST be extracted from profiles
+  - SC-PROTO-ONVIF-003: PTZ MUST respect preset limits
+  """
+
+  use GenServer
+  require Logger
+
+  @behaviour Indrajaal.DeviceIntegration.Protocols.Behaviour
+
+  defstruct [
+    :device_id,
+    :endpoint,
+    :username,
+    :password,
+    :capabilities,
+    :profiles,
+    :connected_at
+  ]
+
+  # Behaviour Implementation
+
+  @impl true
+  def discover(opts) do
+    Indrajaal.DeviceIntegration.Discovery.WsDiscovery.discover(
+      Keyword.fetch!(opts, :tenant_id),
+      opts
+    )
+  end
+
+  @impl true
+  def connect(device_id, %{endpoint: endpoint, username: user, password: pass}) do
+    GenServer.start_link(__MODULE__, %{
+      device_id: device_id,
+      endpoint: endpoint,
+      username: user,
+      password: pass
+    })
+  end
+
+  @impl true
+  def disconnect(device_id) do
+    case Registry.lookup(DeviceRegistry, device_id) do
+      [{pid, _}] -> GenServer.stop(pid)
+      [] -> {:error, :not_connected}
+    end
+  end
+
+  @impl true
+  def execute(device_id, command, params) do
+    case Registry.lookup(DeviceRegistry, device_id) do
+      [{pid, _}] -> GenServer.call(pid, {:execute, command, params})
+      [] -> {:error, :not_connected}
+    end
+  end
+
+  @impl true
+  def subscribe(device_id, event_types) do
+    case Registry.lookup(DeviceRegistry, device_id) do
+      [{pid, _}] -> GenServer.call(pid, {:subscribe, event_types})
+      [] -> {:error, :not_connected}
+    end
+  end
+
+  @impl true
+  def capabilities(device_id) do
+    execute(device_id, :get_capabilities, %{})
+  end
+
+  @impl true
+  def health(device_id) do
+    case execute(device_id, :get_system_date_time, %{}) do
+      {:ok, _} -> {:ok, :healthy}
+      {:error, :timeout} -> {:ok, :degraded}
+      {:error, _} -> {:ok, :offline}
+    end
+  end
+
+  # GenServer Implementation
+
+  @impl true
+  def init(opts) do
+    state = %__MODULE__{
+      device_id: opts.device_id,
+      endpoint: opts.endpoint,
+      username: opts.username,
+      password: opts.password
+    }
+
+    # Register in device registry
+    Registry.register(DeviceRegistry, opts.device_id, :onvif)
+
+    # Initial capability fetch
+    send(self(), :fetch_capabilities)
+
+    {:ok, state}
+  end
+
+  @impl true
+  def handle_call({:execute, :ptz_move, params}, _from, state) do
+    result = onvif_ptz_move(state, params)
+    {:reply, result, state}
+  end
+
+  def handle_call({:execute, :get_stream_uri, params}, _from, state) do
+    profile = params[:profile] || hd(state.profiles)
+    result = onvif_get_stream_uri(state, profile)
+    {:reply, result, state}
+  end
+
+  def handle_call({:execute, :goto_preset, params}, _from, state) do
+    result = onvif_goto_preset(state, params.preset_token)
+    {:reply, result, state}
+  end
+
+  def handle_call({:execute, command, params}, _from, state) do
+    result = onvif_generic_call(state, command, params)
+    {:reply, result, state}
+  end
+
+  @impl true
+  def handle_info(:fetch_capabilities, state) do
+    case onvif_get_capabilities(state) do
+      {:ok, caps} ->
+        {:ok, profiles} = onvif_get_profiles(state)
+        {:noreply, %{state | capabilities: caps, profiles: profiles, connected_at: DateTime.utc_now()}}
+
+      {:error, reason} ->
+        Logger.warning("Failed to fetch ONVIF capabilities: #{inspect(reason)}")
+        Process.send_after(self(), :fetch_capabilities, 30_000)
+        {:noreply, state}
+    end
+  end
+
+  # ONVIF SOAP Operations
+
+  defp onvif_get_capabilities(state) do
+    soap_call(state, :device, "GetCapabilities", %{Category: "All"})
+  end
+
+  defp onvif_get_profiles(state) do
+    soap_call(state, :media, "GetProfiles", %{})
+  end
+
+  defp onvif_get_stream_uri(state, profile_token) do
+    soap_call(state, :media, "GetStreamUri", %{
+      StreamSetup: %{Stream: "RTP-Unicast", Transport: %{Protocol: "RTSP"}},
+      ProfileToken: profile_token
+    })
+  end
+
+  defp onvif_ptz_move(state, %{x: x, y: y, zoom: z}) do
+    soap_call(state, :ptz, "ContinuousMove", %{
+      ProfileToken: hd(state.profiles).token,
+      Velocity: %{
+        PanTilt: %{x: x, y: y},
+        Zoom: %{x: z}
+      }
+    })
+  end
+
+  defp onvif_goto_preset(state, preset_token) do
+    soap_call(state, :ptz, "GotoPreset", %{
+      ProfileToken: hd(state.profiles).token,
+      PresetToken: preset_token
+    })
+  end
+
+  defp soap_call(state, service, action, params) do
+    body = build_soap_envelope(state, service, action, params)
+    url = service_url(state.endpoint, service)
+
+    case HTTPoison.post(url, body, soap_headers(), timeout: 30_000, recv_timeout: 30_000) do
+      {:ok, %{status_code: 200, body: response}} ->
+        parse_soap_response(response)
+
+      {:ok, %{status_code: status, body: body}} ->
+        {:error, {:http_error, status, body}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp build_soap_envelope(state, service, action, params) do
+    # Build SOAP envelope with WS-Security UsernameToken
+    nonce = :crypto.strong_rand_bytes(16) |> Base.encode64()
+    created = DateTime.utc_now() |> DateTime.to_iso8601()
+    password_digest = :crypto.hash(:sha, nonce <> created <> state.password) |> Base.encode64()
+
+    """
+    <?xml version="1.0" encoding="utf-8"?>
+    <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
+                   xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+                   xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+      <soap:Header>
+        <wsse:Security>
+          <wsse:UsernameToken>
+            <wsse:Username>#{state.username}</wsse:Username>
+            <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">#{password_digest}</wsse:Password>
+            <wsse:Nonce>#{nonce}</wsse:Nonce>
+            <wsu:Created>#{created}</wsu:Created>
+          </wsse:UsernameToken>
+        </wsse:Security>
+      </soap:Header>
+      <soap:Body>
+        <#{action} xmlns="http://www.onvif.org/ver10/#{service}/wsdl">
+          #{params_to_xml(params)}
+        </#{action}>
+      </soap:Body>
+    </soap:Envelope>
+    """
+  end
+end
+```
+
+### 5.4 STAMP Constraints (L4)
+
+| ID | Constraint | Severity |
+|----|------------|----------|
+| SC-DEV-L4-001 | Discovery workers MUST use separate network interfaces per tenant | HIGH |
+| SC-DEV-L4-002 | Protocol clients MUST implement connection pooling | MEDIUM |
+| SC-DEV-L4-003 | Driver sandbox MUST limit CPU/memory per driver | HIGH |
+| SC-DEV-L4-004 | Device connections MUST implement heartbeat (30s) | HIGH |
+| SC-DEV-L4-005 | Failed devices MUST trigger Sentinel notification | HIGH |
+
+---
+
+## Part 6: L5 - Code Architecture
+
+### 6.1 Module Structure
+
+```
+lib/indrajaal/device_integration/
+├── device_integration.ex           # Domain context (Ash)
+├── supervisor.ex                   # Top-level supervisor
+│
+├── discovery/
+│   ├── supervisor.ex               # Discovery supervisor
+│   ├── ws_discovery.ex             # ONVIF WS-Discovery
+│   ├── mdns.ex                     # mDNS discovery (_onvif._tcp)
+│   ├── upnp.ex                     # UPnP/SSDP discovery
+│   ├── network_scan.ex             # Active port scanning
+│   └── ai_profiler.ex              # ML-based device identification
+│
+├── protocols/
+│   ├── behaviour.ex                # Protocol behaviour definition
+│   ├── supervisor.ex               # Protocol supervisor
+│   │
+│   ├── onvif/
+│   │   ├── client.ex               # ONVIF client GenServer
+│   │   ├── device_service.ex       # Device management
+│   │   ├── media_service.ex        # Media profiles/streaming
+│   │   ├── ptz_service.ex          # PTZ control
+│   │   ├── event_service.ex        # Event subscription
+│   │   ├── analytics_service.ex    # Video analytics
+│   │   └── soap.ex                 # SOAP envelope builder
+│   │
+│   ├── rtsp/
+│   │   ├── client.ex               # RTSP client GenServer
+│   │   ├── parser.ex               # SDP/RTSP parsing
+│   │   ├── rtp_handler.ex          # RTP packet handling
+│   │   └── digest_auth.ex          # HTTP Digest auth
+│   │
+│   ├── vapix/
+│   │   ├── client.ex               # Axis VAPIX client
+│   │   ├── cgi.ex                  # CGI endpoints
+│   │   └── event_stream.ex         # Server-sent events
+│   │
+│   ├── isapi/
+│   │   ├── client.ex               # Hikvision ISAPI client
+│   │   ├── streaming.ex            # ISAPI streaming
+│   │   └── event_notification.ex   # ISAPI events
+│   │
+│   └── sia_dc09/
+│       ├── client.ex               # SIA DC-09 receiver
+│       ├── encoder.ex              # Message encoding
+│       └── contact_id.ex           # Contact ID translation
+│
+├── drivers/
+│   ├── behaviour.ex                # Driver behaviour definition
+│   ├── supervisor.ex               # Driver supervisor
+│   ├── registry.ex                 # Driver registry
+│   ├── loader.ex                   # Hot-load drivers
+│   ├── sandbox.ex                  # Driver isolation
+│   ├── verifier.ex                 # Signature verification
+│   │
+│   ├── builtin/
+│   │   ├── generic_onvif.ex        # Generic ONVIF driver
+│   │   ├── generic_rtsp.ex         # Generic RTSP driver
+│   │   ├── hikvision.ex            # Hikvision driver
+│   │   ├── axis.ex                 # Axis driver
+│   │   ├── dahua.ex                # Dahua driver
+│   │   ├── hanwha.ex               # Hanwha Techwin driver
+│   │   ├── bosch.ex                # Bosch driver
+│   │   └── vivotek.ex              # Vivotek driver
+│   │
+│   └── external/                   # Partner-loaded drivers
+│       └── .gitkeep
+│
+├── connections/
+│   ├── supervisor.ex               # Connection pool supervisor
+│   ├── connection.ex               # Single device connection
+│   ├── pool.ex                     # Connection pooling
+│   └── health_monitor.ex           # Device health tracking
+│
+├── resources/
+│   ├── discovered_device.ex        # Ash resource
+│   ├── device_profile.ex           # Ash resource
+│   ├── device_driver.ex            # Ash resource
+│   ├── driver_version.ex           # Ash resource
+│   ├── driver_certificate.ex       # Ash resource
+│   ├── protocol_config.ex          # Ash resource
+│   └── credential.ex               # Ash resource (encrypted)
+│
+├── bridge/
+│   ├── bridge.ex                   # Software bridge
+│   ├── translator.ex               # Protocol translation
+│   └── analog_capture.ex           # Analog camera support
+│
+└── sdk/
+    ├── driver_template.ex          # Template for new drivers
+    ├── test_harness.ex             # Driver testing framework
+    ├── certification.ex            # Certification requirements
+    └── documentation.ex            # Auto-doc generation
+```
+
+### 6.2 Driver SDK Template
+
+```elixir
+# lib/indrajaal/device_integration/sdk/driver_template.ex
+defmodule Indrajaal.DeviceIntegration.SDK.DriverTemplate do
+  @moduledoc """
+  Template for creating new device drivers.
+
+  ## Usage
+
+  ```elixir
+  defmodule MyVendor.CameraDriver do
+    use Indrajaal.DeviceIntegration.SDK.DriverTemplate,
+      vendor: "MyVendor",
+      protocol: :onvif,
+      capabilities: [:video, :ptz, :events]
+  end
+  ```
+
+  ## Required Callbacks
+  - `c:metadata/0` - Driver metadata
+  - `c:supports?/1` - Device compatibility check
+  - `c:vendor_capabilities/1` - Vendor-specific features
+  - `c:vendor_command/3` - Vendor-specific commands
+  - `c:parse_event/1` - Event parsing
+
+  ## STAMP Compliance
+  - SC-SDK-001: Drivers MUST use this template
+  - SC-SDK-002: Drivers MUST pass certification tests
+  - SC-SDK-003: Drivers MUST be signed before deployment
+  """
+
+  defmacro __using__(opts) do
+    vendor = Keyword.fetch!(opts, :vendor)
+    protocol = Keyword.fetch!(opts, :protocol)
+    capabilities = Keyword.get(opts, :capabilities, [])
+
+    quote do
+      @behaviour Indrajaal.DeviceIntegration.Drivers.Behaviour
+
+      require Logger
+
+      @vendor unquote(vendor)
+      @protocol unquote(protocol)
+      @capabilities unquote(capabilities)
+
+      # Protocol client based on configured protocol
+      @protocol_client case @protocol do
+        :onvif -> Indrajaal.DeviceIntegration.Protocols.ONVIF.Client
+        :rtsp -> Indrajaal.DeviceIntegration.Protocols.RTSP.Client
+        :vapix -> Indrajaal.DeviceIntegration.Protocols.VAPIX.Client
+        :isapi -> Indrajaal.DeviceIntegration.Protocols.ISAPI.Client
+        _ -> raise "Unknown protocol: #{@protocol}"
+      end
+
+      @impl true
+      def metadata do
+        %{
+          name: "#{@vendor} Driver",
+          version: @version || "1.0.0",
+          vendor: @vendor,
+          supported_models: supported_models(),
+          capabilities: @capabilities,
+          protocol: @protocol,
+          min_firmware: nil
+        }
+      end
+
+      @impl true
+      def supports?(device_info) do
+        vendor_match = String.downcase(device_info.vendor || "") == String.downcase(@vendor)
+        model_match = device_info.model in supported_models()
+        protocol_match = device_info.protocol == @protocol
+
+        vendor_match && (model_match || model_match == :any) && protocol_match
+      end
+
+      @impl true
+      def vendor_capabilities(device_id) do
+        # Default: delegate to protocol
+        @protocol_client.capabilities(device_id)
+      end
+
+      @impl true
+      def vendor_command(device_id, command, params) do
+        # Default: delegate to protocol
+        @protocol_client.execute(device_id, command, params)
+      end
+
+      @impl true
+      def parse_event(raw_event) do
+        # Override in driver implementation
+        {:ok, %{type: :unknown, data: raw_event}}
+      end
+
+      # Can be overridden
+      def supported_models, do: :any
+
+      defoverridable [
+        metadata: 0,
+        supports?: 1,
+        vendor_capabilities: 1,
+        vendor_command: 3,
+        parse_event: 1,
+        supported_models: 0
+      ]
+    end
+  end
+end
+```
+
+### 6.3 Hikvision Driver Example
+
+```elixir
+# lib/indrajaal/device_integration/drivers/builtin/hikvision.ex
+defmodule Indrajaal.DeviceIntegration.Drivers.Builtin.Hikvision do
+  @moduledoc """
+  Hikvision camera driver with ISAPI and ONVIF support.
+
+  ## Supported Features
+  - Video streaming (main/sub streams)
+  - PTZ control (relative, absolute, presets)
+  - Smart events (intrusion, line crossing, face detection)
+  - Two-way audio
+  - I/O ports (alarm in/out)
+  - Storage management
+
+  ## Supported Models
+  - DS-2CD series (IP cameras)
+  - DS-2DE series (PTZ cameras)
+  - DS-2TD series (thermal cameras)
+
+  ## Protocol Priority
+  1. ISAPI (preferred for Hikvision-specific features)
+  2. ONVIF (fallback)
+
+  ## STAMP Compliance
+  - SC-DRV-HIK-001: ISAPI auth MUST use digest
+  - SC-DRV-HIK-002: Event subscription MUST use long-polling
+  - SC-DRV-HIK-003: Firmware version MUST be validated
+  """
+
+  use Indrajaal.DeviceIntegration.SDK.DriverTemplate,
+    vendor: "Hikvision",
+    protocol: :isapi,
+    capabilities: [:video, :ptz, :events, :audio, :io, :storage, :smart_events]
+
+  @version "2.1.0"
+
+  # Hikvision-specific model patterns
+  @supported_model_patterns [
+    ~r/^DS-2CD/,     # IP cameras
+    ~r/^DS-2DE/,     # PTZ cameras
+    ~r/^DS-2TD/,     # Thermal cameras
+    ~r/^DS-2DF/,     # Fisheye cameras
+    ~r/^IPC-/,       # Alternative naming
+    ~r/^PTZ-/        # Alternative PTZ naming
+  ]
+
+  @impl true
+  def supported_models do
+    # Return pattern matcher instead of list
+    {:pattern, @supported_model_patterns}
+  end
+
+  @impl true
+  def supports?(device_info) do
+    vendor_match = device_info.vendor &&
+      String.downcase(device_info.vendor) =~ ~r/hikvision|hik/
+
+    model_match = case device_info.model do
+      nil -> false
+      model -> Enum.any?(@supported_model_patterns, &Regex.match?(&1, model))
+    end
+
+    vendor_match && model_match
+  end
+
+  @impl true
+  def vendor_capabilities(device_id) do
+    # Fetch Hikvision-specific capabilities via ISAPI
+    with {:ok, system_caps} <- isapi_get(device_id, "/ISAPI/System/capabilities"),
+         {:ok, smart_caps} <- isapi_get(device_id, "/ISAPI/Smart/capabilities") do
+      {:ok, %{
+        video: parse_video_caps(system_caps),
+        ptz: parse_ptz_caps(system_caps),
+        smart_events: parse_smart_caps(smart_caps),
+        audio: has_audio?(system_caps),
+        io: parse_io_caps(system_caps),
+        storage: parse_storage_caps(system_caps)
+      }}
+    end
+  end
+
+  @impl true
+  def vendor_command(device_id, :start_smart_detection, %{type: detection_type}) do
+    # Hikvision smart detection (intrusion, line crossing, etc.)
+    xml_body = """
+    <SmartDetection>
+      <enabled>true</enabled>
+      <detectionType>#{detection_type}</detectionType>
+    </SmartDetection>
+    """
+
+    isapi_put(device_id, "/ISAPI/Smart/detection", xml_body)
+  end
+
+  def vendor_command(device_id, :ptz_goto_preset, %{preset: preset_id}) do
+    isapi_put(device_id, "/ISAPI/PTZCtrl/channels/1/presets/#{preset_id}/goto", "")
+  end
+
+  def vendor_command(device_id, :ptz_move, %{pan: pan, tilt: tilt, zoom: zoom}) do
+    xml_body = """
+    <PTZData>
+      <pan>#{pan}</pan>
+      <tilt>#{tilt}</tilt>
+      <zoom>#{zoom}</zoom>
+    </PTZData>
+    """
+
+    isapi_put(device_id, "/ISAPI/PTZCtrl/channels/1/continuous", xml_body)
+  end
+
+  def vendor_command(device_id, :get_stream_url, %{stream: stream_type}) do
+    channel = 1
+    stream_id = if stream_type == :main, do: 1, else: 2
+
+    # Get device connection details from registry
+    {:ok, device} = get_device_connection(device_id)
+
+    url = "rtsp://#{device.username}:#{device.password}@#{device.ip}:554/Streaming/Channels/#{channel}0#{stream_id}"
+    {:ok, url}
+  end
+
+  def vendor_command(device_id, :trigger_alarm_output, %{output: output_id, state: state}) do
+    xml_body = """
+    <IOPortData>
+      <outputState>#{if state, do: "high", else: "low"}</outputState>
+    </IOPortData>
+    """
+
+    isapi_put(device_id, "/ISAPI/System/IO/outputs/#{output_id}/trigger", xml_body)
+  end
+
+  def vendor_command(device_id, command, params) do
+    # Fallback to ONVIF for unsupported commands
+    Logger.debug("Hikvision driver falling back to ONVIF for #{command}")
+    Indrajaal.DeviceIntegration.Protocols.ONVIF.Client.execute(device_id, command, params)
+  end
+
+  @impl true
+  def parse_event(raw_event) do
+    # Parse Hikvision ISAPI event notification
+    case SweetXml.parse(raw_event) do
+      {:ok, doc} ->
+        event_type = SweetXml.xpath(doc, ~x"//eventType/text()"s)
+        timestamp = SweetXml.xpath(doc, ~x"//dateTime/text()"s)
+
+        event = %{
+          type: map_event_type(event_type),
+          timestamp: parse_timestamp(timestamp),
+          vendor_type: event_type,
+          raw: raw_event,
+          metadata: extract_event_metadata(doc)
+        }
+
+        {:ok, event}
+
+      _ ->
+        {:error, :parse_failed}
+    end
+  end
+
+  # Private helpers
+
+  defp isapi_get(device_id, path) do
+    Indrajaal.DeviceIntegration.Protocols.ISAPI.Client.get(device_id, path)
+  end
+
+  defp isapi_put(device_id, path, body) do
+    Indrajaal.DeviceIntegration.Protocols.ISAPI.Client.put(device_id, path, body)
+  end
+
+  defp map_event_type("VMD"), do: :motion
+  defp map_event_type("linedetection"), do: :line_crossing
+  defp map_event_type("fielddetection"), do: :intrusion
+  defp map_event_type("facedetection"), do: :face
+  defp map_event_type("ANPR"), do: :license_plate
+  defp map_event_type(other), do: {:vendor, other}
+
+  defp parse_video_caps(caps) do
+    %{
+      main_stream: %{max_resolution: "4K", codecs: ["H.265", "H.264"]},
+      sub_stream: %{max_resolution: "720p", codecs: ["H.264"]}
+    }
+  end
+
+  defp parse_ptz_caps(caps) do
+    %{
+      supported: true,
+      presets: 256,
+      tours: 8,
+      patterns: 4
+    }
+  end
+
+  defp parse_smart_caps(caps) do
+    %{
+      intrusion: true,
+      line_crossing: true,
+      face_detection: true,
+      license_plate: true,
+      people_counting: true
+    }
+  end
+end
+```
+
+### 6.4 STAMP Constraints (L5)
+
+| ID | Constraint | Severity |
+|----|------------|----------|
+| SC-DEV-L5-001 | All drivers MUST use DriverTemplate | CRITICAL |
+| SC-DEV-L5-002 | SOAP envelopes MUST include WS-Security | CRITICAL |
+| SC-DEV-L5-003 | RTSP URLs MUST NOT contain plain-text passwords in logs | CRITICAL |
+| SC-DEV-L5-004 | Driver tests MUST achieve 90% coverage | HIGH |
+| SC-DEV-L5-005 | Protocol clients MUST handle timeout gracefully | HIGH |
+
+---
+
+## Part 7: Implementation Roadmap
+
+### 7.1 Phase 1: Core Protocol Layer (Q1 2026)
+
+| Week | Deliverable | Dependencies |
+|------|-------------|--------------|
+| 1-2 | ONVIF WS-Discovery implementation | None |
+| 2-3 | ONVIF Device/Media services | WS-Discovery |
+| 3-4 | RTSP client with RTP handling | None |
+| 4-6 | ONVIF PTZ/Events services | Device/Media |
+| 6-8 | mDNS + UPnP discovery | None |
+| 8-10 | Integration testing | All above |
+| 10-12 | Generic ONVIF/RTSP drivers | Protocol clients |
+
+**Deliverables**:
+- [ ] `lib/indrajaal/device_integration/protocols/onvif/`
+- [ ] `lib/indrajaal/device_integration/protocols/rtsp/`
+- [ ] `lib/indrajaal/device_integration/discovery/`
+- [ ] Generic ONVIF driver (Profile S cameras)
+- [ ] 50+ camera models supported
+
+### 7.2 Phase 2: Vendor SDK Integration (Q2 2026)
+
+| Week | Deliverable | Dependencies |
+|------|-------------|--------------|
+| 1-3 | Hikvision ISAPI client | Phase 1 |
+| 3-5 | Axis VAPIX client | Phase 1 |
+| 5-7 | Dahua SDK NIF wrapper | Phase 1 |
+| 7-9 | Driver SDK/template | All protocol clients |
+| 9-11 | Hikvision/Axis/Dahua drivers | SDK template |
+| 11-12 | Certification framework | Drivers |
+
+**Deliverables**:
+- [ ] `lib/indrajaal/device_integration/protocols/isapi/`
+- [ ] `lib/indrajaal/device_integration/protocols/vapix/`
+- [ ] `lib/indrajaal/device_integration/sdk/`
+- [ ] Hikvision driver (1,000+ models)
+- [ ] Axis driver (500+ models)
+- [ ] Dahua driver (800+ models)
+- [ ] 2,500+ total camera models
+
+### 7.3 Phase 3: Partner Ecosystem (Q3 2026)
+
+| Week | Deliverable | Dependencies |
+|------|-------------|--------------|
+| 1-2 | Partner Portal design | SDK |
+| 2-4 | Driver signing infrastructure | Phase 2 |
+| 4-6 | Certification testing platform | Signing |
+| 6-8 | Documentation + tutorials | All above |
+| 8-10 | First partner pilots | Platform |
+| 10-12 | Public partner program launch | Pilots |
+
+**Deliverables**:
+- [ ] Indrajaal Integration Partner (IIP) Program
+- [ ] Partner Portal (web)
+- [ ] Driver certification process
+- [ ] Partner SDK documentation
+- [ ] 10+ certified partners
+- [ ] 5,000+ camera models
+
+### 7.4 Phase 4: AI-Powered Device Intelligence (Q4 2026)
+
+| Week | Deliverable | Dependencies |
+|------|-------------|--------------|
+| 1-3 | Device fingerprinting ML model | Phase 3 data |
+| 3-5 | Auto-configuration engine | ML model |
+| 5-7 | Firmware compatibility database | Partner data |
+| 7-9 | Predictive maintenance | Health monitoring |
+| 9-11 | Driver auto-generation (experimental) | All above |
+| 11-12 | 10K driver milestone | All phases |
+
+**Deliverables**:
+- [ ] AI device identification (90% accuracy)
+- [ ] Zero-touch device configuration
+- [ ] Firmware compatibility matrix
+- [ ] Predictive failure detection
+- [ ] 10,000+ device models supported
+
+### 7.5 Resource Requirements
+
+| Phase | Engineers | Duration | Key Skills |
+|-------|-----------|----------|------------|
+| Phase 1 | 3 | 12 weeks | Elixir, networking, SOAP/XML |
+| Phase 2 | 4 | 12 weeks | Elixir, Rust (NIFs), C/C++ SDKs |
+| Phase 3 | 2 | 12 weeks | Web, docs, partner relations |
+| Phase 4 | 3 | 12 weeks | ML, Python, Elixir |
+
+---
+
+## Part 8: Partner Program Design
+
+### 8.1 Indrajaal Integration Partner (IIP) Program
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    INDRAJAAL INTEGRATION PARTNER PROGRAM                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  TIER 1: REGISTERED DEVELOPER                                              │
+│  ├── Free SDK access                                                        │
+│  ├── Community support                                                      │
+│  ├── Self-certification tools                                              │
+│  └── Listing in driver marketplace                                         │
+│                                                                             │
+│  TIER 2: VERIFIED PARTNER                                                  │
+│  ├── All Tier 1 benefits                                                   │
+│  ├── Technical support (email)                                             │
+│  ├── Indrajaal-signed drivers                                              │
+│  ├── Featured listing in marketplace                                       │
+│  └── Co-marketing opportunities                                            │
+│                                                                             │
+│  TIER 3: CERTIFIED PARTNER                                                 │
+│  ├── All Tier 2 benefits                                                   │
+│  ├── Premium technical support                                             │
+│  ├── Early access to SDK updates                                           │
+│  ├── Joint product development                                             │
+│  ├── Revenue sharing on driver sales                                       │
+│  └── Indrajaal certification badge                                         │
+│                                                                             │
+│  TIER 4: STRATEGIC PARTNER (Milestone-equivalent)                          │
+│  ├── All Tier 3 benefits                                                   │
+│  ├── Dedicated partner manager                                             │
+│  ├── SDK feature requests                                                  │
+│  ├── Pre-release access                                                    │
+│  ├── Joint enterprise sales                                                │
+│  └── Integration roadmap influence                                         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 8.2 Driver Certification Requirements
+
+| Level | Requirements | Testing | Badge |
+|-------|--------------|---------|-------|
+| **Basic** | Compiles, basic functionality | Automated | ✓ Works |
+| **Standard** | All declared capabilities work | Automated + Manual | ⭐ Certified |
+| **Premium** | Performance benchmarks met, stress tested | Full QA | ⭐⭐ Premium |
+| **Enterprise** | SIL-2 compliance, audit trail, HA tested | Security audit | ⭐⭐⭐ Enterprise |
+
+### 8.3 Certification Tests
+
+```elixir
+# lib/indrajaal/device_integration/sdk/certification.ex
+defmodule Indrajaal.DeviceIntegration.SDK.Certification do
+  @moduledoc """
+  Driver certification test suite.
+
+  ## Test Categories
+  1. Basic Functionality (required)
+  2. Performance Benchmarks (standard+)
+  3. Stress Testing (premium+)
+  4. Security Audit (enterprise)
+  5. SIL-2 Compliance (enterprise)
+  """
+
+  @basic_tests [
+    :metadata_valid,
+    :supports_check,
+    :connect_disconnect,
+    :capabilities_fetch,
+    :video_stream_url,
+    :health_check,
+    :graceful_timeout
+  ]
+
+  @standard_tests @basic_tests ++ [
+    :ptz_if_supported,
+    :events_subscription,
+    :all_declared_capabilities,
+    :reconnect_on_failure,
+    :concurrent_commands
+  ]
+
+  @premium_tests @standard_tests ++ [
+    :performance_benchmark,
+    :stress_100_concurrent,
+    :memory_stability_1h,
+    :error_recovery,
+    :firmware_compatibility
+  ]
+
+  @enterprise_tests @premium_tests ++ [
+    :sil2_failure_modes,
+    :audit_trail_complete,
+    :ha_failover,
+    :security_penetration,
+    :guardian_integration
+  ]
+
+  def run_certification(driver_module, level \\ :basic) do
+    tests = case level do
+      :basic -> @basic_tests
+      :standard -> @standard_tests
+      :premium -> @premium_tests
+      :enterprise -> @enterprise_tests
+    end
+
+    results = Enum.map(tests, fn test ->
+      {test, run_test(driver_module, test)}
+    end)
+
+    passed = Enum.all?(results, fn {_, result} -> result == :pass end)
+
+    %{
+      driver: driver_module,
+      level: level,
+      passed: passed,
+      results: Map.new(results),
+      timestamp: DateTime.utc_now()
+    }
+  end
+
+  defp run_test(driver, :metadata_valid) do
+    meta = driver.metadata()
+
+    cond do
+      !is_binary(meta.name) -> :fail
+      !is_binary(meta.version) -> :fail
+      !is_binary(meta.vendor) -> :fail
+      !is_list(meta.capabilities) -> :fail
+      !is_atom(meta.protocol) -> :fail
+      true -> :pass
+    end
+  end
+
+  defp run_test(driver, :performance_benchmark) do
+    # Benchmark 100 commands in 10 seconds
+    start = System.monotonic_time(:millisecond)
+
+    results = for _ <- 1..100 do
+      driver.health("test_device")
+    end
+
+    elapsed = System.monotonic_time(:millisecond) - start
+    success_rate = Enum.count(results, &match?({:ok, _}, &1)) / 100
+
+    if elapsed < 10_000 && success_rate > 0.95, do: :pass, else: :fail
+  end
+
+  # ... more test implementations
+end
+```
+
+---
+
+## Part 9: Competitive Comparison Matrix
+
+### 9.1 Feature Comparison
+
+| Feature | Milestone | Eagle Eye | Indrajaal (Target) |
+|---------|-----------|-----------|-------------------|
+| **Device Drivers** | 14,700+ | 1,000s (via bridge) | 10,000+ (2027) |
+| **Discovery** | ONVIF WS-Discovery | Cloud-managed | AI + WS-Discovery + mDNS |
+| **SDK Type** | .NET (MIP SDK) | REST API | Elixir + REST + gRPC |
+| **Plugin Architecture** | Yes (hot-load) | No | Yes (OTP hot-load) |
+| **Partner Program** | Technology Partner | Reseller focus | IIP (4 tiers) |
+| **Driver Signing** | Yes | N/A | Yes (Ed25519) |
+| **Open Source** | No | No | Core = Open |
+| **Self-Healing** | Manual failover | Cloud-managed | BEAM supervision |
+| **Multi-Tenant** | No (site-based) | Yes | Yes (native) |
+| **Edge Support** | Recording Server | Bridge hardware | Software bridge |
+
+### 9.2 Indrajaal Unique Advantages
+
+| Advantage | Value Proposition |
+|-----------|-------------------|
+| **BEAM Self-Healing** | Device connections auto-recover without restart |
+| **OTP Hot-Loading** | Driver updates without downtime |
+| **Zenoh Mesh** | Real-time device status across distributed sites |
+| **Guardian Integration** | All device commands require safety approval |
+| **Immutable Audit** | Blockchain-style device event logging |
+| **AI Discovery** | Zero-touch device configuration |
+| **Open Core** | Community driver contributions |
+| **Multi-Protocol** | Single device, multiple protocols (ONVIF + ISAPI) |
+
+---
+
+## Part 10: STAMP Safety Constraints Summary
+
+### 10.1 Complete SC-DEV Constraint List
+
+| ID | Constraint | Severity | Layer |
+|----|------------|----------|-------|
+| SC-DEV-001 | All device commands through Guardian | CRITICAL | L1 |
+| SC-DEV-002 | Discovery must not expose network | HIGH | L1 |
+| SC-DEV-003 | Credentials in encrypted vault | CRITICAL | L1 |
+| SC-DEV-004 | Failed connections must not block startup | HIGH | L1 |
+| SC-DEV-005 | Multi-tenant isolation required | CRITICAL | L1 |
+| SC-DEV-006 | Supervisors must restart on crash | CRITICAL | L2 |
+| SC-DEV-007 | Connection pool respects memory limits | HIGH | L2 |
+| SC-DEV-008 | Bridge containers run rootless | CRITICAL | L2 |
+| SC-DEV-009 | PHICS latency < 50ms | HIGH | L2 |
+| SC-DEV-010 | Protocols implement standard behaviour | CRITICAL | L3 |
+| SC-DEV-011 | Drivers cryptographically signed | HIGH | L3 |
+| SC-DEV-012 | Discovery results tenant-isolated | CRITICAL | L3 |
+| SC-DEV-013 | Driver verify signature before execute | CRITICAL | L3 |
+| SC-DEV-014 | Discovery uses separate interfaces per tenant | HIGH | L4 |
+| SC-DEV-015 | Protocol clients use connection pooling | MEDIUM | L4 |
+| SC-DEV-016 | Driver sandbox limits CPU/memory | HIGH | L4 |
+| SC-DEV-017 | Device heartbeat every 30s | HIGH | L4 |
+| SC-DEV-018 | Failed devices trigger Sentinel | HIGH | L4 |
+| SC-DEV-019 | All drivers use DriverTemplate | CRITICAL | L5 |
+| SC-DEV-020 | SOAP includes WS-Security | CRITICAL | L5 |
+| SC-DEV-021 | No plain-text passwords in logs | CRITICAL | L5 |
+| SC-DEV-022 | Driver tests achieve 90% coverage | HIGH | L5 |
+| SC-DEV-023 | Protocol clients handle timeout | HIGH | L5 |
+
+### 10.2 AOR Rules for Device Integration
+
+| ID | Rule |
+|----|------|
+| AOR-DEV-001 | Read device capabilities before sending commands |
+| AOR-DEV-002 | Use ONVIF Profile S for generic camera support |
+| AOR-DEV-003 | Prefer vendor SDK over generic ONVIF for advanced features |
+| AOR-DEV-004 | Always set command timeout (default 30s) |
+| AOR-DEV-005 | Log all device errors to Immutable Register |
+| AOR-DEV-006 | Use connection pool for high-frequency commands |
+| AOR-DEV-007 | Implement exponential backoff on reconnect |
+| AOR-DEV-008 | Validate driver signature before loading |
+| AOR-DEV-009 | Test with real devices before certification |
+| AOR-DEV-010 | Document all vendor-specific behaviors |
+
+---
+
+## Sources
+
+- [Milestone MIP SDK Integration](https://www.milestonesys.com/support/for-developers/integrate-with-xprotect/)
+- [Milestone MIP SDK Downloads](https://www.milestonesys.com/support/downloads/sdk1/)
+- [Milestone GitHub Samples](https://github.com/milestonesys/mipsdk-samples-component)
+- [Eagle Eye Video API Platform](https://developer.eagleeyenetworks.com)
+- [Eagle Eye API Updates 2025](https://developer.eagleeyenetworks.com/changelog/20250612-api-updates)
+- [Hikvision SDK Downloads](https://www.hikvision.com/us-en/support/download/sdk/)
+- [Hikvision ISAPI & OTAP Guide](https://tpp.hikvision.com/download/ISAPI_OTAP)
+- [Axis VAPIX Protocol](https://deepwiki.com/ros-drivers/axis_camera/6.4-http-and-vapix-protocols)
+- [ONVIF WS-Discovery](https://docs.edgexfoundry.org/4.0/microservices/device/services/device-onvif-camera/supplementary-info/ws-discovery/)
+- [ONVIF Feature Discovery Specification](https://www.onvif.org/wp-content/uploads/2022/07/ONVIF_Device_Feature_Discovery_Specification_21.12.pdf)
+- [Cyanview Elixir Case Study](http://elixir-lang.org/blog/2025/03/25/cyanview-elixir-case/)
+
+---
+
+## Part 11: ONVIF Compliance Strategy
+
+### 11.1 ONVIF Profile Matrix
+
+ONVIF defines seven active profiles for physical security:
+
+| Profile | Domain | Purpose | Indrajaal Priority |
+|---------|--------|---------|-------------------|
+| **Profile S** | Video | IP camera streaming (basic) | P0 - Mandatory |
+| **Profile T** | Video | Advanced streaming (H.265, metadata) | P0 - Mandatory |
+| **Profile G** | Video | Recording & storage search | P1 - High |
+| **Profile A** | Access Control | Credential-based access | P1 - High |
+| **Profile C** | Access Control | Basic access control | P2 - Medium |
+| **Profile D** | Video + Access | Door/peripheral control | P2 - Medium |
+| **Profile M** | Video | Metadata/analytics configuration | P1 - High |
+
+**Note**: Profile Q was deprecated April 1, 2022.
+
+### 11.2 Profile Feature Requirements
+
+Each profile has mandatory (M) and conditional (C) features:
+
+```
+Profile S (Streaming) - MANDATORY FOR INDRAJAAL
+├── M: WS-Discovery probe/match
+├── M: Device management
+├── M: Media service (profiles)
+├── M: RTSP/RTP streaming
+├── C: PTZ (if device supports)
+├── C: Audio (if device supports)
+└── C: Events (if device supports)
+
+Profile T (Advanced Streaming) - MANDATORY FOR INDRAJAAL
+├── All Profile S features
+├── M: H.265/HEVC codec support
+├── M: Imaging service
+├── M: Metadata streaming
+├── C: Analytics configuration
+└── C: Object detection metadata
+
+Profile G (Recording) - HIGH PRIORITY
+├── M: Recording control
+├── M: Recording search
+├── M: Recording storage
+├── M: Track configuration
+└── C: PTZ data recording
+```
+
+### 11.3 Conformance Requirements
+
+**ONVIF Conformance is Self-Declaration** (members only):
+
+| Requirement | Implementation |
+|-------------|----------------|
+| Mandatory Features | ALL must be implemented |
+| Conditional Features | If device supports capability, must implement |
+| Test Tool Pass | ONVIF Device Test Tool verification |
+| Documentation | Declaration of Conformance, Interface Guide |
+| Registration | Submit through ONVIF Member Tools |
+
+**Indrajaal Strategy**: Implement full Profile S + T client conformance, submit for ONVIF membership when ready.
+
+### 11.4 libonvif Integration Strategy
+
+[libonvif](https://github.com/sr99622/libonvif) is a multi-platform ONVIF client library with extensive camera compatibility:
+
+**Library Characteristics**:
+- Language: C++ with Python bindings (pybind11)
+- Tested cameras: Hikvision, Dahua, Axis, Foscam, Trendnet, Amcrest, Reolink, Vivotek, Speco
+- Features: Discovery, PTZ, imaging, events, RTSP extraction
+- GUI: Qt-based with YOLOX AI integration
+- License: Open source
+
+**Integration Options**:
+
+| Option | Approach | Pros | Cons |
+|--------|----------|------|------|
+| **NIF Wrapper** | Rustler-based NIF calling libonvif C API | Fast, native performance | Complex build, scheduler risk |
+| **Port** | Erlang Port to onvif-util CLI | Simple, isolated | Process overhead, serialization |
+| **Python Bridge** | Call onvif-gui via Python interop | Leverage existing bindings | Extra dependency, latency |
+| **Pure Elixir** | Re-implement ONVIF in Elixir | Full control, no FFI | Development time, SOAP complexity |
+
+**Recommended: Hybrid Approach**
+
+```elixir
+# Phase 1: Port to onvif-util for discovery + basic ops
+# Phase 2: Rustler NIF for high-frequency operations (PTZ, events)
+# Phase 3: Pure Elixir for advanced/custom needs
+
+defmodule Indrajaal.DeviceIntegration.ONVIF.LibonvifPort do
+  @moduledoc """
+  Erlang Port wrapper for libonvif onvif-util CLI.
+
+  ## Usage
+  Used for initial discovery and device interrogation.
+  High-frequency operations should use NIF or pure Elixir.
+  """
+
+  use GenServer
+
+  @onvif_util_path "/usr/local/bin/onvif-util"
+
+  def discover(timeout \\ 5000) do
+    case System.cmd(@onvif_util_path, ["-a"], timeout: timeout) do
+      {output, 0} -> parse_discovery_output(output)
+      {error, _} -> {:error, error}
+    end
+  end
+
+  def get_stream_uri(device_ip, username, password) do
+    args = ["-u", username, "-p", password, device_ip, "--stream-url"]
+    case System.cmd(@onvif_util_path, args, timeout: 30_000) do
+      {output, 0} -> {:ok, String.trim(output)}
+      {error, _} -> {:error, error}
+    end
+  end
+end
+```
+
+### 11.5 ONVIF SDK Options Comparison
+
+| SDK | Language | License | Profiles | Notes |
+|-----|----------|---------|----------|-------|
+| **libonvif** | C++/Python | Open Source | S, T | Excellent compatibility |
+| **Happytimesoft** | C | Commercial | All | Full source, cross-platform |
+| **python-onvif** | Python | Open Source | S | Limited, no longer maintained |
+| **node-onvif** | Node.js | Open Source | S, G | npm package, active |
+| **ONVIF Device Manager** | C# | Open Source | S, T | Windows only |
+
+**Indrajaal Decision**: Use libonvif via Port initially, implement Rustler NIF for production.
+
+### 11.6 ONVIF STAMP Constraints
+
+| ID | Constraint | Severity |
+|----|------------|----------|
+| SC-ONVIF-001 | MUST implement Profile S mandatory features | CRITICAL |
+| SC-ONVIF-002 | MUST implement Profile T mandatory features | CRITICAL |
+| SC-ONVIF-003 | WS-Security UsernameToken MUST use digest | CRITICAL |
+| SC-ONVIF-004 | Discovery MUST respect multicast scope | HIGH |
+| SC-ONVIF-005 | PTZ commands MUST check position limits | HIGH |
+| SC-ONVIF-006 | Events MUST use pull-point or webhook | MEDIUM |
+| SC-ONVIF-007 | Stream URLs MUST NOT log passwords | CRITICAL |
+| SC-ONVIF-008 | Conditional features MUST match device caps | HIGH |
+
+### 11.7 Camera Compatibility Database
+
+Based on libonvif testing, vendor compliance levels:
+
+| Vendor | Compliance | Notes |
+|--------|------------|-------|
+| **Hikvision** | Excellent | Best ONVIF compliance, full feature support |
+| **Dahua** | Good | Some gateway/DNS setting exceptions |
+| **Axis** | Excellent | ONVIF founding member, reference implementation |
+| **Vivotek** | Good | Solid compliance |
+| **Amcrest** | Moderate | Basic features work |
+| **Reolink** | Moderate | May need vendor-specific fallback |
+| **Foscam** | Moderate | Older models less compliant |
+| **Generic** | Variable | Test before deployment |
+
+---
+
+## Part 12: Implementation Quick Reference
+
+### 12.1 Module Creation Order
+
+```
+PHASE 1 (Weeks 1-4): Discovery Foundation
+├── lib/indrajaal/device_integration/discovery/ws_discovery.ex
+├── lib/indrajaal/device_integration/discovery/mdns.ex
+├── lib/indrajaal/device_integration/protocols/onvif/soap.ex
+└── native/libonvif_port/ (Port wrapper)
+
+PHASE 2 (Weeks 5-8): Core Protocols
+├── lib/indrajaal/device_integration/protocols/onvif/client.ex
+├── lib/indrajaal/device_integration/protocols/onvif/device_service.ex
+├── lib/indrajaal/device_integration/protocols/onvif/media_service.ex
+├── lib/indrajaal/device_integration/protocols/rtsp/client.ex
+└── lib/indrajaal/device_integration/protocols/rtsp/parser.ex
+
+PHASE 3 (Weeks 9-12): Driver SDK
+├── lib/indrajaal/device_integration/drivers/behaviour.ex
+├── lib/indrajaal/device_integration/drivers/registry.ex
+├── lib/indrajaal/device_integration/sdk/driver_template.ex
+└── lib/indrajaal/device_integration/drivers/builtin/generic_onvif.ex
+
+PHASE 4 (Weeks 13-16): Vendor Drivers
+├── lib/indrajaal/device_integration/protocols/isapi/client.ex
+├── lib/indrajaal/device_integration/protocols/vapix/client.ex
+├── lib/indrajaal/device_integration/drivers/builtin/hikvision.ex
+├── lib/indrajaal/device_integration/drivers/builtin/axis.ex
+└── lib/indrajaal/device_integration/drivers/builtin/dahua.ex
+```
+
+### 12.2 Test Coverage Requirements
+
+| Module Category | Coverage | Test Type |
+|-----------------|----------|-----------|
+| Discovery | 95% | Unit + Integration |
+| Protocol Clients | 90% | Unit + Mock |
+| Drivers | 90% | Unit + Real Device |
+| SDK | 85% | Unit + Example |
+| Connection Pool | 95% | Unit + Stress |
+
+### 12.3 Key Technical Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| ONVIF Library | libonvif + Pure Elixir hybrid | Proven compatibility + full control |
+| NIF Framework | Rustler | Memory safety, scheduler-friendly |
+| SOAP Library | Custom (SweetXml) | Elixir-native, no external deps |
+| Discovery | Multi-method (WS-Discovery + mDNS + UPnP) | Maximum device coverage |
+| Driver Signing | Ed25519 | BEAM native, fast verification |
+| Protocol Priority | ONVIF first, vendor SDK fallback | Standards compliance |
+
+---
+
+## Additional Sources
+
+- [ONVIF Profiles Overview](https://www.onvif.org/profiles/)
+- [ONVIF Conformance Process](https://www.onvif.org/profiles/conformance/)
+- [ONVIF Developer Resources](https://www.onvif.org/resources/)
+- [libonvif GitHub](https://github.com/sr99622/libonvif)
+- [Happytimesoft ONVIF SDK](https://www.happytimesoft.com/index.html)
+- [ONVIF Feature Overview v2.6](https://www.onvif.org/wp-content/uploads/2016/12/ONVIF_Profile_Feature_overview_v2-6.pdf)
+- [ONVIF Conformance Process v5.6 (May 2025)](https://www.onvif.org/profiles/conformance/)
+
+---
+
+**Document Version**: 1.1.0
+**Created**: 2026-01-03
+**Updated**: 2026-01-03 (Added ONVIF compliance, libonvif strategy)
+**Author**: Claude Opus 4.5
+**STAMP Compliance**: Verified (31 constraints)

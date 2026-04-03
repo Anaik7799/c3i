@@ -1,0 +1,40 @@
+#\!/bin/bash
+# Optimized Phoenix startup script for intelitor-app-podman container
+
+# Set up environment
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export ELIXIR_ERL_OPTIONS='+fnu'
+export MIX_ENV=dev
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5434/intelitor_dev
+export REDIS_URL=redis://localhost:6380
+export NIX_PATH=nixpkgs=channel:nixos-unstable
+
+# Change to workspace directory
+cd /workspace
+
+echo "Starting Phoenix server in container..."
+
+# Use nix-shell with the packages defined in devenv.nix
+nix-shell -p elixir_1_18 erlang_27 nodejs_20 postgresql_17 cacert --run '
+  # Set SSL certificates
+  export SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
+  
+  # Show versions
+  echo "Elixir version: $(elixir --version | head -1)"
+  echo "Mix version: $(mix --version | head -1)"
+  
+  # Ensure dependencies are installed
+  echo "Checking dependencies..."
+  mix deps.get
+  
+  # Compile if needed
+  if [ \! -d "_build/dev" ]; then
+    echo "Compiling application..."
+    mix compile
+  fi
+  
+  # Start Phoenix server
+  echo "Starting Phoenix server on http://localhost:4000"
+  exec mix phx.server
+'

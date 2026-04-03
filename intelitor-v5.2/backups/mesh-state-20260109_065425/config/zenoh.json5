@@ -1,0 +1,123 @@
+{
+  // Zenoh Router Configuration for Indrajaal
+  // Version: 1.0.0 | STAMP: SC-ZENOH-CFG-001
+  // Purpose: Message broker for fractal logging and telemetry
+
+  mode: "router",
+
+  listen: {
+    endpoints: [
+      "tcp/0.0.0.0:7447"
+    ]
+  },
+
+  connect: {
+    endpoints: []
+  },
+
+  plugins: {
+    // REST API Plugin (for health checks and debugging)
+    rest: {
+      http_port: 8000
+    },
+
+    // Storage Manager Plugin
+    storage_manager: {
+      volumes: {},
+      storages: {
+        // In-memory storage for recent fractal logs (last 1000 messages per level)
+        fractal_recent: {
+          key_expr: "indrajaal/fractal/**",
+          volume: "memory",
+          strip_prefix: "indrajaal/fractal"
+        },
+        // In-memory storage for telemetry metrics
+        telemetry_recent: {
+          key_expr: "indrajaal/telemetry/**",
+          volume: "memory",
+          strip_prefix: "indrajaal/telemetry"
+        },
+        // In-memory storage for KPIs
+        kpi_recent: {
+          key_expr: "indrajaal/kpi/**",
+          volume: "memory",
+          strip_prefix: "indrajaal/kpi"
+        }
+      }
+    }
+  },
+
+  // Multicast scouting for peer discovery
+  scouting: {
+    multicast: {
+      enabled: true,
+      address: "224.0.0.224:7446",
+      interface: "auto",
+      autoconnect: {
+        router: [],
+        peer: ["router", "peer"],
+        client: ["router", "peer"]
+      }
+    },
+    gossip: {
+      enabled: true,
+      multihop: true,
+      autoconnect: {
+        router: [],
+        peer: ["router", "peer"],
+        client: ["router", "peer"]
+      }
+    }
+  },
+
+  // Timestamping configuration
+  timestamping: {
+    enabled: true,
+    drop_future_timestamp: false
+  },
+
+  // Query timeout (10 seconds)
+  queries_default_timeout: 10000,
+
+  // Transport configuration
+  transport: {
+    unicast: {
+      accept_timeout: 10000,
+      accept_pending: 100,
+      max_sessions: 1000,
+      max_links: 10
+    },
+    multicast: {
+      join_interval: 2500,
+      max_sessions: 1000
+    },
+    link: {
+      tx: {
+        sequence_number_resolution_2exp: 28,
+        lease: 10000,
+        keep_alive: 4,
+        batch_size: 65535
+      },
+      rx: {
+        buffer_size: 65535,
+        max_message_size: 1073741824
+      }
+    }
+  },
+
+  // Aggregation for reducing message rate
+  aggregation: {
+    subscribers: [
+      {
+        key_expr: "indrajaal/telemetry/**",
+        delay: 200
+      }
+    ],
+    publishers: [
+      {
+        key_expr: "indrajaal/kpi/**",
+        delay: 1000
+      }
+    ]
+  }
+}

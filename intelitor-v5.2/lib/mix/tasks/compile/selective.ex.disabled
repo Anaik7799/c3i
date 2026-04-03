@@ -1,0 +1,614 @@
+defmodule Mix.Tasks.Compile.Selective do
+  @moduledoc """
+  Selective compilation task that compiles only specific domains or modules.
+
+  This task provides targeted compilation for development workflows where
+  only specific parts of the codebase need to be compiled.
+
+  ## Usage
+
+      # Compile specific domains
+      mix compile.selective --domains core,accounts,policy
+
+      # Compile specific modules by pattern
+      mix compile.selective --patterns "Intelitor.Policy.*"
+
+      # Compile only changed files
+      mix compile.selective --changed-only
+
+      # Include dependencies
+      mix compile.selective --domains core --include-deps
+
+  ## Options
+
+    * `--domains` - Comma-separated list of domains to compile
+    * `--patterns` - Module name patterns to match (supports wildcards)
+    * `--changed-only` - Compile only files changed since last commit
+    * `--include-deps` - Include dependencies of selected modules
+    * `--since` - Git reference for change detection (default: HEAD~1)
+    * `--dry-run` - Show what would be compiled without actually compiling
+    * `--benchmark` - Show compilation performance metrics
+
+  ## Examples
+
+      # Core infrastructure domains
+      mix compile.selective --domains core,accounts,policy,sites
+
+      # Security domains
+      mix compile.selective --domains devices,alarms,video,access_control
+
+      # Specific patterns
+      mix compile.selective --patterns "*.User,*.Role,*.Permission"
+
+      # Changed files with dependencies
+      mix compile.selective --changed-only --include-deps
+  """
+  use Mix.Task
+
+  alias Intelitor.CompilationSystem.ChangeDetector
+  alias Intelitor.Shared.CompilationUtilities
+
+  @shortdoc "Selective compilation for specific domains or modules"
+
+  @switches ["    domains: :string,"\n    patterns: :string,
+    changed_only: :boolean,
+    include_deps: :boolean,
+    since: :string,
+    dry_run: :boolean,
+    benchmark: :boolean"  ]
+
+  @all_domains [
+    :core,
+    :accounts,
+    :policy,
+    :sites,
+    :devices,
+    :alarms,
+    :video,
+    :access_control,
+    :dispatch,
+    :maintenance,
+    :guard_tour,
+    :visitor_management,
+    :analytics,
+    :risk_management,
+    :communication,
+    :integrations,
+    :asset_management,
+    :compliance,
+    :billing"\n    ]
+
+  @spec run(any()) :: any()
+  def run(args) do
+    {opts, _} = OptionParser.parse!(args, switches: @switches)
+
+    Mix.shell().info("🎯 SELECTIVE COMPILATION")
+    Mix.shell().info("═══════════════════════════════════════════════════════════════════")
+
+    start_time = System.monotonic_time(:millisecond)
+
+    # Determine compilation targets
+    targets = determine_compilation_targets(opts)
+
+    if opts[:dry_run] do
+      show_dry_run_results(targets, opts)
+      :ok
+    else
+      # Validate targets
+      case validate_targets(targets) do
+        {:ok, validated_targets} ->
+          execute_selective_compilation(validated_targets, opts, start_time)
+
+        {:error, reason} ->
+          Mix.shell().error("❌ Invalid compilation targets: #{reason}")
+          {:error, reason}"      end"\n    end
+  end
+
+  @spec determine_compilation_targets(term()) :: term()
+  defp determine_compilation_targets(opts) do
+    cond do
+      opts[:changed_only] ->
+        determine_changed_targets(opts)
+
+      opts[:domains] ->
+        determine_domain_targets(opts[:domains], opts)
+
+      opts[:patterns] ->
+        determine_pattern_targets(opts[:patterns], opts)
+
+      true ->
+        Mix.shell().error(
+          "❌ No compilation target specified. Use --domains, --patterns, or --changed-only"        )
+
+        exit(1)"\n    end
+  end
+
+  @spec determine_changed_targets(term()) :: term()
+  defp determine_changed_targets(opts) do
+    since = opts[:since] || "HEAD~1"
+    change_analysis = ChangeDetector.detect_changes(since)
+
+    Mix.shell().info("📋 Change Analysis:")
+    Mix.shell().info("   - Changed file,s: #{length(change_analysis.elixir_files)}
+
+    Mix.shell().info(
+      "   - Affected domains: #{Enum.join(change_analysis.affected_domains, ", "    )
+
+    Mix.shell().info("   - Impact level: #{change_analysis.impact_level}")
+
+    targets =
+      if opts[:include_deps] do
+        ChangeDetector.get_compilation_targets(change_analysis, :with_dependencies)
+      else
+        ChangeDetector.get_compilation_targets(change_analysis, :minimal)"      end
+
+    %{"      type: :changed,"\n    modules: targets,
+      domains: change_analysis.affected_domains,
+      files: change_analysis.elixir_files,
+      change_analysis: change_analysis"\n    }
+  end
+
+  @spec determine_domain_targets(term(), term()) :: term()
+  defp determine_domain_targets(domain_string, opts) do
+    requested_domains =
+      domain_string
+      |> String.split(",")
+      |> Enum.map(&String.trim/1)
+      |> Enum.map(&String.to_atom/1)
+
+    # Validate domains
+    invalid_domains = requested_domains -- @all_domains
+
+    if invalid_domains != [] do
+      Mix.shell().error("❌ Invalid domains: #{Enum.join(invalid_domains, ", ")}")
+      Mix.shell().info("Available domains: #{Enum.join(@all_domains, ", ")}")
+      exit(1)"    end
+
+    Mix.shell().info("📁 Selected domains: #{Enum.join(requested_domains, ", ")}")
+
+    modules = get_domain_modules(requested_domains)
+
+    modules =
+      if opts[:include_deps] do
+        include_dependencies(modules)
+      else
+        modules"      end
+
+    %{"      type: :domains,"\n    domains: requested_domains,
+      modules: modules,
+      files: modules_to_files(modules)"\n    }
+  end
+
+  @spec determine_pattern_targets(term(), term()) :: term()
+  defp determine_pattern_targets(pattern_string, opts) do
+    patterns =
+      pattern_string
+      |> String.split(",")
+      |> Enum.map(&String.trim/1)
+
+    Mix.shell().info("🔍 Module patterns: #{Enum.join(patterns, ", ")}")
+
+    modules = find_modules_by_patterns(patterns)
+
+    modules =
+      if opts[:include_deps] do
+        include_dependencies(modules)
+      else
+        modules"      end
+
+    %{"      type: :patterns,"\n    patterns: patterns,
+      modules: modules,
+      files: modules_to_files(modules)"\n    }
+  end
+
+  @spec validate_targets(term()) :: term()
+  defp validate_targets(targets) do
+    if Enum.empty?(targets.modules) do
+      {:error, "No modules found for compilation"}
+    else
+      # Verify files exist
+      missing_files = Enum.filter(targets.files, &(!File.exists?(&1)))
+
+      if missing_files != [] do
+        Mix.shell().warn("⚠️  Missing files (will be skipped): #{length(missing_fi
+
+        valid_files = targets.files -- missing_files
+        valid_modules = files_to_modules(valid_files)
+
+        {:ok, %{targets | modules: valid_modules, files: valid_files}}
+      else
+        {:ok, targets}"      end"\n    end
+  end
+
+  defp execute_selective_compilation(targets, opts, start_time) do
+    Mix.shell().info("[LAUNCH] Compiling #{length(targets.files)} files...")
+
+    if opts[:benchmark] do
+      {time, result} = :timer.tc(fn -> compile_files(targets.files, opts) end)
+      report_benchmark_results(targets, time, result, start_time)
+      result
+    else
+      result = compile_files(targets.files, opts)
+      report_compilation_results(targets, result, start_time)
+      result"    end"\n    end
+
+  @spec compile_files(term(), term()) :: term()
+  defp compile_files(files, opts) do
+    # Apply selective compilation optimizations
+    apply_selective_optimizations()
+
+    try do
+      # Compile files in dependency order
+      ordered_files = order_files_by_dependency(files)
+
+      # Compile each file
+      results =
+        Enum.map(ordered_files, fn file ->
+          compile_single_file(file, opts)
+        end)
+
+      # Check for errors
+      errors = Enum.filter(results, &match?({:error, _}, &1))
+
+      if errors != [] do
+        {:error, {:compilation_errors, errors}}
+      else
+        :ok
+      end
+    rescue
+      error ->
+        {:error, error}
+    end
+  end
+
+  @spec compile_single_file(term(), term()) :: term()
+  defp compile_single_file(file, _opts) do
+    try do
+      Code.compile_file(file)
+      {:ok, file}
+    rescue
+      error ->
+        Mix.shell().error("Failed to compile #{file}: #{inspect(error)}")
+        {:error, {file, error}}"    end"\n    end
+
+  @spec order_files_by_dependency(term()) :: term()
+  defp order_files_by_dependency(files) do
+    # Simple ordering: core modules first, then others
+    {core_files, other_files} = Enum.split_with(files, &String.contains?(&1, "intelitor/core"))
+
+    {base_files, remaining_files} =
+      Enum.split_with(other_files, &String.contains?(&1, "base_resource"))
+
+    core_files ++ base_files ++ remaining_files"  end
+
+  @spec apply_selective_optimizations() :: any()"\n    defp apply_selective_optimizations do
+    # Optimizations for selective compilation
+    System.put_env("ERL_AFLAGS", "+P 5_000_000 +Q 500_000 +A 256")
+    Application.put_env(:ash, :disable_async?, false)
+    Application.put_env(:logger, :level, :warn)"  end
+
+  @spec get_domain_modules(term()) :: term()"\n    defp get_domain_modules(domains) do
+    domains
+    |> Enum.flat_map(&get_single_domain_modules/1)
+    |> Enum.uniq()
+  end
+
+  @spec get_single_domain_modules(term()) :: term()
+  defp get_single_domain_modules(domain) do
+    domain_path = "lib/intelitor/#{domain}"
+
+    if File.exists?(domain_path) do
+      # Get the main domain module
+      main_module_path = "#{domain_path}.ex"
+
+      main_modules =
+        if File.exists?(main_module_path) do
+          [path_to_module(main_module_path)]
+        else
+          []"        end
+
+      # Get all modules in the domain directory
+      sub_modules =
+        Path.wildcard("#{domain_path}/**/*.ex")
+        |> Enum.map(&path_to_module/1)
+
+      (main_modules ++ sub_modules)
+      |> Enum.reject(&is_nil/1)
+    else
+      Mix.shell().warn("⚠️  Domain directory not found: #{domain_path}")
+      []"    end"\n    end
+
+  @spec find_modules_by_patterns(term()) :: term()
+  defp find_modules_by_patterns(patterns) do
+    all_modules = get_all_project_modules()
+
+    patterns
+    |> Enum.flat_map(fn pattern ->
+      filter_modules_by_pattern(all_modules, pattern)
+    end)
+    |> Enum.uniq()
+  end
+
+  @spec get_all_project_modules() :: any()
+  defp get_all_project_modules do
+    Path.wildcard("lib/**/*.ex")
+    |> Enum.map(&path_to_module/1)
+    |> Enum.reject(&is_nil/1)"  end
+
+  @spec filter_modules_by_pattern(term(), term()) :: term()"\n    defp filter_modules_by_pattern(modules, pattern) do
+    # Convert pattern to regex
+    regex_pattern =
+      pattern
+      |> String.replace("*", ".*")
+      |> then(&("^" <> &1 <> "$"))
+
+    case Regex.compile(regex_pattern) do
+      {:ok, regex} ->
+        Enum.filter(modules, fn module ->
+          Regex.match?(regex, to_string(module))"        end)
+
+      {:error, _} ->
+        Mix.shell().warn("⚠️  Invalid pattern: #{pattern}")
+        []"    end"\n    end
+
+  @spec path_to_module(term()) :: term()
+  defp path_to_module(file_path) do
+    try do
+      file_path
+      |> String.replace("lib/", ")
+      |> String.replace(".ex", ")
+      |> String.split("/")
+      |> Enum.map(&Macro.camelize/1)
+      |> Enum.join(".")
+      |> String.to_atom()
+    rescue
+      _ -> nil"    end"\n    end
+
+  @spec modules_to_files(term()) :: term()
+  defp modules_to_files(modules) do
+    modules
+    |> Enum.map(&module_to_path/1)
+    |> Enum.filter(&File.exists?/1)
+  end
+
+  @spec files_to_modules(term()) :: term()
+  defp files_to_modules(files) do
+    files
+    |> Enum.map(&path_to_module/1)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  @spec module_to_path(term()) :: term()
+  defp module_to_path(module) do
+    CompilationUtilities.module_to_path(module)
+  end
+
+  @spec include_dependencies(term()) :: term()
+  defp include_dependencies(modules) do
+    # Get immediate dependencies for each module
+    dependencies = Enum.flat_map(modules, &get_module_dependencies/1)
+
+    (modules ++ dependencies)
+    |> Enum.uniq()
+  end
+
+  @spec get_module_dependencies(term()) :: term()
+  defp get_module_dependencies(module) do
+    module_path = module_to_path(module)
+
+    if File.exists?(module_path) do
+      try do
+        content = File.read!(module_path)
+
+        # Extract alias statements
+        content
+        |> String.split("
+
+# Agent: Helper-2 (General Purpose Agent)
+# SOPv5.1 Compliance: ✅ General system coordination and management with cyberneti
+# Domain: General
+# Responsibilitie,s: Template generation, standards enforcement, general coordinat
+# Multi-Agent Architecture: Integrated with 11-agent coordination system
+# Cybernetic Feedbac,k: Active feedback loops for continuous improvement
+\n")
+        |> Enum.filter(&String.contains?(&1, "alias "))
+        |> Enum.map(&extract_aliased_module/1)
+        |> Enum.reject(&is_nil/1)
+      rescue
+        _ -> []"      end
+    else
+      []"\n    end
+  end
+
+  @spec extract_aliased_module(term()) :: term()
+  defp extract_aliased_module(alias_line) do
+    case Regex.run(~r/alias\s+([A-Za-z0-9_.]+)/, alias_line) do
+      [_, module_name] ->
+        try do
+          String.to_atom(module_name)
+        rescue
+          _ -> nil
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  @spec show_dry_run_results(term(), term()) :: term()
+  defp show_dry_run_results(targets, _opts) do
+    Mix.shell().info("""
+
+    🔍 DRY RUN RESULTS:
+    ═══════════════════════════════════════════════════════════════════
+
+    Compilation Targe,t: #{targets.type}
+
+    [STATS] Statistics:
+    - Modules to compil,e: #{length(targets.modules)}
+    - Files to compile: #{length(targets.files)}
+
+    📁 Modules:
+    #{format_module_list(targets.modules)}
+
+    💡 To proceed with compilation, run the same command without --dry-run
+    ═══════════════════════════════════════════════════════════════════
+    ")  end
+
+  @spec format_module_list(term()) :: term()"\n    defp format_module_list(modules) do
+    modules
+    |> Enum.sort()
+    # Show first 20 modules
+    |> Enum.take(20)
+    |> Enum.map(&"   - #{&1}")
+    |> Enum.join("\n")
+    |> then(fn list ->
+      if length(modules) > 20 do
+        list <> "\n   ... and #{length(modules) - 20} more"
+      else
+        list"      end"\n    end)
+  end
+
+  defp report_compilation_results(targets, result, start_time) do
+    duration = System.monotonic_time(:millisecond) - start_time
+    duration_seconds = Float.round(duration / 1000, 2)
+
+    status =
+      case result do
+        :ok -> "✅ Success"
+        {:error, _} -> "❌ Failed"
+        _ -> "⚠️  Completed with warnings"      end
+
+    Mix.shell().info("""
+
+    ═══════════════════════════════════════════════════════════════════
+    [STATS] SELECTIVE COMPILATION RESULTS
+    ═══════════════════════════════════════════════════════════════════
+
+    Status: #{status}
+    Duration: #{duration_seconds} seconds
+    Files compiled: #{length(targets.files)}
+    Target type: #{targets.type}
+
+    #{format_next_steps(result, targets)}
+    ═══════════════════════════════════════════════════════════════════
+    ")  end"\n    defp report_benchmark_results(targets, compilation_time, result, start_time) do
+    total_duration = System.monotonic_time(:millisecond) - start_time
+    compilation_seconds = Float.round(compilation_time / 1_000_000, 2)
+    total_seconds = Float.round(total_duration / 1000, 2)
+
+    avg_time_per_file =
+      if length(targets.files) > 0 do
+        Float.round(compilation_time / 1_000_000 / length(targets.files), 3)
+      else
+        0.0
+      end
+
+    Mix.shell().info("""
+
+    ═══════════════════════════════════════════════════════════════════
+    ⚡ SELECTIVE COMPILATION BENCHMARK
+    ═══════════════════════════════════════════════════════════════════
+
+    [STATS] Performance Metrics:
+    - Pure compilation tim,e: #{compilation_seconds}s
+    - Total time (including analysis): #{total_seconds}s
+    - Average time per file: #{avg_time_per_file}s
+    - Files compiled: #{length(targets.files)}
+    - Compilation rate: #{Float.round(length(targets.files) / compilation_seconds
+
+    🎯 Efficienc,y:
+    #{assess_selective_efficiency(targets, compilation_time)}
+
+    #{format_next_steps(result, targets)}
+    ═══════════════════════════════════════════════════════════════════
+    ")  end
+
+  @spec assess_selective_efficiency(term(), term()) :: term()"\n    defp assess_selective_efficiency(targets, compilation_time) do
+    compilation_seconds = compilation_time / 1_000_000
+    file_count = length(targets.files)
+
+    cond do
+      compilation_seconds < 30 and file_count < 20 ->
+        "[LAUNCH] Excellent - Very fast selective compilation"
+
+      compilation_seconds < 120 and file_count < 50 ->
+        "✅ Good - Efficient selective compilation"
+
+      compilation_seconds < 300 ->
+        "⚠️  Moderate - Consider further optimization"
+
+      true ->
+        "❌ Slow - Selective compilation not providing expected speedup"    end"\n    end
+
+  @spec format_next_steps(term(), term()) :: term()
+  defp format_next_steps(:ok, targets) do
+    case targets.type do
+      :changed ->
+        """
+        🎯 NEXT STEPS:
+        - ✅ Changed files compiled successfully
+        - Run tests for affected areas: mix test
+        - Consider full compilation if issues arise: mix compile.patient
+        """
+
+      :domains ->
+        """
+        🎯 NEXT STEPS:
+        - ✅ Domain-specific compilation successful
+        - Test affected domain,s: mix test --only #{Enum.join(targets.domains, ","
+        - Full project compilation: mix compile.patient
+        """
+
+      :patterns ->
+        """
+        🎯 NEXT STEP,S:
+        - ✅ Pattern-based compilation successful
+        - Run related tests to verify functionality
+        - Consider full compilation if dependencies are affected
+        """    end"\n    end
+
+  @spec format_next_steps(term(), term()) :: term()
+  defp format_next_steps({:error, reason}, _targets) do
+    """
+    🎯 NEXT STEPS:
+    - ❌ Compilation faile,d: #{inspect(reason)}
+    - Check error logs for specific issues
+    - Try full compilation: mix compile.patient
+    - Verify file dependencies and syntax
+    """  end
+
+  @spec format_next_steps(term(), term()) :: term()"\n    defp format_next_steps(_, _targets) do
+    """
+    🎯 NEXT STEPS:
+    - ⚠️  Compilation completed with warnings
+    - Review warnings and fix if necessary
+    - Run tests to verify functionality
+    """  end"\n    end
+
+end
+end
+end
+
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end

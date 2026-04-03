@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>FS0667</NoWarn>
+    <Version>1.0.0</Version>
+    <Authors>CEPAF Team</Authors>
+    <Description>Benchmarks for Cepaf.Podman library</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="TestData.fs" />
+    <Compile Include="JsonParsingBenchmarks.fs" />
+    <Compile Include="ComposeParseBenchmarks.fs" />
+    <Compile Include="SerializationBenchmarks.fs" />
+    <Compile Include="HealthProbeBenchmarks.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Cepaf.Podman/Cepaf.Podman.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>

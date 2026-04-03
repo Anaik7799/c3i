@@ -1,0 +1,113 @@
+# Artillery Soak Testing Configuration
+# Purpose: Long-running stability tests to detect memory leaks, connection exhaustion, etc.
+# Duration: ~2 hours (configurable via environment)
+# STAMP Compliance: SC-PRF-049, SC-PRF-050
+
+config:
+  target: '{{ $processEnvironment.ARTILLERY_TARGET || "http://localhost:4000" }}'
+
+  phases:
+    # Initial ramp-up (5 minutes)
+    - duration: 300
+      arrivalRate: 5
+      rampTo: 20
+      name: "Soak Warm-up"
+
+    # Sustained load phase 1 (30 minutes)
+    - duration: 1800
+      arrivalRate: 20
+      name: "Soak Sustained Load 1"
+
+    # Slight increase (30 minutes)
+    - duration: 1800
+      arrivalRate: 30
+      name: "Soak Sustained Load 2"
+
+    # Return to baseline (30 minutes)
+    - duration: 1800
+      arrivalRate: 20
+      name: "Soak Sustained Load 3"
+
+    # Final sustained (25 minutes)
+    - duration: 1500
+      arrivalRate: 25
+      name: "Soak Final Phase"
+
+    # Cooldown (5 minutes)
+    - duration: 300
+      arrivalRate: 5
+      name: "Soak Cooldown"
+
+  processor: "./artillery-processor.js"
+
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+
+  # Soak test thresholds - more lenient than CI but strict enough
+  ensure:
+    - p95: 750      # 95th percentile under 750ms
+    - p99: 1500     # 99th percentile under 1.5s
+    - median: 200   # Median under 200ms
+
+  # Plugins for extended metrics
+  plugins:
+    expect: {}
+
+scenarios:
+  # Health monitoring (continuous throughout soak)
+  - name: "Soak Health Monitor"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/health"
+          expect:
+            - statusCode: 200
+
+  # Alarm workflow (primary business flow)
+  - name: "Soak Alarm Workflow"
+    weight: 40
+    flow:
+      - get:
+          url: "/api/alarms"
+          expect:
+            - statusCode: 200
+      - think: 2
+      - get:
+          url: "/api/alarms/active"
+          expect:
+            - statusCode: 200
+      - think: 3
+      - get:
+          url: "/api/v1/statistics"
+          expect:
+            - statusCode: 200
+
+  # Device management (moderate traffic)
+  - name: "Soak Device Operations"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/devices"
+          expect:
+            - statusCode: 200
+      - think: 5
+      - get:
+          url: "/api/sites"
+          expect:
+            - statusCode: 200
+
+  # Dashboard analytics (resource-intensive queries)
+  - name: "Soak Analytics"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/v1/dashboard/statistics"
+          expect:
+            - statusCode: 200
+      - think: 10
+      - get:
+          url: "/api/v1/analytics/devices/health"
+          expect:
+            - statusCode: 200

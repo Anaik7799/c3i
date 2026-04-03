@@ -1,0 +1,389 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROMETHEUS ALERTING RULES FOR INDRAJAAL STANDALONE MODE
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# STAMP Compliance:
+#   - SC-PRF-050: Response time < 50ms monitoring
+#   - SC-BIO-004: Context window compaction at 75%
+#   - SC-AI-007: AI context window threshold alerts
+#   - SC-PROM-002: API usage < 95% limit
+#   - SC-EMR-057: Emergency stop < 5 seconds
+#
+# Document Control:
+#   Version: 1.0.0
+#   Updated: 2026-01-21
+#   Author: Claude Opus 4.5
+#   STAMP: SC-OBS-069, SC-OBS-071
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+groups:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # CLUSTER HEALTH ALERTS
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: cluster_health
+    rules:
+      - alert: PhoenixAppDown
+        expr: up{job="indrajaal-app"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          stamp: SC-CLU-001
+        annotations:
+          summary: "Phoenix application is down"
+          description: "Phoenix application {{ $labels.instance }} has been down for more than 30 seconds."
+
+      - alert: PostgreSQLDown
+        expr: up{job="postgresql"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          stamp: SC-DB-001
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL database {{ $labels.instance }} has been down for more than 30 seconds."
+
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 30s
+        labels:
+          severity: high
+          stamp: SC-CACHE-001
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis cache {{ $labels.instance }} has been down for more than 30 seconds."
+
+      - alert: ZenohRouterDown
+        expr: up{job="zenoh"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          stamp: SC-ZENOH-002
+        annotations:
+          summary: "Zenoh router is unreachable"
+          description: "Zenoh router {{ $labels.instance }} has been unreachable for more than 30 seconds."
+
+      - alert: OTELCollectorDown
+        expr: up{job="otel-collector"} == 0
+        for: 1m
+        labels:
+          severity: high
+          stamp: SC-OBS-071
+        annotations:
+          summary: "OTEL Collector is down"
+          description: "OTEL Collector {{ $labels.instance }} has been down for more than 1 minute."
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # PERFORMANCE ALERTS (SC-PRF-050)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: performance
+    rules:
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, sum(rate(phoenix_endpoint_duration_milliseconds_bucket[5m])) by (le)) > 50
+        for: 2m
+        labels:
+          severity: warning
+          stamp: SC-PRF-050
+        annotations:
+          summary: "Phoenix response time exceeds 50ms (p95)"
+          description: "Phoenix p95 response time is {{ $value }}ms, exceeding the 50ms threshold (SC-PRF-050)."
+
+      - alert: CriticalResponseTime
+        expr: histogram_quantile(0.95, sum(rate(phoenix_endpoint_duration_milliseconds_bucket[5m])) by (le)) > 100
+        for: 1m
+        labels:
+          severity: critical
+          stamp: SC-PRF-050
+        annotations:
+          summary: "Phoenix response time critically high"
+          description: "Phoenix p95 response time is {{ $value }}ms, critically exceeding thresholds."
+
+      - alert: HighErrorRate
+        expr: sum(rate(phoenix_endpoint_failures_total[5m])) / sum(rate(phoenix_endpoint_requests_total[5m])) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          stamp: SC-PRF-001
+        annotations:
+          summary: "Phoenix error rate exceeds 5%"
+          description: "Phoenix error rate is {{ $value | humanizePercentage }}, exceeding 5% threshold."
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ERLANG VM ALERTS
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: erlang_vm
+    rules:
+      - alert: HighBEAMMemory
+        expr: erlang_vm_memory_bytes_total{kind="processes"} > 2e9
+        for: 5m
+        labels:
+          severity: warning
+          stamp: SC-MEM-001
+        annotations:
+          summary: "BEAM process memory exceeds 2GB"
+          description: "BEAM process memory is {{ $value | humanize1024 }}, exceeding 2GB threshold."
+
+      - alert: HighProcessCount
+        expr: erlang_vm_process_count > 50000
+        for: 2m
+        labels:
+          severity: warning
+          stamp: SC-PROC-001
+        annotations:
+          summary: "BEAM process count exceeds 50,000"
+          description: "BEAM has {{ $value }} processes, exceeding recommended limit."
+
+      - alert: SchedulerOverload
+        expr: rate(erlang_vm_scheduler_utilization_total[1m]) > 0.90
+        for: 5m
+        labels:
+          severity: warning
+          stamp: SC-SCHED-001
+        annotations:
+          summary: "BEAM scheduler utilization exceeds 90%"
+          description: "BEAM scheduler utilization is {{ $value | humanizePercentage }}."
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # AI/CORTEX ALERTS (SC-AI, SC-BIO-004)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: ai_cortex
+    rules:
+      - alert: ContextWindowThreshold75
+        expr: indrajaal_context_window_usage_percent > 0.75
+        for: 0s
+        labels:
+          severity: info
+          stamp: SC-BIO-004
+        annotations:
+          summary: "Context window at 75% - compaction recommended"
+          description: "Session {{ $labels.session_id }} context window at {{ $value | humanizePercentage }}. Compaction recommended per SC-BIO-004."
+
+      - alert: ContextWindowThreshold90
+        expr: indrajaal_context_window_usage_percent > 0.90
+        for: 0s
+        labels:
+          severity: warning
+          stamp: SC-AI-007
+        annotations:
+          summary: "Context window at 90% - minimal mode recommended"
+          description: "Session {{ $labels.session_id }} context window at {{ $value | humanizePercentage }}. Minimal mode recommended."
+
+      - alert: ContextWindowCritical
+        expr: indrajaal_context_window_usage_percent > 0.95
+        for: 0s
+        labels:
+          severity: critical
+          stamp: SC-AI-007
+        annotations:
+          summary: "Context window at 95% - compaction required"
+          description: "Session {{ $labels.session_id }} context window at {{ $value | humanizePercentage }}. Immediate compaction required."
+
+      - alert: AIBudgetThreshold75
+        expr: indrajaal_ai_cost_daily_usage / indrajaal_ai_cost_daily_budget > 0.75
+        for: 0s
+        labels:
+          severity: info
+          stamp: SC-AI-004
+        annotations:
+          summary: "AI daily budget at 75%"
+          description: "AI daily budget usage at {{ $value | humanizePercentage }}."
+
+      - alert: AIBudgetThreshold90
+        expr: indrajaal_ai_cost_daily_usage / indrajaal_ai_cost_daily_budget > 0.90
+        for: 0s
+        labels:
+          severity: warning
+          stamp: SC-AI-004
+        annotations:
+          summary: "AI daily budget at 90%"
+          description: "AI daily budget usage at {{ $value | humanizePercentage }}. Consider reducing AI usage."
+
+      - alert: AIRateLimitHit
+        expr: rate(indrajaal_ai_rate_limit_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          stamp: SC-API-002
+        annotations:
+          summary: "AI API rate limit being hit"
+          description: "AI API rate limits being hit at {{ $value }} per minute."
+
+      - alert: MetabolismCircuitOpen
+        expr: indrajaal_prometheus_metabolism_circuit_open == 1
+        for: 0s
+        labels:
+          severity: warning
+          stamp: SC-API-009
+        annotations:
+          summary: "Metabolism circuit breaker open"
+          description: "API circuit breaker is open after consecutive failures."
+
+      - alert: CortexDegraded
+        expr: indrajaal_cortex_status != 1
+        for: 1m
+        labels:
+          severity: warning
+          stamp: SC-CTX-001
+        annotations:
+          summary: "Cortex system degraded"
+          description: "Cortex system status is degraded or not running."
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # GUARDIAN/SAFETY ALERTS
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: safety
+    rules:
+      - alert: GuardianNotRunning
+        expr: indrajaal_guardian_alive == 0
+        for: 10s
+        labels:
+          severity: critical
+          stamp: SC-GDE-001
+        annotations:
+          summary: "Guardian safety kernel not running"
+          description: "Guardian safety kernel is not running. All mutations blocked per SC-GDE-001."
+
+      - alert: GuardianVetoRateHigh
+        expr: rate(indrajaal_guardian_veto_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          stamp: SC-GDE-002
+        annotations:
+          summary: "Guardian veto rate elevated"
+          description: "Guardian is vetoing proposals at {{ $value }} per second."
+
+      - alert: SentinelThreatHigh
+        expr: indrajaal_sentinel_threat_count > 5
+        for: 1m
+        labels:
+          severity: warning
+          stamp: SC-IMMUNE-001
+        annotations:
+          summary: "Sentinel detecting multiple threats"
+          description: "Sentinel has detected {{ $value }} active threats."
+
+      - alert: SentinelQuarantineActive
+        expr: indrajaal_sentinel_quarantine_count > 0
+        for: 0s
+        labels:
+          severity: warning
+          stamp: SC-IMMUNE-002
+        annotations:
+          summary: "Sentinel has quarantined processes"
+          description: "{{ $value }} processes are currently quarantined by Sentinel."
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # DATABASE ALERTS
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: database
+    rules:
+      - alert: HighDatabaseConnections
+        expr: pg_stat_activity_count > 80
+        for: 5m
+        labels:
+          severity: warning
+          stamp: SC-DB-010
+        annotations:
+          summary: "PostgreSQL connection count high"
+          description: "PostgreSQL has {{ $value }} connections, approaching the limit."
+
+      - alert: DatabaseDeadlocks
+        expr: rate(pg_stat_database_deadlocks[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          stamp: SC-DB-015
+        annotations:
+          summary: "PostgreSQL deadlocks detected"
+          description: "PostgreSQL experiencing {{ $value }} deadlocks per second."
+
+      - alert: SlowQueries
+        expr: rate(ecto_query_duration_seconds_sum[5m]) / rate(ecto_query_duration_seconds_count[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          stamp: SC-DB-020
+        annotations:
+          summary: "Average query duration exceeds 100ms"
+          description: "Average Ecto query duration is {{ $value }}s."
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ZENOH MESSAGING ALERTS
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: zenoh_messaging
+    rules:
+      - alert: ZenohPublishLatencyHigh
+        expr: histogram_quantile(0.95, sum(rate(indrajaal_zenoh_publish_duration_seconds_bucket[5m])) by (le)) > 0.01
+        for: 2m
+        labels:
+          severity: warning
+          stamp: SC-ZTEST-003
+        annotations:
+          summary: "Zenoh publish latency exceeds 10ms"
+          description: "Zenoh p95 publish latency is {{ $value }}s, exceeding 10ms threshold (SC-ZTEST-003)."
+
+      - alert: ZenohSubscriberDisconnected
+        expr: indrajaal_zenoh_subscriber_active == 0
+        for: 30s
+        labels:
+          severity: high
+          stamp: SC-ZENOH-003
+        annotations:
+          summary: "Zenoh subscriber disconnected"
+          description: "Zenoh subscriber {{ $labels.subscription_id }} has been disconnected for 30 seconds."
+
+      - alert: ZenohQuorumLost
+        expr: indrajaal_zenoh_quorum_status == 0
+        for: 10s
+        labels:
+          severity: critical
+          stamp: SC-SIL6-006
+        annotations:
+          summary: "Zenoh 2oo3 quorum lost"
+          description: "Zenoh mesh has lost 2-out-of-3 quorum. Consensus operations blocked."
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # INFRASTRUCTURE ALERTS
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: infrastructure
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          stamp: SC-INFRA-001
+        annotations:
+          summary: "Host CPU usage exceeds 80%"
+          description: "Host {{ $labels.instance }} CPU usage at {{ $value | humanizePercentage }}."
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          stamp: SC-INFRA-002
+        annotations:
+          summary: "Host memory usage exceeds 85%"
+          description: "Host {{ $labels.instance }} memory usage at {{ $value | humanizePercentage }}."
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
+        for: 5m
+        labels:
+          severity: warning
+          stamp: SC-INFRA-003
+        annotations:
+          summary: "Disk space below 15%"
+          description: "Host {{ $labels.instance }} has only {{ $value | humanizePercentage }} disk space remaining."
+
+      - alert: ContainerCrashLooping
+        expr: rate(container_restart_count[15m]) > 2
+        for: 5m
+        labels:
+          severity: warning
+          stamp: SC-CNT-015
+        annotations:
+          summary: "Container crash looping"
+          description: "Container {{ $labels.name }} is restarting frequently ({{ $value }} restarts/15m)."

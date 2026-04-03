@@ -1,0 +1,406 @@
+// Cepaf.Podman gRPC Protocol Definitions
+// Provides interop layer between F# Podman client and Elixir services
+// Version: 1.0.0
+
+syntax = "proto3";
+
+option csharp_namespace = "Cepaf.Podman.Grpc";
+
+package cepaf.podman.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/duration.proto";
+
+// ============================================================================
+// Container Service
+// ============================================================================
+
+service ContainerService {
+  // List containers with optional filters
+  rpc List(ListContainersRequest) returns (ListContainersResponse);
+
+  // Get detailed container inspection
+  rpc Inspect(InspectContainerRequest) returns (ContainerInspectResponse);
+
+  // Create a new container
+  rpc Create(CreateContainerRequest) returns (CreateContainerResponse);
+
+  // Start a container
+  rpc Start(StartContainerRequest) returns (google.protobuf.Empty);
+
+  // Stop a container
+  rpc Stop(StopContainerRequest) returns (google.protobuf.Empty);
+
+  // Remove a container
+  rpc Remove(RemoveContainerRequest) returns (google.protobuf.Empty);
+
+  // Check if container exists
+  rpc Exists(ContainerExistsRequest) returns (ContainerExistsResponse);
+
+  // Get container logs
+  rpc Logs(ContainerLogsRequest) returns (ContainerLogsResponse);
+}
+
+// ============================================================================
+// Image Service
+// ============================================================================
+
+service ImageService {
+  // List images
+  rpc List(ListImagesRequest) returns (ListImagesResponse);
+
+  // Pull image from registry (localhost only per safety constraints)
+  rpc Pull(PullImageRequest) returns (PullImageResponse);
+
+  // Get detailed image inspection
+  rpc Inspect(InspectImageRequest) returns (ImageInspectResponse);
+
+  // Check if image exists
+  rpc Exists(ImageExistsRequest) returns (ImageExistsResponse);
+
+  // Remove an image
+  rpc Remove(RemoveImageRequest) returns (google.protobuf.Empty);
+}
+
+// ============================================================================
+// Health Service
+// ============================================================================
+
+service HealthService {
+  // Check health of all running containers
+  rpc CheckAll(google.protobuf.Empty) returns (HealthCheckAllResponse);
+
+  // Get health summary
+  rpc GetSummary(google.protobuf.Empty) returns (HealthSummaryResponse);
+
+  // Check single container health
+  rpc CheckContainer(CheckContainerRequest) returns (ProbeResult);
+
+  // Liveness probe for a container
+  rpc LivenessProbe(LivenessProbeRequest) returns (ProbeResponse);
+
+  // Readiness probe for a container
+  rpc ReadinessProbe(ReadinessProbeRequest) returns (ProbeResponse);
+}
+
+// ============================================================================
+// Common Types
+// ============================================================================
+
+// Container status enum
+enum ContainerStatusType {
+  CONTAINER_STATUS_UNKNOWN = 0;
+  CONTAINER_STATUS_CREATED = 1;
+  CONTAINER_STATUS_RUNNING = 2;
+  CONTAINER_STATUS_PAUSED = 3;
+  CONTAINER_STATUS_RESTARTING = 4;
+  CONTAINER_STATUS_REMOVING = 5;
+  CONTAINER_STATUS_EXITED = 6;
+  CONTAINER_STATUS_DEAD = 7;
+}
+
+// Health status enum
+enum HealthStatusType {
+  HEALTH_STATUS_UNKNOWN = 0;
+  HEALTH_STATUS_STARTING = 1;
+  HEALTH_STATUS_HEALTHY = 2;
+  HEALTH_STATUS_UNHEALTHY = 3;
+  HEALTH_STATUS_NO_HEALTHCHECK = 4;
+}
+
+// Port protocol enum
+enum PortProtocol {
+  PORT_PROTOCOL_TCP = 0;
+  PORT_PROTOCOL_UDP = 1;
+  PORT_PROTOCOL_SCTP = 2;
+}
+
+// Mount type enum
+enum MountType {
+  MOUNT_TYPE_BIND = 0;
+  MOUNT_TYPE_VOLUME = 1;
+  MOUNT_TYPE_TMPFS = 2;
+  MOUNT_TYPE_IMAGE = 3;
+  MOUNT_TYPE_DEVPTS = 4;
+}
+
+// Key-value pair for labels, environment, etc.
+message KeyValue {
+  string key = 1;
+  string value = 2;
+}
+
+// Port mapping
+message PortMapping {
+  uint32 container_port = 1;
+  uint32 host_port = 2;
+  string host_ip = 3;
+  PortProtocol protocol = 4;
+  uint32 range = 5;
+}
+
+// Mount configuration
+message Mount {
+  MountType type = 1;
+  string source = 2;
+  string target = 3;
+  bool read_only = 4;
+  repeated string options = 5;
+}
+
+// ============================================================================
+// Container Service Messages
+// ============================================================================
+
+message ListContainersRequest {
+  bool all = 1;                    // Include stopped containers
+  int32 limit = 2;                 // Max containers to return (0 = unlimited)
+  repeated string status_filter = 3;  // Filter by status
+  repeated string label_filter = 4;   // Filter by labels
+  repeated string name_filter = 5;    // Filter by name
+}
+
+message ListContainersResponse {
+  repeated ContainerSummary containers = 1;
+}
+
+message ContainerSummary {
+  string id = 1;
+  repeated string names = 2;
+  string image = 3;
+  string image_id = 4;
+  string command = 5;
+  google.protobuf.Timestamp created = 6;
+  ContainerStatusType state = 7;
+  string status = 8;
+  repeated PortMapping ports = 9;
+  repeated KeyValue labels = 10;
+  repeated Mount mounts = 11;
+  repeated string networks = 12;
+}
+
+message InspectContainerRequest {
+  string id = 1;  // Container ID or name
+}
+
+message ContainerInspectResponse {
+  string id = 1;
+  google.protobuf.Timestamp created = 2;
+  string path = 3;
+  repeated string args = 4;
+  ContainerState state = 5;
+  string image = 6;
+  string image_name = 7;
+  string name = 8;
+  int32 restart_count = 9;
+  string platform = 10;
+  repeated Mount mounts = 11;
+  repeated KeyValue labels = 12;
+  repeated KeyValue env = 13;
+}
+
+message ContainerState {
+  ContainerStatusType status = 1;
+  bool running = 2;
+  bool paused = 3;
+  bool restarting = 4;
+  bool oom_killed = 5;
+  bool dead = 6;
+  int32 pid = 7;
+  int32 exit_code = 8;
+  string error = 9;
+  google.protobuf.Timestamp started_at = 10;
+  google.protobuf.Timestamp finished_at = 11;
+  HealthCheckResult health = 12;
+}
+
+message HealthCheckResult {
+  HealthStatusType status = 1;
+  int32 failing_streak = 2;
+  repeated HealthCheckLog log = 3;
+}
+
+message HealthCheckLog {
+  google.protobuf.Timestamp start = 1;
+  google.protobuf.Timestamp end = 2;
+  int32 exit_code = 3;
+  string output = 4;
+}
+
+message CreateContainerRequest {
+  string name = 1;                    // Optional container name
+  string image = 2;                   // Image reference (must be localhost/)
+  repeated string command = 3;        // Command to run
+  repeated string entrypoint = 4;     // Entrypoint
+  repeated KeyValue env = 5;          // Environment variables
+  repeated KeyValue labels = 6;       // Labels
+  repeated PortMapping ports = 7;     // Port mappings
+  repeated Mount mounts = 8;          // Volume mounts
+  repeated string networks = 9;       // Networks to connect
+  string hostname = 10;               // Container hostname
+  string user = 11;                   // User to run as
+  string working_dir = 12;            // Working directory
+  bool tty = 13;                      // Allocate TTY
+  bool stdin_open = 14;               // Keep stdin open
+  int64 memory_limit = 15;            // Memory limit in bytes
+  int64 cpu_shares = 16;              // CPU shares
+  string restart_policy = 17;         // Restart policy
+}
+
+message CreateContainerResponse {
+  string id = 1;
+  repeated string warnings = 2;
+}
+
+message StartContainerRequest {
+  string id = 1;
+}
+
+message StopContainerRequest {
+  string id = 1;
+  int32 timeout = 2;  // Timeout in seconds (default: 10)
+}
+
+message RemoveContainerRequest {
+  string id = 1;
+  bool force = 2;      // Force removal
+  bool volumes = 3;    // Remove volumes too
+}
+
+message ContainerExistsRequest {
+  string id = 1;
+}
+
+message ContainerExistsResponse {
+  bool exists = 1;
+}
+
+message ContainerLogsRequest {
+  string id = 1;
+  bool follow = 2;
+  bool stdout = 3;
+  bool stderr = 4;
+  bool timestamps = 5;
+  int32 tail = 6;       // Last N lines (0 = all)
+  google.protobuf.Timestamp since = 7;
+}
+
+message ContainerLogsResponse {
+  string logs = 1;
+}
+
+// ============================================================================
+// Image Service Messages
+// ============================================================================
+
+message ListImagesRequest {
+  bool all = 1;  // Include intermediate images
+}
+
+message ListImagesResponse {
+  repeated ImageSummary images = 1;
+}
+
+message ImageSummary {
+  string id = 1;
+  repeated string repo_tags = 2;
+  repeated string repo_digests = 3;
+  google.protobuf.Timestamp created = 4;
+  int64 size = 5;
+  int64 virtual_size = 6;
+  repeated KeyValue labels = 7;
+  int32 containers = 8;
+}
+
+message PullImageRequest {
+  string reference = 1;  // Image reference (must start with localhost/)
+}
+
+message PullImageResponse {
+  string id = 1;
+}
+
+message InspectImageRequest {
+  string reference = 1;
+}
+
+message ImageInspectResponse {
+  string id = 1;
+  repeated string repo_tags = 2;
+  repeated string repo_digests = 3;
+  string parent = 4;
+  string comment = 5;
+  google.protobuf.Timestamp created = 6;
+  string author = 7;
+  string architecture = 8;
+  string os = 9;
+  int64 size = 10;
+  int64 virtual_size = 11;
+  repeated KeyValue labels = 12;
+  repeated ImageHistoryLayer history = 13;
+}
+
+message ImageHistoryLayer {
+  string id = 1;
+  google.protobuf.Timestamp created = 2;
+  string created_by = 3;
+  int64 size = 4;
+  string comment = 5;
+}
+
+message ImageExistsRequest {
+  string reference = 1;
+}
+
+message ImageExistsResponse {
+  bool exists = 1;
+}
+
+message RemoveImageRequest {
+  string reference = 1;
+  bool force = 2;
+}
+
+// ============================================================================
+// Health Service Messages
+// ============================================================================
+
+message HealthCheckAllResponse {
+  repeated ProbeResult results = 1;
+}
+
+message HealthSummaryResponse {
+  int32 total = 1;
+  int32 healthy = 2;
+  int32 unhealthy = 3;
+  int32 starting = 4;
+  int32 no_healthcheck = 5;
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+message CheckContainerRequest {
+  string container_id = 1;
+}
+
+message ProbeResult {
+  string container_id = 1;
+  string container_name = 2;
+  HealthStatusType status = 3;
+  string message = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  google.protobuf.Duration duration = 6;
+}
+
+message LivenessProbeRequest {
+  string container_id = 1;
+}
+
+message ReadinessProbeRequest {
+  string container_id = 1;
+}
+
+message ProbeResponse {
+  bool alive = 1;
+  string message = 2;
+}

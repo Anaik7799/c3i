@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prajna C3I Cockpit - WebUI</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <!-- Dark Cockpit Theme -->
+    <link href="css/dark-cockpit.css" rel="stylesheet" />
+
+    <!-- Blazor -->
+    <base href="/" />
+</head>
+<body>
+    <div id="app">
+        <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #0a0a0f; color: #4a4a5a;">
+            <div style="text-align: center;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 24px; letter-spacing: 4px; color: #3a7abd; margin-bottom: 20px;">
+                    PRAJNA
+                </div>
+                <div style="font-size: 14px;">
+                    Loading C3I Cockpit...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error UI -->
+    <div id="blazor-error-ui" style="background: #ff2727; color: white; padding: 10px 20px; position: fixed; bottom: 0; left: 0; right: 0; display: none;">
+        An unhandled error has occurred.
+        <a href="" style="color: white; text-decoration: underline;" class="reload">Reload</a>
+        <a href="" style="color: white; text-decoration: underline; margin-left: 20px;" class="dismiss">Dismiss</a>
+    </div>
+
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>

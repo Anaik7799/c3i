@@ -1,0 +1,32 @@
+#\!/bin/bash
+# Run Phoenix server with devenv/nix-shell
+
+# Set up environment
+export NIX_PATH=nixpkgs=channel:nixos-unstable
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export ELIXIR_ERL_OPTIONS='+fnu'
+export MIX_ENV=dev
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5434/intelitor_dev
+export REDIS_URL=redis://localhost:6380
+
+# Change to workspace directory
+cd /workspace
+
+# Run Phoenix server with nix-shell
+echo "Starting Phoenix server with devenv packages..."
+nix-shell -p elixir_1_18 erlang_27 nodejs_20 postgresql_17 cacert --run '
+  # Set SSL certificates
+  export SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
+  
+  # Install dependencies if needed
+  if [ \! -d "deps" ] || [ \! -d "_build" ]; then
+    echo "Installing dependencies..."
+    mix deps.get
+    mix compile
+  fi
+  
+  # Start Phoenix server
+  echo "Starting Phoenix server on http://localhost:4000"
+  mix phx.server
+'

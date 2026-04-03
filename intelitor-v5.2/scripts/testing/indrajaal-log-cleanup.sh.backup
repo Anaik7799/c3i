@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Intelitor Log Cleanup Script
+# Called by logrotate and monitoring script
+
+LOG_DIR="/home/an/dev/elixir/ash/intelitor/logs"
+MAX_SIZE_GB=100
+
+log_message() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> /home/an/dev/elixir/ash/intelitor/logs/monitoring/cleanup.log
+}
+
+get_directory_size_gb() {
+    du -sg "$LOG_DIR" 2>/dev/null | cut -f1
+}
+
+cleanup_compressed_logs() {
+    log_message "Cleaning up compressed logs"
+    
+    # Remove compressed logs older than 2 hours
+    find "$LOG_DIR" -name "*.gz" -type f -mmin +120 -delete
+    
+    # If still over limit, remove more aggressively
+    CURRENT_SIZE=$(get_directory_size_gb)
+    if [ "$CURRENT_SIZE" -gt "$MAX_SIZE_GB" ]; then
+        find "$LOG_DIR" -name "*.gz" -type f -mmin +60 -delete
+    fi
+}
+
+cleanup_archived_logs() {
+    log_message "Cleaning up archived logs"
+    
+    # Remove archived logs older than 1 hour
+    find "$LOG_DIR/archived" -type f -mmin +60 -delete
+}
+
+truncate_large_logs() {
+    log_message "Truncating large active logs"
+    
+    # Truncate active logs larger than 500MB to 100MB
+    find "$LOG_DIR" -name "*.log" -size +500M -exec truncate -s 100M {} \;
+}
+
+main() {
+    log_message "Starting log cleanup"
+    
+    INITIAL_SIZE=$(get_directory_size_gb)
+    log_message "Initial log directory size: ${INITIAL_SIZE}GB"
+    
+    cleanup_compressed_logs
+    cleanup_archived_logs
+    
+    CURRENT_SIZE=$(get_directory_size_gb)
+    if [ "$CURRENT_SIZE" -gt "$MAX_SIZE_GB" ]; then
+        log_message "Still over limit after cleanup - truncating large logs"
+        truncate_large_logs
+    fi
+    
+    FINAL_SIZE=$(get_directory_size_gb)
+    log_message "Final log directory size: ${FINAL_SIZE}GB"
+    log_message "Log cleanup completed"
+}
+
+main "$@"

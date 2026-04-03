@@ -1,0 +1,30 @@
+#!/bin/bash
+# Enhanced TPS Development Workflow
+
+echo "🏗️ TPS Enhanced Development Workflow"
+echo "==================================="
+
+# 1. Environment Validation
+echo "📋 Validating TPS environment..."
+if [ ! -d "/workspace" ]; then
+echo "❌ Not in TPS container environment"
+exit 1
+fi
+
+# 2. TPS Agent Status Check
+echo "🤖 Checking TPS agents..."
+podman ps --filter "name=tps-" --format "table {{.Names}}\t{{.Status}}"
+
+# 3. Code Generation with TPS
+echo "🔧 TPS Code Generation ready"
+echo "Usage: mix tps.generate domain resource"
+
+# 4. Enhanced Compilation
+echo "⚡ Enhanced compilation available"
+echo "Usage: mix compile.enhanced --warnings-as-errors"
+
+# 5. PHICS Hot Reload
+echo "🔥 PHICS hot-reload configured"
+echo "File changes automatically trigger recompilation"
+
+echo "✅ TPS Enhanced Workflow Ready"

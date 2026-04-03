@@ -1,0 +1,15 @@
+#!/bin/sh
+# Wrapper to execute psql inside the database container
+# Adapts arguments to work with podman exec
+
+# Filter out arguments that might not be passed correctly or need adjustment
+# For simplicity, we assume the script passes connection args which we can mostly ignore 
+# because we are executing LOCALLY on the db container where "postgres" user is trusted peer.
+
+# However, the setup script passes: -h localhost -p 5433 -U postgres -d intelitor_dev
+# Inside the container, it should be: -h localhost -p 5433 (or standard socket) -U postgres
+
+# We will simply pass all args, but note that inside container 5433 is mapped.
+# Wait, inside container, postgres is listening on 5433 as configured by PGPORT=5433.
+
+podman exec -i intelitor-db psql "$@"

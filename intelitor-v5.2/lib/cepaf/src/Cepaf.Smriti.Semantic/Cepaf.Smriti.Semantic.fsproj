@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Description>SMRITI Semantic Graph Database Layer - Stardog/GraphDB inspired</Description>
+    <Authors>Abhijit Naik</Authors>
+    <Company>Indrajaal</Company>
+    <Version>2.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Core semantic layer modules -->
+    <Compile Include="SemanticTypes.fs" />
+    <Compile Include="TripleStore.fs" />
+    <Compile Include="VirtualGraph.fs" />
+    <Compile Include="MaterializedInference.fs" />
+    <Compile Include="QueryEngine.fs" />
+    <Compile Include="VectorSimilarity.fs" />
+    <Compile Include="TextMining.fs" />
+    <Compile Include="SemanticConnector.fs" />
+    <Compile Include="SemanticLayer.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cepaf.Smriti.Shared\Cepaf.Smriti.Shared.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" />
+    <PackageReference Include="DuckDB.NET.Data" Version="1.2.0" />
+    <PackageReference Include="FSharp.Data" Version="6.4.1" />
+    <!-- System.Text.Json removed - included in .NET SDK (NU1510) -->
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+    <PackageReference Include="MathNet.Numerics.FSharp" Version="5.0.0" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,42 @@
+<%!-- L4-A05: Theme-aware app layout (SC-HMI-001, SC-HMI-008) --%>
+<header class="px-4 sm:px-6 lg:px-8 bg-surface-primary">
+  <div class="flex items-center justify-between border-b border-border-theme-primary py-3 text-sm">
+    <div class="flex items-center gap-4">
+      <a
+        href="/"
+        class="text-[2rem] font-semibold leading-10 tracking-tighter text-content-primary"
+      >
+        Indrajaal
+      </a>
+      <p class="bg-brand/5 dark:bg-brand/10 text-content-secondary text-[0.8125rem] rounded-full px-2 font-medium leading-6">
+        v21.3.0-SIL6
+      </p>
+    </div>
+    <div class="flex items-center gap-4 font-semibold leading-6 text-content-primary">
+      <a href="/" class="hover:text-accent-primary transition-colors">
+        System Portal
+      </a>
+      <a href="/cockpit" class="hover:text-accent-primary transition-colors">
+        Cockpit
+      </a>
+      <a href="/analytics/dashboard" class="hover:text-accent-primary transition-colors">
+        Analytics
+      </a>
+      <a href="/cockpit/dashboard" class="hover:text-accent-primary transition-colors">
+        Dashboard
+      </a>
+      <a
+        href="https://hexdocs.pm/ash"
+        class="rounded-lg bg-surface-secondary px-2 py-1 hover:bg-surface-tertiary transition-colors"
+      >
+        Docs <span aria-hidden="true">&rarr;</span>
+      </a>
+    </div>
+  </div>
+</header>
+<main class="px-4 py-20 sm:px-6 lg:px-8 bg-surface-primary min-h-screen">
+  <div class="mx-auto max-w-7xl">
+    <.flash_group flash={@flash} />
+    {@inner_content}
+  </div>
+</main>

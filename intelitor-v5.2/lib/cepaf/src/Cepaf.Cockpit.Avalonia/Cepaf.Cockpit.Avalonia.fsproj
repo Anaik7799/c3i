@@ -1,0 +1,106 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <ApplicationIcon>Assets/prajna-icon.ico</ApplicationIcon>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- Prajna C3I Cockpit - Safety-Critical HMI -->
+    <!-- STAMP: SC-HMI-001 to SC-HMI-011, SC-PRAJNA-001 to SC-PRAJNA-007 -->
+    <!-- Standards: NASA-STD-3000, NUREG-0700, MIL-STD-1472H, IEC 61508 -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Core MVU Architecture -->
+    <Compile Include="Domain/Types.fs" />
+    <Compile Include="Domain/Messages.fs" />
+    <Compile Include="Domain/Model.fs" />
+
+    <!-- Backend Integration -->
+    <Compile Include="Services/ElixirClient.fs" />
+    <Compile Include="Services/ZenohSubscriber.fs" />
+    <Compile Include="Services/GuardianBridge.fs" />
+    <Compile Include="Services/SentinelBridge.fs" />
+
+    <!-- Theme System (SC-THEME-001 to SC-THEME-005) -->
+    <Compile Include="Themes/AerospaceTheme.fs" />
+    <Compile Include="Themes/DarkCockpit.fs" />
+    <Compile Include="Themes/LightCockpit.fs" />
+
+    <!-- View Components -->
+    <Compile Include="Views/Components/HealthIndicator.fs" />
+    <Compile Include="Views/Components/MetricsCard.fs" />
+    <Compile Include="Views/Components/OodaStatus.fs" />
+    <Compile Include="Views/Components/FitnessGauge.fs" />
+    <Compile Include="Views/Components/AlertBanner.fs" />
+    <Compile Include="Views/Components/NavigationRail.fs" />
+
+    <!-- Main Views -->
+    <Compile Include="Views/DashboardView.fs" />
+    <Compile Include="Views/TestEvolutionView.fs" />
+    <Compile Include="Views/AlarmsView.fs" />
+    <Compile Include="Views/DevicesView.fs" />
+    <Compile Include="Views/VideoView.fs" />
+    <Compile Include="Views/AnalyticsView.fs" />
+    <Compile Include="Views/ComplianceView.fs" />
+    <Compile Include="Views/AccessControlView.fs" />
+    <Compile Include="Views/CopilotView.fs" />
+    <Compile Include="Views/GuardianView.fs" />
+    <Compile Include="Views/SentinelView.fs" />
+    <Compile Include="Views/RegisterView.fs" />
+    <Compile Include="Views/SettingsView.fs" />
+
+    <!-- Main Application -->
+    <Compile Include="App.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Avalonia UI Framework -->
+    <PackageReference Include="Avalonia" Version="11.2.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.2" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.2" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.2" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.2.2" Condition="'$(Configuration)' == 'Debug'" />
+
+    <!-- AtomUI Component Library (Material Design 3 for Avalonia) -->
+    <PackageReference Include="AtomUI" Version="1.0.0" />
+    <PackageReference Include="AtomUI.Controls" Version="1.0.0" />
+    <PackageReference Include="AtomUI.IconPacks.AntDesign" Version="1.0.0" />
+    <PackageReference Include="AtomUI.Theme" Version="1.0.0" />
+
+    <!-- Fabulous MVU for F# -->
+    <PackageReference Include="Fabulous.Avalonia" Version="3.0.0" />
+    <PackageReference Include="Fabulous" Version="3.0.0" />
+
+    <!-- Charts and Visualization -->
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc3.1" />
+    <PackageReference Include="Avalonia.Svg.Skia" Version="11.2.0" />
+    <PackageReference Include="ScottPlot.Avalonia" Version="5.0.47" />
+
+    <!-- HTTP/WebSocket Client -->
+    <PackageReference Include="System.Net.Http.Json" Version="9.0.0" />
+    <PackageReference Include="Websocket.Client" Version="5.1.2" />
+
+    <!-- JSON Serialization -->
+    <PackageReference Include="Thoth.Json.Net" Version="12.0.0" />
+
+    <!-- Logging -->
+    <PackageReference Include="Serilog" Version="4.3.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cepaf\Cepaf.fsproj" />
+  </ItemGroup>
+
+</Project>

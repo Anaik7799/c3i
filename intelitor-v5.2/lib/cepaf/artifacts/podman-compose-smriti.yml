@@ -1,0 +1,71 @@
+# SMRITI Podman Compose Configuration
+#
+# Deploys the SMRITI Knowledge Management System:
+# - smriti-client: Elmish SPA with Cytoscape.js
+# - smriti-api: Giraffe API server
+#
+# STAMP Constraints:
+# - SC-KMS-001: Read-only access to holons.db
+# - SC-KMS-006: Container isolation (separate services)
+#
+# Usage:
+#   podman-compose -f podman-compose-smriti.yml up -d
+#   podman-compose -f podman-compose-smriti.yml down
+
+version: "3.8"
+
+services:
+  smriti-api:
+    build:
+      context: ../../..
+      dockerfile: lib/cepaf/artifacts/Dockerfile.smriti-api
+    image: localhost/smriti-api:latest
+    container_name: smriti-api
+    ports:
+      - "5001:5000"
+    volumes:
+      # Mount KMS data directory (read-only per SC-KMS-001)
+      - ../../../data/kms:/app/data/kms:ro
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - SQLITE_PATH=/app/data/kms/smriti.db
+      - DUCKDB_PATH=/app/data/kms/analytics.duckdb
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - smriti-network
+
+  smriti-client:
+    build:
+      context: ../../..
+      dockerfile: lib/cepaf/artifacts/Dockerfile.smriti-client
+    image: localhost/smriti-client:latest
+    container_name: smriti-client
+    ports:
+      - "3001:80"
+    depends_on:
+      smriti-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - smriti-network
+
+networks:
+  smriti-network:
+    driver: bridge
+
+# Access Points:
+# - SMRITI Client: http://localhost:3001
+# - SMRITI API: http://localhost:5001/api
+# - MCP Endpoints: http://localhost:5001/mcp

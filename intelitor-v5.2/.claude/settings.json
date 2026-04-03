@@ -1,0 +1,125 @@
+{
+  "model": "opus",
+  "cleanupPeriodDays": 99999,
+  "fileSuggestion": {
+    "type": "command",
+    "command": "rg --files . --glob '!_build' --glob '!deps' --glob '!.elixir_ls' --glob '!.git' --glob '!node_modules' --glob '!data/tmp' | head -20"
+  },
+  "permissions": {
+    "allow": [
+      "*",
+      "Bash(grep:*)",
+      "Bash(elixir:*)",
+      "Bash(ls:*)",
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(chmod:*)",
+      "Bash(mix:*)",
+      "Bash(podman:*)",
+      "Bash(podman-compose:*)",
+      "Bash(git:*)",
+      "Bash(MIX_ENV=test:*)",
+      "Bash(NO_TIMEOUT=true:*)",
+      "Bash(POSTGRES_USER=postgres:*)",
+      "WebSearch"
+    ],
+    "deny": [
+      "Read(.git/objects/**)",
+      "Read(_build/**)",
+      "Read(deps/**)",
+      "Read(.elixir_ls/**)",
+      "Read(.lexical/**)",
+      "Read(data/tmp/**)",
+      "Read(node_modules/**)"
+    ]
+  },
+  "env": {
+    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
+    "USE_BUILTIN_RIPGREP": "0",
+    "BASH_MAX_OUTPUT_LENGTH": "500000",
+    "BASH_DEFAULT_TIMEOUT_MS": "120000",
+    "BASH_MAX_TIMEOUT_MS": "600000",
+    "MAX_MCP_OUTPUT_TOKENS": "100000",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "31000",
+    "MAX_THINKING_TOKENS": "32000",
+    "NO_TIMEOUT": "true",
+    "PATIENT_MODE": "enabled",
+    "INFINITE_PATIENCE": "true",
+    "ELIXIR_ERL_OPTIONS": "+S 16:16 +SDio 16",
+    "POSTGRES_USER": "postgres",
+    "POSTGRES_PASSWORD": "postgres",
+    "DATABASE_URL": "ecto://postgres:postgres@localhost:5433/indrajaal_test",
+    "SKIP_ZENOH_NIF": "0",
+    "MIX_ENV": "test"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Erlang/OTP 28 [erts-16.2] [source] [64-bit] [smp:16:16] [ds:10:10:16] [async-threads:1] [jit:ns]' && elixir scripts/planning/claude_todo_sync.exs --sync --to-claude 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Loading project tasks..."
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/verification/constraint_sync_check.sh 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Checking constraint sync status..."
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "elixir scripts/planning/claude_todo_sync.exs --sync --from-claude 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Syncing session tasks to project..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); if [[ \"$FILE\" == *.ex || \"$FILE\" == *.exs ]]; then mix format \"$FILE\" 2>/dev/null || true; fi",
+            "timeout": 10,
+            "statusMessage": "Auto-formatting Elixir file..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(jq -r '.tool_input.command // empty' 2>/dev/null); echo \"$(date +%Y%m%d-%H%M%S) $CMD\" >> .claude/bash-history.log 2>/dev/null || true",
+            "timeout": 2
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f ./data/tmp/1-compile.log ]; then ERRORS=$(grep -c 'error:' ./data/tmp/1-compile.log 2>/dev/null || echo 0); WARNINGS=$(grep -c 'warning:' ./data/tmp/1-compile.log 2>/dev/null || echo 0); if [ \"$ERRORS\" -gt 0 ] || [ \"$WARNINGS\" -gt 0 ]; then echo \"Compile status: $ERRORS errors, $WARNINGS warnings\"; fi; fi",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

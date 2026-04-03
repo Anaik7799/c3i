@@ -1,0 +1,284 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME VARIABLES - SC-HMI-008 Compliant (4.5:1 contrast ratio)
+   L4-A02: CSS Variables System - TPS/Jidoka Compliant
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Light Theme (Default for main app) */
+  --surface-primary: #ffffff;
+  --surface-secondary: #f9fafb;
+  --surface-tertiary: #f3f4f6;
+  --surface-elevated: #ffffff;
+
+  --content-primary: #18181b;
+  --content-secondary: #3f3f46;
+  --content-muted: #71717a;
+  --content-inverse: #fafafa;
+
+  --border-primary: #e5e7eb;
+  --border-secondary: #d1d5db;
+  --border-focus: #3b82f6;
+
+  /* Status colors - High contrast for visibility (SC-HMI-001) */
+  --status-healthy: #22c55e;
+  --status-advisory: #06b6d4;
+  --status-caution: #f59e0b;
+  --status-warning: #ef4444;
+  --status-critical: #dc2626;
+
+  /* Accent colors */
+  --accent-primary: #3b82f6;
+  --accent-secondary: #8b5cf6;
+}
+
+.dark {
+  /* Dark Theme (NASA-STD-3000 Dark Cockpit) */
+  --surface-primary: #111827;
+  --surface-secondary: #1f2937;
+  --surface-tertiary: #374151;
+  --surface-elevated: #293548;
+
+  --content-primary: #f3f4f6;
+  --content-secondary: #d1d5db;
+  --content-muted: #9ca3af;
+  --content-inverse: #111827;
+
+  --border-primary: #374151;
+  --border-secondary: #4b5563;
+  --border-focus: #60a5fa;
+
+  /* Status colors remain same for consistency (SC-HMI-001) */
+  --status-healthy: #22c55e;
+  --status-advisory: #06b6d4;
+  --status-caution: #f59e0b;
+  --status-warning: #ef4444;
+  --status-critical: #dc2626;
+
+  /* Accent colors - brighter for dark mode */
+  --accent-primary: #60a5fa;
+  --accent-secondary: #a78bfa;
+}
+
+/* High Contrast Theme (Accessibility - SC-HMI-008) */
+.high-contrast {
+  --surface-primary: #000000;
+  --surface-secondary: #0a0a0a;
+  --surface-tertiary: #171717;
+  --surface-elevated: #1a1a1a;
+
+  --content-primary: #ffffff;
+  --content-secondary: #fafafa;
+  --content-muted: #d4d4d4;
+  --content-inverse: #000000;
+
+  --border-primary: #525252;
+  --border-secondary: #737373;
+  --border-focus: #fbbf24;
+
+  /* Enhanced status colors for maximum visibility */
+  --status-healthy: #4ade80;
+  --status-advisory: #22d3ee;
+  --status-caution: #fbbf24;
+  --status-warning: #f87171;
+  --status-critical: #ff0000;
+
+  --accent-primary: #fbbf24;
+  --accent-secondary: #c084fc;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--surface-primary);
+  color: var(--content-primary);
+}
+
+/* Phoenix LiveView default styles */
+[data-phx-main] {
+  min-height: 100vh;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME TRANSITIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Smooth theme transitions */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Disable transitions during theme switch to prevent flash */
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UTILITY CLASSES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Surface utilities */
+.bg-surface-primary { background-color: var(--surface-primary); }
+.bg-surface-secondary { background-color: var(--surface-secondary); }
+.bg-surface-tertiary { background-color: var(--surface-tertiary); }
+.bg-surface-elevated { background-color: var(--surface-elevated); }
+
+/* Content utilities */
+.text-content-primary { color: var(--content-primary); }
+.text-content-secondary { color: var(--content-secondary); }
+.text-content-muted { color: var(--content-muted); }
+
+/* Border utilities */
+.border-theme-primary { border-color: var(--border-primary); }
+.border-theme-secondary { border-color: var(--border-secondary); }
+.border-theme-focus { border-color: var(--border-focus); }
+
+/* Status utilities */
+.text-status-healthy { color: var(--status-healthy); }
+.text-status-advisory { color: var(--status-advisory); }
+.text-status-caution { color: var(--status-caution); }
+.text-status-warning { color: var(--status-warning); }
+.text-status-critical { color: var(--status-critical); }
+
+.bg-status-healthy { background-color: var(--status-healthy); }
+.bg-status-advisory { background-color: var(--status-advisory); }
+.bg-status-caution { background-color: var(--status-caution); }
+.bg-status-warning { background-color: var(--status-warning); }
+.bg-status-critical { background-color: var(--status-critical); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COCKPIT-SPECIFIC STYLES (PRAJNA)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.cockpit {
+  font-family: 'JetBrains Mono', 'Fira Code', Monaco, Consolas, monospace;
+}
+
+.cockpit-card {
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+}
+
+.cockpit-header {
+  background-color: var(--surface-secondary);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+/* Sparkline rendering */
+.sparkline {
+  font-family: monospace;
+  letter-spacing: -0.05em;
+}
+
+/* Status indicator pulse */
+.status-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.status-blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Color Rich Theme (Metabolic Feedback - SC-HMI-010) */
+.color-rich {
+  --surface-primary: #050a14;
+  --surface-secondary: #0a1428;
+  --surface-tertiary: #142850;
+  --surface-elevated: #1e3a8a;
+
+  --content-primary: #f0f9ff;
+  --content-secondary: #bae6fd;
+  --content-muted: #7dd3fc;
+  --content-inverse: #050a14;
+
+  --border-primary: #1e40af;
+  --border-secondary: #3b82f6;
+  --border-focus: #60a5fa;
+
+  /* High-vibrancy status colors */
+  --status-healthy: #4ade80;
+  --status-advisory: #22d3ee;
+  --status-caution: #fbbf24;
+  --status-warning: #f87171;
+  --status-critical: #ff0000;
+
+  --accent-primary: #38bdf8;
+  --accent-secondary: #818cf8;
+
+  /* Vibrancy variables (scaled by ColorRichContext) */
+  --vibrancy-factor: 1.0;
+  --metabolic-pulse: 2s;
+}
+
+/* Google Compliant (Material Design 3 Alignment) */
+.google-compliant {
+  --surface-primary: #fdfbff;
+  --surface-secondary: #f1f0f4;
+  --surface-tertiary: #e3e2e6;
+  --surface-elevated: #fdfbff;
+
+  --content-primary: #1b1b1f;
+  --content-secondary: #46464f;
+  --content-muted: #767680;
+  --content-inverse: #ffffff;
+
+  --border-primary: #c7c6ca;
+  --border-secondary: #919094;
+  --border-focus: #005ac1;
+
+  --accent-primary: #005ac1;
+  --accent-secondary: #5b5d72;
+}
+
+/* Functionally Clean (High-Density Minimalism) */
+.functionally-clean {
+  --surface-primary: #ffffff;
+  --surface-secondary: #ffffff;
+  --surface-tertiary: #f8f8f8;
+  --surface-elevated: #ffffff;
+
+  --content-primary: #000000;
+  --content-secondary: #333333;
+  --content-muted: #666666;
+  --content-inverse: #ffffff;
+
+  --border-primary: #000000;
+  --border-secondary: #000000;
+  --border-focus: #0000ff;
+
+  --accent-primary: #0000ff;
+  --accent-secondary: #ff00ff;
+  
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Color Rich Animations */
+.color-rich .health-pulse {
+  animation: metabolic-pulse var(--metabolic-pulse) infinite ease-in-out;
+}
+
+@keyframes metabolic-pulse {
+  0% { filter: saturate(100%); }
+  50% { filter: saturate(calc(150% * var(--vibrancy-factor))); }
+  100% { filter: saturate(100%); }
+}

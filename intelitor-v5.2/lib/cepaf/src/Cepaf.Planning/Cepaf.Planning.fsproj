@@ -1,0 +1,85 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>FS0044</WarningsNotAsErrors>
+  </PropertyGroup>
+
+  <!-- Core Foundation (Level 1 - Critical) -->
+  <!-- SC-TODO-001 to SC-TODO-008: Access Control Runtime Enforcement -->
+  <!-- SC-ENFORCE-001 to SC-ENFORCE-025: Planning Enforcement Controls -->
+  <!-- SC-SAFETY-001 to SC-SAFETY-022: Safety Kernel Validation -->
+  <ItemGroup>
+    <Compile Include="Core/Types.fs" />
+    <Compile Include="Core/Ids.fs" />
+    <Compile Include="Core/Result.fs" />
+    <Compile Include="Core/Validation.fs" />
+    <Compile Include="AccessControl.fs" />
+    <Compile Include="SafetyKernel.fs" />
+    <Compile Include="PlanningEnforcer.fs" />
+    <Compile Include="GraphVerification.fs" />
+  </ItemGroup>
+
+  <!-- Domain Layer (Level 1-3) -->
+  <ItemGroup>
+    <Compile Include="Domain/Events.fs" />
+    <Compile Include="Domain/OODA.fs" />
+    <Compile Include="Domain/Task.fs" />
+    <Compile Include="Domain.fs" />
+  </ItemGroup>
+
+  <!-- Infrastructure (Level 2 - Essential) -->
+  <ItemGroup>
+    <Compile Include="MarkdownParser.fs" />
+    <Compile Include="Integration/OpenRouterParser.fs" />
+    <Compile Include="Repository.fs" />
+  </ItemGroup>
+
+  <!-- Integration (Level 4 - Required) -->
+  <ItemGroup>
+    <Compile Include="ZenohAdapter.fs" />
+    <Compile Include="Integration/ChayaIntegration.fs" />
+  </ItemGroup>
+
+  <!-- Standalone Chaya (Level 4 - Independent Operation) -->
+  <ItemGroup>
+    <Compile Include="Chaya/StandaloneChaya.fs" />
+    <Compile Include="Chaya/MeshSimulator.fs" />
+  </ItemGroup>
+
+  <!-- Application Layer -->
+  <ItemGroup>
+    <Compile Include="Manager.fs" />
+  </ItemGroup>
+
+  <!-- Startup Optimization (Level 5 - Mathematical Foundations) -->
+  <!-- SC-STARTUP-001 to SC-STARTUP-020: Mathematical Startup Optimization -->
+  <!-- Includes: Graph Theory, CPM, RCPSP, DFA, Set Theory, Fractal Analysis -->
+  <ItemGroup>
+    <Compile Include="StartupOptimizationPlan.fs" />
+    <Compile Include="MathematicalStartupOptimization.fs" />
+  </ItemGroup>
+
+  <!-- Service Orchestration (Level 5 - Coordination) -->
+  <!-- SC-ORCH-001 to SC-ORCH-015: Unified Service Coordination -->
+  <ItemGroup>
+    <Compile Include="Orchestration.fs" />
+  </ItemGroup>
+
+  <!-- Package References -->
+  <ItemGroup>
+    <PackageReference Include="FParsec" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.1" />
+    <PackageReference Include="Dapper" Version="2.1.35" />
+  </ItemGroup>
+
+  <!-- Project References -->
+  <ItemGroup>
+    <ProjectReference Include="..\Cepaf.Substrate\Cepaf.Substrate.fsproj" />
+    <ProjectReference Include="..\Cepaf.Smriti.Shared\Cepaf.Smriti.Shared.fsproj" />
+    <ProjectReference Include="..\Cepaf\Cepaf.fsproj" />
+  </ItemGroup>
+
+</Project>

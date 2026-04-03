@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <NoWarn>FS0667</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Elixir Bridge Integration Tests -->
+    <Compile Include="ElixirBridgeTests.fs" />
+
+    <!-- Zenoh Mesh Integration Tests -->
+    <Compile Include="ZenohMeshTests.fs" />
+
+    <!-- Guardian Flow Tests -->
+    <Compile Include="GuardianFlowTests.fs" />
+
+    <!-- Sentinel Sync Tests -->
+    <Compile Include="SentinelSyncTests.fs" />
+
+    <!-- Cross-Interface Consistency Tests -->
+    <Compile Include="CrossInterfaceTests.fs" />
+
+    <!-- Main entry point -->
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Cepaf.Cockpit/Cepaf.Cockpit.fsproj" />
+    <ProjectReference Include="../../src/Cepaf.Cockpit.Web/Cepaf.Cockpit.Web.fsproj" />
+    <ProjectReference Include="../../src/Cepaf.Cockpit.Avalonia/Cepaf.Cockpit.Avalonia.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FsCheck" Version="3.0.0" />
+    <PackageReference Include="Expecto" Version="10.2.1" />
+    <PackageReference Include="Expecto.FsCheck" Version="10.2.1" />
+    <PackageReference Include="Unquote" Version="7.0.0" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+  </ItemGroup>
+
+</Project>

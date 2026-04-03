@@ -1,0 +1,190 @@
+name: Agda Proof Verification
+
+on:
+  push:
+    paths:
+      - 'verification/agda/**'
+      - 'docs/formal_specs/**/*.agda'
+      - 'scripts/agents/proof_oracle.agda'
+      - '.github/workflows/agda.yml'
+      - 'indrajaal.agda-lib'
+  pull_request:
+    paths:
+      - 'verification/agda/**'
+      - 'docs/formal_specs/**/*.agda'
+      - 'scripts/agents/proof_oracle.agda'
+      - '.github/workflows/agda.yml'
+      - 'indrajaal.agda-lib'
+  workflow_dispatch:
+
+jobs:
+  # ===========================================================================
+  # Stage 1: Type-check required proofs (regression guard)
+  # ===========================================================================
+  typecheck-required:
+    name: Typecheck Required Proofs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.4'
+
+      - name: Cache Agda + stdlib
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal
+            ~/.agda
+          key: ${{ runner.os }}-agda-2.6-stdlib-2.0-${{ hashFiles('**/*.agda') }}
+          restore-keys: |
+            ${{ runner.os }}-agda-2.6-stdlib-2.0-
+
+      - name: Install Agda
+        run: |
+          cabal update
+          cabal install Agda --overwrite-policy=always
+          echo "$HOME/.cabal/bin" >> $GITHUB_PATH
+
+      - name: Install Agda Standard Library
+        run: |
+          mkdir -p ~/.agda
+          if [ ! -d "$HOME/.agda/agda-stdlib" ]; then
+            cd ~/.agda
+            git clone --depth 1 --branch v2.0 https://github.com/agda/agda-stdlib.git
+          fi
+          echo "$HOME/.agda/agda-stdlib/standard-library.agda-lib" > ~/.agda/libraries
+
+      - name: Typecheck verification/agda/ required proofs
+        run: |
+          echo "::group::Foundations.agda"
+          agda --safe verification/agda/Intelitor/Foundations.agda
+          echo "::endgroup::"
+
+          echo "::group::Axioms.agda"
+          agda --safe verification/agda/Intelitor/Axioms.agda
+          echo "::endgroup::"
+
+          echo "::group::Consensus.agda"
+          agda --safe verification/agda/Consensus.agda
+          echo "::endgroup::"
+
+      - name: Typecheck docs/formal_specs/agda/ required proofs
+        run: |
+          echo "::group::GraphProperties.agda"
+          agda --safe docs/formal_specs/agda/GraphProperties.agda
+          echo "::endgroup::"
+
+          echo "::group::AcyclicityProofs.agda"
+          agda --safe docs/formal_specs/agda/AcyclicityProofs.agda
+          echo "::endgroup::"
+
+          echo "::group::TodolistAccessControl.agda"
+          agda --safe docs/formal_specs/agda/TodolistAccessControl.agda
+          echo "::endgroup::"
+
+          echo "::group::ArkProofs.agda"
+          agda --safe docs/formal_specs/agda/ArkProofs.agda
+          echo "::endgroup::"
+
+          echo "::group::VersionVector.agda"
+          agda --safe docs/formal_specs/agda/VersionVector.agda
+          echo "::endgroup::"
+
+          echo "::group::OpenRouterGraphProofs.agda"
+          agda --safe docs/formal_specs/agda/OpenRouterGraphProofs.agda
+          echo "::endgroup::"
+
+          echo "::group::SupervisionProofs.agda"
+          agda --safe docs/formal_specs/agda/SupervisionProofs.agda
+          echo "::endgroup::"
+
+      - name: Summary
+        run: echo "All 10 required proofs type-checked successfully under --safe mode"
+
+  # ===========================================================================
+  # Stage 2: Type-check remaining proofs (best-effort)
+  # ===========================================================================
+  typecheck-remaining:
+    name: Typecheck Remaining Proofs
+    runs-on: ubuntu-latest
+    needs: [typecheck-required]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.4'
+
+      - name: Cache Agda + stdlib
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal
+            ~/.agda
+          key: ${{ runner.os }}-agda-2.6-stdlib-2.0-${{ hashFiles('**/*.agda') }}
+          restore-keys: |
+            ${{ runner.os }}-agda-2.6-stdlib-2.0-
+
+      - name: Install Agda
+        run: |
+          cabal update
+          cabal install Agda --overwrite-policy=always
+          echo "$HOME/.cabal/bin" >> $GITHUB_PATH
+
+      - name: Install Agda Standard Library
+        run: |
+          mkdir -p ~/.agda
+          if [ ! -d "$HOME/.agda/agda-stdlib" ]; then
+            cd ~/.agda
+            git clone --depth 1 --branch v2.0 https://github.com/agda/agda-stdlib.git
+          fi
+          echo "$HOME/.agda/agda-stdlib/standard-library.agda-lib" > ~/.agda/libraries
+
+      - name: Typecheck docs/formal_specs/ top-level proofs
+        run: |
+          for f in docs/formal_specs/*.agda; do
+            echo "::group::Typecheck $f"
+            agda --safe "$f" || echo "WARNING: $f failed (non-required)"
+            echo "::endgroup::"
+          done
+
+      - name: Typecheck docs/formal_specs/zenoh/ proofs
+        run: |
+          for f in docs/formal_specs/zenoh/*.agda; do
+            echo "::group::Typecheck $f"
+            agda --safe "$f" || echo "WARNING: $f failed (non-required)"
+            echo "::endgroup::"
+          done
+
+      - name: Typecheck docs/formal_specs/planning/ proofs
+        run: |
+          for f in docs/formal_specs/planning/*.agda; do
+            echo "::group::Typecheck $f"
+            agda --safe "$f" || echo "WARNING: $f failed (non-required)"
+            echo "::endgroup::"
+          done
+
+      - name: Typecheck scripts/agents/ proofs
+        run: |
+          if ls scripts/agents/*.agda 1>/dev/null 2>&1; then
+            for f in scripts/agents/*.agda; do
+              echo "::group::Typecheck $f"
+              agda --safe "$f" || echo "WARNING: $f failed (non-required)"
+              echo "::endgroup::"
+            done
+          fi
+
+      - name: Known issues (informational only)
+        run: |
+          echo "Known issues (excluded from regression guard):"
+          echo "  - verification/agda/Intelitor/Emergency.agda (requires Agda stdlib Induction.WellFounded)"
+          echo "  - docs/formal_specs/agda/IndrajaalCore.agda (602 lines, heavy stdlib deps)"
+
+      - name: Summary
+        run: |
+          total=$(find verification/agda docs/formal_specs scripts/agents -name '*.agda' 2>/dev/null | wc -l)
+          echo "Processed $total Agda proof files (10 required + remainder best-effort)"

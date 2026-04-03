@@ -1,0 +1,215 @@
+# OpenTelemetry Collector Configuration for Indrajaal
+# STAMP: Configured with safety constraints for data integrity
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+        # STAMP: Connection limits to prevent resource exhaustion
+        max_recv_msg_size_mib: 16
+        max_concurrent_streams: 100
+        keepalive:
+          server_parameters:
+            max_connection_idle: 10s
+            max_connection_age: 30s
+            max_connection_age_grace: 5s
+      http:
+        endpoint: 0.0.0.0:4318
+        max_request_body_size: 16777216  # 16MB
+        cors:
+          allowed_origins:
+            - "http://localhost:3301"  # SigNoz frontend
+            - "http://localhost:4000"  # Phoenix app
+          allowed_headers:
+            - "*"
+
+  # Health check receiver
+  health_check:
+    path: /health
+    endpoint: 0.0.0.0:13133
+
+  # Prometheus receiver for self-monitoring
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: otel-collector
+          scrape_interval: 30s
+          static_configs:
+            - targets: [localhost:8888]
+
+processors:
+  # STAMP: Memory limiter to prevent OOM (SC5)
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 75
+    spike_limit_percentage: 30
+
+  # Batch processor for efficiency
+  batch:
+    send_batch_size: 1000
+    timeout: 10s
+    send_batch_max_size: 2000
+
+  # STAMP: Resource processor for tenant isolation (SC2)
+  resource:
+    attributes:
+      - action: upsert
+        key: service.name
+        value: indrajaal
+        from_attribute: service_name
+      - action: upsert
+        key: deployment.environment
+        from_attribute: deployment_environment
+        value: production
+      - action: insert
+        key: telemetry.sdk.name
+        value: signoz-collector
+
+  # Attributes processor for data sanitization
+  attributes:
+    actions:
+      # STAMP: Remove sensitive data (SC2)
+      - key: http.request.header.authorization
+        action: delete
+      - key: http.request.header.x-api-key
+        action: delete
+      - key: db.statement
+        action: update
+        value: "REDACTED"
+      # Ensure tenant_id is preserved
+      - key: tenant_id
+        action: upsert
+        from_attribute: tenant.id
+
+exporters:
+  # ClickHouse exporter for traces
+  clickhousetraces:
+    endpoint: tcp://clickhouse:9000/?database=signoz_traces
+    username: ${env:CLICKHOUSE_USER}
+    password: ${env:CLICKHOUSE_PASSWORD}
+    timeout: 30s
+    # STAMP: Retry configuration for data loss prevention (SC1)
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+    sending_queue:
+      enabled: true
+      num_consumers: 4
+      queue_size: 1000
+      # STAMP: Persistent queue for data loss prevention
+      storage: file_storage/traces
+
+  # ClickHouse exporter for metrics
+  clickhousemetricswrite:
+    endpoint: tcp://clickhouse:9000/?database=signoz_metrics
+    username: ${env:CLICKHOUSE_USER}
+    password: ${env:CLICKHOUSE_PASSWORD}
+    timeout: 30s
+    resource_to_telemetry_conversion:
+      enabled: true
+    sending_queue:
+      enabled: true
+      num_consumers: 2
+      queue_size: 500
+      storage: file_storage/metrics
+
+  # ClickHouse exporter for logs
+  clickhouselogs:
+    endpoint: tcp://clickhouse:9000/?database=signoz_logs
+    username: ${env:CLICKHOUSE_USER}
+    password: ${env:CLICKHOUSE_PASSWORD}
+    timeout: 30s
+    sending_queue:
+      enabled: true
+      num_consumers: 2
+      queue_size: 1000
+      storage: file_storage/logs
+
+  # Prometheus exporter for self-monitoring
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: otel_collector
+    const_labels:
+      service: otel-collector
+    resource_to_telemetry_conversion:
+      enabled: true
+
+  # Debug exporter (disabled in production)
+  debug:
+    verbosity: detailed
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+extensions:
+  # Health check extension
+  health_check:
+    endpoint: 0.0.0.0:13133
+    path: /health
+    check_collector_pipeline:
+      enabled: true
+      interval: 10s
+      exporter_failure_threshold: 5
+
+  # Performance profiler
+  pprof:
+    endpoint: 0.0.0.0:1777
+
+  # zPages for debugging
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+  # STAMP: File storage for persistent queue (SC1)
+  file_storage/traces:
+    directory: /var/lib/otel-collector/queue/traces
+    timeout: 10s
+    compaction:
+      on_start: true
+      directory: /var/lib/otel-collector/queue/traces
+      max_transaction_size: 65536
+
+  file_storage/metrics:
+    directory: /var/lib/otel-collector/queue/metrics
+    timeout: 10s
+    compaction:
+      on_start: true
+      directory: /var/lib/otel-collector/queue/metrics
+
+  file_storage/logs:
+    directory: /var/lib/otel-collector/queue/logs
+    timeout: 10s
+    compaction:
+      on_start: true
+      directory: /var/lib/otel-collector/queue/logs
+
+service:
+  # Enable telemetry
+  telemetry:
+    logs:
+      level: info
+      encoding: json
+      output_paths: ["stdout"]
+      error_output_paths: ["stderr"]
+    metrics:
+      level: detailed
+      address: 0.0.0.0:8888
+
+  extensions: [health_check, pprof, zpages, file_storage/traces, file_storage/metrics, file_storage/logs]
+
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource, attributes]
+      exporters: [clickhousetraces]
+
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, batch, resource]
+      exporters: [clickhousemetricswrite, prometheus]
+
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource, attributes]
+      exporters: [clickhouselogs]

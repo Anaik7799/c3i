@@ -1,0 +1,23 @@
+name: cepa_orchestrator
+description: CEPA Unified Autonomic Verification Protocol Orchestrator
+version: 2.2.0
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  test: ^1.24.0
+  matcher: ^0.12.16
+  graphs: ^2.3.0
+  collection: ^1.18.0
+  args: ^2.4.2
+  yaml: ^3.1.2
+  cli_config: ^0.2.0
+  timing: ^1.0.2
+  posix: ^6.0.3
+  logger: ^2.6.2
+  get_it: ^9.2.0
+  talker: ^5.1.9
+  puppeteer: ^3.19.0
+dev_dependencies:
+  mockito: ^5.6.1
+  build_runner: ^2.10.4

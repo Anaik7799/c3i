@@ -1,0 +1,96 @@
+# SOPv5.1 Timestamp Validation Integration (CLAUDE.md Rule 19.2)
+# Added: 2025-07-31 09:27:50 CEST
+# This script includes automatic timestamp validation as required by CLAUDE.md
+
+Code.require_file("scripts/maintenance/timestamp_validation_helper.exs")
+alias TimestampValidationHelper, as: TSHelper
+
+# Automatic timestamp validation on script start
+TSHelper.validate_and_fix_timestamps_if_needed()
+
+
+  # 1.0 - Hierarchical Numbering Integration
+  # 1.0 - This script supports hierarchical task numbering as defined in CLAUDE.md
+
+defmodule HierarchicalNumbering do
+  def format_task_id(category, task, subtask \\ nil, step \\ nil, microtask \\ nil) do
+    base = "#{category}.#{task}"
+    base = if subtask, do: base <> ".#{subtask}", else: base
+    base = if step, do: base <> ".#{step}", else: base
+    if microtask, do: base <> ".#{microtask}", else: base
+  end
+  
+  def validate_task_id(id) do
+    Regex.match?(~r/^[1-9].[0-9]+(.[0-9]+)*$/, id)
+  end
+end
+
+#!/usr/bin/env elixir
+
+  # 1.0 - MANDATORY: Container enforcement
+Intelitor.ContainerCompliance.enforce_container_only!()
+
+  # 1.0 - MANDATORY: PHICS validation
+PHICS.validate_container_environment!()
+
+  # 1.0 - MANDATORY: Claude AI assistance for complex operations
+Claude.enable_ai_assistance(mode: :automatic, strategy: :smart)
+
+
+
+  # 1.0 - Claude Code Integration (MANDATORY)
+if System.get_env("CLAUDE_CODE_TPS_MODE") == "true" do
+  IO.puts("🤖 Claude Code TPS (Toyota Production System (TPS)) methodology Mode:  tokens")
+  IO.puts("🏭 SOP v5.1 cybernetic goal-oriented execution with SOP v5.1 SOP v5.1 cybernetic goal-oriented Execution Framework with TPS (Toyota Production System (TPS)) methodology methodology: enabled")
+  IO.puts("⚡ Performance: enabled")
+end
+
+defmodule SimpleContainerPolicyScanner do
+  def scan do
+    IO.puts("🔍 Scanning project for container policy violations...")
+    
+    violations = scan_files()
+    
+    case violations do
+      [] ->
+        IO.puts("✅ #{HierarchicalNumbering.format_task_id(1, 1)} - #{HierarchicalNumbering.format_task_id(1, 1)} - No container policy violations detected")
+        :ok
+      violations ->
+        IO.puts("❌ Container policy violations found:")
+        Enum.each(violations, fn {file_path, line_num, line_content} ->
+          IO.puts("  " <> file_path <> ":" <> Integer.to_string(line_num) <> " - " <> String.trim(line_content))
+        end)
+        {:violations, violations}
+    end
+  end
+  
+  defp scan_files do
+    banned_patterns = ["docker", "lxc", "lxd", "containerd", "systemd-nspawn"]
+    
+    Path.wildcard("**/*.{ex,exs,sh,yml,yaml}")
+    |> Enum.reject(fn path -> String.contains?(path, ".git/") or String.contains?(path, "_build/") end)
+    |> Enum.flat_map(fn file_path ->
+      scan_file(file_path, banned_patterns)
+    end)
+  end
+  
+  defp scan_file(file_path, banned_patterns) do
+    case File.read(file_path) do
+      {:ok, content} ->
+        content
+        |> String.split("\n")
+        |> Enum.with_index(1)
+        |> Enum.flat_map(fn {line, line_num} ->
+          if Enum.any?(banned_patterns, &String.contains?(line, &1)) do
+            [{file_path, line_num, line}]
+          else
+            []
+          end
+        end)
+      _ ->
+        []
+    end
+  end
+end
+
+SimpleContainerPolicyScanner.scan()

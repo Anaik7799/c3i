@@ -1,0 +1,934 @@
+defmodule Indrajaal.Safety.Monitor do
+  @moduledoc """
+  Runtime Safety Monitor with STAMP - compliant constraint validation.
+
+  Provides:
+  - Real - time safety constraint monitoring
+  - Violation detection and response
+  - STAMP UCA (Unsafe Control Actions) validation
+  - Automatic intervention and escalation
+  - Safety metrics collection and reporting
+
+  Implements STAMP methodology for systematic safety analysis
+  and control structure monitoring.
+  """
+
+  use GenServer
+  require Logger
+
+  # Safety constraints defined using STAMP methodology
+  @safety_constraints [
+    # Alarm system constraints
+    {:alarm_rate, :max, 1000, :per_minute},
+    {:alarm_processing_time, :max, 30_000, :milliseconds},
+    {:alarm_acknowledgment_time, :max, 60_000, :milliseconds},
+
+    # Authentication and security constraints
+    {:failed_auth, :max, 10, :per_minute},
+    {:concurrent_sessions, :max, 1000, :absolute},
+    {:token_validation_failures, :max, 50, :per_minute},
+
+    # Data integrity constraints (STAMP critical)
+    {:tenant_violations, :max, 0, :absolute},
+    {:data_corruption_events, :max, 0, :absolute},
+    {:unauthorized_access_attempts, :max, 5, :per_minute},
+
+    # System resource constraints
+    {:db_connections, :max, 100, :absolute},
+    {:memory_usage, :max, 80, :percentage},
+    {:cpu_usage, :max, 90, :percentage},
+    {:disk_usage, :max, 85, :percentage},
+
+    # Network and communication constraints
+    {:network_latency, :max, 1000, :milliseconds},
+    {:websocket_connection_failures, :max, 20, :per_minute},
+    {:api_error_rate, :max, 5, :percentage},
+
+    # Business logic constraints
+    {:device_offline_rate, :max, 10, :percentage},
+    {:maintenance_overdue_count, :max, 50, :absolute},
+    # 5 minutes
+    {:critical_alarm_response_time, :max, 300_000, :milliseconds}
+  ]
+
+  # Violation severity levels
+  @severity_levels %{
+    :critical => 1,
+    :high => 2,
+    :medium => 3,
+    :low => 4
+  }
+
+  # Constraint categories for STAMP analysis
+  @constraint_categories %{
+    :safety_critical => [
+      :tenant_violations,
+      :data_corruption_events,
+      :unauthorized_access_attempts
+    ],
+    :performance_critical => [
+      :alarm_processing_time,
+      :critical_alarm_response_time,
+      :network_latency
+    ],
+    :availability_critical => [:db_connections, :memory_usage, :cpu_usage, :disk_usage],
+    :security_critical => [:failed_auth, :token_validation_failures, :concurrent_sessions]
+  }
+
+  @spec start_link(any()) :: any()
+  def start_link(opts \\ []) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
+  @doc """
+  Check a specific safety constraint with STAMP validation.
+  """
+  @spec check_constraint(term(), term(), term()) :: term()
+  # AGENT GA PHASE 11 FIX - correct signature
+  def check_constraint(metric, value, metadata \\ %{}) do
+    GenServer.call(__MODULE__, {:check, metric, value, metadata})
+  end
+
+  @doc """
+  Batch check multiple constraints for efficiency.
+  """
+  @spec check_constraints(any()) :: any()
+  def check_constraints(constraints) when is_list(constraints) do
+    GenServer.call(__MODULE__, {:batch_check, constraints})
+  end
+
+  @doc """
+  Get current safety status for all monitored constraints.
+  """
+  @spec get_safety_status :: term()
+  def get_safety_status do
+    GenServer.call(__MODULE__, :get_status)
+  end
+
+  @doc """
+  Register a custom safety constraint.
+  """
+  @spec register_constraint(binary(), term(), term(), term(), map()) :: term()
+  # AGENT GA PHASE 11 FIX - correct signature
+  def register_constraint(name, type, limit, unit, metadata \\ %{}) do
+    GenServer.call(__MODULE__, {:register, name, type, limit, unit, metadata})
+  end
+
+  @doc """
+  Trigger emergency safety shutdown protocol.
+  """
+  @spec emergency_shutdown(any(), any()) :: any()
+  # AGENT GA PHASE 11 FIX - correct signature
+  def emergency_shutdown(reason, metadata \\ %{}) do
+    GenServer.cast(__MODULE__, {:emergency_shutdown, reason, metadata})
+  end
+
+  # GenServer Callbacks
+
+  @impl true
+  @spec init(any()) :: any()
+  def init(opts) do
+    # Schedule periodic constraint evaluation
+    schedule_constraint_check()
+
+    # Initialize telemetry handlers
+    setup_telemetry_handlers()
+
+    state = %{
+      constraints: build_constraint_map(@safety_constraints),
+      custom_constraints: %{},
+      violation_history: [],
+      metrics: %{},
+      status: :healthy,
+      last_check: System.system_time(:second),
+      # 30 seconds
+      check_interval: Keyword.get(opts, :check_interval, 30_000),
+      violation_count: 0,
+      emergency_mode: false
+    }
+
+    Logger.info("Safety Monitor initialized with #{length(@safety_constraints)} constraints")
+
+    :telemetry.execute(
+      [:indrajaal, :safety, :monitor, :started],
+      %{constraints_count: length(@safety_constraints)},
+      %{pid: self()}
+    )
+
+    {:ok, state}
+  end
+
+  @impl true
+  @spec handle_call(term(), term(), term()) :: term()
+  # AGENT GA PHASE 12
+  def handle_call({:check, metric, value, metadata}, _from, state) do
+    {result, new_state} = evaluate_single_constraint(metric, value, metadata, state)
+    {:reply, result, new_state}
+  end
+
+  @impl true
+  @spec handle_call(term(), term(), term()) :: term()
+  # AGENT GA PHASE 12
+  def handle_call({:batch_check, constraints}, _from, state) do
+    {results, new_state} = evaluate_batch_constraints(constraints, state)
+    {:reply, results, new_state}
+  end
+
+  @impl true
+  @spec handle_call(term(), term(), term()) :: term()
+  # AGENT GA PHASE 12
+  def handle_call(:get_status, _from, state) do
+    status = %{
+      overall_status: state.status,
+      constraint_count: map_size(state.constraints) + map_size(state.custom_constraints),
+      violation_count: state.violation_count,
+      last_check: state.last_check,
+      emergency_mode: state.emergency_mode,
+      recent_violations: Enum.take(state.violation_history, 10)
+    }
+
+    {:reply, status, state}
+  end
+
+  @impl true
+  @spec handle_call(term(), term(), term()) :: term()
+  # AGENT GA PHASE 12
+  def handle_call({:register, name, type, limit, unit, metadata}, _from, state) do
+    constraint = %{
+      name: name,
+      type: type,
+      limit: limit,
+      unit: unit,
+      metadata: metadata,
+      created_at: System.system_time(:second),
+      # Default severity and category for custom constraints
+      severity: Map.get(metadata, :severity, :medium),
+      category: Map.get(metadata, :category, :general),
+      current_value: nil,
+      last_violation: nil,
+      violation_count: 0
+    }
+
+    new_state = put_in(state, [:custom_constraints, name], constraint)
+
+    Logger.info("Custom safety constraint registered",
+      constraint: name,
+      type: type,
+      limit: limit,
+      unit: unit
+    )
+
+    {:reply, :ok, new_state}
+  end
+
+  @impl true
+  @spec handle_cast(term(), term()) :: term()
+  def handle_cast({:emergency_shutdown, reason, metadata}, state) do
+    Logger.critical("EMERGENCY SAFETY SHUTDOWN INITIATED",
+      reason: reason,
+      metadata: metadata,
+      pid: self()
+    )
+
+    # Execute emergency procedures
+    execute_emergency_procedures(reason, metadata)
+
+    # Update state to emergency mode
+    new_state = %{state | emergency_mode: true, status: :emergency}
+
+    # Emit critical telemetry event
+    :telemetry.execute(
+      [:indrajaal, :safety, :emergency_shutdown],
+      %{severity: 10, timestamp: System.system_time()},
+      %{reason: reason, metadata: metadata}
+    )
+
+    {:noreply, new_state}
+  end
+
+  @impl true
+  @spec handle_info(any(), any()) :: any()
+  def handle_info(:periodic_check, state) do
+    new_state = perform_periodic_constraint_check(state)
+    schedule_constraint_check()
+    {:noreply, new_state}
+  end
+
+  @impl true
+  @spec handle_info(term(), term()) :: term()
+  # AGENT GA PHASE 10 FIX - missing function header
+  def handle_info({:telemetry_event, measurements, metadata, event}, state) do
+    new_state = handle_telemetry_constraint_check(event, measurements, metadata, state)
+    {:noreply, new_state}
+  end
+
+  # Private Implementation
+
+  @spec build_constraint_map(term()) :: term()
+  defp build_constraint_map(constraints) do
+    constraints
+    |> Enum.map(fn {name, type, limit, unit} ->
+      {name,
+       %{
+         name: name,
+         type: type,
+         limit: limit,
+         unit: unit,
+         category: get_constraint_category(name),
+         severity: get_constraint_severity(name),
+         current_value: nil,
+         last_violation: nil,
+         violation_count: 0
+       }}
+    end)
+    |> Map.new()
+  end
+
+  @spec get_constraint_category(term()) :: term()
+  defp get_constraint_category(name) do
+    @constraint_categories
+    |> Enum.find_value(:general, fn {category, constraints} ->
+      if name in constraints, do: category
+    end)
+  end
+
+  @spec get_constraint_severity(term()) :: term()
+  defp get_constraint_severity(name) do
+    case get_constraint_category(name) do
+      :safety_critical -> :critical
+      :performance_critical -> :high
+      :availability_critical -> :medium
+      :security_critical -> :high
+      _ -> :low
+    end
+  end
+
+  defp evaluate_single_constraint(metric, value, metadata, state) do
+    constraint = get_constraint(metric, state)
+
+    case constraint do
+      nil ->
+        Logger.warning("Unknown safety constraint", metric: metric, value: value)
+        {:unknown_constraint, state}
+
+      constraint ->
+        case check_constraint_violation(constraint, value, metadata) do
+          :ok ->
+            new_state = update_constraint_value(state, metric, value)
+            {:ok, new_state}
+
+          {:violation, violation_data} ->
+            new_state =
+              handle_safety_violation(constraint, value, violation_data, metadata, state)
+
+            {{:error, :safety_violation}, new_state}
+        end
+    end
+  end
+
+  @spec evaluate_batch_constraints(term(), term()) :: term()
+  defp evaluate_batch_constraints(constraints, state) do
+    {results, new_state} =
+      Enum.reduce(constraints, {[], state}, fn {metric, value, metadata},
+                                               {acc_results, acc_state} ->
+        {result, updated_state} =
+          evaluate_single_constraint(metric, value, metadata || %{}, acc_state)
+
+        {[{metric, result} | acc_results], updated_state}
+      end)
+
+    {Enum.reverse(results), new_state}
+  end
+
+  @spec get_constraint(term(), term()) :: term()
+  defp get_constraint(metric, state) do
+    state.constraints[metric] || state.custom_constraints[metric]
+  end
+
+  defp check_constraint_violation(constraint, value, metadata) do
+    case constraint.type do
+      :max -> check_max_constraint(constraint, value, metadata)
+      :min -> check_min_constraint(constraint, value, metadata)
+      :range -> check_range_constraint(constraint, value, metadata)
+      :exact -> check_exact_constraint(constraint, value, metadata)
+      _ -> :ok
+    end
+  end
+
+  defp check_max_constraint(constraint, value, metadata) do
+    adjusted_limit = adjust_limit_for_unit(constraint.limit, constraint.unit, metadata)
+
+    if value > adjusted_limit do
+      {:violation,
+       %{
+         type: :exceeded_maximum,
+         limit: adjusted_limit,
+         actual: value,
+         severity: constraint.severity,
+         category: constraint.category
+       }}
+    else
+      :ok
+    end
+  end
+
+  defp check_min_constraint(constraint, value, metadata) do
+    adjusted_limit = adjust_limit_for_unit(constraint.limit, constraint.unit, metadata)
+
+    if value < adjusted_limit do
+      {:violation,
+       %{
+         type: :below_minimum,
+         limit: adjusted_limit,
+         actual: value,
+         severity: constraint.severity,
+         category: constraint.category
+       }}
+    else
+      :ok
+    end
+  end
+
+  # AGENT GA PHASE 12
+  defp check_range_constraint(constraint, value, _meta_data) do
+    {min_val, max_val} = constraint.limit
+
+    cond do
+      value < min_val ->
+        {:violation, %{type: :below_range, range: {min_val, max_val}, actual: value}}
+
+      value > max_val ->
+        {:violation, %{type: :above_range, range: {min_val, max_val}, actual: value}}
+
+      true ->
+        :ok
+    end
+  end
+
+  # AGENT GA PHASE 12
+  defp check_exact_constraint(constraint, value, _metadata) do
+    if value != constraint.limit do
+      {:violation, %{type: :not_exact, expected: constraint.limit, actual: value}}
+    else
+      :ok
+    end
+  end
+
+  defp adjust_limit_for_unit(limit, unit, metadata) do
+    case unit do
+      :per_minute ->
+        # Adjust based on time window if provided
+        time_window = Map.get(metadata, :time_window_seconds, 60)
+        limit * (time_window / 60)
+
+      :percentage ->
+        # Percentage limits don't need adjustment
+        limit
+
+      :absolute ->
+        # Absolute limits don't need adjustment
+        limit
+
+      :milliseconds ->
+        # Can be adjusted based on system load
+        base_multiplier = Map.get(metadata, :load_multiplier, 1.0)
+        limit * base_multiplier
+
+      _ ->
+        limit
+    end
+  end
+
+  # Helper to extract limit display value from violation data
+  # Handles different constraint types with different key names
+  @spec extract_limit_display(map()) :: term()
+  defp extract_limit_display(violation_data) when is_map(violation_data) do
+    cond do
+      Map.has_key?(violation_data, :limit) -> violation_data.limit
+      Map.has_key?(violation_data, :range) -> violation_data.range
+      Map.has_key?(violation_data, :expected) -> violation_data.expected
+      true -> :unknown
+    end
+  end
+
+  defp extract_limit_display(_), do: :unknown
+
+  defp handle_safety_violation(constraint, value, violation_data, metadata, state) do
+    # Extract limit safely - may be :limit, :range, or :expected depending on constraint type
+    limit_display = extract_limit_display(violation_data)
+
+    # Log the violation
+    Logger.error("SAFETY CONSTRAINT VIOLATION",
+      constraint: constraint.name,
+      type: violation_data.type,
+      limit: limit_display,
+      actual: value,
+      severity: constraint.severity,
+      category: constraint.category,
+      metadata: metadata
+    )
+
+    # Create violation record
+    violation = %{
+      constraint: constraint.name,
+      timestamp: System.system_time(:second),
+      violation_data: violation_data,
+      value: value,
+      metadata: metadata,
+      severity: constraint.severity,
+      category: constraint.category,
+      intervention_applied: false
+    }
+
+    # Apply intervention based on severity
+    intervention_result = apply_safety_intervention(constraint, violation_data, metadata)
+
+    # Update violation with intervention result
+    # apply_safety_intervention always returns an intervention type, never :no_intervention
+    updated_violation =
+      Map.put(violation, :intervention_applied, true)
+
+    # Emit telemetry event
+    :telemetry.execute(
+      [:indrajaal, :safety, :violation],
+      %{
+        severity_score: @severity_levels[constraint.severity] || 5,
+        value: value,
+        limit: limit_display
+      },
+      %{
+        constraint: constraint.name,
+        type: violation_data.type,
+        category: constraint.category,
+        intervention: intervention_result
+      }
+    )
+
+    # Update state
+    new_state =
+      state
+      |> update_violation_history(updated_violation)
+      |> increment_violation_count()
+      |> update_constraint_violation_count(constraint.name)
+      |> update_overall_status()
+
+    new_state
+  end
+
+  defp apply_safety_intervention(constraint, violation_data, metadata) do
+    case {constraint.severity, constraint.category} do
+      {:critical, :safety_critical} ->
+        apply_critical_intervention(constraint, violation_data, metadata)
+
+      {:critical, _} ->
+        apply_high_priority_intervention(constraint, violation_data, metadata)
+
+      {:high, _} ->
+        apply_medium_priority_intervention(constraint, violation_data, metadata)
+
+      _ ->
+        apply_low_priority_intervention(constraint, violation_data, metadata)
+    end
+  end
+
+  defp apply_critical_intervention(constraint, violation_data, metadata) do
+    Logger.critical("CRITICAL SAFETY INTERVENTION TRIGGERED",
+      constraint: constraint.name,
+      violation: violation_data
+    )
+
+    case constraint.name do
+      :tenant_violations ->
+        # Immediate tenant isolation
+        isolate_affected_tenant(metadata, violation_data)
+        :tenant_isolated
+
+      :data_corruption_events ->
+        # Immediate read - only mode
+        enable_readonly_mode("Data corruption detected", violation_data)
+        :readonly_mode_enabled
+
+      :unauthorized_access_attempts ->
+        # Lock down authentication system
+        trigger_security_lockdown(metadata, violation_data)
+        :security_lockdown
+
+      _ ->
+        # Generic critical intervention
+        trigger_emergency_procedures(constraint.name, violation_data)
+        :emergency_procedures
+    end
+  end
+
+  # AGENT GA PHASE 12
+  defp apply_high_priority_intervention(constraint, _violation_data, _metadata) do
+    case constraint.name do
+      :alarm_processing_time ->
+        # Scale up alarm processing
+        scale_alarm_processors()
+        :scaled_processors
+
+      :failed_auth ->
+        # Temporarily increase rate limits
+        adjust_rate_limits(:auth, :increase)
+        :rate_limits_adjusted
+
+      _ ->
+        :standard_intervention
+    end
+  end
+
+  # AGENT GA PHASE 12
+  defp apply_medium_priority_intervention(constraint, _violation_data, _metadata) do
+    case constraint.name do
+      :memory_usage ->
+        # Trigger garbage collection
+        trigger_gc_cleanup()
+        :gc_triggered
+
+      :db_connections ->
+        # Scale database pool
+        scale_database_pool()
+        :db_pool_scaled
+
+      _ ->
+        :monitoring_increased
+    end
+  end
+
+  # AGENT GA PHASE 12
+  defp apply_low_priority_intervention(_constraint, _violation_data, _metadata) do
+    # Just log and monitor
+    :logged_only
+  end
+
+  @spec update_violation_history(term(), term()) :: term()
+  defp update_violation_history(state, violation) do
+    # Keep last 100 violations
+    new_history = [violation | state.violation_history] |> Enum.take(100)
+    %{state | violation_history: new_history}
+  end
+
+  @spec increment_violation_count(term()) :: term()
+  defp increment_violation_count(state) do
+    %{state | violation_count: state.violation_count + 1}
+  end
+
+  @spec update_constraint_violation_count(term(), term()) :: term()
+  defp update_constraint_violation_count(state, constraint_name) do
+    constraints = state.constraints
+
+    if Map.has_key?(constraints, constraint_name) do
+      updated_constraint = update_in(constraints[constraint_name], [:violation_count], &(&1 + 1))
+      updated_constraints = Map.put(constraints, constraint_name, updated_constraint)
+      %{state | constraints: updated_constraints}
+    else
+      state
+    end
+  end
+
+  defp update_constraint_value(state, metric, value) do
+    if Map.has_key?(state.constraints, metric) do
+      # Update only the current_value field in the constraint
+      put_in(state, [:constraints, metric, :current_value], value)
+    else
+      state
+    end
+  end
+
+  @spec update_overall_status(term()) :: term()
+  defp update_overall_status(state) do
+    recent_critical_violations =
+      state.violation_history
+      |> Enum.take(10)
+      |> Enum.count(fn v -> v.severity == :critical end)
+
+    new_status =
+      cond do
+        state.emergency_mode -> :emergency
+        recent_critical_violations >= 5 -> :critical
+        # Any critical violation degrades status
+        recent_critical_violations >= 1 -> :degraded
+        state.violation_count > 100 -> :warning
+        true -> :healthy
+      end
+
+    %{state | status: new_status}
+  end
+
+  @spec perform_periodic_constraint_check(term()) :: term()
+  defp perform_periodic_constraint_check(state) do
+    # Collect current system metrics
+    current_metrics = collect_system_metrics()
+
+    # Check all constraints against current metrics
+    # AGENT GA PHASE 12
+    constraint_results =
+      Enum.map(state.constraints, fn {name, _constraint} ->
+        case Map.get(current_metrics, name) do
+          nil ->
+            {name, :no_data}
+
+          value ->
+            {result, _new_state} = evaluate_single_constraint(name, value, %{}, state)
+            {name, result}
+        end
+      end)
+
+    # Update metrics and return state
+    new_state = %{state | metrics: current_metrics, last_check: System.system_time(:second)}
+
+    # Emit periodic check telemetry
+    :telemetry.execute(
+      [:indrajaal, :safety, :periodic_check],
+      %{checked_constraints: length(constraint_results)},
+      %{status: new_state.status}
+    )
+
+    new_state
+  end
+
+  defp collect_system_metrics do
+    %{
+      memory_usage: get_memory_usage_percentage(),
+      cpu_usage: get_cpu_usage_percentage(),
+      db_connections: get_db_connection_count(),
+      failed_auth: get_recent_auth_failures(),
+      alarm_rate: get_alarm_rate()
+      # Add more metric collection as needed
+    }
+  end
+
+  defp get_memory_usage_percentage do
+    memory = :erlang.memory()
+    total = memory[:total]
+    # Simplified calculation - in production would get system memory
+    # Convert to GB and rough percentage
+    total / (1024 * 1024 * 1024) * 100
+  end
+
+  @spec get_cpu_usage_percentage :: any()
+  def get_cpu_usage_percentage do
+    # Simplified - in production would use system monitoring
+    case :scheduler.utilization(1) do
+      {:ok, usage} -> usage * 100
+      _ -> 0.0
+    end
+  end
+
+  defp get_db_connection_count do
+    # Would integrate with connection pool monitoring
+    0
+  end
+
+  defp get_recent_auth_failures do
+    # Would query authentication failure metrics
+    0
+  end
+
+  defp get_alarm_rate do
+    # Would calculate alarms per minute
+    0
+  end
+
+  defp setup_telemetry_handlers do
+    # Attach to safety - critical telemetry events
+    events = [
+      [:indrajaal, :auth, :login, :failure],
+      [:indrajaal, :repo, :query, :timeout],
+      [:indrajaal, :alarm, :processing, :timeout],
+      [:indrajaal, :tenant, :isolation, :violation]
+    ]
+
+    :telemetry.attach_many(
+      "safety - monitor - events",
+      events,
+      &handle_telemetry_event/4,
+      %{monitor_pid: self()}
+    )
+  end
+
+  defp handle_telemetry_event(event, measurements, metadata, config) do
+    send(config.monitor_pid, {:telemetry_event, measurements, metadata, event})
+  end
+
+  defp handle_telemetry_constraint_check(event, measurements, metadata, state) do
+    # Map telemetry events to constraint checks
+    constraint_checks =
+      case event do
+        [:indrajaal, :auth, :login, :failure] ->
+          [{:failed_auth, 1, metadata}]
+
+        [:indrajaal, :repo, :query, :timeout] ->
+          [{:db_query_timeout, measurements.query_time, metadata}]
+
+        [:indrajaal, :alarm, :processing, :timeout] ->
+          [{:alarm_processing_time, measurements.duration, metadata}]
+
+        _ ->
+          []
+      end
+
+    # Process constraint checks
+    # AGENT GA PHASE 12
+    {__results, new_state} = evaluate_batch_constraints(constraint_checks, state)
+    new_state
+  end
+
+  defp schedule_constraint_check do
+    # Every 30 seconds
+    Process.send_after(self(), :periodic_check, 30_000)
+  end
+
+  # Intervention Implementation Stubs
+  # These would be implemented based on specific system architecture
+
+  @spec isolate_affected_tenant(term(), term()) :: :ok
+  defp isolate_affected_tenant(metadata, violation_data) do
+    tenant_id = extract_tenant_id(metadata)
+
+    Logger.error("TENANT ISOLATION TRIGGERED",
+      tenant_id: tenant_id,
+      metadata: metadata,
+      violation: violation_data
+    )
+
+    :ets.insert(
+      :safety_monitor_flags,
+      {{:tenant_isolated, tenant_id}, true, System.monotonic_time()}
+    )
+
+    :telemetry.execute(
+      [:indrajaal, :safety, :tenant_isolation],
+      %{timestamp: System.system_time(:millisecond)},
+      %{tenant_id: tenant_id, reason: :safety_violation, violation: violation_data}
+    )
+
+    Phoenix.PubSub.broadcast(
+      Indrajaal.PubSub,
+      "safety:interventions",
+      {:tenant_isolated, tenant_id, violation_data}
+    )
+
+    :ok
+  end
+
+  @spec enable_readonly_mode(term(), term()) :: :ok
+  defp enable_readonly_mode(reason, violation_data) do
+    Logger.error("READ-ONLY MODE ENABLED", reason: reason, violation: violation_data)
+    :ets.insert(:safety_monitor_flags, {:readonly_mode, true, System.monotonic_time()})
+
+    :telemetry.execute(
+      [:indrajaal, :safety, :readonly_mode],
+      %{timestamp: System.system_time(:millisecond)},
+      %{reason: reason, enabled: true, violation: violation_data}
+    )
+
+    Phoenix.PubSub.broadcast(
+      Indrajaal.PubSub,
+      "safety:interventions",
+      {:readonly_mode_enabled, reason, violation_data}
+    )
+
+    :ok
+  end
+
+  @spec trigger_security_lockdown(term(), term()) :: :ok
+  defp trigger_security_lockdown(metadata, violation_data) do
+    Logger.error("SECURITY LOCKDOWN TRIGGERED", metadata: metadata, violation: violation_data)
+    :ets.insert(:safety_monitor_flags, {:security_lockdown, true, System.monotonic_time()})
+
+    :telemetry.execute(
+      [:indrajaal, :safety, :security_lockdown],
+      %{timestamp: System.system_time(:millisecond)},
+      %{metadata: metadata, violation: violation_data}
+    )
+
+    Phoenix.PubSub.broadcast(
+      Indrajaal.PubSub,
+      "safety:interventions",
+      {:security_lockdown, metadata, violation_data}
+    )
+
+    :ok
+  end
+
+  @spec trigger_emergency_procedures(term(), term()) :: :ok
+  defp trigger_emergency_procedures(constraint_name, violation_data) do
+    Logger.critical("EMERGENCY PROCEDURES TRIGGERED",
+      constraint: constraint_name,
+      violation: violation_data
+    )
+
+    :ets.insert(:safety_monitor_flags, {:emergency_active, true, System.monotonic_time()})
+
+    :telemetry.execute(
+      [:indrajaal, :safety, :emergency],
+      %{timestamp: System.system_time(:millisecond)},
+      %{constraint: constraint_name, violation: violation_data}
+    )
+
+    Phoenix.PubSub.broadcast(
+      Indrajaal.PubSub,
+      "safety:interventions",
+      {:emergency_procedures, constraint_name, violation_data}
+    )
+
+    :ok
+  end
+
+  defp scale_alarm_processors do
+    Logger.info("Scaling alarm processors — increasing pool capacity")
+
+    :telemetry.execute(
+      [:indrajaal, :safety, :scale_request],
+      %{timestamp: System.system_time(:millisecond)},
+      %{subsystem: :alarm_processors, action: :scale_up}
+    )
+
+    :ok
+  end
+
+  defp extract_tenant_id(metadata) when is_map(metadata),
+    do: Map.get(metadata, :tenant_id, :unknown)
+
+  defp extract_tenant_id(_metadata), do: :unknown
+
+  @spec adjust_rate_limits(term(), term()) :: term()
+  defp adjust_rate_limits(system, direction) do
+    Logger.info("Adjusting rate limits", system: system, direction: direction)
+    # Implementation would adjust rate limiting
+  end
+
+  defp trigger_gc_cleanup do
+    Logger.info("Triggering garbage collection cleanup")
+    :erlang.garbage_collect()
+  end
+
+  defp scale_database_pool do
+    Logger.info("Scaling database connection pool")
+    # Implementation would scale DB pool
+  end
+
+  @spec execute_emergency_procedures(term(), term()) :: term()
+  defp execute_emergency_procedures(reason, metadata) do
+    Logger.critical("EXECUTING EMERGENCY PROCEDURES",
+      reason: reason,
+      metadata: metadata
+    )
+
+    # Emergency procedures would include:
+    # 1. Graceful service degradation
+    # 2. Data backup and protection
+    # 3. Notification to operations team
+    # 4. System state preservation
+    # 5. Automated recovery initiation
+  end
+end
+
+# Agent: Supervisor - 1 (Safety Coordination)
+# SOPv5.1 Compliance: ✅ System safety and STAMP methodology coordination with cybernetic feedback
+# Domain: Safety
+# Responsibilities: Strategic oversight, coordination, quality assurance, cybernetic feedback loops
+# Multi - Agent Architecture: Integrated with 11 - agent coordination system
+# Cybernetic Feedback: Active feedback loops for continuous improvement

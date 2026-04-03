@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Quick launcher for Aerospace Theme Simulator
+# Usage: ./sim [--help|--test|--build]
+exec "$(dirname "$0")/scripts/theme-simulator.sh" "$@"

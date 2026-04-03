@@ -1,0 +1,479 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  MIX_ENV: test
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: indrajaal_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    strategy:
+      matrix:
+        elixir: ['1.18.1']
+        otp: ['27']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Check formatting
+        run: mix format --check-formatted
+
+      - name: Compile with warnings as errors
+        run: mix compile --warnings-as-errors
+
+      - name: Run Credo quality checks
+        run: mix credo --strict
+
+      - name: Run Dialyzer type checking
+        run: mix dialyzer
+
+      - name: Run Sobelow security scan
+        run: mix sobelow --exit
+
+      - name: Setup test database
+        run: |
+          mix ecto.create
+          mix ecto.migrate
+
+      - name: Run tests
+        run: mix test --cover
+
+      - name: Run comprehensive test suite
+        run: mix test.coverage --html
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./cover/excoveralls.json
+          flags: unittests
+          name: codecov-umbrella
+
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.18.1'
+          otp-version: '27'
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Security audit
+        run: mix deps.audit
+
+      - name: Check for unused dependencies
+        run: mix deps.unlock --check-unused
+
+      - name: Generate documentation
+        run: mix docs
+
+  performance:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: indrajaal_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.18.1'
+          otp-version: '27'
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Setup test database
+        run: |
+          mix ecto.create
+          mix ecto.migrate
+
+      - name: Run performance tests
+        run: mix test --only performance
+
+      - name: Run load tests
+        run: mix test --only load
+
+      - name: Generate performance report
+        run: mix test.performance --benchmark
+
+  load-testing:
+    name: Artillery Load Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: indrajaal
+          POSTGRES_PASSWORD: indrajaal_dev
+          POSTGRES_DB: indrajaal_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.18.1'
+          otp-version: '27'
+
+      - name: Setup Node.js for Artillery
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Artillery
+        run: npm install -g artillery@latest
+
+      - name: Cache Elixir dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+
+      - name: Install Elixir dependencies
+        run: mix deps.get
+
+      - name: Setup database
+        run: |
+          mix ecto.create
+          mix ecto.migrate
+        env:
+          POSTGRES_USER: indrajaal
+          POSTGRES_PASSWORD: indrajaal_dev
+          DATABASE_URL: ecto://indrajaal:indrajaal_dev@localhost:5433/indrajaal_test
+
+      - name: Start Phoenix server
+        run: |
+          mix phx.server &
+          sleep 10
+        env:
+          POSTGRES_USER: indrajaal
+          POSTGRES_PASSWORD: indrajaal_dev
+          DATABASE_URL: ecto://indrajaal:indrajaal_dev@localhost:5433/indrajaal_test
+          PHX_HOST: localhost
+          PORT: 4000
+
+      - name: Run Artillery quick load test
+        run: |
+          artillery quick --count 10 --num 5 http://localhost:4000/api/health
+        continue-on-error: true
+
+      - name: Run Artillery CI load test
+        run: |
+          artillery run scripts/performance/artillery-ci-config.yml --output artillery-report.json
+        continue-on-error: true
+        timeout-minutes: 5
+
+      - name: Generate Artillery HTML report
+        run: |
+          artillery report artillery-report.json --output artillery-report.html
+        if: always()
+        continue-on-error: true
+
+      - name: Upload Artillery report
+        uses: actions/upload-artifact@v4
+        with:
+          name: artillery-load-test-report
+          path: |
+            artillery-report.json
+            artillery-report.html
+        if: always()
+
+  security-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image for scanning
+        run: |
+          docker build -t indrajaal:scan -f Dockerfile .
+        continue-on-error: true
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'indrajaal:scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+        continue-on-error: true
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+        if: always()
+
+      - name: Run Trivy in table format (for logs)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'indrajaal:scan'
+          format: 'table'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+        continue-on-error: true
+
+      - name: Scan filesystem for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+
+      - name: Scan for secrets
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          scanners: 'secret'
+          format: 'table'
+        continue-on-error: true
+
+  formal-verification:
+    name: Formal Verification Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: indrajaal
+          POSTGRES_PASSWORD: indrajaal_dev
+          POSTGRES_DB: indrajaal_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.18.1'
+          otp-version: '27'
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Setup test database
+        run: |
+          mix ecto.create
+          mix ecto.migrate
+        env:
+          POSTGRES_USER: indrajaal
+          POSTGRES_PASSWORD: indrajaal_dev
+          DATABASE_URL: ecto://indrajaal:indrajaal_dev@localhost:5433/indrajaal_test
+
+      - name: Run Formal Verification Tests (286 tests)
+        run: |
+          mix test \
+            test/indrajaal/compliance/sil_compliance_test.exs \
+            test/indrajaal/devices/device_failsafe_test.exs \
+            test/indrajaal/authentication/auth_security_test.exs \
+            test/indrajaal/safety/fmea_hazard_analysis_test.exs \
+            test/indrajaal/validation/fpps_consensus_test.exs \
+            test/indrajaal/access_control/rbac_state_machine_test.exs \
+            test/indrajaal/communication/safety_critical_comm_test.exs
+        env:
+          POSTGRES_USER: indrajaal
+          POSTGRES_PASSWORD: indrajaal_dev
+          DATABASE_URL: ecto://indrajaal:indrajaal_dev@localhost:5433/indrajaal_test
+
+  # Scheduled extended performance tests (soak/spike)
+  extended-performance:
+    name: Extended Performance Tests (Soak/Spike)
+    runs-on: ubuntu-latest
+    # Run on schedule or manual trigger only
+    if: github.event_name == 'workflow_dispatch'
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: indrajaal
+          POSTGRES_PASSWORD: indrajaal_dev
+          POSTGRES_DB: indrajaal_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.18.1'
+          otp-version: '27'
+
+      - name: Setup Node.js for Artillery
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Artillery
+        run: npm install -g artillery@latest
+
+      - name: Cache Elixir dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+
+      - name: Install Elixir dependencies
+        run: mix deps.get
+
+      - name: Setup database
+        run: |
+          mix ecto.create
+          mix ecto.migrate
+        env:
+          POSTGRES_USER: indrajaal
+          POSTGRES_PASSWORD: indrajaal_dev
+          DATABASE_URL: ecto://indrajaal:indrajaal_dev@localhost:5433/indrajaal_test
+
+      - name: Start Phoenix server
+        run: |
+          mix phx.server &
+          sleep 15
+        env:
+          POSTGRES_USER: indrajaal
+          POSTGRES_PASSWORD: indrajaal_dev
+          DATABASE_URL: ecto://indrajaal:indrajaal_dev@localhost:5433/indrajaal_test
+          PHX_HOST: localhost
+          PORT: 4000
+
+      - name: Run Spike Tests (15 minutes)
+        run: |
+          artillery run scripts/performance/artillery-spike-config.yml --output spike-report.json
+        timeout-minutes: 20
+        continue-on-error: true
+
+      - name: Generate Spike Report
+        run: artillery report spike-report.json --output spike-report.html
+        if: always()
+        continue-on-error: true
+
+      - name: Upload Spike Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: spike-test-report
+          path: |
+            spike-report.json
+            spike-report.html
+        if: always()

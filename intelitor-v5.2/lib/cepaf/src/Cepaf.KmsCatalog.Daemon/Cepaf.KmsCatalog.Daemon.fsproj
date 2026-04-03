@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <UserSecretsId>dotnet-Cepaf.KmsCatalog.Daemon-UUID</UserSecretsId>
+    <!-- SC-NET-001: All F# projects MUST use net10.0 target framework -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Worker.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <ProjectReference Include="..\Cepaf\Cepaf.fsproj" />
+  </ItemGroup>
+</Project>

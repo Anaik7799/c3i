@@ -1,0 +1,19 @@
+#!/bin/bash
+echo "🧠 THINKING: Entering DevEnv shell for Podman access"
+echo "🎯 DECISION: Validate Podman availability and version"
+echo "⚙️ EXECUTING: Podman version check"
+
+if command -v podman >/dev/null 2>&1; then
+    echo "✅ Podman available: $(podman --version)"
+    echo "📊 VALIDATING: Container status"
+    podman ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+    echo ""
+    echo "🌐 Network status:"
+    podman network ls
+    echo ""
+    echo "💾 Volume status:"
+    podman volume ls
+else
+    echo "❌ Podman not available in DevEnv"
+    exit 1
+fi

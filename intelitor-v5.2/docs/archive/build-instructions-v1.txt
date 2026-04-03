@@ -1,0 +1,18 @@
+ do 100% functional and feature coverage without entra id. 
+ do 5 level RCA to identify and fix all the issues. 
+ treat  warnigs as errors. 
+ continue till you reach the 100% coverage traget. 
+ Do not remove functionality. 
+ all scripts have to be in elixire ONLY. 
+you can add additional packages in devenv.sh locally to get any new functionality required to proceed                                                                                                 
+-------
+do 100% functional and feature coverage without for all the ash domains, resources and related functionality. 
+do 5 level RCA to identify and fix all the issues. 
+treat  warnigs as errors. 
+continue till you reach the 100% covergae target. 
+Do not remove functionality. 
+all scripts have to be in elixire ONLY. 
+you can add additional packages in devenv.sh locally to get any new functionality required to proceed 
+create a plan and track all tasks in a project journal where you update progress and all actions executed . 
+automatically update journal as you proceeed. 
+

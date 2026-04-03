@@ -1,0 +1,232 @@
+# podman-compose-app-standalone.yml
+# Purpose: Standalone Phoenix/Elixir Application with integrated Redis
+# Objective: Complete standalone environment with App (including Redis) and DB connectivity
+# SOPv5.11 Compliance: SC-CNT-009, SC-CNT-010, SC-CEP-004, SC-CMP-025, SC-VAL-003, SC-OBS-069
+# Mode: Standalone (3-container architecture: db, app, obs)
+
+version: '3.8'
+
+networks:
+  app-standalone-net:
+    driver: bridge
+  # External network to connect to DB standalone container
+  db-standalone-net:
+    external: true
+    name: artifacts_db-standalone-net
+
+services:
+  # =========================
+  # Phoenix Application (with integrated Redis)
+  # =========================
+  indrajaal-app-standalone:
+    image: localhost/indrajaal-sopv51-elixir-app:nixos-25.05-devenv
+    container_name: indrajaal-app-standalone
+    hostname: app-standalone
+
+    networks:
+      - app-standalone-net
+      - db-standalone-net
+
+    # Database dependency - connects to standalone DB container
+    external_links:
+      - indrajaal-db-standalone:db
+
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "╔══════════════════════════════════════════════════════════════╗"
+        echo "║     INDRAJAAL APP STANDALONE - Container Startup             ║"
+        echo "║     STAMP: SC-CNT-009, SC-CMP-025 | Patient Mode: ENABLED    ║"
+        echo "║     Architecture: 3-Container (DB, APP, OBS)                 ║"
+        echo "╚══════════════════════════════════════════════════════════════╝"
+        echo ""
+        echo "[1/8] Starting integrated Redis server..."
+        redis-server --daemonize yes --port 6379 --maxmemory 256mb --maxmemory-policy allkeys-lru --appendonly yes --dir /tmp
+        sleep 2
+        if redis-cli ping | grep -q PONG; then
+          echo "  ✓ Redis started (localhost:6379)"
+        else
+          echo "  ✗ Redis failed to start"
+          exit 1
+        fi
+        echo ""
+        echo "[2/8] Installing Hex and Rebar..."
+        mix local.hex --force --if-missing
+        mix local.rebar --force --if-missing
+        echo "  ✓ Hex/Rebar installed"
+        echo ""
+        echo "[3/8] Waiting for database..."
+        until pg_isready -h indrajaal-db-standalone -p 5433 -U postgres 2>/dev/null; do
+          echo "  Database not ready, waiting 2s..."
+          sleep 2
+        done
+        echo "  ✓ Database ready!"
+        echo ""
+        echo "[4/8] Getting dependencies..."
+        cd /workspace
+        mix deps.get 2>&1 || true
+        echo "  ✓ Dependencies fetched"
+        echo ""
+        echo "[5/8] Compiling dependencies..."
+        mix deps.compile 2>&1 || true
+        echo "  ✓ Dependencies compiled"
+        echo ""
+        echo "[6/8] Setting up database..."
+        mix ecto.create --quiet 2>/dev/null || true
+        mix ecto.migrate --quiet 2>/dev/null || true
+        echo "  ✓ Database setup complete"
+        echo ""
+        echo "[7/8] Verifying Redis connectivity..."
+        if redis-cli ping | grep -q PONG; then
+          echo "  ✓ Redis verified"
+        else
+          echo "  ✗ Redis not responding, restarting..."
+          redis-server --daemonize yes --port 6379 --maxmemory 256mb --maxmemory-policy allkeys-lru
+          sleep 1
+        fi
+        echo ""
+        echo "[8/8] Starting Phoenix Server..."
+        echo "═══════════════════════════════════════════════════════════════"
+        exec mix phx.server
+
+    environment:
+      # =========================
+      # Application Configuration
+      # =========================
+      MIX_ENV: dev
+      PHX_SERVER: "true"
+      PHX_HOST: 0.0.0.0
+      PHX_PORT: 4000
+      SECRET_KEY_BASE: standalone-secret-key-base-minimum-64-chars-for-phoenix-security-requirements
+
+      # =========================
+      # Database Configuration (Standalone Mode)
+      # =========================
+      DATABASE_URL: ecto://postgres:postgres@indrajaal-db-standalone:5433/indrajaal_standalone
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: indrajaal-db-standalone
+      POSTGRES_PORT: 5433
+      POSTGRES_DB: indrajaal_standalone
+
+      # =========================
+      # Redis Configuration (Integrated - localhost)
+      # =========================
+      REDIS_URL: redis://localhost:6379/0
+      REDIS_HOST: localhost
+      REDIS_PORT: "6379"
+
+      # =========================
+      # Patient Mode (MANDATORY)
+      # SC-VAL-001: Patient Mode validation
+      # =========================
+      NO_TIMEOUT: "true"
+      PATIENT_MODE: "enabled"
+      INFINITE_PATIENCE: "true"
+      ELIXIR_ERL_OPTIONS: "+S 10:10 +fnu"
+
+      # =========================
+      # Framework Flags
+      # =========================
+      PHICS_ENABLED: "true"
+      CONTAINER_OS: nixos
+      SOPV51_COMPLIANT: "true"
+      SOP_V51_MODE: enabled
+      CONTAINER_ENFORCEMENT: "true"
+
+      # =========================
+      # Observability (Standalone OBS Container)
+      # =========================
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://indrajaal-obs-standalone:4317
+      OTEL_SERVICE_NAME: indrajaal-app-standalone
+      OTEL_SERVICE_NAMESPACE: indrajaal
+      OTEL_DEPLOYMENT_ENVIRONMENT: standalone
+
+    ports:
+      - "4000:4000"   # HTTP API
+      - "4001:4001"   # LiveDashboard
+      - "9568:9568"   # Prometheus metrics
+
+    volumes:
+      - /home/an/dev/ver/indrajaal-v5.2:/workspace:z
+      - type: tmpfs
+        target: /var/log/claude
+      - type: tmpfs
+        target: /tmp
+
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG && curl -sf http://localhost:4000/healthz || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 120s
+
+    restart: "no"
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '4'
+        reservations:
+          memory: 2G
+          cpus: '2'
+
+    labels:
+      project: indrajaal
+      component: app
+      environment: standalone
+      stamp.verified: "true"
+      stamp.constraints: "SC-CNT-009,SC-CMP-025,SC-VAL-003"
+      tdg.compliant: "true"
+      sopv51.mode: enabled
+      patient.mode: enabled
+      database.mode: container
+      database.host: indrajaal-db-standalone
+      redis.mode: integrated
+      redis.host: localhost
+
+# =============================================================================
+# 3-Container Architecture
+# =============================================================================
+#
+# Container 1: indrajaal-db-standalone (podman-compose-db-standalone.yml)
+#   - TimescaleDB/PostgreSQL
+#   - Port: 5433
+#
+# Container 2: indrajaal-app-standalone (this file)
+#   - Phoenix Application
+#   - Integrated Redis (localhost:6379)
+#   - Ports: 4000, 4001, 9568
+#
+# Container 3: indrajaal-obs-standalone (podman-compose-obs-standalone.yml)
+#   - ClickHouse + OTEL + Grafana + Prometheus
+#   - Ports: 8123, 4317, 4318, 3000, 9090
+#
+# =============================================================================
+# Usage Instructions
+# =============================================================================
+#
+# Prerequisites:
+#   1. Database standalone container must be running:
+#      podman-compose -f podman-compose-db-standalone.yml up -d
+#
+#   2. (Optional) Observability standalone container:
+#      podman-compose -f podman-compose-obs-standalone.yml up -d
+#
+# Start Application (with integrated Redis):
+#   podman-compose -f podman-compose-app-standalone.yml up -d
+#
+# Check Health:
+#   podman logs -f indrajaal-app-standalone
+#   curl http://localhost:4000/health
+#
+# Verify Redis (inside container):
+#   podman exec indrajaal-app-standalone redis-cli ping
+#
+# Full Stack (3 containers):
+#   podman ps --filter name=indrajaal --format "table {{.Names}}\t{{.Status}}"
+#
+# Cleanup:
+#   podman-compose -f podman-compose-app-standalone.yml down -v
+# =============================================================================

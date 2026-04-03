@@ -1,0 +1,129 @@
+{
+  "title": "Security Dashboard",
+  "description": "Security monitoring for access control, authentication, and authorization",
+  "layout": "grid",
+  "variables": [],
+  "panels": [
+    {
+      "title": "Failed Login Attempts",
+      "type": "metric",
+      "query": "sum(rate(auth_login_failed_total[5m]))",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "options": {
+        "visualization": "stat",
+        "aggregation": "avg",
+        "interval": "1m",
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    },
+    {
+      "title": "Active Sessions",
+      "type": "metric",
+      "query": "sum(auth_sessions_active)",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "options": {
+        "visualization": "stat",
+        "aggregation": "avg",
+        "interval": "1m",
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    },
+    {
+      "title": "Access Denied Events",
+      "type": "metric",
+      "query": "sum(rate(access_denied_total[5m]))",
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "visualization": "line",
+        "aggregation": "avg",
+        "interval": "1m",
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    },
+    {
+      "title": "Authentication Methods",
+      "type": "metric",
+      "query": "sum(auth_login_success_total) by (method)",
+      "gridPos": {
+        "x": 6,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "visualization": "pie",
+        "aggregation": "avg",
+        "interval": "1m",
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    },
+    {
+      "title": "Security Events by Type",
+      "type": "metric",
+      "query": "sum(rate(security_event_total[5m])) by (event_type)",
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 12,
+        "h": 4
+      },
+      "options": {
+        "visualization": "bar",
+        "aggregation": "avg",
+        "interval": "1m",
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    },
+    {
+      "title": "Security Events",
+      "type": "log",
+      "query": "level=warn AND (service=auth OR service=access_control)",
+      "gridPos": {
+        "x": 0,
+        "y": 11,
+        "w": 12,
+        "h": 4
+      },
+      "options": {
+        "columns": ["timestamp", "user", "event_type", "ip_address", "message"],
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    },
+    {
+      "title": "Authentication Traces",
+      "type": "trace",
+      "query": "service=auth AND (operation=login OR operation=validate_token)",
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 12,
+        "h": 4
+      },
+      "options": {
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    }
+  ]
+}

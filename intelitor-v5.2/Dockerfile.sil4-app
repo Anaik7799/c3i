@@ -1,0 +1,49 @@
+# Indrajaal SIL-4 Hardened Application Container
+# Version: 1.1.0
+# Compliance: IEC 61508 SIL-4 / ISO 27001
+# Base: Alpine 3.20 (Hardened)
+
+# --- BUILD STAGE ---
+FROM docker.io/library/elixir:1.19-alpine AS builder
+RUN apk add --no-cache build-base git rust cargo make gcc g++ musl-dev linux-headers musl-dev linux-headers musl-dev linux-headers
+
+WORKDIR /app
+COPY . .
+
+# Compile with strict warnings-as-errors
+RUN mix local.hex --force && \
+    mix local.rebar --force && \
+    mix deps.get && \
+    mix compile --warnings-as-errors
+
+RUN mix release --path release
+
+# --- RUNTIME STAGE ---
+FROM alpine:3.20
+
+# 1. Security: Create Non-privileged User (UID 1000)
+RUN addgroup -S indrajaal && adduser -S -G indrajaal -u 1000 indrajaal
+
+# 2. Filesystem Layout (Read-Only Root Preparation)
+WORKDIR /app
+COPY --from=builder /app/release .
+COPY scripts/agents/indrajaal_watchdog.exs /app/bin/watchdog.exs
+
+# 3. Persistence & Permissions
+RUN mkdir -p /app/data && \
+    chown -R indrajaal:indrajaal /app && \
+    chmod +x /app/bin/*
+
+# 4. SIL-4 Environment
+ENV NO_TIMEOUT=true \
+    PATIENT_MODE=enabled \
+    INFINITE_PATIENCE=true \
+    MIX_ENV=prod \
+    HOME=/app
+
+# 5. Switch to Non-Root
+USER 1000
+
+# 6. Transactional Entrypoint
+# We wrap the release in the watchdog for 5-stage shutdown safety
+CMD ["elixir", "/app/bin/watchdog.exs", "--target", "/app/bin/indrajaal start"]

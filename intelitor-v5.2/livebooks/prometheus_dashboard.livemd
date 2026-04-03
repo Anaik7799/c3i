@@ -1,0 +1,290 @@
+# PROMETHEUS Biomorphic Dashboard
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.12"},
+  {:kino_vega_lite, "~> 0.1"},
+  {:vega_lite, "~> 0.1"}
+])
+```
+
+## Dashboard Configuration
+
+```elixir
+# Connect to running node
+# Node.connect(:"indrajaal@localhost")
+
+# Dashboard refresh interval
+refresh_interval_ms = 30_000
+
+# Create frames for live updates
+api_kpi_frame = Kino.Frame.new()
+agent_swarm_frame = Kino.Frame.new()
+plan_progress_frame = Kino.Frame.new()
+thoughts_frame = Kino.Frame.new()
+```
+
+## API KPIs Panel
+
+```elixir
+defmodule ApiKpiWidget do
+  def render(metrics) do
+    usage = 1.0 - (metrics.rate_limit_remaining / max(metrics.rate_limit_total, 1))
+    usage_percent = Float.round(usage * 100, 1)
+
+    status_color = cond do
+      usage > 0.95 -> "🔴"
+      usage > 0.70 -> "🟡"
+      true -> "🟢"
+    end
+
+    Kino.Markdown.new("""
+    ## 📊 API KPIs #{status_color}
+
+    | Metric | Value | Limit | Usage |
+    |--------|-------|-------|-------|
+    | **Rate Limit** | #{metrics.rate_limit_remaining} | #{metrics.rate_limit_total} | #{usage_percent}% |
+    | **Requests/min** | #{metrics.rpm} | #{metrics.rpm_limit} | - |
+    | **Tokens/min** | #{metrics.tpm} | #{metrics.tpm_limit} | - |
+    | **Error Rate** | #{metrics.error_rate}% | - | - |
+
+    ---
+    """)
+  end
+end
+
+# Initial render with sample data
+sample_metrics = %{
+  rate_limit_remaining: 850,
+  rate_limit_total: 1000,
+  rpm: 45,
+  rpm_limit: 60,
+  tpm: 45000,
+  tpm_limit: 100000,
+  error_rate: 0.5
+}
+
+Kino.Frame.render(api_kpi_frame, ApiKpiWidget.render(sample_metrics))
+api_kpi_frame
+```
+
+## Agent Swarm Visualization
+
+```elixir
+defmodule AgentSwarmWidget do
+  def render(agent_count, max_agents, scaling_mode) do
+    agent_icons = for i <- 1..max_agents do
+      if i <= agent_count, do: "🟢", else: "⚪"
+    end
+    |> Enum.join(" ")
+
+    scaling_icon = case scaling_mode do
+      :scale_up -> "📈 Scaling UP"
+      :scale_down -> "📉 Scaling DOWN"
+      :emergency_scale_down -> "🚨 EMERGENCY"
+      :hold -> "⚖️ Holding"
+    end
+
+    Kino.Markdown.new("""
+    ## 🐝 Agent Swarm
+
+    **Active**: #{agent_count}/#{max_agents} #{scaling_icon}
+
+    #{agent_icons}
+
+    ---
+    """)
+  end
+end
+
+Kino.Frame.render(agent_swarm_frame, AgentSwarmWidget.render(8, 25, :hold))
+agent_swarm_frame
+```
+
+## Plan Progress with Sparkline
+
+```elixir
+alias VegaLite, as: Vl
+
+defmodule PlanProgressWidget do
+  def render(progress, history) do
+    %{total: total, completed: completed, in_progress: in_progress} = progress
+    percent = if total > 0, do: Float.round(completed / total * 100, 1), else: 0.0
+
+    # Progress bar using VegaLite
+    progress_chart = Vl.new(width: 400, height: 30)
+    |> Vl.data_from_values([
+      %{category: "Completed", value: completed},
+      %{category: "In Progress", value: in_progress},
+      %{category: "Pending", value: total - completed - in_progress}
+    ])
+    |> Vl.mark(:bar)
+    |> Vl.encode_field(:x, "value", type: :quantitative, stack: :normalize, title: nil)
+    |> Vl.encode_field(:color, "category", type: :nominal,
+      scale: %{domain: ["Completed", "In Progress", "Pending"],
+               range: ["#22c55e", "#3b82f6", "#e5e7eb"]})
+
+    # Throughput sparkline
+    sparkline = if length(history) >= 2 do
+      data = history
+      |> Enum.with_index()
+      |> Enum.map(fn {{_ts, count}, idx} -> %{x: idx, y: count} end)
+
+      Vl.new(width: 200, height: 50)
+      |> Vl.data_from_values(data)
+      |> Vl.mark(:line)
+      |> Vl.encode_field(:x, "x", type: :quantitative, axis: nil)
+      |> Vl.encode_field(:y, "y", type: :quantitative, axis: nil)
+    else
+      Kino.Markdown.new("*Collecting data...*")
+    end
+
+    Kino.Layout.grid([
+      Kino.Markdown.new("""
+      ## 📋 Plan Progress: #{percent}%
+
+      - **Completed**: #{completed}/#{total}
+      - **In Progress**: #{in_progress}
+      """),
+      progress_chart,
+      Kino.Markdown.new("### 📈 Throughput"),
+      sparkline
+    ], columns: 1)
+  end
+end
+
+sample_progress = %{total: 25, completed: 12, in_progress: 3}
+sample_history = for i <- 1..10, do: {i * 1000, i * 2}
+
+Kino.Frame.render(plan_progress_frame, PlanProgressWidget.render(sample_progress, sample_history))
+plan_progress_frame
+```
+
+## Agent Thought Bubbles
+
+```elixir
+defmodule ThoughtBubblesWidget do
+  def render(agent_states) do
+    thought_cards = agent_states
+    |> Enum.take(5)
+    |> Enum.map(fn {agent_id, data} ->
+      Kino.Markdown.new("""
+      ### 💭 #{agent_id}
+
+      #{String.slice(data.thinking || "...", 0, 200)}
+
+      *#{DateTime.from_unix!(div(data.timestamp, 1000)) |> DateTime.to_string()}*
+
+      ---
+      """)
+    end)
+
+    if Enum.empty?(thought_cards) do
+      Kino.Markdown.new("*Agents idle...*")
+    else
+      Kino.Layout.grid(thought_cards, columns: 1)
+    end
+  end
+end
+
+sample_thoughts = %{
+  "worker-1" => %{thinking: "Analyzing code structure for potential optimizations...", timestamp: :os.system_time(:millisecond)},
+  "worker-2" => %{thinking: "Running STAMP validation on safety constraints...", timestamp: :os.system_time(:millisecond)},
+  "worker-3" => %{thinking: "Compiling test results and generating coverage report...", timestamp: :os.system_time(:millisecond)}
+}
+
+Kino.Frame.render(thoughts_frame, ThoughtBubblesWidget.render(sample_thoughts))
+thoughts_frame
+```
+
+## Full Dashboard Layout
+
+```elixir
+Kino.Layout.grid([
+  api_kpi_frame,
+  agent_swarm_frame,
+  plan_progress_frame,
+  thoughts_frame
+], columns: 2)
+```
+
+## Live Update Loop
+
+```elixir
+# Uncomment to enable live updates from running system
+#
+# defmodule DashboardUpdater do
+#   def start(frames, interval_ms) do
+#     Task.async(fn -> loop(frames, interval_ms) end)
+#   end
+#
+#   defp loop(frames, interval_ms) do
+#     # Fetch from BiomorphicDashboard
+#     state = Indrajaal.Prometheus.BiomorphicDashboard.get_dashboard_state()
+#
+#     # Update frames
+#     Kino.Frame.render(frames.api, ApiKpiWidget.render(state.api_metrics))
+#     Kino.Frame.render(frames.agents, AgentSwarmWidget.render(
+#       state.agent_count,
+#       25,
+#       state.scaling_mode
+#     ))
+#     Kino.Frame.render(frames.progress, PlanProgressWidget.render(
+#       state.plan_progress,
+#       state.throughput_history
+#     ))
+#
+#     Process.sleep(interval_ms)
+#     loop(frames, interval_ms)
+#   end
+# end
+#
+# DashboardUpdater.start(%{
+#   api: api_kpi_frame,
+#   agents: agent_swarm_frame,
+#   progress: plan_progress_frame
+# }, 30_000)
+```
+
+## Metabolism Metrics
+
+```elixir
+defmodule MetabolismWidget do
+  def render(state) do
+    utilization = Float.round(state.token_utilization * 100, 1)
+
+    circuit_status = if state.circuit_open do
+      "🔴 OPEN (Cooldown Active)"
+    else
+      "🟢 CLOSED"
+    end
+
+    Kino.Markdown.new("""
+    ## ⚡ Metabolism Status
+
+    | Metric | Value |
+    |--------|-------|
+    | **Tokens** | #{state.tokens}/#{state.max_tokens} |
+    | **Utilization** | #{utilization}% |
+    | **Circuit Breaker** | #{circuit_status} |
+    | **Consecutive 429s** | #{state.consecutive_failures} |
+    | **Backoff** | #{state.backoff_ms}ms |
+    | **Total Requests** | #{state.total_requests} |
+    | **Tokens Consumed** | #{state.total_tokens_consumed} |
+    """)
+  end
+end
+
+sample_metabolism = %{
+  tokens: 75,
+  max_tokens: 100,
+  token_utilization: 0.25,
+  circuit_open: false,
+  consecutive_failures: 0,
+  backoff_ms: 0,
+  total_requests: 1234,
+  total_tokens_consumed: 5678
+}
+
+MetabolismWidget.render(sample_metabolism)
+```

@@ -1,0 +1,282 @@
+name: Comprehensive Compilation Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  # Run weekly to catch dependency drift
+  schedule:
+    - cron: '0 2 * * 1'  # Every Monday at 2 AM UTC
+
+env:
+  MIX_ENV: test
+  ELIXIR_VERSION: 1.18.1
+  OTP_VERSION: 27.1
+
+jobs:
+  comprehensive-compilation:
+    name: Comprehensive Compilation Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: indrajaal_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: ${{ env.ELIXIR_VERSION }}
+        otp-version: ${{ env.OTP_VERSION }}
+
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          deps
+          _build
+        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-mix-
+
+    - name: Cache Dialyzer PLT
+      uses: actions/cache@v4
+      with:
+        path: priv/plts
+        key: ${{ runner.os }}-dialyzer-${{ hashFiles('**/mix.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-dialyzer-
+
+    - name: Install dependencies
+      run: |
+        mix deps.get
+        mix deps.compile
+
+    - name: 🔍 MANDATORY - Comprehensive Compilation Check
+      id: compilation_check
+      run: |
+        echo "::group::Comprehensive Compilation Check"
+        
+        # Record start time
+        START_TIME=$(date +%s)
+        
+        # Run comprehensive compilation check with full output
+        if mix comprehensive_compile_check --verbose --timeout 900000; then
+          echo "COMPILATION_STATUS=success" >> $GITHUB_ENV
+        else
+          echo "COMPILATION_STATUS=failure" >> $GITHUB_ENV
+          exit 1
+        fi
+        
+        # Record end time and calculate duration
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "COMPILATION_DURATION=${DURATION}" >> $GITHUB_ENV
+        
+        echo "::endgroup::"
+
+    - name: 📊 Performance Analysis
+      if: always()
+      run: |
+        echo "::group::Compilation Performance Analysis"
+        
+        DURATION=${{ env.COMPILATION_DURATION }}
+        echo "Compilation Duration: ${DURATION} seconds"
+        
+        # Performance thresholds
+        if [ "$DURATION" -gt 600 ]; then
+          echo "::error::CRITICAL: Compilation exceeded 10 minutes (${DURATION}s)"
+          echo "::notice::This indicates serious performance issues requiring immediate attention"
+          exit 1
+        elif [ "$DURATION" -gt 300 ]; then
+          echo "::warning::WARNING: Compilation exceeded 5 minutes (${DURATION}s)"
+          echo "::notice::Consider optimizing compilation performance"
+        else
+          echo "::notice::✅ Compilation performance acceptable (${DURATION}s)"
+        fi
+        
+        # Memory analysis would go here if available
+        echo "::endgroup::"
+
+    - name: 🎨 Code Formatting Check
+      run: |
+        echo "::group::Code Formatting Validation"
+        mix format --check-formatted
+        echo "::endgroup::"
+
+    - name: 🔍 Static Code Analysis (Credo)
+      run: |
+        echo "::group::Credo Static Analysis"
+        mix credo --strict --format=github
+        echo "::endgroup::"
+
+    - name: 🔬 Type Analysis (Dialyzer)
+      run: |
+        echo "::group::Dialyzer Type Analysis"
+        mkdir -p priv/plts
+        mix dialyzer --format github
+        echo "::endgroup::"
+
+    - name: 🛡️ Security Analysis (Sobelow)
+      run: |
+        echo "::group::Sobelow Security Analysis"
+        mix sobelow --exit
+        echo "::endgroup::"
+
+    - name: 🧪 Test Suite
+      run: |
+        echo "::group::Test Suite Execution"
+        mix test --cover --export-coverage default
+        echo "::endgroup::"
+
+    - name: 📊 Test Coverage Analysis
+      run: |
+        echo "::group::Test Coverage Analysis"
+        mix test.coverage
+        echo "::endgroup::"
+
+    - name: 🔍 Observability Infrastructure Test
+      run: |
+        echo "::group::Observability Infrastructure Validation"
+        mix test test/comprehensive_compilation_test.exs --verbose
+        echo "::endgroup::"
+
+    - name: 📈 Compilation Metrics Summary
+      if: always()
+      run: |
+        echo "::group::Compilation Metrics Summary"
+        
+        cat << EOF
+        ## 📊 Compilation Validation Results
+        
+        | Metric | Value | Status |
+        |--------|-------|--------|
+        | Compilation Status | ${{ env.COMPILATION_STATUS }} | ${{ env.COMPILATION_STATUS == 'success' && '✅' || '❌' }} |
+        | Duration | ${{ env.COMPILATION_DURATION }}s | ${{ env.COMPILATION_DURATION < 300 && '✅' || env.COMPILATION_DURATION < 600 && '⚠️' || '❌' }} |
+        | Elixir Version | ${{ env.ELIXIR_VERSION }} | ✅ |
+        | OTP Version | ${{ env.OTP_VERSION }} | ✅ |
+        
+        ### Quality Checks Status
+        - **Comprehensive Compilation**: ${{ env.COMPILATION_STATUS == 'success' && '✅ PASSED' || '❌ FAILED' }}
+        - **Code Formatting**: Validated
+        - **Static Analysis**: Completed
+        - **Type Checking**: Completed  
+        - **Security Scan**: Completed
+        - **Test Coverage**: Analyzed
+        - **Observability**: Validated
+        
+        ### Performance Analysis
+        - Compilation time: ${{ env.COMPILATION_DURATION }}s
+        - Performance threshold: ${{ env.COMPILATION_DURATION < 300 && 'GOOD' || env.COMPILATION_DURATION < 600 && 'WARNING' || 'CRITICAL' }}
+        
+        EOF
+        
+        echo "::endgroup::"
+
+    - name: 💾 Upload Coverage Reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-reports
+        path: |
+          cover/
+          _build/test/lib/indrajaal/
+
+    - name: 📋 Upload Compilation Logs
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: compilation-logs
+        path: |
+          _build/
+          *.log
+
+  # Separate job for different environments
+  multi-environment-validation:
+    name: Multi-Environment Compilation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    strategy:
+      matrix:
+        include:
+          - elixir: '1.18.1'
+            otp: '27.1'
+            env: 'latest'
+          - elixir: '1.17.3'
+            otp: '26.2'
+            env: 'previous'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }}
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: ${{ matrix.elixir }}
+        otp-version: ${{ matrix.otp }}
+
+    - name: Install dependencies
+      run: |
+        mix deps.get
+        mix deps.compile
+
+    - name: Environment-specific compilation check
+      run: |
+        echo "Testing compilation on Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }}"
+        
+        # Quick compilation check for compatibility
+        mix compile --warnings-as-errors
+        
+        # Basic observability smoke test
+        mix run -e "
+          Code.ensure_loaded(Indrajaal.Tracing)
+          Code.ensure_loaded(Indrajaal.Logging)
+          Code.ensure_loaded(Indrajaal.Telemetry)
+          IO.puts(\"✅ Observability modules load on ${{ matrix.env }} environment\")
+        "
+
+  # Weekly dependency audit
+  dependency-audit:
+    name: Weekly Dependency Audit
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: ${{ env.ELIXIR_VERSION }}
+        otp-version: ${{ env.OTP_VERSION }}
+
+    - name: Dependency audit
+      run: |
+        mix deps.get
+        mix deps.audit
+        
+    - name: Check for outdated dependencies
+      run: |
+        mix hex.outdated --all
+
+    - name: Compilation compatibility check
+      run: |
+        mix comprehensive_compile_check --verbose

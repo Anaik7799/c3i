@@ -1,0 +1,22 @@
+# Minimal Prometheus-compatible configuration for SigNoz Query Service v0.40.0
+# Based on Prometheus configuration format
+# https://prometheus.io/docs/prometheus/latest/configuration/configuration/
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alertmanager configuration (optional)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Load rules once and periodically evaluate them
+rule_files: []
+
+# A scrape configuration containing exactly one endpoint to scrape
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

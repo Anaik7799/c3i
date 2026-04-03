@@ -1,0 +1,180 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <!-- TDG Coverage Configuration -->
+    <CollectCoverage>true</CollectCoverage>
+    <CoverletOutputFormat>opencover,cobertura,json</CoverletOutputFormat>
+    <CoverletOutput>./coverage/</CoverletOutput>
+    <Threshold>80</Threshold>
+    <ThresholdType>line,branch</ThresholdType>
+    <ThresholdStat>total</ThresholdStat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Existing Tests -->
+    <Compile Include="RopTests.fs" />
+    <Compile Include="OodaTests.fs" />
+    <Compile Include="OodaControllerTests.fs" />
+    <Compile Include="ConstraintsTests.fs" />
+    <Compile Include="PhicsTests.fs" />
+    <Compile Include="CyberneticAgentsTests.fs" />
+    <Compile Include="Safety/LethalMutationGateTests.fs" />
+    <Compile Include="BuilderTests.fs" />
+    <Compile Include="OrchestratorTests.fs" />
+    <Compile Include="CockpitTUITests.fs" />
+    <!-- TEMPORARILY EXCLUDED: Material3/SituationalAwareness/ThemeSystem module refactoring needed -->
+    <!-- <Compile Include="CockpitUIComponentTests.fs" /> -->
+    <!-- <Compile Include="CockpitZenohTests.fs" /> -->
+    <!-- <Compile Include="PrajnaTests.fs" /> -->
+    <!-- <Compile Include="ComprehensiveTestFramework.fs" /> -->
+    <Compile Include="FormalVerificationTests.fs" />
+
+    <!-- Unit Tests (L1) - Zenoh FFI Bridge -->
+    <!-- STAMP: SC-ZENOH-FFI-001 to SC-ZENOH-FFI-025 -->
+    <Compile Include="Unit/Core/ZenohFfiBridgeTests.fs" />
+    <!-- Unit Tests (L1) - Zenoh Native Lifecycle -->
+    <!-- STAMP: SC-NAT-001 to SC-NAT-004, SC-SESS-005, SC-ZENOH-FFI-002 -->
+    <Compile Include="Unit/Core/ZenohNativeLifecycleTests.fs" />
+    <!-- Performance Tests (L4) - Zenoh FFI Performance Benchmarks -->
+    <!-- STAMP: SC-ZTEST-003 (publish latency < 10ms), SC-ZENOH-FFI-001 to SC-ZENOH-FFI-025 -->
+    <Compile Include="Unit/Core/ZenohFfiPerformanceTests.fs" />
+
+    <!-- Unit Tests (L1) - OTel Integration -->
+    <!-- STAMP: SC-OBS-071, SC-LOG-001, SC-OTEL-MATH-009 -->
+    <Compile Include="Unit/Observability/OTELIntegrationTests.fs" />
+    <!-- Unit Tests (L1) -->
+    <Compile Include="Unit/Observability/HLCTests.fs" />
+    <!-- <Compile Include="Unit/Cockpit/ThemeSystemTests.fs" /> -->
+    <Compile Include="Unit/Cockpit/ThemeSimulatorTests.fs" />
+    <Compile Include="Unit/Cockpit/BiomorphicUIComponentTests.fs" />
+
+    <!-- Mesh Tests (L1) - SIL-6 Boot Infrastructure -->
+    <!-- STAMP: SC-BOOT-008 (DAG acyclic), SC-BOOT-014 (FSM states), SC-BOOT-005 (CPM), SC-OPT-002 (Hysteresis) -->
+    <!-- FsCheck 3.x Migration Complete: 2026-01-19 -->
+    <Compile Include="Unit/Mesh/DAGTests.fs" />
+    <Compile Include="Unit/Mesh/FSMTests.fs" />
+    <Compile Include="Unit/Mesh/CPMTests.fs" />
+    <Compile Include="Unit/Mesh/HysteresisTests.fs" />
+    <!-- Mathematical System Monitor: 17-discipline health monitoring tests (SC-AI-003) -->
+    <Compile Include="Unit/Mesh/MathematicalSystemMonitorTests.fs" />
+    <!-- BuildHistory: SQLite persistent build timing & EMA tests (SC-IGNITE-001, SC-HOLON-009) -->
+    <Compile Include="Unit/Mesh/BuildHistoryTests.fs" />
+
+    <!-- Module Tests (L2) -->
+    <Compile Include="Module/ZenohChannelTests.fs" />
+
+    <!-- Integration Tests (L3) -->
+    <Compile Include="Integration/ZenohElixirIntegrationTests.fs" />
+
+    <!-- Performance Tests (L4) -->
+    <Compile Include="Performance/ZenohPerformanceTests.fs" />
+
+    <!-- Core F# Capability Tests (SC-FSH-*, TDG-FSH-*, AOR-FSH-*) -->
+    <Compile Include="Core/FSharpCapabilityTests.fs" />
+
+    <!-- TEMPORARILY EXCLUDED: Fractal module refactoring needed -->
+    <!-- <Compile Include="FractalRuntimeTestPlan.fs" /> -->
+
+    <!-- BDD Tests (Level 5: Gherkin-style SpecFlow) -->
+    <!-- STAMP: SC-COV-004, SC-TEST-EVO-003, SC-TEST-EVO-005 -->
+    <Compile Include="BDD/SpecFlowConfig.fs" />
+    <Compile Include="BDD/TestEvolutionSteps.fs" />
+
+    <!-- Planning ↔ Chaya Sync Tests (SC-SYNC-PLAN-001 to SC-SYNC-PLAN-020) -->
+    <Compile Include="Unit/Planning/PlanningSyncTests.fs" />
+
+    <!-- TestAgent and TestTools MCP integration tests (SC-MCP-TEST-001 to SC-MCP-TEST-004) -->
+    <Compile Include="Unit/Testing/TestAgentTests.fs" />
+    <Compile Include="Unit/Testing/TestToolsTests.fs" />
+    <!-- RegressionRunner async + CancellationToken tests (SC-MCP-TEST-002) -->
+    <Compile Include="Unit/Testing/RegressionRunnerAsyncTests.fs" />
+    <!-- TestTools logs + buffer tests (Phase 4: SC-ZTEST-003, SC-ZTEST-008) -->
+    <Compile Include="Unit/Testing/TestToolsLogsTests.fs" />
+    <!-- PrometheusGate proof token + DAG tests (Phase 5: SC-PROM-001, SC-PROM-004) -->
+    <Compile Include="Unit/Testing/PrometheusGateTests.fs" />
+
+    <!-- 7-Level Fractal Verification Tests (SC-VER-001 to SC-VER-080) -->
+    <!-- STAMP: SC-VER-*, AOR-VER-*, FMEA for all 7 levels -->
+    <Compile Include="Verification/SevenLevelFractalVerification.fs" />
+
+    <!-- Cockpit CLI Test Plan -->
+    <Compile Include="CockpitFCliTestPlan.fs" />
+
+    <!-- Ultimate Fractal System Test Plan -->
+    <Compile Include="UltimateFractalSystemTestPlan.fs" />
+
+    <!-- Git Intelligence Tests (SC-CHG-001, SC-SYNC-DOC-009) -->
+    <Compile Include="Unit/GitIntelligence/GitIntelligenceTests.fs" />
+    <!-- L3 Holon State + L8 Safety Tests -->
+    <Compile Include="Unit/GitIntelligence/StoreTests.fs" />
+    <Compile Include="Unit/GitIntelligence/SafetyTests.fs" />
+    <Compile Include="Unit/GitIntelligence/BiomorphicTests.fs" />
+    <!-- L5 Trend + Homeostasis Advanced Tests -->
+    <Compile Include="Unit/GitIntelligence/AdvancedTests.fs" />
+
+    <!-- Mesh Module Tests (W20 Sprint — ConfigBridge, CLI Envelope, Health, CRM Audit) -->
+    <!-- STAMP: SC-SYNC-001, SC-HEALTH-001, SC-ZENOH-007, SC-AUDIT-001 -->
+    <Compile Include="Unit/Mesh/ConfigBridgeTests.fs" />
+    <Compile Include="Unit/Mesh/CliEnvelopeTests.fs" />
+    <Compile Include="Unit/Mesh/CliHealthScoreTests.fs" />
+    <Compile Include="Unit/Mesh/CommandVerifierTests.fs" />
+    <Compile Include="Unit/Mesh/CrmAuditLogTests.fs" />
+
+    <!-- Cockpit TUI/Dashboard Tests (W20 Sprint — Health Bars, Sparklines, Evolution, Math, DAP) -->
+    <!-- STAMP: SC-HMI-010, SC-HMI-011, SC-COCKPIT-002, SC-EFFECT-001 -->
+    <Compile Include="Unit/Cockpit/TuiDashboardTests.fs" />
+    <Compile Include="Unit/Cockpit/HealthBarsTests.fs" />
+    <Compile Include="Unit/Cockpit/SparklineTests.fs" />
+    <Compile Include="Unit/Cockpit/EvolutionVectorViewTests.fs" />
+    <Compile Include="Unit/Cockpit/MathIntegrityPaneTests.fs" />
+    <Compile Include="Unit/Cockpit/HomeostasisControlsTests.fs" />
+    <Compile Include="Unit/Cockpit/BiomorphicMatrixTests.fs" />
+    <Compile Include="Unit/Cockpit/GraphViewTests.fs" />
+    <Compile Include="Unit/Cockpit/FSharpDAPTests.fs" />
+    <Compile Include="Unit/Cockpit/BicameralDashboardTests.fs" />
+
+    <!-- MCP Server Dispatch Tests (W20 Sprint — 18-tool routing hub) -->
+    <!-- STAMP: SC-MCP-001, SC-MCP-002, SC-GUARD-001, SC-SESS-001 -->
+    <Compile Include="Unit/Mcp/ServerDispatchTests.fs" />
+
+    <!-- Swarm Verification Tools Tests (Phase 4 — 7 actions × 16 containers × 8 layers) -->
+    <!-- STAMP: SC-SWARM-VERIFY-001 to SC-SWARM-VERIFY-064, SC-OODA-001 to SC-OODA-009 -->
+    <Compile Include="Unit/Tools/SwarmVerificationToolsTests.fs" />
+
+    <!-- Entry Point -->
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Expecto" Version="10.2.3" />
+    <PackageReference Include="Expecto.FsCheck" Version="10.2.3-fscheck3" />
+    <PackageReference Include="FsCheck" Version="3.0.0" />
+    <!-- TDG Coverage Tools -->
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.msbuild" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="canopy" Version="2.1.5" />
+    <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="124.0.6367.9100" />
+    <!-- Security Overrides (NU1903, NU1904) -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Cepaf\Cepaf.fsproj" />
+    <ProjectReference Include="..\..\src\Cepaf.Cockpit\Cepaf.Cockpit.fsproj" />
+    <ProjectReference Include="..\..\src\Cepaf.Podman\Cepaf.Podman.fsproj" />
+    <ProjectReference Include="..\..\src\Cepaf.Planning\Cepaf.Planning.fsproj" />
+    <ProjectReference Include="..\..\src\Cepaf.Sentinel.MCP\Cepaf.Sentinel.MCP.fsproj" />
+    <ProjectReference Include="..\..\src\Cepaf.GitIntelligence\Cepaf.GitIntelligence.fsproj" />
+  </ItemGroup>
+
+</Project>

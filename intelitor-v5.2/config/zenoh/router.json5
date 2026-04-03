@@ -1,0 +1,64 @@
+{
+  // Zenoh Router Configuration for SIL-6 Biomorphic Fractal Mesh
+  // Version: 21.3.0
+  // Compliance: SC-ZENOH-*, SC-BRIDGE-*
+
+  // Router mode - acts as central broker
+  mode: "router",
+
+  // Network configuration
+  listen: {
+    // Accept connections on all interfaces
+    endpoints: [
+      "tcp/0.0.0.0:7447",
+      "ws/0.0.0.0:8448"  // WebSocket for browser clients
+    ]
+  },
+
+  // Peer connections (mesh topology)
+  connect: {
+    endpoints: []  // Router is passive, clients connect to it
+  },
+
+  // SIL-6 Biomorphic Key Expressions
+  // These define the telemetry namespace hierarchy
+  // Format: indrajaal/{layer}/{domain}/{metric}
+
+  // Plugins configuration
+  plugins: {
+    // REST API plugin for health checks and admin
+    rest: {
+      http_port: 8000
+    }
+  },
+
+  // Transport configuration
+  transport: {
+    unicast: {
+      // TCP keepalive for connection health
+      keep_alive: 10000,  // 10s
+      // Maximum message size
+      max_message_size: 104857600  // 100MB for large telemetry batches
+    },
+    multicast: {
+      enabled: false  // Use unicast for deterministic SIL-6 routing
+    }
+  },
+
+  // Scouting configuration
+  scouting: {
+    multicast: {
+      enabled: false  // Explicit connections only for SIL-6
+    },
+    gossip: {
+      enabled: false  // No gossip for deterministic mesh
+    }
+  },
+
+  // Access control (SIL-6 requires explicit permissions)
+  access_control: {
+    enabled: false,  // Enable for production
+    // Key expression ACLs would go here
+    rules: []
+  }
+}

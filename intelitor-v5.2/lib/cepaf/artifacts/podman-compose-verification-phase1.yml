@@ -1,0 +1,263 @@
+# podman-compose-verification-phase1.yml
+# PHASE 1: Single App Instance Verification with Directed Telescope
+# Purpose: Verify LoggerBackend fix (SC-FIX-006) in isolated environment
+# Logging: Full Quadplex + 7-Level Directed Telescope
+# STAMP: SC-FIX-006, SC-FUNC-001
+
+version: '3.8'
+
+networks:
+  indrajaal-verify-mesh:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.32.0.0/16
+          gateway: 172.32.0.1
+
+services:
+  # =============================================================================
+  # DATABASE (172.32.0.20)
+  # =============================================================================
+  indrajaal-db:
+    image: localhost/indrajaal-timescaledb-demo:nixos-devenv
+    container_name: indrajaal-db-verify
+    hostname: db.indrajaal
+    networks:
+      indrajaal-verify-mesh:
+        ipv4_address: 172.32.0.20
+    environment:
+      POSTGRES_DB: indrajaal_verify
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGPORT: "5433"
+      TS_TUNE_MEMORY: 2GB
+      TS_TUNE_NUM_CPUS: 2
+      PGDATA: /var/lib/postgresql/pgdata
+    ports:
+      - "5434:5433"  # Different port to avoid conflicts
+    volumes:
+      - verify_db_data:/var/lib/postgresql/pgdata:z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d indrajaal_verify -p 5433"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2'
+    restart: unless-stopped
+
+  # =============================================================================
+  # OBSERVABILITY (172.32.0.30)
+  # =============================================================================
+  indrajaal-obs:
+    image: localhost/indrajaal-obs-unified:nixos-devenv
+    container_name: indrajaal-obs-verify
+    hostname: obs.indrajaal
+    networks:
+      indrajaal-verify-mesh:
+        ipv4_address: 172.32.0.30
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://localhost:4317
+      GRAFANA_ADMIN_PASSWORD: indrajaal
+      GF_SECURITY_ADMIN_PASSWORD: indrajaal
+      GF_SERVER_ROOT_URL: http://localhost:3001
+    ports:
+      - "4318:4317"   # OTEL gRPC
+      - "4319:4318"   # OTEL HTTP
+      - "9091:9090"   # Prometheus
+      - "3001:3000"   # Grafana
+      - "3101:3100"   # Loki
+    volumes:
+      - verify_obs_data:/data:z
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # =============================================================================
+  # ZENOH ROUTER (172.32.0.40) - Single node for Phase 1
+  # =============================================================================
+  zenoh-router:
+    image: docker.io/eclipse-zenoh/zenoh:1.4.0
+    container_name: zenoh-verify
+    hostname: zenoh.indrajaal
+    networks:
+      indrajaal-verify-mesh:
+        ipv4_address: 172.32.0.40
+    ports:
+      - "7450:7447"   # Router port
+      - "8003:8000"   # REST API
+    environment:
+      ZENOH_LOG: "debug"
+    command: ["--no-multicast-scouting"]
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # =============================================================================
+  # SINGLE APP INSTANCE (172.32.0.10) - Phase 1 Verification
+  # DIRECTED TELESCOPE: All 7 levels enabled with debug logging
+  # QUADPLEX LOGGING: Console + File + OTEL + Zenoh
+  # =============================================================================
+  app-1:
+    image: localhost/indrajaal-app-unified:nixos-devenv
+    # SC-NAME-001: Standardized app naming convention: indrajaal-ex-app-{N}
+    container_name: indrajaal-ex-app-1
+    hostname: app-1.indrajaal
+    networks:
+      indrajaal-verify-mesh:
+        ipv4_address: 172.32.0.10
+    depends_on:
+      indrajaal-db:
+        condition: service_healthy
+      indrajaal-obs:
+        condition: service_started
+      zenoh-router:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: ecto://postgres:postgres@db.indrajaal:5433/indrajaal_verify
+      POSTGRES_HOST: db.indrajaal
+      POSTGRES_PORT: "5433"
+
+      # Phoenix
+      PHX_HOST: localhost
+      PHX_PORT: "4000"
+      SECRET_KEY_BASE: verify_secret_key_base_64_chars_minimum_change_me_in_production
+
+      # DISABLE CLUSTERING for Phase 1 (single node)
+      CLUSTERING_ENABLED: "false"
+      RELEASE_NODE: indrajaal@app-1.indrajaal
+      RELEASE_COOKIE: verify_cookie_sil6
+
+      # Prajna Cockpit
+      PRAJNA_COCKPIT_ENABLED: "true"
+      PRAJNA_DARK_MODE: "true"
+      PRAJNA_AI_COPILOT_ENABLED: "true"
+
+      # =======================================================================
+      # DIRECTED TELESCOPE - 7-Level Fractal Logging
+      # =======================================================================
+      FRACTAL_LOGGING_ENABLED: "true"
+      FRACTAL_LOG_LEVEL: debug
+      FRACTAL_TELESCOPE_ENABLED: "true"
+      # L1: Function level - trace function calls
+      FRACTAL_L1_FUNCTION: "true"
+      FRACTAL_L1_LEVEL: debug
+      # L2: Component level - module interactions
+      FRACTAL_L2_COMPONENT: "true"
+      FRACTAL_L2_LEVEL: debug
+      # L3: Holon level - agent/service state
+      FRACTAL_L3_HOLON: "true"
+      FRACTAL_L3_LEVEL: debug
+      # L4: Container level - isolation/resources
+      FRACTAL_L4_CONTAINER: "true"
+      FRACTAL_L4_LEVEL: debug
+      # L5: Node level - runtime environment
+      FRACTAL_L5_NODE: "true"
+      FRACTAL_L5_LEVEL: debug
+      # L6: Cluster level - distributed state
+      FRACTAL_L6_CLUSTER: "true"
+      FRACTAL_L6_LEVEL: debug
+      # L7: Federation level - cross-holon
+      FRACTAL_L7_FEDERATION: "true"
+      FRACTAL_L7_LEVEL: debug
+
+      # =======================================================================
+      # QUADPLEX LOGGING - 4 Output Channels
+      # =======================================================================
+      QUADPLEX_LOGGING: "true"
+      # Channel 1: Console (stdout)
+      QUADPLEX_CONSOLE: "true"
+      QUADPLEX_CONSOLE_LEVEL: debug
+      QUADPLEX_CONSOLE_FORMAT: "[$level] $time $metadata - $message"
+      # Channel 2: File (persistent)
+      QUADPLEX_FILE: "true"
+      QUADPLEX_FILE_LEVEL: debug
+      QUADPLEX_LOG_PATH: /app/data/logs
+      QUADPLEX_FILE_ROTATE: "true"
+      QUADPLEX_FILE_MAX_SIZE: 100MB
+      # Channel 3: OTEL (traces/spans)
+      QUADPLEX_OTEL: "true"
+      QUADPLEX_OTEL_LEVEL: debug
+      QUADPLEX_OTEL_BATCH_SIZE: "100"
+      # Channel 4: Zenoh (pub/sub telemetry)
+      QUADPLEX_ZENOH: "true"
+      QUADPLEX_ZENOH_LEVEL: info
+      QUADPLEX_ZENOH_TOPIC: indrajaal/logs/app-1
+
+      # =======================================================================
+      # OBSERVABILITY
+      # =======================================================================
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://obs.indrajaal:4317
+      OTEL_SERVICE_NAME: indrajaal-ex-app-1
+      LOG_LEVEL: debug
+      VERBOSE_LOGGING: "true"
+      DASHBOARD_MODE: "true"
+      OODA_VERBOSE: "true"
+      TELEMETRY_VERBOSE: "true"
+
+      # =======================================================================
+      # ZENOH - Full Configuration
+      # =======================================================================
+      ZENOH_ENABLED: "true"
+      ZENOH_ROUTER_ENDPOINT: tcp/zenoh.indrajaal:7447
+      ZENOH_ROUTER_HOST: zenoh.indrajaal
+      ZENOH_ROUTER_PORT: "7447"
+      ZENOH_MODE: client
+      ZENOH_LOG_LEVEL: debug
+      ZENOH_TOPIC_KPI: indrajaal/verify/kpi
+      ZENOH_TOPIC_METRICS: indrajaal/verify/metrics
+      ZENOH_TOPIC_HEALTH: indrajaal/verify/health
+
+      # =======================================================================
+      # NIF SKIP FLAGS (for faster startup in verification)
+      # =======================================================================
+      SKIP_ZENOH_NIF: "1"
+      SKIP_LINEAGE_NIF: "1"
+      RUSTLER_SKIP_COMPILE: "true"
+
+      # =======================================================================
+      # SC-FIX-006 VERIFICATION FLAGS
+      # =======================================================================
+      TIMESCALE_LOGGER_ENABLED: "true"
+      LOGGER_BACKEND_DEBUG: "true"
+
+    volumes:
+      - ../../../:/workspace:z
+      - verify_app_data:/app/data:z
+      - verify_build_cache:/workspace/_build:z
+      - verify_deps_cache:/workspace/deps:z
+    working_dir: /workspace
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4000/ > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 30
+      start_period: 1200s  # 20 minutes for compilation
+    ports:
+      - "4002:4000"   # Phoenix (different port to avoid conflicts)
+      - "4003:4001"   # Health
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '8'
+    restart: unless-stopped
+
+volumes:
+  verify_db_data:
+  verify_obs_data:
+  verify_app_data:
+  verify_build_cache:
+  verify_deps_cache:
