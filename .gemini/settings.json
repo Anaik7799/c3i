@@ -1,7 +1,7 @@
 {
   "general": {
     "plan": {
-      "directory": "./doc/plans"
+      "directory": "./docs/plans"
     }
   },
   "mcpServers": {

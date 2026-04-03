@@ -21,3 +21,7 @@ target/
 
 # Large files in .opencode
 .opencode/bin/
+
+# Prevent root clutter — generated/temp artifacts
+/*.skill
+/picked_files.txt

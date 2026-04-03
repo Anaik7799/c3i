@@ -58,7 +58,7 @@ Full spec: `intelitor-v5.2/GEMINI.md` (v21.5.0-GLM)
 | SC-GLM-MIG-002 | Semantic drift < 5% between F# and Gleam | Property test comparison |
 | SC-GLM-MIG-003 | F# modules NOT deleted until Gleam passes all TDG tests | Pre-deletion gate |
 | SC-GLM-MIG-004 | Container substrate remains F# until cognitive layers verified | Phase 6 gate |
-| SC-GLM-MIG-005 | Migration progress tracked in `doc/plans/` with timestamps | Audit check |
+| SC-GLM-MIG-005 | Migration progress tracked in `docs/plans/` with timestamps | Audit check |
 
 ### Category H: State Management and Transition Protocol (STAMP) (NEW)
 | ID | Constraint | Verification |

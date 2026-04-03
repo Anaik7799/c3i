@@ -29,8 +29,8 @@ while true; do
 
     # 2. MSTS Directive KPIs (Swarm Output)
     echo -e "\n\033[1;33m[ L0-L7 MSTS FMEA DIRECTIVES ]\033[0m"
-    if [ -f C3I_MSTS_900_IMPROVEMENTS_FINAL.md ]; then
-        TOTAL_DIR=$(grep -c "### " C3I_MSTS_900_IMPROVEMENTS_FINAL.md)
+    if [ -f docs/archive/msts/C3I_MSTS_900_IMPROVEMENTS_FINAL.md ]; then
+        TOTAL_DIR=$(grep -c "### " docs/archive/msts/C3I_MSTS_900_IMPROVEMENTS_FINAL.md)
         echo -e "  Directives Generated: \033[1;32m$TOTAL_DIR / 900\033[0m"
         echo -e "  Fractal Distribution: Uniform (100 per layer)"
     else
