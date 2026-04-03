@@ -1,5 +1,5 @@
 # GEMINI.md — Indrajaal c3i Multi-Language System Spec (Root)
-**Version**: 21.4.0-GLM | **Status**: ACTIVE | **Primary Language**: Gleam (BEAM) | **Date**: 2026-04-01
+**Version**: 21.5.0-GLM | **Status**: ACTIVE | **Primary Language**: Gleam (BEAM) | **Date**: 2026-04-03
 
 ## Language Architecture
 | Language | Role | Build Command | Constraint |
@@ -23,7 +23,7 @@ Rust NIFs → Gleam → Elixir → F# (if needed)
 | AOR-BUILD-002 | The build order MUST be strictly followed to ensure correct compilation dependencies across all languages. | CI script validation |
 
 ## Canonical GEMINI.md Location
-Full spec: `intelitor-v5.2/GEMINI.md` (v21.4.0-GLM)
+Full spec: `intelitor-v5.2/GEMINI.md` (v21.5.0-GLM)
 
 ---
 
@@ -80,3 +80,63 @@ Full spec: `intelitor-v5.2/GEMINI.md` (v21.4.0-GLM)
 | AGENT-SKILL-001 | Gemini CLI will leverage specialized skills for Gleam (`gleam-expert`) and Rust NIF development (`skill-creator` if needed). | Skill activation logs, agent task reports |
 | AGENT-PROTO-001 | All agent operations MUST adhere to the Active State Synchronization Protocol (ASSP) and relevant GEMINI/CLAUDE protocols for traceability. | ASSP compliance checks, journal entries |
 | AGENT-LANG-001 | Agents managing code development MUST be configured to use Gleam as primary, Rust for NIFs, and support Elixir/F#. | Agent configuration review |
+
+---
+
+### Category K: Gleam UI Architecture — Penta-Stack (NEW)
+**Mandate**: SC-GLM-UI-001 (Triple-Interface) — every UI feature MUST exist in Lustre (web) + Wisp (REST) + TUI (terminal) simultaneously.
+
+| Layer | Technology | Port | Purpose | Constraint |
+|:---|:---|:---|:---|:---|
+| **Web UI** | Gleam Lustre MVU + SSR | 4100 | Primary browser interface, reactive components, server-driven architecture | SC-GLM-UI-001 |
+| **REST API** | Gleam Wisp HTTP + JSON | 4100 | Agent API, JSON serialization, routing | SC-GLM-UI-002 |
+| **Terminal UI** | Gleam ANSI renderer + Ratatui bridge | CLI | Headless operations, scriptable interface | SC-GLM-UI-003 |
+| **Legacy Web** | Elixir Phoenix LiveView | 4000 | Maintained for backward compatibility only | SC-GLM-UI-004 |
+| **Fallback CLI** | F# Prajna console | CLI | Failsafe command-and-control interface | SC-GLM-UI-005 |
+
+**Key**: Gleam Lustre IS the transport for AG-UI events; Wisp handles state endpoints; TUI mirrors capabilities via terminal rendering.
+
+---
+
+### Category L: Gleam UI Constraints (SC-GLM-UI-001 to SC-GLM-UI-010)
+| ID | Constraint | Verification |
+|----|-----------|--------------|
+| SC-GLM-UI-001 | Triple-Interface Mandate: every UI feature must exist in Lustre + Wisp + TUI | Code review + capability matrix |
+| SC-GLM-UI-002 | Wisp REST endpoints MUST mirror Lustre event handling semantics | Integration test mapping |
+| SC-GLM-UI-003 | TUI commands MUST be generated from shared domain types (ui/domain.gleam) | Type system enforcement |
+| SC-GLM-UI-004 | AG-UI events (32 types) MUST route through Lustre server components AND Wisp REST endpoints | Event audit log |
+| SC-GLM-UI-005 | A2UI components (16 types) MUST be JSON-declarative, renderable in Lustre/TUI/REST | Component validator |
+| SC-GLM-UI-006 | Fractal layers L0-L7 MUST have dedicated widget modules (fractal/*.gleam) | File structure audit |
+| SC-GLM-UI-007 | All UI state MUST derive from Zenoh PubSub + SQLite holon state | State lineage verification |
+| SC-GLM-UI-008 | Lustre subscriptions MUST map 1:1 to Zenoh key expressions | Mapping audit |
+| SC-GLM-UI-009 | Testing MUST achieve C1-C8 gold standard (H ≥ 2.5 bits, CCM ≥ 90%, ITQS ≥ 0.85) per file | Coverage math gates |
+| SC-GLM-UI-010 | Human Intent alignment (SC-HINT) ≥ 0.70 for every page spec | Alignment score audit |
+
+---
+
+### Category M: Key Gleam UI Source Files
+**Critical module files** for Gleam-first UI development:
+
+| File | Lines | Purpose |
+|:---|:---|:---|
+| `lib/cepaf_gleam/src/cepaf_gleam/ui/domain.gleam` | ~150 | Shared domain types (Page, HealthStatus, Action, RenderContext) — source of truth for Lustre/Wisp/TUI |
+| `lib/cepaf_gleam/src/cepaf_gleam/agui/events.gleam` | ~224 | 32-event EventType ADT (Lifecycle 5 + Text 4 + Tool 5 + State 3 + Activity 2 + Reasoning 7 + Special 4 incl. Heartbeat) |
+| `lib/cepaf_gleam/src/cepaf_gleam/agui/protocol.gleam` | ~80 | AG-UI transport layer (Lustre WebSocket, Wisp REST, Zenoh PubSub); AG-UI totals: 5 modules, 1,224 lines |
+| `lib/cepaf_gleam/src/cepaf_gleam/ui/lustre/app.gleam` | ~200 | Lustre MVU root (Model, Msg, update, view) with server components; Lustre totals: 24 modules, 3,415 lines |
+| `lib/cepaf_gleam/src/cepaf_gleam/ui/wisp/router.gleam` | ~180 | Wisp HTTP routing, JSON endpoints mirroring Lustre events (Wisp 2.2.2); Wisp totals: 14 modules, 2,278 lines |
+| `lib/cepaf_gleam/src/cepaf_gleam/ui/tui/renderer.gleam` | ~120 | ANSI terminal renderer, Ratatui FFI bridge; TUI totals: 22 modules, 1,730 lines |
+| `lib/cepaf_gleam/src/cepaf_gleam/a2ui/catalog.gleam` | ~655 | A2UI component schema (16 component types, JSON-declarative) — 5 modules: schema, catalog, renderer, bindings, validator; A2UI totals: 5 modules, 655 lines |
+| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l0_constitutional.gleam` | ~60 | L0 constitutional widgets (guardian gates, founder directives, psi invariants); SC-HINT required |
+| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l1_atomic_debug.gleam` | ~121 | L1 atomic/debug operations (health, debug probes, NIF loaded, Zenoh session) |
+| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l2_component.gleam` | ~60 | L2 component lifecycle (GenServer, supervisor visualization) |
+| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l3_transaction.gleam` | ~70 | L3 transaction UI (DB pool, migration status, Oban queues) |
+| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l4_system.gleam` | ~70 | L4 system status (containers, ports, network, volumes) |
+| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l5_cognitive.gleam` | ~80 | L5 cognitive interface (cortex, OODA cycle, AI models) |
+| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l6_ecosystem.gleam` | ~75 | L6 mesh visualization (Zenoh routers, quorum, 2oo3 voting) |
+| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l7_federation.gleam` | ~75 | L7 federation interface (peer discovery, version vectors, attestation); Fractal totals: 8 modules, 1,107 lines |
+| `test/cepaf_gleam/ui/ui_test.gleam` | ~200 | Gold-standard UI test suite (C1-C8 categories, graph theory, prime paths) |
+| `test/cepaf_gleam/ui/human_intent_test.gleam` | ~150 | Human Intent alignment tests (Jaccard scoring, SC-HINT verification) |
+
+**Codebase totals** (2026-04-03): 109 Gleam modules, ~21,666 lines across all subsystems — Lustre 24/3,415 + Wisp 14/2,278 + TUI 22/1,730 + AG-UI 5/1,224 + A2UI 5/655 + Fractal 8/1,107 + Testing 3/602 + Verification 4/383 + Test suite 23 files/10,106 lines.
+
+**All files use Gleam-first patterns**: type-safe message passing, immutable state, BEAM concurrency, no JavaScript.
