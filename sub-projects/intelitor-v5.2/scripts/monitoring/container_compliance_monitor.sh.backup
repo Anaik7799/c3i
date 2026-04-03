@@ -1,0 +1,6 @@
+#!/bin/bash
+# Continuous Container Technology Compliance Monitoring
+# Run every hour via cron
+
+cd "$(dirname "$0")/.."
+elixir scripts/validation/container_technology_compliance.exs --validate

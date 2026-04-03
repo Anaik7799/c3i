@@ -1,0 +1,26 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'indrajaal-app'
+    static_configs:
+      - targets: ['indrajaal-app-demo:4000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['indrajaal-postgres-demo:5433']
+    metrics_path: '/metrics'
+    scrape_interval: 60s
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['indrajaal-redis-demo:6379']
+    metrics_path: '/metrics'
+    scrape_interval: 60s

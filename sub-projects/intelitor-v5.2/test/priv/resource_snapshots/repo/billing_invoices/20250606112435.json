@@ -1,0 +1,1680 @@
+{
+  "attributes": [
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "tenant_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"gen_random_uuid()\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": true,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "invoice_number",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "billing_invoices_subscription_id_fkey",
+        "on_delete": null,
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "billing_subscriptions"
+      },
+      "scale": null,
+      "size": null,
+      "source": "subscription_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "billing_invoices_customer_id_fkey",
+        "on_delete": null,
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "users"
+      },
+      "scale": null,
+      "size": null,
+      "source": "customer_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"subscription\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "invoice_type",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"draft\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "invoice_date",
+      "type": "date"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "due_date",
+      "type": "date"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "period_start",
+      "type": "date"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "period_end",
+      "type": "date"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "sent_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "viewed_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "paid_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "voided_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"0.0\"",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "subtotal",
+      "type": [
+        "decimal",
+        2,
+        10
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"0.0\"",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "discount_amount",
+      "type": [
+        "decimal",
+        2,
+        10
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"0.0\"",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "tax_amount",
+      "type": [
+        "decimal",
+        2,
+        10
+      ]
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "total_amount",
+      "type": [
+        "decimal",
+        2,
+        10
+      ]
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"0.0\"",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "amount_paid",
+      "type": [
+        "decimal",
+        2,
+        10
+      ]
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "amount_due",
+      "type": [
+        "decimal",
+        2,
+        10
+      ]
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"USD\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "currency",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "line_items",
+      "type": [
+        "array",
+        "map"
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "tax_breakdown",
+      "type": [
+        "array",
+        "map"
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "discount_breakdown",
+      "type": [
+        "array",
+        "map"
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"Net 30\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "payment_terms",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "payment_methods",
+      "type": [
+        "array",
+        "text"
+      ]
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "auto_charge?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": false,
+      "default": "0",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "payment_attempts",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "last_payment_attempt",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "next_payment_attempt",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "%{}",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "billing_address",
+      "type": "map"
+    },
+    {
+      "allow_nil?": true,
+      "default": "%{}",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "shipping_address",
+      "type": "map"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "customer_email",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "customer_phone",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "purchase_order_number",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "reference_number",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "project_code",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "cost_center",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "description",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "notes",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "footer_text",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "terms_and_conditions",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "pdf_url",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "pdf_generated?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "pdf_generated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "document_template",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"email\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "delivery_method",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "email_sent?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "email_opened?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": false,
+      "default": "0",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "download_count",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "delivery_confirmations",
+      "type": [
+        "array",
+        "map"
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "overdue_days",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "collection_status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "dispute_status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "dispute_reason",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "dispute_amount",
+      "type": [
+        "decimal",
+        2,
+        10
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "0",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "dunning_level",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "dunning_paused?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": false,
+      "default": "true",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "auto_charge_enabled?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": false,
+      "default": "0",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "reminder_count",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "last_reminder_sent",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"0.0\"",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "credits_applied",
+      "type": [
+        "decimal",
+        2,
+        10
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "credit_notes",
+      "type": [
+        "array",
+        "map"
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "adjustments",
+      "type": [
+        "array",
+        "map"
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "external_invoice_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "payment_provider",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "payment_provider_invoice_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "accounting_system_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "sync_status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "sync_error",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "tax_exempt?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "tax_exempt_reason",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "tax_jurisdiction",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "vat_number",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "reverse_charge?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "aging_bucket",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": 5,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "collection_probability",
+      "type": [
+        "decimal",
+        2,
+        5
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "payment_prediction_date",
+      "type": "date"
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "approval_required?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "approved?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "billing_invoices_approved_by_fkey",
+        "on_delete": null,
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "users"
+      },
+      "scale": null,
+      "size": null,
+      "source": "approved_by",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "approved_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "%{}",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "metadata",
+      "type": "map"
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "tags",
+      "type": [
+        "array",
+        "text"
+      ]
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "inserted_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "updated_at",
+      "type": "utc_datetime_usec"
+    }
+  ],
+  "base_filter": null,
+  "check_constraints": [],
+  "custom_indexes": [
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "tenant_id",
+        "invoice_number"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "tenant_id"
+        },
+        {
+          "type": "atom",
+          "value": "invoice_number"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": true,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "subscription_id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "subscription_id"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "subscription_id IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "customer_id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "customer_id"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "approved_by"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "approved_by"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "approved_by IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "invoice_type"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "invoice_type"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "status"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "status"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "invoice_date"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "invoice_date"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "due_date"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "due_date"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "period_start"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "period_start"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "period_start IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "period_end"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "period_end"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "period_end IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "sent_at"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "sent_at"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "sent_at IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "paid_at"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "paid_at"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "paid_at IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "auto_charge?"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "invoices_auto_charge_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "auto_charge? = true"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "email_sent?"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "invoices_email_sent_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "email_sent? = true"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "tax_exempt?"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "invoices_tax_exempt_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "tax_exempt? = true"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "reverse_charge?"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "invoices_reverse_charge_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "reverse_charge? = true"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "approval_required?"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "invoices_approval_required_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "approval_required? = true"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "approved?"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "invoices_approved_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "approved? = true"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "total_amount"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "total_amount"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "amount_due"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "amount_due"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "amount_due > 0"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "aging_bucket"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "aging_bucket"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "aging_bucket IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "collection_status"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "collection_status"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "collection_status IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "currency"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "currency"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    }
+  ],
+  "custom_statements": [],
+  "has_create_action": true,
+  "hash": "A27E2F8FF0949F82C1ED6A2A85C2AA3280A937015CBDD1F3E549433E28F0C94D",
+  "identities": [],
+  "multitenancy": {
+    "attribute": null,
+    "global": null,
+    "strategy": null
+  },
+  "repo": "Elixir.Indrajaal.Repo",
+  "schema": null,
+  "table": "billing_invoices"
+}

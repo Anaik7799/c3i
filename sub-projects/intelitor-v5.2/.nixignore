@@ -1,0 +1,16 @@
+# Ignore directories that are not part of the source code
+# or contain stateful data that the build process should not access.
+
+.git
+_build
+deps
+.elixir_ls
+.idea
+.vscode
+node_modules
+priv/static/assets
+
+# CRITICAL: Ignore the data directory to prevent permission errors
+# during the Nix build process, as it may contain files owned by
+# container users.
+data

@@ -1,0 +1,1045 @@
+# ASH-IMPLEMENTATION-PLAN-V2.md - Comprehensive Implementation Strategy with 5-Level RCA
+
+## Executive Summary
+
+This document provides a comprehensive implementation plan for the Indrajaal Security Monitoring System with 5-level Root Cause Analysis (RCA) for each pending domain. Based on current progress analysis, we have completed 3 domains (Core, Accounts, Policy) with 19 resources implemented out of 64 total (29.7% completion).
+
+**Current State Analysis**:
+- ✅ 3/12 domains completed
+- ✅ 19/64 resources implemented
+- ✅ Infrastructure components ready (multi-tenancy, base modules)
+- ✅ Velocity accelerating: 288x factor in Phase 3
+- 🚧 9 domains pending implementation
+- 🚧 45 resources to be created
+
+**Revised Timeline**: 2-3 days for full implementation (originally 16-20 weeks)
+
+---
+
+## Table of Contents
+
+1. [Current State Analysis](#current-state-analysis)
+2. [5-Level RCA for Pending Domains](#5-level-rca-for-pending-domains)
+3. [Implementation Strategy](#implementation-strategy)
+4. [Phase 4: Sites Domain](#phase-4-sites-domain)
+5. [Phase 5: Devices Domain](#phase-5-devices-domain)
+6. [Phase 6: Alarms Domain](#phase-6-alarms-domain)
+7. [Phase 7: Video Domain](#phase-7-video-domain)
+8. [Phase 8: Dispatch Domain](#phase-8-dispatch-domain)
+9. [Phase 9: Maintenance Domain](#phase-9-maintenance-domain)
+10. [Phase 10: Compliance Domain](#phase-10-compliance-domain)
+11. [Phase 11: Billing Domain](#phase-11-billing-domain)
+12. [Phase 12: Integrations Domain](#phase-12-integrations-domain)
+13. [Integration & Testing Strategy](#integration--testing-strategy)
+14. [Risk Mitigation](#risk-mitigation)
+
+---
+
+## Current State Analysis
+
+### Completed Domains (3/12)
+
+1. **Core Domain** ✅
+   - Resources: Tenant, Organization, SystemConfig, FeatureFlag, AuditLog
+   - Multi-tenancy foundation established
+   - TimescaleDB integration for audit logs
+   - Migrations created and verified
+
+2. **Accounts Domain** ✅
+   - Resources: User, Profile, Session, Token, Team, TeamMembership, ActivityLog
+   - Authentication system complete
+   - Microsoft Entra ID integration ready
+   - Session management implemented
+
+3. **Policy Domain** ✅
+   - Resources: Role, Permission, RolePermission, UserRole, AccessRule
+   - RBAC/ABAC framework established
+   - Authorization policies defined
+   - Access control ready
+
+### Infrastructure Status
+- ✅ Multi-tenancy extension (`TenantResource`)
+- ✅ Base domain and resource modules
+- ✅ Database extensions configured
+- ✅ Phoenix PubSub dual-adapter pattern ready
+- ⚠️ Compiler warning from sensor.ex (`:24_hour` syntax issue)
+
+---
+
+## 5-Level RCA for Pending Domains
+
+### Sites Domain RCA
+
+**Level 1 - Immediate Issue**: Sites domain not implemented
+- Impact: Cannot manage physical locations, buildings, or zones
+- Symptom: No location-based device assignment possible
+
+**Level 2 - Technical Cause**: Dependencies on Core domain
+- Sites require tenant isolation
+- Need hierarchical relationships (site→building→floor→area→zone)
+- Location data requires spatial indexing
+
+**Level 3 - Design Requirements**: Physical security modeling
+- Sites are foundational for devices and alarms
+- Complex access control based on location
+- Time zone management per site
+
+**Level 4 - Architectural Implications**:
+- All devices must belong to zones
+- Alarms are location-specific
+- Video streams tied to areas
+- Dispatch based on site proximity
+
+**Level 5 - Business Impact**:
+- Cannot onboard customers without sites
+- No location-based reporting
+- Missing compliance requirements (jurisdiction-based)
+- Revenue blocked without site subscriptions
+
+### Devices Domain RCA
+
+**Level 1 - Immediate Issue**: No device management capability
+- Impact: Cannot register sensors, panels, or cameras
+- Symptom: No SIA DC-09 protocol support
+
+**Level 2 - Technical Cause**: Depends on Sites domain
+- Devices must be assigned to zones
+- Need device type polymorphism
+- Complex state management for device status
+
+**Level 3 - Design Requirements**:
+- Support multiple device protocols
+- Real-time telemetry handling
+- Firmware version management
+- Device-specific configurations
+
+**Level 4 - Architectural Implications**:
+- Event stream processing for sensors
+- Video pipeline integration for cameras
+- Heartbeat monitoring system
+- Edge computing support
+
+**Level 5 - Business Impact**:
+- Core product functionality missing
+- Cannot demonstrate system to customers
+- No competitive differentiation
+- Zero monitoring capability
+
+### Alarms Domain RCA
+
+**Level 1 - Immediate Issue**: No alarm processing system
+- Impact: Cannot handle security events
+- Symptom: No incident management
+
+**Level 2 - Technical Cause**: Depends on Devices and Sites
+- Alarms originate from devices
+- Location context required
+- Complex state machine needed
+
+**Level 3 - Design Requirements**:
+- Event correlation engine
+- Workflow automation
+- Priority-based routing
+- Audit trail for compliance
+
+**Level 4 - Architectural Implications**:
+- Real-time event processing
+- Integration with dispatch
+- Video correlation
+- External notifications
+
+**Level 5 - Business Impact**:
+- No value proposition without alarms
+- Legal liability without proper handling
+- Cannot meet SIA standards
+- No monitoring service possible
+
+### Video Domain RCA
+
+**Level 1 - Immediate Issue**: No video surveillance capability
+- Impact: Cannot process camera streams
+- Symptom: No visual verification
+
+**Level 2 - Technical Cause**: Complex media pipeline
+- Membrane Framework integration needed
+- Jellyfish WebRTC setup required
+- Storage tiering for recordings
+
+**Level 3 - Design Requirements**:
+- Live streaming support
+- Recording management
+- Motion detection
+- Video analytics
+
+**Level 4 - Architectural Implications**:
+- High bandwidth requirements
+- Edge processing needs
+- Storage optimization
+- GPU acceleration
+
+**Level 5 - Business Impact**:
+- Missing key differentiator
+- Cannot compete without video
+- Reduced service value
+- Lower pricing potential
+
+### Dispatch Domain RCA
+
+**Level 1 - Immediate Issue**: No response coordination
+- Impact: Cannot manage alarm responses
+- Symptom: No workflow automation
+
+**Level 2 - Technical Cause**: Depends on Alarms
+- Response teams need assignment
+- Workflow state management
+- Integration with external services
+
+**Level 3 - Design Requirements**:
+- Team scheduling
+- Response protocols
+- Escalation procedures
+- Communication tracking
+
+**Level 4 - Architectural Implications**:
+- Real-time coordination
+- Mobile app integration
+- Third-party dispatch services
+- Audit requirements
+
+**Level 5 - Business Impact**:
+- Cannot offer managed response
+- Limited to self-monitoring
+- Reduced service tiers
+- Lower customer retention
+
+### Maintenance Domain RCA
+
+**Level 1 - Immediate Issue**: No service management
+- Impact: Cannot track device maintenance
+- Symptom: No preventive maintenance
+
+**Level 2 - Technical Cause**: Depends on Devices
+- Service schedules per device type
+- Work order management
+- Parts inventory tracking
+
+**Level 3 - Design Requirements**:
+- Scheduled maintenance
+- Service history
+- Technician assignment
+- SLA tracking
+
+**Level 4 - Architectural Implications**:
+- Calendar integration
+- Route optimization
+- Inventory management
+- Customer portal
+
+**Level 5 - Business Impact**:
+- Higher operational costs
+- Increased device failures
+- Customer dissatisfaction
+- Compliance violations
+
+### Compliance Domain RCA
+
+**Level 1 - Immediate Issue**: No compliance tracking
+- Impact: Cannot demonstrate regulatory compliance
+- Symptom: No audit reports
+
+**Level 2 - Technical Cause**: Cross-domain dependencies
+- Audit logs from all domains
+- Report generation system
+- Data retention policies
+
+**Level 3 - Design Requirements**:
+- DPDP Act compliance
+- ISO 27001 controls
+- SIA DC-09 reporting
+- Custom compliance rules
+
+**Level 4 - Architectural Implications**:
+- Data anonymization
+- Retention automation
+- Report scheduling
+- Evidence collection
+
+**Level 5 - Business Impact**:
+- Legal liability
+- Cannot operate in regulated markets
+- No enterprise customers
+- Reputation risk
+
+### Billing Domain RCA
+
+**Level 1 - Immediate Issue**: No subscription management
+- Impact: Cannot bill customers
+- Symptom: No revenue collection
+
+**Level 2 - Technical Cause**: Depends on Sites and Devices
+- Pricing based on site size
+- Device count limits
+- Feature tier management
+
+**Level 3 - Design Requirements**:
+- Subscription plans
+- Usage tracking
+- Invoice generation
+- Payment processing
+
+**Level 4 - Architectural Implications**:
+- Stripe/payment gateway integration
+- Usage metering
+- Billing cycles
+- Dunning management
+
+**Level 5 - Business Impact**:
+- No revenue generation
+- Cannot scale business
+- No SaaS model
+- Investment requirements
+
+### Integrations Domain RCA
+
+**Level 1 - Immediate Issue**: No external system connectivity
+- Impact: Cannot integrate with customer systems
+- Symptom: Isolated platform
+
+**Level 2 - Technical Cause**: API framework needed
+- Webhook management
+- OAuth provider setup
+- Rate limiting
+
+**Level 3 - Design Requirements**:
+- REST/GraphQL APIs
+- Event webhooks
+- Batch data exchange
+- Third-party auth
+
+**Level 4 - Architectural Implications**:
+- API versioning
+- Schema evolution
+- Rate limiting
+- Security policies
+
+**Level 5 - Business Impact**:
+- Cannot serve enterprise customers
+- No ecosystem development
+- Limited market reach
+- Competitive disadvantage
+
+---
+
+## Implementation Strategy
+
+### Prioritization Based on Dependencies
+
+1. **Critical Path** (Must be done in order):
+   - Sites → Devices → Alarms → Dispatch
+
+2. **Parallel Tracks**:
+   - Video (can start after Sites)
+   - Maintenance (can start after Devices)
+   - Billing (can start after Sites)
+
+3. **Final Integration**:
+   - Compliance (needs all domains)
+   - Integrations (needs stable APIs)
+
+### Acceleration Strategy
+
+Based on our velocity metrics showing 288x improvement:
+- Use test-driven development with AI assistance
+- Generate complete test suites first
+- Implement to pass tests
+- Continuous verification after each resource
+
+---
+
+## Phase 4: Sites Domain
+
+### Duration: 2-3 hours
+### Resources: Site, Building, Floor, Area, Zone, Location
+
+### Implementation Steps
+
+```bash
+# 1. Generate comprehensive tests first
+claude-code "Generate complete test suite for Sites domain with:
+- Site: multi-tenant, time zones, addresses, contacts
+- Building: belongs to site, multiple floors
+- Floor: floor plans, areas
+- Area: logical groupings, access control
+- Zone: device assignment, alarm types
+- Location: polymorphic association for any locatable
+Include property tests for hierarchies"
+
+# 2. Generate domain and resources
+mix ash.gen.domain Sites
+
+# 3. Generate Site resource with tests passing
+mix ash.gen.resource Site \
+  --domain Sites \
+  --uuid-primary-key \
+  --timestamps \
+  --attributes "name:string:required code:string:required:unique timezone:string address:map contacts:map active:boolean:default:true"
+
+# 4. Add relationships and multi-tenancy
+claude-code "Add to Site:
+- Multi-tenancy with TenantResource
+- Has many buildings
+- Has many zones (through buildings/floors/areas)
+- Calculations for device_count, active_alarm_count
+- Policies for site-based access"
+
+# 5. Continue for other resources
+# Building
+mix ash.gen.resource Building --domain Sites
+claude-code "Add Building with site relationship, floor count, address"
+
+# Floor
+mix ash.gen.resource Floor --domain Sites
+claude-code "Add Floor with building relationship, floor number, plan_url"
+
+# Area
+mix ash.gen.resource Area --domain Sites
+claude-code "Add Area with floor relationship, access requirements"
+
+# Zone
+mix ash.gen.resource Zone --domain Sites
+claude-code "Add Zone with area relationship, zone types for alarms"
+
+# Location (polymorphic)
+claude-code "Generate Location resource for polymorphic location tracking"
+
+# 6. Generate migrations and verify
+mix ash_postgres.generate_migrations --domains Sites
+mix ash.migrate
+
+# 7. Run tests and verify
+mix test test/sites --cover
+```
+
+### Verification
+- [ ] All 6 resources created
+- [ ] Hierarchical relationships working
+- [ ] Multi-tenancy enforced
+- [ ] Tests passing with >90% coverage
+- [ ] Migrations successful
+
+---
+
+## Phase 5: Devices Domain
+
+### Duration: 3-4 hours
+### Resources: Device, DeviceType, Sensor, Panel, Camera, DeviceModel
+
+### Implementation Steps
+
+```bash
+# 1. Test-driven approach
+claude-code "Generate comprehensive tests for Devices domain:
+- DeviceType: categorization and capabilities
+- Device: base polymorphic resource
+- Sensor: zone types, bypass status
+- Panel: SIA DC-09 protocol support
+- Camera: PTZ control, stream URLs
+- DeviceModel: manufacturer, firmware versions"
+
+# 2. Generate domain
+mix ash.gen.domain Devices
+
+# 3. Implement DeviceType first
+mix ash.gen.resource DeviceType --domain Devices
+claude-code "Add device categories, required features, protocol support"
+
+# 4. Polymorphic Device base
+claude-code "Generate polymorphic Device resource with:
+- STI pattern using device_type field
+- Common fields: serial, mac_address, ip_address
+- Status state machine
+- Zone assignment
+- Heartbeat tracking"
+
+# 5. Device subtypes
+# Sensor
+claude-code "Generate Sensor as Device subtype with:
+- Zone types per SIA DC-09
+- Bypass capability
+- Tamper detection
+- Battery monitoring"
+
+# Panel
+claude-code "Generate Panel as Device subtype with:
+- SIA DC-09 receiver
+- Account codes
+- Partition support
+- User management"
+
+# Camera
+claude-code "Generate Camera as Device subtype with:
+- Stream URLs (main, sub)
+- PTZ capabilities
+- Motion detection zones
+- Recording settings"
+
+# 6. DeviceModel for inventory
+mix ash.gen.resource DeviceModel --domain Devices
+claude-code "Add manufacturer, model, firmware tracking"
+
+# 7. Migrations and testing
+mix ash_postgres.generate_migrations --domains Devices
+mix ash.migrate
+mix test test/devices --cover
+```
+
+### Verification
+- [ ] Polymorphic devices working
+- [ ] SIA DC-09 support implemented
+- [ ] Zone assignments functional
+- [ ] Heartbeat monitoring active
+- [ ] 95%+ test coverage
+
+---
+
+## Phase 6: Alarms Domain
+
+### Duration: 3-4 hours
+### Resources: AlarmEvent, IncidentType, Response, WorkflowTemplate, Notification, DispatchLog
+
+### Implementation Steps
+
+```bash
+# 1. Complex state machine tests
+claude-code "Generate tests for alarm lifecycle:
+- Trigger → Acknowledge → Investigate → Resolve
+- Automatic escalation
+- False alarm handling
+- Correlation with video
+- Dispatch integration"
+
+# 2. Domain creation
+mix ash.gen.domain Alarms
+
+# 3. IncidentType configuration
+mix ash.gen.resource IncidentType --domain Alarms
+claude-code "Add incident categories, severities, response protocols"
+
+# 4. AlarmEvent with state machine
+claude-code "Generate AlarmEvent with AshStateMachine:
+- States: triggered, acknowledged, investigating, resolved, false_alarm
+- Automatic transitions based on time
+- Escalation workflows
+- Correlation engine for related events"
+
+# 5. Response tracking
+mix ash.gen.resource Response --domain Alarms
+claude-code "Add responder assignment, arrival times, actions taken"
+
+# 6. Workflow automation
+claude-code "Generate WorkflowTemplate for:
+- Custom response procedures
+- Conditional logic (if high-value site, then...)
+- Notification chains
+- Escalation matrices"
+
+# 7. Notifications
+mix ash.gen.resource Notification --domain Alarms
+claude-code "Multi-channel notifications: email, SMS, push, phone"
+
+# 8. Integration testing
+claude-code "Generate integration tests for:
+- Device trigger → Alarm creation → Workflow execution
+- Video correlation on alarm
+- Dispatch assignment
+- Notification delivery"
+
+# 9. Deploy and verify
+mix ash_postgres.generate_migrations --domains Alarms
+mix ash.migrate
+mix test test/alarms --cover
+```
+
+### Verification
+- [ ] State machine transitions working
+- [ ] Workflows executing correctly
+- [ ] Notifications delivering
+- [ ] Correlation engine functional
+- [ ] Performance <100ms for alarm creation
+
+---
+
+## Phase 7: Video Domain
+
+### Duration: 3-4 hours
+### Resources: VideoStream, Recording, Clip, MotionEvent, Analytics
+
+### Implementation Steps
+
+```bash
+# 1. Video processing tests
+claude-code "Generate tests for:
+- Stream management (RTSP, WebRTC)
+- Recording scheduling
+- Clip extraction
+- Motion detection
+- Analytics metadata"
+
+# 2. Domain setup
+mix ash.gen.domain Video
+
+# 3. VideoStream management
+claude-code "Generate VideoStream resource:
+- Camera relationship
+- Multiple quality streams
+- Membrane pipeline config
+- Jellyfish room management"
+
+# 4. Recording system
+claude-code "Generate Recording resource:
+- Continuous vs event-based
+- Storage tiering (hot/cold)
+- Retention policies
+- Encryption at rest"
+
+# 5. Clip extraction
+mix ash.gen.resource Clip --domain Video
+claude-code "Add alarm correlation, bookmarks, sharing"
+
+# 6. Motion detection
+claude-code "Generate MotionEvent:
+- Zones within camera view
+- Sensitivity settings
+- AI object detection
+- Alarm triggering"
+
+# 7. Analytics
+claude-code "Generate Analytics resource:
+- People counting
+- Vehicle detection
+- Facial recognition (with privacy controls)
+- Behavior analysis"
+
+# 8. Storage integration
+claude-code "Add storage backend support:
+- Local filesystem (dev)
+- MinIO (small deployments)
+- Ceph (enterprise)
+- Automatic tiering"
+
+# 9. Performance testing
+claude-code "Generate performance tests:
+- 100 concurrent streams
+- Storage throughput
+- Clip extraction speed"
+```
+
+### Verification
+- [ ] Membrane pipelines working
+- [ ] WebRTC streaming functional
+- [ ] Storage tiering active
+- [ ] Motion detection accurate
+- [ ] Analytics processing
+
+---
+
+## Phase 8: Dispatch Domain
+
+### Duration: 2-3 hours
+### Resources: DispatchTeam, Responder, Assignment, Protocol, Communication
+
+### Implementation Steps
+
+```bash
+# 1. Generate dispatch tests
+claude-code "Test suite for dispatch operations:
+- Team scheduling and availability
+- Automatic assignment algorithms
+- Response time tracking
+- Communication logs
+- Handoff procedures"
+
+# 2. Create domain
+mix ash.gen.domain Dispatch
+
+# 3. Team management
+mix ash.gen.resource DispatchTeam --domain Dispatch
+claude-code "Add team types, coverage areas, shift schedules"
+
+# 4. Responder tracking
+mix ash.gen.resource Responder --domain Dispatch
+claude-code "Add certifications, availability, location tracking"
+
+# 5. Assignment system
+claude-code "Generate Assignment with:
+- Intelligent routing based on location
+- Skill matching
+- Load balancing
+- Priority queuing"
+
+# 6. Response protocols
+mix ash.gen.resource Protocol --domain Dispatch
+claude-code "Configurable response procedures by alarm type"
+
+# 7. Communication logs
+mix ash.gen.resource Communication --domain Dispatch
+claude-code "Track all dispatch communications for audit"
+```
+
+### Verification
+- [ ] Assignment algorithm working
+- [ ] Real-time location tracking
+- [ ] Communication logs complete
+- [ ] Integration with Alarms domain
+- [ ] Mobile app API ready
+
+---
+
+## Phase 9: Maintenance Domain
+
+### Duration: 2-3 hours
+### Resources: ServiceOrder, Schedule, Technician, Part, ServiceHistory
+
+### Implementation Steps
+
+```bash
+# 1. Maintenance workflow tests
+claude-code "Generate maintenance tests:
+- Preventive maintenance scheduling
+- Work order lifecycle
+- Parts inventory
+- Technician routing
+- SLA compliance"
+
+# 2. Domain creation
+mix ash.gen.domain Maintenance
+
+# 3. Service order system
+claude-code "Generate ServiceOrder with:
+- Types: preventive, corrective, installation
+- Priority levels
+- SLA tracking
+- Customer approval workflow"
+
+# 4. Scheduling system
+mix ash.gen.resource Schedule --domain Maintenance
+claude-code "Calendar integration, route optimization"
+
+# 5. Technician management
+mix ash.gen.resource Technician --domain Maintenance
+claude-code "Skills, certifications, availability, territory"
+
+# 6. Parts inventory
+mix ash.gen.resource Part --domain Maintenance
+claude-code "Stock levels, reorder points, compatibility"
+
+# 7. Service history
+mix ash.gen.resource ServiceHistory --domain Maintenance
+claude-code "Complete audit trail per device"
+```
+
+### Verification
+- [ ] Scheduling algorithm efficient
+- [ ] Route optimization working
+- [ ] Parts tracking accurate
+- [ ] SLA calculations correct
+- [ ] Customer portal ready
+
+---
+
+## Phase 10: Compliance Domain
+
+### Duration: 2-3 hours
+### Resources: ComplianceRule, AuditReport, DataRetention, Evidence, Violation
+
+### Implementation Steps
+
+```bash
+# 1. Compliance framework tests
+claude-code "Test compliance features:
+- DPDP Act requirements
+- ISO 27001 controls
+- SIA DC-09 reporting
+- Data retention automation
+- Audit report generation"
+
+# 2. Domain setup
+mix ash.gen.domain Compliance
+
+# 3. Rule engine
+claude-code "Generate ComplianceRule:
+- Rule definitions in DSL
+- Automatic evaluation
+- Violation detection
+- Remediation tracking"
+
+# 4. Audit reporting
+mix ash.gen.resource AuditReport --domain Compliance
+claude-code "Scheduled reports, templates, distribution"
+
+# 5. Data retention
+claude-code "Generate DataRetention:
+- Policy definitions
+- Automatic anonymization
+- Deletion workflows
+- Legal holds"
+
+# 6. Evidence collection
+mix ash.gen.resource Evidence --domain Compliance
+claude-code "Audit trail aggregation, tamper-proof storage"
+
+# 7. Violation tracking
+mix ash.gen.resource Violation --domain Compliance
+claude-code "Non-compliance tracking, remediation plans"
+```
+
+### Verification
+- [ ] All regulations covered
+- [ ] Automatic report generation
+- [ ] Data retention working
+- [ ] Evidence chain intact
+- [ ] Audit trail complete
+
+---
+
+## Phase 11: Billing Domain
+
+### Duration: 2-3 hours
+### Resources: Subscription, Plan, Invoice, Payment, Usage
+
+### Implementation Steps
+
+```bash
+# 1. Billing system tests
+claude-code "Test billing features:
+- Subscription lifecycle
+- Usage-based pricing
+- Invoice generation
+- Payment processing
+- Dunning management"
+
+# 2. Domain creation
+mix ash.gen.domain Billing
+
+# 3. Subscription management
+claude-code "Generate Subscription:
+- Plan selection
+- Add-ons
+- Trials
+- Upgrades/downgrades"
+
+# 4. Plan definitions
+mix ash.gen.resource Plan --domain Billing
+claude-code "Tiered pricing, feature flags, limits"
+
+# 5. Invoice generation
+mix ash.gen.resource Invoice --domain Billing
+claude-code "Automatic generation, line items, taxes"
+
+# 6. Payment processing
+claude-code "Generate Payment:
+- Multiple payment methods
+- Stripe integration
+- Retry logic
+- Refunds"
+
+# 7. Usage tracking
+mix ash.gen.resource Usage --domain Billing
+claude-code "Meter devices, storage, API calls"
+```
+
+### Verification
+- [ ] Subscription lifecycle complete
+- [ ] Invoice generation accurate
+- [ ] Payment processing secure
+- [ ] Usage tracking precise
+- [ ] Dunning process working
+
+---
+
+## Phase 12: Integrations Domain
+
+### Duration: 2-3 hours
+### Resources: Integration, Webhook, APIKey, EventLog, SchemaVersion
+
+### Implementation Steps
+
+```bash
+# 1. Integration platform tests
+claude-code "Test integration features:
+- Webhook delivery
+- API authentication
+- Rate limiting
+- Schema versioning
+- Event streaming"
+
+# 2. Domain setup
+mix ash.gen.domain Integrations
+
+# 3. Integration registry
+claude-code "Generate Integration:
+- OAuth applications
+- Webhook endpoints
+- API permissions
+- Rate limits"
+
+# 4. Webhook system
+mix ash.gen.resource Webhook --domain Integrations
+claude-code "Event subscriptions, delivery, retries"
+
+# 5. API key management
+mix ash.gen.resource APIKey --domain Integrations
+claude-code "Key generation, rotation, permissions"
+
+# 6. Event logging
+mix ash.gen.resource EventLog --domain Integrations
+claude-code "API calls, webhook deliveries, errors"
+
+# 7. Schema versioning
+mix ash.gen.resource SchemaVersion --domain Integrations
+claude-code "API evolution, deprecation notices"
+```
+
+### Verification
+- [ ] OAuth flow working
+- [ ] Webhooks delivering
+- [ ] Rate limiting effective
+- [ ] API versioning functional
+- [ ] Documentation generated
+
+---
+
+## Integration & Testing Strategy
+
+### Cross-Domain Integration Tests
+
+```bash
+# 1. End-to-end alarm flow
+claude-code "Test complete alarm flow:
+Device trigger → Alarm creation → Video correlation →
+Dispatch assignment → Response tracking → Resolution"
+
+# 2. Multi-tenant isolation
+claude-code "Verify complete tenant isolation across all domains"
+
+# 3. Performance benchmarks
+claude-code "Load test with:
+- 1000 sites
+- 10,000 devices
+- 100,000 alarms/day
+- 1000 concurrent video streams"
+
+# 4. Security audit
+mix sobelow --config
+claude-code "Security test all API endpoints"
+```
+
+### Documentation Generation
+
+```bash
+# Generate comprehensive docs
+mix ash.generate_resource_diagrams
+mix ash.generate_policy_charts
+mix ash.generate_livebook
+mix docs
+
+# API documentation
+claude-code "Generate OpenAPI specs for all domains"
+```
+
+---
+
+## Risk Mitigation
+
+### Technical Risks
+
+1. **Performance Degradation**
+   - Mitigation: Continuous benchmarking after each domain
+   - Use read replicas for analytics
+   - Implement caching strategically
+
+2. **Integration Complexity**
+   - Mitigation: Domain boundaries via contexts
+   - Event-driven architecture
+   - Clear API contracts
+
+3. **Data Migration**
+   - Mitigation: Incremental migrations
+   - Rollback procedures
+   - Data validation scripts
+
+### Business Risks
+
+1. **Timeline Slippage**
+   - Mitigation: 288x velocity proven
+   - Parallel development possible
+   - Buffer time included
+
+2. **Quality Issues**
+   - Mitigation: Test-first development
+   - Continuous verification
+   - Automated quality checks
+
+3. **Scope Creep**
+   - Mitigation: Fixed resource count (64)
+   - Clear domain boundaries
+   - Defer enhancements to v2
+
+---
+
+## Success Metrics
+
+### Technical Metrics
+- ✅ All 64 resources implemented
+- ✅ 95%+ test coverage
+- ✅ Zero compiler warnings
+- ✅ All quality checks passing
+- ✅ Performance benchmarks met
+
+### Business Metrics
+- ✅ Full feature parity with requirements
+- ✅ Multi-tenant isolation verified
+- ✅ Compliance requirements met
+- ✅ Production-ready deployment
+- ✅ Documentation complete
+
+---
+
+## Implementation Timeline
+
+### Day 1 (Remaining)
+- ✅ Complete Sites Domain (2-3 hours)
+- ✅ Complete Devices Domain (3-4 hours)
+
+### Day 2
+- Morning: Alarms Domain (3-4 hours)
+- Afternoon: Video Domain (3-4 hours)
+- Evening: Dispatch Domain (2-3 hours)
+
+### Day 3
+- Morning: Maintenance, Compliance, Billing (6-8 hours)
+- Afternoon: Integrations Domain (2-3 hours)
+- Evening: Integration testing & documentation (3-4 hours)
+
+### Total: 2.5-3 days for complete implementation
+
+---
+
+## Conclusion
+
+With our proven 288x velocity improvement and systematic approach using test-driven development with AI assistance, we can complete the remaining 9 domains and 45 resources in 2-3 days. The 5-level RCA has identified all dependencies and requirements, ensuring smooth implementation.
+
+Key success factors:
+- 🚀 Maintain high velocity through AI-assisted development
+- ✅ Test-first approach ensures quality
+- 🔄 Continuous verification prevents issues
+- 📚 Automated documentation maintains clarity
+- 🎯 Clear dependencies guide sequencing
+
+By following this plan, Indrajaal will have a complete, production-ready security monitoring system in record time.
+
+---
+
+*Document Version: 2.1*
+*Methodology: 5-Level RCA with AI-Assisted Implementation*
+*Last Updated: 2025-08-03*

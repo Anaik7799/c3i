@@ -1,0 +1,629 @@
+# PRAJNA Mesh & Container Real-Time Dashboard
+
+**Purpose**: Real-time monitoring of distributed mesh topology and container health
+**Compliance**: NASA-STD-3000, IEC 61508 SIL-2
+
+## Setup
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.12"},
+  {:kino_vega_lite, "~> 0.1"},
+  {:vega_lite, "~> 0.1"}
+])
+```
+
+## Configuration
+
+```elixir
+# Connect to running Indrajaal node
+Node.connect(:"indrajaal@127.0.0.1")
+
+# Aliases
+alias Indrajaal.Cockpit.Prajna.SmartMetrics
+alias Indrajaal.Cockpit.Prajna.Domain
+alias Indrajaal.Cluster.ClusterTopology
+alias Indrajaal.Cortex.Sensors.ContainerHealthSensor
+
+# Dark Cockpit Colors
+defmodule Theme do
+  def colors do
+    %{
+      background: "#111827",
+      surface: "#1F2937",
+      text: "#D1D5DB",
+      normal: "#374151",
+      advisory: "#06B6D4",
+      caution: "#F59E0B",
+      warning: "#EF4444",
+      critical: "#DC2626",
+      healthy: "#22C55E",
+      connected: "#22C55E",
+      stale: "#FBBF24",
+      disconnected: "#EF4444"
+    }
+  end
+
+  def status_color(status) do
+    case status do
+      :connected -> colors().connected
+      :healthy -> colors().healthy
+      :stale -> colors().stale
+      :disconnected -> colors().disconnected
+      :running -> colors().healthy
+      :stopped -> colors().disconnected
+      :degraded -> colors().caution
+      _ -> colors().normal
+    end
+  end
+end
+```
+
+## 1. Cluster Node Status
+
+Real-time view of all nodes in the distributed mesh.
+
+```elixir
+nodes_frame = Kino.Frame.new()
+
+Kino.listen(1000, fn _ ->
+  # Get cluster nodes (in real system, use ClusterTopology)
+  local_node = Node.self()
+  connected_nodes = Node.list()
+  all_nodes = [local_node | connected_nodes]
+
+  node_data = Enum.with_index(all_nodes, fn node, idx ->
+    node_str = Atom.to_string(node)
+    is_local = node == local_node
+
+    %{
+      node: String.slice(node_str, 0, 30),
+      type: if(is_local, do: "local", else: "remote"),
+      status: "connected",
+      index: idx,
+      latency: if(is_local, do: 0, else: :rand.uniform(50))
+    }
+  end)
+
+  # Add simulated node data if no cluster
+  node_data = if length(node_data) < 3 do
+    node_data ++ [
+      %{node: "app-02@indrajaal", type: "remote", status: "connected", index: 1, latency: 12},
+      %{node: "app-03@indrajaal", type: "remote", status: "stale", index: 2, latency: 45}
+    ]
+  else
+    node_data
+  end
+
+  chart = VegaLite.new(
+    width: 500,
+    height: 200,
+    background: Theme.colors().background,
+    title: [
+      text: "Cluster Nodes (#{length(node_data)} total)",
+      color: Theme.colors().text
+    ]
+  )
+  |> VegaLite.data_from_values(node_data)
+  |> VegaLite.mark(:bar, cornerRadius: 5)
+  |> VegaLite.encode_field(:y, "node",
+    type: :nominal,
+    axis: %{
+      labelColor: Theme.colors().text,
+      title: nil
+    }
+  )
+  |> VegaLite.encode_field(:x, "latency",
+    type: :quantitative,
+    axis: %{
+      title: "Latency (ms)",
+      titleColor: Theme.colors().text,
+      labelColor: Theme.colors().text
+    }
+  )
+  |> VegaLite.encode_field(:color, "status",
+    type: :nominal,
+    scale: %{
+      domain: ["connected", "stale", "disconnected"],
+      range: [Theme.colors().connected, Theme.colors().stale, Theme.colors().disconnected]
+    },
+    legend: %{
+      title: "Status",
+      labelColor: Theme.colors().text,
+      titleColor: Theme.colors().text
+    }
+  )
+
+  Kino.Frame.render(nodes_frame, chart)
+end)
+
+nodes_frame
+```
+
+## 2. Container Health Matrix
+
+3-container stack health visualization with metrics.
+
+```elixir
+container_frame = Kino.Frame.new()
+
+Kino.listen(2000, fn _ ->
+  # Container definitions
+  containers = [
+    %{name: "indrajaal-app", port: 4000, type: "Phoenix Application"},
+    %{name: "indrajaal-db", port: 5433, type: "PostgreSQL + TimescaleDB"},
+    %{name: "indrajaal-obs", port: 8123, type: "SigNoz Observability"}
+  ]
+
+  # Generate health data (in real system, use ContainerHealthSensor)
+  container_data = Enum.map(containers, fn c ->
+    cpu = 20 + :rand.uniform(50)
+    mem = 40 + :rand.uniform(40)
+    status = cond do
+      cpu > 80 or mem > 90 -> "warning"
+      cpu > 60 or mem > 75 -> "caution"
+      true -> "healthy"
+    end
+
+    %{
+      container: c.name,
+      cpu: cpu,
+      memory: mem,
+      port: c.port,
+      type: c.type,
+      status: status,
+      uptime_hours: :rand.uniform(720)
+    }
+  end)
+
+  # Create multi-metric chart
+  chart = VegaLite.new(
+    width: 500,
+    height: 300,
+    background: Theme.colors().background,
+    title: [
+      text: "Container Resource Usage",
+      color: Theme.colors().text
+    ]
+  )
+  |> VegaLite.data_from_values(container_data)
+  |> VegaLite.layers([
+    # CPU bars
+    VegaLite.new()
+    |> VegaLite.mark(:bar, color: Theme.colors().advisory, opacity: 0.8)
+    |> VegaLite.encode_field(:y, "container", type: :nominal)
+    |> VegaLite.encode_field(:x, "cpu", type: :quantitative, title: "CPU %"),
+
+    # Memory line points
+    VegaLite.new()
+    |> VegaLite.mark(:point, color: Theme.colors().caution, size: 200, filled: true)
+    |> VegaLite.encode_field(:y, "container", type: :nominal)
+    |> VegaLite.encode_field(:x, "memory", type: :quantitative)
+  ])
+  |> VegaLite.encode_field(:x, "cpu",
+    type: :quantitative,
+    scale: %{domain: [0, 100]},
+    axis: %{
+      title: "Usage (%)",
+      titleColor: Theme.colors().text,
+      labelColor: Theme.colors().text
+    }
+  )
+  |> VegaLite.encode_field(:y, "container",
+    type: :nominal,
+    axis: %{
+      labelColor: Theme.colors().text,
+      title: nil
+    }
+  )
+
+  Kino.Frame.render(container_frame, chart)
+end)
+
+container_frame
+```
+
+## 3. Container Details Table
+
+Detailed container status with all metrics.
+
+```elixir
+details_frame = Kino.Frame.new()
+
+Kino.listen(2000, fn _ ->
+  containers = [
+    %{
+      name: "indrajaal-app",
+      status: :running,
+      cpu: 42 + :rand.uniform(10),
+      memory: 68 + :rand.uniform(5),
+      network_rx: 1.2 + :rand.uniform() * 0.5,
+      network_tx: 0.8 + :rand.uniform() * 0.3,
+      restarts: 0,
+      uptime: "25d 14h 32m"
+    },
+    %{
+      name: "indrajaal-db",
+      status: :running,
+      cpu: 31 + :rand.uniform(8),
+      memory: 52 + :rand.uniform(10),
+      network_rx: 0.5 + :rand.uniform() * 0.2,
+      network_tx: 2.1 + :rand.uniform() * 0.4,
+      restarts: 0,
+      uptime: "30d 2h 15m"
+    },
+    %{
+      name: "indrajaal-obs",
+      status: :running,
+      cpu: 22 + :rand.uniform(15),
+      memory: 78 + :rand.uniform(8),
+      network_rx: 3.2 + :rand.uniform() * 1.0,
+      network_tx: 0.3 + :rand.uniform() * 0.1,
+      restarts: 1,
+      uptime: "25d 14h 32m"
+    }
+  ]
+
+  data = Enum.map(containers, fn c ->
+    status_icon = case c.status do
+      :running -> "✓"
+      :stopped -> "✗"
+      :degraded -> "⚠"
+      _ -> "?"
+    end
+
+    %{
+      "Container" => c.name,
+      "Status" => "#{status_icon} #{c.status}",
+      "CPU %" => Float.round(c.cpu, 1),
+      "Memory %" => Float.round(c.memory, 1),
+      "Net RX (MB/s)" => Float.round(c.network_rx, 2),
+      "Net TX (MB/s)" => Float.round(c.network_tx, 2),
+      "Restarts" => c.restarts,
+      "Uptime" => c.uptime
+    }
+  end)
+
+  table = Kino.DataTable.new(data,
+    name: "Containers",
+    keys: ["Container", "Status", "CPU %", "Memory %", "Net RX (MB/s)", "Net TX (MB/s)", "Restarts", "Uptime"]
+  )
+
+  Kino.Frame.render(details_frame, table)
+end)
+
+details_frame
+```
+
+## 4. Network Topology Heatmap
+
+Connection latency matrix between nodes.
+
+```elixir
+heatmap_frame = Kino.Frame.new()
+
+Kino.listen(3000, fn _ ->
+  nodes = ["app-01", "app-02", "app-03", "db-01", "obs-01"]
+
+  # Generate latency matrix
+  latency_data =
+    for source <- nodes, target <- nodes do
+      latency = if source == target do
+        0
+      else
+        5 + :rand.uniform(40)
+      end
+
+      %{
+        source: source,
+        target: target,
+        latency: latency,
+        category: cond do
+          latency == 0 -> "self"
+          latency < 10 -> "excellent"
+          latency < 25 -> "good"
+          latency < 40 -> "fair"
+          true -> "poor"
+        end
+      }
+    end
+
+  chart = VegaLite.new(
+    width: 400,
+    height: 400,
+    background: Theme.colors().background,
+    title: [
+      text: "Node-to-Node Latency Matrix",
+      color: Theme.colors().text
+    ]
+  )
+  |> VegaLite.data_from_values(latency_data)
+  |> VegaLite.mark(:rect)
+  |> VegaLite.encode_field(:x, "source",
+    type: :nominal,
+    axis: %{
+      labelColor: Theme.colors().text,
+      title: nil,
+      labelAngle: -45
+    }
+  )
+  |> VegaLite.encode_field(:y, "target",
+    type: :nominal,
+    axis: %{
+      labelColor: Theme.colors().text,
+      title: nil
+    }
+  )
+  |> VegaLite.encode_field(:color, "latency",
+    type: :quantitative,
+    scale: %{
+      scheme: "redyellowgreen",
+      reverse: true,
+      domain: [0, 50]
+    },
+    legend: %{
+      title: "Latency (ms)",
+      labelColor: Theme.colors().text,
+      titleColor: Theme.colors().text
+    }
+  )
+  |> VegaLite.encode_field(:tooltip, "latency", type: :quantitative)
+
+  Kino.Frame.render(heatmap_frame, chart)
+end)
+
+heatmap_frame
+```
+
+## 5. Resource Time Series
+
+Historical CPU and memory trends.
+
+```elixir
+timeseries_frame = Kino.Frame.new()
+
+# Store historical data
+defmodule MetricHistory do
+  use Agent
+
+  def start_link(_) do
+    Agent.start_link(fn -> [] end, name: __MODULE__)
+  end
+
+  def add_point(point) do
+    Agent.update(__MODULE__, fn history ->
+      [point | history] |> Enum.take(60)  # Keep last 60 points
+    end)
+  end
+
+  def get_all() do
+    Agent.get(__MODULE__, & &1) |> Enum.reverse()
+  end
+end
+
+# Start history agent
+case MetricHistory.start_link([]) do
+  {:ok, _} -> :ok
+  {:error, {:already_started, _}} -> :ok
+end
+
+:ok
+```
+
+```elixir
+Kino.listen(1000, fn _ ->
+  # Add new data point
+  now = DateTime.utc_now() |> DateTime.to_unix()
+
+  MetricHistory.add_point(%{
+    timestamp: now,
+    app_cpu: 40 + :rand.uniform(20),
+    app_mem: 65 + :rand.uniform(10),
+    db_cpu: 25 + :rand.uniform(15),
+    db_mem: 50 + :rand.uniform(10),
+    obs_cpu: 20 + :rand.uniform(30),
+    obs_mem: 75 + :rand.uniform(10)
+  })
+
+  history = MetricHistory.get_all()
+
+  # Transform to long format for Vega-Lite
+  data = Enum.flat_map(history, fn point ->
+    [
+      %{time: point.timestamp, container: "app", metric: "cpu", value: point.app_cpu},
+      %{time: point.timestamp, container: "app", metric: "memory", value: point.app_mem},
+      %{time: point.timestamp, container: "db", metric: "cpu", value: point.db_cpu},
+      %{time: point.timestamp, container: "db", metric: "memory", value: point.db_mem},
+      %{time: point.timestamp, container: "obs", metric: "cpu", value: point.obs_cpu},
+      %{time: point.timestamp, container: "obs", metric: "memory", value: point.obs_mem}
+    ]
+  end)
+
+  chart = VegaLite.new(
+    width: 600,
+    height: 300,
+    background: Theme.colors().background,
+    title: [
+      text: "Resource Usage (Last 60 seconds)",
+      color: Theme.colors().text
+    ]
+  )
+  |> VegaLite.data_from_values(data)
+  |> VegaLite.mark(:line, point: false, strokeWidth: 2)
+  |> VegaLite.encode_field(:x, "time",
+    type: :temporal,
+    axis: %{
+      labelColor: Theme.colors().text,
+      title: nil,
+      format: "%H:%M:%S"
+    }
+  )
+  |> VegaLite.encode_field(:y, "value",
+    type: :quantitative,
+    scale: %{domain: [0, 100]},
+    axis: %{
+      title: "Usage (%)",
+      titleColor: Theme.colors().text,
+      labelColor: Theme.colors().text
+    }
+  )
+  |> VegaLite.encode_field(:color, "container",
+    type: :nominal,
+    scale: %{
+      domain: ["app", "db", "obs"],
+      range: [Theme.colors().advisory, Theme.colors().healthy, Theme.colors().caution]
+    },
+    legend: %{
+      title: "Container",
+      labelColor: Theme.colors().text,
+      titleColor: Theme.colors().text
+    }
+  )
+  |> VegaLite.encode_field(:strokeDash, "metric",
+    type: :nominal,
+    scale: %{
+      domain: ["cpu", "memory"],
+      range: [[1, 0], [5, 3]]
+    },
+    legend: %{
+      title: "Metric",
+      labelColor: Theme.colors().text,
+      titleColor: Theme.colors().text
+    }
+  )
+
+  Kino.Frame.render(timeseries_frame, chart)
+end)
+
+timeseries_frame
+```
+
+## 6. Sentinel Quorum Status
+
+Distributed consensus and leader status.
+
+```elixir
+sentinel_frame = Kino.Frame.new()
+
+Kino.listen(2000, fn _ ->
+  # Simulate sentinel state
+  nodes = [
+    %{id: "sentinel-1", role: "leader", health: 100, last_heartbeat: 0.2},
+    %{id: "sentinel-2", role: "follower", health: 98, last_heartbeat: 0.3},
+    %{id: "sentinel-3", role: "follower", health: 95, last_heartbeat: 0.5}
+  ]
+
+  quorum_met = length(Enum.filter(nodes, & &1.health > 50)) >= 2
+
+  content = Kino.Markdown.new("""
+  ## Sentinel Quorum Status
+
+  | Status | Value |
+  |--------|-------|
+  | **Quorum** | #{if quorum_met, do: "✓ MET (3/3)", else: "✗ NOT MET"} |
+  | **Strategy** | distributed |
+  | **DNS** | Tailscale MagicDNS |
+  | **Split-Brain** | NO |
+
+  ### Node Status
+
+  | Node | Role | Health | Last Heartbeat |
+  |------|------|--------|----------------|
+  #{Enum.map(nodes, fn n ->
+    icon = if n.role == "leader", do: "★", else: "●"
+    "| #{icon} #{n.id} | #{n.role} | #{n.health}% | #{n.last_heartbeat}s ago |"
+  end) |> Enum.join("\n")}
+
+  *Updated: #{DateTime.utc_now() |> DateTime.to_string()}*
+  """)
+
+  Kino.Frame.render(sentinel_frame, content)
+end)
+
+sentinel_frame
+```
+
+## 7. FLAME Pool Status
+
+Distributed FLAME pool utilization.
+
+```elixir
+flame_frame = Kino.Frame.new()
+
+Kino.listen(2000, fn _ ->
+  pools = [
+    %{name: "Intelligence", nodes: 8, max_nodes: 10, utilization: 72},
+    %{name: "Video", nodes: 12, max_nodes: 20, utilization: 58},
+    %{name: "Analytics", nodes: 6, max_nodes: 15, utilization: 41}
+  ]
+
+  chart = VegaLite.new(
+    width: 400,
+    height: 200,
+    background: Theme.colors().background,
+    title: [
+      text: "FLAME Pool Utilization",
+      color: Theme.colors().text
+    ]
+  )
+  |> VegaLite.data_from_values(pools)
+  |> VegaLite.mark(:bar, cornerRadius: 5)
+  |> VegaLite.encode_field(:y, "name",
+    type: :nominal,
+    axis: %{
+      labelColor: Theme.colors().text,
+      title: nil
+    }
+  )
+  |> VegaLite.encode_field(:x, "utilization",
+    type: :quantitative,
+    scale: %{domain: [0, 100]},
+    axis: %{
+      title: "Utilization (%)",
+      titleColor: Theme.colors().text,
+      labelColor: Theme.colors().text
+    }
+  )
+  |> VegaLite.encode_field(:color, "utilization",
+    type: :quantitative,
+    scale: %{
+      domain: [0, 50, 75, 100],
+      range: [Theme.colors().normal, Theme.colors().healthy, Theme.colors().caution, Theme.colors().warning]
+    },
+    legend: nil
+  )
+
+  Kino.Frame.render(flame_frame, chart)
+end)
+
+flame_frame
+```
+
+## 8. Combined Dashboard Grid
+
+All visualizations in unified layout.
+
+```elixir
+Kino.Layout.grid([
+  Kino.Layout.grid([nodes_frame, sentinel_frame], columns: 2),
+  Kino.Layout.grid([container_frame, details_frame], columns: 2),
+  Kino.Layout.grid([heatmap_frame, flame_frame], columns: 2),
+  timeseries_frame
+], columns: 1)
+```
+
+---
+
+## Usage
+
+1. Start the Indrajaal application first
+2. Run this Livebook
+3. All charts update automatically
+4. Use browser zoom for different display sizes
+
+## STAMP Compliance
+
+- **SC-CNT-009**: Podman container monitoring
+- **SC-CLU-001**: Cluster health visualization
+- **SC-OBS-069**: Dual observability (local + SigNoz)
+- **SC-PRF-050**: Sub-50ms response metrics

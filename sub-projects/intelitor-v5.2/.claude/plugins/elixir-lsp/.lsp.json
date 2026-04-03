@@ -1,0 +1,274 @@
+{
+  "elixir": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/elixir-ls",
+    "args": [],
+    "extensionToLanguage": {
+      ".ex": "elixir",
+      ".exs": "elixir",
+      ".heex": "phoenix-heex",
+      ".leex": "phoenix-leex",
+      ".sface": "surface"
+    },
+    "initializationOptions": {
+      "dialyzerEnabled": true,
+      "fetchDeps": false,
+      "suggestSpecs": true,
+      "enableTestLenses": true,
+      "additionalWatchedExtensions": [".heex", ".leex", ".sface"],
+      "projectDir": "."
+    },
+    "workspaceConfiguration": {
+      "elixirLS": {
+        "dialyzerEnabled": true,
+        "dialyzerFormat": "dialyxir_long",
+        "mixEnv": "dev",
+        "suggestSpecs": true,
+        "enableTestLenses": true,
+        "signatureAfterComplete": true,
+        "trace": { "server": "off" }
+      }
+    },
+    "frameworks": ["phoenix", "ecto", "ash", "oban", "liveview", "absinthe"]
+  },
+  "erlang": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/erlang_ls",
+    "args": [],
+    "extensionToLanguage": {
+      ".erl": "erlang",
+      ".hrl": "erlang",
+      ".escript": "erlang",
+      ".app.src": "erlang"
+    },
+    "initializationOptions": {}
+  },
+  "gleam": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/gleam",
+    "args": ["lsp"],
+    "extensionToLanguage": {
+      ".gleam": "gleam"
+    },
+    "initializationOptions": {}
+  },
+  "fsharp": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/fsautocomplete",
+    "args": ["--adaptive-lsp-server-enabled"],
+    "extensionToLanguage": {
+      ".fs": "fsharp",
+      ".fsi": "fsharp",
+      ".fsx": "fsharp",
+      ".fsproj": "xml"
+    },
+    "initializationOptions": {
+      "AutomaticWorkspaceInit": true
+    }
+  },
+  "csharp": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/csharp-ls",
+    "args": [],
+    "extensionToLanguage": {
+      ".cs": "csharp",
+      ".csx": "csharp",
+      ".csproj": "xml"
+    },
+    "initializationOptions": {}
+  },
+  "rust": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/rust-analyzer",
+    "args": [],
+    "extensionToLanguage": {
+      ".rs": "rust",
+      "Cargo.toml": "toml"
+    },
+    "initializationOptions": {
+      "cargo": {
+        "allFeatures": true
+      },
+      "checkOnSave": {
+        "command": "clippy"
+      }
+    }
+  },
+  "python": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/pyright-langserver",
+    "args": ["--stdio"],
+    "extensionToLanguage": {
+      ".py": "python",
+      ".pyi": "python",
+      ".pyw": "python"
+    },
+    "initializationOptions": {
+      "python.analysis.typeCheckingMode": "basic"
+    }
+  },
+  "bash": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/bash-language-server",
+    "args": ["start"],
+    "extensionToLanguage": {
+      ".sh": "bash",
+      ".bash": "bash",
+      ".zsh": "zsh",
+      ".bashrc": "bash",
+      ".zshrc": "zsh",
+      ".profile": "bash",
+      ".bash_profile": "bash",
+      ".zprofile": "zsh"
+    },
+    "initializationOptions": {}
+  },
+  "sql": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/sqls",
+    "args": [],
+    "extensionToLanguage": {
+      ".sql": "sql",
+      ".pgsql": "sql",
+      ".psql": "sql"
+    },
+    "initializationOptions": {
+      "connections": [
+        {
+          "alias": "indrajaal_dev",
+          "driver": "postgresql",
+          "dataSourceName": "host=localhost port=5433 user=postgres password=postgres dbname=indrajaal_dev sslmode=disable"
+        }
+      ]
+    }
+  },
+  "yaml": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/yaml-language-server",
+    "args": ["--stdio"],
+    "extensionToLanguage": {
+      ".yaml": "yaml",
+      ".yml": "yaml",
+      "docker-compose.yml": "yaml",
+      "podman-compose.yml": "yaml",
+      ".github/workflows/*.yml": "yaml"
+    },
+    "initializationOptions": {
+      "yaml": {
+        "schemas": {
+          "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yml",
+          "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": ["docker-compose*.yml", "podman-compose*.yml"],
+          "https://json.schemastore.org/openapi-3.1.json": ["openapi*.yaml", "openapi*.yml"]
+        },
+        "validate": true,
+        "completion": true,
+        "hover": true,
+        "format": { "enable": true }
+      }
+    }
+  },
+  "agda": {
+    "command": "agda-mode",
+    "args": ["locate"],
+    "extensionToLanguage": {
+      ".agda": "agda",
+      ".lagda": "agda",
+      ".lagda.md": "agda",
+      ".lagda.rst": "agda",
+      ".lagda.tex": "agda"
+    },
+    "initializationOptions": {
+      "libraryPaths": ["docs/formal_specs"]
+    },
+    "note": "Agda uses agda-mode for IDE integration; for LSP use cornelis/agda-language-server"
+  },
+  "quint": {
+    "command": "npx",
+    "args": ["@informalsystems/quint-language-server", "--stdio"],
+    "extensionToLanguage": {
+      ".qnt": "quint"
+    },
+    "initializationOptions": {},
+    "note": "Quint specification language for formal verification; requires npm/npx"
+  },
+  "mathematica": {
+    "command": "wolfram",
+    "args": ["kernel", "-noprompt", "-run", "Needs[\"LSPServer`\"]; LSPServer`StartServer[]"],
+    "extensionToLanguage": {
+      ".wl": "wolfram",
+      ".m": "wolfram",
+      ".nb": "wolfram",
+      ".wls": "wolfram"
+    },
+    "initializationOptions": {},
+    "note": "Requires Wolfram Engine; alternative: pip install lsp-server-wolfram for free version"
+  },
+  "dot": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/dot-language-server",
+    "args": ["--stdio"],
+    "extensionToLanguage": {
+      ".dot": "dot",
+      ".gv": "dot"
+    },
+    "initializationOptions": {
+      "graphvizPath": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin"
+    },
+    "note": "GraphViz DOT language for graph/diagram definitions"
+  },
+  "nix": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/nil",
+    "args": [],
+    "extensionToLanguage": {
+      ".nix": "nix",
+      "flake.nix": "nix",
+      "default.nix": "nix",
+      "shell.nix": "nix",
+      "devenv.nix": "nix",
+      "flake.lock": "json"
+    },
+    "initializationOptions": {
+      "formatting": {
+        "command": ["nixpkgs-fmt"]
+      },
+      "nix": {
+        "maxMemoryMB": 2048,
+        "flake": {
+          "autoArchive": true,
+          "autoEvalInputs": true
+        }
+      }
+    },
+    "note": "Nix language LSP using nil; supports flakes, devenv, NixOS configs"
+  },
+  "protobuf": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/buf",
+    "args": ["beta", "lsp"],
+    "extensionToLanguage": {
+      ".proto": "protobuf"
+    },
+    "initializationOptions": {},
+    "note": "Protocol Buffers / gRPC schema language using Buf LSP"
+  },
+  "zenoh": {
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/yaml-language-server",
+    "args": ["--stdio"],
+    "extensionToLanguage": {
+      ".json5": "json5",
+      "zenoh.json5": "json5",
+      "zenoh-*.json5": "json5"
+    },
+    "initializationOptions": {
+      "yaml": {
+        "validate": true,
+        "completion": true,
+        "hover": true
+      }
+    },
+    "note": "Zenoh config files use JSON5; fallback to YAML server with JSON5 awareness"
+  },
+  "json5": {
+    "command": "node",
+    "args": ["-e", "require('vscode-json-languageserver/out/jsonServerMain').startServer()"],
+    "extensionToLanguage": {
+      ".json5": "json5",
+      ".jsonc": "jsonc"
+    },
+    "initializationOptions": {
+      "json": {
+        "allowComments": true,
+        "allowTrailingCommas": true
+      }
+    },
+    "note": "JSON5/JSONC for configs with comments (Zenoh, VSCode settings, etc.)"
+  }
+}

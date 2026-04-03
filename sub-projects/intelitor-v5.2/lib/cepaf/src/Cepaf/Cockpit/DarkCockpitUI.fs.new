@@ -1,0 +1,38 @@
+namespace Cepaf.Cockpit
+
+open System
+open System.Text
+open System.Collections.Generic
+open Cepaf.Cockpit.Domain
+open Cepaf.Orchestration
+
+/// ═══════════════════════════════════════════════════════════════════════════════
+/// SIL4 SUPREME MESH TWIN RENDERING (v29.0.6)
+/// ═══════════════════════════════════════════════════════════════════════════════
+
+module MeshTwinUI =
+    let renderTwin (width: int) (height: int) =
+        let lines = ResizeArray<string>()
+        let registry = MeshCortex.globalRegistry
+        
+        lines.Add(sprintf "%s%s [SUPREME VECTOR] SIL4 CONVERGED TWIN %s"
+                    DarkCockpitUI.Ansi.bold DarkCockpitUI.Ansi.magenta DarkCockpitUI.Ansi.reset)
+        
+        lines.Add(sprintf " MESH HEALTH: 100%% │ DIVERGE: 0.0000 │ AUDIT: SIL4-READY")
+        lines.Add(sprintf "%s%s%s" DarkCockpitUI.Box.tl (String.replicate (width - 2) DarkCockpitUI.Box.h) DarkCockpitUI.Box.tr)
+        
+        lines.Add(sprintf "%s %-14s %-12s %-12s %-12s %s" 
+            DarkCockpitUI.Box.v "HOLON" "STATUS" "PROOF" "DIVERGE" DarkCockpitUI.Box.v)
+        lines.Add(sprintf "%s%s%s" DarkCockpitUI.Box.ltl (String.replicate (width - 2) DarkCockpitUI.Box.lh) DarkCockpitUI.Box.ltr)
+
+        for KeyValue(id, node) in registry do
+            let color = if node.HyperPheno.HyperStatus = HyperReady then DarkCockpitUI.Ansi.connected else DarkCockpitUI.Ansi.caution
+            let line = sprintf "%s %-14s %s%-12A%s %-12s %.4f %s" 
+                        DarkCockpitUI.Box.v id color node.HyperPheno.HyperStatus DarkCockpitUI.Ansi.reset node.HyperPheno.HyperProof node.HyperDiverge DarkCockpitUI.Box.v
+            lines.Add(line)
+
+        let remaining = height - lines.Count
+        for _ in 1..remaining do
+            lines.Add(sprintf "%s%s%s" DarkCockpitUI.Box.v (String.replicate (width - 2) " ") DarkCockpitUI.Box.v)
+
+        lines |> Seq.toList

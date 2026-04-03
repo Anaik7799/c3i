@@ -1,0 +1,10 @@
+    error: module Benchfella is not loaded and could not be found
+    │
+  7 │   use Benchfella
+    │   ^^^^^^^^^^^^^^
+    │
+    └─ benchmarks/stamp_tdg_gde_bench.exs:7: StampTdgGdeBenchmark (module)
+
+** (CompileError) benchmarks/stamp_tdg_gde_bench.exs: cannot compile module StampTdgGdeBenchmark (errors have been logged)
+    (elixir 1.18.1) expanding macro: Kernel.use/1
+    benchmarks/stamp_tdg_gde_bench.exs:7: StampTdgGdeBenchmark (module)

@@ -1,0 +1,30 @@
+# Sobelow Security Configuration - Enterprise Grade Security Standards
+# Zero tolerance policy for security vulnerabilities
+# Comprehensive security scanning with all checks enabled
+
+[
+  # Output Configuration - MANDATORY SETTINGS
+  verbose: true,        # REQUIRED: Detailed security analysis output (shows code snippets)
+  private: false,       # REQUIRED: Scan private functions for vulnerabilities
+  format: "json",       # REQUIRED: Structured output for CI/CD integration
+  out: "sobelow-report.json",  # Security report output file
+
+  # Security Threshold - ZERO TOLERANCE
+  threshold: "low",     # REQUIRED: Catch ALL security issues (low, medium, high)
+  exit: "high",         # REQUIRED: Exit with error on high severity findings
+
+  # Skip Configuration - ZERO TOLERANCE
+  skip: false,          # FORBIDDEN: No security checks skipped (boolean, not list)
+  mark_skip_all: false, # FORBIDDEN: No global security check skips
+  ignore: [],           # FORBIDDEN: No ignored security issues
+  ignore_files: [],     # FORBIDDEN: No ignored files for security scanning
+
+  # Router Configuration
+  router: "lib/intelitor_web/router.ex"
+
+  # NOTE: The following options were REMOVED due to 5-Level RCA:
+  # - `details: true` was incorrect - this option expects a module name like "XSS", not boolean
+  #   For detailed output, use `verbose: true` instead (already set above)
+  # - `files:` is not a valid Sobelow option
+  # - `confidence:` is not a valid Sobelow option (use `threshold:` instead)
+]

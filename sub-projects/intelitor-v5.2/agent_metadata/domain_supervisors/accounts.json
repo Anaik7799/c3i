@@ -1,0 +1,12 @@
+{
+  "domain": "accounts",
+  "agent_type": "domain_supervisor",
+  "agent_id": "DS-02",
+  "authority_level": "domain",
+  "coordination_scope": "domain_specific",
+  "creation_timestamp": "2025-09-14T22:46:35.694029Z",
+  "sopv511_compliance": true,
+  "specialization": "accounts",
+  "reporting_to": "ED-001",
+  "warning_focus": "user management undefined variables"
+}

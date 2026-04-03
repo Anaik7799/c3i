@@ -1,0 +1,114 @@
+# Containerfile.cepaf-podman
+# Multi-stage build for Cepaf.Podman F# Podman Client Library/CLI
+# STAMP Safety: SC-CNT-009 (NixOS/Podman only), SC-CNT-010 (localhost registry)
+#
+# Build: podman build -f Containerfile.cepaf-podman -t localhost/cepaf-podman:1.0.0 ..
+# Run:   podman run --rm -v /run/podman/podman.sock:/run/podman/podman.sock:ro localhost/cepaf-podman:1.0.0
+
+ARG DOTNET_VERSION=8.0
+ARG APP_VERSION=1.0.0
+
+# =============================================================================
+# Stage 1: Build Stage
+# =============================================================================
+FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
+
+WORKDIR /source
+
+# Copy solution and project files first for layer caching
+COPY Cepaf.sln ./
+COPY src/Cepaf.Podman/Cepaf.Podman.fsproj ./src/Cepaf.Podman/
+COPY tools/Cepaf.Podman.Cli/Cepaf.Podman.Cli.fsproj ./tools/Cepaf.Podman.Cli/
+
+# Restore dependencies (cached layer if project files unchanged)
+RUN dotnet restore src/Cepaf.Podman/Cepaf.Podman.fsproj && \
+    dotnet restore tools/Cepaf.Podman.Cli/Cepaf.Podman.Cli.fsproj || true
+
+# Copy source code
+COPY src/Cepaf.Podman/ ./src/Cepaf.Podman/
+COPY tools/Cepaf.Podman.Cli/ ./tools/Cepaf.Podman.Cli/
+
+# Build library in Release mode
+RUN dotnet build src/Cepaf.Podman/Cepaf.Podman.fsproj \
+    --configuration Release \
+    --no-restore \
+    -p:TreatWarningsAsErrors=false
+
+# Build CLI tool if source files exist
+RUN if [ -f tools/Cepaf.Podman.Cli/Program.fs ]; then \
+        dotnet publish tools/Cepaf.Podman.Cli/Cepaf.Podman.Cli.fsproj \
+            --configuration Release \
+            --no-restore \
+            --output /app/publish \
+            --self-contained false \
+            -p:PublishSingleFile=false; \
+    else \
+        echo "CLI source not found, building library only" && \
+        dotnet publish src/Cepaf.Podman/Cepaf.Podman.fsproj \
+            --configuration Release \
+            --no-restore \
+            --output /app/publish; \
+    fi
+
+# =============================================================================
+# Stage 2: Runtime Stage
+# =============================================================================
+FROM mcr.microsoft.com/dotnet/runtime:${DOTNET_VERSION}-alpine AS runtime
+
+ARG APP_VERSION=1.0.0
+ARG BUILD_DATE
+ARG VCS_REF
+
+# OCI Image Specification Labels
+LABEL org.opencontainers.image.title="Cepaf.Podman" \
+      org.opencontainers.image.description="F# Podman Client Library with STAMP Safety Constraints" \
+      org.opencontainers.image.version="${APP_VERSION}" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.vendor="Indrajaal Project" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.source="https://github.com/indrajaal/cepaf" \
+      org.opencontainers.image.documentation="https://github.com/indrajaal/cepaf/blob/main/README.md" \
+      # STAMP Safety Constraint Labels
+      io.indrajaal.stamp.sc-cnt-009="compliant" \
+      io.indrajaal.stamp.sc-cnt-010="localhost-registry" \
+      io.indrajaal.stamp.sc-cnt-012="rootless" \
+      io.indrajaal.safety-level="SIL-2"
+
+# Install curl for healthcheck and ca-certificates for HTTPS
+RUN apk add --no-cache curl ca-certificates && \
+    rm -rf /var/cache/apk/*
+
+# Create non-root user for STAMP SC-CNT-012 (Rootless)
+RUN addgroup -g 1000 cepaf && \
+    adduser -u 1000 -G cepaf -h /app -D cepaf
+
+WORKDIR /app
+
+# Copy published application from build stage
+COPY --from=build --chown=cepaf:cepaf /app/publish ./
+
+# Create required directories with appropriate permissions
+RUN mkdir -p /app/data /app/logs && \
+    chown -R cepaf:cepaf /app
+
+# Switch to non-root user
+USER cepaf
+
+# Environment variables
+ENV DOTNET_RUNNING_IN_CONTAINER=true \
+    DOTNET_EnableDiagnostics=0 \
+    CEPAF_PODMAN_SOCKET=/run/podman/podman.sock \
+    CEPAF_LOG_LEVEL=Information
+
+# Expose no ports by default (library communicates via Unix socket)
+# EXPOSE 8080
+
+# Health check - verify the application can start and respond
+# For library mode, we just verify the assembly loads correctly
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD dotnet --list-runtimes > /dev/null 2>&1 || exit 1
+
+# Default entrypoint - CLI tool if available, otherwise show help
+ENTRYPOINT ["dotnet"]
+CMD ["cepaf-podman.dll", "--help"]

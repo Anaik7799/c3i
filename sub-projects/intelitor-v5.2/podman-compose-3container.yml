@@ -1,0 +1,241 @@
+# MASTER_CONTAINER_ARCHITECTURE_20251220.md - Level 1: Development Environment
+# Artifact: podman-compose-3container.yml
+# Objective: Velocity (PHICS Enabled, <50ms latency)
+# Architecture: 3-Container Model (App, DB, Obs) + Sidecars
+
+version: '3.8'
+
+networks:
+  indrajaal-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.29.0.0/24
+
+services:
+  # ============================================================================
+  # 1. DATABASE LAYER (indrajaal-db)
+  # ============================================================================
+  indrajaal-db:
+    image: localhost:5000/indrajaal-timescaledb-demo:nixos-devenv
+    pull_policy: never
+    container_name: indrajaal-db
+    hostname: indrajaal-db
+    networks:
+      - indrajaal-net
+    environment:
+      POSTGRES_DB: indrajaal_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGPORT: 5433
+      # Tuning from Architecture Doc
+      TS_TUNE_MEMORY: 8GB
+      TS_TUNE_NUM_CPUS: 4
+      POSTGRES_SHARED_BUFFERS: 4GB
+      # SOPv5.11
+      PHICS_ENABLED: true
+      CONTAINER_OS: nixos
+    ports:
+      - "5433:5433"
+    volumes:
+      - ./data/timescaledb:/var/lib/postgresql/data:z
+      - ./data/tmp:/var/log/claude:z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d indrajaal_dev -p 5433"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ============================================================================
+  # 2. APPLICATION LAYER (indrajaal-app + sidecars)
+  # ============================================================================
+  indrajaal-redis:
+    image: localhost:5000/indrajaal-redis-demo:nixos-devenv
+    pull_policy: never
+    container_name: indrajaal-redis
+    hostname: indrajaal-redis
+    networks:
+      - indrajaal-net
+    environment:
+      REDIS_MAXMEMORY: 1gb
+      PHICS_ENABLED: true
+    volumes:
+      - ./data/redis:/data:z
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  indrajaal-app:
+    image: localhost:5000/indrajaal-sopv51-elixir-app:nixos-devenv
+    pull_policy: never
+    container_name: indrajaal-app
+    hostname: indrajaal-app
+    networks:
+      - indrajaal-net
+    environment:
+      # Mode
+      CONTAINER_MODE: dev
+      MIX_ENV: dev
+      # Connections
+      DATABASE_URL: postgres://postgres:postgres@indrajaal-db:5433/indrajaal_dev
+      REDIS_URL: redis://indrajaal-redis:6379
+      # BEAM Tuning (Arch Doc)
+      ELIXIR_ERL_OPTIONS: "+S 16 +A 32 +K true +P 1048576"
+      ERL_MAX_PORTS: 524288
+      # PHICS
+      PHICS_ENABLED: true
+      PHICS_WATCH_ENABLED: true
+      # Safety
+      CONTAINER_ENFORCEMENT: true
+      NO_TIMEOUT: true
+      PATIENT_MODE: enabled
+      INFINITE_PATIENCE: true
+      # App Config
+      PHX_HOST: localhost
+      PHX_PORT: 4000
+      SECRET_KEY_BASE: development_secret_key_base_64_chars_long_xxxxxxxxxxxxxxxxxxxxxx
+      # ════════════════════════════════════════════════════════════════
+      # DISTRIBUTED MODE CONFIGURATION (SC-CLU-001)
+      # ════════════════════════════════════════════════════════════════
+      DISTRIBUTED_MODE: 'true'
+      CLUSTER_STRATEGY: 'distributed'
+      # Tailscale Mesh Configuration
+      TAILSCALE_DNS_SUFFIX: ${TAILSCALE_DNS_SUFFIX:-tailnet.ts.net}
+      TS_HOSTNAME: ${TS_HOSTNAME:-indrajaal-app}
+      TS_IP_ADDRESS: ${TS_IP_ADDRESS:-172.29.0.10}
+      LOCAL_DNS_SUFFIX: indrajaal-net
+      # Cluster Node Configuration (container names on same network)
+      CLUSTER_NODE_1: indrajaal-app
+      CLUSTER_NODE_2: ${CLUSTER_NODE_2:-node2}
+      CLUSTER_NODE_3: ${CLUSTER_NODE_3:-node3}
+      CLUSTER_POLLING_INTERVAL: '5000'
+      # FLAME Configuration
+      FLAME_MIN_NODES: '0'
+      FLAME_MAX_NODES: '10'
+      FLAME_IDLE_TIMEOUT: '30000'
+      # Resource Monitoring
+      RESOURCE_MONITOR_INTERVAL: '5000'
+      RESOURCE_THRESHOLD_CPU: '80'
+      RESOURCE_THRESHOLD_MEM: '85'
+      # OpenTelemetry
+      OTEL_SERVICE_NAME: indrajaal
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://indrajaal-otel:4317
+      SIGNOZ_ENABLED: 'true'
+    ports:
+      - "4000:4000"
+      - "4369:4369" # EPMD
+    volumes:
+      - .:/workspace:z
+      - app_deps:/workspace/deps
+      - app_build:/workspace/_build
+      - ./data/tmp:/var/log/claude:z
+    depends_on:
+      indrajaal-db:
+        condition: service_healthy
+      indrajaal-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  indrajaal-nginx:
+    image: localhost:5000/indrajaal-nginx-demo:nixos-devenv
+    pull_policy: never
+    container_name: indrajaal-nginx
+    hostname: indrajaal-nginx
+    networks:
+      - indrajaal-net
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./containers/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./data/nginx/logs:/var/log/nginx:z
+    depends_on:
+      indrajaal-app:
+        condition: service_healthy
+
+  # ============================================================================
+  # 3. OBSERVABILITY LAYER (indrajaal-obs + sidecars)
+  # ============================================================================
+  indrajaal-otel:
+    image: localhost:5000/indrajaal-otel-demo:nixos-devenv
+    pull_policy: never
+    container_name: indrajaal-otel
+    hostname: indrajaal-otel
+    networks:
+      - indrajaal-net
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./observability/otel/config.yaml:/etc/otel/config.yaml:ro
+    command: ["--config=/etc/otel/config.yaml"]
+    depends_on:
+      indrajaal-app:
+        condition: service_healthy
+
+  indrajaal-obs:
+    image: localhost:5000/indrajaal-prometheus-demo:nixos-devenv
+    pull_policy: never
+    container_name: indrajaal-obs
+    hostname: indrajaal-obs
+    networks:
+      - indrajaal-net
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./data/prometheus:/prometheus:z
+    depends_on:
+      indrajaal-app:
+        condition: service_healthy
+
+  indrajaal-grafana:
+    image: localhost:5000/indrajaal-grafana-demo:nixos-devenv
+    pull_policy: never
+    container_name: indrajaal-grafana
+    hostname: indrajaal-grafana
+    networks:
+      - indrajaal-net
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data/grafana:/var/lib/grafana:z
+    depends_on:
+      indrajaal-obs:
+        condition: service_started
+
+  # ============================================================================
+  # 4. KMS CATALOG LAYER (Backstage Replacement)
+  # ============================================================================
+  kms-catalog:
+    build:
+      context: .
+      dockerfile: Dockerfile.kms-catalog
+    image: localhost/cepaf-kms-catalog:latest
+    container_name: kms-catalog
+    hostname: kms-catalog
+    networks:
+      - indrajaal-net
+    environment:
+      - KMS_DB_PATH=/app/data/kms/holons.db
+    volumes:
+      - ./data/kms:/app/data/kms:z
+    depends_on:
+      indrajaal-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  app_deps:
+    driver: local
+  app_build:
+    driver: local

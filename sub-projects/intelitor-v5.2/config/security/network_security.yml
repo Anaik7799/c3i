@@ -1,0 +1,44 @@
+# Network Security Configuration
+# Generated: 2025-08-02 19:52:26 CEST
+
+# Firewall Rules
+firewall:
+  default_policy: "DENY"
+  rules:
+    - name: "Allow Phoenix App"
+      port: 4000
+      protocol: "tcp"
+      source: "localhost"
+      action: "ALLOW"
+    - name: "Allow Database"
+      port: 5433
+      protocol: "tcp"
+      source: "localhost"
+      action: "ALLOW"
+    - name: "Allow Health Checks"
+      port: 8080
+      protocol: "tcp"
+      source: "localhost"
+      action: "ALLOW"
+    - name: "Deny All Other"
+      port: "*"
+      protocol: "*"
+      source: "*"
+      action: "DENY"
+
+# TLS Configuration
+tls:
+  min_version: "1.2"
+  ciphers:
+    - "ECDHE-RSA-AES256-GCM-SHA384"
+    - "ECDHE-RSA-AES128-GCM-SHA256"
+    - "ECDHE-RSA-AES256-SHA384"
+  certificate_validation: true
+  hsts_enabled: true
+
+# Network Monitoring
+network_monitoring:
+  enabled: true
+  log_connections: true
+  detect_anomalies: true
+  alert_on_suspicious: true

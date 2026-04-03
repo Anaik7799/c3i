@@ -1,0 +1,129 @@
+# Container-Mode Demo Testing Setup Plan
+
+**Date**: 2025-08-03 09:10:36 CEST
+**Project**: Indrajaal Security Monitoring System
+**Framework**: SOP v5.1 Cybernetic Goal-Oriented Execution
+**Status**: In Progress
+
+## 🎯 Goal Analysis
+Setup the Indrajaal Security Monitoring System for comprehensive demo testing in container-only mode with no time limits, ensuring all compilation, dependency checks, and tests run successfully within containers.
+
+## 📋 Implementation Plan
+
+### Phase 1: Environment Validation & Setup (Priority: Critical)
+1. **Container Infrastructure Validation**
+   - Verify Podman 5.4.1 installation and NixOS 25.05 containers
+   - Validate container network configuration (172.20.0.0/16 subnet)
+   - Ensure PHICS (Phoenix Hot-reloading Integration Container System) is operational
+   - Check DevEnv/Nix environment integrity
+
+2. **Database & Services Setup**
+   - Initialize PostgreSQL 17 container on port 5433 with demo database
+   - Setup Redis 7 container for session management and caching
+   - Configure monitoring stack (Prometheus + Grafana)
+   - Setup nginx reverse proxy for load balancing
+
+### Phase 2: Compilation & Dependencies (Priority: Critical)
+1. **Container-Only Compilation Setup**
+   - Set unlimited timeouts: `BASH_DEFAULT_TIMEOUT_MS=1800000` (30 min), `BASH_MAX_TIMEOUT_MS=3600000` (60 min)
+   - Configure parallel compilation: `ELIXIR_ERL_OPTIONS="+S 16"` for 16-core utilization
+   - Enable warnings-as-errors with zero-tolerance policy
+   - Setup 11-agent architecture (1 Supervisor + 4 Helpers + 6 Workers) for maximum efficiency
+
+2. **Dependency Management**
+   - Execute `mix deps.get` within container environment
+   - Validate all 135+ dependencies including Ash Framework stack
+   - Setup test dependencies (ExMachina, Faker, Wallaby, StreamData)
+   - Configure development tools (Credo, Dialyzer, Sobelow)
+
+### Phase 3: Demo Testing Infrastructure (Priority: High)
+1. **Demo Execution Framework**
+   - Setup 16 demo execution modes (comprehensive, quick, containers-only, gui-only, validation, etc.)
+   - Configure enterprise-grade demo system with 100% container isolation
+   - Enable real-time monitoring and health checks
+   - Setup automated recovery procedures
+
+2. **Testing Framework Configuration**
+   - Configure comprehensive test suite (5,073+ tests across 19 Ash domains)
+   - Setup parallel test execution with domain isolation
+   - Enable coverage reporting with 95%+ target
+   - Configure E2E testing with Wallaby automation
+
+### Phase 4: Container Orchestration (Priority: High)
+1. **Multi-Container Demo Environment**
+   - Deploy full stack: app, postgres, redis, prometheus, grafana, nginx
+   - Configure health checks and service dependencies
+   - Setup volume management for persistent data
+   - Enable container networking and communication
+
+2. **Performance Optimization**
+   - Configure patient supervisor mode with 20-minute timeouts
+   - Enable dynamic token optimization for workload adaptation
+   - Setup performance monitoring with real-time analytics
+   - Configure automatic scaling and resource optimization
+
+### Phase 5: Validation & Quality Gates (Priority: Medium)
+1. **Quality Assurance Pipeline**
+   - Zero-warning compilation enforcement
+   - TPS (Toyota Production System) 5-Level RCA integration
+   - STAMP methodology for system safety analysis
+   - Comprehensive code analysis with AST tools
+
+2. **Demo Readiness Validation**
+   - Test all 16 demo execution modes
+   - Validate container health and recovery procedures
+   - Verify mobile API endpoints (17 endpoints)
+   - Confirm security compliance and audit trails
+
+## 🔧 Key Commands to Execute
+
+### Container Setup Commands:
+```bash
+# Environment setup
+devenv shell
+export ELIXIR_ERL_OPTIONS="+S 16"
+export BASH_DEFAULT_TIMEOUT_MS=1800000
+export BASH_MAX_TIMEOUT_MS=3600000
+
+# Container orchestration
+podman-compose -f podman-compose.yml up -d
+elixir scripts/demo/comprehensive_containerized_demo_executor.exs --setup
+
+# Compilation and testing
+mix deps.get
+mix ash.setup
+mix compile --warnings-as-errors
+mix test --comprehensive --parallel --coverage
+```
+
+### Demo Execution Commands:
+```bash
+# Comprehensive demo testing
+mix demo --comprehensive --validation --report
+mix demo --containers-only --health-check
+mix demo --performance-report --benchmark
+elixir scripts/demo/comprehensive_containerized_demo_executor.exs --all-modes
+```
+
+## 🎯 Success Criteria
+- ✅ All containers operational with health checks passing
+- ✅ Zero compilation warnings or errors
+- ✅ All 5,073+ tests passing with 95%+ coverage
+- ✅ All 16 demo modes executing successfully
+- ✅ Performance benchmarks meeting targets (<50ms response, <30s startup)
+- ✅ Mobile API (17 endpoints) fully functional
+- ✅ Real-time monitoring and analytics operational
+
+## ⚡ No Time Limit Enforcement
+- Unlimited execution timeouts for all operations
+- Patient supervisor mode with auto-extending retries
+- 11-agent coordination for maximum parallelization
+- Systematic checkpoint-based execution for reliability
+
+This plan ensures complete container-mode demo testing capability with enterprise-grade reliability and no time constraints.
+
+---
+
+**Generated**: 2025-08-03 09:10:36 CEST
+**Framework**: SOP v5.1 Cybernetic Goal-Oriented Execution
+**Agent**: Claude AI Supervisor

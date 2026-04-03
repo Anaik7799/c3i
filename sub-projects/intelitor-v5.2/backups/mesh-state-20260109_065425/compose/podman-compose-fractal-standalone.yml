@@ -1,0 +1,343 @@
+# Fractal Logging System - Standalone Container Deployment
+# Based on: FRACTAL_LOGGING_SYSTEM_MASTER_GEMINI_v3.md
+# Version: 5.10.0 | STAMP Compliant
+#
+# Usage:
+#   podman-compose -f podman-compose-fractal-standalone.yml up -d
+#   podman-compose -f podman-compose-fractal-standalone.yml logs -f
+#   podman-compose -f podman-compose-fractal-standalone.yml down
+
+version: "3.8"
+name: indrajaal-fractal-standalone
+
+# ============================================================
+# SERVICES
+# ============================================================
+services:
+
+  # ========================================
+  # INTELITOR APPLICATION WITH FRACTAL CONTROL
+  # Primary Phoenix/Elixir application with embedded FractalControl
+  # ========================================
+  indrajaal-app:
+    image: localhost/indrajaal-app:latest
+    container_name: fractal-app
+    hostname: fractal-app
+    restart: unless-stopped
+
+    environment:
+      # ----------------------------------------
+      # FRACTAL LOGGING CONFIGURATION
+      # ----------------------------------------
+      # Core Settings
+      - FRACTAL_ENABLED=true
+      - FRACTAL_DEFAULT_LEVEL=L4
+      - FRACTAL_SAMPLING_RATE=1.0
+
+      # Key Expression Engine (SC-LOG-009)
+      - FRACTAL_KEL_CACHE_SIZE=1000
+      - FRACTAL_ALIAS_PRELOAD=true
+
+      # HLC Timestamps (SC-LOG-006)
+      - FRACTAL_HLC_ENABLED=true
+      - FRACTAL_HLC_MAX_DRIFT_MS=50
+
+      # Batching (SC-LOG-007)
+      - FRACTAL_BATCH_ENABLED=true
+      - FRACTAL_BATCH_SIZE=100
+      - FRACTAL_BATCH_FLUSH_MS=10
+
+      # Write Filter (SC-LOG-008)
+      - FRACTAL_BLOOM_ENABLED=true
+      - FRACTAL_BLOOM_SIZE=10000
+      - FRACTAL_BLOOM_FPR=0.01
+
+      # Load Shedding (SC-LOG-002)
+      - FRACTAL_SHEDDING_CPU_THRESHOLD=90
+      - FRACTAL_SHEDDING_MEMORY_THRESHOLD=85
+
+      # Boost Configuration (SC-LOG-005)
+      - FRACTAL_BOOST_ENABLED=true
+      - FRACTAL_BOOST_DEFAULT_TTL_MS=300000
+      - FRACTAL_BOOST_MAX_TTL_MS=3600000
+
+      # ----------------------------------------
+      # OPENTELEMETRY CONFIGURATION
+      # ----------------------------------------
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://fractal-obs:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_SERVICE_NAME=indrajaal-fractal
+      - OTEL_SERVICE_VERSION=5.10.0
+      - OTEL_RESOURCE_ATTRIBUTES=deployment.environment=standalone,service.namespace=indrajaal
+
+      # ----------------------------------------
+      # APPLICATION CONFIGURATION
+      # ----------------------------------------
+      - MIX_ENV=dev
+      - PHX_SERVER=true
+      - SECRET_KEY_BASE=fractal_standalone_secret_key_base_12345678901234567890123456789012
+      - DATABASE_URL=ecto://postgres:postgres@fractal-db:5432/indrajaal_dev
+
+      # Patient Mode (Required)
+      - NO_TIMEOUT=true
+      - PATIENT_MODE=enabled
+      - INFINITE_PATIENCE=true
+
+      # ----------------------------------------
+      # REDIS CONFIGURATION (Boost Propagation)
+      # ----------------------------------------
+      - REDIS_URL=redis://fractal-redis:6379
+      - REDIS_HOST=fractal-redis
+      - REDIS_PORT=6379
+      - FRACTAL_REDIS_ENABLED=true
+      - FRACTAL_REDIS_POOL_SIZE=10
+
+    ports:
+      - "4000:4000"     # Phoenix HTTP
+      - "4001:4001"     # Phoenix HTTPS (if enabled)
+
+    volumes:
+      - fractal-app-logs:/app/data/logs
+      - fractal-app-wal:/app/data/wal
+      - fractal-app-tmp:/app/data/tmp
+
+    depends_on:
+      fractal-db:
+        condition: service_healthy
+      fractal-obs:
+        condition: service_started
+      fractal-redis:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:4000/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '4'
+        reservations:
+          memory: 1G
+          cpus: '2'
+
+    networks:
+      - fractal-network
+
+  # ========================================
+  # POSTGRESQL DATABASE
+  # With TimescaleDB for time-series log storage
+  # ========================================
+  fractal-db:
+    image: localhost/indrajaal-db:latest
+    container_name: fractal-db
+    hostname: fractal-db
+    restart: unless-stopped
+
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=indrajaal_dev
+      - PGDATA=/var/lib/postgresql/data/pgdata
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - fractal-pgdata:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d indrajaal_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+    networks:
+      - fractal-network
+
+  # ========================================
+  # OBSERVABILITY STACK (OTEL Collector)
+  # Receives logs/traces/metrics via OTLP
+  # ========================================
+  fractal-obs:
+    image: docker.io/otel/opentelemetry-collector-contrib:0.91.0
+    container_name: fractal-obs
+    hostname: fractal-obs
+    restart: unless-stopped
+
+    command:
+      - "--config=/etc/otel/config.yaml"
+
+    environment:
+      - OTEL_LOG_LEVEL=info
+
+    ports:
+      - "4317:4317"     # OTLP gRPC receiver
+      - "4318:4318"     # OTLP HTTP receiver
+      - "8888:8888"     # Prometheus metrics
+      - "8889:8889"     # Prometheus exporter
+      - "13133:13133"   # Health check
+
+    volumes:
+      - ./otel-config-fractal.yaml:/etc/otel/config.yaml:ro
+      - fractal-obs-data:/var/lib/otel
+
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:13133/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+    networks:
+      - fractal-network
+
+  # ========================================
+  # CEPAF BRIDGE (F#/.NET)
+  # Standalone orchestration with Fractal integration
+  # ========================================
+  cepaf-bridge:
+    image: localhost/cepaf-bridge:latest
+    container_name: fractal-bridge
+    hostname: fractal-bridge
+    restart: unless-stopped
+
+    environment:
+      # Fractal Configuration
+      - FRACTAL_LEVEL=L3
+      - FRACTAL_TRACE_PROPAGATION=true
+      - FRACTAL_HLC_ENABLED=true
+
+      # OTLP Export
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://fractal-obs:4317
+      - OTEL_SERVICE_NAME=cepaf-bridge
+
+      # CEPAF Configuration
+      - CEPAF_MODE=standalone
+      - CEPAF_QUADPLEX_ENABLED=true
+      - CEPAF_STATE_DB=/app/data/state/cepaf.db
+
+    ports:
+      - "9876:9876"     # CEPAF Bridge port
+
+    volumes:
+      - cepaf-state:/app/data/state
+      - cepaf-logs:/app/data/logs
+
+    depends_on:
+      - fractal-app
+      - fractal-obs
+
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:9876/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+    networks:
+      - fractal-network
+
+  # ========================================
+  # REDIS (Optional - for distributed caching)
+  # Used for boost propagation across nodes
+  # ========================================
+  fractal-redis:
+    image: docker.io/library/redis:7-alpine
+    container_name: fractal-redis
+    hostname: fractal-redis
+    restart: unless-stopped
+
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - fractal-redis-data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+    networks:
+      - fractal-network
+
+# ============================================================
+# VOLUMES
+# ============================================================
+volumes:
+  # Application volumes
+  fractal-app-logs:
+    name: fractal-app-logs
+  fractal-app-wal:
+    name: fractal-app-wal
+  fractal-app-tmp:
+    name: fractal-app-tmp
+
+  # Database volume
+  fractal-pgdata:
+    name: fractal-pgdata
+
+  # Observability volume
+  fractal-obs-data:
+    name: fractal-obs-data
+
+  # CEPAF volumes
+  cepaf-state:
+    name: cepaf-state
+  cepaf-logs:
+    name: cepaf-logs
+
+  # Redis volume
+  fractal-redis-data:
+    name: fractal-redis-data
+
+# ============================================================
+# NETWORKS
+# ============================================================
+networks:
+  fractal-network:
+    name: fractal-network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

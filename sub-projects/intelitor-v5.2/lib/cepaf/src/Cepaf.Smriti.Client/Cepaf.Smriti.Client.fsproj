@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Fable packages for F# to JavaScript compilation -->
+    <PackageReference Include="Fable.Core" Version="4.5.0" />
+    <PackageReference Include="Fable.Browser.Dom" Version="2.17.0" />
+    <PackageReference Include="Fable.Browser.Event" Version="1.6.0" />
+    <PackageReference Include="Fable.Elmish" Version="4.2.0" />
+    <PackageReference Include="Fable.Elmish.React" Version="4.0.0" />
+    <PackageReference Include="Fable.React" Version="9.4.0" />
+    <PackageReference Include="Fable.Fetch" Version="2.7.0" />
+    <PackageReference Include="Fable.SimpleJson" Version="3.24.0" />
+    <PackageReference Include="Fable.Promise" Version="3.2.0" />
+    <PackageReference Include="Feliz" Version="2.9.0" />
+    <PackageReference Include="Feliz.Router" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Bindings -->
+    <Compile Include="Bindings/Cytoscape.fs" />
+    <!-- Core -->
+    <Compile Include="src/Model.fs" />
+    <Compile Include="src/Msg.fs" />
+    <Compile Include="src/Api.fs" />
+    <Compile Include="src/Router.fs" />
+    <!-- Components -->
+    <Compile Include="src/Components/EntropyBadge.fs" />
+    <Compile Include="src/Components/SearchBar.fs" />
+    <Compile Include="src/Components/ZettelView.fs" />
+    <Compile Include="src/Components/GraphView.fs" />
+    <!-- App -->
+    <Compile Include="src/App.fs" />
+    <Compile Include="src/Main.fs" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,22 @@
+{
+  "agent_type": "executive_director",
+  "agent_id": "ED-001",
+  "authority_level": "supreme",
+  "coordination_scope": "system_wide",
+  "emergency_powers": true,
+  "resource_allocation": "unlimited",
+  "oversight_domains": [
+    "access_control",
+    "accounts",
+    "alarms",
+    "analytics",
+    "communication",
+    "compliance",
+    "devices",
+    "performance",
+    "observability",
+    "web_api"
+  ],
+  "creation_timestamp": "2025-09-14T22:43:44.824160Z",
+  "sopv511_compliance": true
+}

@@ -1,0 +1,29 @@
+#\!/bin/bash
+# Direct Phoenix startup script
+
+# Set up environment
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export ELIXIR_ERL_OPTIONS='+fnu'
+export MIX_ENV=dev
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5434/intelitor_dev
+export REDIS_URL=redis://localhost:6380
+
+# Use the profile path directly
+export PATH=/workspace/.devenv/profile/bin:$PATH
+
+# Change to workspace directory
+cd /workspace
+
+# Check if mix is available
+if command -v mix >/dev/null 2>&1; then
+    echo "Mix found at: $(command -v mix)"
+    echo "Elixir version: $(elixir --version | head -1)"
+    
+    # Start Phoenix server
+    echo "Starting Phoenix server on http://localhost:4000"
+    mix phx.server
+else
+    echo "Mix not found in devenv profile, falling back to nix-shell"
+    ./run_phoenix_devenv.sh
+fi

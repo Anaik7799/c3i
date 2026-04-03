@@ -1,0 +1,89 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <RootNamespace>Cepaf.IndrajaalTest</RootNamespace>
+    <AssemblyName>Cepaf.IndrajaalTest</AssemblyName>
+
+    <!-- TDG Coverage Configuration -->
+    <CollectCoverage>true</CollectCoverage>
+    <CoverletOutputFormat>opencover,cobertura,json</CoverletOutputFormat>
+    <CoverletOutput>./coverage/</CoverletOutput>
+    <Threshold>80</Threshold>
+    <ThresholdType>line,branch</ThresholdType>
+    <ThresholdStat>total</ThresholdStat>
+
+    <!-- STAMP Safety Constraints -->
+    <!-- Note: TreatWarningsAsErrors disabled for FS0052 struct copy warnings -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>FS0052</NoWarn>
+  </PropertyGroup>
+
+  <!-- Source Files - Order Matters in F# -->
+  <!-- Phase 1: Core HTTP API Tests -->
+  <ItemGroup>
+    <Compile Include="SimplifiedTypes.fs" />
+    <Compile Include="SimplifiedHttpClient.fs" />
+    <Compile Include="ZenohClient.fs" />
+    <Compile Include="SimplifiedTests.fs" />
+    <Compile Include="ZenohTests.fs" />
+    <Compile Include="SimplifiedProgram.fs" />
+  </ItemGroup>
+
+  <!-- Test Framework -->
+  <ItemGroup>
+    <PackageReference Include="Expecto" Version="10.2.3" />
+    <PackageReference Include="Expecto.FsCheck" Version="10.2.3-fscheck3" />
+    <PackageReference Include="FsCheck" Version="3.0.0" />
+  </ItemGroup>
+
+  <!-- HTTP Client & REST Testing -->
+  <ItemGroup>
+    <PackageReference Include="FSharp.Data" Version="6.4.0" />
+    <PackageReference Include="FsHttp" Version="14.5.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <!-- WebSocket Testing -->
+  <ItemGroup>
+    <PackageReference Include="Websocket.Client" Version="5.1.2" />
+  </ItemGroup>
+
+  <!-- Browser/LiveView Testing -->
+  <ItemGroup>
+    <PackageReference Include="canopy" Version="2.1.5" />
+    <PackageReference Include="Selenium.WebDriver" Version="4.27.0" />
+    <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="131.0.6778.10800" />
+    <PackageReference Include="Selenium.WebDriver.GeckoDriver" Version="0.35.0" />
+    <!-- Security Override (NU1904) -->
+    <PackageReference Include="System.Drawing.Common" Version="8.0.4" />
+  </ItemGroup>
+
+  <!-- Coverage Tools -->
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.msbuild" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Logging & Diagnostics -->
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="4.3.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+  </ItemGroup>
+
+  <!-- Project References -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Cepaf\Cepaf.fsproj" />
+  </ItemGroup>
+
+</Project>

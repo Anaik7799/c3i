@@ -1,0 +1,11 @@
+_build/
+deps/
+priv/native/
+data/
+.git/
+.elixir_ls/
+.lexical/
+plt_files/
+node_modules/
+*.log
+bin/

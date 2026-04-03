@@ -1,0 +1,505 @@
+# podman-compose-sil6-debug-mesh.yml
+# SIL-6 Biomorphic Fractal Mesh - FULL DEBUG MODE (6-Container Architecture)
+# WHAT: Complete mesh with Cognitive Plane (Cortex, CEPAF Bridge) + Zenoh Control Plane
+# WHY: Full debug mode with verbose logging for development and troubleshooting
+# CONSTRAINTS: Requires rootless Podman 5.4.1+, ~27GB RAM
+# STAMP: SC-SIL6-001, SC-MESH-001, SC-CNT-009, SC-CNT-010, SC-CNT-012
+
+version: '3.8'
+
+networks:
+  indrajaal-sil6-mesh:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
+
+  indrajaal-internal:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.29.0.0/16
+
+services:
+  # =============================================================================
+  # DATA TIER - PostgreSQL + TimescaleDB (172.28.0.20)
+  # =============================================================================
+
+  indrajaal-db-prod:
+    image: localhost/indrajaal-timescaledb-demo:nixos-devenv
+    container_name: indrajaal-db-prod
+    hostname: indrajaal-db-prod
+    networks:
+      indrajaal-sil6-mesh:
+        ipv4_address: 172.28.0.20
+      indrajaal-internal:
+    environment:
+      POSTGRES_DB: indrajaal_prod
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGPORT: "5433"
+      TS_TUNE_MEMORY: 4GB
+      TS_TUNE_NUM_CPUS: 4
+      PHICS_ENABLED: "true"
+      NO_TIMEOUT: "true"
+      CONTAINER_OS: nixos
+      SOPV51_COMPLIANT: "true"
+      PGDATA: /var/lib/postgresql/pgdata
+      # DEBUG: Verbose PostgreSQL logging
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    ports:
+      - "5433:5433"
+    volumes:
+      - db_debug_data:/var/lib/postgresql/pgdata:z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d indrajaal_prod -p 5433"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '4'
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: database
+      environment: sil6-debug
+      stamp.verified: "true"
+      sil.level: "6"
+      debug.mode: "true"
+
+  # =============================================================================
+  # OBSERVABILITY TIER - OTEL + Prometheus + Grafana + Loki + SigNoz (172.28.0.30)
+  # =============================================================================
+
+  indrajaal-obs-prod:
+    image: localhost/indrajaal-obs-unified:nixos-devenv
+    container_name: indrajaal-obs-prod
+    hostname: indrajaal-obs-prod
+    networks:
+      indrajaal-sil6-mesh:
+        ipv4_address: 172.28.0.30
+    environment:
+      # OpenTelemetry Collector - DEBUG
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://localhost:4317
+      OTEL_SERVICE_NAME: indrajaal-obs-prod
+      LOG_LEVEL: debug
+      OTEL_LOG_LEVEL: debug
+      FRACTAL_LOGGING_ENABLED: "true"
+
+      # Prometheus - DEBUG
+      PROMETHEUS_RETENTION_TIME: 15d
+      PROMETHEUS_RETENTION_SIZE: 10GB
+      PROMETHEUS_LOG_LEVEL: debug
+
+      # Grafana - DEBUG
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: indrajaal
+      GF_SERVER_HTTP_PORT: "3000"
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      GF_LOG_LEVEL: debug
+      GF_LOG_MODE: console file
+
+      # Loki - DEBUG
+      LOKI_RETENTION_PERIOD: 168h
+      LOKI_LOG_LEVEL: debug
+
+      # SigNoz Configuration - DEBUG
+      SIGNOZ_ENABLED: "true"
+      SIGNOZ_QUERY_SERVICE_URL: http://localhost:8080
+      SIGNOZ_FRONTEND_PORT: "3301"
+      SIGNOZ_ALERT_MANAGER_PORT: "9093"
+      SIGNOZ_LOG_LEVEL: debug
+
+      # SigNoz ClickHouse (embedded)
+      CLICKHOUSE_HOST: localhost
+      CLICKHOUSE_PORT: "9000"
+      CLICKHOUSE_HTTP_PORT: "8123"
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+      CLICKHOUSE_DATABASE: signoz_traces
+      CLICKHOUSE_TRACES_TABLE: signoz_index_v2
+      CLICKHOUSE_METRICS_TABLE: signoz_metrics
+      CLICKHOUSE_LOGS_TABLE: signoz_logs
+
+      # Integration flags
+      UNIFIED_OBS_MODE: "true"
+      SOPV51_COMPLIANT: "true"
+      DEBUG_MODE: "true"
+    ports:
+      # OTEL Collector
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # OTEL metrics
+      # Prometheus
+      - "9090:9090"
+      # Grafana
+      - "3000:3000"
+      # Loki
+      - "3100:3100"
+      # SigNoz
+      - "3301:3301"   # SigNoz Frontend
+      - "8080:8080"   # SigNoz Query Service
+      - "9093:9093"   # SigNoz Alert Manager
+      # ClickHouse (SigNoz backend)
+      - "8123:8123"   # ClickHouse HTTP
+      - "9000:9000"   # ClickHouse Native
+    volumes:
+      - otel_debug_data:/var/log/otel:z
+      - prometheus_debug_data:/prometheus:z
+      - grafana_debug_data:/var/lib/grafana:z
+      - loki_debug_data:/loki:z
+      - signoz_debug_data:/var/lib/signoz:z
+      - clickhouse_debug_data:/var/lib/clickhouse:z
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8888/health && wget -q --spider http://localhost:9090/-/healthy && wget -q --spider http://localhost:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+    deploy:
+      resources:
+        limits:
+          memory: 10G
+          cpus: '6'
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: observability
+      environment: sil6-debug
+      services: otel,prometheus,grafana,loki,signoz,clickhouse
+      sil.level: "6"
+      debug.mode: "true"
+
+  # =============================================================================
+  # MESH CONTROL PLANE - Zenoh Router (172.28.0.40)
+  # =============================================================================
+
+  zenoh-router:
+    image: docker.io/eclipse/zenoh:1.0.0
+    container_name: zenoh-router
+    hostname: zenoh-router
+    networks:
+      indrajaal-sil6-mesh:
+        ipv4_address: 172.28.0.40
+    environment:
+      # DEBUG: Full Rust logging
+      RUST_LOG: zenoh=debug,zenoh_transport=debug,zenoh_protocol=debug,zenoh_link=debug
+      RUST_BACKTRACE: "1"
+    ports:
+      - "7447:7447"   # TCP/Quic transport
+      - "8448:8448"   # WebSocket transport
+      - "8000:8000"   # REST API (for health checks)
+    volumes:
+      - ../../../config/zenoh/zenoh.json5:/zenoh.json5:ro
+      - zenoh_debug_data:/var/lib/zenoh:z
+    command: ["-c", "/zenoh.json5"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/@/router/local || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1'
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: zenoh-router
+      environment: sil6-debug
+      mesh.role: control-plane
+      sil.level: "6"
+      debug.mode: "true"
+
+  # =============================================================================
+  # COGNITIVE PLANE - CEPAF Bridge (172.28.0.50)
+  # =============================================================================
+
+  cepaf-bridge:
+    image: localhost/cepaf-bridge:latest
+    container_name: cepaf-bridge
+    hostname: cepaf-bridge
+    networks:
+      indrajaal-sil6-mesh:
+        ipv4_address: 172.28.0.50
+    depends_on:
+      zenoh-router:
+        condition: service_healthy
+    environment:
+      CEPAF_BRIDGE_PORT: "9876"
+      CEPAF_BRIDGE_HOST: "0.0.0.0"
+      ZENOH_ROUTER_ENDPOINT: tcp/zenoh-router:7447
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://indrajaal-obs-prod:4317
+      OTEL_SERVICE_NAME: cepaf-bridge
+      DOTNET_RUNNING_IN_CONTAINER: "true"
+      # DEBUG: .NET verbose logging
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      LOGGING__LOGLEVEL__DEFAULT: Debug
+      LOGGING__LOGLEVEL__MICROSOFT: Debug
+      LOGGING__LOGLEVEL__SYSTEM: Debug
+      CEPAF_DEBUG: "true"
+      CEPAF_TRACE_ALL: "true"
+    ports:
+      - "9876:9876"   # JSON-RPC bridge
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9876/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2'
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: cepaf-bridge
+      environment: sil6-debug
+      mesh.role: cognitive-plane
+      stamp.constraint: SC-SYNC-001
+      sil.level: "6"
+      debug.mode: "true"
+
+  # =============================================================================
+  # COGNITIVE PLANE - F# Cortex (172.28.0.60)
+  # =============================================================================
+
+  indrajaal-cortex:
+    image: localhost/indrajaal-cortex:latest
+    container_name: indrajaal-cortex
+    hostname: indrajaal-cortex
+    networks:
+      indrajaal-sil6-mesh:
+        ipv4_address: 172.28.0.60
+    depends_on:
+      zenoh-router:
+        condition: service_healthy
+      cepaf-bridge:
+        condition: service_healthy
+    environment:
+      CORTEX_PORT: "9877"
+      CORTEX_HOST: "0.0.0.0"
+      ZENOH_ROUTER_ENDPOINT: tcp/zenoh-router:7447
+      CEPAF_BRIDGE_URL: http://cepaf-bridge:9876
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://indrajaal-obs-prod:4317
+      OTEL_SERVICE_NAME: indrajaal-cortex
+      DOTNET_RUNNING_IN_CONTAINER: "true"
+      # DEBUG: .NET verbose logging
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      LOGGING__LOGLEVEL__DEFAULT: Debug
+      LOGGING__LOGLEVEL__MICROSOFT: Debug
+      LOGGING__LOGLEVEL__SYSTEM: Debug
+      CORTEX_DEBUG: "true"
+      CORTEX_TRACE_ALL: "true"
+    ports:
+      - "9877:9877"   # Cortex API
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9877/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2'
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: cortex
+      environment: sil6-debug
+      mesh.role: cognitive-plane
+      stamp.constraint: SC-MESH-006
+      sil.level: "6"
+      debug.mode: "true"
+
+  # =============================================================================
+  # APPLICATION TIER - Phoenix + FLAME + Clustering + Redis (172.28.0.10)
+  # =============================================================================
+
+  indrajaal-ex-app-1:
+    image: localhost/indrajaal-app-unified:nixos-devenv
+    container_name: indrajaal-ex-app-1
+    hostname: indrajaal-ex-app-1
+    # SC-FIX-001: Override broken entrypoint that uses /bin/bash (not present in NixOS)
+    entrypoint: ["/bin/sh", "-c"]
+    # SC-FIX-004: Start Redis before Phoenix for embedded mode
+    command: ["export LANG=C.UTF-8 LC_ALL=C.UTF-8 ELIXIR_ERL_OPTIONS='+fnu' MIX_ENV=dev HOME=/root PATH=/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$$PATH && redis-server --daemonize yes --dir /var/lib/redis --logfile /var/lib/redis/redis.log --loglevel debug && cd /workspace && mix local.hex --force --if-missing && exec elixir --erl '-noinput' -S mix phx.server"]
+    networks:
+      indrajaal-sil6-mesh:
+        ipv4_address: 172.28.0.10
+      indrajaal-internal:
+    depends_on:
+      indrajaal-db-prod:
+        condition: service_healthy
+      indrajaal-obs-prod:
+        condition: service_healthy
+      zenoh-router:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: ecto://postgres:postgres@indrajaal-db-prod:5433/indrajaal_prod
+      POSTGRES_HOST: indrajaal-db-prod
+      POSTGRES_PORT: "5433"
+      POSTGRES_DB: indrajaal_prod
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+      # Redis (embedded) - DEBUG
+      REDIS_EMBEDDED: "true"
+      REDIS_URL: redis://localhost:6379
+      REDIS_HOST: localhost
+      REDIS_PORT: "6379"
+
+      # Phoenix - DEBUG
+      PHX_HOST: localhost
+      PHX_PORT: "4000"
+      PHX_SERVER: "true"
+      SECRET_KEY_BASE: production_equivalent_secret_key_base_64_chars_minimum_here_change_me
+
+      # FLAME Configuration
+      FLAME_ENABLED: "true"
+      FLAME_BACKEND: local
+      FLAME_MIN_POOL: "2"
+      FLAME_MAX_POOL: "10"
+
+      # Clustering
+      CLUSTERING_ENABLED: "true"
+      RELEASE_NODE: indrajaal@indrajaal-ex-app-1
+      RELEASE_COOKIE: indrajaal_prod_cookie
+
+      # Prajna Cockpit
+      PRAJNA_COCKPIT_ENABLED: "true"
+      PRAJNA_DARK_MODE: "true"
+      PRAJNA_AI_COPILOT_ENABLED: "true"
+
+      # OpenRouter AI
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: anthropic/claude-3.5-sonnet
+
+      # Observability - DEBUG
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://indrajaal-obs-prod:4317
+      OTEL_SERVICE_NAME: indrajaal-ex-app-1
+      FRACTAL_LOGGING_ENABLED: "true"
+      LOG_LEVEL: debug
+
+      # Zenoh Mesh Integration (SIL-6) - DEBUG
+      ZENOH_ENABLED: "true"
+      ZENOH_ROUTER_ENDPOINT: tcp/zenoh-router:7447
+      SKIP_ZENOH_NIF: "0"
+      ZENOH_LOG_LEVEL: debug
+
+      # Cognitive Plane Integration
+      CEPAF_BRIDGE_URL: http://cepaf-bridge:9876
+      CORTEX_URL: http://indrajaal-cortex:9877
+
+      # Framework - DEBUG
+      PHICS_ENABLED: "true"
+      NO_TIMEOUT: "true"
+      PATIENT_MODE: enabled
+      SOPV51_COMPLIANT: "true"
+      UNIFIED_APP_MODE: "true"
+      SIL_LEVEL: "6"
+      DEBUG_MODE: "true"
+
+      # Elixir Logger - DEBUG
+      LOGGER_LEVEL: debug
+      ERL_AFLAGS: "-kernel logger_level debug"
+    ports:
+      - "4000:4000"   # Phoenix
+      - "4001:4001"   # Health
+      - "6379:6379"   # Redis (exposed for debugging)
+    volumes:
+      - app_debug_data:/app/data:z
+      - redis_debug_data:/var/lib/redis:z
+      # Mount current workspace for development
+      - ${PWD}:/workspace:z
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4001/health && redis-cli ping || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 10G
+          cpus: '8'
+    restart: unless-stopped
+    labels:
+      project: indrajaal
+      component: application
+      environment: sil6-debug
+      stamp.verified: "true"
+      flame.enabled: "true"
+      clustering.enabled: "true"
+      redis.embedded: "true"
+      zenoh.enabled: "true"
+      services: phoenix,flame,clustering,redis,zenoh
+      sil.level: "6"
+      debug.mode: "true"
+
+volumes:
+  db_debug_data:
+  otel_debug_data:
+  prometheus_debug_data:
+  grafana_debug_data:
+  loki_debug_data:
+  signoz_debug_data:
+  clickhouse_debug_data:
+  app_debug_data:
+  redis_debug_data:
+  zenoh_debug_data:
+
+# =============================================================================
+# DEBUG MODE ARCHITECTURE - SIL-6 Biomorphic Fractal Mesh (6 Containers)
+# =============================================================================
+#
+# All containers configured with VERBOSE LOGGING:
+#
+# | Container           | Debug Settings                              | Port |
+# |---------------------|---------------------------------------------|------|
+# | indrajaal-db-prod   | POSTGRES_INITDB_ARGS                        | 5433 |
+# | indrajaal-obs-prod  | LOG_LEVEL=debug, all services debug         | 4317+|
+# | zenoh-router        | RUST_LOG=zenoh=debug, RUST_BACKTRACE=1      | 7447 |
+# | cepaf-bridge        | LOGGING__LOGLEVEL__DEFAULT=Debug            | 9876 |
+# | indrajaal-cortex    | LOGGING__LOGLEVEL__DEFAULT=Debug            | 9877 |
+# | indrajaal-ex-app-1  | LOG_LEVEL=debug, LOGGER_LEVEL=debug         | 4000 |
+#
+# =============================================================================
+# Usage Instructions
+# =============================================================================
+#
+# Build CEPAF Bridge Image (if not present):
+#   podman build -f Dockerfile.cepaf-bridge -t localhost/cepaf-bridge:latest .
+#
+# Start Full Debug Mesh:
+#   podman-compose -f lib/cepaf/artifacts/podman-compose-sil6-debug-mesh.yml up -d
+#
+# View All Logs (verbose):
+#   podman-compose -f lib/cepaf/artifacts/podman-compose-sil6-debug-mesh.yml logs -f
+#
+# View Specific Container Logs:
+#   podman logs -f zenoh-router
+#   podman logs -f cepaf-bridge
+#   podman logs -f indrajaal-cortex
+#   podman logs -f indrajaal-ex-app-1
+#
+# Shutdown:
+#   podman-compose -f lib/cepaf/artifacts/podman-compose-sil6-debug-mesh.yml down
+#
+# Cleanup (with volumes):
+#   podman-compose -f lib/cepaf/artifacts/podman-compose-sil6-debug-mesh.yml down -v
+# =============================================================================

@@ -1,0 +1,32 @@
+#\!/bin/bash
+# Phoenix startup script with offline Hex installation
+
+# Set up environment
+export NIX_PATH=nixpkgs=channel:nixos-unstable
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+export ELIXIR_ERL_OPTIONS='+fnu'
+export MIX_ENV=dev
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5434/intelitor_dev
+export REDIS_URL=redis://localhost:6380
+export HEX_OFFLINE=true
+
+# Change to workspace directory
+cd /workspace
+
+echo "Starting Phoenix server with offline configuration..."
+
+# Run with nix-shell
+nix-shell -p elixir_1_18 erlang_27 nodejs_20 --run '
+  # Force install hex locally without downloading
+  echo "Setting up Hex in offline mode..."
+  mix local.hex --force --if-missing || true
+  
+  # Since dependencies are already in deps/, we can compile and run
+  echo "Compiling application (offline mode)..."
+  mix compile
+  
+  # Start Phoenix server
+  echo "Starting Phoenix server on http://localhost:4000"
+  exec mix phx.server
+'

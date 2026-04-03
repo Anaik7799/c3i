@@ -1,0 +1,150 @@
+{
+  "title": "Performance Dashboard",
+  "description": "System performance metrics including latency, throughput, and resource usage",
+  "layout": "grid",
+  "variables": [],
+  "panels": [
+    {
+      "title": "Request Throughput",
+      "type": "metric",
+      "query": "sum(rate(http_requests_total[1m]))",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "visualization": "line",
+        "aggregation": "avg",
+        "interval": "1m",
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    },
+    {
+      "title": "Average Latency",
+      "type": "metric",
+      "query": "avg(http_request_duration_seconds)",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "visualization": "line",
+        "aggregation": "avg",
+        "interval": "1m",
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    },
+    {
+      "title": "Latency Percentiles",
+      "type": "metric",
+      "query": "histogram_quantile(0.5, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 4
+      },
+      "options": {
+        "aggregation": "percentile",
+        "visualization": "line",
+        "interval": "1m",
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    },
+    {
+      "title": "CPU Usage",
+      "type": "metric",
+      "query": "avg(cpu_usage_percent) by (service)",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "visualization": "line",
+        "aggregation": "avg",
+        "interval": "1m",
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    },
+    {
+      "title": "Memory Usage",
+      "type": "metric",
+      "query": "avg(memory_usage_bytes) by (service)",
+      "gridPos": {
+        "x": 6,
+        "y": 8,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "visualization": "line",
+        "aggregation": "avg",
+        "interval": "1m",
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    },
+    {
+      "title": "Database Query Time",
+      "type": "metric",
+      "query": "avg(db_query_duration_seconds) by (query_type)",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "visualization": "bar",
+        "aggregation": "avg",
+        "interval": "1m",
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    },
+    {
+      "title": "Cache Hit Rate",
+      "type": "metric",
+      "query": "sum(rate(cache_hits_total[5m])) / sum(rate(cache_requests_total[5m]))",
+      "gridPos": {
+        "x": 6,
+        "y": 12,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "visualization": "gauge",
+        "aggregation": "avg",
+        "interval": "1m",
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    },
+    {
+      "title": "Slow Queries",
+      "type": "log",
+      "query": "service=database AND duration > 1000",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 4
+      },
+      "options": {
+        "columns": ["timestamp", "query", "duration", "rows"],
+        "time_range": "15m",
+        "refresh_interval": "30s"
+      }
+    }
+  ]
+}

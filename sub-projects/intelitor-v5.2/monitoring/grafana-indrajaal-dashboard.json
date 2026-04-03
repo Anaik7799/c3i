@@ -1,0 +1,331 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Indrajaal Performance Testing Dashboard",
+    "tags": ["indrajaal", "performance", "alarms", "containers"],
+    "timezone": "browser",
+    "schemaVersion": 30,
+    "version": 1,
+    "refresh": "5s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Alarm Processing Performance",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(alarm_processing_duration_milliseconds_bucket[5m]))",
+            "legendFormat": "P95 Latency (ms)",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(alarm_processing_total[5m]) * 60",
+            "legendFormat": "Alarms/minute",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 500},
+                {"color": "red", "value": 1000}
+              ]
+            },
+            "unit": "ms"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "HTTP Request Performance",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(http_request_duration_milliseconds_bucket[5m]))",
+            "legendFormat": "P50 Response Time"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_milliseconds_bucket[5m]))",
+            "legendFormat": "P95 Response Time"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(http_request_duration_milliseconds_bucket[5m]))",
+            "legendFormat": "P99 Response Time"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "ms",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Database Performance",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "pg_stat_database_tup_fetched{datname=\"indrajaal_prod\"}",
+            "legendFormat": "Rows Fetched"
+          },
+          {
+            "expr": "pg_stat_database_tup_inserted{datname=\"indrajaal_prod\"}",
+            "legendFormat": "Rows Inserted"
+          },
+          {
+            "expr": "pg_stat_database_tup_updated{datname=\"indrajaal_prod\"}",
+            "legendFormat": "Rows Updated"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Database Connections",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8},
+        "targets": [
+          {
+            "expr": "pg_stat_database_numbackends{datname=\"indrajaal_prod\"}",
+            "legendFormat": "Active Connections"
+          },
+          {
+            "expr": "pg_settings_max_connections",
+            "legendFormat": "Max Connections"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 80},
+                {"color": "red", "value": 90}
+              ]
+            },
+            "unit": "short",
+            "max": 500
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Container Memory Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8},
+        "targets": [
+          {
+            "expr": "container_memory_usage_bytes{container_label_io_kubernetes_container_name=~\"indrajaal.*\"} / 1024 / 1024 / 1024",
+            "legendFormat": "{{container_label_io_kubernetes_container_name}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "GB",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Container CPU Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "targets": [
+          {
+            "expr": "rate(container_cpu_usage_seconds_total{container_label_io_kubernetes_container_name=~\"indrajaal.*\"}[5m]) * 100",
+            "legendFormat": "{{container_label_io_kubernetes_container_name}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "percent",
+            "min": 0,
+            "max": 100
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Network I/O",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "targets": [
+          {
+            "expr": "rate(container_network_receive_bytes_total{container_label_io_kubernetes_container_name=~\"indrajaal.*\"}[5m]) / 1024 / 1024",
+            "legendFormat": "RX {{container_label_io_kubernetes_container_name}}"
+          },
+          {
+            "expr": "rate(container_network_transmit_bytes_total{container_label_io_kubernetes_container_name=~\"indrajaal.*\"}[5m]) / 1024 / 1024",
+            "legendFormat": "TX {{container_label_io_kubernetes_container_name}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "MB/s",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Alarm Statistics",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 24},
+        "targets": [
+          {
+            "expr": "sum by (severity) (increase(alarms_created_total[1h]))",
+            "legendFormat": "{{severity}}",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "columns": [
+                {"text": "Severity", "value": "severity"},
+                {"text": "Count (1h)", "value": "Value"}
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Error Rates",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 24},
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m]) * 100",
+            "legendFormat": "5xx Error Rate"
+          },
+          {
+            "expr": "rate(http_requests_total{status=~\"4..\"}[5m]) / rate(http_requests_total[5m]) * 100",
+            "legendFormat": "4xx Error Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 5}
+              ]
+            },
+            "unit": "percent",
+            "max": 10
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "Load Testing Metrics",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 24},
+        "targets": [
+          {
+            "expr": "artillery_scenarios_completed_total",
+            "legendFormat": "Scenarios Completed"
+          },
+          {
+            "expr": "artillery_http_request_rate",
+            "legendFormat": "Request Rate"
+          },
+          {
+            "expr": "artillery_concurrent_users",
+            "legendFormat": "Concurrent Users"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "System Load Average",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+        "targets": [
+          {
+            "expr": "node_load1{instance=~\"10.200.0.*\"}",
+            "legendFormat": "1m Load - {{instance}}"
+          },
+          {
+            "expr": "node_load5{instance=~\"10.200.0.*\"}",
+            "legendFormat": "5m Load - {{instance}}"
+          },
+          {
+            "expr": "node_load15{instance=~\"10.200.0.*\"}",
+            "legendFormat": "15m Load - {{instance}}"
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Disk I/O",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 32},
+        "targets": [
+          {
+            "expr": "rate(node_disk_read_bytes_total{instance=~\"10.200.0.*\"}[5m]) / 1024 / 1024",
+            "legendFormat": "Read {{instance}}"
+          },
+          {
+            "expr": "rate(node_disk_written_bytes_total{instance=~\"10.200.0.*\"}[5m]) / 1024 / 1024",
+            "legendFormat": "Write {{instance}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "MB/s",
+            "min": 0
+          }
+        ]
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "container",
+          "type": "query",
+          "query": "label_values(container_memory_usage_bytes, container_label_io_kubernetes_container_name)",
+          "refresh": 2,
+          "includeAll": true,
+          "multi": true
+        },
+        {
+          "name": "instance",
+          "type": "query",
+          "query": "label_values(node_load1, instance)",
+          "refresh": 2,
+          "includeAll": true,
+          "multi": true
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Performance Test Events",
+          "datasource": "prometheus",
+          "expr": "changes(test_run_start_time[1h])",
+          "titleFormat": "Test Run Started",
+          "textFormat": "Performance test initiated"
+        }
+      ]
+    }
+  }
+}

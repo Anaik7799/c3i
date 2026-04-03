@@ -1,0 +1,246 @@
+#!/usr/bin/env elixir
+
+# SOPv5.1 Timestamp Validation Integration (CLAUDE.md Rule 19.2)
+# Added: 2025-07-31 09:10:36 CEST
+# This script includes automatic timestamp validation as required by CLAUDE.md
+
+Code.require_file("scripts/maintenance/timestamp_validation_helper.exs")
+alias TimestampValidationHelper, as: TSHelper
+
+# Automatic timestamp validation on script start
+TSHelper.validate_and_fix_timestamps_if_needed()
+
+defmodule MassScriptTimestampIntegrator do
+  @moduledoc """
+  SOPv5.1 Mass Script Timestamp Integrator
+  
+  Automatically adds timestamp validation integration to all key maintenance scripts.
+  CLAUDE.md Rule 19.2: ALL scripts and tools MUST include timestamp validation capabilities.
+  
+  This tool ensures systematic compliance across all maintenance tooling.
+  """
+
+  def main(args \\ []) do
+    IO.puts("🔧 SOPv5.1 Mass Script Timestamp Integrator")
+    IO.puts("=" <> String.duplicate("=", 50))
+    
+    case args do
+      ["--all"] -> integrate_all_scripts()
+      ["--key-scripts"] -> integrate_key_scripts()
+      ["--list"] -> list_target_scripts()
+      ["--validate"] -> validate_integration_status()
+      _ -> show_help()
+    end
+  end
+
+  def integrate_all_scripts do
+    IO.puts("🚀 Integrating timestamp validation into ALL maintenance scripts")
+    
+    scripts = find_all_maintenance_scripts()
+    integrate_scripts(scripts, "all maintenance scripts")
+  end
+
+  def integrate_key_scripts do
+    IO.puts("🎯 Integrating timestamp validation into KEY maintenance scripts")
+    
+    key_scripts = [
+      "scripts/maintenance/project_journal.exs",
+      "scripts/maintenance/toyota_quality_system.exs",
+      "scripts/maintenance/simple_timestamp_validator.exs",
+      "scripts/maintenance/comprehensive_timestamp_fixer.exs",
+      "scripts/maintenance/credo_quality_summary.exs",
+      "scripts/maintenance/atomic_warning_mass_fix.exs",
+      "scripts/maintenance/fix_warnings.exs",
+      "scripts/maintenance/simple_container_policy_scanner.exs",
+      "scripts/maintenance/simple_nixos_script_updater.exs"
+    ]
+    
+    integrate_scripts(key_scripts, "key maintenance scripts")
+  end
+
+  def list_target_scripts do
+    IO.puts("📋 TARGET SCRIPTS FOR TIMESTAMP INTEGRATION")
+    IO.puts("=" <> String.duplicate("=", 45))
+    
+    all_scripts = find_all_maintenance_scripts()
+    key_scripts = get_key_scripts()
+    
+    IO.puts("\n🎯 KEY SCRIPTS (#{length(key_scripts)}):")
+    Enum.each(key_scripts, fn script ->
+      status = if has_timestamp_integration?(script), do: "✅", else: "❌"
+      IO.puts("   #{status} #{script}")
+    end)
+    
+    other_scripts = all_scripts -- key_scripts
+    IO.puts("\n📁 OTHER MAINTENANCE SCRIPTS (#{length(other_scripts)}):")
+    Enum.each(other_scripts, fn script ->
+      status = if has_timestamp_integration?(script), do: "✅", else: "❌"
+      IO.puts("   #{status} #{script}")
+    end)
+    
+    integrated_count = Enum.count(all_scripts, &has_timestamp_integration?/1)
+    IO.puts("\n📊 INTEGRATION STATUS:")
+    IO.puts("   Total scripts: #{length(all_scripts)}")
+    IO.puts("   Integrated: #{integrated_count}")
+    IO.puts("   Remaining: #{length(all_scripts) - integrated_count}")
+    IO.puts("   Integration rate: #{Float.round(integrated_count / length(all_scripts) * 100, 1)}%")
+  end
+
+  def validate_integration_status do
+    IO.puts("🔍 VALIDATING TIMESTAMP INTEGRATION STATUS")
+    IO.puts("=" <> String.duplicate("=", 40))
+    
+    all_scripts = find_all_maintenance_scripts()
+    
+    results = Enum.map(all_scripts, fn script ->
+      case validate_script_integration(script) do
+        {:ok, status} -> {script, :ok, status}
+        {:warning, message} -> {script, :warning, message}
+        {:error, reason} -> {script, :error, reason}
+      end
+    end)
+    
+    # Group results by status
+    ok_scripts = Enum.filter(results, fn {_, status, _} -> status == :ok end)
+    warning_scripts = Enum.filter(results, fn {_, status, _} -> status == :warning end)
+    error_scripts = Enum.filter(results, fn {_, status, _} -> status == :error end)
+    
+    IO.puts("\n✅ PROPERLY INTEGRATED (#{length(ok_scripts)}):")
+    Enum.each(ok_scripts, fn {script, _, message} ->
+      IO.puts("   ✅ #{script}: #{message}")
+    end)
+    
+    if warning_scripts != [] do
+      IO.puts("\n⚠️  WARNINGS (#{length(warning_scripts)}):")
+      Enum.each(warning_scripts, fn {script, _, message} ->
+        IO.puts("   ⚠️  #{script}: #{message}")
+      end)
+    end
+    
+    if error_scripts != [] do
+      IO.puts("\n❌ INTEGRATION ISSUES (#{length(error_scripts)}):")
+      Enum.each(error_scripts, fn {script, _, reason} ->
+        IO.puts("   ❌ #{script}: #{reason}")
+      end)
+    end
+    
+    integration_rate = length(ok_scripts) / length(all_scripts) * 100
+    IO.puts("\n📊 VALIDATION SUMMARY:")
+    IO.puts("   Scripts validated: #{length(all_scripts)}")
+    IO.puts("   Properly integrated: #{length(ok_scripts)}")
+    IO.puts("   Integration rate: #{Float.round(integration_rate, 1)}%")
+    
+    if integration_rate >= 80.0 do
+      IO.puts("   Status: ✅ EXCELLENT COMPLIANCE")
+    else
+      IO.puts("   Status: ⚠️  NEEDS IMPROVEMENT")
+    end
+  end
+
+  defp integrate_scripts(scripts, description) do
+    IO.puts("Processing #{length(scripts)} #{description}...")
+    
+    results = Enum.map(scripts, fn script ->
+      if File.exists?(script) do
+        case TSHelper.add_timestamp_header_to_script(script) do
+          {:ok, message} -> 
+            IO.puts("✅ #{script}: #{message}")
+            {:ok, script}
+          {:error, reason} -> 
+            IO.puts("❌ #{script}: #{reason}")
+            {:error, script}
+        end
+      else
+        IO.puts("⚠️  #{script}: File does not exist")
+        {:missing, script}
+      end
+    end)
+    
+    success_count = Enum.count(results, fn {status, _} -> status == :ok end)
+    error_count = Enum.count(results, fn {status, _} -> status == :error end)
+    missing_count = Enum.count(results, fn {status, _} -> status == :missing end)
+    
+    IO.puts("\n📊 INTEGRATION SUMMARY:")
+    IO.puts("   Scripts processed: #{length(scripts)}")
+    IO.puts("   Successfully integrated: #{success_count}")
+    IO.puts("   Errors: #{error_count}")
+    IO.puts("   Missing files: #{missing_count}")
+    IO.puts("   Success rate: #{Float.round(success_count / length(scripts) * 100, 1)}%")
+  end
+
+  defp find_all_maintenance_scripts do
+    Path.wildcard("scripts/maintenance/*.exs")
+    |> Enum.filter(&File.regular?/1)
+    |> Enum.sort()
+  end
+
+  defp get_key_scripts do
+    [
+      "scripts/maintenance/project_journal.exs",
+      "scripts/maintenance/toyota_quality_system.exs",
+      "scripts/maintenance/simple_timestamp_validator.exs",
+      "scripts/maintenance/comprehensive_timestamp_fixer.exs",
+      "scripts/maintenance/credo_quality_summary.exs",
+      "scripts/maintenance/atomic_warning_mass_fix.exs",
+      "scripts/maintenance/fix_warnings.exs",
+      "scripts/maintenance/simple_container_policy_scanner.exs",
+      "scripts/maintenance/simple_nixos_script_updater.exs"
+    ]
+    |> Enum.filter(&File.exists?/1)
+  end
+
+  defp has_timestamp_integration?(script) do
+    case File.read(script) do
+      {:ok, content} ->
+        String.contains?(content, "TimestampValidationHelper") and
+        String.contains?(content, "CLAUDE.md Rule 19.2")
+      {:error, _} -> false
+    end
+  end
+
+  defp validate_script_integration(script) do
+    case File.read(script) do
+      {:ok, content} ->
+        cond do
+          String.contains?(content, "TimestampValidationHelper") and
+          String.contains?(content, "CLAUDE.md Rule 19.2") ->
+            {:ok, "Properly integrated with timestamp validation"}
+          
+          String.contains?(content, "TimestampValidationHelper") ->
+            {:warning, "Has TimestampValidationHelper but missing CLAUDE.md Rule reference"}
+          
+          String.contains?(content, "timestamp") ->
+            {:warning, "Contains timestamp references but no formal integration"}
+          
+          true ->
+            {:error, "No timestamp validation integration detected"}
+        end
+      {:error, reason} ->
+        {:error, "Cannot read file: #{reason}"}
+    end
+  end
+
+  defp show_help do
+    IO.puts("""
+    SOPv5.1 Mass Script Timestamp Integrator
+    ========================================
+    
+    Usage:
+      elixir scripts/maintenance/mass_script_timestamp_integrator.exs [option]
+    
+    Options:
+      --all         Integrate timestamp validation into ALL maintenance scripts
+      --key-scripts Integrate only KEY maintenance scripts (recommended)
+      --list        List all target scripts and their integration status
+      --validate    Validate integration status across all scripts
+      --help        Show this help message
+    
+    CLAUDE.md Rule 19.2: ALL scripts and tools MUST include timestamp validation capabilities.
+    
+    This tool ensures systematic compliance with timestamp validation requirements.
+    """)
+  end
+end
+
+# Execute if run directly
+MassScriptTimestampIntegrator.main(System.argv())

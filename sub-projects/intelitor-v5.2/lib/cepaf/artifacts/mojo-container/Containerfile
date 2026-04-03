@@ -1,0 +1,58 @@
+# Containerfile for indrajaal-mojo — MAX Engine + Zenoh Neural Bridge
+#
+# STAMP: SC-MOJO-001 (Zenoh connection), SC-MOJO-002 (latency), SC-MOJO-008 (GGUF integrity)
+# OS: Ubuntu 22.04 LTS (ONLY supported distro for MAX Engine SDK)
+# Size: ~8GB (base) + model size (8-12GB for Llama-3-8B GGUF)
+#
+# Build:
+#   podman build -t localhost/indrajaal-mojo:latest -f Containerfile .
+#
+# Run:
+#   podman run --rm -p 11436:11436 -v mojo_model_data:/models:z localhost/indrajaal-mojo:latest
+
+FROM ubuntu:22.04 AS base
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# System dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-venv \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install MAX Engine SDK
+# SC-MOJO-003: MAX Engine version pinned for reproducibility
+RUN curl -ssL https://magic.modular.com/deb6e7e2-e200-4c64-801d-2e665e0be467 | bash -s -- --default-channel max
+ENV PATH="/root/.modular/bin:${PATH}"
+ENV MODULAR_HOME="/root/.modular"
+
+# Python dependencies for Zenoh bridge + inference server
+RUN pip3 install --no-cache-dir \
+    eclipse-zenoh==1.7.0 \
+    fastapi==0.115.* \
+    uvicorn[standard]==0.34.* \
+    pydantic==2.* \
+    httpx==0.28.*
+
+# Application directory
+WORKDIR /app
+COPY serve.py /app/serve.py
+
+# Model storage mount point
+VOLUME /models
+
+# Health check port
+EXPOSE 11436
+
+# SC-MOJO-004: Health check for container orchestration
+HEALTHCHECK --interval=30s --timeout=10s --retries=5 --start-period=120s \
+    CMD curl -sf http://localhost:11436/health || exit 1
+
+# SC-MOJO-005: Memory limits enforced at runtime (12GB max)
+# Set via compose deploy.resources.limits.memory
+
+ENTRYPOINT ["python3", "/app/serve.py"]

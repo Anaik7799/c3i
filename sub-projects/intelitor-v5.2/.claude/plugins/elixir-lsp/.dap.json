@@ -1,0 +1,347 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "indrajaal-dap-config",
+  "version": "1.0.0",
+  "description": "Debug Adapter Protocol configuration for Indrajaal closed-loop debugger system",
+
+  "stamp_constraints": {
+    "SC-DEBUG-001": "Publish to Zenoh within 10ms",
+    "SC-DEBUG-002": "Emit telemetry for all debug events",
+    "SC-DEBUG-003": "Correlate with OTEL trace context",
+    "SC-DEBUG-004": "gRPC timeout 5 seconds",
+    "SC-DEBUG-008": "Maximum 10K events/sec throughput",
+    "SC-DEBUG-009": "Bidirectional control channel",
+    "SC-DEBUG-010": "FQUN for all debug entities"
+  },
+
+  "elixir": {
+    "adapter": "elixir-ls-debug",
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/elixir-ls-debug",
+    "args": [],
+    "type": "mix_task",
+    "configurations": [
+      {
+        "name": "Mix - Default Task",
+        "type": "mix_task",
+        "request": "launch",
+        "task": "run",
+        "env": {
+          "MIX_ENV": "dev",
+          "SKIP_ZENOH_NIF": "0"
+        },
+        "requireFiles": ["lib/**/*.ex"],
+        "projectDir": "${workspaceFolder}",
+        "stackTraceMode": "all",
+        "exitAfterTaskReturns": false,
+        "debugAutoInterpretAllModules": false,
+        "debugInterpretModulesPatterns": [
+          "Indrajaal.*"
+        ]
+      },
+      {
+        "name": "Mix Test - All",
+        "type": "mix_task",
+        "request": "launch",
+        "task": "test",
+        "taskArgs": ["--trace"],
+        "env": {
+          "MIX_ENV": "test",
+          "SKIP_ZENOH_NIF": "0"
+        },
+        "projectDir": "${workspaceFolder}",
+        "stackTraceMode": "all"
+      },
+      {
+        "name": "Mix Test - Current File",
+        "type": "mix_task",
+        "request": "launch",
+        "task": "test",
+        "taskArgs": ["${relativeFile}", "--trace"],
+        "env": {
+          "MIX_ENV": "test",
+          "SKIP_ZENOH_NIF": "0"
+        },
+        "projectDir": "${workspaceFolder}"
+      },
+      {
+        "name": "Phoenix Server - Debug",
+        "type": "mix_task",
+        "request": "launch",
+        "task": "phx.server",
+        "env": {
+          "MIX_ENV": "dev",
+          "PHX_SERVER": "true",
+          "SKIP_ZENOH_NIF": "0"
+        },
+        "projectDir": "${workspaceFolder}",
+        "exitAfterTaskReturns": false
+      },
+      {
+        "name": "IEx Session - Debug",
+        "type": "mix_task",
+        "request": "launch",
+        "task": "run",
+        "taskArgs": ["--no-halt"],
+        "env": {
+          "MIX_ENV": "dev",
+          "SKIP_ZENOH_NIF": "0"
+        },
+        "projectDir": "${workspaceFolder}",
+        "exitAfterTaskReturns": false
+      }
+    ],
+    "breakpointConfiguration": {
+      "functionBreakpoints": true,
+      "conditionalBreakpoints": true,
+      "hitConditionalBreakpoints": true,
+      "logPoints": true
+    },
+    "telemetryIntegration": {
+      "enabled": true,
+      "zenohPublish": true,
+      "zenohPrefix": "indrajaal/debug/elixir",
+      "grpcEndpoint": "localhost:50051",
+      "fractalLevel": "L3",
+      "otelCorrelation": true
+    }
+  },
+
+  "fsharp": {
+    "adapter": "netcoredbg",
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/netcoredbg",
+    "args": ["--interpreter=vscode"],
+    "type": "coreclr",
+    "configurations": [
+      {
+        "name": "CEPAF - Debug",
+        "type": "coreclr",
+        "request": "launch",
+        "preLaunchTask": "dotnet build",
+        "program": "${workspaceFolder}/lib/cepaf/src/Cepaf/bin/Debug/net10.0/Cepaf.dll",
+        "args": [],
+        "cwd": "${workspaceFolder}/lib/cepaf",
+        "stopAtEntry": false,
+        "env": {
+          "DOTNET_ENVIRONMENT": "Development",
+          "ZENOH_ENDPOINT": "tcp/localhost:7447",
+          "GRPC_ENDPOINT": "localhost:50051"
+        }
+      },
+      {
+        "name": "CEPAF Tests - Debug",
+        "type": "coreclr",
+        "request": "launch",
+        "preLaunchTask": "dotnet build test/Cepaf.Tests",
+        "program": "${workspaceFolder}/lib/cepaf/test/Cepaf.Tests/bin/Debug/net10.0/Cepaf.Tests.dll",
+        "args": ["--summary"],
+        "cwd": "${workspaceFolder}/lib/cepaf",
+        "stopAtEntry": false
+      },
+      {
+        "name": "F# Interactive - Debug",
+        "type": "coreclr",
+        "request": "launch",
+        "program": "dotnet",
+        "args": ["fsi", "--debug+", "--shadowcopyreferences"],
+        "cwd": "${workspaceFolder}/lib/cepaf",
+        "console": "integratedTerminal"
+      },
+      {
+        "name": "Prajna Cockpit - Debug",
+        "type": "coreclr",
+        "request": "launch",
+        "preLaunchTask": "dotnet build src/Cepaf",
+        "program": "${workspaceFolder}/lib/cepaf/src/Cepaf/bin/Debug/net10.0/Cepaf.dll",
+        "args": ["cockpit", "--debug"],
+        "cwd": "${workspaceFolder}/lib/cepaf",
+        "env": {
+          "ELIXIR_BACKEND": "http://localhost:4000",
+          "ZENOH_ENDPOINT": "tcp/localhost:7447"
+        }
+      }
+    ],
+    "breakpointConfiguration": {
+      "functionBreakpoints": true,
+      "conditionalBreakpoints": true,
+      "hitConditionalBreakpoints": true,
+      "logPoints": true,
+      "dataBreakpoints": true
+    },
+    "telemetryIntegration": {
+      "enabled": true,
+      "zenohPublish": true,
+      "zenohPrefix": "indrajaal/debug/fsharp",
+      "grpcEndpoint": "localhost:50051",
+      "fractalLevel": "L3",
+      "otelCorrelation": true
+    }
+  },
+
+  "rust": {
+    "adapter": "lldb-dap",
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/lldb-dap",
+    "args": [],
+    "type": "lldb",
+    "note": "For debugging Zenoh NIFs and Rustler native code",
+    "configurations": [
+      {
+        "name": "Debug Zenoh NIF",
+        "type": "lldb",
+        "request": "attach",
+        "program": "${env:HOME}/.asdf/installs/erlang/28.0/lib/erlang/erts-16.2/bin/beam.smp",
+        "pid": "${command:pickProcess}",
+        "sourceLanguages": ["rust"],
+        "preLaunchCommands": [
+          "settings set target.source-map ./ ${workspaceFolder}/native"
+        ]
+      },
+      {
+        "name": "Debug NIF Tests",
+        "type": "lldb",
+        "request": "launch",
+        "cargo": {
+          "args": ["test", "--no-run", "--lib"],
+          "filter": {
+            "kind": "lib"
+          }
+        },
+        "cwd": "${workspaceFolder}/native/zenoh_nif",
+        "sourceLanguages": ["rust"]
+      }
+    ],
+    "breakpointConfiguration": {
+      "functionBreakpoints": true,
+      "conditionalBreakpoints": true,
+      "dataBreakpoints": true
+    },
+    "telemetryIntegration": {
+      "enabled": true,
+      "zenohPublish": true,
+      "zenohPrefix": "indrajaal/debug/rust",
+      "fractalLevel": "L4"
+    }
+  },
+
+  "python": {
+    "adapter": "debugpy",
+    "command": "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/python",
+    "args": ["-m", "debugpy.adapter"],
+    "type": "python",
+    "note": "For debugging AI/ML scripts and integrations",
+    "configurations": [
+      {
+        "name": "Python - Current File",
+        "type": "python",
+        "request": "launch",
+        "program": "${file}",
+        "console": "integratedTerminal",
+        "justMyCode": true
+      },
+      {
+        "name": "Python - AI Scripts",
+        "type": "python",
+        "request": "launch",
+        "program": "${workspaceFolder}/scripts/agents/${input:scriptName}",
+        "console": "integratedTerminal",
+        "env": {
+          "PYTHONPATH": "${workspaceFolder}/scripts"
+        }
+      }
+    ],
+    "breakpointConfiguration": {
+      "functionBreakpoints": true,
+      "conditionalBreakpoints": true,
+      "logPoints": true
+    },
+    "telemetryIntegration": {
+      "enabled": true,
+      "zenohPublish": true,
+      "zenohPrefix": "indrajaal/debug/python",
+      "fractalLevel": "L4"
+    }
+  },
+
+  "crossLanguage": {
+    "enabled": true,
+    "bridge": {
+      "elixirToFsharp": {
+        "grpcService": "Indrajaal.Debugger.DebuggerService",
+        "endpoint": "localhost:50051",
+        "timeout": 5000
+      },
+      "fsharpToElixir": {
+        "httpEndpoint": "http://localhost:4000/api/debug",
+        "timeout": 5000
+      }
+    },
+    "correlationId": {
+      "format": "debug-{trace_id}-{span_id}",
+      "propagation": ["grpc-metadata", "http-header"]
+    },
+    "telemetry": {
+      "crossLanguageEvents": true,
+      "zenohTopic": "indrajaal/debug/cross-language",
+      "fractalLevel": "L2"
+    }
+  },
+
+  "zenohIntegration": {
+    "enabled": true,
+    "endpoint": "tcp/localhost:7447",
+    "keyExpressions": {
+      "debugEvents": "indrajaal/debug/**",
+      "controlCommands": "indrajaal/debug/control/commands/**",
+      "controlResponses": "indrajaal/debug/control/responses/**",
+      "telemetry": "indrajaal/debug/telemetry/**"
+    },
+    "publishTimeout": 10,
+    "circuitBreaker": {
+      "threshold": 1000,
+      "resetMs": 5000
+    }
+  },
+
+  "grpcIntegration": {
+    "enabled": true,
+    "endpoint": "localhost:50051",
+    "services": {
+      "DebuggerService": {
+        "package": "indrajaal.debugger",
+        "protoFile": "lib/cepaf/proto/debugger.proto"
+      }
+    },
+    "timeout": 5000,
+    "retryPolicy": {
+      "maxAttempts": 3,
+      "backoffMs": 1000
+    }
+  },
+
+  "fractalLogging": {
+    "enabled": true,
+    "levels": {
+      "L1": "Session lifecycle (ecosystem)",
+      "L2": "Cross-language coordination (cluster)",
+      "L3": "Module-level events (domain)",
+      "L4": "Function-level detail (component)",
+      "L5": "Variable/expression (trace)"
+    },
+    "defaultLevel": "L3",
+    "otelCorrelation": true,
+    "zenohPublish": true
+  },
+
+  "telemetryBus": {
+    "module": "Indrajaal.Debugger.TelemetryBus",
+    "maxEventsPerSec": 10000,
+    "circuitBreakerThreshold": 1000,
+    "bufferFlushMs": 100
+  },
+
+  "rcaSupport": {
+    "enabled": true,
+    "5orderAnalysis": true,
+    "correlationIdTracking": true,
+    "historicalRetention": "24h"
+  }
+}

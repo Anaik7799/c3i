@@ -1,0 +1,217 @@
+# CLAUDE-PLANNING-JOURNAL.md - Planning and Documentation Guide
+
+## Overview
+
+This guide provides detailed instructions for planning and documenting development activities in the Intelitor Security Monitoring System. Following these practices ensures consistent, traceable, and high-quality development.
+
+## Planning Requirements
+
+### Before Starting Any Key Activity
+
+1. **Review Existing Plans**
+   ```
+   - ASH-IMPLEMENTATION-PLAN.md (overall system plan)
+   - ASH-COMPREHENSIVE-DESIGN.md (detailed design)
+   - ASH-DOMAIN-INTERACTIONS.md (domain relationships)
+   - Domain-specific plans in docs/
+   ```
+
+2. **Create or Update Implementation Plan**
+   - Document the specific approach for the current task
+   - List expected outcomes and deliverables
+   - Identify dependencies and risks
+   - Define success criteria
+
+3. **Use TodoWrite Tool**
+   ```elixir
+   # Example todo list for implementing a new domain
+   [
+     %{id: "1", content: "Review domain design in ASH-COMPREHENSIVE-DESIGN.md", status: "pending", priority: "high"},
+     %{id: "2", content: "Create domain module", status: "pending", priority: "high"},
+     %{id: "3", content: "Implement resources with tests", status: "pending", priority: "high"},
+     %{id: "4", content: "Create migrations", status: "pending", priority: "medium"},
+     %{id: "5", content: "Update journal with progress", status: "pending", priority: "high"}
+   ]
+   ```
+
+## Journal Documentation Standards
+
+### Journal Location
+- Primary: `docs/journal/ash_implementation_journal.md`
+- Domain-specific journals may be created as needed
+
+### Entry Format
+
+```markdown
+### [YYYY-MM-DD HH:MM:SS UTC] DOMAIN - Activity Title
+**Status**: [✅ Success | ❌ Error | 🚧 In Progress | 🔍 Analysis | 💡 Solution | 🔧 Implementation | ℹ️ Info]
+**Details**: 
+[Detailed description of the activity, issue, or implementation]
+
+---
+```
+
+### Status Indicators
+- ✅ Success - Task completed successfully
+- ❌ Error - Error encountered
+- 🚧 In Progress - Work currently underway
+- 🔍 Analysis - Analyzing issue or requirement
+- 💡 Solution - Solution design or approach
+- 🔧 Implementation - Implementing solution
+- ℹ️ Info - General information or notes
+
+### What to Document
+
+1. **Planning Activities**
+   - Plan creation or updates
+   - Design decisions
+   - Architecture changes
+
+2. **Implementation Progress**
+   - Domain/resource creation
+   - Feature implementation
+   - Integration work
+
+3. **Issues and Resolutions**
+   - Error details
+   - Root Cause Analysis (5 levels)
+   - Solution evaluation
+   - Implementation steps
+   - Final resolution
+
+4. **Testing and Validation**
+   - Test creation
+   - Coverage reports
+   - Performance benchmarks
+
+## Root Cause Analysis Template
+
+When encountering issues, use this 5-level RCA template:
+
+```markdown
+### [Timestamp] SYSTEM - Root Cause Analysis
+**Status**: 🔍 Analysis
+**Details**: 
+5-Level Root Cause Analysis - [Issue Title]:
+
+Level 1: Immediate Issue
+- Error: [Specific error message or symptom]
+- Impact: [What is affected]
+- Symptom: [Observable behavior]
+
+Level 2: Technical Cause
+- [Direct technical reason for the issue]
+- [Related system components]
+- [Configuration or code problems]
+
+Level 3: Design Flaw
+- [Underlying design issues]
+- [Architectural mismatches]
+- [Missing abstractions or patterns]
+
+Level 4: Process/System Gap
+- [Development process issues]
+- [Missing documentation or standards]
+- [Communication gaps]
+
+Level 5: Strategic Implications
+- [Long-term impact if not addressed]
+- [Scalability concerns]
+- [Business or compliance risks]
+```
+
+## Example Journal Entries
+
+### Successful Implementation
+```markdown
+### [2025-07-31 09:10:36 CEST] CORE - Tenant Resource Implementation
+**Status**: ✅ Success
+**Details**: 
+Implemented Core.Tenant resource with:
+- Multi-tenant foundation attributes
+- Slug-based unique identification
+- Subscription tier management
+- Custom indexes for performance
+- Policies for system admin access
+```
+
+### Error with Resolution
+```markdown
+### [2025-07-31 09:10:36 CEST] SYSTEM - Compilation Error
+**Status**: ❌ Error
+**Details**: 
+Compilation Error: 'undefined function postgres/1' - BaseResource macro conflict with resource-specific postgres blocks
+
+### [2025-07-31 09:10:36 CEST] SYSTEM - Root Cause Analysis
+**Status**: 🔍 Analysis
+**Details**: 
+[5-level RCA details...]
+
+### [2025-07-31 09:10:36 CEST] SYSTEM - Issue Resolved
+**Status**: ✅ Resolution
+**Details**: 
+Fix Applied: Removed postgres block from BaseResource macro...
+```
+
+## Automation Scripts
+
+### Update Journal Script
+```elixir
+# scripts/maintenance/update_journal.exs
+defmodule UpdateJournal do
+  @journal_path "docs/journal/ash_implementation_journal.md"
+  
+  def add_entry(domain, status, title, details) do
+    timestamp = DateTime.utc_now() |> DateTime.to_string()
+    entry = format_entry(%{
+      timestamp: timestamp,
+      domain: domain,
+      status: status,
+      title: title,
+      details: details
+    })
+    
+    content = File.read!(@journal_path)
+    File.write!(@journal_path, content <> entry)
+  end
+end
+```
+
+## Best Practices
+
+1. **Update Journal Immediately**
+   - Don't wait until end of day
+   - Document while details are fresh
+   - Include specific error messages
+
+2. **Be Detailed but Concise**
+   - Include enough detail for future reference
+   - Focus on what, why, and how
+   - Avoid unnecessary verbosity
+
+3. **Cross-Reference**
+   - Link to relevant plan documents
+   - Reference issue numbers if applicable
+   - Mention related journal entries
+
+4. **Regular Reviews**
+   - Review journal weekly
+   - Update implementation plans based on learnings
+   - Share insights with team
+
+## Compliance Checklist
+
+Before marking any task complete:
+
+- [ ] Plan was created/updated before starting
+- [ ] TodoWrite tool used to track steps
+- [ ] Journal entry created for activity
+- [ ] Errors documented with RCA if applicable
+- [ ] Resolution documented if issues were fixed
+- [ ] Related documentation updated
+- [ ] Tests written and passing
+- [ ] Code quality checks passed
+
+---
+
+*Following these planning and documentation practices ensures maintainable, traceable development and helps future developers understand the system's evolution.*

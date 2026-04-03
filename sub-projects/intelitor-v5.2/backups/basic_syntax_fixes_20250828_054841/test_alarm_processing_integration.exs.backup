@@ -1,0 +1,272 @@
+#!/usr/bin/env elixir
+
+# Test script for alarm processing integration with Ash framework
+# Run with: elixir scripts/demo/test_alarm_processing_integration.exs
+
+defmodule AlarmProcessingIntegrationDemo do
+  @moduledoc """
+  Demonstrates the integrated alarm processing functionality with the Ash framework
+  """
+
+  @spec run() :: any()
+  def run do
+    IO.puts("\n🚨 ALARM PROCESSING INTEGRATION TEST 🚨")
+    IO.puts("=" <> String.duplicate("=", 78))
+
+    # Start required applications
+    start_applications()
+
+    # Run integration tests
+    test_alarm_creation()
+    |> test_severity_evaluation()
+    |> test_state_transitions()
+    |> test_correlation_updates()
+    |> test_query_operations()
+    |> test_notification_flow()
+
+    IO.puts("\n✅ All integration tests completed successfully!")
+  end
+
+  @spec start_applications() :: any()
+  defp start_applications do
+    IO.puts("\n📦 Starting applications...")
+
+    # Start Ecto
+    {:ok, _} = Application.ensure_all_started(:ecto)
+    {:ok, _} = Application.ensure_all_started(:ecto_sql)
+
+    # Start the repo
+    {:ok, _} = Intelitor.Repo.start_link()
+
+    # Start telemetry
+    {:ok, _} = Application.ensure_all_started(:telemetry)
+
+    # Start Oban
+    {:ok, _} = Oban.start_link(Application.get_env(:intelitor, Oban))
+
+    # Start processing engine
+    {:ok, _} = Intelitor.Alarms.ProcessingEngine.start_link([])
+
+    IO.puts("✓ Applications started")
+  end
+
+  @spec test_alarm_creation() :: any()
+  defp test_alarm_creation do
+    IO.puts("\n\n1️⃣ TESTING ALARM CREATION")
+    IO.puts("─" <> String.duplicate("─", 40))
+
+    # Create test tenant and site
+    tenant_id = Ecto.UUID.generate()
+    site_id = Ecto.UUID.generate()
+    device_id = Ecto.UUID.generate()
+
+    # Create alarm via API
+    attrs = %{
+      tenant_id: tenant_id,
+      site_id: site_id,
+      device_id: device_id,
+      event_type: :intrusion,
+      event_code: "INT001",
+      description: "Motion detected in restricted area",
+      severity: :high,
+      priority: 8
+    }
+
+    case Intelitor.Alarms.Api.create_alarm_event(attrs, actor: %{tenant_id: tenant_id}) do
+      {:ok, alarm} ->
+        IO.puts("✓ Alarm created successfully")
+        IO.puts("  ID: #{alarm.id}")
+        IO.puts("  Event Type: #{alarm.event_type}")
+        IO.puts("  Severity: #{alarm.severity}")
+        IO.puts("  State: #{alarm.state}")
+        IO.puts("  Priority: #{alarm.priority}")
+        alarm
+
+      {:error, error} ->
+        IO.puts("✗ Failed to create alarm: #{inspect(error)}")
+        raise "Alarm creation failed"
+    end
+  end
+
+  @spec test_severity_evaluation(term()) :: term()
+  defp test_severity_evaluation(alarm) do
+    IO.puts("\n\n2️⃣ TESTING SEVERITY EVALUATION")
+    IO.puts("─" <> String.duplicate("─", 40))
+
+    # Evaluate severity
+    case Intelitor.Alarms.SeverityEngine.evaluate(alarm) do
+      {:ok, updated_alarm} ->
+        IO.puts("✓ Severity evaluated successfully")
+        IO.puts("  Original Severity: #{alarm.severity}")
+        IO.puts("  Evaluated Severity: #{updated_alarm.severity}")
+        IO.puts("  Severity Factors:")
+
+        Enum.each(updated_alarm.severity_factors.factors, fn factor ->
+          IO.puts("-#{factor[:factor]}: #{factor[:weight]} (#{factor[:reason
+        end)
+
+        updated_alarm
+
+      {:error, error} ->
+        IO.puts("✗ Severity evaluation failed: #{inspect(error)}")
+        alarm
+    end
+  end
+
+  @spec test_state_transitions(term()) :: term()
+  defp test_state_transitions(alarm) do
+    IO.puts("\n\n3️⃣ TESTING STATE TRANSITIONS")
+    IO.puts("─" <> String.duplicate("─", 40))
+
+    user_id = Ecto.UUID.generate()
+    actor = %{tenant_id: alarm.tenant_id}
+
+    # Acknowledge
+    {:ok, acknowledged} = Intelitor.Alarms.Api.acknowledge_alarm(alarm.id, user_id, actor: actor)
+    IO.puts("✓ Acknowledged:")
+    IO.puts("  State: #{acknowledged.state}")
+    IO.puts("  Response Time: #{acknowledged.response_time_seconds}s")
+
+    # Begin investigation
+    {:ok, investigating} =
+      Intelitor.Alarms.Api.begin_investigation(alarm.id, user_id, actor: actor)
+
+    IO.puts("\n✓ Investigation started:")
+    IO.puts("  State: #{investigating.state}")
+
+    # Resolve
+    {:ok, resolved} =
+      Intelitor.Alarms.Api.resolve_alarm(
+        alarm.id,
+        user_id,
+        "False alarm-testing system",
+        actor: actor
+      )
+
+    IO.puts("\n✓ Resolved:")
+    IO.puts("  State: #{resolved.state}")
+    IO.puts("  Resolution Time: #{resolved.resolution_time_seconds}s")
+    IO.puts("  Notes: #{resolved.resolution_notes}")
+
+    resolved
+  end
+
+  @spec test_correlation_updates(term()) :: term()
+  defp test_correlation_updates(alarm) do
+    IO.puts("\n\n4️⃣ TESTING CORRELATION UPDATES")
+    IO.puts("─" <> String.duplicate("─", 40))
+
+    # Create additional alarms for correlation
+    actor = %{tenant_id: alarm.tenant_id}
+
+    {:ok, alarm2} =
+      Intelitor.Alarms.Api.create_alarm_event(
+        %{
+          tenant_id: alarm.tenant_id,
+          site_id: alarm.site_id,
+          device_id: alarm.device_id,
+          event_type: :intrusion,
+          event_code: "INT002",
+          description: "Motion in adjacent zone"
+        },
+        actor: actor
+      )
+
+    {:ok, alarm3} =
+      Intelitor.Alarms.Api.create_alarm_event(
+        %{
+          tenant_id: alarm.tenant_id,
+          site_id: alarm.site_id,
+          device_id: alarm.device_id,
+          event_type: :tamper,
+          event_code: "TAM001",
+          description: "Device tamper detected"
+        },
+        actor: actor
+      )
+
+    # Update correlation
+    group_id = Ecto.UUID.generate()
+
+    {:ok, correlated} =
+      Intelitor.Alarms.Api.update_alarm_correlation(
+        alarm,
+        %{
+          correlation_group_id: group_id,
+          correlated_events: [alarm2.id, alarm3.id],
+          correlation_data: %{
+            pattern: "systematic_intrusion",
+            confidence: 0.92,
+            correlation_type: "spatial_temporal"
+          }
+        },
+        actor: actor
+      )
+
+    IO.puts("✓ Correlation updated:")
+    IO.puts("  Group ID: #{correlated.correlation_group_id}")
+    IO.puts("  Correlated Events: #{length(correlated.correlated_events)}")
+    IO.puts("  Pattern: #{correlated.correlation_data["pattern"]}")
+    IO.puts("  Confidence: #{correlated.correlation_data["confidence"]}")
+
+    correlated
+  end
+
+  @spec test_query_operations(term()) :: term()
+  defp test_query_operations(alarm) do
+    IO.puts("\n\n5️⃣ TESTING QUERY OPERATIONS")
+    IO.puts("─" <> String.duplicate("─", 40))
+
+    actor = %{tenant_id: alarm.tenant_id}
+
+    # Test various queries
+
+    # List all alarms
+    {:ok, all_alarms} = Intelitor.Alarms.Api.list_alarm_events(%{}, actor: actor)
+    IO.puts("✓ Total alarms: #{length(all_alarms)}")
+
+    # Get active alarms
+    {:ok, active} = Intelitor.Alarms.Api.get_active_alarms(actor: actor)
+    IO.puts("✓ Active alarms: #{length(active)}")
+
+    # Get recent alarms
+    {:ok, recent} = Intelitor.Alarms.Api.get_recent_alarms(10, actor: actor)
+    IO.puts("✓ Recent alarms (10 min): #{length(recent)}")
+
+    # Count by state
+    resolved_count = Intelitor.Alarms.Api.count_alarms_by_state(:resolved, actor: actor)
+    IO.puts("✓ Resolved alarms: #{resolved_count}")
+
+    # Get statistics
+    {:ok, stats} = Intelitor.Alarms.Api.get_alarm_statistics(%{}, actor: actor)
+    IO.puts("\n✓ Alarm Statistics:")
+    IO.puts("  Total: #{stats.total_alarms}")
+    IO.puts("  By Severity: #{inspect(stats.by_severity)}")
+    IO.puts("  By State: #{inspect(stats.by_state)}")
+    IO.puts("  False Alarm Rate: #{Float.round(stats.false_alarm_rate, 2)}%")
+
+    alarm
+  end
+
+  @spec test_notification_flow(term()) :: term()
+  defp test_notification_flow(alarm) do
+    IO.puts("\n\n6️⃣ TESTING NOTIFICATION FLOW")
+    IO.puts("─" <> String.duplicate("─", 40))
+
+    # Since we don't have the Notification resource implemented yet,
+    # we'll simulate the flow
+
+    IO.puts("✓ Notification flow simulation:")
+    IO.puts("-Would create notification for alarm #{alarm.id}")
+    IO.puts("-Would send via channels: [:push, :sms, :email]")
+    IO.puts("-Would track delivery status")
+    IO.puts("-Would handle acknowledgments")
+
+    alarm
+  end
+end
+
+# Run the demo
+AlarmProcessingIntegrationDemo.run()
+
+end

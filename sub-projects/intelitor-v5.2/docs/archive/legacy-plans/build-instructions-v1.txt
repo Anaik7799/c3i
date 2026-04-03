@@ -1,0 +1,84 @@
+
+create a document called ASH-DESIGN.md
+- 6 level design of the system 
+-  6 layers of ASH design, impementation and usegae. cover all domains, resources , dataflow,  
+>> Reference
+Ash.Resource
+Ash.Domain
+Ash.Notifier.PubSub
+Ash.Policy.Authorizer
+Ash.DataLayer.Ets
+Ash.DataLayer.Mnesia
+Ash.Reactor
+
+>>Expressions
+
+>>Resources
+Domains
+Attributes
+Relationships
+Calculations
+Aggregates
+Validations
+Changes
+Preparations
+Code Interface
+Embedded Resources
+Identities
+Notifiers
+
+>>Actions
+Actions
+Read Actions
+Create Actions
+Update Actions
+Destroy Actions
+Generic Actions
+Manual Actions
+
+>>Security
+Actors & Authorization
+Sensitive Data
+Policies
+
+>>Advanced
+Manual Installation
+Multi-Step Actions
+Reactor
+Monitoring
+Pagination
+Combination Queries
+Timeouts
+Multitenancy
+Writing Extensions
+
+
+
+--------
+ do 100% functional and feature coverage without entra id. 
+ do 5 level RCA to identify and fix all the issues. 
+ treat  warnigs as errors. 
+ continue till you reach the 100% coverage traget. 
+ Do not remove functionality. 
+ all scripts have to be in elixire ONLY. 
+you can add additional packages in devenv.sh locally to get any new functionality required to proceed                                                                                                 
+-------
+do 100% functional and feature coverage without for all the ash domains, resources and related functionality. 
+do 5 level RCA to identify and fix all the issues. 
+treat  warnigs as errors. 
+continue till you reach the 100% covergae target. 
+Do not remove functionality. 
+all scripts have to be in elixire ONLY. 
+you can add additional packages in devenv.sh locally to get any new functionality required to proceed 
+create a plan and track all tasks in a project journal where you update progress and all actions executed . 
+automatically update journal as you proceeed. 
+----------------------------
+do 100% functional and feature coverage without for all the ratatouille, all screens and related functionality. 
+do 5 level RCA to identify and fix all the issues. 
+treat  warnigs as errors. 
+continue till you reach the 100% covergae target. 
+Do not remove functionality. 
+all scripts have to be in elixire ONLY. 
+you can add additional packages in devenv.sh locally to get any new functionality required to proceed 
+create a plan and track all tasks in a project journal where you update progress and all actions executed . 
+automatically update journal as you proceeed.

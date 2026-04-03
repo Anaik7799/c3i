@@ -1,0 +1,99 @@
+# podman-compose-obs-standalone.yml
+# Purpose: Standalone Observability stack for Indrajaal
+# Objective: Provide observability services (ClickHouse + OTEL + Grafana + Prometheus)
+# SOPv5.11 Compliance: SC-CNT-009, SC-CNT-010, SC-OBS-065, SC-OBS-067, SC-OBS-069, SC-OBS-071
+# Mode: Standalone (aligned with indrajaal-app-standalone, indrajaal-db-standalone)
+
+version: '3.8'
+
+networks:
+  obs-standalone-net:
+    driver: bridge
+
+services:
+  indrajaal-obs-standalone:
+    image: localhost/indrajaal-observability:nixos
+    container_name: indrajaal-obs-standalone
+    hostname: obs-standalone
+    networks:
+      - obs-standalone-net
+
+    environment:
+      # Framework Flags
+      PHICS_ENABLED: "true"
+      NO_TIMEOUT: "true"
+      CONTAINER_OS: nixos
+      SOPV51_COMPLIANT: "true"
+
+      # ClickHouse Configuration
+      CLICKHOUSE_DB: indrajaal_traces
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+
+      # OTEL Collector Configuration
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://localhost:4317"
+      OTEL_SERVICE_NAME: "indrajaal-obs-standalone"
+
+      # Grafana Configuration
+      GF_SECURITY_ADMIN_PASSWORD: "admin"
+      GF_INSTALL_PLUGINS: "grafana-clickhouse-datasource"
+      GF_SERVER_HTTP_PORT: "3000"
+
+      # Prometheus Configuration
+      PROMETHEUS_RETENTION_TIME: "1h"
+
+    ports:
+      - "8123:8123"   # ClickHouse HTTP
+      - "9000:9000"   # ClickHouse Native
+      - "4317:4317"   # OTEL Collector gRPC
+      - "4318:4318"   # OTEL Collector HTTP
+      - "3000:3000"   # Grafana
+      - "9090:9090"   # Prometheus
+      - "3301:3301"   # SigNoz Query Service
+
+    volumes:
+      - obs_standalone_data:/var/lib/clickhouse:z
+      - obs_standalone_grafana:/var/lib/grafana:z
+      - obs_standalone_prometheus:/prometheus:z
+      - ./tmp:/var/log/claude:z
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8123/ping && curl -sf http://localhost:9090/-/healthy && curl -sf http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 45s
+
+    restart: "no"
+
+    labels:
+      project: indrajaal
+      component: observability
+      environment: standalone
+      stamp.verified: "true"
+      stamp.constraints: "SC-OBS-069,SC-OBS-071"
+
+volumes:
+  obs_standalone_data:
+  obs_standalone_grafana:
+  obs_standalone_prometheus:
+
+# =============================================================================
+# Usage Instructions
+# =============================================================================
+#
+# Start Observability Stack:
+#   podman-compose -f podman-compose-obs-standalone.yml up -d
+#
+# Wait for Health:
+#   podman wait --condition=healthy indrajaal-obs-standalone
+#
+# Access Services:
+#   Grafana:     http://localhost:3000 (admin/admin)
+#   Prometheus:  http://localhost:9090
+#   ClickHouse:  http://localhost:8123
+#   OTEL gRPC:   localhost:4317
+#
+# Cleanup:
+#   podman-compose -f podman-compose-obs-standalone.yml down -v
+# =============================================================================

@@ -1,0 +1,1640 @@
+{
+  "attributes": [
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "tenant_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"gen_random_uuid()\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": true,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "record_number",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "billing_usage_records_subscription_id_fkey",
+        "on_delete": null,
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "billing_subscriptions"
+      },
+      "scale": null,
+      "size": null,
+      "source": "subscription_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "billing_usage_records_customer_id_fkey",
+        "on_delete": null,
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "users"
+      },
+      "scale": null,
+      "size": null,
+      "source": "customer_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"device_hours\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "usage_type",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "metric_name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": 15,
+      "primary_key?": false,
+      "references": null,
+      "scale": 6,
+      "size": null,
+      "source": "quantity",
+      "type": [
+        "decimal",
+        6,
+        15
+      ]
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"hours\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "unit_of_measure",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "usage_start",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "usage_end",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "recorded_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "billing_period",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "resource_type",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "resource_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "device_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "location_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "user_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "category",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "tier",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"normal\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "priority",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 6,
+      "size": null,
+      "source": "unit_price",
+      "type": [
+        "decimal",
+        6,
+        10
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "total_cost",
+      "type": [
+        "decimal",
+        2,
+        10
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"USD\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "currency",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "prorate?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 6,
+      "size": null,
+      "source": "proration_factor",
+      "type": [
+        "decimal",
+        6,
+        10
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"0\"",
+      "generated?": false,
+      "precision": 15,
+      "primary_key?": false,
+      "references": null,
+      "scale": 6,
+      "size": null,
+      "source": "included_quantity",
+      "type": [
+        "decimal",
+        6,
+        15
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"0\"",
+      "generated?": false,
+      "precision": 15,
+      "primary_key?": false,
+      "references": null,
+      "scale": 6,
+      "size": null,
+      "source": "overage_quantity",
+      "type": [
+        "decimal",
+        6,
+        15
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 6,
+      "size": null,
+      "source": "overage_rate",
+      "type": [
+        "decimal",
+        6,
+        10
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"0\"",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "overage_cost",
+      "type": [
+        "decimal",
+        2,
+        10
+      ]
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"pending\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "true",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "billable?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "billed_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "billing_usage_records_invoice_id_fkey",
+        "on_delete": null,
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "billing_invoices"
+      },
+      "scale": null,
+      "size": null,
+      "source": "invoice_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"raw\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "aggregation_level",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "aggregated_from_records",
+      "type": [
+        "array",
+        "uuid"
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "0",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "child_records_count",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "validated?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "validation_errors",
+      "type": [
+        "array",
+        "text"
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "data_source",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"automatic\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "collection_method",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"exact\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "accuracy_level",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "session_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "transaction_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "correlation_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "%{}",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "event_data",
+      "type": "map"
+    },
+    {
+      "allow_nil?": true,
+      "default": "%{}",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "usage_context",
+      "type": "map"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "region",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "timezone",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "regulatory_requirements",
+      "type": [
+        "array",
+        "text"
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "data_residency",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "response_time_ms",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": true,
+      "default": "0",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "error_count",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": 5,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "success_rate",
+      "type": [
+        "decimal",
+        2,
+        5
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "quality_score",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "discount_applied?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": 5,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "discount_percentage",
+      "type": [
+        "decimal",
+        2,
+        5
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"0\"",
+      "generated?": false,
+      "precision": 10,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "discount_amount",
+      "type": [
+        "decimal",
+        2,
+        10
+      ]
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "promotional_rate?",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "retention_period_days",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "audit_trail",
+      "type": [
+        "array",
+        "map"
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "compliance_flags",
+      "type": [
+        "array",
+        "text"
+      ]
+    },
+    {
+      "allow_nil?": true,
+      "default": "\"internal\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "data_classification",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "external_record_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "sync_status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "sync_error",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "last_sync_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "description",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "notes",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "reference_number",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "%{}",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "metadata",
+      "type": "map"
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "tags",
+      "type": [
+        "array",
+        "text"
+      ]
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "inserted_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "updated_at",
+      "type": "utc_datetime_usec"
+    }
+  ],
+  "base_filter": null,
+  "check_constraints": [],
+  "custom_indexes": [
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "tenant_id",
+        "record_number"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "tenant_id"
+        },
+        {
+          "type": "atom",
+          "value": "record_number"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": true,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "subscription_id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "subscription_id"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "customer_id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "customer_id"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "invoice_id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "invoice_id"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "invoice_id IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "usage_type"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "usage_type"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "metric_name"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "metric_name"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "status"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "status"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "billing_period"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "billing_period"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "usage_start"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "usage_start"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "usage_end"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "usage_end"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "recorded_at"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "recorded_at"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "billed_at"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "billed_at"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "billed_at IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "resource_type"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "resource_type"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "resource_type IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "resource_id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "resource_id"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "resource_id IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "device_id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "device_id"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "device_id IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "location_id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "location_id"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "location_id IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "user_id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "user_id"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "user_id IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "category"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "category"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "category IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "billable?"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "usage_records_billable_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "billable? = true"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "validated?"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "usage_records_validated_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "validated? = true"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "discount_applied?"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "usage_records_discount_applied_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "discount_applied? = true"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "promotional_rate?"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "usage_records_promotional_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "promotional_rate? = true"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "aggregation_level"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "aggregation_level"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "collection_method"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "collection_method"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "accuracy_level"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "accuracy_level"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "data_classification"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "data_classification"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "region"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "region"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "region IS NOT NULL"
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "total_cost"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "total_cost"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "total_cost > 0"
+    }
+  ],
+  "custom_statements": [],
+  "has_create_action": true,
+  "hash": "0BEF6F874428130C8E2CDAFA5DB58CB1E12E267F5AC8C04E70294670904C81C1",
+  "identities": [],
+  "multitenancy": {
+    "attribute": null,
+    "global": null,
+    "strategy": null
+  },
+  "repo": "Elixir.Indrajaal.Repo",
+  "schema": null,
+  "table": "billing_usage_records"
+}

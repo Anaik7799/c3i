@@ -1,0 +1,65 @@
+# Panopticon SIL6 Substrate - fail-safe Fractal Topology
+# Version: 3.0.0-PANOPTICON
+# Compliance: HFT=2 (2oo3 Voting)
+
+version: "3.9"
+
+services:
+  # ============================================================
+  # NODE A: PRIMARY (The Truth)
+  # ============================================================
+  indrajaal-primary:
+    image: localhost/indrajaal-app:latest
+    container_name: indrajaal-primary
+    environment:
+      - NODE_ROLE=primary
+      - VOTING_PARTICIPANT=true
+    networks:
+      - panopticon-net
+
+  # ============================================================
+  # NODE B: SHADOW (The Mirror)
+  # ============================================================
+  indrajaal-shadow:
+    image: localhost/indrajaal-app:latest
+    container_name: indrajaal-shadow
+    environment:
+      - NODE_ROLE=shadow
+      - VOTING_PARTICIPANT=true
+      - SHADOW_MODE=true
+    networks:
+      - panopticon-net
+
+  # ============================================================
+  # NODE C: SIMULATOR (The Model)
+  # ============================================================
+  indrajaal-sim:
+    image: localhost/indrajaal-app:latest
+    container_name: indrajaal-sim
+    environment:
+      - NODE_ROLE=simulator
+      - VOTING_PARTICIPANT=true
+      - PHYSICS_ENGINE=gaussian_hal
+    networks:
+      - panopticon-net
+
+  # ============================================================
+  # THE JUDGE (The Voter)
+  # ============================================================
+  indrajaal-judge:
+    image: localhost/indrajaal-app:latest
+    container_name: indrajaal-judge
+    environment:
+      - NODE_ROLE=voter
+      - VOTE_STRATEGY=2oo3
+    ports:
+      - "8081:4000" # Judge Cockpit
+    networks:
+      - panopticon-net
+
+networks:
+  panopticon-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.0.0/16

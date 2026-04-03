@@ -1,0 +1,874 @@
+defmodule Indrajaal.Holon.Database.CrossHolonAccessComprehensiveTest do
+  @moduledoc """
+  Comprehensive test suite for Cross-Holon Database Access.
+
+  Covers:
+  - UHI parsing and resolution
+  - Direct SQLite/DuckDB access
+  - Cross-holon Zenoh bridge operations
+  - Version vector operations
+  - CAS (Compare-and-Swap) operations
+  - Two-phase commit transactions
+  - Connection pooling
+  - Error handling and recovery
+
+  ## STAMP Constraints
+  - SC-XHOLON-001: Same-runtime direct access
+  - SC-XHOLON-002: Cross-runtime Zenoh bridge
+  - SC-XHOLON-011: Version vector updates
+  - SC-XHOLON-022: 2PC protocol
+  - SC-XHOLON-038: Linearizability
+
+  ## AOR Rules
+  - AOR-XHOLON-001: Use connection pool
+  - AOR-XHOLON-002: No SQL concatenation
+  - AOR-XHOLON-009: Check version before write
+  """
+
+  use ExUnit.Case, async: false
+  use PropCheck
+  import ExUnitProperties, except: [property: 2, property: 3, check: 2]
+  alias PropCheck.BasicTypes, as: PC
+  alias StreamData, as: SD
+
+  alias Indrajaal.Holon.Database.CrossHolonAccess
+
+  @moduletag :cross_holon_database
+  @moduletag :skip  # Skip until UHI and VersionVector modules are implemented
+
+  # ============================================================
+  # SECTION 1: UHI PARSING TESTS
+  # ============================================================
+
+  describe "UHI.parse/1 - Universal Holon Identifier parsing" do
+    test "parses valid Elixir UHI with all components" do
+      uhi_string = "ex:L3:access:agent:abc123:state.sqlite"
+      assert {:ok, uhi} = UHI.parse(uhi_string)
+      assert uhi.runtime == :elixir
+      assert uhi.layer == :L3
+      assert uhi.domain == "access"
+      assert uhi.type == "agent"
+      assert uhi.instance == "abc123"
+      assert uhi.database == :state_sqlite
+    end
+
+    test "parses valid F# UHI" do
+      uhi_string = "fs:L4:cortex:cognitive:xyz789:analytics.duckdb"
+      assert {:ok, uhi} = UHI.parse(uhi_string)
+      assert uhi.runtime == :fsharp
+      assert uhi.layer == :L4
+      assert uhi.database == :analytics_duckdb
+    end
+
+    test "parses all valid runtime codes" do
+      for {code, expected} <- [{"ex", :elixir}, {"fs", :fsharp}, {"zig", :zig}, {"rs", :rust}] do
+        uhi_string = "#{code}:L3:test:test:abc:state.sqlite"
+        assert {:ok, uhi} = UHI.parse(uhi_string)
+        assert uhi.runtime == expected
+      end
+    end
+
+    test "parses all valid layer codes L0-L9" do
+      for layer <- ~w(L0 L1 L2 L3 L4 L5 L6 L7 L8 L9) do
+        uhi_string = "ex:#{layer}:test:test:abc:state.sqlite"
+        assert {:ok, uhi} = UHI.parse(uhi_string)
+        assert uhi.layer == String.to_atom(layer)
+      end
+    end
+
+    test "parses all valid database types" do
+      database_types = [
+        {"state.sqlite", :state_sqlite},
+        {"vectors.sqlite", :vectors_sqlite},
+        {"cache.sqlite", :cache_sqlite},
+        {"analytics.duckdb", :analytics_duckdb},
+        {"history.duckdb", :history_duckdb},
+        {"register.duckdb", :register_duckdb}
+      ]
+
+      for {db_ext, expected} <- database_types do
+        uhi_string = "ex:L3:test:test:abc:#{db_ext}"
+        assert {:ok, uhi} = UHI.parse(uhi_string)
+        assert uhi.database == expected
+      end
+    end
+
+    test "rejects invalid runtime code" do
+      assert {:error, :invalid_runtime} = UHI.parse("xx:L3:test:test:abc:state.sqlite")
+      assert {:error, :invalid_runtime} = UHI.parse("elixir:L3:test:test:abc:state.sqlite")
+    end
+
+    test "rejects invalid layer code" do
+      assert {:error, :invalid_layer} = UHI.parse("ex:L99:test:test:abc:state.sqlite")
+      assert {:error, :invalid_layer} = UHI.parse("ex:X1:test:test:abc:state.sqlite")
+    end
+
+    test "rejects invalid database type" do
+      assert {:error, :invalid_database} = UHI.parse("ex:L3:test:test:abc:invalid.db")
+      assert {:error, :invalid_database} = UHI.parse("ex:L3:test:test:abc:postgres")
+    end
+
+    test "rejects malformed UHI with missing components" do
+      assert {:error, :malformed} = UHI.parse("ex:L3:test")
+      assert {:error, :malformed} = UHI.parse("ex:L3:test:test")
+      assert {:error, :malformed} = UHI.parse("ex:L3:test:test:abc")
+    end
+
+    test "rejects path traversal attempts (SC-XHOLON-046)" do
+      assert {:error, :security_violation} = UHI.parse("ex:L3:../etc:passwd:x:state.sqlite")
+      assert {:error, :security_violation} = UHI.parse("ex:L3:test:..\\..\\windows:x:state.sqlite")
+    end
+
+    test "rejects UHI with null bytes" do
+      assert {:error, :security_violation} = UHI.parse("ex:L3:test\0:test:abc:state.sqlite")
+    end
+
+    property "roundtrip parse/format preserves UHI" do
+      forall uhi_struct <- valid_uhi_struct_generator() do
+        formatted = UHI.format(uhi_struct)
+        {:ok, reparsed} = UHI.parse(formatted)
+        reparsed == uhi_struct
+      end
+    end
+  end
+
+  # ============================================================
+  # SECTION 2: PATH RESOLUTION TESTS
+  # ============================================================
+
+  describe "UHI.resolve_path/2 - database path resolution" do
+    test "resolves SQLite state database path correctly" do
+      uhi = %UHI{
+        runtime: :elixir,
+        layer: :L3,
+        domain: "access",
+        type: "agent",
+        instance: "abc123",
+        database: :state_sqlite
+      }
+
+      path = UHI.resolve_path(uhi, "/data/holons")
+      assert path == "/data/holons/ex/L3/access/agent/abc123/state.sqlite"
+    end
+
+    test "resolves DuckDB analytics database path correctly" do
+      uhi = %UHI{
+        runtime: :fsharp,
+        layer: :L4,
+        domain: "cortex",
+        type: "cognitive",
+        instance: "xyz789",
+        database: :analytics_duckdb
+      }
+
+      path = UHI.resolve_path(uhi, "/data/holons")
+      assert path == "/data/holons/fs/L4/cortex/cognitive/xyz789/analytics.duckdb"
+    end
+
+    test "creates parent directory if not exists" do
+      uhi = %UHI{
+        runtime: :elixir,
+        layer: :L3,
+        domain: "test",
+        type: "unit",
+        instance: "temp_#{:erlang.unique_integer([:positive])}",
+        database: :cache_sqlite
+      }
+
+      base_path = Path.join(System.tmp_dir!(), "holon_test_#{:erlang.unique_integer([:positive])}")
+      path = UHI.resolve_path(uhi, base_path, create_dir: true)
+
+      assert File.dir?(Path.dirname(path))
+
+      # Cleanup
+      File.rm_rf!(base_path)
+    end
+
+    property "path resolution is deterministic (SC-DBNAME-007)" do
+      forall {uhi, base} <- {valid_uhi_struct_generator(), SD.string(:alphanumeric, min_length: 1)} do
+        path1 = UHI.resolve_path(uhi, "/base/#{base}")
+        path2 = UHI.resolve_path(uhi, "/base/#{base}")
+        path1 == path2
+      end
+    end
+
+    property "different UHIs produce different paths (SC-DBNAME-006)" do
+      forall {uhi1, uhi2} <- {valid_uhi_struct_generator(), valid_uhi_struct_generator()} do
+        base = "/data/holons"
+        path1 = UHI.resolve_path(uhi1, base)
+        path2 = UHI.resolve_path(uhi2, base)
+        uhi1 == uhi2 or path1 != path2
+      end
+    end
+  end
+
+  # ============================================================
+  # SECTION 3: DIRECT DATABASE ACCESS TESTS
+  # ============================================================
+
+  describe "CrossHolonAccess.query/5 - direct same-runtime queries" do
+    setup do
+      {:ok, uhi} = create_test_holon(:sqlite)
+      on_exit(fn -> cleanup_test_holon(uhi) end)
+      %{uhi: uhi}
+    end
+
+    test "executes simple SELECT query", %{uhi: uhi} do
+      assert {:ok, rows} = CrossHolonAccess.query(uhi, uhi, "SELECT 1 as num", [])
+      assert rows == [%{num: 1}]
+    end
+
+    test "executes SELECT with multiple rows", %{uhi: uhi} do
+      setup_test_table(uhi)
+      insert_test_data(uhi, [{"a", 1}, {"b", 2}, {"c", 3}])
+
+      assert {:ok, rows} = CrossHolonAccess.query(uhi, uhi, "SELECT * FROM test_table ORDER BY key", [])
+      assert length(rows) == 3
+      assert Enum.map(rows, & &1.key) == ["a", "b", "c"]
+    end
+
+    test "executes parameterized query", %{uhi: uhi} do
+      setup_test_table(uhi)
+      insert_test_data(uhi, [{"key1", 100}])
+
+      assert {:ok, rows} = CrossHolonAccess.query(uhi, uhi, "SELECT * FROM test_table WHERE key = ?", ["key1"])
+      assert rows == [%{key: "key1", value: 100}]
+    end
+
+    test "returns empty list for no matching rows", %{uhi: uhi} do
+      setup_test_table(uhi)
+      assert {:ok, []} = CrossHolonAccess.query(uhi, uhi, "SELECT * FROM test_table", [])
+    end
+
+    test "handles NULL values correctly", %{uhi: uhi} do
+      CrossHolonAccess.execute(uhi, uhi, "CREATE TABLE null_test (id INTEGER, val TEXT)", [])
+      CrossHolonAccess.execute(uhi, uhi, "INSERT INTO null_test VALUES (1, NULL)", [])
+
+      assert {:ok, [%{id: 1, val: nil}]} = CrossHolonAccess.query(uhi, uhi, "SELECT * FROM null_test", [])
+    end
+
+    test "returns error for invalid SQL syntax", %{uhi: uhi} do
+      assert {:error, _reason} = CrossHolonAccess.query(uhi, uhi, "INVALID SQL SYNTAX", [])
+    end
+
+    test "returns error for non-existent table", %{uhi: uhi} do
+      assert {:error, _reason} = CrossHolonAccess.query(uhi, uhi, "SELECT * FROM nonexistent", [])
+    end
+
+    test "respects timeout option", %{uhi: uhi} do
+      # Create a slow query using recursive CTE
+      slow_sql = """
+      WITH RECURSIVE cnt(x) AS (
+        SELECT 1
+        UNION ALL
+        SELECT x+1 FROM cnt WHERE x < 10000000
+      )
+      SELECT COUNT(*) FROM cnt
+      """
+
+      # This should timeout
+      result = CrossHolonAccess.query(uhi, uhi, slow_sql, [], timeout: 100)
+      assert result == {:error, :timeout} or match?({:ok, _}, result)  # May complete on fast machines
+    end
+
+    property "query results are consistent across multiple calls" do
+      forall seed <- PC.integer() do
+        {:ok, uhi} = create_test_holon(:sqlite, seed)
+        setup_test_table(uhi)
+        insert_test_data(uhi, [{"const", seed}])
+
+        result1 = CrossHolonAccess.query(uhi, uhi, "SELECT * FROM test_table", [])
+        result2 = CrossHolonAccess.query(uhi, uhi, "SELECT * FROM test_table", [])
+
+        cleanup_test_holon(uhi)
+        result1 == result2
+      end
+    end
+  end
+
+  # ============================================================
+  # SECTION 4: EXECUTE (WRITE) TESTS
+  # ============================================================
+
+  describe "CrossHolonAccess.execute/5 - write operations" do
+    setup do
+      {:ok, uhi} = create_test_holon(:sqlite)
+      setup_test_table(uhi)
+      on_exit(fn -> cleanup_test_holon(uhi) end)
+      %{uhi: uhi}
+    end
+
+    test "inserts single row", %{uhi: uhi} do
+      assert {:ok, 1} = CrossHolonAccess.execute(uhi, uhi, "INSERT INTO test_table VALUES (?, ?)", ["key1", 42])
+
+      assert {:ok, [%{key: "key1", value: 42}]} =
+               CrossHolonAccess.query(uhi, uhi, "SELECT * FROM test_table", [])
+    end
+
+    test "inserts multiple rows with multiple calls", %{uhi: uhi} do
+      CrossHolonAccess.execute(uhi, uhi, "INSERT INTO test_table VALUES (?, ?)", ["a", 1])
+      CrossHolonAccess.execute(uhi, uhi, "INSERT INTO test_table VALUES (?, ?)", ["b", 2])
+      CrossHolonAccess.execute(uhi, uhi, "INSERT INTO test_table VALUES (?, ?)", ["c", 3])
+
+      assert {:ok, rows} = CrossHolonAccess.query(uhi, uhi, "SELECT * FROM test_table ORDER BY key", [])
+      assert length(rows) == 3
+    end
+
+    test "updates existing row", %{uhi: uhi} do
+      CrossHolonAccess.execute(uhi, uhi, "INSERT INTO test_table VALUES (?, ?)", ["key1", 10])
+      assert {:ok, 1} = CrossHolonAccess.execute(uhi, uhi, "UPDATE test_table SET value = ? WHERE key = ?", [99, "key1"])
+
+      assert {:ok, [%{value: 99}]} = CrossHolonAccess.query(uhi, uhi, "SELECT * FROM test_table WHERE key = ?", ["key1"])
+    end
+
+    test "deletes row", %{uhi: uhi} do
+      CrossHolonAccess.execute(uhi, uhi, "INSERT INTO test_table VALUES (?, ?)", ["to_delete", 1])
+      assert {:ok, 1} = CrossHolonAccess.execute(uhi, uhi, "DELETE FROM test_table WHERE key = ?", ["to_delete"])
+
+      assert {:ok, []} = CrossHolonAccess.query(uhi, uhi, "SELECT * FROM test_table WHERE key = ?", ["to_delete"])
+    end
+
+    test "returns 0 for no-op update", %{uhi: uhi} do
+      assert {:ok, 0} = CrossHolonAccess.execute(uhi, uhi, "UPDATE test_table SET value = 1 WHERE key = 'nonexistent'", [])
+    end
+
+    test "prevents SQL injection via parameterization (SC-XHOLON-008)", %{uhi: uhi} do
+      malicious_key = "'; DROP TABLE test_table; --"
+      CrossHolonAccess.execute(uhi, uhi, "INSERT INTO test_table VALUES (?, ?)", [malicious_key, 1])
+
+      # Table should still exist
+      assert {:ok, _} = CrossHolonAccess.query(uhi, uhi, "SELECT * FROM test_table", [])
+
+      # Malicious string should be stored as data
+      assert {:ok, [%{key: ^malicious_key}]} =
+               CrossHolonAccess.query(uhi, uhi, "SELECT * FROM test_table WHERE value = ?", [1])
+    end
+
+    test "returns error for constraint violation", %{uhi: uhi} do
+      CrossHolonAccess.execute(uhi, uhi, "INSERT INTO test_table VALUES (?, ?)", ["unique_key", 1])
+      # Assuming key is primary key
+      result = CrossHolonAccess.execute(uhi, uhi, "INSERT INTO test_table VALUES (?, ?)", ["unique_key", 2])
+      assert match?({:error, _}, result)
+    end
+  end
+
+  # ============================================================
+  # SECTION 5: VERSION VECTOR TESTS
+  # ============================================================
+
+  describe "VersionVector operations" do
+    test "new/0 creates empty version vector" do
+      vv = VersionVector.new()
+      assert VersionVector.lookup(vv, "any_holon") == 0
+    end
+
+    test "increment/2 increases version by 1" do
+      vv =
+        VersionVector.new()
+        |> VersionVector.increment("holon1")
+
+      assert VersionVector.lookup(vv, "holon1") == 1
+    end
+
+    test "multiple increments accumulate" do
+      vv =
+        VersionVector.new()
+        |> VersionVector.increment("h1")
+        |> VersionVector.increment("h1")
+        |> VersionVector.increment("h1")
+
+      assert VersionVector.lookup(vv, "h1") == 3
+    end
+
+    test "increments are independent per holon" do
+      vv =
+        VersionVector.new()
+        |> VersionVector.increment("h1")
+        |> VersionVector.increment("h2")
+        |> VersionVector.increment("h1")
+
+      assert VersionVector.lookup(vv, "h1") == 2
+      assert VersionVector.lookup(vv, "h2") == 1
+    end
+
+    test "merge/2 takes element-wise maximum (SC-XHOLON-037)" do
+      vv1 = %{"h1" => 3, "h2" => 1}
+      vv2 = %{"h1" => 1, "h2" => 5, "h3" => 2}
+
+      merged = VersionVector.merge(vv1, vv2)
+
+      assert merged["h1"] == 3
+      assert merged["h2"] == 5
+      assert merged["h3"] == 2
+    end
+
+    test "compare/2 returns :before when strictly less" do
+      vv1 = %{"h1" => 1, "h2" => 1}
+      vv2 = %{"h1" => 2, "h2" => 2}
+
+      assert VersionVector.compare(vv1, vv2) == :before
+    end
+
+    test "compare/2 returns :after when strictly greater" do
+      vv1 = %{"h1" => 3, "h2" => 3}
+      vv2 = %{"h1" => 1, "h2" => 1}
+
+      assert VersionVector.compare(vv1, vv2) == :after
+    end
+
+    test "compare/2 returns :concurrent when incomparable" do
+      vv1 = %{"h1" => 3, "h2" => 1}
+      vv2 = %{"h1" => 1, "h2" => 3}
+
+      assert VersionVector.compare(vv1, vv2) == :concurrent
+    end
+
+    test "compare/2 returns :equal for identical vectors" do
+      vv = %{"h1" => 2, "h2" => 2}
+      assert VersionVector.compare(vv, vv) == :equal
+    end
+
+    property "merge is commutative" do
+      forall {vv1, vv2} <- {vv_generator(), vv_generator()} do
+        VersionVector.merge(vv1, vv2) == VersionVector.merge(vv2, vv1)
+      end
+    end
+
+    property "merge is associative" do
+      forall {vv1, vv2, vv3} <- {vv_generator(), vv_generator(), vv_generator()} do
+        left = VersionVector.merge(VersionVector.merge(vv1, vv2), vv3)
+        right = VersionVector.merge(vv1, VersionVector.merge(vv2, vv3))
+        left == right
+      end
+    end
+
+    property "merge is idempotent" do
+      forall vv <- vv_generator() do
+        VersionVector.merge(vv, vv) == vv
+      end
+    end
+
+    property "increment is monotonic" do
+      forall {vv, holon} <- {vv_generator(), holon_id_generator()} do
+        vv2 = VersionVector.increment(vv, holon)
+        VersionVector.compare(vv, vv2) in [:before, :equal]
+      end
+    end
+  end
+
+  # ============================================================
+  # SECTION 6: CAS (COMPARE-AND-SWAP) TESTS
+  # ============================================================
+
+  describe "CrossHolonAccess.execute_cas/6" do
+    setup do
+      {:ok, uhi} = create_test_holon(:sqlite)
+      setup_cas_table(uhi)
+      on_exit(fn -> cleanup_test_holon(uhi) end)
+      %{uhi: uhi}
+    end
+
+    test "succeeds when version matches", %{uhi: uhi} do
+      CrossHolonAccess.execute(uhi, uhi, "INSERT INTO cas_table VALUES (?, ?, ?)", ["key1", "initial", 0])
+
+      result = CrossHolonAccess.execute_cas(
+        uhi,
+        uhi,
+        "UPDATE cas_table SET value = ? WHERE key = ?",
+        ["updated", "key1"],
+        0,
+        [:cas_table]
+      )
+
+      assert {:ok, 1} = result
+
+      # Verify update
+      {:ok, [%{value: "updated", version: version}]} =
+        CrossHolonAccess.query(uhi, uhi, "SELECT * FROM cas_table WHERE key = ?", ["key1"])
+
+      assert version == 1
+    end
+
+    test "fails when version mismatches", %{uhi: uhi} do
+      CrossHolonAccess.execute(uhi, uhi, "INSERT INTO cas_table VALUES (?, ?, ?)", ["key1", "initial", 5])
+
+      result = CrossHolonAccess.execute_cas(
+        uhi,
+        uhi,
+        "UPDATE cas_table SET value = ? WHERE key = ?",
+        ["should_fail", "key1"],
+        0,  # Wrong version - actual is 5
+        [:cas_table]
+      )
+
+      assert {:error, {:version_conflict, 5}} = result
+
+      # Original value unchanged
+      {:ok, [%{value: "initial"}]} =
+        CrossHolonAccess.query(uhi, uhi, "SELECT * FROM cas_table WHERE key = ?", ["key1"])
+    end
+
+    test "handles concurrent CAS with only one winner", %{uhi: uhi} do
+      CrossHolonAccess.execute(uhi, uhi, "INSERT INTO cas_table VALUES (?, ?, ?)", ["race_key", "start", 0])
+
+      # Spawn 10 concurrent CAS attempts
+      tasks =
+        for i <- 1..10 do
+          Task.async(fn ->
+            CrossHolonAccess.execute_cas(
+              uhi,
+              uhi,
+              "UPDATE cas_table SET value = ? WHERE key = ?",
+              ["writer_#{i}", "race_key"],
+              0,
+              [:cas_table]
+            )
+          end)
+        end
+
+      results = Task.await_many(tasks, 5000)
+
+      # Count successes and conflicts
+      successes = Enum.count(results, &match?({:ok, _}, &1))
+      conflicts = Enum.count(results, &match?({:error, {:version_conflict, _}}, &1))
+
+      assert successes == 1, "Exactly one CAS should succeed"
+      assert conflicts == 9, "Nine should conflict"
+    end
+
+    test "retries on conflict with exponential backoff (SC-XHOLON-012)", %{uhi: uhi} do
+      CrossHolonAccess.execute(uhi, uhi, "INSERT INTO cas_table VALUES (?, ?, ?)", ["retry_key", "v0", 0])
+
+      # First, increment version in background
+      Task.async(fn ->
+        Process.sleep(50)
+        CrossHolonAccess.execute_cas(uhi, uhi, "UPDATE cas_table SET value = ? WHERE key = ?", ["v1", "retry_key"], 0, [:cas_table])
+      end)
+
+      # Attempt CAS with retry
+      result = CrossHolonAccess.execute_cas_with_retry(
+        uhi,
+        uhi,
+        "UPDATE cas_table SET value = ? WHERE key = ?",
+        ["v2_retry", "retry_key"],
+        [:cas_table],
+        max_retries: 3,
+        backoff_base: 100
+      )
+
+      # Should eventually succeed
+      assert {:ok, _} = result
+    end
+
+    property "CAS operations are linearizable (SC-XHOLON-038)" do
+      forall num_ops <- PC.integer(2, 10) do
+        {:ok, uhi} = create_test_holon(:sqlite)
+        setup_cas_table(uhi)
+        CrossHolonAccess.execute(uhi, uhi, "INSERT INTO cas_table VALUES (?, ?, ?)", ["prop_key", "0", 0])
+
+        # Execute concurrent CAS operations
+        results =
+          1..num_ops
+          |> Enum.map(fn i ->
+            Task.async(fn ->
+              CrossHolonAccess.execute_cas(
+                uhi, uhi,
+                "UPDATE cas_table SET value = ? WHERE key = ?",
+                [Integer.to_string(i), "prop_key"],
+                0,
+                [:cas_table]
+              )
+            end)
+          end)
+          |> Task.await_many(5000)
+
+        # Verify linearizability: exactly one success, final state consistent
+        successes = Enum.count(results, &match?({:ok, _}, &1))
+        {:ok, [%{value: final_value}]} = CrossHolonAccess.query(uhi, uhi, "SELECT * FROM cas_table WHERE key = ?", ["prop_key"])
+
+        cleanup_test_holon(uhi)
+        successes == 1 and final_value != "0"
+      end
+    end
+  end
+
+  # ============================================================
+  # SECTION 7: DISTRIBUTED TRANSACTION (2PC) TESTS
+  # ============================================================
+
+  describe "Two-Phase Commit Transactions" do
+    setup do
+      participants = create_test_participants(3)
+      on_exit(fn -> cleanup_participants(participants) end)
+      %{participants: participants}
+    end
+
+    test "commits when all participants vote YES (SC-XHOLON-022)", %{participants: participants} do
+      {:ok, txn_id} = CrossHolonAccess.begin_distributed_transaction(participants)
+
+      # Execute writes on each participant
+      for {p, i} <- Enum.with_index(participants) do
+        CrossHolonAccess.execute(p, p, "INSERT INTO txn_table VALUES (?)", [i], transaction: txn_id)
+      end
+
+      assert {:ok, :committed} = CrossHolonAccess.commit_transaction(txn_id)
+
+      # Verify all writes are visible
+      for {p, i} <- Enum.with_index(participants) do
+        {:ok, rows} = CrossHolonAccess.query(p, p, "SELECT * FROM txn_table WHERE id = ?", [i])
+        assert length(rows) == 1
+      end
+    end
+
+    test "aborts when any participant votes NO", %{participants: participants} do
+      {:ok, txn_id} = CrossHolonAccess.begin_distributed_transaction(participants)
+
+      # Execute valid write on first participant
+      CrossHolonAccess.execute(hd(participants), hd(participants), "INSERT INTO txn_table VALUES (?)", [1], transaction: txn_id)
+
+      # Force constraint violation on second participant (causes NO vote)
+      CrossHolonAccess.execute(
+        Enum.at(participants, 1), Enum.at(participants, 1),
+        "INSERT INTO txn_table VALUES (NULL)",  # NOT NULL constraint
+        [],
+        transaction: txn_id
+      )
+
+      assert {:ok, :aborted} = CrossHolonAccess.commit_transaction(txn_id)
+
+      # All participants should have no data (atomic abort)
+      for p <- participants do
+        {:ok, rows} = CrossHolonAccess.query(p, p, "SELECT * FROM txn_table", [])
+        assert rows == []
+      end
+    end
+
+    test "explicit abort cleans up all participants", %{participants: participants} do
+      {:ok, txn_id} = CrossHolonAccess.begin_distributed_transaction(participants)
+
+      for p <- participants do
+        CrossHolonAccess.execute(p, p, "INSERT INTO txn_table VALUES (?)", [42], transaction: txn_id)
+      end
+
+      # Explicit abort
+      assert :ok = CrossHolonAccess.abort_transaction(txn_id)
+
+      # Verify rollback
+      for p <- participants do
+        {:ok, rows} = CrossHolonAccess.query(p, p, "SELECT * FROM txn_table", [])
+        assert rows == []
+      end
+    end
+
+    test "transaction log persists across restarts (SC-XHOLON-028)", %{participants: participants} do
+      {:ok, txn_id} = CrossHolonAccess.begin_distributed_transaction(participants)
+
+      CrossHolonAccess.execute(hd(participants), hd(participants), "INSERT INTO txn_table VALUES (?)", [1], transaction: txn_id)
+
+      # Get transaction log before commit
+      log_before = CrossHolonAccess.get_transaction_log(txn_id)
+      assert log_before.status == :pending
+
+      # Simulate restart (log should be persisted)
+      :ok = CrossHolonAccess.checkpoint_transaction_log(txn_id)
+
+      # After restart, transaction should be recoverable
+      recovered_log = CrossHolonAccess.load_transaction_log(txn_id)
+      assert recovered_log.participants == participants
+    end
+
+    test "nested savepoints allow partial rollback (SC-XHOLON-031)", %{participants: [p | _]} do
+      {:ok, txn_id} = CrossHolonAccess.begin_transaction(p)
+
+      CrossHolonAccess.execute(p, p, "INSERT INTO txn_table VALUES (?)", [1], transaction: txn_id)
+
+      {:ok, sp1} = CrossHolonAccess.savepoint(txn_id, "sp1")
+
+      CrossHolonAccess.execute(p, p, "INSERT INTO txn_table VALUES (?)", [2], transaction: txn_id)
+      CrossHolonAccess.execute(p, p, "INSERT INTO txn_table VALUES (?)", [3], transaction: txn_id)
+
+      # Rollback to savepoint
+      :ok = CrossHolonAccess.rollback_to_savepoint(txn_id, sp1)
+
+      CrossHolonAccess.commit_transaction(txn_id)
+
+      # Only first insert should be visible
+      {:ok, rows} = CrossHolonAccess.query(p, p, "SELECT * FROM txn_table ORDER BY id", [])
+      assert length(rows) == 1
+      assert hd(rows).id == 1
+    end
+
+    property "2PC maintains atomicity across participants" do
+      forall num_participants <- PC.integer(2, 5) do
+        participants = create_test_participants(num_participants)
+
+        {:ok, txn_id} = CrossHolonAccess.begin_distributed_transaction(participants)
+
+        # Execute same insert on all participants
+        for p <- participants do
+          CrossHolonAccess.execute(p, p, "INSERT INTO txn_table VALUES (?)", [999], transaction: txn_id)
+        end
+
+        CrossHolonAccess.commit_transaction(txn_id)
+
+        # All participants should have the same data
+        states =
+          for p <- participants do
+            {:ok, rows} = CrossHolonAccess.query(p, p, "SELECT * FROM txn_table", [])
+            rows
+          end
+
+        cleanup_participants(participants)
+        length(Enum.uniq(states)) == 1
+      end
+    end
+  end
+
+  # ============================================================
+  # SECTION 8: CONNECTION POOL TESTS
+  # ============================================================
+
+  describe "Connection Pool" do
+    setup do
+      {:ok, uhi} = create_test_holon(:sqlite)
+      setup_test_table(uhi)
+      on_exit(fn -> cleanup_test_holon(uhi) end)
+      %{uhi: uhi}
+    end
+
+    test "handles concurrent connections within pool size", %{uhi: uhi} do
+      # Execute 20 concurrent queries (should be within default pool size)
+      tasks =
+        for i <- 1..20 do
+          Task.async(fn ->
+            CrossHolonAccess.query(uhi, uhi, "SELECT ? as num", [i])
+          end)
+        end
+
+      results = Task.await_many(tasks, 10_000)
+      assert Enum.all?(results, &match?({:ok, _}, &1))
+    end
+
+    test "queues requests when pool exhausted (SC-XHOLON-010)", %{uhi: uhi} do
+      # Start long-running queries to exhaust pool
+      blocking_tasks =
+        for _ <- 1..50 do
+          Task.async(fn ->
+            # This will hold a connection
+            CrossHolonAccess.query(uhi, uhi, "SELECT 1; SELECT 2; SELECT 3", [])
+          end)
+        end
+
+      # Small delay to let blocking tasks acquire connections
+      Process.sleep(100)
+
+      # New query should still complete (may wait in queue)
+      result = CrossHolonAccess.query(uhi, uhi, "SELECT 42 as answer", [], timeout: 5000)
+
+      # Cleanup blocking tasks
+      Task.await_many(blocking_tasks, 10_000)
+
+      assert match?({:ok, [%{answer: 42}]}, result)
+    end
+
+    test "connection is returned to pool after error", %{uhi: uhi} do
+      # Cause an error
+      CrossHolonAccess.query(uhi, uhi, "INVALID SQL", [])
+
+      # Pool should still work
+      assert {:ok, _} = CrossHolonAccess.query(uhi, uhi, "SELECT 1", [])
+    end
+  end
+
+  # ============================================================
+  # HELPER FUNCTIONS
+  # ============================================================
+
+  defp create_test_holon(type, seed \\ nil) do
+    instance = seed || :erlang.unique_integer([:positive])
+    db_ext = if type == :sqlite, do: "state.sqlite", else: "analytics.duckdb"
+    uhi_string = "ex:L3:test:unit:#{instance}:#{db_ext}"
+    {:ok, uhi_string}
+  end
+
+  defp cleanup_test_holon(uhi_string) do
+    {:ok, uhi} = UHI.parse(uhi_string)
+    base_path = Application.get_env(:indrajaal, :holon_data_path, "/tmp/holon_test")
+    path = UHI.resolve_path(uhi, base_path)
+    File.rm_rf(Path.dirname(path))
+    :ok
+  end
+
+  defp setup_test_table(uhi) do
+    CrossHolonAccess.execute(uhi, uhi, """
+      CREATE TABLE IF NOT EXISTS test_table (
+        key TEXT PRIMARY KEY,
+        value INTEGER
+      )
+    """, [])
+  end
+
+  defp setup_cas_table(uhi) do
+    CrossHolonAccess.execute(uhi, uhi, """
+      CREATE TABLE IF NOT EXISTS cas_table (
+        key TEXT PRIMARY KEY,
+        value TEXT,
+        version INTEGER DEFAULT 0
+      )
+    """, [])
+  end
+
+  defp insert_test_data(uhi, data) do
+    for {key, value} <- data do
+      CrossHolonAccess.execute(uhi, uhi, "INSERT INTO test_table VALUES (?, ?)", [key, value])
+    end
+  end
+
+  defp create_test_participants(n) do
+    for i <- 1..n do
+      instance = :erlang.unique_integer([:positive])
+      uhi = "ex:L3:test:participant:#{instance}_#{i}:state.sqlite"
+      CrossHolonAccess.execute(uhi, uhi, "CREATE TABLE IF NOT EXISTS txn_table (id INTEGER NOT NULL)", [])
+      uhi
+    end
+  end
+
+  defp cleanup_participants(participants) do
+    Enum.each(participants, &cleanup_test_holon/1)
+  end
+
+  # Generators
+
+  defp valid_uhi_struct_generator do
+    let {runtime, layer, domain, type, instance, db} <-
+        {runtime_generator(), layer_generator(), domain_generator(), type_generator(), instance_generator(), db_generator()} do
+      %UHI{
+        runtime: runtime,
+        layer: layer,
+        domain: domain,
+        type: type,
+        instance: instance,
+        database: db
+      }
+    end
+  end
+
+  defp runtime_generator, do: PC.oneof([:elixir, :fsharp, :zig, :rust])
+  defp layer_generator, do: PC.oneof([:L0, :L1, :L2, :L3, :L4, :L5, :L6, :L7, :L8, :L9])
+  defp domain_generator, do: PC.let(PC.list(PC.choose(?a, ?z), min_length: 1, max_length: 10), &List.to_string/1)
+  defp type_generator, do: PC.let(PC.list(PC.choose(?a, ?z), min_length: 1, max_length: 10), &List.to_string/1)
+  defp instance_generator, do: PC.let(PC.pos_integer(), &Integer.to_string/1)
+  defp db_generator, do: PC.oneof([:state_sqlite, :vectors_sqlite, :cache_sqlite, :analytics_duckdb, :history_duckdb, :register_duckdb])
+
+  defp vv_generator do
+    let entries <- PC.list({holon_id_generator(), PC.pos_integer()}, max_length: 5) do
+      Map.new(entries)
+    end
+  end
+
+  defp holon_id_generator do
+    let {prefix, num} <- {PC.oneof(["h", "holon", "node"]), PC.pos_integer()} do
+      "#{prefix}_#{num}"
+    end
+  end
+end

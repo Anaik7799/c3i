@@ -1,0 +1,14 @@
+#\!/bin/sh
+export NIX_PATH=nixpkgs=channel:nixos-unstable
+export LANG=en_US.UTF-8
+export ELIXIR_ERL_OPTIONS='+fnu'
+export MIX_ENV=dev
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5434/intelitor_dev
+export REDIS_URL=redis://localhost:6380
+
+nix-shell -p elixir_1_17 erlang_27 nodejs postgresql cacert --run '
+  export SSL_CERT_FILE=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt
+  export HEX_OFFLINE=true
+  echo "Starting Phoenix server..."
+  mix phx.server
+'

@@ -1,0 +1,51 @@
+  defp assert_phoenix_liveness_in_container do
+    Process.sleep(5000)
+    case System.cmd("curl", ["-s", "-o", "/dev/null", "-w", "%{http_code}", "http://localhost:4000/health"]) do
+      {"200", 0} -> log_pass("[Lifecycle] Phoenix Health Check (HTTP 200)")
+      {code, _} -> log_fail("[Lifecycle] Phoenix Health Check failed (HTTP #{code})")
+    end
+  end
+
+  defp assert_quadplex_file_log do
+    case File.ls(@log_dir) do
+      {:ok, [f | _]} when is_binary(f) -> log_pass("[Quadplex] File log found in '#{@log_dir}/'")
+      _ -> log_fail("[Quadplex] No log file found in '#{@log_dir}/'")
+    end
+  end
+
+  defp assert_quadplex_telemetry_flow do
+    case System.cmd("podman", ["logs", "intelitor-obs"]) do
+      {logs, 0} ->
+        if String.contains?(logs, "OTLP"), do: log_pass("[Quadplex] Telemetry flow detected"), else: log_fail("[Quadplex] No OTLP flow in OBS logs")
+      _ -> log_fail("[Quadplex] Could not read OBS logs")
+    end
+  end
+
+  defp assert_quadplex_state_tracker do
+    if File.exists?(@cubdb_path), do: log_pass("[Quadplex] State Tracker DB found"), else: log_fail("[Quadplex] State Tracker DB missing")
+  end
+
+  defp wait_for_port(port, retries \\ 10) do
+    if retries > 0 do
+      case :gen_tcp.connect(~c"localhost", port, []) do
+        {:ok, socket} -> :gen_tcp.close(socket)
+        {:error, _} -> 
+          Process.sleep(1000)
+          wait_for_port(port, retries - 1)
+      end
+    end
+  end
+
+  defp log_pass(msg), do: %{status: :ok, msg: msg}
+  defp log_fail(msg), do: %{status: :error, msg: msg}
+
+  defp print_env_summary(env, assertions) do
+    Logger.info("---------------------------------------------------")
+    Logger.info(" Environment: #{String.upcase(Atom.to_string(env))}")
+    Enum.each(assertions, fn a ->
+      icon = if a.status == :ok, do: "  🔹", else: "  🔸"
+      Logger.info("#{icon} #{a.msg}")
+    end)
+    Logger.info("---------------------------------------------------")
+  end
+end

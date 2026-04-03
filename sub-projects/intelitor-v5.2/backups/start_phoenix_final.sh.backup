@@ -1,0 +1,51 @@
+#\!/bin/bash
+# Final Phoenix startup script for intelitor-app-podman container
+
+# Set up environment
+export NIX_PATH=nixpkgs=channel:nixos-unstable
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+export ELIXIR_ERL_OPTIONS='+fnu'
+export MIX_ENV=dev
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5434/intelitor_dev
+export REDIS_URL=redis://localhost:6380
+
+# Change to workspace directory
+cd /workspace
+
+echo "Starting Phoenix server setup..."
+
+# Run with nix-shell
+nix-shell -p elixir_1_18 erlang_27 nodejs_20 cacert --run '
+  # Set SSL certificates
+  export SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
+  export NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
+  export CURL_CA_BUNDLE=${cacert}/etc/ssl/certs/ca-bundle.crt
+  
+  # Install Hex and Rebar if not present
+  if [ \! -d "$HOME/.mix/archives/hex-*" ]; then
+    echo "Installing Hex package manager..."
+    mix local.hex --force
+  fi
+  
+  if [ \! -d "$HOME/.mix/archives/rebar3-*" ]; then
+    echo "Installing Rebar3..."
+    mix local.rebar --force
+  fi
+  
+  # Install dependencies
+  echo "Installing/updating dependencies..."
+  mix deps.get
+  
+  # Compile the application
+  echo "Compiling application..."
+  mix compile
+  
+  # Run database migrations if needed
+  echo "Running migrations..."
+  mix ecto.migrate || true
+  
+  # Start Phoenix server
+  echo "Starting Phoenix server on http://localhost:4000"
+  exec mix phx.server
+'

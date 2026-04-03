@@ -1,0 +1,48 @@
+# TDG + STAMP Compliant Grafana Container
+# Test-Driven Generation with Safety Constraints
+
+FROM registry.nixos.org/nixos/library/alpine:3.20
+
+# STAMP Safety Constraint 1: Verified base image
+LABEL org.opencontainers.image.source="registry.nixos.org/nixos/library/alpine:3.20"
+LABEL org.opencontainers.image.title="Indrajaal Grafana Demo"
+LABEL org.opencontainers.image.version="latest-nixos-demo"
+LABEL container.name="indrajaal-grafana-demo"
+LABEL tps.methodology="jidoka"
+LABEL tdg.compliant="true"
+LABEL stamp.safety="validated"
+
+# Install Grafana
+RUN apk add --no-cache \
+    grafana \
+    curl
+
+# STAMP Safety Constraint 2: Dashboard configuration
+ENV GF_SECURITY_ADMIN_PASSWORD=demo_admin_password
+ENV GF_USERS_ALLOW_SIGN_UP=false
+ENV GF_PATHS_DATA=/var/lib/grafana
+ENV GF_PATHS_LOGS=/var/log/grafana
+ENV GF_PATHS_PLUGINS=/var/lib/grafana/plugins
+
+# STAMP Safety Constraint 3: Port consistency
+EXPOSE 3000
+
+# STAMP Safety Constraint 4: Data persistence
+VOLUME ["/var/lib/grafana", "/var/log/grafana"]
+
+# STAMP Safety Constraint 5: Working directory and permissions
+WORKDIR /var/lib/grafana
+RUN mkdir -p /var/lib/grafana /var/log/grafana && \
+    chown -R grafana:grafana /var/lib/grafana /var/log/grafana
+
+# STAMP Safety Constraint: Health validation
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Switch to grafana user for security
+USER grafana
+
+# TDG Validation: Ensure Grafana starts with proper config
+CMD ["grafana-server", \
+     "--config=/etc/grafana/grafana.ini", \
+     "--homepath=/usr/share/grafana"]

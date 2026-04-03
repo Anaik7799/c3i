@@ -1,0 +1,2615 @@
+{
+  "findings": {
+    "low_confidence": [
+      {
+        "line": 151,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/scripts/unicode_validation_fix.ex",
+        "variable": "script_path"
+      },
+      {
+        "line": 267,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/scripts/unicode_validation_fix.ex",
+        "variable": "script_path"
+      },
+      {
+        "line": 365,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal_web/rate_limiter.ex",
+        "variable": "limit_type"
+      },
+      {
+        "line": 204,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal_web/live/prajna/shutdown_live.ex",
+        "variable": "mode"
+      },
+      {
+        "line": 93,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal_web/live/prajna/observability_live.ex",
+        "variable": "tab"
+      },
+      {
+        "line": 133,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal_web/live/prajna/knowledge_live.ex",
+        "variable": "mode"
+      },
+      {
+        "line": 138,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal_web/live/prajna/knowledge_live.ex",
+        "variable": "type"
+      },
+      {
+        "line": 79,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal_web/live/prajna/diagnostics_live.ex",
+        "variable": "tab"
+      },
+      {
+        "line": 78,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal_web/live/operations/active_alarms_live.ex",
+        "variable": "severity"
+      },
+      {
+        "line": 82,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal_web/live/operations/active_alarms_live.ex",
+        "variable": "status"
+      },
+      {
+        "line": 192,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/tps/five_level_rca_engine.ex",
+        "variable": "log_file"
+      },
+      {
+        "line": 35,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/timescale/hypertable_manager.ex",
+        "variable": "drop_query"
+      },
+      {
+        "line": 55,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/timescale/hypertable_manager.ex",
+        "variable": "create_query"
+      },
+      {
+        "line": 105,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/testing/tps_five_level_rca_integration.ex",
+        "variable": "report_file"
+      },
+      {
+        "line": 247,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 299,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 348,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 621,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 656,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 696,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 758,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 802,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 942,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 980,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 1010,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 1039,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 1075,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 1134,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 1238,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 1269,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/timescale_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 101,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/analytics_engine.ex",
+        "variable": "query"
+      },
+      {
+        "line": 191,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/analytics_engine.ex",
+        "variable": "query"
+      },
+      {
+        "line": 302,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/analytics_engine.ex",
+        "variable": "query"
+      },
+      {
+        "line": 423,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/testing/analytics_engine.ex",
+        "variable": "query"
+      },
+      {
+        "line": 389,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/stamp/safety_analysis_engine.ex",
+        "variable": "log_file"
+      },
+      {
+        "line": 25,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/shared/whitespace_cleaner.ex",
+        "variable": "path"
+      },
+      {
+        "line": 21,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/shared/whitespace_cleaner.ex",
+        "variable": "path"
+      },
+      {
+        "line": 250,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/shared/transformation_utilities.ex",
+        "variable": "Elixir.String"
+      },
+      {
+        "line": 261,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/shared/transformation_utilities.ex",
+        "variable": "Elixir.String"
+      },
+      {
+        "line": 344,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/shared/transformation_utilities.ex",
+        "variable": "value"
+      },
+      {
+        "line": 18,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/shared/tracing_utilities.ex",
+        "variable": "operation_name"
+      },
+      {
+        "line": 16,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/shared/spec_generator.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 130,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/shared/inspection_workflows.ex",
+        "variable": "point"
+      },
+      {
+        "line": 446,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/shared/inspection_workflows.ex",
+        "variable": "point"
+      },
+      {
+        "line": 35,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/shared/file_processing_safety.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 106,
+        "type": "Traversal.FileModule: Directory Traversal in `File.cp`",
+        "file": "lib/indrajaal/shared/file_processing_safety.ex",
+        "variable": "backup_path"
+      },
+      {
+        "line": 106,
+        "type": "Traversal.FileModule: Directory Traversal in `File.cp`",
+        "file": "lib/indrajaal/shared/file_processing_safety.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 110,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/shared/file_processing_safety.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 122,
+        "type": "Traversal.FileModule: Directory Traversal in `File.rm`",
+        "file": "lib/indrajaal/shared/file_processing_safety.ex",
+        "variable": "backup_path"
+      },
+      {
+        "line": 127,
+        "type": "Traversal.FileModule: Directory Traversal in `File.cp`",
+        "file": "lib/indrajaal/shared/file_processing_safety.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 127,
+        "type": "Traversal.FileModule: Directory Traversal in `File.cp`",
+        "file": "lib/indrajaal/shared/file_processing_safety.ex",
+        "variable": "backup_path"
+      },
+      {
+        "line": 128,
+        "type": "Traversal.FileModule: Directory Traversal in `File.rm`",
+        "file": "lib/indrajaal/shared/file_processing_safety.ex",
+        "variable": "backup_path"
+      },
+      {
+        "line": 136,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p`",
+        "file": "lib/indrajaal/shared/file_processing_safety.ex",
+        "variable": "path"
+      },
+      {
+        "line": 26,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/shared/enum_optimizer.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 22,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/shared/enum_optimizer.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 138,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/shared/coordination_pattern_manager.ex",
+        "variable": "index"
+      },
+      {
+        "line": 152,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/shared/coordination_pattern_manager.ex",
+        "variable": "index"
+      },
+      {
+        "line": 16,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/shared/complexity_reducer.ex",
+        "variable": "filepath"
+      },
+      {
+        "line": 10,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/shared/complexity_reducer.ex",
+        "variable": "filepath"
+      },
+      {
+        "line": 227,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/shared/api_patterns.ex",
+        "variable": "singular_name"
+      },
+      {
+        "line": 228,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/shared/api_patterns.ex",
+        "variable": "singular_name"
+      },
+      {
+        "line": 229,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/shared/api_patterns.ex",
+        "variable": "plural_name"
+      },
+      {
+        "line": 230,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/shared/api_patterns.ex",
+        "variable": "singular_name"
+      },
+      {
+        "line": 231,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/shared/api_patterns.ex",
+        "variable": "singular_name"
+      },
+      {
+        "line": 1061,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/safety/pattern_hunter.ex",
+        "variable": "error_type and source"
+      },
+      {
+        "line": 1035,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/safety/incident_coordinator.ex",
+        "variable": "i"
+      },
+      {
+        "line": 1075,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/safety/incident_coordinator.ex",
+        "variable": "idx"
+      },
+      {
+        "line": 78,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "query"
+      },
+      {
+        "line": 112,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "query"
+      },
+      {
+        "line": 138,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "query"
+      },
+      {
+        "line": 172,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "query"
+      },
+      {
+        "line": 202,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "query"
+      },
+      {
+        "line": 246,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "query"
+      },
+      {
+        "line": 281,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "query"
+      },
+      {
+        "line": 290,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "hypertable_query"
+      },
+      {
+        "line": 316,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "query"
+      },
+      {
+        "line": 325,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "hypertable_query"
+      },
+      {
+        "line": 349,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "query"
+      },
+      {
+        "line": 358,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "hypertable_query"
+      },
+      {
+        "line": 382,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "query"
+      },
+      {
+        "line": 391,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "hypertable_query"
+      },
+      {
+        "line": 409,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "&1"
+      },
+      {
+        "line": 420,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "&1"
+      },
+      {
+        "line": 431,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "&1"
+      },
+      {
+        "line": 444,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "&1"
+      },
+      {
+        "line": 472,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "query"
+      },
+      {
+        "line": 557,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/property_testing/metrics_collector.ex",
+        "variable": "column"
+      },
+      {
+        "line": 282,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/production_readiness/installation_script.ex",
+        "variable": "target_path"
+      },
+      {
+        "line": 367,
+        "type": "CI.System: Command Injection via `System` function",
+        "file": "lib/indrajaal/production_readiness/installation_script.ex",
+        "variable": "runtime"
+      },
+      {
+        "line": 223,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/production_readiness/environment_config.ex",
+        "variable": "template_path"
+      },
+      {
+        "line": 256,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/production_readiness/environment_config.ex",
+        "variable": "meta_data_path"
+      },
+      {
+        "line": 443,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/production_readiness/environment_config.ex",
+        "variable": "k"
+      },
+      {
+        "line": 301,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/operational_excellence/restore_manager.ex",
+        "variable": "rollback_path"
+      },
+      {
+        "line": 516,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/operational_excellence/restore_manager.ex",
+        "variable": "metadata_file"
+      },
+      {
+        "line": 533,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/operational_excellence/restore_manager.ex",
+        "variable": "metadata_file"
+      },
+      {
+        "line": 276,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/operational_excellence/daily_workflow.ex",
+        "variable": "filename"
+      },
+      {
+        "line": 311,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/operational_excellence/claude_session.ex",
+        "variable": "history_file"
+      },
+      {
+        "line": 485,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/operational_excellence/claude_session.ex",
+        "variable": "filepath"
+      },
+      {
+        "line": 557,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/operational_excellence/claude_session.ex",
+        "variable": "k"
+      },
+      {
+        "line": 295,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/operational_excellence/claude_script_executor.ex",
+        "variable": "script_path"
+      },
+      {
+        "line": 373,
+        "type": "CI.System: Command Injection via `System` function",
+        "file": "lib/indrajaal/operational_excellence/claude_script_executor.ex",
+        "variable": "cmd"
+      },
+      {
+        "line": 511,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/operational_excellence/claude_script_executor.ex",
+        "variable": "path"
+      },
+      {
+        "line": 261,
+        "type": "Traversal.FileModule: Directory Traversal in `File.open`",
+        "file": "lib/indrajaal/operational_excellence/claude_activity.ex",
+        "variable": "filepath"
+      },
+      {
+        "line": 518,
+        "type": "Traversal.FileModule: Directory Traversal in `File.stream!`",
+        "file": "lib/indrajaal/operational_excellence/claude_activity.ex",
+        "variable": "filepath"
+      },
+      {
+        "line": 580,
+        "type": "Traversal.FileModule: Directory Traversal in `File.stream!`",
+        "file": "lib/indrajaal/operational_excellence/claude_activity.ex",
+        "variable": "filepath"
+      },
+      {
+        "line": 605,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/operational_excellence/claude_activity.ex",
+        "variable": "export_file"
+      },
+      {
+        "line": 613,
+        "type": "Traversal.FileModule: Directory Traversal in `File.stream!`",
+        "file": "lib/indrajaal/operational_excellence/claude_activity.ex",
+        "variable": "filepath"
+      },
+      {
+        "line": 681,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/operational_excellence/claude_activity.ex",
+        "variable": "k"
+      },
+      {
+        "line": 175,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/operational_excellence/backup_system.ex",
+        "variable": "meta_data_path"
+      },
+      {
+        "line": 249,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/operational_excellence/backup_system.ex",
+        "variable": "backup_path"
+      },
+      {
+        "line": 386,
+        "type": "Traversal.FileModule: Directory Traversal in `File.rm_rf`",
+        "file": "lib/indrajaal/operational_excellence/backup_system.ex",
+        "variable": "backup_path"
+      },
+      {
+        "line": 422,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/operational_excellence/backup_system.ex",
+        "variable": "meta_data_path"
+      },
+      {
+        "line": 467,
+        "type": "Traversal.FileModule: Directory Traversal in `File.copy!`",
+        "file": "lib/indrajaal/operational_excellence/backup_system.ex",
+        "variable": "dest"
+      },
+      {
+        "line": 467,
+        "type": "Traversal.FileModule: Directory Traversal in `File.copy!`",
+        "file": "lib/indrajaal/operational_excellence/backup_system.ex",
+        "variable": "file"
+      },
+      {
+        "line": 461,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/operational_excellence/backup_system.ex",
+        "variable": "files_dir"
+      },
+      {
+        "line": 466,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/operational_excellence/backup_system.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 498,
+        "type": "Traversal.FileModule: Directory Traversal in `File.stream!`",
+        "file": "lib/indrajaal/operational_excellence/backup_system.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 508,
+        "type": "Traversal.FileModule: Directory Traversal in `File.rm_rf`",
+        "file": "lib/indrajaal/operational_excellence/backup_system.ex",
+        "variable": "backup_path"
+      },
+      {
+        "line": 517,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/operational_excellence/backup_system.ex",
+        "variable": "data"
+      },
+      {
+        "line": 472,
+        "type": "Traversal.FileModule: Directory Traversal in `File.rm_rf`",
+        "file": "lib/indrajaal/operational_excellence/backup_scheduler.ex",
+        "variable": "backup_path"
+      },
+      {
+        "line": 62,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/operational_excellence/alert_notification.ex",
+        "variable": "type"
+      },
+      {
+        "line": 69,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/operational_excellence/alert_notification.ex",
+        "variable": "type"
+      },
+      {
+        "line": 45,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/openapi/specification.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 46,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/openapi/specification.ex",
+        "variable": "path"
+      },
+      {
+        "line": 58,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/openapi/specification.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 62,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/openapi/specification.ex",
+        "variable": "path"
+      },
+      {
+        "line": 350,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/observability/zenoh_kpi_publisher.ex",
+        "variable": "log_path"
+      },
+      {
+        "line": 417,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/zenoh_kpi_publisher.ex",
+        "variable": "name"
+      },
+      {
+        "line": 428,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/observability/zenoh_kpi_publisher.ex",
+        "variable": "latest"
+      },
+      {
+        "line": 529,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/zenoh_evolution_publisher.ex",
+        "variable": "key"
+      },
+      {
+        "line": 370,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/observability/zenoh_coordinator.ex",
+        "variable": "suffix"
+      },
+      {
+        "line": 184,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/observability/troubleshooting_guide_generator.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 750,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/observability/troubleshooting_guide_generator.ex",
+        "variable": "dir_path"
+      },
+      {
+        "line": 10,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/observability/triplex_logger.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 17,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/observability/triplex_logger.ex",
+        "variable": "state"
+      },
+      {
+        "line": 98,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/observability/tracing.ex",
+        "variable": "operation"
+      },
+      {
+        "line": 104,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/observability/tracing.ex",
+        "variable": "operation"
+      },
+      {
+        "line": 107,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/observability/tracing.ex",
+        "variable": "operation"
+      },
+      {
+        "line": 115,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/observability/tracing.ex",
+        "variable": "operation"
+      },
+      {
+        "line": 123,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/observability/tracing.ex",
+        "variable": "operation"
+      },
+      {
+        "line": 620,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/telemetry_enhanced.ex",
+        "variable": "&1"
+      },
+      {
+        "line": 17,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/observability/state_tracker.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 683,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/security_monitor.ex",
+        "variable": "incident_type"
+      },
+      {
+        "line": 11,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/observability/quadplex_logger.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 18,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/observability/quadplex_logger.ex",
+        "variable": "state"
+      },
+      {
+        "line": 69,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/observability_helpers_utils.ex",
+        "variable": "Elixir.String"
+      },
+      {
+        "line": 388,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/observability_helpers_utils.ex",
+        "variable": "field"
+      },
+      {
+        "line": 471,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/observability_helpers_utils.ex",
+        "variable": "key"
+      },
+      {
+        "line": 438,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/observability/logging.ex",
+        "variable": "metric_name"
+      },
+      {
+        "line": 469,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/logging.ex",
+        "variable": "k"
+      },
+      {
+        "line": 165,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/observability/integration_documentation_builder.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 1099,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/observability/integration_documentation_builder.ex",
+        "variable": "dir_path"
+      },
+      {
+        "line": 610,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p`",
+        "file": "lib/indrajaal/observability/git_integration/git_telemetry_collector.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 614,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/observability/git_integration/git_telemetry_collector.ex",
+        "variable": "report_file"
+      },
+      {
+        "line": 643,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/git_integration/git_telemetry_collector.ex",
+        "variable": "Elixir.Enum"
+      },
+      {
+        "line": 317,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/observability/fractal_logger.ex",
+        "variable": "path"
+      },
+      {
+        "line": 745,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/fractal/batch_encoder.ex",
+        "variable": "node_id"
+      },
+      {
+        "line": 181,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/domains/policy_instrumentation.ex",
+        "variable": "Elixir.Macro"
+      },
+      {
+        "line": 175,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/domains/dispatch_instrumentation.ex",
+        "variable": "Elixir.Macro"
+      },
+      {
+        "line": 178,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/domains/compliance_instrumentation.ex",
+        "variable": "Elixir.Macro"
+      },
+      {
+        "line": 162,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/domains/billing_instrumentation.ex",
+        "variable": "Elixir.Macro"
+      },
+      {
+        "line": 181,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/domains/asset_management_instrumentation.ex",
+        "variable": "Elixir.Macro"
+      },
+      {
+        "line": 367,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/domains/alarms_instrumentation.ex",
+        "variable": "Elixir.Macro"
+      },
+      {
+        "line": 287,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/domains/accounts_instrumentation.ex",
+        "variable": "Elixir.Macro"
+      },
+      {
+        "line": 290,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/domains/access_control_instrumentation.ex",
+        "variable": "Elixir.Macro"
+      },
+      {
+        "line": 313,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/observability/documentation_generator.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 377,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/observability/documentation_generator.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 436,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/observability/documentation_generator.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 473,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/observability/documentation_generator.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 200,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/observability/dashboard_agent.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 201,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/observability/dashboard_agent.ex",
+        "variable": "path"
+      },
+      {
+        "line": 216,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/observability/dashboard_agent.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 217,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/observability/dashboard_agent.ex",
+        "variable": "path"
+      },
+      {
+        "line": 703,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/observability/compliance_audit.ex",
+        "variable": "filename"
+      },
+      {
+        "line": 133,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/observability/api_documentation_builder.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 512,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/observability/api_documentation_builder.ex",
+        "variable": "dir_path"
+      },
+      {
+        "line": 726,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/observability/alert_integration.ex",
+        "variable": "filename"
+      },
+      {
+        "line": 586,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/access_control_manager.ex",
+        "variable": "resource_type"
+      },
+      {
+        "line": 587,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/access_control_manager.ex",
+        "variable": "operation"
+      },
+      {
+        "line": 733,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/access_control_manager.ex",
+        "variable": "data_type"
+      },
+      {
+        "line": 810,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/observability/access_control_manager.ex",
+        "variable": "data_type"
+      },
+      {
+        "line": 59,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/native_serializer.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 63,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/native_serializer.ex",
+        "variable": "temp_file"
+      },
+      {
+        "line": 88,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/native_serializer.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 128,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/native_serializer.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 130,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/native_serializer.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 483,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/mesh/state_teleporter.ex",
+        "variable": "path"
+      },
+      {
+        "line": 505,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/mesh/state_teleporter.ex",
+        "variable": "path"
+      },
+      {
+        "line": 528,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/mesh/state_teleporter.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 539,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/mesh/state_teleporter.ex",
+        "variable": "temp_path"
+      },
+      {
+        "line": 543,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/mesh/state_teleporter.ex",
+        "variable": "checksum_path"
+      },
+      {
+        "line": 565,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/mesh/state_teleporter.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 576,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/mesh/state_teleporter.ex",
+        "variable": "temp_path"
+      },
+      {
+        "line": 639,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/mesh/state_teleporter.ex",
+        "variable": "output_path"
+      },
+      {
+        "line": 656,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/mesh/state_teleporter.ex",
+        "variable": "input_path"
+      },
+      {
+        "line": 29,
+        "type": "CI.System: Command Injection via `System` function",
+        "file": "lib/indrajaal/knowledge/sync_bridge.ex",
+        "variable": "cmd"
+      },
+      {
+        "line": 57,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/knowledge/store/sqlite_store.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 67,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/knowledge/store/duckdb_store.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 562,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "category"
+      },
+      {
+        "line": 565,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "automation_level"
+      },
+      {
+        "line": 597,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "window"
+      },
+      {
+        "line": 600,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "status"
+      },
+      {
+        "line": 635,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "scaling_strategy"
+      },
+      {
+        "line": 665,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "fault_type"
+      },
+      {
+        "line": 666,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "blast_radius"
+      },
+      {
+        "line": 667,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "status"
+      },
+      {
+        "line": 698,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "type"
+      },
+      {
+        "line": 701,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "risk_level"
+      },
+      {
+        "line": 702,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "status"
+      },
+      {
+        "line": 735,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "frequency"
+      },
+      {
+        "line": 737,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "automation_potential"
+      },
+      {
+        "line": 738,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "automation_status"
+      },
+      {
+        "line": 768,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "severity"
+      },
+      {
+        "line": 769,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sre.ex",
+        "variable": "status"
+      },
+      {
+        "line": 627,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/sqlite.ex",
+        "variable": "k"
+      },
+      {
+        "line": 1006,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/product.ex",
+        "variable": "status"
+      },
+      {
+        "line": 1007,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/product.ex",
+        "variable": "priority"
+      },
+      {
+        "line": 1038,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/product.ex",
+        "variable": "status"
+      },
+      {
+        "line": 1064,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/product.ex",
+        "variable": "source"
+      },
+      {
+        "line": 1067,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/product.ex",
+        "variable": "sentiment"
+      },
+      {
+        "line": 1070,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/product.ex",
+        "variable": "status"
+      },
+      {
+        "line": 1096,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/product.ex",
+        "variable": "status"
+      },
+      {
+        "line": 1131,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/product.ex",
+        "variable": "severity"
+      },
+      {
+        "line": 1132,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/product.ex",
+        "variable": "status"
+      },
+      {
+        "line": 1168,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/product.ex",
+        "variable": "status"
+      },
+      {
+        "line": 1199,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/product.ex",
+        "variable": "trend"
+      },
+      {
+        "line": 191,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/kms.ex",
+        "variable": "rel"
+      },
+      {
+        "line": 275,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/kms/kms.ex",
+        "variable": "archive_dir"
+      },
+      {
+        "line": 296,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/kms/kms.ex",
+        "variable": "output_dir"
+      },
+      {
+        "line": 306,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/kms/kms.ex",
+        "variable": "manifest_path"
+      },
+      {
+        "line": 1183,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/developer.ex",
+        "variable": "link_type"
+      },
+      {
+        "line": 1210,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/developer.ex",
+        "variable": "status"
+      },
+      {
+        "line": 1241,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/developer.ex",
+        "variable": "category"
+      },
+      {
+        "line": 1301,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/developer.ex",
+        "variable": "note_type"
+      },
+      {
+        "line": 296,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/kms/analytics.ex",
+        "variable": "col"
+      },
+      {
+        "line": 611,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/integration/cepaf_port.ex",
+        "variable": "Elixir.Macro"
+      },
+      {
+        "line": 437,
+        "type": "CI.System: Command Injection via `System` function",
+        "file": "lib/indrajaal/git/incremental_checker.ex",
+        "variable": "Elixir.List"
+      },
+      {
+        "line": 464,
+        "type": "CI.System: Command Injection via `System` function",
+        "file": "lib/indrajaal/git/incremental_checker.ex",
+        "variable": "Elixir.List"
+      },
+      {
+        "line": 142,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/federation/directory.ex",
+        "variable": "%{}"
+      },
+      {
+        "line": 88,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/fame/validator.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 251,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/fame/validator.ex",
+        "variable": "trimmed_name"
+      },
+      {
+        "line": 269,
+        "type": "RCE.CodeModule: Code Execution in `Code.eval_quoted`",
+        "file": "lib/indrajaal/fame/validator.ex",
+        "variable": "quoted"
+      },
+      {
+        "line": 283,
+        "type": "RCE.CodeModule: Code Execution in `Code.eval_string`",
+        "file": "lib/indrajaal/fame/validator.ex",
+        "variable": "match"
+      },
+      {
+        "line": 68,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/fame/parser.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 113,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/fame/parser.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 153,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/fame/parser.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 225,
+        "type": "RCE.CodeModule: Code Execution in `Code.eval_quoted`",
+        "file": "lib/indrajaal/fame/parser.ex",
+        "variable": "ast"
+      },
+      {
+        "line": 261,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/fame/parser.ex",
+        "variable": "Elixir.String"
+      },
+      {
+        "line": 265,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/fame/parser.ex",
+        "variable": "Elixir.String"
+      },
+      {
+        "line": 290,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/fame/generator.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 225,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/distributed/fqun.ex",
+        "variable": "node"
+      },
+      {
+        "line": 297,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/distributed/distributed_mesh.ex",
+        "variable": "Elixir.List"
+      },
+      {
+        "line": 45,
+        "type": "CI.System: Command Injection via `System` function",
+        "file": "lib/indrajaal/deployment/image_builder.ex",
+        "variable": "cmd"
+      },
+      {
+        "line": 121,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cortex/gde/string_scanner.ex",
+        "variable": "name"
+      },
+      {
+        "line": 377,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p`",
+        "file": "lib/indrajaal/cortex/evolution/training_gym.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 380,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/cortex/evolution/training_gym.ex",
+        "variable": "log_path"
+      },
+      {
+        "line": 518,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cortex/ai/gemini_interface.ex",
+        "variable": "Elixir.Map"
+      },
+      {
+        "line": 571,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/cortex/ai/gemini_interface.ex",
+        "variable": "path"
+      },
+      {
+        "line": 635,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/cortex/ai/claude_interface.ex",
+        "variable": "path"
+      },
+      {
+        "line": 424,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/containers/container_health_monitor.ex",
+        "variable": "log_config"
+      },
+      {
+        "line": 683,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/containers/container_health_monitor.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 684,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/containers/container_health_monitor.ex",
+        "variable": "log_file"
+      },
+      {
+        "line": 66,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/container_compliance_enhanced.ex",
+        "variable": "state"
+      },
+      {
+        "line": 67,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/container_compliance_enhanced.ex",
+        "variable": "state"
+      },
+      {
+        "line": 364,
+        "type": "Traversal.FileModule: Directory Traversal in `File.rm!`",
+        "file": "lib/indrajaal/container_compliance.ex",
+        "variable": "test_file"
+      },
+      {
+        "line": 363,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/container_compliance.ex",
+        "variable": "test_file"
+      },
+      {
+        "line": 783,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/config_management.ex",
+        "variable": "&1"
+      },
+      {
+        "line": 282,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/regulatory_reporting_automation.ex",
+        "variable": "update_query"
+      },
+      {
+        "line": 317,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/regulatory_reporting_automation.ex",
+        "variable": "query"
+      },
+      {
+        "line": 353,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/regulatory_reporting_automation.ex",
+        "variable": "summary_query"
+      },
+      {
+        "line": 419,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/regulatory_reporting_automation.ex",
+        "variable": "violations_query"
+      },
+      {
+        "line": 457,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/regulatory_reporting_automation.ex",
+        "variable": "remediation_query"
+      },
+      {
+        "line": 527,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/regulatory_reporting_automation.ex",
+        "variable": "evidence_query"
+      },
+      {
+        "line": 567,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/regulatory_reporting_automation.ex",
+        "variable": "audit_trail_query"
+      },
+      {
+        "line": 618,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/regulatory_reporting_automation.ex",
+        "variable": "query"
+      },
+      {
+        "line": 650,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/regulatory_reporting_automation.ex",
+        "variable": "consent_query"
+      },
+      {
+        "line": 745,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/regulatory_reporting_automation.ex",
+        "variable": "risk_query"
+      },
+      {
+        "line": 793,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/regulatory_reporting_automation.ex",
+        "variable": "pattern_query"
+      },
+      {
+        "line": 301,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/forensic_audit_trail.ex",
+        "variable": "base_query"
+      },
+      {
+        "line": 412,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/forensic_audit_trail.ex",
+        "variable": "query"
+      },
+      {
+        "line": 471,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/forensic_audit_trail.ex",
+        "variable": "query"
+      },
+      {
+        "line": 527,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/compliance/forensic_audit_trail.ex",
+        "variable": "Elixir.Path"
+      },
+      {
+        "line": 528,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/compliance/forensic_audit_trail.ex",
+        "variable": "storage_location"
+      },
+      {
+        "line": 580,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/forensic_audit_trail.ex",
+        "variable": "query"
+      },
+      {
+        "line": 611,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/compliance/forensic_audit_trail.ex",
+        "variable": "query"
+      },
+      {
+        "line": 707,
+        "type": "Traversal.FileModule: Directory Traversal in `File.mkdir_p!`",
+        "file": "lib/indrajaal/compilation/progress_tracker.ex",
+        "variable": "log_dir"
+      },
+      {
+        "line": 721,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/compilation/progress_tracker.ex",
+        "variable": "log_file"
+      },
+      {
+        "line": 753,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/compilation/progress_tracker.ex",
+        "variable": "log_file"
+      },
+      {
+        "line": 766,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/compilation/progress_tracker.ex",
+        "variable": "report_file"
+      },
+      {
+        "line": 564,
+        "type": "CI.System: Command Injection via `System` function",
+        "file": "lib/indrajaal/compilation/max_parallel_container_compiler.ex",
+        "variable": "Elixir.List"
+      },
+      {
+        "line": 161,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/user_engagement_analytics.ex",
+        "variable": "engagement_query"
+      },
+      {
+        "line": 314,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/user_engagement_analytics.ex",
+        "variable": "query"
+      },
+      {
+        "line": 488,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/timescale_domain_integration.ex",
+        "variable": "integration_events_table"
+      },
+      {
+        "line": 493,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/timescale_domain_integration.ex",
+        "variable": "cross_domain_analytics_table"
+      },
+      {
+        "line": 543,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/timescale_domain_integration.ex",
+        "variable": "hourly_aggregate"
+      },
+      {
+        "line": 555,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/timescale_domain_integration.ex",
+        "variable": "refresh_policy"
+      },
+      {
+        "line": 578,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/timescale_domain_integration.ex",
+        "variable": "base_query"
+      },
+      {
+        "line": 790,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/timescale_domain_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 976,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/timescale_domain_integration.ex",
+        "variable": "query"
+      },
+      {
+        "line": 175,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/timescale_communication_events.ex",
+        "variable": "query"
+      },
+      {
+        "line": 193,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/timescale_communication_events.ex",
+        "variable": "policy"
+      },
+      {
+        "line": 256,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/timescale_communication_events.ex",
+        "variable": "query"
+      },
+      {
+        "line": 304,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/timescale_communication_events.ex",
+        "variable": "query"
+      },
+      {
+        "line": 375,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/timescale_communication_events.ex",
+        "variable": "query"
+      },
+      {
+        "line": 167,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/message_delivery_analytics.ex",
+        "variable": "base_query"
+      },
+      {
+        "line": 338,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/message_delivery_analytics.ex",
+        "variable": "query"
+      },
+      {
+        "line": 359,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/message_delivery_analytics.ex",
+        "variable": "query"
+      },
+      {
+        "line": 383,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/message_delivery_analytics.ex",
+        "variable": "query"
+      },
+      {
+        "line": 442,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/message_delivery_analytics.ex",
+        "variable": "query"
+      },
+      {
+        "line": 478,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/message_delivery_analytics.ex",
+        "variable": "query"
+      },
+      {
+        "line": 517,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/message_delivery_analytics.ex",
+        "variable": "query"
+      },
+      {
+        "line": 564,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/communication/message_delivery_analytics.ex",
+        "variable": "daily_query"
+      },
+      {
+        "line": 717,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cockpit/prajna/watchdog.ex",
+        "variable": "key"
+      },
+      {
+        "line": 569,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/cockpit/prajna/immutable_state.ex",
+        "variable": "keypair_path"
+      },
+      {
+        "line": 596,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/cockpit/prajna/immutable_state.ex",
+        "variable": "keypair_path"
+      },
+      {
+        "line": 126,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cluster/tailscale_dns.ex",
+        "variable": "app_name and full_host"
+      },
+      {
+        "line": 231,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cluster/tailscale_dns.ex",
+        "variable": "node_name"
+      },
+      {
+        "line": 253,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cluster/tailscale_dns.ex",
+        "variable": "app_name and converted_host"
+      },
+      {
+        "line": 302,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cluster/tailscale_dns.ex",
+        "variable": "sanitized and suffix"
+      },
+      {
+        "line": 451,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cluster/tailscale_dns.ex",
+        "variable": "hostname and suffix"
+      },
+      {
+        "line": 621,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cluster/tailscale_dns.ex",
+        "variable": "app_name and sanitized_base and suffix"
+      },
+      {
+        "line": 640,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cluster/tailscale_dns.ex",
+        "variable": "app_name and sanitized_base and suffix"
+      },
+      {
+        "line": 672,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cluster/tailscale_dns.ex",
+        "variable": "sanitized and suffix"
+      },
+      {
+        "line": 692,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cluster/tailscale_dns.ex",
+        "variable": "app_name and base_name and suffix"
+      },
+      {
+        "line": 768,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cluster/tailscale_dns.ex",
+        "variable": "app_name and host"
+      },
+      {
+        "line": 259,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/strategies/standalone.ex",
+        "variable": "sanitized"
+      },
+      {
+        "line": 193,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/standalone_config.ex",
+        "variable": "name and host"
+      },
+      {
+        "line": 301,
+        "type": "Traversal.FileModule: Directory Traversal in `File.chmod!`",
+        "file": "lib/indrajaal/cluster/standalone_config.ex",
+        "variable": "cookie_file"
+      },
+      {
+        "line": 300,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/cluster/standalone_config.ex",
+        "variable": "cookie_file"
+      },
+      {
+        "line": 296,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/cluster/standalone_config.ex",
+        "variable": "cookie_file"
+      },
+      {
+        "line": 315,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cluster/standalone_config.ex",
+        "variable": "cookie"
+      },
+      {
+        "line": 247,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/process_capability.ex",
+        "variable": "hostname"
+      },
+      {
+        "line": 352,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/process_capability.ex",
+        "variable": "hostname and suffix"
+      },
+      {
+        "line": 360,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/process_capability.ex",
+        "variable": "hostname"
+      },
+      {
+        "line": 75,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/capabilities/node_name_builder.ex",
+        "variable": "type and hostname and suffix"
+      },
+      {
+        "line": 80,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/capabilities/node_name_builder.ex",
+        "variable": "type and hostname and namespace"
+      },
+      {
+        "line": 85,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/capabilities/node_name_builder.ex",
+        "variable": "type and hostname and local_suffix"
+      },
+      {
+        "line": 90,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/capabilities/node_name_builder.ex",
+        "variable": "type and hostname and local_suffix"
+      },
+      {
+        "line": 95,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/capabilities/node_name_builder.ex",
+        "variable": "type and hostname and local_suffix"
+      },
+      {
+        "line": 100,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/capabilities/node_name_builder.ex",
+        "variable": "type and hostname and local_suffix"
+      },
+      {
+        "line": 293,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/cluster/capabilities/k8s_capability.ex",
+        "variable": "token_path"
+      },
+      {
+        "line": 501,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/capabilities/capability_router.ex",
+        "variable": "hostname and suffix"
+      },
+      {
+        "line": 504,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/capabilities/capability_router.ex",
+        "variable": "hostname"
+      },
+      {
+        "line": 527,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/capabilities/capability_router.ex",
+        "variable": "hostname and suffix"
+      },
+      {
+        "line": 530,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cluster/capabilities/capability_router.ex",
+        "variable": "hostname"
+      },
+      {
+        "line": 267,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/claude/timestamp_corrector.ex",
+        "variable": "filepath"
+      },
+      {
+        "line": 261,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/claude/timestamp_corrector.ex",
+        "variable": "filepath"
+      },
+      {
+        "line": 364,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/claude/timestamp_corrector.ex",
+        "variable": "file"
+      },
+      {
+        "line": 387,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read`",
+        "file": "lib/indrajaal/claude/timestamp_corrector.ex",
+        "variable": "file"
+      },
+      {
+        "line": 253,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/claude/mandatory_logging_enforcer.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 325,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/claude/mandatory_logging_enforcer.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 337,
+        "type": "Traversal.FileModule: Directory Traversal in `File.rm`",
+        "file": "lib/indrajaal/claude/mandatory_logging_enforcer.ex",
+        "variable": "test_file"
+      },
+      {
+        "line": 335,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/claude/mandatory_logging_enforcer.ex",
+        "variable": "test_file"
+      },
+      {
+        "line": 397,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/claude/logger.ex",
+        "variable": "state"
+      },
+      {
+        "line": 420,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/claude/logger.ex",
+        "variable": "state"
+      },
+      {
+        "line": 426,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/claude/logger.ex",
+        "variable": "activityfile"
+      },
+      {
+        "line": 580,
+        "type": "Traversal.FileModule: Directory Traversal in `File.rm`",
+        "file": "lib/indrajaal/claude/logger.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 36,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write`",
+        "file": "lib/indrajaal/claude/log_storage.ex",
+        "variable": "filename"
+      },
+      {
+        "line": 591,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cepaf/bridge/orchestrator.ex",
+        "variable": "name"
+      },
+      {
+        "line": 261,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cepaf/bridge/grammar.ex",
+        "variable": "Elixir.String"
+      },
+      {
+        "line": 263,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/cepaf/bridge/grammar.ex",
+        "variable": "str"
+      },
+      {
+        "line": 404,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cafe/test_supervisor.ex",
+        "variable": "i"
+      },
+      {
+        "line": 412,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/cafe/test_supervisor.ex",
+        "variable": "i"
+      },
+      {
+        "line": 602,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/cafe/test_supervisor.ex",
+        "variable": "filename"
+      },
+      {
+        "line": 590,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/autonomous/mode_supervisor.ex",
+        "variable": "file"
+      },
+      {
+        "line": 582,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/autonomous/mode_supervisor.ex",
+        "variable": "file"
+      },
+      {
+        "line": 730,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/autonomous/mode_supervisor.ex",
+        "variable": "i"
+      },
+      {
+        "line": 24,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/authorization.ex",
+        "variable": "user"
+      },
+      {
+        "line": 666,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/analytics/strategic_impact_dashboard.ex",
+        "variable": "category"
+      },
+      {
+        "line": 450,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/analytics/stamp_tdg_gde_analytics.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 465,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/analytics/stamp_tdg_gde_analytics.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 476,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/analytics/stamp_tdg_gde_analytics.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 486,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/analytics/stamp_tdg_gde_analytics.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 636,
+        "type": "DOS.BinToAtom: Unsafe atom interpolation",
+        "file": "lib/indrajaal/analytics/performance_validation_framework.ex",
+        "variable": "category"
+      },
+      {
+        "line": 687,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/analytics/analytics_event_logger.ex",
+        "variable": "create_table_sql"
+      },
+      {
+        "line": 688,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/analytics/analytics_event_logger.ex",
+        "variable": "hypertable_sql"
+      },
+      {
+        "line": 691,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/analytics/analytics_event_logger.ex",
+        "variable": "retention_sql"
+      },
+      {
+        "line": 719,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/analytics/analytics_event_logger.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 750,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/analytics/analytics_event_logger.ex",
+        "variable": "insert_sql"
+      },
+      {
+        "line": 407,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal/alarms/workflow_template.ex",
+        "variable": "step"
+      },
+      {
+        "line": 172,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 272,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 303,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 340,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 396,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 453,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 477,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 495,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 516,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 590,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 626,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 644,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 663,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 683,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 703,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 721,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 738,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 755,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 771,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 798,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 814,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 829,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "sql"
+      },
+      {
+        "line": 892,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "insert_sql"
+      },
+      {
+        "line": 928,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "insert_sql"
+      },
+      {
+        "line": 963,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "insert_sql"
+      },
+      {
+        "line": 1016,
+        "type": "SQL.Query: SQL injection",
+        "file": "lib/indrajaal/alarms/timescaledb_schema.ex",
+        "variable": "insert_sql"
+      },
+      {
+        "line": 820,
+        "type": "Traversal.FileModule: Directory Traversal in `File.write!`",
+        "file": "lib/indrajaal/alarms/notification_orchestrator.ex",
+        "variable": "filename"
+      },
+      {
+        "line": 445,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/agent_comments/comprehensive_agent_integrator.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 508,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/agent_comments/comprehensive_agent_integrator.ex",
+        "variable": "file_path"
+      },
+      {
+        "line": 561,
+        "type": "Traversal.FileModule: Directory Traversal in `File.read!`",
+        "file": "lib/indrajaal/agent_comments/comprehensive_agent_integrator.ex",
+        "variable": "file_path"
+      }
+    ],
+    "high_confidence": [
+      {
+        "line": 923,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal_web/controllers/api/prajna_controller.ex",
+        "variable": "params"
+      },
+      {
+        "line": 1244,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal_web/controllers/api/prajna_controller.ex",
+        "variable": "command"
+      },
+      {
+        "line": 271,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal_web/controllers/api/kms_controller.ex",
+        "variable": "params"
+      },
+      {
+        "line": 427,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/safety/symbiotic_defense.ex",
+        "variable": "data"
+      },
+      {
+        "line": 724,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/observability/fractal/batch_encoder.ex",
+        "variable": "payload_bytes"
+      },
+      {
+        "line": 91,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/native_serializer.ex",
+        "variable": "binary_data"
+      },
+      {
+        "line": 155,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/native_serializer.ex",
+        "variable": "binary_data"
+      },
+      {
+        "line": 695,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/mesh/state_teleporter.ex",
+        "variable": "rest"
+      },
+      {
+        "line": 137,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/jain/sterilization.ex",
+        "variable": "data"
+      },
+      {
+        "line": 182,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/jain/propagation.ex",
+        "variable": "decoded"
+      },
+      {
+        "line": 256,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/jain/genesis.ex",
+        "variable": "data"
+      },
+      {
+        "line": 235,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/jain/cryptography.ex",
+        "variable": "payload_binary"
+      },
+      {
+        "line": 141,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/federation/protocol.ex",
+        "variable": "data"
+      },
+      {
+        "line": 330,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/federation/protocol.ex",
+        "variable": "body"
+      },
+      {
+        "line": 187,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/core/holon/protocol.ex",
+        "variable": "binary"
+      },
+      {
+        "line": 221,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/core/holon/founder_persistence.ex",
+        "variable": "binary"
+      },
+      {
+        "line": 337,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/core/holon/capability_token.ex",
+        "variable": "Elixir.Base"
+      },
+      {
+        "line": 572,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/cockpit/prajna/immutable_state.ex",
+        "variable": "binary"
+      },
+      {
+        "line": 309,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/cache.ex",
+        "variable": "value"
+      },
+      {
+        "line": 691,
+        "type": "Misc.BinToTerm: Unsafe `binary_to_term`",
+        "file": "lib/indrajaal/accounts.ex",
+        "variable": "decoded"
+      },
+      {
+        "line": 0,
+        "type": "Config.HTTPS: HTTPS Not Enabled",
+        "file": "config/prod.exs"
+      },
+      {
+        "line": 16,
+        "type": "Config.CSP: Missing Content-Security-Policy",
+        "file": "lib/indrajaal_web/router.ex",
+        "pipeline": "browser"
+      },
+      {
+        "line": 41,
+        "type": "Config.CSRF: Missing CSRF Protections",
+        "file": "lib/indrajaal_web/router.ex",
+        "pipeline": "mobile_api"
+      }
+    ],
+    "medium_confidence": [
+      {
+        "line": 444,
+        "type": "DOS.StringToAtom: Unsafe `String.to_atom`",
+        "file": "lib/indrajaal_web/controllers/analytics_api_controller.ex",
+        "variable": "&1"
+      }
+    ]
+  },
+  "total_findings": 434,
+  "sobelow_version": "0.14.1"
+}

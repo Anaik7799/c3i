@@ -1,0 +1,87 @@
+# Logs and Temporary files
+__data/
+__data\ /
+data\ /
+/data/
+*.log
+erl_crash.dump
+
+# Elixir/Phoenix build artifacts
+/_build/
+/deps/
+/plt_files/
+/.elixir_ls/
+/.lexical/
+/priv/static/
+
+# Environment variables
+.env
+.envrc.local
+
+# Wallaby
+/screenshots/
+
+# Ash Snapshots
+/priv/resource_snapshots/
+
+# Local Registry
+.local-registry/
+
+# Elixir PubSub and Hex junk
+mix_pubsub_*/
+.hex/
+.mix/
+
+# Active Sessions and Agents
+.active_sessions/
+.agents/
+
+# Editor and Environment
+.vscode/
+.devenv/
+.phics/
+
+# Claude Code - keep config, ignore runtime artifacts
+.claude/bash-history.log
+.claude/projects.json
+.claude/*.tmp
+# Note: .claude/commands/, .claude/rules/, .claude/agents/, .claude/settings.json are version controlled
+
+# Data and Logs
+data/
+data\ /
+__data/
+__data\ /
+logs/
+validation_reports/
+analysis_output/
+reports/
+
+# CEPAF (F#) build artifacts
+lib/cepaf/**/bin/
+lib/cepaf/**/obj/
+*.dll
+*.pdb
+*.xml
+*.exe
+*.so
+*.dylib
+*.a
+*.deps.json
+*.runtimeconfig.json
+*.cache
+*.FileListAbsolute.txt
+*.Up2Date
+*.CoreCompileInputs.cache
+*.AssemblyReference.cache
+*.genruntimeconfig.cache
+*.sourcelink.json
+apphost
+ref/
+refint/
+.local-chrome/
+
+# Rust binary artifacts
+/target/
+native/zenoh_nif/target/
+__data/tmp/claude_mandatory_enforcer_startup_*.json

@@ -1,0 +1,140 @@
+# podman-compose-phase2-node2.yml
+# PHASE 2: Add Second App Node to Existing Cluster
+# Purpose: Verify SC-FIX-006/006b in 2-node cluster mode
+# STAMP: SC-FIX-006, SC-FIX-006b, SC-FUNC-001
+# Usage: podman-compose -f podman-compose-phase2-node2.yml up -d
+
+version: '3.8'
+
+networks:
+  artifacts_indrajaal-mesh:
+    external: true
+  artifacts_indrajaal-internal:
+    external: true
+
+services:
+  # =============================================================================
+  # APP NODE 2 - Secondary Node joining existing cluster
+  # SC-NAME-001: Standardized app naming convention: indrajaal-ex-app-{N}
+  # Connects to existing db, obs, zenoh-router from prod-standalone
+  # =============================================================================
+  indrajaal-ex-app-2:
+    image: localhost/indrajaal-app-unified:nixos-devenv
+    container_name: indrajaal-ex-app-2
+    hostname: indrajaal-ex-app-2
+    networks:
+      - artifacts_indrajaal-mesh
+      - artifacts_indrajaal-internal
+    environment:
+      # Database - connect to existing db container
+      DATABASE_URL: ecto://postgres:postgres@indrajaal-db-prod:5433/indrajaal_prod
+      POSTGRES_HOST: indrajaal-db-prod
+      POSTGRES_PORT: "5433"
+
+      # Phoenix - different port to avoid conflict
+      PHX_HOST: localhost
+      PHX_PORT: "4000"
+      PHX_SERVER: "true"
+      SECRET_KEY_BASE: cluster_secret_key_base_64_chars_minimum_change_me_in_production
+
+      # CLUSTERING - join with existing node (SC-NAME-001)
+      CLUSTERING_ENABLED: "true"
+      RELEASE_NODE: indrajaal@indrajaal-ex-app-2
+      RELEASE_COOKIE: SIL6_SAFETY_CRITICAL_COOKIE_DO_NOT_SHARE
+
+      # SC-NAME-001: Cluster node hostnames matching container names
+      CLUSTER_NODE_1: indrajaal-ex-app-1
+      CLUSTER_NODE_2: indrajaal-ex-app-2
+      CLUSTER_NODE_3: indrajaal-ex-app-3
+
+      # Tailscale disabled for container-only mode
+      TAILSCALE_ENABLED: "false"
+      TAILSCALE_DNS_SUFFIX: local
+
+      # Prajna Cockpit
+      PRAJNA_COCKPIT_ENABLED: "true"
+      PRAJNA_DARK_MODE: "true"
+
+      # =======================================================================
+      # DIRECTED TELESCOPE - 7-Level Fractal Logging
+      # =======================================================================
+      FRACTAL_LOGGING_ENABLED: "true"
+      FRACTAL_LOG_LEVEL: debug
+      FRACTAL_TELESCOPE_ENABLED: "true"
+      FRACTAL_L1_FUNCTION: "true"
+      FRACTAL_L2_COMPONENT: "true"
+      FRACTAL_L3_HOLON: "true"
+      FRACTAL_L4_CONTAINER: "true"
+      FRACTAL_L5_NODE: "true"
+      FRACTAL_L6_CLUSTER: "true"
+      FRACTAL_L7_FEDERATION: "true"
+
+      # =======================================================================
+      # QUADPLEX LOGGING - 4 Output Channels
+      # =======================================================================
+      QUADPLEX_LOGGING: "true"
+      QUADPLEX_CONSOLE: "true"
+      QUADPLEX_FILE: "true"
+      QUADPLEX_LOG_PATH: /app/data/logs
+      QUADPLEX_OTEL: "true"
+      QUADPLEX_ZENOH: "true"
+      QUADPLEX_ZENOH_TOPIC: indrajaal/logs/cluster/node-2
+
+      # OBSERVABILITY - connect to existing obs container
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://indrajaal-obs-prod:4317
+      OTEL_SERVICE_NAME: indrajaal-ex-app-2
+      LOG_LEVEL: debug
+
+      # =======================================================================
+      # ZENOH TELEMETRY - SC-ZENOH-001 to SC-ZENOH-008 (MANDATORY)
+      # =======================================================================
+      # SC-ZENOH-001: Zenoh NIF MUST be loaded on ALL nodes
+      SKIP_ZENOH_NIF: "0"
+      SKIP_LINEAGE_NIF: "1"
+      RUSTLER_SKIP_COMPILE: "false"
+
+      # SC-ZENOH-002: Zenoh router connection
+      ZENOH_ENABLED: "true"
+      ZENOH_ROUTER_ENDPOINT: tcp/zenoh-router:7447
+      ZENOH_MODE: client
+
+      # Redis - connect to primary node's Redis (SC-NAME-001)
+      REDIS_HOST: indrajaal-ex-app-1
+      REDIS_PORT: "6379"
+
+      # SC-HOLON-008: Isolated state files for each node
+      # SC-DBNAME-001: UHI-based paths for all databases
+      # Node 2 uses /app/data for holon state (separate from shared workspace)
+      HOLON_DATA_PATH: /app/data/holons
+      PRAJNA_REGISTER_PATH: /app/data/holons/ex/l5/prj/prajna/register.duckdb
+      HOLON_STATE_PATH: /app/data/holons/ex/l3/kms/main/state.sqlite
+
+      # Override workspace data path to use node-specific data
+      DATA_PATH: /app/data
+
+    volumes:
+      - ../../../:/workspace:z
+      - phase2_app2_data:/app/data:z
+    working_dir: /workspace
+    # SC-CLU-001: Enable Erlang distribution for clustering
+    command: ["sh", "-c", "mkdir -p /app/data/holons && cd /workspace && MIX_ENV=dev mix deps.get && MIX_ENV=dev mix compile && exec elixir --sname indrajaal --cookie SIL6_SAFETY_CRITICAL_COOKIE_DO_NOT_SHARE -S mix phx.server"]
+    healthcheck:
+      # SC-FIX-007: Use correct port 4000
+      test: ["CMD-SHELL", "curl -sf http://localhost:4000/health || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 30
+      start_period: 600s
+    ports:
+      - "4010:4000"
+      - "4011:4001"
+      - "6380:6379"
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+          cpus: '4'
+    restart: unless-stopped
+
+volumes:
+  phase2_app2_data:

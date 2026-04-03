@@ -1,0 +1,1423 @@
+# MCP Integrated Analysis & Implementation
+## Comprehensive Model Context Protocol Capability for Indrajaal, Prajna, and CEPAF
+
+**Version**: 1.0.0 | **Date**: 2026-01-05 | **Status**: ANALYSIS COMPLETE
+**SIL Compliance**: IEC 61508 SIL-6 Biomorphic | **STAMP**: SC-MCP-001 to SC-MCP-100
+
+---
+
+# PART I: AS-IS ANALYSIS
+
+## 1.0 Current State Summary
+
+### 1.1 Existing MCP Capabilities
+
+| Component | Status | Tools | Coverage |
+|-----------|--------|-------|----------|
+| KMS MCP Server | Implemented | 14 | Knowledge Management only |
+| Domain Contexts | Elixir modules | 0 MCP | Not exposed |
+| Prajna Cockpit | Elixir/LiveView | 0 MCP | Not exposed |
+| CEPAF F# | F# modules | 0 MCP | Not exposed |
+| Observability | Zenoh/OTEL | 0 MCP | Not exposed |
+
+### 1.2 Current Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    CURRENT STATE (AS-IS)                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────────┐         ┌─────────────────────────────────┐│
+│  │ .mcp.json       │         │ Indrajaal Application           ││
+│  │ ├─ 20+ servers  │         │ ┌─────────────────────────────┐ ││
+│  │ ├─ github       │───X───▶ │ │ 15 Domain Contexts         │ ││
+│  │ ├─ postgres     │         │ │ (NOT EXPOSED via MCP)      │ ││
+│  │ ├─ git          │         │ └─────────────────────────────┘ ││
+│  │ └─ kms (only)───│────────▶│ ┌─────────────────────────────┐ ││
+│  └─────────────────┘         │ │ KMS MCP Server (14 tools)   │ ││
+│                              │ │ - Holons, Oracle, Search    │ ││
+│                              │ └─────────────────────────────┘ ││
+│                              │ ┌─────────────────────────────┐ ││
+│                              │ │ Prajna Cockpit              │ ││
+│                              │ │ (NOT EXPOSED via MCP)      │ ││
+│                              │ └─────────────────────────────┘ ││
+│                              └─────────────────────────────────┘│
+│                                                                  │
+│  ┌─────────────────┐         ┌─────────────────────────────────┐│
+│  │ F# CEPAF        │───X───▶ │ Category Theory, OODA          ││
+│  │ (NO MCP ACCESS) │         │ (NOT EXPOSED via MCP)          ││
+│  └─────────────────┘         └─────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────┘
+
+Legend: ───▶ = Connected    ───X───▶ = NOT Connected
+```
+
+### 1.3 Issues with Current Approach
+
+| Issue ID | Category | Description | Impact | Severity |
+|----------|----------|-------------|--------|----------|
+| MCP-ISS-001 | Coverage | Only KMS exposed (14/350 tools) | 96% capability hidden | HIGH |
+| MCP-ISS-002 | Safety | No Guardian integration in MCP | Unsafe write operations | CRITICAL |
+| MCP-ISS-003 | Verification | No PROMETHEUS tokens in MCP | Unverified mutations | CRITICAL |
+| MCP-ISS-004 | Audit | No immutable register logging | No audit trail | HIGH |
+| MCP-ISS-005 | F# Bridge | CEPAF not accessible | Category theory unavailable | MEDIUM |
+| MCP-ISS-006 | Rate Limit | No rate limiting | DoS vulnerability | HIGH |
+| MCP-ISS-007 | Auth | No client authentication | Security risk | CRITICAL |
+| MCP-ISS-008 | Namespace | No namespace separation | Tool collision risk | MEDIUM |
+| MCP-ISS-009 | Schema | Inconsistent tool schemas | Integration difficulty | MEDIUM |
+| MCP-ISS-010 | Observability | No telemetry in MCP calls | Blind spot | HIGH |
+
+### 1.4 Gap Analysis Matrix
+
+```
+                    │ Domain │ Prajna │ CEPAF │ Safety │ Observe │
+────────────────────┼────────┼────────┼───────┼────────┼─────────┤
+MCP Access          │   ✗    │   ✗    │   ✗   │   ✗    │    ✗    │
+Guardian Gate       │   ✗    │   ✗    │   ✗   │   ✗    │    ✗    │
+PROMETHEUS Token    │   ✗    │   ✗    │   ✗   │   ✗    │    ✗    │
+Audit Logging       │   ✗    │   ✗    │   ✗   │   ✗    │    ✗    │
+Rate Limiting       │   ✗    │   ✗    │   ✗   │   ✗    │    ✗    │
+Schema Validation   │   ✗    │   ✗    │   ✗   │   ✗    │    ✗    │
+Telemetry           │   ✗    │   ✗    │   ✗   │   ✗    │    ✗    │
+F# Interop          │  N/A   │  N/A   │   ✗   │  N/A   │   N/A   │
+────────────────────┴────────┴────────┴───────┴────────┴─────────┘
+
+Legend: ✓ = Implemented, ✗ = Missing, N/A = Not Applicable
+```
+
+---
+
+# PART II: TO-BE PROPOSAL
+
+## 2.0 Target Architecture
+
+### 2.1 5-Layer Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         PROPOSED ARCHITECTURE (TO-BE)                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ╔═══════════════════════════════════════════════════════════════════════╗  │
+│  ║                    LAYER 5: INTEGRATION & ORCHESTRATION               ║  │
+│  ║  ┌──────────────┐  ┌────────────────┐  ┌────────────────────────────┐ ║  │
+│  ║  │ .mcp.json    │  │ Unified Server │  │ Circuit Breaker / Health   │ ║  │
+│  ║  │ Configuration│  │ (Port 9999)    │  │ (Rate Limit / Auth)        │ ║  │
+│  ║  └──────────────┘  └────────────────┘  └────────────────────────────┘ ║  │
+│  ╚═══════════════════════════════════════════════════════════════════════╝  │
+│                                    │                                         │
+│                    ┌───────────────┼───────────────┐                         │
+│                    ▼               ▼               ▼                         │
+│  ╔═══════════════════╗ ╔═══════════════════╗ ╔═══════════════════════════╗  │
+│  ║ LAYER 4: CEPAF    ║ ║ LAYER 3: PRAJNA   ║ ║ LAYER 2: INDRAJAAL        ║  │
+│  ║ (F# Bridge)       ║ ║ (C3I Cockpit)     ║ ║ (15 Domains)              ║  │
+│  ║ ┌───────────────┐ ║ ║ ┌───────────────┐ ║ ║ ┌─────────────────────────┐║  │
+│  ║ │Category Theory│ ║ ║ │Guardian Safety│ ║ ║ │Core: Accounts, Auth    │║  │
+│  ║ │Arrows,Comonads│ ║ ║ │Sentinel Bridge│ ║ ║ │Ops: Alarms, Devices    │║  │
+│  ║ │OODA Controller│ ║ ║ │AI Copilot     │ ║ ║ │Ext: Video, Compliance  │║  │
+│  ║ │Zenoh/HLC      │ ║ ║ │PROMETHEUS     │ ║ ║ │Obs: Telemetry, Zenoh   │║  │
+│  ║ └───────────────┘ ║ ║ │SmartMetrics   │ ║ ║ └─────────────────────────┘║  │
+│  ║     65 tools      ║ ║ │Immutable Reg  │ ║ ║        180 tools          ║  │
+│  ╚═══════════════════╝ ║ └───────────────┘ ║ ╚═══════════════════════════╝  │
+│           │            ║     85 tools      ║              │                  │
+│           │            ╚═══════════════════╝              │                  │
+│           │                     │                          │                  │
+│           └─────────────────────┼──────────────────────────┘                  │
+│                                 ▼                                             │
+│  ╔═══════════════════════════════════════════════════════════════════════╗  │
+│  ║                    LAYER 1: MCP FOUNDATION                            ║  │
+│  ║  ┌────────────────┐  ┌────────────────┐  ┌─────────────────────────┐  ║  │
+│  ║  │ Protocol Types │  │ Tool Registry  │  │ Auth / Rate Limit       │  ║  │
+│  ║  │ JSON-RPC 2.0   │  │ Dispatcher     │  │ Guardian Integration    │  ║  │
+│  ║  │ Error Codes    │  │ Schema Valid.  │  │ Audit Logging           │  ║  │
+│  ║  └────────────────┘  └────────────────┘  └─────────────────────────┘  ║  │
+│  ╚═══════════════════════════════════════════════════════════════════════╝  │
+│                                                                              │
+│  ╔═══════════════════════════════════════════════════════════════════════╗  │
+│  ║                    CROSS-CUTTING CONCERNS                             ║  │
+│  ║  ┌────────────────┐  ┌────────────────┐  ┌─────────────────────────┐  ║  │
+│  ║  │ Telemetry      │  │ Immutable Reg  │  │ Constitutional Verifier │  ║  │
+│  ║  │ (All MCP ops)  │  │ (All mutations)│  │ (Ψ₀-Ψ₅ invariants)      │  ║  │
+│  ║  └────────────────┘  └────────────────┘  └─────────────────────────┘  ║  │
+│  ╚═══════════════════════════════════════════════════════════════════════╝  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 2.2 Twin Architecture (Digital Twin)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         DIGITAL TWIN ARCHITECTURE                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   PHYSICAL TWIN                           DIGITAL TWIN                       │
+│   (Runtime System)                        (MCP Shadow)                       │
+│                                                                              │
+│   ┌─────────────────────┐                ┌─────────────────────┐            │
+│   │ Elixir Runtime      │◄═══════════════│ MCP State Cache     │            │
+│   │ ┌─────────────────┐ │   Sync (30s)   │ ┌─────────────────┐ │            │
+│   │ │ GenServers      │ │                │ │ ETS Mirror      │ │            │
+│   │ │ Supervisors     │ │                │ │ (Read-only)     │ │            │
+│   │ │ Domain States   │ │                │ └─────────────────┘ │            │
+│   │ └─────────────────┘ │                │                     │            │
+│   └─────────────────────┘                └─────────────────────┘            │
+│            │                                       ▲                         │
+│            │                                       │                         │
+│            ▼                                       │                         │
+│   ┌─────────────────────┐                ┌─────────────────────┐            │
+│   │ Prajna Cockpit      │◄═══════════════│ MCP Prajna Shadow   │            │
+│   │ ┌─────────────────┐ │   Real-time    │ ┌─────────────────┐ │            │
+│   │ │ SmartMetrics    │ │   (Zenoh)      │ │ Metric Cache    │ │            │
+│   │ │ Guardian State  │ │                │ │ Health Mirror   │ │            │
+│   │ │ Sentinel Health │ │                │ └─────────────────┘ │            │
+│   │ └─────────────────┘ │                │                     │            │
+│   └─────────────────────┘                └─────────────────────┘            │
+│            │                                       ▲                         │
+│            │                                       │                         │
+│            ▼                                       │                         │
+│   ┌─────────────────────┐                ┌─────────────────────┐            │
+│   │ F# CEPAF Runtime    │◄═══════════════│ MCP CEPAF Bridge    │            │
+│   │ ┌─────────────────┐ │   JSON stdio   │ ┌─────────────────┐ │            │
+│   │ │ OODA Controller │ │                │ │ Command Queue   │ │            │
+│   │ │ Event Store     │ │                │ │ Response Cache  │ │            │
+│   │ │ Zenoh Session   │ │                │ └─────────────────┘ │            │
+│   │ └─────────────────┘ │                │                     │            │
+│   └─────────────────────┘                └─────────────────────┘            │
+│                                                                              │
+│   ═══════════════ = Bidirectional Sync                                       │
+│   ───────────────▶ = Command Flow                                            │
+│   ◀─────────────── = State Reflection                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 2.3 Data Flow Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              DATA FLOW                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  MCP Client                                                                  │
+│      │                                                                       │
+│      │ (1) JSON-RPC Request                                                  │
+│      ▼                                                                       │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │                    UNIFIED MCP SERVER (Port 9999)                     │   │
+│  │  ┌────────────────────────────────────────────────────────────────┐  │   │
+│  │  │ (2) Parse & Validate JSON-RPC                                   │  │   │
+│  │  └────────────────────────────────────────────────────────────────┘  │   │
+│  │                              │                                        │   │
+│  │                              ▼                                        │   │
+│  │  ┌────────────────────────────────────────────────────────────────┐  │   │
+│  │  │ (3) Authenticate Client                                         │  │   │
+│  │  │     - Verify credentials                                        │  │   │
+│  │  │     - Check rate limit (100 req/min)                           │  │   │
+│  │  └────────────────────────────────────────────────────────────────┘  │   │
+│  │                              │                                        │   │
+│  │                              ▼                                        │   │
+│  │  ┌────────────────────────────────────────────────────────────────┐  │   │
+│  │  │ (4) Route by Namespace                                          │  │   │
+│  │  │     indrajaal_* → IndrajaalServer                              │  │   │
+│  │  │     prajna_* → PrajnaServer                                    │  │   │
+│  │  │     cepaf_* → CepafServer                                      │  │   │
+│  │  │     kms_* → KMSServer                                          │  │   │
+│  │  └────────────────────────────────────────────────────────────────┘  │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                              │                                               │
+│        ┌─────────────────────┼─────────────────────┐                        │
+│        ▼                     ▼                     ▼                        │
+│  ┌───────────┐        ┌───────────┐        ┌───────────┐                   │
+│  │ INDRAJAAL │        │  PRAJNA   │        │  CEPAF    │                   │
+│  │  SERVER   │        │  SERVER   │        │  SERVER   │                   │
+│  └───────────┘        └───────────┘        └───────────┘                   │
+│        │                     │                     │                        │
+│        ▼                     ▼                     ▼                        │
+│  ┌────────────────────────────────────────────────────────────────────┐    │
+│  │ (5) Guardian Check (for write operations)                          │    │
+│  │     - Submit proposal to GuardianIntegration                       │    │
+│  │     - Await approval or veto                                       │    │
+│  │     - Fallback action if vetoed                                    │    │
+│  └────────────────────────────────────────────────────────────────────┘    │
+│                              │                                               │
+│                              ▼                                               │
+│  ┌────────────────────────────────────────────────────────────────────┐    │
+│  │ (6) PROMETHEUS Verification (for mutations)                        │    │
+│  │     - Request proof token                                          │    │
+│  │     - Verify DAG acyclicity                                        │    │
+│  │     - Check API budget                                             │    │
+│  └────────────────────────────────────────────────────────────────────┘    │
+│                              │                                               │
+│                              ▼                                               │
+│  ┌────────────────────────────────────────────────────────────────────┐    │
+│  │ (7) Execute Tool                                                    │    │
+│  │     - Call domain context function                                  │    │
+│  │     - Transform result to MCP response                              │    │
+│  └────────────────────────────────────────────────────────────────────┘    │
+│                              │                                               │
+│                              ▼                                               │
+│  ┌────────────────────────────────────────────────────────────────────┐    │
+│  │ (8) Audit & Telemetry                                               │    │
+│  │     - Log to Immutable Register                                    │    │
+│  │     - Emit telemetry event                                          │    │
+│  │     - Update rate limit counter                                     │    │
+│  └────────────────────────────────────────────────────────────────────┘    │
+│                              │                                               │
+│                              ▼                                               │
+│  ┌────────────────────────────────────────────────────────────────────┐    │
+│  │ (9) Return JSON-RPC Response                                        │    │
+│  │     - Success: {jsonrpc, id, result}                               │    │
+│  │     - Error: {jsonrpc, id, error: {code, message, data}}           │    │
+│  └────────────────────────────────────────────────────────────────────┘    │
+│                              │                                               │
+│                              ▼                                               │
+│                         MCP Client                                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 2.4 Control Flow Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           CONTROL FLOW                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                     REQUEST LIFECYCLE                                │    │
+│  │                                                                      │    │
+│  │   START ──▶ Parse ──▶ Auth ──▶ Route ──▶ Guard ──▶ Verify ──▶       │    │
+│  │                                                           │          │    │
+│  │   ◀── Response ◀── Audit ◀── Transform ◀── Execute ◀─────┘          │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                     GUARDIAN APPROVAL FLOW                           │    │
+│  │                                                                      │    │
+│  │   ┌───────────┐     ┌───────────┐     ┌───────────┐                 │    │
+│  │   │  Request  │────▶│  Submit   │────▶│  Evaluate │                 │    │
+│  │   │  arrives  │     │  Proposal │     │  STAMP    │                 │    │
+│  │   └───────────┘     └───────────┘     └───────────┘                 │    │
+│  │                                              │                       │    │
+│  │                           ┌──────────────────┼──────────────────┐    │    │
+│  │                           ▼                  ▼                  ▼    │    │
+│  │                    ┌───────────┐      ┌───────────┐      ┌───────┐  │    │
+│  │                    │  APPROVE  │      │   VETO    │      │PENDING│  │    │
+│  │                    │  Execute  │      │  Fallback │      │ Wait  │  │    │
+│  │                    └───────────┘      └───────────┘      └───────┘  │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                     CIRCUIT BREAKER STATES                           │    │
+│  │                                                                      │    │
+│  │   ┌────────┐        ┌────────────┐        ┌────────┐                │    │
+│  │   │ CLOSED │───────▶│ HALF-OPEN  │───────▶│  OPEN  │                │    │
+│  │   │(Normal)│ Errors │ (Testing)  │ Fail   │(Reject)│                │    │
+│  │   └────────┘        └────────────┘        └────────┘                │    │
+│  │       ▲                   │ Success            │                     │    │
+│  │       └───────────────────┘                    │ Timeout             │    │
+│  │       ◀────────────────────────────────────────┘                     │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                     OODA LOOP INTEGRATION                            │    │
+│  │                                                                      │    │
+│  │   OBSERVE ────▶ ORIENT ────▶ DECIDE ────▶ ACT                        │    │
+│  │      │                                      │                        │    │
+│  │      │ MCP metrics                          │ MCP commands           │    │
+│  │      ▼                                      ▼                        │    │
+│  │   ┌─────────────────────────────────────────────────────────────┐   │    │
+│  │   │  Zenoh pub/sub: indrajaal/mcp/metrics, indrajaal/mcp/cmds   │   │    │
+│  │   └─────────────────────────────────────────────────────────────┘   │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 2.5 Transaction Behavior
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        TRANSACTION BEHAVIOR                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                     READ OPERATIONS                                  │    │
+│  │                                                                      │    │
+│  │  1. Parse request                                                    │    │
+│  │  2. Validate schema                                                  │    │
+│  │  3. Check rate limit                                                 │    │
+│  │  4. Execute query (NO Guardian)                                      │    │
+│  │  5. Return result                                                    │    │
+│  │                                                                      │    │
+│  │  Isolation: READ COMMITTED                                           │    │
+│  │  Timeout: 5s                                                         │    │
+│  │  Retry: 3x with exponential backoff                                  │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                     WRITE OPERATIONS                                 │    │
+│  │                                                                      │    │
+│  │  1. Parse request                                                    │    │
+│  │  2. Validate schema                                                  │    │
+│  │  3. Check rate limit                                                 │    │
+│  │  4. Submit to Guardian ──▶ APPROVE/VETO                             │    │
+│  │  5. Request PROMETHEUS proof token                                   │    │
+│  │  6. BEGIN TRANSACTION                                                │    │
+│  │  7. Execute mutation                                                 │    │
+│  │  8. Record to Immutable Register                                     │    │
+│  │  9. COMMIT / ROLLBACK                                                │    │
+│  │  10. Return result                                                   │    │
+│  │                                                                      │    │
+│  │  Isolation: SERIALIZABLE                                             │    │
+│  │  Timeout: 30s                                                        │    │
+│  │  Retry: None (Guardian must re-approve)                              │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                     TWO-STEP COMMIT (Destructive)                    │    │
+│  │                                                                      │    │
+│  │  1. ARM: prajna_orchestrator_arm_command                            │    │
+│  │     - Validate proposal                                              │    │
+│  │     - Store in pending commands                                      │    │
+│  │     - Return command_id                                              │    │
+│  │     - Timeout: 60s to confirm                                        │    │
+│  │                                                                      │    │
+│  │  2. CONFIRM: prajna_orchestrator_confirm_command                    │    │
+│  │     - Verify command_id valid                                        │    │
+│  │     - Execute with full Guardian + PROMETHEUS                        │    │
+│  │     - Record to Immutable Register                                   │    │
+│  │                                                                      │    │
+│  │  3. CANCEL: prajna_orchestrator_cancel_command                      │    │
+│  │     - Mark command as cancelled                                      │    │
+│  │     - Log cancellation reason                                        │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# PART III: IMPLEMENTATION SPECIFICATION
+
+## 3.0 5-Level Implementation Detail
+
+### Level 1: Configuration
+
+```yaml
+# config/mcp.yaml
+mcp:
+  version: "2025-11-25"
+  servers:
+    unified:
+      port: 9999
+      host: "0.0.0.0"
+      timeout_ms: 30000
+      max_connections: 100
+
+  authentication:
+    enabled: true
+    type: "api_key"
+    header: "X-MCP-API-Key"
+
+  rate_limiting:
+    enabled: true
+    window_ms: 60000
+    max_requests: 100
+    strategy: "sliding_window"
+
+  guardian:
+    enabled: true
+    timeout_ms: 5000
+    fallback_on_timeout: "reject"
+
+  prometheus:
+    enabled: true
+    require_token_for:
+      - "create"
+      - "update"
+      - "delete"
+      - "execute"
+
+  audit:
+    enabled: true
+    backend: "immutable_register"
+    retention_days: 365
+
+  telemetry:
+    enabled: true
+    backend: "otel"
+    sample_rate: 1.0
+
+  namespaces:
+    - name: "indrajaal"
+      server: "IndrajaalServer"
+      tools: 180
+    - name: "prajna"
+      server: "PrajnaServer"
+      tools: 85
+    - name: "cepaf"
+      server: "CepafServer"
+      tools: 65
+    - name: "kms"
+      server: "KMSServer"
+      tools: 14
+```
+
+### Level 2: Design Patterns
+
+```elixir
+# Design Pattern: Namespace Router
+defmodule Indrajaal.MCP.Router do
+  @moduledoc """
+  Routes MCP requests to appropriate namespace server.
+
+  Design Pattern: Strategy + Chain of Responsibility
+  - Each namespace has its own server (Strategy)
+  - Requests flow through auth → rate limit → guardian → execute (Chain)
+  """
+
+  @namespace_map %{
+    "indrajaal" => Indrajaal.MCP.IndrajaalServer,
+    "prajna" => Indrajaal.MCP.PrajnaServer,
+    "cepaf" => Indrajaal.MCP.CepafServer,
+    "kms" => Indrajaal.KMS.MCPServer
+  }
+
+  def route(tool_name, params, context) do
+    namespace = extract_namespace(tool_name)
+
+    with {:ok, server} <- Map.fetch(@namespace_map, namespace),
+         :ok <- authenticate(context),
+         :ok <- check_rate_limit(context.client_id),
+         :ok <- maybe_guardian_check(tool_name, params),
+         {:ok, token} <- maybe_prometheus_token(tool_name, params),
+         {:ok, result} <- server.execute(tool_name, params, token) do
+      audit_and_return(context, tool_name, params, result)
+    end
+  end
+end
+
+# Design Pattern: Command with Undo (Two-Step Commit)
+defmodule Indrajaal.MCP.TwoStepCommand do
+  @moduledoc """
+  Two-step commit pattern for destructive operations.
+
+  Design Pattern: Command with Undo
+  - ARM: Prepare command, return handle
+  - CONFIRM: Execute with full validation
+  - CANCEL: Rollback preparation
+  """
+
+  defstruct [:id, :command, :params, :armed_at, :status, :undo_action]
+
+  def arm(command, params) do
+    cmd = %__MODULE__{
+      id: UUID.uuid4(),
+      command: command,
+      params: params,
+      armed_at: DateTime.utc_now(),
+      status: :armed,
+      undo_action: compute_undo(command, params)
+    }
+    store_pending(cmd)
+    {:ok, cmd.id}
+  end
+
+  def confirm(command_id) do
+    with {:ok, cmd} <- fetch_pending(command_id),
+         :ok <- validate_not_expired(cmd),
+         {:ok, result} <- execute_with_guardian(cmd) do
+      mark_executed(cmd)
+      {:ok, result}
+    end
+  end
+
+  def cancel(command_id) do
+    with {:ok, cmd} <- fetch_pending(command_id) do
+      mark_cancelled(cmd)
+      {:ok, :cancelled}
+    end
+  end
+end
+```
+
+### Level 3: Implementation Logic
+
+```elixir
+# lib/indrajaal/mcp/foundation/protocol.ex
+defmodule Indrajaal.MCP.Foundation.Protocol do
+  @moduledoc """
+  MCP Protocol Implementation - JSON-RPC 2.0
+
+  STAMP Constraints:
+    - SC-MCP-001: Strict JSON-RPC 2.0 compliance
+    - SC-MCP-002: Schema validation on all tools
+    - SC-MCP-003: Standardized error codes
+  """
+
+  @mcp_version "2025-11-25"
+
+  # JSON-RPC 2.0 Error Codes
+  @error_codes %{
+    parse_error: -32700,
+    invalid_request: -32600,
+    method_not_found: -32601,
+    invalid_params: -32602,
+    internal_error: -32603,
+    # Custom codes
+    guardian_veto: -33001,
+    rate_limit_exceeded: -33002,
+    proof_token_required: -33003,
+    constitutional_violation: -33004,
+    founder_alignment_failed: -33005
+  }
+
+  @type request :: %{
+    required(:jsonrpc) => String.t(),
+    required(:method) => String.t(),
+    optional(:id) => integer() | String.t(),
+    optional(:params) => map()
+  }
+
+  @type response :: %{
+    required(:jsonrpc) => String.t(),
+    required(:id) => integer() | String.t() | nil,
+    optional(:result) => term(),
+    optional(:error) => error()
+  }
+
+  @type error :: %{
+    required(:code) => integer(),
+    required(:message) => String.t(),
+    optional(:data) => term()
+  }
+
+  @spec parse_request(binary()) :: {:ok, request()} | {:error, error()}
+  def parse_request(json) when is_binary(json) do
+    case Jason.decode(json) do
+      {:ok, decoded} -> validate_request(decoded)
+      {:error, _} -> {:error, make_error(:parse_error, "Invalid JSON")}
+    end
+  end
+
+  @spec validate_request(map()) :: {:ok, request()} | {:error, error()}
+  def validate_request(%{"jsonrpc" => "2.0", "method" => method} = request)
+      when is_binary(method) do
+    {:ok, request}
+  end
+
+  def validate_request(_), do: {:error, make_error(:invalid_request, "Invalid request")}
+
+  @spec success_response(term(), integer() | String.t()) :: response()
+  def success_response(result, id) do
+    %{
+      "jsonrpc" => "2.0",
+      "id" => id,
+      "result" => result
+    }
+  end
+
+  @spec error_response(atom() | error(), integer() | String.t()) :: response()
+  def error_response(error_type, id) when is_atom(error_type) do
+    %{
+      "jsonrpc" => "2.0",
+      "id" => id,
+      "error" => make_error(error_type)
+    }
+  end
+
+  def error_response(%{code: _, message: _} = error, id) do
+    %{
+      "jsonrpc" => "2.0",
+      "id" => id,
+      "error" => error
+    }
+  end
+
+  defp make_error(type, message \\ nil) do
+    code = Map.fetch!(@error_codes, type)
+    %{
+      "code" => code,
+      "message" => message || Atom.to_string(type) |> String.replace("_", " ")
+    }
+  end
+end
+
+# lib/indrajaal/mcp/foundation/registry.ex
+defmodule Indrajaal.MCP.Foundation.Registry do
+  @moduledoc """
+  Tool Registry with Schema Validation
+
+  STAMP Constraints:
+    - SC-MCP-010: All tools registered with schemas
+    - SC-MCP-011: Namespace collision prevention
+    - SC-MCP-012: Runtime schema validation
+  """
+
+  use GenServer
+  require Logger
+
+  @type tool :: %{
+    name: String.t(),
+    description: String.t(),
+    inputSchema: map(),
+    annotations: map()
+  }
+
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
+  @impl true
+  def init(_opts) do
+    {:ok, %{tools: %{}, by_namespace: %{}}}
+  end
+
+  @spec register(atom(), tool()) :: :ok | {:error, term()}
+  def register(namespace, tool) do
+    GenServer.call(__MODULE__, {:register, namespace, tool})
+  end
+
+  @spec get(String.t()) :: {:ok, tool()} | {:error, :not_found}
+  def get(tool_name) do
+    GenServer.call(__MODULE__, {:get, tool_name})
+  end
+
+  @spec list(atom()) :: [tool()]
+  def list(namespace \\ :all) do
+    GenServer.call(__MODULE__, {:list, namespace})
+  end
+
+  @spec validate_args(String.t(), map()) :: :ok | {:error, term()}
+  def validate_args(tool_name, args) do
+    with {:ok, tool} <- get(tool_name) do
+      validate_against_schema(args, tool.inputSchema)
+    end
+  end
+
+  @impl true
+  def handle_call({:register, namespace, tool}, _from, state) do
+    tool_name = tool.name
+
+    if Map.has_key?(state.tools, tool_name) do
+      {:reply, {:error, :already_registered}, state}
+    else
+      new_tools = Map.put(state.tools, tool_name, Map.put(tool, :namespace, namespace))
+      ns_tools = Map.get(state.by_namespace, namespace, [])
+      new_by_ns = Map.put(state.by_namespace, namespace, [tool_name | ns_tools])
+
+      Logger.debug("Registered MCP tool: #{namespace}/#{tool_name}")
+      {:reply, :ok, %{state | tools: new_tools, by_namespace: new_by_ns}}
+    end
+  end
+
+  @impl true
+  def handle_call({:get, tool_name}, _from, state) do
+    case Map.fetch(state.tools, tool_name) do
+      {:ok, tool} -> {:reply, {:ok, tool}, state}
+      :error -> {:reply, {:error, :not_found}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:list, :all}, _from, state) do
+    {:reply, Map.values(state.tools), state}
+  end
+
+  @impl true
+  def handle_call({:list, namespace}, _from, state) do
+    tool_names = Map.get(state.by_namespace, namespace, [])
+    tools = Enum.map(tool_names, &Map.get(state.tools, &1))
+    {:reply, tools, state}
+  end
+
+  defp validate_against_schema(args, schema) do
+    # JSON Schema validation
+    case ExJsonSchema.Validator.validate(schema, args) do
+      :ok -> :ok
+      {:error, errors} -> {:error, {:validation_failed, errors}}
+    end
+  end
+end
+
+# lib/indrajaal/mcp/foundation/auth.ex
+defmodule Indrajaal.MCP.Foundation.Auth do
+  @moduledoc """
+  Authentication and Rate Limiting
+
+  STAMP Constraints:
+    - SC-MCP-020: API key authentication
+    - SC-MCP-021: Rate limiting 100 req/min
+    - SC-MCP-022: Guardian for write operations
+  """
+
+  use GenServer
+
+  @rate_limit_window 60_000  # 1 minute
+  @rate_limit_max 100
+
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
+  @impl true
+  def init(_opts) do
+    # ETS table for rate limiting
+    :ets.new(:mcp_rate_limits, [:named_table, :public, :set])
+    {:ok, %{}}
+  end
+
+  @spec authenticate(map()) :: {:ok, String.t()} | {:error, :unauthorized}
+  def authenticate(%{"headers" => headers}) do
+    api_key = Map.get(headers, "x-mcp-api-key")
+    verify_api_key(api_key)
+  end
+
+  def authenticate(_), do: {:error, :unauthorized}
+
+  @spec check_rate_limit(String.t()) :: :ok | {:error, :rate_limit_exceeded}
+  def check_rate_limit(client_id) do
+    now = System.monotonic_time(:millisecond)
+
+    case :ets.lookup(:mcp_rate_limits, client_id) do
+      [{^client_id, count, window_start}] when now - window_start < @rate_limit_window ->
+        if count >= @rate_limit_max do
+          {:error, :rate_limit_exceeded}
+        else
+          :ets.update_counter(:mcp_rate_limits, client_id, {2, 1})
+          :ok
+        end
+
+      _ ->
+        :ets.insert(:mcp_rate_limits, {client_id, 1, now})
+        :ok
+    end
+  end
+
+  @spec requires_guardian?(String.t()) :: boolean()
+  def requires_guardian?(tool_name) do
+    write_keywords = ["create", "update", "delete", "execute", "configure", "enable", "disable"]
+    Enum.any?(write_keywords, &String.contains?(tool_name, &1))
+  end
+
+  defp verify_api_key(nil), do: {:error, :unauthorized}
+  defp verify_api_key(key) do
+    # In production, verify against secure store
+    if String.starts_with?(key, "mcp_") do
+      {:ok, key}
+    else
+      {:error, :unauthorized}
+    end
+  end
+end
+```
+
+### Level 4: Usage Examples
+
+```elixir
+# Example: List alarms via MCP
+request = %{
+  "jsonrpc" => "2.0",
+  "id" => 1,
+  "method" => "tools/call",
+  "params" => %{
+    "name" => "indrajaal_alarms_list",
+    "arguments" => %{
+      "status" => "active",
+      "priority" => "critical",
+      "limit" => 50
+    }
+  }
+}
+
+# Response
+%{
+  "jsonrpc" => "2.0",
+  "id" => 1,
+  "result" => %{
+    "content" => [
+      %{
+        "type" => "text",
+        "text" => Jason.encode!(%{
+          alarms: [...],
+          total: 47,
+          page: 1
+        })
+      }
+    ]
+  }
+}
+
+# Example: Create device (with Guardian approval)
+request = %{
+  "jsonrpc" => "2.0",
+  "id" => 2,
+  "method" => "tools/call",
+  "params" => %{
+    "name" => "indrajaal_devices_create",
+    "arguments" => %{
+      "name" => "Camera-01",
+      "type" => "camera",
+      "site_id" => "uuid-here",
+      "config" => %{...}
+    }
+  }
+}
+
+# Response (approved by Guardian)
+%{
+  "jsonrpc" => "2.0",
+  "id" => 2,
+  "result" => %{
+    "content" => [
+      %{
+        "type" => "text",
+        "text" => Jason.encode!(%{
+          id: "new-device-uuid",
+          guardian_approval: "approved",
+          prometheus_token: "token-hash",
+          register_block: 12345
+        })
+      }
+    ]
+  }
+}
+
+# Example: Guardian veto
+%{
+  "jsonrpc" => "2.0",
+  "id" => 2,
+  "error" => %{
+    "code" => -33001,
+    "message" => "Guardian veto: Action violates SC-SEC-044",
+    "data" => %{
+      "fallback" => "Use read-only operation instead"
+    }
+  }
+}
+```
+
+### Level 5: Testing Approach
+
+```elixir
+# test/indrajaal/mcp/protocol_test.exs
+defmodule Indrajaal.MCP.ProtocolTest do
+  use ExUnit.Case, async: true
+  use PropCheck
+  import ExUnitProperties, except: [property: 2, property: 3, check: 2]
+  alias PropCheck.BasicTypes, as: PC
+  alias StreamData, as: SD
+
+  alias Indrajaal.MCP.Foundation.Protocol
+
+  # Unit Tests
+  describe "parse_request/1" do
+    test "parses valid JSON-RPC request" do
+      json = ~s({"jsonrpc": "2.0", "method": "tools/list", "id": 1})
+      assert {:ok, request} = Protocol.parse_request(json)
+      assert request["jsonrpc"] == "2.0"
+      assert request["method"] == "tools/list"
+    end
+
+    test "rejects invalid JSON" do
+      assert {:error, %{"code" => -32700}} = Protocol.parse_request("not json")
+    end
+
+    test "rejects missing jsonrpc field" do
+      json = ~s({"method": "test", "id": 1})
+      assert {:error, %{"code" => -32600}} = Protocol.parse_request(json)
+    end
+  end
+
+  # Property Tests (PropCheck)
+  property "success_response always has jsonrpc 2.0" do
+    forall {result, id} <- {PC.any(), PC.oneof([PC.integer(), PC.utf8()])} do
+      response = Protocol.success_response(result, id)
+      response["jsonrpc"] == "2.0" and response["id"] == id
+    end
+  end
+
+  property "error_response codes are negative integers" do
+    forall {error_type, id} <- {
+      PC.oneof([:parse_error, :invalid_request, :method_not_found]),
+      PC.integer()
+    } do
+      response = Protocol.error_response(error_type, id)
+      response["error"]["code"] < 0
+    end
+  end
+
+  # StreamData Property Tests
+  check all json <- SD.string(:alphanumeric) do
+    # Invalid random strings should not parse
+    case Protocol.parse_request(json) do
+      {:ok, _} -> true  # Valid by accident
+      {:error, _} -> true  # Expected
+    end
+  end
+end
+
+# test/indrajaal/mcp/integration_test.exs
+defmodule Indrajaal.MCP.IntegrationTest do
+  use ExUnit.Case
+  alias Indrajaal.MCP.UnifiedServer
+
+  @moduletag :integration
+
+  setup do
+    {:ok, _} = UnifiedServer.start_link()
+    :ok
+  end
+
+  describe "full request lifecycle" do
+    test "list tools returns all registered tools" do
+      request = %{
+        "jsonrpc" => "2.0",
+        "id" => 1,
+        "method" => "tools/list",
+        "params" => %{}
+      }
+
+      {:ok, response} = UnifiedServer.handle_request(request)
+
+      assert response["result"]["tools"]
+      assert length(response["result"]["tools"]) > 300
+    end
+
+    test "read operation bypasses Guardian" do
+      request = %{
+        "jsonrpc" => "2.0",
+        "id" => 2,
+        "method" => "tools/call",
+        "params" => %{
+          "name" => "indrajaal_alarms_list",
+          "arguments" => %{}
+        }
+      }
+
+      {:ok, response} = UnifiedServer.handle_request(request)
+
+      refute response["error"]
+      assert response["result"]
+    end
+
+    test "write operation requires Guardian" do
+      request = %{
+        "jsonrpc" => "2.0",
+        "id" => 3,
+        "method" => "tools/call",
+        "params" => %{
+          "name" => "indrajaal_devices_create",
+          "arguments" => %{
+            "name" => "Test Device"
+          }
+        }
+      }
+
+      # Mock Guardian to approve
+      {:ok, response} = UnifiedServer.handle_request(request)
+
+      # Verify Guardian was called
+      assert response["result"]["guardian_approval"] in ["approved", "vetoed"]
+    end
+  end
+end
+```
+
+---
+
+# PART IV: SIL-6 Biomorphic COMPLIANCE
+
+## 4.0 IEC 61508 Compliance Matrix
+
+### 4.1 SIL-6 Biomorphic Requirements
+
+| Requirement | Value | MCP Implementation |
+|-------------|-------|-------------------|
+| PFH (Probability of Failure per Hour) | < 10⁻⁸ | Triple verification (Guardian + PROMETHEUS + Constitutional) |
+| Safe Failure Fraction | > 99% | Circuit breaker + fallback actions |
+| Hardware Fault Tolerance | 1 | Redundant servers (active/standby) |
+| Diagnostic Coverage | > 99% | Full telemetry + Immutable Register |
+| Systematic Capability | SC 4 | Formal methods (STAMP, FMEA, TDG) |
+
+### 4.2 Safety Lifecycle Mapping
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    IEC 61508 SAFETY LIFECYCLE                   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Phase 1: Concept ────────────────▶ MCP Architecture Document   │
+│                                                                  │
+│  Phase 2: Overall Safety Scope ───▶ STAMP Constraints (100)     │
+│                                                                  │
+│  Phase 3: Hazard Analysis ────────▶ FMEA (Table below)          │
+│                                                                  │
+│  Phase 4: Safety Requirements ────▶ SC-MCP-* Constraints        │
+│                                                                  │
+│  Phase 5: Safety Architecture ────▶ 5-Layer Design              │
+│                                                                  │
+│  Phase 6: Implementation ─────────▶ TDG-compliant code          │
+│                                                                  │
+│  Phase 7: Validation ─────────────▶ Property tests + BDD        │
+│                                                                  │
+│  Phase 8: Operation ──────────────▶ Monitoring + Audit          │
+│                                                                  │
+│  Phase 9: Modification ───────────▶ Immutable Register          │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 4.3 Verification & Validation Matrix
+
+| Technique | SIL-6 Biomorphic | MCP Application |
+|-----------|-------|-----------------|
+| Formal proof | HR | PROMETHEUS DAG verification |
+| Animation/simulation | HR | Mock server testing |
+| Boundary value analysis | HR | Schema validation |
+| Equivalence classes | HR | Namespace routing |
+| Control flow analysis | HR | Request lifecycle |
+| Data flow analysis | HR | Twin architecture sync |
+| Error guessing | HR | Fallback scenarios |
+| Fault injection | HR | Mara chaos testing |
+| Performance testing | R | 100 req/min stress test |
+| Interface testing | HR | JSON-RPC compliance |
+| Traceability | M | STAMP → Code mapping |
+
+Legend: HR = Highly Recommended, R = Recommended, M = Mandatory
+
+---
+
+# PART V: STAMP CONSTRAINTS
+
+## 5.0 Safety Constraints
+
+### 5.1 MCP Foundation Constraints (SC-MCP-001 to SC-MCP-020)
+
+| ID | Constraint | Severity | Verification |
+|----|------------|----------|--------------|
+| SC-MCP-001 | JSON-RPC 2.0 strict compliance | CRITICAL | Schema test |
+| SC-MCP-002 | All tools have input schemas | CRITICAL | Registry validation |
+| SC-MCP-003 | Error codes standardized | HIGH | Unit test |
+| SC-MCP-004 | Request timeout 30s max | HIGH | Config validation |
+| SC-MCP-005 | Response size < 10MB | MEDIUM | Runtime check |
+| SC-MCP-010 | Tool registration validated | HIGH | Registry tests |
+| SC-MCP-011 | Namespace collision prevented | HIGH | Registration time |
+| SC-MCP-012 | Schema validation runtime | CRITICAL | Every request |
+| SC-MCP-013 | Version negotiation | MEDIUM | Protocol init |
+| SC-MCP-020 | Client authentication required | CRITICAL | Every request |
+
+### 5.2 Security Constraints (SC-MCP-021 to SC-MCP-030)
+
+| ID | Constraint | Severity | Verification |
+|----|------------|----------|--------------|
+| SC-MCP-021 | Rate limit 100 req/min | HIGH | ETS counter |
+| SC-MCP-022 | Guardian for write ops | CRITICAL | Router check |
+| SC-MCP-023 | PROMETHEUS for mutations | CRITICAL | Pre-execution |
+| SC-MCP-024 | Audit to Immutable Register | HIGH | Post-execution |
+| SC-MCP-025 | PII sanitization in logs | CRITICAL | Audit filter |
+| SC-MCP-026 | No credentials in responses | CRITICAL | Output filter |
+| SC-MCP-027 | TLS for external connections | CRITICAL | Config check |
+| SC-MCP-028 | Session timeout 1 hour | MEDIUM | Token expiry |
+| SC-MCP-029 | Brute force protection | HIGH | Rate limit + lockout |
+| SC-MCP-030 | Input sanitization | CRITICAL | Schema + custom |
+
+### 5.3 Domain Constraints (SC-MCP-031 to SC-MCP-050)
+
+| ID | Constraint | Severity | Verification |
+|----|------------|----------|--------------|
+| SC-MCP-031 | All 15 domains exposed | HIGH | Tool count check |
+| SC-MCP-032 | CRUD operations complete | HIGH | Coverage analysis |
+| SC-MCP-033 | Bulk ops max 100 items | MEDIUM | Schema validation |
+| SC-MCP-034 | Pagination required for lists | MEDIUM | Schema enforcement |
+| SC-MCP-035 | Filter validation | HIGH | Type checking |
+| SC-MCP-040 | Prajna safety tools guarded | CRITICAL | Guardian gate |
+| SC-MCP-041 | PROMETHEUS tokens verified | CRITICAL | Token validation |
+| SC-MCP-042 | Constitutional check | CRITICAL | Pre-execution |
+| SC-MCP-043 | Two-step for destructive | HIGH | Command pattern |
+| SC-MCP-050 | F# bridge timeout 30s | HIGH | Process monitor |
+
+### 5.4 Observability Constraints (SC-MCP-061 to SC-MCP-080)
+
+| ID | Constraint | Severity | Verification |
+|----|------------|----------|--------------|
+| SC-MCP-061 | Telemetry on all requests | HIGH | Middleware |
+| SC-MCP-062 | Latency histogram | MEDIUM | OTEL metrics |
+| SC-MCP-063 | Error rate tracking | HIGH | Counter metric |
+| SC-MCP-064 | Tool usage analytics | MEDIUM | Counter per tool |
+| SC-MCP-065 | Rate limit warnings | MEDIUM | Threshold alert |
+| SC-MCP-070 | Zenoh KPI publish | MEDIUM | 30s interval |
+| SC-MCP-071 | Dashboard integration | MEDIUM | LiveView bridge |
+| SC-MCP-080 | Health check endpoint | HIGH | /health route |
+
+---
+
+# PART VI: FMEA ANALYSIS
+
+## 6.0 Failure Mode and Effects Analysis
+
+### 6.1 Critical Failure Modes
+
+| FM-ID | Failure Mode | Effect | Severity | Occurrence | Detection | RPN | Mitigation |
+|-------|--------------|--------|----------|------------|-----------|-----|------------|
+| FM-MCP-001 | Invalid JSON parse | Request rejected | 3 | 4 | 9 | 108 | Schema validation |
+| FM-MCP-002 | Rate limit bypass | System overload | 8 | 2 | 6 | 96 | Distributed rate limit |
+| FM-MCP-003 | Guardian timeout | Write blocked | 6 | 3 | 8 | 144 | Fallback action |
+| FM-MCP-004 | PROMETHEUS token forge | Unauthorized mutation | 9 | 1 | 7 | 63 | Ed25519 signature |
+| FM-MCP-005 | F# bridge crash | CEPAF unavailable | 5 | 4 | 8 | 160 | Supervisor restart |
+| FM-MCP-006 | Tool not found | 404 error | 2 | 3 | 9 | 54 | Registry check |
+| FM-MCP-007 | Schema mismatch | Validation fail | 4 | 5 | 8 | 160 | Pre-validation |
+| FM-MCP-008 | DB connection lost | Query fails | 7 | 3 | 7 | 147 | Connection pool |
+| FM-MCP-009 | Memory leak | Server crash | 9 | 2 | 4 | 72 | Periodic restart |
+| FM-MCP-010 | Audit log full | Compliance violation | 8 | 2 | 6 | 96 | Log rotation |
+
+### 6.2 Mitigation Actions
+
+| FM-ID | Mitigation | Implementation | Status |
+|-------|------------|----------------|--------|
+| FM-MCP-001 | JSON schema pre-check | `Jason.decode!` with rescue | PLANNED |
+| FM-MCP-002 | Distributed rate limit | Redis-backed counter | PLANNED |
+| FM-MCP-003 | Guardian fallback | Configurable timeout action | PLANNED |
+| FM-MCP-004 | Ed25519 verification | Crypto.verify/3 | PLANNED |
+| FM-MCP-005 | Supervisor with restart | max_restarts: 5 | PLANNED |
+| FM-MCP-006 | Registry pre-check | GenServer.call before dispatch | PLANNED |
+| FM-MCP-007 | ExJsonSchema validation | Schema stored in Registry | PLANNED |
+| FM-MCP-008 | Ecto connection pool | size: 10, overflow: 5 | EXISTING |
+| FM-MCP-009 | Process memory limits | :max_heap_size | PLANNED |
+| FM-MCP-010 | Log rotation | 100MB max, 7 day retention | PLANNED |
+
+---
+
+# PART VII: TDG COMPLIANCE
+
+## 7.0 Test-Driven Generation
+
+### 7.1 Test Categories
+
+| Category | Test Count | Coverage Target |
+|----------|------------|-----------------|
+| Protocol Unit Tests | 50 | 100% |
+| Registry Unit Tests | 30 | 100% |
+| Auth Unit Tests | 25 | 100% |
+| Router Unit Tests | 40 | 100% |
+| Tool Integration Tests | 350 | 100% (one per tool) |
+| Property Tests | 100 | Critical paths |
+| FMEA Tests | 10 | All FM-MCP-* |
+| Performance Tests | 20 | Rate limits, timeouts |
+| **Total** | **625** | **>95%** |
+
+### 7.2 TDG Specifications
+
+```elixir
+# TDG-MCP-001: Protocol Parsing
+defmodule TDG.MCP.Protocol do
+  @spec parse_valid_request :: property()
+  property "valid requests parse successfully" do
+    forall request <- valid_jsonrpc_request() do
+      match?({:ok, _}, Protocol.parse_request(request))
+    end
+  end
+
+  @spec parse_invalid_request :: property()
+  property "invalid requests return error" do
+    forall request <- invalid_jsonrpc_request() do
+      match?({:error, _}, Protocol.parse_request(request))
+    end
+  end
+end
+
+# TDG-MCP-002: Rate Limiting
+defmodule TDG.MCP.RateLimit do
+  @spec rate_limit_enforced :: property()
+  property "rate limit is enforced at 100 req/min" do
+    forall count <- PC.integer(90, 110) do
+      client_id = UUID.uuid4()
+      results = for _ <- 1..count, do: Auth.check_rate_limit(client_id)
+
+      # First 100 should pass, rest should fail
+      {pass, fail} = Enum.split_while(results, &(&1 == :ok))
+      length(pass) == min(count, 100) and
+      Enum.all?(fail, &(&1 == {:error, :rate_limit_exceeded}))
+    end
+  end
+end
+
+# TDG-MCP-003: Guardian Integration
+defmodule TDG.MCP.Guardian do
+  @spec write_requires_guardian :: property()
+  property "write operations require Guardian approval" do
+    forall tool <- write_tool_name() do
+      Auth.requires_guardian?(tool) == true
+    end
+  end
+
+  @spec read_bypasses_guardian :: property()
+  property "read operations bypass Guardian" do
+    forall tool <- read_tool_name() do
+      Auth.requires_guardian?(tool) == false
+    end
+  end
+end
+```
+
+---
+
+# PART VIII: AOR RULES
+
+## 8.0 Agent Operating Rules
+
+### 8.1 Foundation Rules (AOR-MCP-001 to AOR-MCP-010)
+
+| ID | Rule | Enforcement |
+|----|------|-------------|
+| AOR-MCP-001 | Parse ALL requests with Protocol module | Middleware |
+| AOR-MCP-002 | Validate schema BEFORE execution | Registry |
+| AOR-MCP-003 | Authenticate BEFORE processing | Auth module |
+| AOR-MCP-004 | Check rate limit BEFORE routing | Auth module |
+| AOR-MCP-005 | Route by namespace prefix | Router |
+| AOR-MCP-006 | Log ALL requests to telemetry | Middleware |
+| AOR-MCP-007 | Audit ALL mutations to register | Post-hook |
+| AOR-MCP-008 | Return standardized errors | Protocol |
+| AOR-MCP-009 | Handle timeouts gracefully | GenServer.call/3 |
+| AOR-MCP-010 | Clean up on connection close | TCP handler |
+
+### 8.2 Safety Rules (AOR-MCP-011 to AOR-MCP-020)
+
+| ID | Rule | Enforcement |
+|----|------|-------------|
+| AOR-MCP-011 | Submit to Guardian for writes | Router check |
+| AOR-MCP-012 | Request PROMETHEUS token for mutations | Pre-execution |
+| AOR-MCP-013 | Verify constitutional invariants | Verifier |
+| AOR-MCP-014 | Use two-step for destructive | Command pattern |
+| AOR-MCP-015 | Validate Founder alignment | AiCopilotFounder |
+| AOR-MCP-016 | Record to Immutable Register | Post-hook |
+| AOR-MCP-017 | Respect circuit breaker state | Pre-execution |
+| AOR-MCP-018 | Apply backoff on errors | Retry logic |
+| AOR-MCP-019 | Quarantine failed processes | Sentinel |
+| AOR-MCP-020 | Report threats to immune system | PatternHunter |
+
+### 8.3 F# Bridge Rules (AOR-MCP-021 to AOR-MCP-030)
+
+| ID | Rule | Enforcement |
+|----|------|-------------|
+| AOR-MCP-021 | Timeout F# calls at 30s | Process.send_after |
+| AOR-MCP-022 | Use JSON stdio for F# bridge | Port |
+| AOR-MCP-023 | Restart F# on crash | Supervisor |
+| AOR-MCP-024 | Fallback to stub on unavailable | Conditional |
+| AOR-MCP-025 | Log F# errors to telemetry | Logger |
+| AOR-MCP-026 | Parse F# responses as JSON | Jason.decode |
+| AOR-MCP-027 | Queue commands during restart | GenServer state |
+| AOR-MCP-028 | Health check F# every 30s | Timer |
+| AOR-MCP-029 | Propagate F# exceptions | Error wrapping |
+| AOR-MCP-030 | Match Zenoh sessions | Session ID |
+
+---
+
+# PART IX: REFERENCES
+
+## 9.0 Reference Index
+
+### 9.1 Code References
+
+| Reference | Path | Purpose |
+|-----------|------|---------|
+| KMS MCP Server | `lib/indrajaal/kms/mcp_server.ex` | Existing implementation |
+| Guardian Integration | `lib/indrajaal/cockpit/prajna/guardian_integration.ex` | Safety kernel |
+| PROMETHEUS Verifier | `lib/indrajaal/cockpit/prajna/prometheus_verifier.ex` | Proof tokens |
+| Immutable State | `lib/indrajaal/cockpit/prajna/immutable_state.ex` | Audit register |
+| SmartMetrics | `lib/indrajaal/cockpit/prajna/smart_metrics.ex` | Real-time metrics |
+| Sentinel Bridge | `lib/indrajaal/cockpit/prajna/sentinel_bridge.ex` | Health sync |
+| AI Copilot | `lib/indrajaal/cockpit/prajna/ai_copilot.ex` | AI integration |
+| Founder Validation | `lib/indrajaal/cockpit/prajna/ai_copilot_founder.ex` | Directive check |
+| Circuit Breaker | `lib/indrajaal/cockpit/prajna/circuit_breaker.ex` | Load shedding |
+| Backoff | `lib/indrajaal/cockpit/prajna/backoff.ex` | Retry logic |
+| F# OODA | `lib/cepaf/src/Cepaf/OodaController.fs` | OODA controller |
+| F# Arrows | `lib/cepaf/src/Cepaf/Core/Arrows.fs` | Category theory |
+| F# Zenoh | `lib/cepaf/src/Cepaf/Zenoh/ZenohSession.fs` | Pub/sub |
+
+### 9.2 Documentation References
+
+| Reference | Path | Purpose |
+|-----------|------|---------|
+| CLAUDE.md | `CLAUDE.md` | System specification |
+| GEMINI.md | `GEMINI.md` | System specification |
+| Holon Architecture | `docs/architecture/HOLON_IMMORTAL_ARCHITECTURE.md` | State sovereignty |
+| Founder's Directive | `docs/architecture/HOLON_FOUNDERS_DIRECTIVE.md` | Supreme directive |
+| Immutable Register | `docs/architecture/HOLON_IMMUTABLE_REGISTER.md` | Audit specification |
+| Formal Specification | `docs/formal_specs/HOLON_FORMAL_SPECIFICATION.md` | Mathematical proofs |
+| BDD Integration | `docs/architecture/BDD_INTEGRATION_ARCHITECTURE.md` | Testing framework |
+| GA Release | `docs/verification/GA_COMMAND_COMPLETE_ANALYSIS.md` | Command verification |
+
+### 9.3 Configuration References
+
+| Reference | Path | Purpose |
+|-----------|------|---------|
+| MCP Servers | `.mcp.json` | Server configuration |
+| Development | `devenv.nix` | Dev environment |
+| Test Environment | `config/test.exs` | Test config |
+| Production | `config/runtime.exs` | Runtime config |
+| F# Project | `lib/cepaf/src/Cepaf/Cepaf.fsproj` | F# build |
+
+### 9.4 External References
+
+| Reference | URL | Purpose |
+|-----------|-----|---------|
+| MCP Specification | https://modelcontextprotocol.io | Protocol specification |
+| JSON-RPC 2.0 | https://www.jsonrpc.org/specification | Transport protocol |
+| IEC 61508 | https://webstore.iec.ch/publication/5515 | Safety standard |
+| Elixir GenServer | https://hexdocs.pm/elixir/GenServer.html | Server pattern |
+| ExJsonSchema | https://hexdocs.pm/ex_json_schema | Schema validation |
+| PropCheck | https://hexdocs.pm/propcheck | Property testing |
+
+---
+
+# PART X: APPENDICES
+
+## Appendix A: Tool Count Summary
+
+| Namespace | Domain | Tools |
+|-----------|--------|-------|
+| indrajaal | Core (Accounts, Auth, Access, Author) | 40 |
+| indrajaal | Operations (Alarms, Devices, Sites, Dispatch, Monitoring) | 52 |
+| indrajaal | Extended (Video, Compliance, Maintenance, Analytics, Comms, Integration) | 88 |
+| prajna | Safety (Guardian, Sentinel, Immune) | 19 |
+| prajna | Verification (PROMETHEUS, Constitutional, Founder) | 18 |
+| prajna | Operations (Metrics, Register, Circuit, Backoff) | 25 |
+| prajna | Control (Orchestrator, Master, Monitor) | 26 |
+| cepaf | Core (Category Theory, Arrows, Comonads, Optics, Effects) | 30 |
+| cepaf | Runtime (OODA, AOR, EventSourcing) | 19 |
+| cepaf | Cockpit (Prajna, Material3, Integration) | 16 |
+| kms | Knowledge Management | 14 |
+| **TOTAL** | | **347** |
+
+## Appendix B: Implementation Checklist
+
+- [ ] L1: Protocol types and JSON-RPC handlers
+- [ ] L1: Tool registry with schema validation
+- [ ] L1: Authentication and rate limiting
+- [ ] L2: Core domain tools (40)
+- [ ] L2: Operations domain tools (52)
+- [ ] L2: Extended domain tools (88)
+- [ ] L3: Safety tools (Guardian, Sentinel) (19)
+- [ ] L3: Verification tools (PROMETHEUS) (18)
+- [ ] L3: Operations tools (Metrics, Register) (25)
+- [ ] L3: Control tools (Orchestrator) (26)
+- [ ] L4: Category theory tools (30)
+- [ ] L4: Runtime tools (OODA, AOR) (19)
+- [ ] L4: Cockpit tools (16)
+- [ ] L5: Unified server
+- [ ] L5: .mcp.json configuration
+- [ ] L5: Integration tests (350)
+
+---
+
+**Document Control**
+
+| Field | Value |
+|-------|-------|
+| Version | 1.0.0 |
+| Created | 2026-01-05 |
+| Author | Claude Opus 4.5 |
+| Status | ANALYSIS COMPLETE |
+| STAMP | SC-MCP-001 to SC-MCP-100 |
+| FMEA | FM-MCP-001 to FM-MCP-010 |
+| AOR | AOR-MCP-001 to AOR-MCP-030 |
+| TDG Tests | 625 planned |
+| SIL | IEC 61508 SIL-6 Biomorphic |

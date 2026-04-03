@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Core Types -->
+    <Compile Include="Types.fs" />
+
+    <!-- Connection Pooling -->
+    <Compile Include="ConnectionPool.fs" />
+
+    <!-- Transaction Management -->
+    <Compile Include="TransactionManager.fs" />
+
+    <!-- Holon Concurrency Control (OCC with Version Vectors) -->
+    <Compile Include="HolonConcurrencyHandler.fs" />
+
+    <!-- Unified Holon Database Access -->
+    <Compile Include="HolonDatabase.fs" />
+
+    <!-- DuckDB Handler -->
+    <Compile Include="DuckDBHandler.fs" />
+
+    <!-- SQLite Handler -->
+    <Compile Include="SQLiteHandler.fs" />
+
+    <!-- Zenoh Database Service (Main Entry) -->
+    <Compile Include="ZenohDatabaseService.fs" />
+
+    <!-- Cross-Holon Database Bridge -->
+    <Compile Include="ZenohCrossHolonBridge.fs" />
+
+    <!-- Cross-Holon Access Layer -->
+    <Compile Include="CrossHolonAccess.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- DuckDB.NET for database access -->
+    <PackageReference Include="DuckDB.NET.Data" Version="1.2.0" />
+
+    <!-- SQLite for OLTP -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" />
+
+    <!-- JSON serialization -->
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+
+    <!-- Zenoh client -->
+    <PackageReference Include="Zenoh" Version="1.0.0" Condition="Exists('$(NuGetPackageRoot)/zenoh')" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Cepaf/Cepaf.fsproj" />
+    <ProjectReference Include="../Cepaf.Holon/Cepaf.Holon.fsproj" />
+  </ItemGroup>
+
+</Project>

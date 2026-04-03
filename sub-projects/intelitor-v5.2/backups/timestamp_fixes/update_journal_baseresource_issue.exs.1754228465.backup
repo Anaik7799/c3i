@@ -1,0 +1,168 @@
+#!/usr/bin/env elixir
+
+# Script to update the journal with BaseResource postgres configuration issue
+
+defmodule UpdateJournal do
+  @journal_path "docs/journal/ash_implementation_journal.md"
+
+  def run do
+    entries = [
+      %{
+        timestamp: "2025-07-31 09:10:36 CEST",
+        domain: "CORE",
+        status: "🚧 In Progress",
+        details:
+          "Phase 1: Foundation Infrastructure - Created Multi-tenancy Extension, Base Domain, and Base Resource modules"
+      },
+      %{
+        timestamp: "2025-07-31 09:10:36 CEST",
+        domain: "CORE",
+        status: "✅ Success",
+        details:
+          "Created Core domain with 5 resources: Tenant, Organization, SystemConfig, FeatureFlag, AuditLog"
+      },
+      %{
+        timestamp: "2025-07-31 09:10:36 CEST",
+        domain: "SYSTEM",
+        status: "❌ Error",
+        details:
+          "Compilation Error: 'undefined function postgres/1' - BaseResource macro conflict with resource-specific postgres blocks"
+      },
+      %{
+        timestamp: "2025-07-31 09:10:36 CEST",
+        domain: "SYSTEM",
+        status: "🔍 Analysis",
+        details: """
+        5-Level Root Cause Analysis - Postgres Configuration Conflict:
+
+        Level 1: Immediate Issue
+        - Error: 'undefined function postgres/1' when compiling resources
+        - Impact: Cannot compile Core domain resources
+        - Symptom: Resources using BaseResource fail when defining postgres blocks
+
+        Level 2: Technical Cause
+        - BaseResource defines a postgres block via macro
+        - Ash DSL only allows one postgres block per resource
+        - Macro expansion injects BaseResource's postgres before resource's own
+
+        Level 3: Design Flaw
+        - BaseResource assumed uniform postgres configurations
+        - No flexibility for resource-specific postgres settings
+        - Tight coupling between base configuration and specific needs
+
+        Level 4: Architectural Gap
+        - Pattern mismatch: Inheritance-style doesn't align with Ash's composition model
+        - Different resources need different postgres features:
+          * Tenant: unique indexes on slug
+          * AuditLog: TimescaleDB hypertables, retention policies
+          * FeatureFlag: GIN indexes for arrays
+          * Organization: conditional indexes with WHERE clauses
+
+        Level 5: Strategic Implications
+        - Scalability: 64 resources will have diverse postgres needs
+        - Performance: Missing indexes/hypertables would impact production
+        - Compliance: Audit logs need specific retention for regulations
+        """
+      },
+      %{
+        timestamp: "2025-07-31 09:10:36 CEST",
+        domain: "SYSTEM",
+        status: "💡 Solution",
+        details: """
+        Solution Evaluation:
+
+        Approach 1: Remove postgres from BaseResource (Quick Fix)
+        - Pros: Simple, immediate fix
+        - Cons: Loses standardization, more boilerplate
+
+        Approach 2: Callback-based Extension
+        - Pros: Flexible, maintains base config
+        - Cons: Complex macro manipulation
+
+        Approach 3: Module Attributes Pattern
+        - Pros: Clean separation, flexible
+        - Cons: Still requires some duplication
+
+        Approach 4: Concern Modules (Most Scalable)
+        - Pros: Composable, follows Ash patterns
+        - Cons: More initial setup
+
+        Decision: Implement Approach 1 for immediate fix, evolve to Approach 4
+        """
+      },
+      %{
+        timestamp: "2025-07-31 09:10:36 CEST",
+        domain: "SYSTEM",
+        status: "🔧 Implementation",
+        details: """
+        Implementation Steps:
+        1. Removed postgres block from BaseResource macro
+        2. Each resource defines its own postgres configuration
+        3. Preserved all custom indexes and TimescaleDB features
+        4. Fixed multitenancy default value issue
+        5. Fixed calculation syntax in Session resource
+        6. Created missing IntelitorWeb and Gettext modules
+        """
+      },
+      %{
+        timestamp: "2025-07-31 09:10:36 CEST",
+        domain: "SYSTEM",
+        status: "✅ Resolution",
+        details: """
+        Fix Applied:
+        - BaseResource no longer constrains postgres configuration
+        - Resources have full control over their postgres settings
+        - All custom indexes, hypertables, and statements preserved
+        - System can now scale to support 64 diverse resources
+        - Foundation for composable configuration patterns established
+        """
+      },
+      %{
+        timestamp: "2025-07-31 09:10:36 CEST",
+        domain: "CORE",
+        status: "🚧 In Progress",
+        details:
+          "Core domain foundation complete. Ready for migration creation and Accounts domain implementation."
+      }
+    ]
+
+    # Read existing journal
+    content = File.read!(@journal_path)
+
+    # Append new entries
+    new_entries = Enum.map(entries, &format_entry/1)
+    updated_content = content <> Enum.join(new_entries, "\n")
+
+    # Write back
+    File.write!(@journal_path, updated_content)
+
+    IO.puts("✅ Journal updated with BaseResource postgres configuration issue and resolution")
+  end
+
+  defp format_entry(entry) do
+    """
+    ### [#{entry.timestamp}] #{entry.domain} - #{extract_title(entry)}
+    **Status**: #{entry.status}
+    **Details**: #{entry.details}
+
+
+    ---
+
+    """
+  end
+
+  defp extract_title(entry) do
+    case entry.status do
+      "❌ Error" -> "Compilation Error"
+      "🔍 Analysis" -> "Root Cause Analysis"
+      "💡 Solution" -> "Solution Design"
+      "🔧 Implementation" -> "Fix Implementation"
+      "✅ Resolution" -> "Issue Resolved"
+      "✅ Success" -> "Implementation Complete"
+      "🚧 In Progress" -> "Work In Progress"
+      _ -> "Update"
+    end
+  end
+end
+
+UpdateJournal.run()

@@ -1,0 +1,168 @@
+
+config:
+  # Target URL - use ARTILLERY_TARGET env var or default to localhost for CI
+  target: '{{ $processEnvironment.ARTILLERY_TARGET || "http://localhost:4000" }}'
+  phases:
+    # Warm-up phase
+    - duration: 300
+      arrivalRate: 10
+      name: "Warm-up"
+
+    # Gradual load increase
+    - duration: 300
+      arrivalRate: 25
+      name: "Ramp-up"
+
+    # Load testing phase
+    - duration: 600
+      arrivalRate: 50
+      name: "Load test"
+
+    # Peak load phase
+    - duration: 300
+      arrivalRate: 100
+      name: "Peak load"
+
+    # Stress testing phase
+    - duration: 300
+      arrivalRate: 200
+      name: "Stress test"
+
+    # Cooldown
+    - duration: 180
+      arrivalRate: 10
+      name: "Cooldown"
+
+  defaults:
+    headers:
+      Authorization: 'Bearer test-token-performance'
+      Content-Type: 'application/json'
+      User-Agent: 'Artillery/Performance-Test'
+
+  processor: "./artillery-processor.js"
+
+scenarios:
+  # Primary alarm processing workflow (70% of traffic)
+  - name: "Alarm Processing Workflow"
+    weight: 70
+    flow:
+      # Get current alarms
+      - get:
+          url: "/api/v1/alarms"
+          capture:
+            - json: "$[0].id"
+              as: "alarmId"
+
+      # Create new alarm
+      - post:
+          url: "/api/v1/alarms"
+          json:
+            event_code: "PERF_{{ $randomString() }}_{{ $timestamp }}"
+            event_type: "{{ randomEventType() }}"
+            severity: "{{ randomSeverity() }}"
+            description: "Performance test alarm {{ $randomString() }}"
+            device_id: "{{ randomDeviceId() }}"
+            site_id: "{{ randomSiteId() }}"
+            metadata:
+              performance_test: true
+              test_run: "{{ $timestamp }}"
+          capture:
+            - json: "$.id"
+              as: "newAlarmId"
+
+      # Acknowledge alarm
+      - patch:
+          url: "/api/v1/alarms/{{ newAlarmId }}/acknowledge"
+          json:
+            acknowledged_by: "{{ randomUserId() }}"
+            notes: "Acknowledged during performance test"
+
+      # Get alarm details
+      - get:
+          url: "/api/v1/alarms/{{ newAlarmId }}"
+
+      # Add response/resolution (30% of the time)
+      - function: "shouldResolveAlarm"
+      - patch:
+          url: "/api/v1/alarms/{{ newAlarmId }}/resolve"
+          json:
+            resolved_by: "{{ randomUserId() }}"
+            resolution: "Resolved during performance test"
+            resolution_type: "false_alarm"
+          ifTrue: "{{ shouldResolve }}"
+
+  # Device management operations (15% of traffic)
+  - name: "Device Management"
+    weight: 15
+    flow:
+      # List devices
+      - get:
+          url: "/api/v1/devices"
+          qs:
+            page: "{{ $randomInt(1, 10) }}"
+            limit: 20
+
+      # Get device status
+      - get:
+          url: "/api/v1/devices/{{ randomDeviceId() }}/status"
+
+      # Update device configuration (occasionally)
+      - function: "shouldUpdateDevice"
+      - patch:
+          url: "/api/v1/devices/{{ randomDeviceId() }}"
+          json:
+            configuration:
+              updated_at: "{{ $timestamp }}"
+              performance_test: true
+          ifTrue: "{{ shouldUpdate }}"
+
+  # Dashboard and analytics queries (10% of traffic)
+  - name: "Dashboard Analytics"
+    weight: 10
+    flow:
+      # Get dashboard statistics
+      - get:
+          url: "/api/v1/dashboard/statistics"
+
+      # Get active alarms count
+      - get:
+          url: "/api/v1/alarms/active"
+
+      # Get alarm statistics by severity
+      - get:
+          url: "/api/v1/analytics/alarms/by-severity"
+          qs:
+            timeframe: "24h"
+
+      # Get device health summary
+      - get:
+          url: "/api/v1/analytics/devices/health"
+
+  # User and authentication operations (3% of traffic)
+  - name: "User Operations"
+    weight: 3
+    flow:
+      # Get user profile
+      - get:
+          url: "/api/v1/users/profile"
+
+      # Get user permissions
+      - get:
+          url: "/api/v1/users/permissions"
+
+      # Get activity log
+      - get:
+          url: "/api/v1/users/activity"
+          qs:
+            limit: 10
+
+  # Real-time operations via WebSocket simulation (2% of traffic)
+  - name: "Real-time Simulation"
+    weight: 2
+    flow:
+      # Simulate WebSocket-like behavior with polling
+      - loop:
+          - get:
+              url: "/api/v1/alarms/live-updates"
+          - think: 5
+        count: 3

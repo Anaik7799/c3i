@@ -1,0 +1,32 @@
+# TDG + STAMP Compliant Redis 7 Container
+# Test-Driven Generation with Safety Constraints
+
+FROM registry.nixos.org/nixos/library/registry.nixos.org/nixos/redis:7-alpine
+
+# STAMP Safety Constraint 1: Verified base image
+LABEL org.opencontainers.image.source="registry.nixos.org/nixos/library/registry.nixos.org/nixos/redis:7-alpine"
+LABEL org.opencontainers.image.title="Indrajaal Redis Demo"
+LABEL org.opencontainers.image.version="7-nixos-demo"
+LABEL container.name="indrajaal-redis-demo"
+LABEL tps.methodology="jidoka"
+LABEL tdg.compliant="true"
+LABEL stamp.safety="validated"
+
+# STAMP Safety Constraint 2: Secure configuration
+ENV REDIS_PORT=6379
+
+# STAMP Safety Constraint 3: Port consistency
+EXPOSE 6379
+
+# STAMP Safety Constraint 4: Data persistence
+VOLUME ["/data"]
+
+# Demo Configuration: Copy Redis config
+COPY containers/redis/redis.conf /etc/redis/redis.conf
+
+# STAMP Safety Constraint 5: Health validation
+HEALTHCHECK --interval=10s --timeout=3s --retries=5 \
+  CMD redis-cli ping || exit 1
+
+# TDG Validation: Ensure Redis starts with demo config
+CMD ["redis-server", "/etc/redis/redis.conf"]

@@ -1,0 +1,71 @@
+# DEV Environment Topology
+# Mode: DEV
+# Focus: Speed, Code Fixes, Unit Tests
+# Compliance: SIL-6 Hardening (Required even in Dev)
+
+version: "3.9"
+
+services:
+  indrajaal-db:
+    image: localhost/indrajaal-db:latest
+    container_name: indrajaal-db
+    environment:
+      - NODE_ROLE=primary
+      - POSTGRES_DB=indrajaal_dev
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+    networks:
+      - fractal-mesh
+    volumes:
+      - dev-db-data:/var/lib/postgresql/data
+
+  indrajaal-obs:
+    image: localhost/indrajaal-obs:latest
+    container_name: indrajaal-obs
+    environment:
+      - FRACTAL_BATCH_FLUSH_MS=100 # Relaxed for dev
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8080:8080"
+    networks:
+      - fractal-mesh
+    volumes:
+      - dev-obs-data:/var/lib/signoz
+
+  indrajaal-app-1:
+    image: localhost/indrajaal-app:latest
+    container_name: indrajaal-app-1
+    environment:
+      - NODE_NAME=app1@indrajaal-app-1
+      - CLUSTER_SEED=true
+      - DATABASE_URL=ecto://postgres:postgres@indrajaal-db:5432/indrajaal_dev
+      - PHX_PORT=4000
+    ports:
+      - "4000:4000"
+    depends_on:
+      indrajaal-db:
+        condition: service_healthy
+      indrajaal-obs:
+        condition: service_started
+    networks:
+      - fractal-mesh
+    volumes:
+      - dev-app1-data:/app/data
+
+networks:
+  fractal-mesh:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+
+volumes:
+  dev-db-data:
+  dev-obs-data:
+  dev-app1-data:

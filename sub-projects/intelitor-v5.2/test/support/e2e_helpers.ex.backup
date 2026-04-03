@@ -1,0 +1,231 @@
+defmodule IntelitorWeb.E2EHelpers do
+  @moduledoc """
+  Helper functions for E2E tests following page object pattern.
+  
+  ## Design Principles
+  
+  - Reusable components for common UI interactions
+  - Wait strategies for dynamic content
+  - Multi-tenant aware helpers
+  - Mobile responsive testing support
+  """
+
+  use Wallaby.DSL
+  import Wallaby.Query
+  import Wallaby.Browser
+  import ExUnit.Assertions, only: [flunk: 1]
+
+  @default_wait_time 5_000
+  @animation_wait 300
+
+  # Authentication Helpers
+  
+  def login_as(session, email, password) do
+    session
+    |> visit("/auth/login")
+    |> fill_in(css("#email"), with: email)
+    |> fill_in(css("#password"), with: password)
+    |> click(button("Sign In"))
+    |> wait_for_dashboard()
+  end
+
+  def login_as_admin(session) do
+    admin = Factory.insert(:user, role: :admin, email: "admin@test.com")
+    login_as(session, admin.email, "Test1234!")
+  end
+
+  def login_as_operator(session) do
+    operator = Factory.insert(:user, role: :operator, email: "operator@test.com")
+    login_as(session, operator.email, "Test1234!")
+  end
+
+  def logout(session) do
+    session
+    |> click(css("[data-test='user-menu']"))
+    |> click(link("Logout"))
+    |> assert_has(css(".login-form"))
+  end
+
+  # Navigation Helpers
+  
+  def wait_for_dashboard(session) do
+    session
+    |> assert_has(css("[data-test='dashboard']", visible: true))
+    |> wait_for_animations()
+  end
+
+  def navigate_to_alarms(session) do
+    session
+    |> click(link("Alarms"))
+    |> assert_has(css("[data-test='alarms-page']"))
+    |> wait_for_animations()
+  end
+
+  def navigate_to_devices(session) do
+    session
+    |> click(link("Devices"))
+    |> assert_has(css("[data-test='devices-page']"))
+    |> wait_for_animations()
+  end
+
+  # Alarm Management Helpers
+  
+  def create_alarm(session, attrs \\ %{}) do
+    alarm_data = Map.merge(%{
+      title: "Test Alarm #{System.unique_integer([:positive])}",
+      severity: "high",
+      site: "Main Building"
+    }, attrs)
+
+    session
+    |> click(button("New Alarm"))
+    |> fill_in(css("#alarm_title"), with: alarm_data.title)
+    |> select(css("#alarm_severity"), option: alarm_data.severity)
+    |> select(css("#alarm_site"), option: alarm_data.site)
+    |> click(button("Create Alarm"))
+    |> assert_has(css(".alert-success"))
+  end
+
+  def acknowledge_alarm(session, alarm_id) do
+    session
+    |> click(css("[data-alarm-id='#{alarm_id}'] [data-action='acknowledge']"))
+    |> fill_in(css("#acknowledgment_notes"), with: "Acknowledged via E2E test")
+    |> click(button("Confirm Acknowledgment"))
+    |> assert_has(css("[data-alarm-id='#{alarm_id}'][data-status='acknowledged']"))
+  end
+
+  def resolve_alarm(session, alarm_id, resolution_notes) do
+    session
+    |> click(css("[data-alarm-id='#{alarm_id}'] [data-action='resolve']"))
+    |> fill_in(css("#resolution_notes"), with: resolution_notes)
+    |> click(button("Resolve Alarm"))
+    |> assert_has(css("[data-alarm-id='#{alarm_id}'][data-status='resolved']"))
+  end
+
+  def escalate_alarm(session, alarm_id, escalation_reason) do
+    session
+    |> click(css("[data-alarm-id='#{alarm_id}'] [data-action='escalate']"))
+    |> fill_in(css("#escalation_reason"), with: escalation_reason)
+    |> select(css("#escalation_level"), option: "urgent")
+    |> click(button("Escalate"))
+    |> assert_has(css("[data-alarm-id='#{alarm_id}'][data-escalated='true']"))
+  end
+
+  # LiveView Helpers
+  
+  def wait_for_live_update(session, selector, text) do
+    session
+    |> assert_has(css(selector, text: text, wait: @default_wait_time))
+  end
+
+  def trigger_live_action(session, action) do
+    session
+    |> click(css("[phx-click='#{action}']"))
+    |> wait_for_animations()
+  end
+
+  # WebSocket/Real-time Helpers
+  
+  def wait_for_push_notification(session, text) do
+    session
+    |> assert_has(css(".push-notification", text: text, wait: @default_wait_time))
+  end
+
+  def assert_real_time_update(session, element_selector, expected_text) do
+    session
+    |> assert_has(css(element_selector, text: expected_text, wait: @default_wait_time))
+  end
+
+  # Mobile Responsive Helpers
+  
+  def set_mobile_viewport(session) do
+    resize_window(session, 375, 667)
+  end
+
+  def set_tablet_viewport(session) do
+    resize_window(session, 768, 1024)
+  end
+
+  def set_desktop_viewport(session) do
+    resize_window(session, 1280, 720)
+  end
+
+  def open_mobile_menu(session) do
+    session
+    |> click(css("[data-test='mobile-menu-toggle']"))
+    |> assert_has(css("[data-test='mobile-menu'][data-open='true']"))
+  end
+
+  # Multi-tenant Helpers
+  
+  def switch_tenant(session, tenant_name) do
+    session
+    |> click(css("[data-test='tenant-switcher']"))
+    |> click(css("[data-tenant='#{tenant_name}']"))
+    |> wait_for_tenant_switch(tenant_name)
+  end
+
+  def assert_tenant_isolation(session, tenant_name) do
+    session
+    |> assert_has(css("[data-current-tenant='#{tenant_name}']"))
+    |> refute_has(css("[data-tenant!='#{tenant_name}']"))
+  end
+
+  # Form Helpers
+  
+  def fill_form(session, form_selector, fields) do
+    Enum.reduce(fields, session, fn {field, value}, acc ->
+      fill_in(acc, css("#{form_selector} [name='#{field}']"), with: value)
+    end)
+  end
+
+  def submit_form(session, form_selector) do
+    session
+    |> click(css("#{form_selector} button[type='submit']"))
+    |> wait_for_form_submission()
+  end
+
+  # Wait Strategies
+  
+  defp wait_for_animations(session) do
+    Process.sleep(@animation_wait)
+    session
+  end
+
+  defp wait_for_tenant_switch(session, tenant_name) do
+    session
+    |> assert_has(css("[data-current-tenant='#{tenant_name}']", wait: @default_wait_time))
+  end
+
+  defp wait_for_form_submission(session) do
+    session
+    |> wait_for_animations()
+    |> assert_has(css(".alert-success, .alert-error", wait: @default_wait_time))
+  end
+
+  # Assertion Helpers
+  
+  def assert_accessibility(session) do
+    # Basic accessibility checks
+    session
+    |> assert_has(css("html[lang]"))
+    |> assert_has(css("img[alt]"))
+    |> assert_has(css("button:not(:empty)"))
+    |> assert_has(css("a:not(:empty)"))
+  end
+
+  def assert_performance(session, max_load_time \\ 3000) do
+    start_time = System.monotonic_time(:millisecond)
+    
+    session
+    |> assert_has(css("body"))
+    
+    load_time = System.monotonic_time(:millisecond) - start_time
+    
+    if load_time > max_load_time do
+      flunk("Page load time #{load_time}ms exceeded maximum #{max_load_time}ms")
+    end
+    
+    session
+  end
+end

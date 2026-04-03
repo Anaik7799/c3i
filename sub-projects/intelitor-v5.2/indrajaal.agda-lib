@@ -1,0 +1,10 @@
+-- Indrajaal Formal Verification Library
+-- Agda project file for SIL-6 safety proofs
+name: indrajaal
+include:
+  verification/agda
+  docs/formal_specs
+  docs/formal_specs/agda
+  docs/formal_specs/zenoh
+  docs/formal_specs/planning
+  scripts/agents

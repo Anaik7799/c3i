@@ -1,0 +1,845 @@
+#!/usr/bin/env elixir
+
+# Intelitor Todolist Manager
+# Robust project management system with file-based persistence
+
+defmodule TodolistManager do
+  @moduledoc """
+  Robust todolist management system for Intelitor project.
+  Provides persistent storage, backup, and synchronization capabilities.
+  """
+
+  @todolist_file "PROJECT_TODOLIST.md"
+  @backup_dir "backups/todolist"
+  @journal_dir "docs/journal"
+
+  def main(args) do
+    case args do
+      ["--status"] -> show_status()
+      ["--update", task_id, status] -> update_task(task_id, status)
+      ["--find", keyword] -> find_tasks(keyword)
+      ["--add", "--parent", parent_id, task_content] -> add_task(parent_id, task_content)
+      ["--working-set"] -> show_working_set()
+      ["--backup"] -> create_backup()
+      ["--restore", backup_file] -> restore_backup(backup_file)
+      ["--sync"] -> sync_with_git()
+      ["--validate"] -> validate_structure()
+      ["--validate-hierarchical"] -> validate_hierarchical_numbering()
+      ["--validate-ci"] -> validate_for_ci()
+      
+      # 🚨 MANDATORY: Comprehensive "mix todo" Status Updates (ZERO TOLERANCE POLICY)
+      ["--update-comprehensive"] -> execute_comprehensive_update()
+      ["--backup", "--timestamp"] -> create_timestamped_backup()
+      ["--sync", "--validate"] -> sync_with_validation()
+      ["--validate", "--strict"] -> validate_strict_compliance()
+      
+      ["--help"] -> show_help()
+      _ -> show_help()
+    end
+  end
+
+  def show_status do
+    IO.puts("🎯 INTELITOR PROJECT TODOLIST STATUS")
+    IO.puts("=" <> String.duplicate("=", 50))
+    
+    if File.exists?(@todolist_file) do
+      content = File.read!(@todolist_file)
+      
+      # Extract completion stats
+      total_tasks = count_tasks(content)
+      completed_tasks = count_completed(content)
+      completion_rate = if total_tasks > 0, do: Float.round(completed_tasks / total_tasks * 100, 1), else: 0
+      
+      IO.puts("📊 STATISTICS:")
+      IO.puts("  Total Tasks: #{total_tasks}")
+      IO.puts("  Completed: #{completed_tasks}")
+      IO.puts("  Pending: #{total_tasks - completed_tasks}")
+      IO.puts("  Completion Rate: #{completion_rate}%")
+      IO.puts("")
+      
+      # Show recent updates
+      IO.puts("📋 RECENT UPDATES:")
+      show_recent_updates(content)
+    else
+      IO.puts("❌ No todolist file found at #{@todolist_file}")
+      IO.puts("Run with --help for usage instructions")
+    end
+  end
+
+  def update_task(task_id, status) do
+    IO.puts("🔄 UPDATING TASK #{task_id} → #{String.upcase(status)}")
+    
+    if File.exists?(@todolist_file) do
+      content = File.read!(@todolist_file)
+      
+      # Update task status
+      updated_content = update_task_status(content, task_id, status)
+      
+      # Create timestamped backup
+      timestamp = DateTime.utc_now() |> DateTime.to_string()
+      backup_content = add_update_log(updated_content, task_id, status, timestamp)
+      
+      # Write updated content
+      File.write!(@todolist_file, backup_content)
+      
+      # Create journal entry if significant progress
+      if status in ["completed", "blocked"] do
+        create_progress_journal(task_id, status, timestamp)
+      end
+      
+      IO.puts("✅ Task #{task_id} updated to #{String.upcase(status)}")
+      IO.puts("📝 Todolist file updated: #{@todolist_file}")
+    else
+      IO.puts("❌ Todolist file not found: #{@todolist_file}")
+    end
+  end
+
+  def create_backup do
+    timestamp = DateTime.utc_now() 
+                |> DateTime.to_string() 
+                |> String.replace(":", "-")
+                |> String.replace(" ", "T")
+    
+    backup_filename = "todolist_#{timestamp}.md"
+    backup_path = Path.join(@backup_dir, backup_filename)
+    
+    # Ensure backup directory exists
+    File.mkdir_p!(@backup_dir)
+    
+    if File.exists?(@todolist_file) do
+      File.copy!(@todolist_file, backup_path)
+      IO.puts("💾 BACKUP CREATED: #{backup_path}")
+    else
+      IO.puts("❌ No todolist file to backup")
+    end
+  end
+
+  def restore_backup(backup_file) do
+    backup_path = Path.join(@backup_dir, backup_file)
+    
+    if File.exists?(backup_path) do
+      File.copy!(backup_path, @todolist_file)
+      IO.puts("🔄 RESTORED FROM BACKUP: #{backup_file}")
+    else
+      IO.puts("❌ Backup file not found: #{backup_path}")
+    end
+  end
+
+  def sync_with_git do
+    IO.puts("🔄 SYNCING WITH GIT...")
+    
+    # Add todolist file to git
+    System.cmd("git", ["add", @todolist_file])
+    
+    # Create commit with timestamp
+    timestamp = DateTime.utc_now() |> DateTime.to_string()
+    commit_message = "📋 Todolist update: #{timestamp}"
+    
+    {result, _} = System.cmd("git", ["commit", "-m", commit_message])
+    
+    if String.contains?(result, "nothing to commit") do
+      IO.puts("✅ No changes to commit")
+    else
+      IO.puts("✅ Changes committed to git")
+    end
+  end
+
+  def validate_structure do
+    IO.puts("🔍 VALIDATING TODOLIST STRUCTURE...")
+    
+    if File.exists?(@todolist_file) do
+      content = File.read!(@todolist_file)
+      
+      # Check hierarchical numbering
+      hierarchical_errors = validate_hierarchical_numbering_content(content)
+      
+      # Check completion logic
+      completion_errors = validate_completion_logic_content(content)
+      
+      if hierarchical_errors == [] and completion_errors == [] do
+        IO.puts("✅ VALIDATION PASSED: Structure is valid")
+      else
+        IO.puts("❌ VALIDATION FAILED:")
+        Enum.each(hierarchical_errors ++ completion_errors, fn error ->
+          IO.puts("  - #{error}")
+        end)
+      end
+    else
+      IO.puts("❌ No todolist file found")
+    end
+  end
+
+  def show_help do
+    IO.puts("""
+    🎯 INTELITOR TODOLIST MANAGER
+    
+    USAGE:
+      elixir scripts/planning/todolist_manager.exs [COMMAND] [OPTIONS]
+    
+    COMMANDS:
+      --status                     Show current todolist status
+      --update TASK_ID STATUS      Update task status (pending/in_progress/completed/blocked)
+      --find KEYWORD               Find tasks containing keyword
+      --add --parent PARENT_ID CONTENT  Add new task under parent
+      --working-set                Show current working set (in_progress tasks)
+      --backup                     Create timestamped backup
+      --restore BACKUP_FILE        Restore from backup
+      --sync                       Sync with git repository
+      --validate                   Validate todolist structure
+      --validate-hierarchical      Validate hierarchical numbering compliance
+      --validate-ci               CI/CD pipeline validation (strict mode)
+      --help                       Show this help message
+    
+    EXAMPLES:
+      elixir scripts/planning/todolist_manager.exs --status
+      elixir scripts/planning/todolist_manager.exs --update 1.1.1 completed
+      elixir scripts/planning/todolist_manager.exs --find "compilation"
+      elixir scripts/planning/todolist_manager.exs --add --parent 1.1 "Fix warning patterns"
+      elixir scripts/planning/todolist_manager.exs --working-set
+      elixir scripts/planning/todolist_manager.exs --backup
+      elixir scripts/planning/todolist_manager.exs --validate
+    
+    FILES:
+      PROJECT_TODOLIST.md          Main todolist file
+      backups/todolist/           Backup directory
+      docs/journal/               Progress journal entries
+    """)
+  end
+
+  # Helper functions
+  defp count_tasks(content) do
+    Regex.scan(~r/- \[[ x🔄🚫]\] \d+\.\d+\.\d+/, content) |> length()
+  end
+
+  defp count_completed(content) do
+    Regex.scan(~r/- \[x\] \d+\.\d+\.\d+/, content) |> length()
+  end
+
+  defp show_recent_updates(content) do
+    # Extract last update timestamp from content
+    case Regex.run(~r/\*\*Last Updated\*\*: (.+)/, content) do
+      [_, timestamp] -> IO.puts("  Last Updated: #{timestamp}")
+      _ -> IO.puts("  No update timestamp found")
+    end
+  end
+
+  defp update_task_status(content, task_id, status) do
+    status_symbol = case status do
+      "pending" -> " "
+      "in_progress" -> "🔄"
+      "completed" -> "x"
+      "blocked" -> "🚫"
+      _ -> " "
+    end
+    
+    # Update the specific task
+    Regex.replace(
+      ~r/- \[[ x🔄🚫]\] (#{Regex.escape(task_id)} - .+)/,
+      content,
+      "- [#{status_symbol}] \\1"
+    )
+  end
+
+  defp add_update_log(content, _task_id, _status, timestamp) do
+    # Update the "Last Updated" timestamp
+    Regex.replace(
+      ~r/\*\*Last Updated\*\*: .+/,
+      content,
+      "**Last Updated**: #{timestamp}"
+    )
+  end
+
+  defp create_progress_journal(task_id, status, timestamp) do
+    date_str = DateTime.utc_now() 
+               |> DateTime.to_date() 
+               |> Date.to_string() 
+               |> String.replace("-", "")
+    
+    time_str = DateTime.utc_now() 
+               |> DateTime.to_time() 
+               |> Time.to_string() 
+               |> String.slice(0..4) 
+               |> String.replace(":", "")
+    
+    journal_filename = "#{date_str}-#{time_str}-task-#{task_id}-#{status}.md"
+    journal_path = Path.join(@journal_dir, journal_filename)
+    
+    journal_content = """
+    # Task Progress Update
+    
+    **Date**: #{timestamp}
+    **Task ID**: #{task_id}
+    **Status**: #{String.upcase(status)}
+    **Priority**: Automated Progress Tracking
+    
+    ## Task Update
+    
+    Task #{task_id} has been marked as #{String.upcase(status)}.
+    
+    ## Next Actions
+    
+    - Review hierarchical dependencies
+    - Update parent task status if needed
+    - Continue with next priority task
+    
+    ---
+    
+    *Automated journal entry created by TodolistManager*
+    """
+    
+    File.write!(journal_path, journal_content)
+  end
+
+  def validate_hierarchical_numbering do
+    IO.puts("🔢 VALIDATING HIERARCHICAL NUMBERING COMPLIANCE")
+    IO.puts("=" <> String.duplicate("=", 50))
+    
+    if File.exists?(@todolist_file) do
+      content = File.read!(@todolist_file)
+      errors = validate_hierarchical_numbering_content(content)
+      
+      if errors == [] do
+        IO.puts("✅ HIERARCHICAL NUMBERING: All tasks properly numbered")
+        System.halt(0)
+      else
+        IO.puts("❌ HIERARCHICAL NUMBERING VIOLATIONS:")
+        Enum.each(errors, fn error ->
+          IO.puts("  - #{error}")
+        end)
+        System.halt(1)
+      end
+    else
+      IO.puts("❌ No todolist file found")
+      System.halt(1)
+    end
+  end
+  
+  def validate_for_ci do
+    IO.puts("🚀 CI/CD PIPELINE VALIDATION (STRICT MODE)")
+    IO.puts("=" <> String.duplicate("=", 50))
+    
+    if File.exists?(@todolist_file) do
+      content = File.read!(@todolist_file)
+      
+      # Comprehensive validation suite
+      structure_errors = validate_structure_content(content)
+      hierarchical_errors = validate_hierarchical_numbering_content(content)
+      completion_errors = validate_completion_logic_content(content)
+      timestamp_errors = validate_timestamp_compliance(content)
+      
+      all_errors = structure_errors ++ hierarchical_errors ++ completion_errors ++ timestamp_errors
+      
+      if all_errors == [] do
+        IO.puts("✅ CI/CD VALIDATION PASSED: All checks successful")
+        IO.puts("📊 Todolist Status: PRODUCTION READY")
+        System.halt(0)
+      else
+        IO.puts("❌ CI/CD VALIDATION FAILED:")
+        Enum.each(all_errors, fn error ->
+          IO.puts("  - #{error}")
+        end)
+        IO.puts("")
+        IO.puts("💡 Fix all issues before deployment")
+        System.halt(1)
+      end
+    else
+      IO.puts("❌ No todolist file found - CI/CD validation failed")
+      System.halt(1)
+    end
+  end
+  
+  defp validate_hierarchical_numbering_content(content) do
+    lines = String.split(content, "\n")
+    
+    task_lines = Enum.filter(lines, fn line ->
+      Regex.match?(~r/- \[[ x🔄🚫]\] \d+\./, line)
+    end)
+    
+    # Check each task for proper hierarchical numbering
+    Enum.reduce(task_lines, [], fn line, acc ->
+      case Regex.run(~r/- \[[ x🔄🚫]\] (\d+\.\d+(?:\.\d+)*)/, line) do
+        [_, task_id] ->
+          cond do
+            not Regex.match?(~r/^\d+\.\d+(?:\.\d+)*$/, task_id) ->
+              acc ++ ["Invalid task ID format: #{task_id}"]
+            
+            String.contains?(task_id, ".0") ->
+              acc ++ ["Task ID contains invalid .0 component: #{task_id}"]
+            
+            true -> acc
+          end
+        
+        nil ->
+          acc ++ ["Invalid task line format: #{String.trim(line)}"]
+      end
+    end)
+  end
+  
+  defp validate_structure_content(content) do
+    errors = []
+    
+    # Check for required sections
+    required_sections = [
+      "# INTELITOR PROJECT TODOLIST",
+      "## HIERARCHICAL TASK STRUCTURE", 
+      "## PROGRESS TRACKING",
+      "## STATUS LEGEND"
+    ]
+    
+    Enum.reduce(required_sections, errors, fn section, acc ->
+      if String.contains?(content, section) do
+        acc
+      else
+        acc ++ ["Missing required section: #{section}"]
+      end
+    end)
+  end
+  
+  defp validate_completion_logic_content(content) do
+    # Validate parent-child completion logic
+    lines = String.split(content, "\n")
+    errors = []
+    
+    # Extract all tasks with their status and hierarchy
+    tasks = Enum.reduce(lines, [], fn line, acc ->
+      case Regex.run(~r/- \[([^\]])\] (\d+\.\d+(?:\.\d+)*)/, line) do
+        [_, status_symbol, task_id] ->
+          status = case status_symbol do
+            "x" -> :completed
+            "🔄" -> :in_progress
+            "🚫" -> :blocked
+            _ -> :pending
+          end
+          acc ++ [{task_id, status}]
+        _ -> acc
+      end
+    end)
+    
+    # Check rollup logic (basic validation)
+    parent_tasks = tasks |> Enum.filter(fn {id, _} -> 
+      length(String.split(id, ".")) == 2 
+    end)
+    
+    Enum.reduce(parent_tasks, errors, fn {parent_id, parent_status}, acc ->
+      children = Enum.filter(tasks, fn {child_id, _} ->
+        String.starts_with?(child_id, parent_id <> ".") and child_id != parent_id
+      end)
+      
+      if length(children) > 0 do
+        all_children_completed = Enum.all?(children, fn {_, status} -> status == :completed end)
+        any_child_blocked = Enum.any?(children, fn {_, status} -> status == :blocked end)
+        
+        cond do
+          all_children_completed and parent_status != :completed ->
+            acc ++ ["Parent #{parent_id} should be completed (all children completed)"]
+          
+          any_child_blocked and parent_status == :completed ->
+            acc ++ ["Parent #{parent_id} cannot be completed (has blocked children)"]
+          
+          true -> acc
+        end
+      else
+        acc
+      end
+    end)
+  end
+  
+  defp validate_timestamp_compliance(content) do
+    errors = []
+    current_month = Date.utc_today() |> Date.to_string() |> String.slice(0, 7)
+    
+    case Regex.run(~r/\*\*Last Updated\*\*: (.+)/, content) do
+      [_, timestamp] ->
+        if not String.contains?(timestamp, current_month) do
+          errors ++ ["Timestamp appears outdated: #{timestamp}"]
+        else
+          errors
+        end
+      
+      nil ->
+        errors ++ ["Missing Last Updated timestamp"]
+    end
+  end
+
+  
+  def find_tasks(keyword) do
+    IO.puts("🔍 SEARCHING FOR TASKS CONTAINING: #{keyword}")
+    IO.puts("=" <> String.duplicate("=", 50))
+    
+    if File.exists?(@todolist_file) do
+      content = File.read!(@todolist_file)
+      
+      # Find all tasks containing the keyword (case-insensitive)
+      lines = String.split(content, "\n")
+      
+      matching_tasks = 
+        lines
+        |> Enum.with_index(1)
+        |> Enum.filter(fn {line, _} ->
+          String.contains?(String.downcase(line), String.downcase(keyword)) and
+          Regex.match?(~r/- \[[ x🔄🚫]\] \d+\.\d+/, line)
+        end)
+      
+      if length(matching_tasks) > 0 do
+        IO.puts("📋 FOUND #{length(matching_tasks)} MATCHING TASKS:")
+        IO.puts("")
+        
+        Enum.each(matching_tasks, fn {line, line_num} ->
+          # Extract task ID and status
+          case Regex.run(~r/- \[([^\]])\] (\d+\.\d+[^\s]*) - (.+)/, line) do
+            [_, status_symbol, task_id, task_content] ->
+              status = case status_symbol do
+                "x" -> "COMPLETED"
+                "🔄" -> "IN_PROGRESS" 
+                "🚫" -> "BLOCKED"
+                _ -> "PENDING"
+              end
+              
+              IO.puts("  #{status} #{task_id} - #{String.slice(task_content, 0, 60)}")
+              IO.puts("    Line #{line_num}: #{String.trim(line)}")
+              IO.puts("")
+            _ ->
+              IO.puts("  Line #{line_num}: #{String.trim(line)}")
+              IO.puts("")
+          end
+        end)
+      else
+        IO.puts("❌ No tasks found containing '#{keyword}'")
+      end
+    else
+      IO.puts("❌ No todolist file found at #{@todolist_file}")
+    end
+  end
+  
+  def add_task(parent_id, task_content) do
+    IO.puts("➕ ADDING NEW TASK UNDER PARENT #{parent_id}")
+    IO.puts("=" <> String.duplicate("=", 50))
+    
+    if File.exists?(@todolist_file) do
+      content = File.read!(@todolist_file)
+      
+      # Generate next task ID under parent
+      next_task_id = generate_next_task_id(content, parent_id)
+      
+      # Find insertion point (after parent task)
+      lines = String.split(content, "\n")
+      insertion_point = find_insertion_point(lines, parent_id)
+      
+      if insertion_point > 0 do
+        # Create new task line
+        new_task_line = "  - [ ] #{next_task_id} - #{task_content}"
+        
+        # Insert new task
+        {before_lines, after_lines} = Enum.split(lines, insertion_point)
+        updated_lines = before_lines ++ [new_task_line] ++ after_lines
+        updated_content = Enum.join(updated_lines, "\n")
+        
+        # Update last modified timestamp
+        timestamp = DateTime.utc_now() |> DateTime.to_string()
+        final_content = add_update_log(updated_content, next_task_id, "added", timestamp)
+        
+        # Write updated content
+        File.write!(@todolist_file, final_content)
+        
+        IO.puts("✅ Task #{next_task_id} added successfully")
+        IO.puts("📝 Content: #{task_content}")
+        IO.puts("📄 Updated: #{@todolist_file}")
+        
+        # Create journal entry
+        create_progress_journal(next_task_id, "added", timestamp)
+      else
+        IO.puts("❌ Parent task #{parent_id} not found")
+      end
+    else
+      IO.puts("❌ Todolist file not found: #{@todolist_file}")
+    end
+  end
+  
+  def show_working_set do
+    IO.puts("🔄 CURRENT WORKING SET (IN_PROGRESS TASKS)")
+    IO.puts("=" <> String.duplicate("=", 50))
+    
+    if File.exists?(@todolist_file) do
+      content = File.read!(@todolist_file)
+      
+      # Find all in_progress tasks
+      in_progress_tasks = 
+        content
+        |> String.split("\n")
+        |> Enum.filter(fn line ->
+          String.contains?(line, "[🔄]") and Regex.match?(~r/- \[🔄\] \d+\.\d+/, line)
+        end)
+      
+      if length(in_progress_tasks) > 0 do
+        IO.puts("📋 ACTIVE TASKS (#{length(in_progress_tasks)}):")
+        IO.puts("")
+        
+        Enum.each(in_progress_tasks, fn line ->
+          case Regex.run(~r/- \[🔄\] (\d+\.\d+[^\s]*) - (.+)/, line) do
+            [_, task_id, task_content] ->
+              IO.puts("  🔄 #{task_id} - #{task_content}")
+            _ ->
+              IO.puts("  #{String.trim(line)}")
+          end
+        end)
+        
+        IO.puts("")
+        IO.puts("💡 NEXT ACTIONS:")
+        IO.puts("  - Use --update TASK_ID completed to mark tasks as done")
+        IO.puts("  - Use --update TASK_ID blocked if encountering issues")
+        IO.puts("  - Focus on completing current working set before adding new tasks")
+      else
+        IO.puts("✅ No tasks currently in progress")
+        IO.puts("💡 Consider updating a pending task to in_progress to start working")
+      end
+    else
+      IO.puts("❌ No todolist file found at #{@todolist_file}")
+    end
+  end
+  
+  defp generate_next_task_id(content, parent_id) do
+    # Find all existing subtasks under parent (look for both direct subtasks and any nested IDs)
+    existing_subtasks = 
+      content
+      |> String.split("\n")
+      |> Enum.filter(fn line ->
+        Regex.match?(~r/- \[[ x🔄🚫]\] #{Regex.escape(parent_id)}\.\d+/, line)
+      end)
+      |> Enum.map(fn line ->
+        case Regex.run(~r/- \[[ x🔄🚫]\] #{Regex.escape(parent_id)}\.(\d+)/, line) do
+          [_, subtask_num] -> String.to_integer(subtask_num)
+          _ -> 0
+        end
+      end)
+      |> Enum.filter(fn num -> num > 0 end)
+    
+    next_num = if length(existing_subtasks) > 0 do
+      Enum.max(existing_subtasks) + 1
+    else
+      1
+    end
+    
+    "#{parent_id}.#{next_num}"
+  end
+  
+  defp find_insertion_point(lines, parent_id) do
+    # Find the line number where parent task is defined
+    parent_line_index = 
+      lines
+      |> Enum.with_index()
+      |> Enum.find_index(fn {line, _} ->
+        Regex.match?(~r/- \[[ x🔄🚫]\] #{Regex.escape(parent_id)}($|\s)/, line) or
+        String.contains?(line, "**#{parent_id} -")
+      end)
+    
+    if parent_line_index do
+      # Find the last subtask under this parent or the parent line itself
+      last_subtask_index = 
+        lines
+        |> Enum.with_index()
+        |> Enum.drop(parent_line_index + 1)
+        |> Enum.take_while(fn {line, _} ->
+          # Continue while we're still in subtasks of this parent
+          String.starts_with?(line, "  - ") or String.trim(line) == ""
+        end)
+        |> Enum.filter(fn {line, _} ->
+          Regex.match?(~r/- \[[ x🔄🚫]\] #{Regex.escape(parent_id)}\.\d+/, line)
+        end)
+        |> List.last()
+      
+      case last_subtask_index do
+        {_, index} -> index + 1
+        nil -> parent_line_index + 1
+      end
+    else
+      0
+    end
+  end
+
+  # 🚨 MANDATORY: Comprehensive "mix todo" Status Updates Implementation
+
+  def execute_comprehensive_update do
+    IO.puts("🚨 EXECUTING COMPREHENSIVE PROJECT STATUS UPDATE")
+    IO.puts("=" <> String.duplicate("=", 60))
+    
+    # Step 1: Show current status
+    IO.puts("📊 STEP 1: Current Project Status")
+    show_status()
+    
+    # Step 2: Validate structure
+    IO.puts("\n🔍 STEP 2: Structure Validation")
+    validate_structure()
+    
+    # Step 3: Check for any in-progress tasks that should be completed
+    IO.puts("\n⚡ STEP 3: Automatic Task Status Analysis")
+    analyze_task_completion_status()
+    
+    # Step 4: Create backup
+    IO.puts("\n💾 STEP 4: Creating Backup")
+    create_backup()
+    
+    # Step 5: Sync with git
+    IO.puts("\n🔄 STEP 5: Git Synchronization")
+    sync_with_git()
+    
+    IO.puts("\n✅ COMPREHENSIVE UPDATE COMPLETED")
+  end
+
+  def create_timestamped_backup do
+    IO.puts("💾 CREATING TIMESTAMPED BACKUP")
+    
+    timestamp = DateTime.utc_now() |> DateTime.to_iso8601()
+    backup_filename = "todolist_#{timestamp}.md"
+    backup_path = Path.join(@backup_dir, backup_filename)
+    
+    File.mkdir_p!(@backup_dir)
+    
+    if File.exists?(@todolist_file) do
+      File.cp!(@todolist_file, backup_path)
+      IO.puts("✅ Timestamped backup created: #{backup_path}")
+    else
+      IO.puts("❌ Source todolist file not found")
+    end
+  end
+
+  def sync_with_validation do
+    IO.puts("🔄 SYNC WITH COMPREHENSIVE VALIDATION")
+    
+    # Step 1: Validate before sync
+    IO.puts("📋 Pre-sync validation:")
+    validate_structure()
+    
+    # Step 2: Standard sync
+    IO.puts("\n🔄 Executing git sync:")
+    sync_with_git()
+    
+    # Step 3: Post-sync validation
+    IO.puts("\n✅ Post-sync validation:")
+    validate_structure()
+    
+    IO.puts("✅ SYNC WITH VALIDATION COMPLETED")
+  end
+
+  def validate_strict_compliance do
+    IO.puts("🚨 STRICT COMPLIANCE VALIDATION")
+    IO.puts("=" <> String.duplicate("=", 50))
+    
+    compliance_score = 0
+    total_checks = 5
+    
+    # Check 1: File existence
+    if File.exists?(@todolist_file) do
+      IO.puts("✅ Check 1: PROJECT_TODOLIST.md exists")
+      compliance_score = compliance_score + 1
+    else
+      IO.puts("❌ Check 1: PROJECT_TODOLIST.md missing")
+    end
+    
+    # Check 2: Structure validation
+    IO.puts("\n📋 Check 2: Structure validation")
+    if validate_structure() == :ok do
+      IO.puts("✅ Structure is valid")
+      compliance_score = compliance_score + 1
+    else
+      IO.puts("❌ Structure validation failed")
+    end
+    
+    # Check 3: Recent backup exists
+    if File.exists?(@backup_dir) and length(File.ls!(@backup_dir)) > 0 do
+      IO.puts("✅ Check 3: Backup system operational")
+      compliance_score = compliance_score + 1
+    else
+      IO.puts("❌ Check 3: No backups found")
+    end
+    
+    # Check 4: Git integration
+    case System.cmd("git", ["status", "--porcelain", @todolist_file]) do
+      {_, 0} ->
+        IO.puts("✅ Check 4: Git integration functional")
+        compliance_score = compliance_score + 1
+      {_, _} ->
+        IO.puts("❌ Check 4: Git integration issues")
+    end
+    
+    # Check 5: Hierarchical numbering
+    IO.puts("\n🔢 Check 5: Hierarchical numbering validation")
+    if validate_hierarchical_numbering() == :ok do
+      IO.puts("✅ Hierarchical numbering compliant")
+      compliance_score = compliance_score + 1
+    else
+      IO.puts("❌ Hierarchical numbering violations")
+    end
+    
+    # Calculate compliance percentage
+    compliance_percentage = Float.round(compliance_score / total_checks * 100, 1)
+    
+    IO.puts("\n📊 COMPLIANCE SCORE: #{compliance_score}/#{total_checks} (#{compliance_percentage}%)")
+    
+    if compliance_percentage >= 95.0 do
+      IO.puts("🏆 EXCELLENT COMPLIANCE - All systems operational")
+    elsif compliance_percentage >= 80.0 do
+      IO.puts("⚠️ GOOD COMPLIANCE - Minor issues detected")
+    else
+      IO.puts("🚨 COMPLIANCE FAILURE - Immediate action required")
+    end
+  end
+
+  defp analyze_task_completion_status do
+    if File.exists?(@todolist_file) do
+      content = File.read!(@todolist_file)
+      
+      # Count various task states
+      total_tasks = count_tasks(content)
+      completed_tasks = count_completed(content)
+      in_progress_tasks = count_in_progress(content)
+      
+      IO.puts("📈 Task Status Analysis:")
+      IO.puts("  Total: #{total_tasks}")
+      IO.puts("  Completed: #{completed_tasks}")
+      IO.puts("  In Progress: #{in_progress_tasks}")
+      IO.puts("  Pending: #{total_tasks - completed_tasks - in_progress_tasks}")
+      
+      completion_rate = if total_tasks > 0, do: Float.round(completed_tasks / total_tasks * 100, 1), else: 0
+      IO.puts("  Completion Rate: #{completion_rate}%")
+      
+      if completion_rate >= 90.0 do
+        IO.puts("🎉 EXCELLENT PROGRESS - Near completion!")
+      elsif completion_rate >= 70.0 do
+        IO.puts("👍 GOOD PROGRESS - Majority complete")
+      elsif completion_rate >= 50.0 do
+        IO.puts("⚡ STEADY PROGRESS - Halfway there")
+      else
+        IO.puts("🚀 GETTING STARTED - Much work ahead")
+      end
+    else
+      IO.puts("❌ Cannot analyze - todolist file not found")
+    end
+  end
+
+  defp count_in_progress(content) do
+    content
+    |> String.split("\n")
+    |> Enum.count(fn line ->
+      Regex.match?(~r/- \[🔄\]/, line)
+    end)
+  end
+  
+  defp count_tasks(content) do
+    content
+    |> String.split("\n")
+    |> Enum.count(fn line ->
+      Regex.match?(~r/- \[[✅🔄❌]\]/, line)
+    end)
+  end
+  
+  defp count_completed(content) do
+    content
+    |> String.split("\n")
+    |> Enum.count(fn line ->
+      Regex.match?(~r/- \[✅\]/, line)
+    end)
+  end
+end
+
+# Run the module
+TodolistManager.main(System.argv())

@@ -1,0 +1,152 @@
+# podman-compose-fractal-cluster.yml
+# WHAT: ODTP-v20 Fractal Cluster (TPS Optimized)
+# Compliance: SC-SIL6-*, SC-CLU-002, SC-CNT-009
+
+version: '3.8'
+
+networks:
+  indrajaal-cluster-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+
+services:
+  db-primary:
+    image: localhost/indrajaal-timescaledb-demo:nixos-devenv
+    container_name: indrajaal-db-1
+    hostname: db-primary.indrajaal
+    networks:
+      indrajaal-cluster-net:
+        ipv4_address: 172.30.0.21
+    environment:
+      POSTGRES_DB: indrajaal_prod
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGPORT: "5433"
+      PGDATA: /var/lib/postgresql/pgdata
+    command: ["docker-entrypoint.sh", "postgres"]
+    ports:
+      - "5433:5433"
+    volumes:
+      - db_data:/var/lib/postgresql/pgdata:z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -p 5433"]
+      interval: 1s
+    restart: unless-stopped
+
+  app-1:
+    image: localhost/indrajaal-sopv51-elixir-app:nixos-25.05-devenv
+    container_name: indrajaal-app-1
+    hostname: app-1.indrajaal
+    user: "1000:1000"
+    working_dir: /workspace
+    # SIL-6 PRE-WARMED ENTRYPOINT with hex bootstrap
+    entrypoint: ["/bin/sh", "-c", "mix local.hex --force && mix local.rebar --force && iex --name indrajaal@app-1.indrajaal --cookie fractal_mesh_cookie -S mix phx.server"]
+    networks:
+      indrajaal-cluster-net:
+        ipv4_address: 172.30.0.11
+    environment:
+      DATABASE_URL: ecto://postgres:postgres@db-primary.indrajaal:5433/indrajaal_prod
+      CLUSTERING_ENABLED: "true"
+      PRAJNA_COCKPIT_ENABLED: "true"
+      PHX_PORT: "4000"
+      MIX_ENV: test
+      ELIXIR_ERL_OPTIONS: "+fnu"
+      HOME: /tmp/home
+      MIX_HOME: /tmp/home/.mix
+      HEX_HOME: /tmp/home/.hex
+      SKIP_ZENOH_NIF: "1"
+      CARGO_TARGET_DIR: /tmp/cargo_target
+    ports:
+      - "4000:4000"
+      - "4001:4001"
+    volumes:
+      - shared_home:/tmp/home:z
+      - ../../..:/workspace:z
+    depends_on:
+      db-primary:
+        condition: service_healthy
+    restart: unless-stopped
+
+  app-2:
+    image: localhost/indrajaal-sopv51-elixir-app:nixos-25.05-devenv
+    container_name: indrajaal-app-2
+    hostname: app-2.indrajaal
+    user: "1000:1000"
+    working_dir: /workspace
+    entrypoint: ["/bin/sh", "-c", "mix local.hex --force && mix local.rebar --force && iex --name indrajaal@app-2.indrajaal --cookie fractal_mesh_cookie -S mix phx.server"]
+    networks:
+      indrajaal-cluster-net:
+        ipv4_address: 172.30.0.12
+    environment:
+      DATABASE_URL: ecto://postgres:postgres@db-primary.indrajaal:5433/indrajaal_prod
+      RELEASE_NODE: indrajaal@app-2.indrajaal
+      RELEASE_COOKIE: fractal_mesh_cookie
+      CLUSTERING_ENABLED: "true"
+      PHX_PORT: "4000"
+      MIX_ENV: test
+      ELIXIR_ERL_OPTIONS: "+fnu"
+      HOME: /tmp/home
+      MIX_HOME: /tmp/home/.mix
+      HEX_HOME: /tmp/home/.hex
+      SKIP_ZENOH_NIF: "1"
+      CARGO_TARGET_DIR: /tmp/cargo_target
+    ports:
+      - "4002:4000"
+    volumes:
+      - shared_home:/tmp/home:z
+      - ../../..:/workspace:z
+    depends_on:
+      app-1:
+        condition: service_started
+    restart: unless-stopped
+
+  app-3:
+    image: localhost/indrajaal-sopv51-elixir-app:nixos-25.05-devenv
+    container_name: indrajaal-app-3
+    hostname: app-3.indrajaal
+    user: "1000:1000"
+    working_dir: /workspace
+    entrypoint: ["/bin/sh", "-c", "mix local.hex --force && mix local.rebar --force && iex --name indrajaal@app-3.indrajaal --cookie fractal_mesh_cookie -S mix phx.server"]
+    networks:
+      indrajaal-cluster-net:
+        ipv4_address: 172.30.0.13
+    environment:
+      DATABASE_URL: ecto://postgres:postgres@db-primary.indrajaal:5433/indrajaal_prod
+      RELEASE_NODE: indrajaal@app-3.indrajaal
+      RELEASE_COOKIE: fractal_mesh_cookie
+      CLUSTERING_ENABLED: "true"
+      PHX_PORT: "4000"
+      MIX_ENV: test
+      ELIXIR_ERL_OPTIONS: "+fnu"
+      HOME: /tmp/home
+      MIX_HOME: /tmp/home/.mix
+      HEX_HOME: /tmp/home/.hex
+      SKIP_ZENOH_NIF: "1"
+      CARGO_TARGET_DIR: /tmp/cargo_target
+    ports:
+      - "4003:4000"
+    volumes:
+      - shared_home:/tmp/home:z
+      - ../../..:/workspace:z
+    depends_on:
+      app-1:
+        condition: service_started
+    restart: unless-stopped
+
+  indrajaal-obs:
+    image: localhost/indrajaal-obs-unified:nixos-devenv
+    container_name: indrajaal-obs-cluster
+    hostname: obs.indrajaal
+    networks:
+      indrajaal-cluster-net:
+        ipv4_address: 172.30.0.30
+    ports:
+      - "3001:3000"
+      - "4319:4317"
+    restart: unless-stopped
+
+volumes:
+  shared_home:
+  db_data:

@@ -1,0 +1,313 @@
+# 🚀 SOPv5.1 Enhanced SigNoz Observability Stack Configuration - UPDATED 2025-08-05 10:45:00 CEST
+# ========================================================
+# Framework: SOPv5.1 + TPS + STAMP + TDG + GDE + Container-Only + PHICS
+# Agent Architecture: 11-Agent Coordination Support for Observability Stack
+# Claude Logging: ✅ ENFORCED - All logs saved to ./data/tmp
+#
+# 🚨 OBSERVABILITY CONFIGURATION GUARDIAN PROTECTED FILE
+# This file is monitored by the Container Configuration Guardian System
+# Unauthorized changes will trigger immediate alerts and recovery procedures
+#
+# ## Agent-Friendly SigNoz Observability Architecture Documentation
+# This compose file defines the complete SigNoz observability stack with:
+# - ClickHouse: Time-series database for metrics, traces, and logs
+# - SigNoz Query: Query service for data retrieval and processing
+# - OTEL Collector: OpenTelemetry data collection and processing
+# - SigNoz Frontend: Web UI for visualization and analysis
+# - SigNoz Init: Database initialization and schema management
+#
+# ### Current State Alignment (Updated: 2025-08-05 10:45:00 CEST)
+# - Enhanced with SOPv5.1 framework compliance variables
+# - Comprehensive resource limits and health monitoring
+# - STAMP safety constraints with UCA mitigation
+# - Agent coordination support for observability worker
+# - Claude logging integration for audit compliance
+# - PHICS integration for hot-reloading development
+
+version: '3.8'
+
+# 🌐 SOPv5.1 Network Configuration with Security Isolation
+networks:
+  indrajaal-observability:
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+          gateway: 172.30.0.1
+
+volumes:
+  clickhouse-data:
+    driver: local
+    driver_opts:
+      # STAMP: Prevent disk overflow (SC3)
+      o: "size=100G"
+
+  clickhouse-logs:
+    driver: local
+    driver_opts:
+      o: "size=10G"
+
+  otel-queue:
+    driver: local
+    driver_opts:
+      o: "size=5G"
+
+services:
+  # 🗄️ ClickHouse Time-Series Database Container - Priority 3 (Agent: observability_worker)
+  # PURPOSE: High-performance time-series database for metrics, traces, and logs with enterprise optimization
+  # AGENT: observability_worker manages this container with resource monitoring and performance optimization
+  # SOPv5.1: Includes security hardening, resource limits, and comprehensive health monitoring with STAMP constraints
+  clickhouse:
+    image: localhost/signoz-clickhouse:latest
+    container_name: indrajaal-clickhouse
+    hostname: clickhouse-db
+    networks:
+      - indrajaal-observability
+    ports:
+      # STAMP: Localhost only binding for security (SC1: Prevent unauthorized external access)
+      - "127.0.0.1:9000:9000"  # Native protocol
+      - "127.0.0.1:8123:8123"  # HTTP interface
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse:Z
+      - clickhouse-logs:/var/log/clickhouse-server:Z
+      - ./observability/clickhouse/config.d:/etc/clickhouse-server/config.d:ro,Z
+      - ./observability/clickhouse/users.d:/etc/clickhouse-server/users.d:ro,Z
+      - ./data/tmp:/var/log/claude:z
+    environment:
+      # ClickHouse Configuration
+      - CLICKHOUSE_DB=signoz
+      - CLICKHOUSE_USER=signoz
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-signoz2024!}  # GDE: Secure config
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+      # Performance Configuration
+      - CLICKHOUSE_MAX_MEMORY_USAGE=6442450944  # 6GB max memory usage
+      - CLICKHOUSE_MAX_CONCURRENT_QUERIES=100
+      - CLICKHOUSE_BACKGROUND_POOL_SIZE=16
+      # SOPv5.1 Compliance Variables (MANDATORY)
+      - PHICS_ENABLED=true
+      - NO_TIMEOUT=true
+      - CONTAINER_OS=nixos
+      - MAX_PARALLELIZATION=true
+      - SOPV51_COMPLIANT=true
+      - AGENT_COORDINATOR=observability_worker
+      - CLAUDE_LOGGING_DIR=./data/tmp
+    deploy:
+      resources:
+        limits:
+          # STAMP: Resource limits to prevent OOM (SC2: System resource protection)
+          memory: 8G
+          cpus: '4.0'
+        reservations:
+          memory: 4G
+          cpus: '2.0'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1", "--max_execution_time", "5"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # 🔍 SigNoz Query Service Container - Priority 4 (Agent: observability_worker)
+  # PURPOSE: Query processing and API service for metrics, traces, and logs with enterprise performance optimization
+  # AGENT: observability_worker coordinates this container with health-based dependency on ClickHouse database
+  # SOPv5.1: Includes tenant isolation, performance tuning, and comprehensive monitoring with STAMP safety constraints
+  signoz-query:
+    image: localhost/signoz-query:latest
+    container_name: indrajaal-signoz-query
+    hostname: signoz-query-service
+    networks:
+      - indrajaal-observability
+    ports:
+      - "127.0.0.1:8080:8080"  # API endpoint
+      - "127.0.0.1:8081:8081"  # Internal metrics
+    volumes:
+      - ./data/tmp:/var/log/claude:z
+    environment:
+      # ClickHouse Configuration
+      - CLICKHOUSE_HOST=clickhouse-db
+      - CLICKHOUSE_PORT=9000
+      - CLICKHOUSE_USER=signoz
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-signoz2024!}
+      - STORAGE=clickhouse
+      # Query Service Configuration
+      - QUERY_SERVICE_PORT=8080
+      - TELEMETRY_ENABLED=true
+      - LOGS_ENABLED=true
+      - DEPLOYMENT_TYPE=docker
+      - GODEBUG=netdns=go
+      # Performance Configuration
+      - GOMEMLIMIT=1536MiB
+      - GOGC=100
+      - GOMAXPROCS=2
+      # STAMP: Tenant isolation configuration (SC3: Data isolation and security)
+      - TENANT_ISOLATION=strict
+      - QUERY_TIMEOUT=30s
+      - MAX_QUERY_SIZE=100MB
+      # SOPv5.1 Compliance Variables (MANDATORY)
+      - PHICS_ENABLED=true
+      - NO_TIMEOUT=true
+      - CONTAINER_OS=nixos
+      - MAX_PARALLELIZATION=true
+      - SOPV51_COMPLIANT=true
+      - AGENT_COORDINATOR=observability_worker
+      - CLAUDE_LOGGING_DIR=./data/tmp
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+        restart: true
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '1.0'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health", "--max-time", "5"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  otel-collector:
+    image: localhost/signoz-otel-collector:latest
+    container_name: indrajaal-otel-collector
+    hostname: otel-collector
+    networks:
+      - indrajaal-observability
+    ports:
+      - "127.0.0.1:4317:4317"  # OTLP gRPC
+      - "127.0.0.1:4318:4318"  # OTLP HTTP
+      - "127.0.0.1:8888:8888"  # Metrics
+      - "127.0.0.1:13133:13133" # Health check
+    volumes:
+      - ./observability/otel/config.yaml:/etc/otel-collector/config.yaml:ro,Z
+      - otel-queue:/var/lib/otel-collector/queue:Z
+    environment:
+      - CLICKHOUSE_ENDPOINT=tcp://clickhouse:9000/?database=signoz
+      - CLICKHOUSE_USER=signoz
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-signoz2024!}
+      # STAMP: Buffer configuration (UCA2)
+      - GOGC=80
+      - GOMEMLIMIT=2GiB
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      signoz-query:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-s", "http://localhost:13133/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  signoz-frontend:
+    image: localhost/signoz-frontend:latest
+    container_name: indrajaal-signoz-frontend
+    hostname: signoz-frontend
+    networks:
+      - indrajaal-observability
+    ports:
+      - "127.0.0.1:3301:3301"  # Web UI
+    environment:
+      - QUERY_SERVICE_HOST=signoz-query
+      - QUERY_SERVICE_PORT=8080
+      - QUERY_SERVICE_URL=http://localhost:3301/api
+      - FRONTEND_API_ENDPOINT=/api
+      - DEPLOYMENT_TYPE=docker
+    depends_on:
+      signoz-query:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3301/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # Optional: Alert manager for notifications
+  # alertmanager:
+  #   image: localhost/signoz-alertmanager:latest
+  #   container_name: indrajaal-alertmanager
+  #   hostname: alertmanager
+  #   networks:
+  #     - indrajaal-observability
+  #   ports:
+  #     - "127.0.0.1:9093:9093"
+  #   volumes:
+  #     - ./observability/alertmanager/config.yml:/etc/alertmanager/config.yml:ro,Z
+  #   restart: unless-stopped
+
+# Development helper service
+  signoz-init:
+    image: localhost/signoz-clickhouse:latest
+    container_name: indrajaal-signoz-init
+    networks:
+      - indrajaal-observability
+    environment:
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000
+      - CLICKHOUSE_USER=signoz
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-signoz2024!}
+    command: |
+      bash -c "
+        echo 'Waiting for ClickHouse to be ready...'
+        while ! clickhouse-client --host=$$CLICKHOUSE_HOST --port=$$CLICKHOUSE_PORT --user=$$CLICKHOUSE_USER --password=$$CLICKHOUSE_PASSWORD --query='SELECT 1'; do
+          sleep 2
+        done
+        echo 'ClickHouse is ready!'
+
+        # Create SigNoz databases if they don't exist
+        clickhouse-client --host=$$CLICKHOUSE_HOST --port=$$CLICKHOUSE_PORT --user=$$CLICKHOUSE_USER --password=$$CLICKHOUSE_PASSWORD --query='CREATE DATABASE IF NOT EXISTS signoz_traces'
+        clickhouse-client --host=$$CLICKHOUSE_HOST --port=$$CLICKHOUSE_PORT --user=$$CLICKHOUSE_USER --password=$$CLICKHOUSE_PASSWORD --query='CREATE DATABASE IF NOT EXISTS signoz_metrics'
+        clickhouse-client --host=$$CLICKHOUSE_HOST --port=$$CLICKHOUSE_PORT --user=$$CLICKHOUSE_USER --password=$$CLICKHOUSE_PASSWORD --query='CREATE DATABASE IF NOT EXISTS signoz_logs'
+
+        echo 'SigNoz databases initialized!'
+      "
+    depends_on:
+      - clickhouse
+    profiles:
+      - init

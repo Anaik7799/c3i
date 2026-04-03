@@ -1,0 +1,70 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+
+exporters:
+  clickhouse:
+    endpoint: tcp://clickhouse:9000
+    database: signoz
+    username: signoz
+    password: signoz
+    ttl_days: 7
+    traces_table_name: signoz_traces
+    metrics_table_name: signoz_metrics
+    logs_table_name: signoz_logs
+
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: signoz
+
+  # Debug exporter (replaces deprecated logging exporter)
+  debug:
+    verbosity: basic
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+  pprof:
+    endpoint: 0.0.0.0:1888
+
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+service:
+  extensions: [health_check, pprof, zpages]
+
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [clickhouse, debug]
+
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [clickhouse, prometheus, debug]
+
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [clickhouse, debug]
+
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      address: 0.0.0.0:8888

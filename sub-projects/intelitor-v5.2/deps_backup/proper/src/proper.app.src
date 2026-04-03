@@ -1,0 +1,11 @@
+{application,proper,
+             [{description,"A QuickCheck-inspired property-based testing tool for Erlang"},
+              {maintainers,["Kostis Sagonas"]},
+              {licenses,["GPL 3.0"]},
+              {links,[{"GitHub","https://github.com/proper-testing/proper"},
+                      {"Official Documentation",
+                       "https://proper-testing.github.io/"}]},
+              {vsn,"1.5.0"},
+              {registered,[]},
+              {applications,[compiler,kernel,stdlib]},
+              {env,[]}]}.

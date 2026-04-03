@@ -1,0 +1,560 @@
+// Closed-Loop Debugger-LSP-Telemetry gRPC Service Definitions
+// Version: 1.0.0 | Date: 2026-01-04
+// STAMP: SC-DEBUG-004 (5s timeout), SC-DEBUG-008 (10K events/sec)
+
+syntax = "proto3";
+
+package indrajaal.debugger;
+
+option csharp_namespace = "Indrajaal.Debugger.Grpc";
+option java_package = "ai.indrajaal.debugger.grpc";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+
+// =============================================================================
+// DEBUGGER SERVICE - Core debugging operations
+// =============================================================================
+
+service DebuggerService {
+  // Session Lifecycle
+  rpc StartSession(StartSessionRequest) returns (StartSessionResponse);
+  rpc StopSession(StopSessionRequest) returns (StopSessionResponse);
+  rpc GetSessionStatus(GetSessionStatusRequest) returns (SessionStatus);
+  rpc ListSessions(ListSessionsRequest) returns (SessionList);
+
+  // Breakpoint Management
+  rpc SetBreakpoint(SetBreakpointRequest) returns (BreakpointResponse);
+  rpc RemoveBreakpoint(RemoveBreakpointRequest) returns (BreakpointResponse);
+  rpc ListBreakpoints(ListBreakpointsRequest) returns (BreakpointList);
+  rpc EnableBreakpoint(EnableBreakpointRequest) returns (BreakpointResponse);
+  rpc DisableBreakpoint(DisableBreakpointRequest) returns (BreakpointResponse);
+
+  // Execution Control
+  rpc Continue(ContinueRequest) returns (ExecutionResponse);
+  rpc Pause(PauseRequest) returns (ExecutionResponse);
+  rpc StepOver(StepRequest) returns (ExecutionResponse);
+  rpc StepInto(StepRequest) returns (ExecutionResponse);
+  rpc StepOut(StepRequest) returns (ExecutionResponse);
+  rpc RunToLine(RunToLineRequest) returns (ExecutionResponse);
+
+  // Inspection
+  rpc InspectVariable(InspectVariableRequest) returns (VariableValue);
+  rpc EvaluateExpression(EvaluateRequest) returns (EvaluateResponse);
+  rpc GetStackTrace(GetStackTraceRequest) returns (StackTrace);
+  rpc GetScopes(GetScopesRequest) returns (ScopeList);
+
+  // Streaming
+  rpc StreamEvents(StreamEventsRequest) returns (stream DebugEvent);
+  rpc StreamVariables(StreamVariablesRequest) returns (stream VariableUpdate);
+}
+
+// =============================================================================
+// LSP SERVICE - Language Server Protocol coordination
+// =============================================================================
+
+service LSPService {
+  // Diagnostics
+  rpc GetDiagnostics(GetDiagnosticsRequest) returns (DiagnosticList);
+  rpc StreamDiagnostics(StreamDiagnosticsRequest) returns (stream Diagnostic);
+
+  // Code Intelligence
+  rpc GetDefinition(GetDefinitionRequest) returns (Location);
+  rpc GetReferences(GetReferencesRequest) returns (LocationList);
+  rpc GetHover(GetHoverRequest) returns (HoverInfo);
+  rpc GetCompletions(GetCompletionsRequest) returns (CompletionList);
+  rpc GetSignatureHelp(GetSignatureHelpRequest) returns (SignatureHelp);
+
+  // Document Symbols
+  rpc GetDocumentSymbols(GetDocumentSymbolsRequest) returns (SymbolList);
+  rpc GetWorkspaceSymbols(GetWorkspaceSymbolsRequest) returns (SymbolList);
+
+  // Formatting
+  rpc FormatDocument(FormatDocumentRequest) returns (TextEditList);
+  rpc FormatRange(FormatRangeRequest) returns (TextEditList);
+
+  // Code Actions
+  rpc GetCodeActions(GetCodeActionsRequest) returns (CodeActionList);
+  rpc ExecuteCodeAction(ExecuteCodeActionRequest) returns (ExecuteCodeActionResponse);
+}
+
+// =============================================================================
+// TELEMETRY SERVICE - Real-time metrics and events
+// =============================================================================
+
+service TelemetryService {
+  // Event Emission
+  rpc EmitEvent(EmitEventRequest) returns (EmitEventResponse);
+  rpc EmitBatch(EmitBatchRequest) returns (EmitBatchResponse);
+
+  // Streaming
+  rpc StreamEvents(StreamTelemetryRequest) returns (stream TelemetryEvent);
+  rpc StreamMetrics(StreamMetricsRequest) returns (stream MetricUpdate);
+
+  // Queries
+  rpc GetMetrics(GetMetricsRequest) returns (MetricsResponse);
+  rpc QueryEvents(QueryEventsRequest) returns (EventQueryResponse);
+
+  // Health
+  rpc GetHealth(GetHealthRequest) returns (HealthResponse);
+}
+
+// =============================================================================
+// TRACE SERVICE - Distributed tracing integration
+// =============================================================================
+
+service TraceService {
+  // Span Management
+  rpc StartSpan(StartSpanRequest) returns (SpanResponse);
+  rpc EndSpan(EndSpanRequest) returns (SpanResponse);
+  rpc AddSpanEvent(AddSpanEventRequest) returns (SpanResponse);
+
+  // Context Propagation
+  rpc GetTraceContext(GetTraceContextRequest) returns (TraceContext);
+  rpc InjectContext(InjectContextRequest) returns (InjectContextResponse);
+
+  // Queries
+  rpc GetTrace(GetTraceRequest) returns (Trace);
+  rpc QueryTraces(QueryTracesRequest) returns (TraceQueryResponse);
+}
+
+// =============================================================================
+// SESSION MESSAGES
+// =============================================================================
+
+message StartSessionRequest {
+  string language = 1;              // "elixir" | "fsharp" | "nix"
+  string project_root = 2;
+  map<string, string> options = 3;
+  string correlation_id = 4;
+}
+
+message StartSessionResponse {
+  string session_id = 1;
+  bool success = 2;
+  string error_message = 3;
+  google.protobuf.Timestamp started_at = 4;
+}
+
+message StopSessionRequest {
+  string session_id = 1;
+  bool force = 2;
+}
+
+message StopSessionResponse {
+  bool success = 1;
+  int64 duration_ms = 2;
+  SessionStats stats = 3;
+}
+
+message SessionStatus {
+  string session_id = 1;
+  string status = 2;  // "idle" | "running" | "paused" | "stopped"
+  string language = 3;
+  int32 breakpoint_count = 4;
+  string current_file = 5;
+  int32 current_line = 6;
+  google.protobuf.Timestamp started_at = 7;
+}
+
+message SessionStats {
+  int32 breakpoints_hit = 1;
+  int32 steps_executed = 2;
+  int32 variables_inspected = 3;
+  int32 expressions_evaluated = 4;
+}
+
+// =============================================================================
+// BREAKPOINT MESSAGES
+// =============================================================================
+
+message SetBreakpointRequest {
+  string session_id = 1;
+  string file_path = 2;
+  int32 line = 3;
+  int32 column = 4;
+  string condition = 5;
+  string log_message = 6;
+  int32 hit_count = 7;
+}
+
+message BreakpointResponse {
+  string breakpoint_id = 1;
+  bool verified = 2;
+  string message = 3;
+  int32 actual_line = 4;
+}
+
+message RemoveBreakpointRequest {
+  string session_id = 1;
+  string breakpoint_id = 2;
+}
+
+message ListBreakpointsRequest {
+  string session_id = 1;
+  string file_filter = 2;
+}
+
+message BreakpointList {
+  repeated Breakpoint breakpoints = 1;
+}
+
+message Breakpoint {
+  string id = 1;
+  string file_path = 2;
+  int32 line = 3;
+  int32 column = 4;
+  bool verified = 5;
+  bool enabled = 6;
+  string condition = 7;
+  int32 hit_count = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+// =============================================================================
+// EXECUTION MESSAGES
+// =============================================================================
+
+message ContinueRequest {
+  string session_id = 1;
+  string thread_id = 2;
+}
+
+message PauseRequest {
+  string session_id = 1;
+  string thread_id = 2;
+}
+
+message StepRequest {
+  string session_id = 1;
+  string thread_id = 2;
+  int32 granularity = 3;  // 1=statement, 2=line, 3=instruction
+}
+
+message RunToLineRequest {
+  string session_id = 1;
+  string file_path = 2;
+  int32 line = 3;
+}
+
+message ExecutionResponse {
+  bool success = 1;
+  string status = 2;  // "running" | "paused" | "stopped"
+  StoppedReason stopped_reason = 3;
+  StackFrame current_frame = 4;
+}
+
+enum StoppedReason {
+  STOPPED_REASON_UNSPECIFIED = 0;
+  STOPPED_REASON_BREAKPOINT = 1;
+  STOPPED_REASON_STEP = 2;
+  STOPPED_REASON_PAUSE = 3;
+  STOPPED_REASON_EXCEPTION = 4;
+  STOPPED_REASON_ENTRY = 5;
+}
+
+// =============================================================================
+// INSPECTION MESSAGES
+// =============================================================================
+
+message InspectVariableRequest {
+  string session_id = 1;
+  int32 frame_id = 2;
+  string variable_name = 3;
+  bool expand_children = 4;
+  int32 max_depth = 5;
+}
+
+message VariableValue {
+  string name = 1;
+  string value = 2;
+  string type = 3;
+  bool expandable = 4;
+  repeated VariableValue children = 5;
+  int32 children_count = 6;
+  string memory_reference = 7;
+}
+
+message EvaluateRequest {
+  string session_id = 1;
+  int32 frame_id = 2;
+  string expression = 3;
+  string context = 4;  // "watch" | "repl" | "hover" | "clipboard"
+}
+
+message EvaluateResponse {
+  string result = 1;
+  string type = 2;
+  bool success = 3;
+  string error_message = 4;
+  int32 variables_reference = 5;
+}
+
+message GetStackTraceRequest {
+  string session_id = 1;
+  string thread_id = 2;
+  int32 start_frame = 3;
+  int32 levels = 4;
+}
+
+message StackTrace {
+  repeated StackFrame frames = 1;
+  int32 total_frames = 2;
+}
+
+message StackFrame {
+  int32 id = 1;
+  string name = 2;
+  string source_path = 3;
+  int32 line = 4;
+  int32 column = 5;
+  int32 end_line = 6;
+  int32 end_column = 7;
+  string module_name = 8;
+  repeated Scope scopes = 9;
+}
+
+message Scope {
+  string name = 1;
+  int32 variables_reference = 2;
+  bool expensive = 3;
+  int32 named_variables = 4;
+  int32 indexed_variables = 5;
+}
+
+message GetScopesRequest {
+  string session_id = 1;
+  int32 frame_id = 2;
+}
+
+message ScopeList {
+  repeated Scope scopes = 1;
+}
+
+// =============================================================================
+// EVENT STREAMING MESSAGES
+// =============================================================================
+
+message StreamEventsRequest {
+  string session_id = 1;
+  repeated string event_types = 2;  // Filter by event type
+}
+
+message DebugEvent {
+  string event_type = 1;
+  string session_id = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  string correlation_id = 4;
+
+  oneof payload {
+    BreakpointHitEvent breakpoint_hit = 10;
+    StepCompleteEvent step_complete = 11;
+    ExceptionEvent exception = 12;
+    OutputEvent output = 13;
+    VariableChangeEvent variable_change = 14;
+    SessionEvent session_event = 15;
+  }
+}
+
+message BreakpointHitEvent {
+  string breakpoint_id = 1;
+  StackTrace stack = 2;
+  map<string, string> variables = 3;
+  int32 hit_count = 4;
+}
+
+message StepCompleteEvent {
+  string step_type = 1;
+  StackFrame frame = 2;
+}
+
+message ExceptionEvent {
+  string exception_type = 1;
+  string message = 2;
+  StackTrace stack = 3;
+  bool uncaught = 4;
+}
+
+message OutputEvent {
+  string category = 1;  // "console" | "stdout" | "stderr" | "telemetry"
+  string output = 2;
+  string source_path = 3;
+  int32 line = 4;
+}
+
+message VariableChangeEvent {
+  string variable_name = 1;
+  string old_value = 2;
+  string new_value = 3;
+  int32 frame_id = 4;
+}
+
+message SessionEvent {
+  string event = 1;  // "started" | "stopped" | "paused" | "continued"
+  map<string, string> metadata = 2;
+}
+
+// =============================================================================
+// LSP MESSAGES
+// =============================================================================
+
+message GetDiagnosticsRequest {
+  string file_path = 1;
+  string language = 2;
+}
+
+message DiagnosticList {
+  repeated Diagnostic diagnostics = 1;
+}
+
+message Diagnostic {
+  string file_path = 1;
+  Range range = 2;
+  string severity = 3;  // "error" | "warning" | "info" | "hint"
+  string code = 4;
+  string source = 5;
+  string message = 6;
+  repeated DiagnosticRelatedInfo related_info = 7;
+}
+
+message DiagnosticRelatedInfo {
+  Location location = 1;
+  string message = 2;
+}
+
+message Range {
+  Position start = 1;
+  Position end = 2;
+}
+
+message Position {
+  int32 line = 1;
+  int32 character = 2;
+}
+
+message Location {
+  string file_path = 1;
+  Range range = 2;
+}
+
+message LocationList {
+  repeated Location locations = 1;
+}
+
+message HoverInfo {
+  string contents = 1;  // Markdown
+  Range range = 2;
+}
+
+// =============================================================================
+// TELEMETRY MESSAGES
+// =============================================================================
+
+message EmitEventRequest {
+  string source = 1;
+  string event_type = 2;
+  bytes payload = 3;
+  string correlation_id = 4;
+  map<string, string> attributes = 5;
+}
+
+message EmitEventResponse {
+  bool success = 1;
+  string event_id = 2;
+}
+
+message TelemetryEvent {
+  string source = 1;
+  string event_type = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  string correlation_id = 4;
+  bytes payload = 5;
+  map<string, string> attributes = 6;
+}
+
+message MetricUpdate {
+  string name = 1;
+  double value = 2;
+  string unit = 3;
+  google.protobuf.Timestamp timestamp = 4;
+  map<string, string> labels = 5;
+}
+
+message GetMetricsRequest {
+  repeated string metric_names = 1;
+  google.protobuf.Timestamp start_time = 2;
+  google.protobuf.Timestamp end_time = 3;
+}
+
+message MetricsResponse {
+  repeated MetricSeries series = 1;
+}
+
+message MetricSeries {
+  string name = 1;
+  repeated MetricDataPoint data_points = 2;
+}
+
+message MetricDataPoint {
+  google.protobuf.Timestamp timestamp = 1;
+  double value = 2;
+}
+
+message HealthResponse {
+  string status = 1;  // "healthy" | "degraded" | "unhealthy"
+  map<string, ComponentHealth> components = 2;
+}
+
+message ComponentHealth {
+  string status = 1;
+  string message = 2;
+  google.protobuf.Timestamp last_check = 3;
+}
+
+// =============================================================================
+// TRACE MESSAGES
+// =============================================================================
+
+message StartSpanRequest {
+  string trace_id = 1;
+  string parent_span_id = 2;
+  string name = 3;
+  map<string, string> attributes = 4;
+}
+
+message SpanResponse {
+  string span_id = 1;
+  string trace_id = 2;
+  bool success = 3;
+}
+
+message TraceContext {
+  string trace_id = 1;
+  string span_id = 2;
+  string trace_state = 3;
+  bool sampled = 4;
+}
+
+message Trace {
+  string trace_id = 1;
+  repeated Span spans = 2;
+  google.protobuf.Timestamp start_time = 3;
+  int64 duration_ns = 4;
+}
+
+message Span {
+  string span_id = 1;
+  string parent_span_id = 2;
+  string name = 3;
+  google.protobuf.Timestamp start_time = 4;
+  int64 duration_ns = 5;
+  map<string, string> attributes = 6;
+  repeated SpanEvent events = 7;
+  string status = 8;
+}
+
+message SpanEvent {
+  string name = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  map<string, string> attributes = 3;
+}

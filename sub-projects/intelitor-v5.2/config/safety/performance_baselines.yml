@@ -1,0 +1,28 @@
+# Performance Baselines Configuration
+# Generated: 2025-08-02 19:52:26 CEST
+
+performance_baselines:
+  response_time:
+    p50: 50  # milliseconds
+    p90: 100
+    p95: 200
+    p99: 500
+
+  throughput:
+    requests_per_second: 1000
+    concurrent_users: 100
+
+  resource_usage:
+    cpu_utilization: 70  # percent
+    memory_usage: 80     # percent
+    disk_io: 1000        # IOPS
+
+  database_performance:
+    query_time_p95: 100  # milliseconds
+    connection_pool_usage: 80  # percent
+    lock_wait_time: 50   # milliseconds
+
+monitoring:
+  baseline_deviation_threshold: 20  # percent
+  alert_on_degradation: true
+  automatic_scaling: false  # Manual intervention required

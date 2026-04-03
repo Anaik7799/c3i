@@ -1,0 +1,19 @@
+FROM localhost/sopv51-base:latest
+
+# Agent: Fix locale and certificates
+RUN apt-get update && apt-get install -y ca-certificates locales && \
+    locale-gen en_US.UTF-8 && \
+    update-ca-certificates
+
+# Agent: Set proper environment
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+ENV ELIXIR_ERL_OPTIONS="+S 16 +A 32 +fnu"
+
+# Agent: Copy workspace
+WORKDIR /workspace
+
+# Agent: Default command
+CMD ["iex"]

@@ -1,0 +1,12 @@
+{
+  "domain": "access_control",
+  "agent_type": "domain_supervisor",
+  "agent_id": "DS-01",
+  "authority_level": "domain",
+  "coordination_scope": "domain_specific",
+  "creation_timestamp": "2025-09-14T22:43:46.351538Z",
+  "sopv511_compliance": true,
+  "specialization": "access_control",
+  "reporting_to": "ED-001",
+  "warning_focus": "authentication/authorization variable conflicts"
+}

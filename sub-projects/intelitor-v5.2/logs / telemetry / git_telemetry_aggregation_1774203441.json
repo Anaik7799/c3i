@@ -1,0 +1,30 @@
+{
+  "metrics": {
+    "total_events": 0,
+    "performance_summary": {},
+    "safety_summary": {},
+    "compliance_summary": {},
+    "goal_summary": {},
+    "git_activity": {},
+    "aggregation_timestamp": "2026-03-22T18:17:21.141387Z"
+  },
+  "git_context": {
+    "timestamp": "2026-03-22T18:17:21.141392Z",
+    "author": "Indrajaal Mesh",
+    "branch": "main",
+    "repository": "indrajaal-distributed",
+    "tags": [],
+    "commit_sha": "zenoh-mesh-integrated",
+    "uncommitted_changes": false,
+    "remote_url": null
+  },
+  "report_type": "git_telemetry_aggregation",
+  "report_timestamp": "2026-03-22 18:17:21.141390Z",
+  "summary": {
+    "total_events_processed": 0,
+    "safety_compliance_rate": 100.0,
+    "tdg_compliance_rate": 100.0,
+    "gde_goal_achievement_rate": 100.0,
+    "average_performance": 100.0
+  }
+}

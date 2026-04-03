@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors>FS0025</WarningsAsErrors>
+    <NoWarn>NU1510</NoWarn>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <Compile Include="TokenBucket.fs" />
+    <Compile Include="TopologyEngine.fs" />
+    <Compile Include="MetabolicGovernor.fs" />
+    <Compile Include="VectorStore.fs" />
+    <Compile Include="Security/GCPCloudKMS.fs" />
+    <Compile Include="Worker.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DuckDB.NET.Data" Version="1.1.2.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.1.25080.5" />
+    <PackageReference Include="Zenoh-CS" Version="0.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\cepaf\src\Cepaf.Knowledge\Cepaf.Knowledge.fsproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,231 @@
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# INDRAJAAL STANDALONE DISTRIBUTED MODE
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Full mesh cluster configuration with:
+# - Erlang distribution enabled for Tailnet mesh
+# - Livebook remote attachment support
+# - CEPAF bridge connectivity
+# - Zenoh pub/sub mesh
+# - API access from network nodes
+#
+# STAMP Compliance: SC-CLU-001 to SC-CLU-005
+#
+# Usage:
+#   podman-compose -f podman-compose-standalone-distributed.yml up -d
+#   ./scripts/standalone/start_distributed.sh
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+version: '3.8'
+
+networks:
+  indrajaal-mesh:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+
+services:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DATABASE: TimescaleDB (PostgreSQL 17)
+  # ═══════════════════════════════════════════════════════════════════════════
+  db-standalone:
+    container_name: indrajaal-db-standalone
+    image: localhost/indrajaal-timescaledb-demo:nixos-devenv
+    networks:
+      indrajaal-mesh:
+        ipv4_address: 172.30.0.10
+    ports:
+      - "5433:5433"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: indrajaal_dev
+      PGPORT: "5433"
+      TIMESCALEDB_TELEMETRY: "off"
+    volumes:
+      - ./data/timescaledb-standalone:/var/lib/postgresql/data:z
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "localhost", "-U", "postgres", "-p", "5433"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # OBSERVABILITY: OpenTelemetry + Prometheus + Grafana
+  # ═══════════════════════════════════════════════════════════════════════════
+  obs-standalone:
+    container_name: indrajaal-obs-standalone
+    image: localhost/indrajaal-obs-standalone:latest
+    networks:
+      indrajaal-mesh:
+        ipv4_address: 172.30.0.20
+    ports:
+      # Grafana
+      - "3000:3000"
+      # Prometheus
+      - "9090:9090"
+      # OTLP gRPC
+      - "4317:4317"
+      # OTLP HTTP
+      - "4318:4318"
+      # ClickHouse HTTP
+      - "8123:8123"
+      # ClickHouse Native
+      - "9000:9000"
+      # SigNoz Query Service
+      - "3301:3301"
+    environment:
+      CLICKHOUSE_USER: admin
+      CLICKHOUSE_PASSWORD: admin
+    volumes:
+      - ./data/signoz:/var/lib/signoz:z
+      - ./data/prometheus:/prometheus:z
+      - ./data/grafana:/var/lib/grafana:z
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # REDIS: Cache & PubSub
+  # ═══════════════════════════════════════════════════════════════════════════
+  redis-standalone:
+    container_name: indrajaal-redis-standalone
+    image: localhost/indrajaal-redis-demo:nixos-devenv
+    command: ["redis-server", "--appendonly", "yes"]
+    networks:
+      indrajaal-mesh:
+        ipv4_address: 172.30.0.30
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis-standalone:/data:z
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # APP: Indrajaal Phoenix Application (Optional - for container mode)
+  # ═══════════════════════════════════════════════════════════════════════════
+  # NOTE: For distributed mode, run the app on host using:
+  #   ./scripts/standalone/start_distributed.sh
+  #
+  # The containerized version is provided for testing but lacks full
+  # distribution capabilities with external Livebook.
+  # ═══════════════════════════════════════════════════════════════════════════
+  app-standalone:
+    container_name: indrajaal-app-standalone
+    image: localhost/indrajaal-sopv51-elixir-app:nixos-25.05-devenv
+    userns_mode: keep-id
+    networks:
+      indrajaal-mesh:
+        ipv4_address: 172.30.0.100
+    ports:
+      # Phoenix HTTP
+      - "4000:4000"
+      # Phoenix HTTPS
+      - "4001:4001"
+      # EPMD (Erlang Port Mapper)
+      - "4369:4369"
+      # Erlang distribution ports
+      - "9100-9105:9100-9105"
+      # Prometheus metrics
+      - "9568:9568"
+    environment:
+      # Core Application
+      MIX_ENV: dev
+      PHX_HOST: ${PHX_HOST:-0.0.0.0}
+      PHX_SERVER: "true"
+      PORT: "4000"
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-dev_secret_key_base_64_chars_long_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx}
+
+      # Database
+      DATABASE_URL: ecto://postgres:postgres@172.30.0.10:5433/indrajaal_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+      # Redis
+      REDIS_URL: redis://172.30.0.30:6379
+
+      # ═══════════════════════════════════════════════════════════════════
+      # DISTRIBUTED MODE (SC-CLU-001)
+      # ═══════════════════════════════════════════════════════════════════
+      DISTRIBUTED_MODE: "true"
+      CLUSTER_STRATEGY: "standalone"
+
+      # Erlang Distribution
+      RELEASE_NAME: indrajaal
+      RELEASE_DISTRIBUTION: name
+      RELEASE_NODE: "indrajaal@172.30.0.100"
+      RELEASE_COOKIE: ${RELEASE_COOKIE:-FSUDYIQDVBBYFIBWOGVU}
+      ERL_AFLAGS: "-kernel inet_dist_listen_min 9100 inet_dist_listen_max 9105"
+
+      # Tailscale Integration (when available)
+      TAILSCALE_DNS_SUFFIX: ${TAILSCALE_DNS_SUFFIX:-local.indrajaal}
+      TS_IP_ADDRESS: ${TS_IP_ADDRESS:-172.30.0.100}
+      TS_HOSTNAME: ${TS_HOSTNAME:-indrajaal-app-standalone}
+
+      # Cluster Configuration
+      CLUSTER_NODE_1: indrajaal-app-standalone
+      CLUSTER_NODE_2: ${CLUSTER_NODE_2:-}
+      CLUSTER_NODE_3: ${CLUSTER_NODE_3:-}
+      CLUSTER_POLLING_INTERVAL: "5000"
+
+      # FLAME Configuration
+      FLAME_MIN_NODES: "0"
+      FLAME_MAX_NODES: "10"
+      FLAME_IDLE_TIMEOUT: "30000"
+
+      # OpenTelemetry
+      OTEL_SERVICE_NAME: indrajaal
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://172.30.0.20:4317
+      SIGNOZ_ENABLED: "true"
+
+      # Patient Mode (SC-VAL-001)
+      NO_TIMEOUT: "true"
+      PATIENT_MODE: enabled
+      INFINITE_PATIENCE: "true"
+
+      # Resource Monitoring
+      RESOURCE_MONITOR_INTERVAL: "5000"
+      RESOURCE_THRESHOLD_CPU: "80"
+      RESOURCE_THRESHOLD_MEM: "85"
+
+    volumes:
+      - /home/an/dev/ver/indrajaal-v5.2:/workspace:z
+    working_dir: /workspace
+    command:
+      - sh
+      - -c
+      - |
+        mix local.hex --force && \
+        mix local.rebar --force && \
+        mix deps.get && \
+        mix compile && \
+        iex --name "indrajaal@172.30.0.100" \
+            --cookie "${RELEASE_COOKIE:-FSUDYIQDVBBYFIBWOGVU}" \
+            --erl "-kernel inet_dist_listen_min 9100 inet_dist_listen_max 9105" \
+            -S mix phx.server
+    depends_on:
+      db-standalone:
+        condition: service_healthy
+      redis-standalone:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
