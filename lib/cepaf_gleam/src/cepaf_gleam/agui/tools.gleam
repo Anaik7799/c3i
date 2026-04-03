@@ -220,6 +220,47 @@ pub fn active_calls(registry: ToolRegistry) -> List(ToolCallState) {
   })
 }
 
+/// Create an empty tool registry with no pre-registered tools.
+/// Convenience constructor for contexts where no tools are pre-loaded.
+pub fn initial_registry() -> ToolRegistry {
+  new_registry([])
+}
+
+/// Return the list of tool_call_ids currently awaiting HITL approval.
+pub fn pending_call_ids(registry: ToolRegistry) -> List(String) {
+  registry.approval_queue
+}
+
+/// Serialize the full approval_queue to a JSON array of call-id strings.
+/// Used by GET /ag-ui/hitl/pending.
+pub fn pending_calls_to_json(registry: ToolRegistry) -> String {
+  json.array(registry.approval_queue, json.string)
+  |> json.to_string()
+}
+
+/// Serialize a single ToolCallState to a JSON object.
+pub fn call_state_to_json(call: ToolCallState) -> json.Json {
+  json.object([
+    #("tool_call_id", json.string(call.tool_call_id)),
+    #("tool_name", json.string(call.tool_name)),
+    #("status", json.string(tool_status_string(call.status))),
+    #("args_buffer", json.string(call.args_buffer)),
+  ])
+}
+
+/// Convert a ToolCallStatus variant to a human-readable string.
+fn tool_status_string(status: ToolCallStatus) -> String {
+  case status {
+    Pending -> "pending"
+    ArgsStreaming -> "args_streaming"
+    ArgsComplete -> "args_complete"
+    AwaitingApproval -> "awaiting_approval"
+    Executing -> "executing"
+    Completed -> "completed"
+    Failed(reason) -> "failed:" <> reason
+  }
+}
+
 /// Serialize tool definition to JSON for capability discovery.
 pub fn tool_def_to_json(tool: ToolDef) -> json.Json {
   json.object([

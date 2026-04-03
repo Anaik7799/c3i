@@ -5,12 +5,18 @@
 ///
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-003, SC-GLM-UI-006, SC-GLM-UI-007
 import cepaf_gleam/agui/sse as agui_sse
+import cepaf_gleam/agui/state as agui_state
+import cepaf_gleam/agui/tools as agui_tools
 import cepaf_gleam/ui/domain.{
   type HealthStatus, type Page, Cockpit, Critical, Dashboard, Degraded, Healthy,
   Immune, Kms, Knowledge, Mcp, Metabolic, Planning, Podman, Substrate, Telemetry,
   Unknown, Verification, Zenoh, page_to_label, page_to_path,
 }
+import cepaf_gleam/ui/wisp/federation_api
 import gleam/crypto
+import gleam/http.{Get, Post}
+import gleam/http/request.{type Request as HttpRequest}
+import gleam/http/response.{type Response as HttpResponse}
 import gleam/int
 import gleam/json
 
@@ -57,6 +63,9 @@ pub fn route(path: String) -> String {
     "/api/db/status" | "/api/v1/db" -> db_status_json()
     "/api/bridge/status" | "/api/v1/bridge" -> bridge_status_json()
     "/api/smriti/catalog" | "/api/v1/smriti" -> smriti_catalog_json()
+    // L7 Federation routes
+    "/api/federation/status" | "/api/v1/federation" ->
+      federation_status_json()
     // AG-UI protocol routes (SSE event streams)
     "/ag-ui/run" | "/ag-ui/events" -> agui_run_json(path)
     "/ag-ui/health" -> agui_sse.health_json()
@@ -932,6 +941,12 @@ fn enforcer_json() -> String {
   |> json.to_string()
 }
 
+/// Federation status endpoint — delegates to federation_api with a sample state.
+fn federation_status_json() -> String {
+  federation_api.sample_state()
+  |> federation_api.federation_status_json()
+}
+
 pub fn encode_health(status: HealthStatus) -> json.Json {
   case status {
     Healthy -> json.string("healthy")
@@ -947,4 +962,72 @@ pub fn encode_health(status: HealthStatus) -> json.Json {
       ])
     Unknown -> json.string("unknown")
   }
+}
+
+// ---------------------------------------------------------------------------
+// HTTP handler layer — adds proper HTTP semantics (headers, status, method).
+// The string-based route() dispatcher remains unchanged above.
+// STAMP: SC-GLM-UI-006, SC-AGUI-002
+// ---------------------------------------------------------------------------
+
+/// Wisp HTTP handler wrapping the string-returning route() dispatcher.
+/// Adds proper HTTP semantics: headers, status codes, method dispatch.
+/// STAMP: SC-GLM-UI-006, SC-AGUI-002
+pub fn handle_request(req: HttpRequest(String)) -> HttpResponse(String) {
+  let path = req.path
+  let method = req.method
+  case method {
+    Get -> handle_get(path)
+    Post -> handle_post(path)
+    _ -> method_not_allowed_response()
+  }
+}
+
+fn handle_get(path: String) -> HttpResponse(String) {
+  case path {
+    "/ag-ui/events" -> sse_response(agui_sse.create_sse_stream_for_agent("default", "thread-001", "run-001"))
+    "/ag-ui/health" -> json_response(agui_sse.health_json(), 200)
+    "/ag-ui/hitl/pending" ->
+      json_response(agui_tools.pending_calls_to_json(agui_tools.initial_registry()), 200)
+    "/ag-ui/state" -> {
+      let state = agui_state.initial_state()
+      let payload =
+        agui_state.state_snapshot_payload(state, "thread-001")
+        |> json.to_string()
+      json_response(payload, 200)
+    }
+    _ -> json_response(route(path), 200)
+  }
+}
+
+fn handle_post(path: String) -> HttpResponse(String) {
+  case path {
+    "/ag-ui/run" -> {
+      let run_id = "run-" <> int.to_string(8_675_309)
+      json_response(agui_sse.create_run_response("default", "thread-001", run_id), 200)
+    }
+    "/ag-ui/hitl/respond" -> json_response("{\"status\":\"accepted\"}", 200)
+    "/ag-ui/tools/result" -> json_response("{\"status\":\"received\"}", 200)
+    _ -> json_response(not_found_json(path), 404)
+  }
+}
+
+fn sse_response(body: String) -> HttpResponse(String) {
+  response.new(200)
+  |> response.set_body(body)
+  |> response.set_header("content-type", "text/event-stream")
+  |> response.set_header("cache-control", "no-cache")
+  |> response.set_header("connection", "keep-alive")
+}
+
+fn json_response(body: String, status: Int) -> HttpResponse(String) {
+  response.new(status)
+  |> response.set_body(body)
+  |> response.set_header("content-type", "application/json")
+}
+
+fn method_not_allowed_response() -> HttpResponse(String) {
+  response.new(405)
+  |> response.set_body("{\"error\":\"method_not_allowed\"}")
+  |> response.set_header("content-type", "application/json")
 }

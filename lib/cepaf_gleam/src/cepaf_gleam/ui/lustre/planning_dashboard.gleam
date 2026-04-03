@@ -590,6 +590,623 @@ pub fn determine_cockpit_mode(model: DashboardModel) -> CockpitMode {
 }
 
 // =============================================================================
+// View — Transport layer rendering Model to Lustre HTML Elements
+// =============================================================================
+
+import lustre/element.{type Element}
+import lustre/element/html
+import lustre/attribute as attr
+
+pub fn view(model: DashboardModel) -> Element(Msg) {
+  let health = health_score(model)
+  let mode = determine_cockpit_mode(model)
+
+  // Main dashboard container with dark cockpit styling
+  html.div(
+    [attr.class("dashboard-container"), attr.class(cockpit_mode_class(mode))],
+    [
+      // Header: status bar with health score + mode selector
+      render_header(model, health, mode),
+
+      // Main content: 8-panel grid + sidebar
+      html.div(
+        [attr.class("dashboard-layout")],
+        [
+          // Left sidebar: navigation + task filter
+          render_sidebar(model),
+
+          // Center: 8-panel grid (4 cols x 2 rows)
+          html.div(
+            [attr.class("panel-grid")],
+            [
+              // Row 1
+              render_panel_task_board(model),
+              render_panel_ooda_cycle(model),
+              render_panel_safety_kernel(model),
+              render_panel_enforcer_shield(model),
+              // Row 2
+              render_panel_graph_verify(model),
+              render_panel_orch_mesh(model),
+              render_panel_chaya_twin(model),
+              render_panel_startup_optim(model),
+            ],
+          ),
+        ],
+      ),
+
+      // Bottom: detail panel + chat panel
+      html.div(
+        [attr.class("bottom-panels")],
+        [
+          render_detail_panel(model),
+          render_chat_panel(model),
+        ],
+      ),
+    ],
+  )
+}
+
+// =============================================================================
+// Header rendering — Status bar with health score + mode selector
+// =============================================================================
+
+fn render_header(model: DashboardModel, health: Float, mode: CockpitMode) -> Element(Msg) {
+  let health_pct = float.round(health *. 100.0) |> int.to_string
+  let mode_str = cockpit_mode_to_string(mode)
+
+  html.header(
+    [attr.class("dashboard-header"), attr.class("dark-cockpit-" <> mode_str)],
+    [
+      html.h1([], [html.text("C3I Planning Cockpit")]),
+      html.div(
+        [attr.class("header-status")],
+        [
+          html.span(
+            [attr.class("health-score")],
+            [html.text("Health: " <> health_pct <> "%")],
+          ),
+          html.span(
+            [attr.class("cockpit-mode"), attr.class("mode-" <> mode_str)],
+            [html.text("Mode: " <> mode_str)],
+          ),
+          html.button(
+            [attr.class("mode-selector"), on_click(NextCockpitMode)],
+            [html.text("Change Mode")],
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
+// =============================================================================
+// Sidebar — Navigation + task filter
+// =============================================================================
+
+fn render_sidebar(model: DashboardModel) -> Element(Msg) {
+  html.aside(
+    [attr.class("sidebar")],
+    [
+      html.nav(
+        [attr.class("panel-nav")],
+        [
+          render_nav_button("Task Board", TaskBoard, model.active_panel),
+          render_nav_button("OODA Cycle", OodaCycle, model.active_panel),
+          render_nav_button("Safety Kernel", SafetyKernel, model.active_panel),
+          render_nav_button("Enforcer Shield", EnforcerShield, model.active_panel),
+          render_nav_button("Graph Verify", GraphVerify, model.active_panel),
+          render_nav_button("Orch Mesh", OrchMesh, model.active_panel),
+          render_nav_button("Chaya Twin", ChayaTwin, model.active_panel),
+          render_nav_button("Startup Optim", StartupOptim, model.active_panel),
+        ],
+      ),
+      html.div(
+        [attr.class("task-filter")],
+        [
+          html.label([], [html.text("Filter: ")]),
+          html.select(
+            [on_change(SetTaskFilter)],
+            [
+              html.option([attr.value("all")], [html.text("All Tasks")]),
+              html.option([attr.value("pending")], [html.text("Pending")]),
+              html.option([attr.value("in_progress")], [html.text("In Progress")]),
+              html.option([attr.value("completed")], [html.text("Completed")]),
+              html.option([attr.value("blocked")], [html.text("Blocked")]),
+            ],
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
+fn render_nav_button(label: String, panel: PanelId, active: PanelId) -> Element(Msg) {
+  let is_active = panel == active
+  html.button(
+    [
+      attr.class("nav-button"),
+      attr.class(case is_active {
+        True -> "active"
+        False -> ""
+      }),
+      on_click(SelectPanel(panel)),
+    ],
+    [html.text(label)],
+  )
+}
+
+// =============================================================================
+// Panel 1: Task Board — Kanban with drag-drop
+// =============================================================================
+
+fn render_panel_task_board(model: DashboardModel) -> Element(Msg) {
+  let filtered_tasks = case model.task_filter {
+    "all" -> model.tasks
+    "pending" -> pending_tasks(model)
+    "in_progress" -> list.filter(model.tasks, fn(t) { t.status == "in_progress" })
+    "completed" -> completed_tasks(model)
+    "blocked" -> blocked_tasks(model)
+    _ -> model.tasks
+  }
+
+  html.div(
+    [attr.class("panel"), attr.class("panel-task-board")],
+    [
+      html.h2([], [html.text("Task Board")]),
+      html.div(
+        [attr.class("kanban-board")],
+        [
+          render_kanban_column("Pending", "pending", filtered_tasks),
+          render_kanban_column("In Progress", "in_progress", filtered_tasks),
+          render_kanban_column("Completed", "completed", filtered_tasks),
+          render_kanban_column("Blocked", "blocked", filtered_tasks),
+        ],
+      ),
+    ],
+  )
+}
+
+fn render_kanban_column(label: String, status: String, all_tasks: List(TaskCard)) -> Element(Msg) {
+  let column_tasks = list.filter(all_tasks, fn(t) { t.status == status })
+
+  html.div(
+    [attr.class("kanban-column"), attr.class("column-" <> status)],
+    [
+      html.h3([], [html.text(label)]),
+      html.div(
+        [
+          attr.class("kanban-drop-zone"),
+          on_drag_over(DragTaskOver(status)),
+          on_drop(DragTaskDropped("", status)),
+        ],
+        list.map(column_tasks, fn(task: TaskCard) {
+          html.div(
+            [
+              attr.class("task-card"),
+              attr.draggable(True),
+              on_drag_start(DragTaskStarted(task.id)),
+            ],
+            [
+              html.div(
+                [attr.class("task-header")],
+                [
+                  html.span([attr.class("task-title")], [html.text(task.title)]),
+                  html.span([attr.class("task-priority-" <> task.priority)], [
+                    html.text(task.priority),
+                  ]),
+                ],
+              ),
+              html.div(
+                [attr.class("task-assignee")],
+                [html.text(case task.assignee {
+                  Some(a) -> "👤 " <> a
+                  None -> "(unassigned)"
+                })],
+              ),
+            ],
+          )
+        }),
+      ),
+    ],
+  )
+}
+
+// =============================================================================
+// Panel 2: OODA Cycle
+// =============================================================================
+
+fn render_panel_ooda_cycle(model: DashboardModel) -> Element(Msg) {
+  html.div(
+    [attr.class("panel"), attr.class("panel-ooda")],
+    [
+      html.h2([], [html.text("OODA Cycle")]),
+      html.div([attr.class("ooda-stats")], [
+        html.p([], [
+          html.text("Phase: " <> ooda_phase_to_string(model.ooda_phase)),
+        ]),
+        html.p([], [
+          html.text("Cycles: " <> int.to_string(model.ooda_cycle_count)),
+        ]),
+        html.p([], [
+          html.text("Last: " <> int.to_string(model.last_cycle_ms) <> "ms"),
+        ]),
+        html.p([], [
+          html.text("Pattern: " <> model.ooda_pattern),
+        ]),
+      ]),
+      render_ooda_ring(model.ooda_phase),
+    ],
+  )
+}
+
+fn render_ooda_ring(phase: OodaPhase) -> Element(Msg) {
+  // ASCII ring showing O->O->D->A cycle
+  let ring = case phase {
+    ObservePhase -> "[O]→o→d→a"
+    OrientPhase -> "o→[O]→d→a"
+    DecidePhase -> "o→o→[D]→a"
+    ActPhase -> "o→o→d→[A]"
+    Idle -> "idle"
+  }
+  html.pre([attr.class("ooda-ring")], [html.text(ring)])
+}
+
+// =============================================================================
+// Panel 3: Safety Kernel
+// =============================================================================
+
+fn render_panel_safety_kernel(model: DashboardModel) -> Element(Msg) {
+  let threat_pct = float.round(model.threat_level *. 100.0) |> int.to_string
+
+  html.div(
+    [attr.class("panel"), attr.class("panel-safety")],
+    [
+      html.h2([], [html.text("Safety Kernel")]),
+      html.div(
+        [attr.class("safety-status")],
+        [
+          html.span(
+            [attr.class("safety-active-" <> bool_to_string(model.safety_active))],
+            [html.text(case model.safety_active {
+              True -> "✓ Active"
+              False -> "✗ Inactive"
+            })],
+          ),
+          html.span(
+            [attr.class("guardian-healthy-" <> bool_to_string(model.guardian_healthy))],
+            [html.text(case model.guardian_healthy {
+              True -> "✓ Guardian OK"
+              False -> "✗ Guardian Failed"
+            })],
+          ),
+        ],
+      ),
+      html.div([attr.class("threat-level")], [
+        html.label([], [html.text("Threat: " <> threat_pct <> "%")]),
+        html.div(
+          [attr.class("progress-bar"), attr.class("threat-" <> threat_level_class(model.threat_level))],
+          [
+            html.div(
+              [attr.class("progress-fill"), attr.style("width", threat_pct <> "%")],
+              [],
+            ),
+          ],
+        ),
+      ]),
+      html.div([attr.class("safety-checks")], [
+        html.h3([], [html.text("Checks:")]),
+        html.ul([], list.map(model.safety_checks, fn(check) {
+          html.li([attr.class("check-" <> safety_check_class(check))], [
+            html.text(safety_check_text(check)),
+          ])
+        })),
+      ]),
+    ],
+  )
+}
+
+fn threat_level_class(level: Float) -> String {
+  case level {
+    l if l <. 0.3 -> "low"
+    l if l <. 0.6 -> "medium"
+    l if l <. 0.8 -> "high"
+    _ -> "critical"
+  }
+}
+
+fn safety_check_class(check: SafetyCheckResult) -> String {
+  case check {
+    CheckPass(_) -> "pass"
+    CheckFail(_, _) -> "fail"
+    CheckWarn(_) -> "warn"
+    CheckNotRun(_) -> "not-run"
+  }
+}
+
+fn safety_check_text(check: SafetyCheckResult) -> String {
+  case check {
+    CheckPass(n) -> "✓ " <> n
+    CheckFail(n, r) -> "✗ " <> n <> ": " <> r
+    CheckWarn(n) -> "⚠ " <> n
+    CheckNotRun(n) -> "- " <> n
+  }
+}
+
+// =============================================================================
+// Panel 4: Enforcer Shield
+// =============================================================================
+
+fn render_panel_enforcer_shield(model: DashboardModel) -> Element(Msg) {
+  html.div(
+    [attr.class("panel"), attr.class("panel-enforcer")],
+    [
+      html.h2([], [html.text("Enforcer Shield")]),
+      html.div([attr.class("violations-count")], [
+        html.h3([], [html.text("Violations: " <> int.to_string(model.total_violations))]),
+      ]),
+      html.div([attr.class("circuits")], [
+        html.h3([], [html.text("Open Circuits:")]),
+        html.ul([], list.map(model.open_circuits, fn(circuit) {
+          html.li([], [html.text(circuit)])
+        })),
+      ]),
+      html.div([attr.class("recent-violations")], [
+        html.h3([], [html.text("Recent:")]),
+        html.ul([], list.take(model.recent_violations, 5) |> list.map(fn(v) {
+          html.li([], [html.text(v)])
+        })),
+      ]),
+    ],
+  )
+}
+
+// =============================================================================
+// Panel 5: Graph Verify
+// =============================================================================
+
+fn render_panel_graph_verify(model: DashboardModel) -> Element(Msg) {
+  html.div(
+    [attr.class("panel"), attr.class("panel-graph")],
+    [
+      html.h2([], [html.text("Graph Verify")]),
+      html.div([attr.class("graph-stats")], [
+        html.p([], [html.text("Nodes: " <> int.to_string(model.graph_node_count))]),
+        html.p([], [html.text("Edges: " <> int.to_string(model.graph_edge_count))]),
+      ]),
+      html.div([attr.class("graph-checks")], [
+        html.ul([], list.map(model.graph_checks, fn(check) {
+          html.li([attr.class("check-" <> safety_check_class(check))], [
+            html.text(safety_check_text(check)),
+          ])
+        })),
+      ]),
+      html.details([], [
+        html.summary([], [html.text("View Graph (DOT)")]),
+        html.pre([attr.class("graph-dot")], [html.text(model.graph_dot)]),
+      ]),
+    ],
+  )
+}
+
+// =============================================================================
+// Panel 6: Orchestration Mesh
+// =============================================================================
+
+fn render_panel_orch_mesh(model: DashboardModel) -> Element(Msg) {
+  html.div(
+    [attr.class("panel"), attr.class("panel-orch")],
+    [
+      html.h2([], [html.text("Orch Mesh")]),
+      html.div([attr.class("quorum-status")], [
+        html.span(
+          [attr.class("quorum-" <> bool_to_string(model.quorum))],
+          [html.text(case model.quorum {
+            True -> "✓ Quorum"
+            False -> "✗ No Quorum"
+          })],
+        ),
+      ]),
+      html.p([], [html.text("Strategy: " <> model.distribution_strategy)]),
+      html.div([attr.class("services-health")], [
+        html.h3([], [html.text("Services:")]),
+        html.ul([], list.map(model.services, fn(svc: ServiceNode) {
+          let health_pct = float.round(svc.health *. 100.0) |> int.to_string
+          html.li(
+            [attr.class("service-" <> svc.status)],
+            [html.text(svc.name <> ": " <> health_pct <> "%")],
+          )
+        })),
+      ]),
+    ],
+  )
+}
+
+// =============================================================================
+// Panel 7: Chaya Twin
+// =============================================================================
+
+fn render_panel_chaya_twin(model: DashboardModel) -> Element(Msg) {
+  html.div(
+    [attr.class("panel"), attr.class("panel-chaya")],
+    [
+      html.h2([], [html.text("Chaya Twin")]),
+      html.div([attr.class("sync-phases")], [
+        html.ul([], list.map(model.sync_phases, fn(phase: SyncPhaseResult) {
+          html.li([attr.class(case phase.success {
+            True -> "success"
+            False -> "failure"
+          })], [
+            html.text(phase.phase <> ": " <> int.to_string(phase.count) <>
+              " items, " <> int.to_string(phase.errors) <> " errors"),
+          ])
+        })),
+      ]),
+      html.p([], [html.text("Orphans: " <> int.to_string(model.orphan_count))]),
+      html.p([], [html.text("Mismatches: " <> int.to_string(model.mismatch_count))]),
+      html.p([], [html.text("Last sync: " <> model.last_sync)]),
+    ],
+  )
+}
+
+// =============================================================================
+// Panel 8: Startup Optimization
+// =============================================================================
+
+fn render_panel_startup_optim(model: DashboardModel) -> Element(Msg) {
+  html.div(
+    [attr.class("panel"), attr.class("panel-startup")],
+    [
+      html.h2([], [html.text("Startup Optim")]),
+      html.p([], [html.text("Total: " <> int.to_string(model.total_startup_ms) <> "ms")]),
+      html.div([attr.class("waves")], [
+        html.h3([], [html.text("Waves:")]),
+        html.ul([], list.map(model.waves, fn(wave: ContainerWave) {
+          html.li([], [
+            html.text("Wave " <> int.to_string(wave.wave) <> ": " <>
+              int.to_string(list.length(wave.containers)) <> " containers, " <>
+              int.to_string(wave.duration_ms) <> "ms"),
+          ])
+        })),
+      ]),
+      html.div([attr.class("critical-path")], [
+        html.h3([], [html.text("Critical Path:")]),
+        html.ol([], list.map(model.critical_path, fn(step) {
+          html.li([], [html.text(step)])
+        })),
+      ]),
+    ],
+  )
+}
+
+// =============================================================================
+// Detail Panel — Selected task information
+// =============================================================================
+
+fn render_detail_panel(model: DashboardModel) -> Element(Msg) {
+  case model.selected_task {
+    Some(task_id) -> {
+      case list.find(model.tasks, fn(t) { t.id == task_id }) {
+        Ok(task) ->
+          html.div([attr.class("detail-panel")], [
+            html.h2([], [html.text(task.title)]),
+            html.div([attr.class("task-details")], [
+              html.p([], [html.text("ID: " <> task.id)]),
+              html.p([], [html.text("Status: " <> task.status)]),
+              html.p([], [html.text("Priority: " <> task.priority)]),
+              html.p([], [html.text("Assignee: " <> case task.assignee {
+                Some(a) -> a
+                None -> "(unassigned)"
+              })]),
+            ]),
+            html.button([on_click(CloseDetail)], [html.text("Close")]),
+          ])
+        Error(_) -> html.div([], [])
+      }
+    }
+    None ->
+      html.div([attr.class("detail-panel"), attr.class("empty")], [
+        html.p([], [html.text("Select a task to view details")]),
+      ])
+  }
+}
+
+// =============================================================================
+// Chat Panel — AG-UI message display
+// =============================================================================
+
+fn render_chat_panel(model: DashboardModel) -> Element(Msg) {
+  html.div(
+    [attr.class("chat-panel")],
+    [
+      html.h2([], [html.text("AG-UI Stream")]),
+      html.div(
+        [attr.class("chat-messages")],
+        list.map(model.chat_messages, fn(msg) {
+          render_chat_message(msg)
+        }),
+      ),
+      html.div([attr.class("ag-ui-status")], [
+        html.span(
+          [attr.class("status-" <> bool_to_string(model.ag_ui_connected))],
+          [html.text(case model.ag_ui_connected {
+            True -> "🟢 Connected"
+            False -> "🔴 Disconnected"
+          })],
+        ),
+      ]),
+    ],
+  )
+}
+
+fn render_chat_message(msg: ChatMessage) -> Element(Msg) {
+  case msg {
+    UserMsg(text) ->
+      html.div([attr.class("message user-message")], [
+        html.span([attr.class("role")], [html.text("User:")]),
+        html.span([attr.class("text")], [html.text(text)]),
+      ])
+    AgentMsg(text) ->
+      html.div([attr.class("message agent-message")], [
+        html.span([attr.class("role")], [html.text("Agent:")]),
+        html.span([attr.class("text")], [html.text(text)]),
+      ])
+    ToolCallMsg(tool, args) ->
+      html.div([attr.class("message tool-message")], [
+        html.span([attr.class("role")], [html.text("Tool:")]),
+        html.span([attr.class("tool")], [html.text(tool)]),
+        html.span([attr.class("args")], [html.text(args)]),
+      ])
+    EventMsg(event_type, data) ->
+      html.div([attr.class("message event-message")], [
+        html.span([attr.class("role")], [html.text("Event:")]),
+        html.span([attr.class("type")], [html.text(event_type)]),
+        html.span([attr.class("data")], [html.text(data)]),
+      ])
+  }
+}
+
+// =============================================================================
+// Event handlers — Lustre attributes
+// =============================================================================
+
+fn on_click(msg: Msg) -> attr.Attribute(Msg) {
+  attr.on("click", fn(_) { Ok(msg) })
+}
+
+fn on_change(f: fn(String) -> Msg) -> attr.Attribute(Msg) {
+  attr.on("change", fn(_json) {
+    Ok(f(""))
+  })
+}
+
+fn on_drag_start(msg: Msg) -> attr.Attribute(Msg) {
+  attr.on("dragstart", fn(_) { Ok(msg) })
+}
+
+fn on_drag_over(msg: Msg) -> attr.Attribute(Msg) {
+  attr.on("dragover", fn(_) { Ok(msg) })
+}
+
+fn on_drop(msg: Msg) -> attr.Attribute(Msg) {
+  attr.on("drop", fn(_) { Ok(msg) })
+}
+
+// =============================================================================
+// Helpers
+// =============================================================================
+
+fn cockpit_mode_class(mode: CockpitMode) -> String {
+  "cockpit-mode-" <> cockpit_mode_to_string(mode)
+}
+
+fn bool_to_string(b: Bool) -> String {
+  case b {
+    True -> "true"
+    False -> "false"
+  }
+}
+
+// =============================================================================
 // Task Queries
 // =============================================================================
 

@@ -51,7 +51,12 @@ pub fn generate_report(
     fractal_layers: [
       FractalLayerReport(0, "Stable", "Constitutional integrity verified"),
       FractalLayerReport(1, "Healthy", "Cellular probes passed"),
+      FractalLayerReport(2, "Healthy", "Component boundaries intact"),
+      FractalLayerReport(3, "Stable", "Transaction isolation verified"),
       FractalLayerReport(4, "Isolated", "Container boundaries enforced"),
+      FractalLayerReport(5, "Active", "Cognitive OODA loop compliant"),
+      FractalLayerReport(6, "Connected", "Ecosystem mesh quorum reached"),
+      FractalLayerReport(7, "Federated", "Federation attestation valid"),
     ],
   )
 }

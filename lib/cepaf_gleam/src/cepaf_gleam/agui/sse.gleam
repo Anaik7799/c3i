@@ -61,6 +61,56 @@ pub fn create_sse_stream(
   ])
 }
 
+/// Create an agent-aware SSE stream with agent metadata as the first event.
+/// Prepends a Custom event carrying agent/thread/run identity, then emits the
+/// standard demo event sequence via create_sse_stream/4.
+/// STAMP: SC-AGUI-002, SC-GLM-UI-010
+pub fn create_sse_stream_for_agent(
+  agent: String,
+  thread_id: String,
+  run_id: String,
+) -> String {
+  let meta_payload =
+    json.object([
+      #("agent", json.string(agent)),
+      #("thread_id", json.string(thread_id)),
+      #("run_id", json.string(run_id)),
+    ])
+    |> json.to_string()
+  let meta_frame = "event: Custom\ndata: " <> meta_payload <> "\n\n"
+  let stream =
+    create_sse_stream(thread_id, run_id, "/ag-ui/run", meta_payload)
+  meta_frame <> stream
+}
+
+/// Return a JSON string for the POST /ag-ui/run response.
+/// Includes run_id, agent, thread_id, status, and protocol version.
+/// STAMP: SC-AGUI-002
+pub fn create_run_response(
+  agent: String,
+  thread_id: String,
+  run_id: String,
+) -> String {
+  json.object([
+    #("run_id", json.string(run_id)),
+    #("agent", json.string(agent)),
+    #("thread_id", json.string(thread_id)),
+    #("status", json.string("started")),
+    #("protocol", json.string("ag-ui-v1")),
+  ])
+  |> json.to_string()
+}
+
+/// Return the required SSE response headers as a list of name/value pairs.
+/// STAMP: SC-AGUI-002
+pub fn sse_headers() -> List(#(String, String)) {
+  [
+    #("content-type", "text/event-stream"),
+    #("cache-control", "no-cache"),
+    #("connection", "keep-alive"),
+  ]
+}
+
 /// Return AG-UI protocol health/capabilities as JSON string.
 pub fn health_json() -> String {
   json.object([

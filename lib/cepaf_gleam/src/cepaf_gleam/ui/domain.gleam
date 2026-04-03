@@ -20,6 +20,7 @@ pub type Page {
   Mcp
   Kms
   Telemetry
+  Federation
 }
 
 /// Health status shared across all interfaces.
@@ -70,6 +71,7 @@ pub fn page_to_path(page: Page) -> String {
     Mcp -> "/mcp"
     Kms -> "/kms"
     Telemetry -> "/telemetry"
+    Federation -> "/federation"
   }
 }
 
@@ -89,6 +91,27 @@ pub fn page_to_label(page: Page) -> String {
     Mcp -> "MCP Server"
     Kms -> "KMS Catalog"
     Telemetry -> "Telemetry"
+    Federation -> "Federation (L7)"
+  }
+}
+
+/// Map a page to its primary fractal layer.
+pub fn page_fractal_layer(page: Page) -> FractalLayer {
+  case page {
+    Dashboard -> L5Cognitive
+    Planning -> L3Transaction
+    Immune -> L0Constitutional
+    Knowledge -> L5Cognitive
+    Zenoh -> L6Ecosystem
+    Cockpit -> L5Cognitive
+    Verification -> L0Constitutional
+    Substrate -> L3Transaction
+    Metabolic -> L1AtomicDebug
+    Podman -> L4System
+    Mcp -> L6Ecosystem
+    Kms -> L0Constitutional
+    Telemetry -> L1AtomicDebug
+    Federation -> L7Federation
   }
 }
 
