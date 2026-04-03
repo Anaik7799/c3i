@@ -1,7 +1,0 @@
-# Git Resolution Tracking Automated Monitoring
-# Runs every hour during business hours
-
-0 9-17 * * 1-5 cd /home/an/dev/elixir/ash/intelitor-demo && elixir scripts/git/automated_monitor.exs
-
-# Daily comprehensive report at end of day
-0 18 * * 1-5 cd /home/an/dev/elixir/ash/intelitor-demo && elixir scripts/git/comprehensive_resolution_tracker.exs --comprehensive-report

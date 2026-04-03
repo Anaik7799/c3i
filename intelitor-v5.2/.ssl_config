@@ -1,7 +1,0 @@
-# SSL Configuration File
-# Generated: 2025-09-05T10:29:54.701970Z
-
-CA_BUNDLE_PATH=/nix/store/07nr6sfx0nwikcsw3r1zmrb4plj6mzzi-git-aware-elixir-env/etc/ssl/certs/ca-bundle.crt
-SSL_CERT_FILE=/nix/store/07nr6sfx0nwikcsw3r1zmrb4plj6mzzi-git-aware-elixir-env/etc/ssl/certs/ca-bundle.crt
-CURL_CA_BUNDLE=
-CONFIGURED_AT=2025-09-05T10:29:54.701970Z
