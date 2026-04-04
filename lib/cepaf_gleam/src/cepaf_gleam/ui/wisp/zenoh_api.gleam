@@ -13,14 +13,14 @@
 /// subscription management, and message replay for testing.
 ///
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-003, SC-GLM-UI-007, SC-ZENOH-001
+import cepaf_gleam/ui/domain.{page_to_path}
+import cepaf_gleam/ui/domain.{page_to_path}
 import cepaf_gleam/ui/zenoh_otel.{type OodaPhase, type OtelSpan}
 import cepaf_gleam/zenoh/domain.{
   type ConnectionStatus, type ZenohHealth, Connected, Connecting, Disconnected,
-  Error,
 }
 import gleam/json
 import gleam/list
-import gleam/string
 
 // ---------------------------------------------------------------------------
 // Health and Status Endpoints
