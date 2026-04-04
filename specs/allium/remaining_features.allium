@@ -1,0 +1,66 @@
+-- allium: 3
+-- Comprehensive Feature & Test Specification for Remaining Tasks
+-- Covers: LethalMutationGate, ProofToken Routing, Morphogenic Evolution, Biomorphic UI
+-- Date: 2026-04-04
+
+contract LethalMutationGate {
+    -- Mandate: SC-MATH-006, SC-SAFETY-010
+    state entropy_threshold: Decimal = 0.2
+    
+    command evaluate_mutation(state_vector: String)
+    
+    rule "Entropy Blocking" {
+        when call LethalMutationGate.evaluate_mutation
+        let h_s = calculate_shannon_entropy(state_vector)
+        ensure h_s <= entropy_threshold
+        reject "Mutation blocked: H(S) exceeds 0.2 threshold"
+    }
+}
+
+contract ZenohRouterProofToken {
+    -- Mandate: SC-SEC-015
+    command intercept_message(payload: String, signature: String)
+    
+    rule "Wire-Level Enforcement" {
+        when call ZenohRouterProofToken.intercept_message
+        ensure "Signature is a valid Ed25519 ProofToken"
+        ensure "Validation latency < 1ms"
+        reject "Message dropped: Invalid or missing ProofToken"
+    }
+}
+
+contract BiomorphicUI_NASA_STD_3000 {
+    -- Mandate: SC-HMI-010
+    command render_unified_view(layer_states: Array<String>)
+    
+    rule "Fatigue Reduction" {
+        when call BiomorphicUI_NASA_STD_3000.render_unified_view
+        ensure "Contrast ratios meet NASA-STD-3000 guidelines"
+        ensure "Color usage maps strictly to homeostasis states (Green/Yellow/Red)"
+    }
+}
+
+contract MorphogenicEvolution {
+    -- Mandate: SC-SING-007, SC-SING-008
+    state target_saturation: Decimal = 0.80
+    
+    command synthesize_load(cpu_load: Decimal, memory_load: Decimal)
+    
+    rule "Homeostasis at Scale" {
+        when call MorphogenicEvolution.synthesize_load
+        ensure cpu_load >= target_saturation
+        ensure "System remains responsive (OODA loop < 50ms)"
+        ensure "Zero container crashes (No Apoptosis triggered)"
+    }
+}
+
+contract AutonomousSupervisorExecution {
+    command run_unattended_loop()
+    
+    rule "Continuous Resolution" {
+        when call AutonomousSupervisorExecution.run_unattended_loop
+        invariant "sa-plan pending tasks monotonically decrease"
+        ensure "Compilation warnings == 0"
+        ensure "All tests pass before sa-plan update"
+    }
+}
