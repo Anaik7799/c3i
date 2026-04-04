@@ -13,8 +13,58 @@ paths:
 
 This rule file governs the Zenoh pub/sub real-time test messaging system that replaces log-based verification with checkpoint-based messages for <100ms test feedback.
 
-**Version**: 2.0.0 | **Date**: 2026-01-18 | **Phase**: 8 (Fast Feedback Architecture)
+**Version**: 3.0.0 | **Date**: 2026-04-04 | **Phase**: 9 (Gleam Test Observer Integration)
 **Compliance**: IEC 61508 SIL-6, ISO 27001 | **Fallback**: Log-based per SC-ZTEST-008
+
+## Extensions: Gleam Test Observer & OTel Integration (v3.0.0)
+
+### New Gleam Components
+- `testing/zenoh_test_observer.gleam` — Zenoh message verification during gleeunit tests
+- `ui/zenoh_otel.gleam` — OTel span publishing for all 15 UI pages over Zenoh
+- `testing/test_dashboard.gleam` — Real-time test tracking model
+- `ui/tui/split_screen.gleam` — Dashboard + test results split view
+- `scripts/run-split-screen-tests.sh` — 10-minute test cycle (381 tests)
+
+### New STAMP Constraints
+| ID | Constraint | Severity |
+|----|------------|----------|
+| SC-GLM-ZEN-001 | All UI state changes MUST publish OTel spans via zenoh_otel | CRITICAL |
+| SC-GLM-ZEN-002 | Test runner MUST observe Zenoh messages for verification | CRITICAL |
+| SC-GLM-ZEN-003 | Split-screen TUI MUST display dashboard + test results simultaneously | HIGH |
+| SC-GLM-TST-001 | 100+ regression tests required per release | CRITICAL |
+| SC-GLM-TST-002 | Each tab monitored for 30+ seconds during verification | HIGH |
+
+### Test Metrics (Current)
+- Total Tests: 1,559 passed, 0 failures
+- Shannon Entropy H: 2.67 bits (weighted mean, >= 2.5 threshold)
+- CCM: 0.770 (improving, target 0.90)
+- ITQS: 0.736 (improving, target 0.85)
+- Tab Coverage: 100% (15/15 tabs × 8 fractal layers)
+
+## Extensions: Gleam Test Observer & OTel Integration (v3.0.0)
+
+### New Gleam Components
+- `testing/zenoh_test_observer.gleam` — Zenoh message verification during gleeunit tests
+- `ui/zenoh_otel.gleam` — OTel span publishing for all 15 UI pages over Zenoh
+- `testing/test_dashboard.gleam` — Real-time test tracking model
+- `ui/tui/split_screen.gleam` — Dashboard + test results split view
+- `scripts/run-split-screen-tests.sh` — 10-minute test cycle (381 tests)
+
+### New STAMP Constraints
+| ID | Constraint | Severity |
+|----|------------|----------|
+| SC-GLM-ZEN-001 | All UI state changes MUST publish OTel spans via zenoh_otel | CRITICAL |
+| SC-GLM-ZEN-002 | Test runner MUST observe Zenoh messages for verification | CRITICAL |
+| SC-GLM-ZEN-003 | Split-screen TUI MUST display dashboard + test results simultaneously | HIGH |
+| SC-GLM-TST-001 | 100+ regression tests required per release | CRITICAL |
+| SC-GLM-TST-002 | Each tab monitored for 30+ seconds during verification | HIGH |
+
+### Test Metrics (Current)
+- Total Tests: 1,559 passed, 0 failures
+- Shannon Entropy H: 2.67 bits (weighted mean, >= 2.5 threshold)
+- CCM: 0.770 (improving, target 0.90)
+- ITQS: 0.736 (improving, target 0.85)
+- Tab Coverage: 100% (15/15 tabs × 8 fractal layers)
 
 ## Architecture
 

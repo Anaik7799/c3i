@@ -1,4 +1,4 @@
-# C3I Agent System — UI Development & Testing Agents (v21.5.0-GLM)
+# C3I Agent System — UI Development & Testing Agents (v21.6.0-GLM)
 
 ## Overview
 
@@ -125,8 +125,14 @@ cd /home/an/dev/ver/c3i/lib/cepaf_gleam
 gleam build && gleam test
 ```
 
+**Split-screen test cycle.**
+```bash
+./scripts/run-split-screen-tests.sh
+```
+10-minute cycle: 381 tests, 15 tabs × 8 fractal layers, 30+ sec monitoring per tab.
+
 **When to use.** Writing new Gleam test files, fixing entropy/CCM gaps, adding AG-UI or A2UI
-coverage, triple-interface (Lustre + Wisp + TUI) test coverage.
+coverage, triple-interface (Lustre + Wisp + TUI) test coverage, Zenoh OTel span verification.
 
 ---
 
@@ -143,7 +149,7 @@ Phoenix LiveView pages and gleeunit tests for the Gleam Lustre MVU. Both use the
 8-category gold standard.
 
 **Scope.** Lustre MVU, AG-UI 32-event protocol, A2UI catalog, fractal layer widgets (L0-L7),
-PROMETHEUS verification DAG, Wisp REST endpoints.
+PROMETHEUS verification DAG, Wisp REST endpoints, Zenoh OTel spans.
 
 **C8 dual verification (SC-COV-016).** For every action button in a LiveView or Gleam page,
 write two tests: one verifying the Model/state change, one verifying the Effect/flash/side-effect.
@@ -222,7 +228,8 @@ fix, and re-tests.
 
 Reviews Gleam UI code against: triple-interface completeness (SC-GLM-UI-001), shared types
 from `ui/domain.gleam` (no per-interface duplication), AG-UI 32-event correctness,
-A2UI catalog allowlist, and zero-warning compilation (SC-CMP-025).
+A2UI catalog allowlist, zero-warning compilation (SC-CMP-025), and OTel span publication
+(SC-GLM-ZEN-001).
 
 ### test-generator
 
@@ -294,17 +301,22 @@ Implement the triple-interface feature:
 - `ui/tui/{page}_view.gleam` — TUI ANSI renderer
 
 All three share types from `ui/domain.gleam`. Verify with `gleam build` (zero warnings).
+Publish OTel spans via `zenoh_otel` for all state changes (SC-GLM-ZEN-001).
 
 **Step 3 — Unit tests (gleam-coverage-engineer).**
 Read the `.gleam` source first. Write gleeunit tests covering all applicable categories
 (C1-C8 + AG-UI + A2UI) with section markers. Target >= 15 tests for interactive pages.
-Verify `gleam test` passes.
+Verify `gleam test` passes. Include Zenoh message verification via `zenoh_test_observer`.
 
 **Step 4 — E2E tests (wallaby-coverage-engineer).**
 For any LiveView integration or browser-level verification, write Wallaby tests with the
 8-category structure and C8 dual verification for every action button.
 
-**Step 5 — Math gate audit (coverage-audit-agent).**
+**Step 5 — Regression suite (gleam-coverage-engineer).**
+Add tests to `comprehensive_ui_regression_test.gleam` for the new tab. Ensure 100% tab
+coverage is maintained. Each tab monitored for 30+ seconds (SC-GLM-TST-002).
+
+**Step 6 — Math gate audit (coverage-audit-agent).**
 Verify all gates pass:
 
 | Gate | Threshold | Blocks? |
@@ -331,6 +343,8 @@ If any gate fails, return to step 3 or 4 with the audit report as input.
 | SC-MATH-COV | 6 | coverage-audit-agent |
 | SC-HMI | 80 | fractal-architect, wallaby-coverage-engineer (C6) |
 | SC-VER | 79 | fractal-architect, sil6-validator |
+| SC-GLM-ZEN | 3 | code-evolution, gleam-coverage-engineer |
+| SC-GLM-TST | 2 | gleam-coverage-engineer, coverage-audit-agent |
 
 ---
 
@@ -341,12 +355,19 @@ If any gate fails, return to step 3 or 4 with the audit report as input.
 | Shared domain types | `lib/cepaf_gleam/src/cepaf_gleam/ui/domain.gleam` |
 | AG-UI 32 event types | `lib/cepaf_gleam/src/cepaf_gleam/agui/events.gleam` |
 | Lustre pages (24 files) | `lib/cepaf_gleam/src/cepaf_gleam/ui/lustre/` |
-| Wisp handlers (14 files) | `lib/cepaf_gleam/src/cepaf_gleam/ui/wisp/` |
-| TUI renderer (22 files) | `lib/cepaf_gleam/src/cepaf_gleam/ui/tui/` |
+| Wisp handlers (15 files) | `lib/cepaf_gleam/src/cepaf_gleam/ui/wisp/` |
+| Enhanced Wisp Zenoh API | `lib/cepaf_gleam/src/cepaf_gleam/ui/wisp/zenoh_api.gleam` |
+| TUI renderer (23 files) | `lib/cepaf_gleam/src/cepaf_gleam/ui/tui/` |
+| Split-Screen TUI | `lib/cepaf_gleam/src/cepaf_gleam/ui/tui/split_screen.gleam` |
+| Zenoh OTel Integration | `lib/cepaf_gleam/src/cepaf_gleam/ui/zenoh_otel.gleam` |
 | A2UI catalog | `lib/cepaf_gleam/src/cepaf_gleam/a2ui/catalog.gleam` |
 | Fractal widgets L0-L7 | `lib/cepaf_gleam/src/cepaf_gleam/fractal/` |
 | Math coverage lib | `lib/cepaf_gleam/src/cepaf_gleam/testing/coverage_math.gleam` |
+| Zenoh Test Observer | `lib/cepaf_gleam/src/cepaf_gleam/testing/zenoh_test_observer.gleam` |
+| Test Dashboard Model | `lib/cepaf_gleam/src/cepaf_gleam/testing/test_dashboard.gleam` |
 | Gleam test suite | `lib/cepaf_gleam/test/` |
+| Comprehensive Regression | `lib/cepaf_gleam/test/comprehensive_ui_regression_test.gleam` |
+| Test Runner Script | `scripts/run-split-screen-tests.sh` |
 | Agent definitions | `.claude/agents/` |
 
 ---
@@ -358,14 +379,18 @@ If any gate fails, return to step 3 or 4 with the audit report as input.
 - `CLAUDE.md §6.0` — A2UI 16-component catalog
 - `CLAUDE.md §7.0` — Fractal widget architecture (L0-L7)
 - `CLAUDE.md §8.0` — 8-category gold standard and math gates
+- `CLAUDE.md §2.5` — Zenoh OTel Integration
 - `.claude/rules/gleam-web-ui-development.md` — Full SC-GLM-UI constraint text
 - `.claude/rules/ui-graph-testing.md` — Graph-theory UI testing (22-page digraph, LTS)
+- `.claude/rules/zenoh-telemetry-mandatory.md` — Zenoh OTel span publishing
+- `.claude/rules/zenoh-test-messaging.md` — Zenoh test observer protocol
 - `.claude/rules/biomorphic-mode.md` — 25-agent swarm, context budget, OODA loop
 - `.claude/rules/human-intent-protection.md` — SC-HINT-001..008
 - `docs/GLEAM_UI_DEVELOPMENT_PROMPT.md` — Definitive session bootstrap prompt
 
 ---
 
-**Version**: 21.5.0-GLM
-**Last Updated**: 2026-04-03
+**Version**: 21.6.0-GLM
+**Last Updated**: 2026-04-04
 **Agent count**: 28 definitions in `.claude/agents/` (4 UI-specialist, 9 UI-supporting, 15 other)
+**Test metrics**: 1,559 tests passed, 0 failures | H=2.67 bits | CCM=0.770 | ITQS=0.736 | 100% tab coverage

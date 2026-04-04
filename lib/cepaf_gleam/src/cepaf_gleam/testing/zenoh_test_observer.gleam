@@ -233,7 +233,9 @@ pub fn verify_message_ordering(state: ObserverState) -> VerificationResult {
 }
 
 fn is_ordered(messages: List(RecordedMessage)) -> Bool {
-  is_ordered_acc(messages, 0)
+  messages
+  |> list.reverse
+  |> is_ordered_acc(0)
 }
 
 fn is_ordered_acc(messages: List(RecordedMessage), prev: Int) -> Bool {

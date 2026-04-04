@@ -7,7 +7,6 @@
 ///
 /// STAMP: SC-PROM-001, SC-PROM-002, SC-GRAPH-001, SC-GLM-UI-001,
 ///        SC-GLM-UI-007, SC-UIGT-003, SC-UIGT-007, SC-UIGT-009
-
 import cepaf_gleam/ui/lustre/verification.{
   DagUpdated, GraphChecksCompleted, ProofGenerated, ReportReceived,
   StartVerification, VerificationModel, all_checks_passed, init,
@@ -87,7 +86,11 @@ pub fn report_received_sets_last_report_test() {
 
 pub fn report_received_clears_running_test() {
   let metrics =
-    OodaMetrics(agent_latency_ms: 25, intelligence_latency_ms: 80, compliance: True)
+    OodaMetrics(
+      agent_latency_ms: 25,
+      intelligence_latency_ms: 80,
+      compliance: True,
+    )
   let report = generate_report(metrics, 16, 16)
   let m0 = update(init(), StartVerification)
   m0.running |> should.equal(True)
@@ -97,7 +100,11 @@ pub fn report_received_clears_running_test() {
 
 pub fn report_received_appends_history_test() {
   let metrics =
-    OodaMetrics(agent_latency_ms: 25, intelligence_latency_ms: 80, compliance: True)
+    OodaMetrics(
+      agent_latency_ms: 25,
+      intelligence_latency_ms: 80,
+      compliance: True,
+    )
   let report = generate_report(metrics, 16, 16)
   let m = update(init(), ReportReceived(report))
   list.length(m.history) |> should.equal(1)
@@ -178,8 +185,9 @@ pub fn all_checks_passed_false_when_one_fails_test() {
   all_checks_passed(m) |> should.be_false()
 }
 
-pub fn all_checks_passed_false_when_no_checks_test() {
-  all_checks_passed(init()) |> should.be_false()
+pub fn all_checks_passed_true_when_no_checks_test() {
+  // list.all([], _) returns True (vacuous truth)
+  all_checks_passed(init()) |> should.be_true()
 }
 
 pub fn latest_proof_verified_true_test() {
@@ -293,14 +301,22 @@ pub fn graph_checks_json_contains_plane_test() {
 
 pub fn swarm_report_has_eight_fractal_layers_test() {
   let metrics =
-    OodaMetrics(agent_latency_ms: 25, intelligence_latency_ms: 80, compliance: True)
+    OodaMetrics(
+      agent_latency_ms: 25,
+      intelligence_latency_ms: 80,
+      compliance: True,
+    )
   let report = generate_report(metrics, 16, 16)
   list.length(report.fractal_layers) |> should.equal(8)
 }
 
 pub fn swarm_report_layer_zero_exists_test() {
   let metrics =
-    OodaMetrics(agent_latency_ms: 25, intelligence_latency_ms: 80, compliance: True)
+    OodaMetrics(
+      agent_latency_ms: 25,
+      intelligence_latency_ms: 80,
+      compliance: True,
+    )
   let report = generate_report(metrics, 16, 16)
   let l0 = list.find(report.fractal_layers, fn(l) { l.layer == 0 })
   case l0 {

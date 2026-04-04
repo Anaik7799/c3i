@@ -23,6 +23,7 @@ import cepaf_gleam/verification/probes
 import cepaf_gleam/verification/swarm
 import cepaf_gleam/zenoh/domain as zenoh_domain
 import gleam/json
+import gleam/list
 import gleam/string
 import gleeunit/should
 
@@ -340,15 +341,17 @@ pub fn swarm_generate_report_test() {
   report.healthy_containers |> should.equal(12)
   report.total_containers |> should.equal(15)
   report.ooda_metrics.compliance |> should.be_true()
-  // Must contain 3 fractal layer entries
-  case report.fractal_layers {
-    [l0, l1, l4] -> {
-      l0.layer |> should.equal(0)
-      l1.layer |> should.equal(1)
-      l4.layer |> should.equal(4)
-    }
-    _ -> should.fail()
-  }
+  // Must contain 8 fractal layer entries (L0-L7)
+  list.length(report.fractal_layers) |> should.equal(8)
+  let l0 =
+    list.find(report.fractal_layers, fn(l) { l.layer == 0 })
+    |> should.be_ok()
+  let l1 =
+    list.find(report.fractal_layers, fn(l) { l.layer == 1 })
+    |> should.be_ok()
+  let l4 =
+    list.find(report.fractal_layers, fn(l) { l.layer == 4 })
+    |> should.be_ok()
 }
 
 // =============================================================================
