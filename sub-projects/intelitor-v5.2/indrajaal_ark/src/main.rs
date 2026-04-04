@@ -7,7 +7,7 @@ mod coding;
 mod polyglot;
 
 #[derive(Parser)]
-#[command(author, version, about, long_description = None)]
+#[command(author, version, about)]
 #[command(propagate_version = true)]
 struct Cli {
     #[command(subcommand)]
@@ -65,20 +65,20 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Seal { input, output, force } => {
+        Commands::Seal { input, output, force: _ } => {
             println!(">>> [ARK] Initiating BIOSYNTHESIS...");
             // TODO: Implement Zstd -> RS -> Write
             println!("    Target: {:?}", input);
             println!("    Artifact: {:?}", output);
             Ok(())
         }
-        Commands::Unseal { input, destination } => {
+        Commands::Unseal { input, destination: _ } => {
             println!(">>> [ARK] Initiating LYSIS...");
             println!("    Source: {:?}", input);
             // TODO: Verify -> Heal -> Decompress
             Ok(())
         }
-        Commands::Verify { input } => {
+        Commands::Verify { input: _ } => {
             println!(">>> [ARK] Running DIAGNOSIS...");
             // TODO: BLAKE3 Verification
             Ok(())

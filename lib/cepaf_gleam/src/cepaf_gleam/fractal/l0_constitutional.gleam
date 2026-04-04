@@ -124,6 +124,7 @@ pub fn trigger_emergency(
   timestamp: Int,
 ) -> EmergencyState {
   EmergencyState(
+    ..state,
     armed: False,
     triggered: True,
     trigger_reason: Some(reason),

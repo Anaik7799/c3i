@@ -129,3 +129,14 @@ pub async fn emergency_stop() -> Result<(), IgnitionError> {
     info!("Emergency stop completed for {} containers.", crate::artifacts::SIL6_GENOME.len());
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_emergency_stop_no_panic() {
+        let result = emergency_stop().await;
+        assert!(result.is_ok());
+    }
+}

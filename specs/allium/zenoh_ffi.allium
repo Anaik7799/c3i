@@ -1,0 +1,52 @@
+-- allium: 3
+-- Zenoh FFI Bridge — Invariant Behavioral Specification
+-- Covers: SC-ZENOH-FFI-050, INV-1 through INV-12 Conservation Rules
+-- Date: 2026-04-04
+
+contract FfiInvariants {
+    -- State Counters
+    state active_sessions: Integer = 0
+    state sessions_opened: Integer = 0
+    state sessions_closed: Integer = 0
+    state panic_count: Integer = 0
+    state ffi_calls_total: Integer = 0
+    
+    -- Mutators
+    command open_session()
+    command close_session()
+    command panic_ffi()
+    
+    rule "INV-1: Non-Negative Sessions" {
+        invariant active_sessions >= 0
+    }
+    
+    rule "INV-2: Bounded Concurrency" {
+        invariant active_sessions <= 2 -- SEMAPHORE_CAPACITY
+    }
+    
+    rule "INV-5: Conservation of Sessions" {
+        invariant sessions_opened == sessions_closed + active_sessions
+    }
+    
+    rule "INV-6: Panic Safety" {
+        invariant panic_count <= ffi_calls_total
+    }
+    
+    rule "Open Transition" {
+        when call FfiInvariants.open_session
+        then active_sessions += 1
+        then sessions_opened += 1
+    }
+    
+    rule "Close Transition" {
+        when call FfiInvariants.close_session
+        ensure active_sessions > 0
+        then active_sessions -= 1
+        then sessions_closed += 1
+    }
+    
+    rule "Tight Loop Snapshot Fix" {
+        when call verify_invariants
+        ensure "Atomic snapshot reads match identically across 2 cycles"
+    }
+}

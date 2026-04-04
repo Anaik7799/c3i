@@ -34,7 +34,9 @@
 
 use crate::errors::IgnitionError;
 use crate::podman;
-use crate::types::{FailureMode, RecoveryPlaybook, RecoveryResult, RecoveryStep, MAX_RECOVERY_RETRIES};
+use crate::types::{
+    FailureMode, RecoveryPlaybook, RecoveryResult, RecoveryStep, MAX_RECOVERY_RETRIES,
+};
 use log::{debug, error, info, warn};
 use std::time::{Duration, Instant};
 use tokio::process::Command;
@@ -78,21 +80,21 @@ pub fn get_playbook(mode: FailureMode) -> RecoveryPlaybook {
 /// Order is descending RPN (highest risk first).
 pub fn all_playbooks() -> Vec<RecoveryPlaybook> {
     vec![
-        playbook_nif_compilation(),        // RPN 252
-        playbook_cascading_failure(),      // RPN 230
-        playbook_glibc_musl(),             // RPN 225
-        playbook_disk_exhaustion(),        // RPN 210
-        playbook_memory_leak(),            // RPN 198
-        playbook_health_timeout(),         // RPN 196
-        playbook_network_partition(),      // RPN 189
-        playbook_image_corruption(),       // RPN 175
-        playbook_boot_ordering(),          // RPN 168
-        playbook_certificate_expiry(),     // RPN 162
-        playbook_clock_drift(),            // RPN 154
-        playbook_zombie_process(),         // RPN 147
-        playbook_observability_gap(),      // RPN 140
-        playbook_registry_unavailable(),   // RPN 138
-        playbook_config_drift(),           // RPN 130
+        playbook_nif_compilation(),      // RPN 252
+        playbook_cascading_failure(),    // RPN 230
+        playbook_glibc_musl(),           // RPN 225
+        playbook_disk_exhaustion(),      // RPN 210
+        playbook_memory_leak(),          // RPN 198
+        playbook_health_timeout(),       // RPN 196
+        playbook_network_partition(),    // RPN 189
+        playbook_image_corruption(),     // RPN 175
+        playbook_boot_ordering(),        // RPN 168
+        playbook_certificate_expiry(),   // RPN 162
+        playbook_clock_drift(),          // RPN 154
+        playbook_zombie_process(),       // RPN 147
+        playbook_observability_gap(),    // RPN 140
+        playbook_registry_unavailable(), // RPN 138
+        playbook_config_drift(),         // RPN 130
     ]
 }
 
@@ -136,7 +138,7 @@ fn playbook_nif_compilation() -> RecoveryPlaybook {
                 command: Some(
                     "exec {container} sh -c \
                      \"rm -rf /app/_build/*/lib/*/priv/native/\""
-                    .into(),
+                        .into(),
                 ),
                 expected_result: "Exit code 0 (directory removed or did not exist)".into(),
                 timeout_ms: 10_000,
@@ -147,7 +149,7 @@ fn playbook_nif_compilation() -> RecoveryPlaybook {
                 command: Some(
                     "exec {container} sh -c \
                      \"cd /app && mix compile --force\""
-                    .into(),
+                        .into(),
                 ),
                 expected_result: "Compilation exits 0".into(),
                 timeout_ms: 300_000,
@@ -158,7 +160,7 @@ fn playbook_nif_compilation() -> RecoveryPlaybook {
                 command: Some(
                     "exec {container} sh -c \
                      \"ls /app/_build/*/lib/*/priv/native/*.so\""
-                    .into(),
+                        .into(),
                 ),
                 expected_result: "At least one .so path printed".into(),
                 timeout_ms: 5_000,
@@ -181,16 +183,13 @@ fn playbook_glibc_musl() -> RecoveryPlaybook {
         failure_mode: FailureMode::GlibcMuslConflict,
         rpn: 225,
         max_retries: MAX_RECOVERY_RETRIES,
-        escalation:
-            "Host _build/deps MUST be deleted before container boot (Axiom 0.1)".into(),
+        escalation: "Host _build/deps MUST be deleted before container boot (Axiom 0.1)".into(),
         steps: vec![
             RecoveryStep {
                 order: 1,
                 action: "Detect host _build contamination".into(),
                 // Run on host via tokio::process::Command (see execute_step special-case)
-                command: Some(
-                    "host:ls _build/*/lib/*/priv/native/*.so 2>/dev/null".into(),
-                ),
+                command: Some("host:ls _build/*/lib/*/priv/native/*.so 2>/dev/null".into()),
                 expected_result: "Empty output means no host contamination".into(),
                 timeout_ms: 3_000,
             },
@@ -222,7 +221,7 @@ fn playbook_glibc_musl() -> RecoveryPlaybook {
                 command: Some(
                     "build --no-cache -f Dockerfile.sopv51-app \
                      -t localhost/indrajaal-ex-app:latest ."
-                    .into(),
+                        .into(),
                 ),
                 expected_result: "Image build exits 0".into(),
                 timeout_ms: 600_000,
@@ -255,9 +254,7 @@ fn playbook_health_timeout() -> RecoveryPlaybook {
             RecoveryStep {
                 order: 1,
                 action: "Check container state".into(),
-                command: Some(
-                    "inspect {container} --format {{.State.Status}}".into(),
-                ),
+                command: Some("inspect {container} --format {{.State.Status}}".into()),
                 expected_result: "\"running\" or \"created\"".into(),
                 timeout_ms: 5_000,
             },
@@ -302,18 +299,14 @@ fn playbook_boot_ordering() -> RecoveryPlaybook {
             RecoveryStep {
                 order: 1,
                 action: "Verify DB is ready".into(),
-                command: Some(
-                    "exec indrajaal-db-prod pg_isready -U postgres".into(),
-                ),
+                command: Some("exec indrajaal-db-prod pg_isready -U postgres".into()),
                 expected_result: "pg_isready exits 0".into(),
                 timeout_ms: 10_000,
             },
             RecoveryStep {
                 order: 2,
                 action: "Verify Zenoh router is ready".into(),
-                command: Some(
-                    "exec zenoh-router sh -c \"nc -z localhost 7447\"".into(),
-                ),
+                command: Some("exec zenoh-router sh -c \"nc -z localhost 7447\"".into()),
                 expected_result: "nc exits 0 (port 7447 is open)".into(),
                 timeout_ms: 10_000,
             },
@@ -352,25 +345,20 @@ fn playbook_observability_gap() -> RecoveryPlaybook {
         failure_mode: FailureMode::ObservabilityGap,
         rpn: 140,
         max_retries: MAX_RECOVERY_RETRIES,
-        escalation:
-            "Observability pipeline broken — check OTEL collector and Prometheus configs"
-                .into(),
+        escalation: "Observability pipeline broken — check OTEL collector and Prometheus configs"
+            .into(),
         steps: vec![
             RecoveryStep {
                 order: 1,
                 action: "Check OTEL collector on port 4317".into(),
-                command: Some(
-                    "exec indrajaal-obs-prod sh -c \"nc -z localhost 4317\"".into(),
-                ),
+                command: Some("exec indrajaal-obs-prod sh -c \"nc -z localhost 4317\"".into()),
                 expected_result: "nc exits 0 (OTEL gRPC port open)".into(),
                 timeout_ms: 5_000,
             },
             RecoveryStep {
                 order: 2,
                 action: "Check Prometheus on port 9090".into(),
-                command: Some(
-                    "exec indrajaal-obs-prod sh -c \"nc -z localhost 9090\"".into(),
-                ),
+                command: Some("exec indrajaal-obs-prod sh -c \"nc -z localhost 9090\"".into()),
                 expected_result: "nc exits 0 (Prometheus port open)".into(),
                 timeout_ms: 5_000,
             },
@@ -384,9 +372,7 @@ fn playbook_observability_gap() -> RecoveryPlaybook {
             RecoveryStep {
                 order: 4,
                 action: "Verify OTEL_EXPORTER_OTLP_ENDPOINT in app container".into(),
-                command: Some(
-                    "exec {container} printenv OTEL_EXPORTER_OTLP_ENDPOINT".into(),
-                ),
+                command: Some("exec {container} printenv OTEL_EXPORTER_OTLP_ENDPOINT".into()),
                 expected_result: "Non-empty endpoint URL printed".into(),
                 timeout_ms: 5_000,
             },
@@ -402,13 +388,45 @@ fn playbook_cascading_failure() -> RecoveryPlaybook {
         failure_mode: FailureMode::CascadingFailure,
         rpn: 230,
         max_retries: MAX_RECOVERY_RETRIES,
-        escalation: "Cascading failure detected — manual intervention required for tier-by-tier recovery".into(),
+        escalation:
+            "Cascading failure detected — manual intervention required for tier-by-tier recovery"
+                .into(),
         steps: vec![
-            RecoveryStep { order: 1, action: "Identify failure domain".into(), command: Some("exec {container} sh -c \"echo cascading_failure\"".into()), expected_result: "Failure domain identified".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 2, action: "Isolate affected tiers".into(), command: None, expected_result: "Containment activated".into(), timeout_ms: 1_000 },
-            RecoveryStep { order: 3, action: "Stop dependent containers".into(), command: Some("stop -t 3 {container}".into()), expected_result: "Dependent containers stopped".into(), timeout_ms: 15_000 },
-            RecoveryStep { order: 4, action: "Recover from lowest failed tier".into(), command: None, expected_result: "Recovery initiated from foundation tier".into(), timeout_ms: 1_000 },
-            RecoveryStep { order: 5, action: "Verify quorum preserved".into(), command: Some("exec zenoh-router-1 sh -c \"nc -z localhost 7447\"".into()), expected_result: "Zenoh quorum intact".into(), timeout_ms: 5_000 },
+            RecoveryStep {
+                order: 1,
+                action: "Identify failure domain".into(),
+                command: Some("exec {container} sh -c \"echo cascading_failure\"".into()),
+                expected_result: "Failure domain identified".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 2,
+                action: "Isolate affected tiers".into(),
+                command: None,
+                expected_result: "Containment activated".into(),
+                timeout_ms: 1_000,
+            },
+            RecoveryStep {
+                order: 3,
+                action: "Stop dependent containers".into(),
+                command: Some("stop -t 3 {container}".into()),
+                expected_result: "Dependent containers stopped".into(),
+                timeout_ms: 15_000,
+            },
+            RecoveryStep {
+                order: 4,
+                action: "Recover from lowest failed tier".into(),
+                command: None,
+                expected_result: "Recovery initiated from foundation tier".into(),
+                timeout_ms: 1_000,
+            },
+            RecoveryStep {
+                order: 5,
+                action: "Verify quorum preserved".into(),
+                command: Some("exec zenoh-router-1 sh -c \"nc -z localhost 7447\"".into()),
+                expected_result: "Zenoh quorum intact".into(),
+                timeout_ms: 5_000,
+            },
         ],
     }
 }
@@ -438,10 +456,34 @@ fn playbook_memory_leak() -> RecoveryPlaybook {
         max_retries: MAX_RECOVERY_RETRIES,
         escalation: "Memory leak detected — container needs restart with increased limits".into(),
         steps: vec![
-            RecoveryStep { order: 1, action: "Check container memory usage".into(), command: Some("inspect {container} --format {{.MemoryStats.Usage}}".into()), expected_result: "Memory usage reported".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 2, action: "Capture memory profile".into(), command: Some("exec {container} sh -c \"cat /proc/1/status | grep VmRSS\"".into()), expected_result: "RSS captured".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 3, action: "Graceful restart container".into(), command: Some("restart -t 10 {container}".into()), expected_result: "Container restarted with clean memory".into(), timeout_ms: 30_000 },
-            RecoveryStep { order: 4, action: "Verify memory stabilized".into(), command: Some("inspect {container} --format {{.MemoryStats.Usage}}".into()), expected_result: "Memory usage below threshold".into(), timeout_ms: 10_000 },
+            RecoveryStep {
+                order: 1,
+                action: "Check container memory usage".into(),
+                command: Some("inspect {container} --format {{.MemoryStats.Usage}}".into()),
+                expected_result: "Memory usage reported".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 2,
+                action: "Capture memory profile".into(),
+                command: Some("exec {container} sh -c \"cat /proc/1/status | grep VmRSS\"".into()),
+                expected_result: "RSS captured".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 3,
+                action: "Graceful restart container".into(),
+                command: Some("restart -t 10 {container}".into()),
+                expected_result: "Container restarted with clean memory".into(),
+                timeout_ms: 30_000,
+            },
+            RecoveryStep {
+                order: 4,
+                action: "Verify memory stabilized".into(),
+                command: Some("inspect {container} --format {{.MemoryStats.Usage}}".into()),
+                expected_result: "Memory usage below threshold".into(),
+                timeout_ms: 10_000,
+            },
         ],
     }
 }
@@ -454,11 +496,41 @@ fn playbook_network_partition() -> RecoveryPlaybook {
         max_retries: MAX_RECOVERY_RETRIES,
         escalation: "Network partition detected — manual network troubleshooting required".into(),
         steps: vec![
-            RecoveryStep { order: 1, action: "Verify mesh network exists".into(), command: Some("network inspect indrajaal-sil6-mesh".into()), expected_result: "Network exists and is active".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 2, action: "Check container network attachment".into(), command: Some("inspect {container} --format {{.NetworkSettings.Networks}}".into()), expected_result: "Container attached to mesh network".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 3, action: "Disconnect and reconnect container".into(), command: Some("network disconnect indrajaal-sil6-mesh {container}".into()), expected_result: "Container disconnected".into(), timeout_ms: 10_000 },
-            RecoveryStep { order: 4, action: "Reconnect to mesh network".into(), command: Some("network connect indrajaal-sil6-mesh {container}".into()), expected_result: "Container reconnected".into(), timeout_ms: 10_000 },
-            RecoveryStep { order: 5, action: "Verify connectivity restored".into(), command: Some("exec {container} sh -c \"nc -z zenoh-router-1 7447\"".into()), expected_result: "Connectivity to zenoh-router restored".into(), timeout_ms: 5_000 },
+            RecoveryStep {
+                order: 1,
+                action: "Verify mesh network exists".into(),
+                command: Some("network inspect indrajaal-sil6-mesh".into()),
+                expected_result: "Network exists and is active".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 2,
+                action: "Check container network attachment".into(),
+                command: Some("inspect {container} --format {{.NetworkSettings.Networks}}".into()),
+                expected_result: "Container attached to mesh network".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 3,
+                action: "Disconnect and reconnect container".into(),
+                command: Some("network disconnect indrajaal-sil6-mesh {container}".into()),
+                expected_result: "Container disconnected".into(),
+                timeout_ms: 10_000,
+            },
+            RecoveryStep {
+                order: 4,
+                action: "Reconnect to mesh network".into(),
+                command: Some("network connect indrajaal-sil6-mesh {container}".into()),
+                expected_result: "Container reconnected".into(),
+                timeout_ms: 10_000,
+            },
+            RecoveryStep {
+                order: 5,
+                action: "Verify connectivity restored".into(),
+                command: Some("exec {container} sh -c \"nc -z zenoh-router-1 7447\"".into()),
+                expected_result: "Connectivity to zenoh-router restored".into(),
+                timeout_ms: 5_000,
+            },
         ],
     }
 }
@@ -471,11 +543,41 @@ fn playbook_image_corruption() -> RecoveryPlaybook {
         max_retries: MAX_RECOVERY_RETRIES,
         escalation: "Image corruption detected — rebuild from Dockerfile required".into(),
         steps: vec![
-            RecoveryStep { order: 1, action: "Verify image digest".into(), command: Some("image inspect {container} --format {{.RepoDigests}}".into()), expected_result: "Image digest reported".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 2, action: "Stop corrupted container".into(), command: Some("stop -t 5 {container}".into()), expected_result: "Container stopped".into(), timeout_ms: 10_000 },
-            RecoveryStep { order: 3, action: "Remove corrupted container".into(), command: Some("rm -f {container}".into()), expected_result: "Container removed".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 4, action: "Rebuild image from scratch".into(), command: Some("build --no-cache -t localhost/indrajaal-ex-app-1:latest .".into()), expected_result: "Image built successfully".into(), timeout_ms: 600_000 },
-            RecoveryStep { order: 5, action: "Launch fresh container".into(), command: Some("start {container}".into()), expected_result: "Container running with fresh image".into(), timeout_ms: 30_000 },
+            RecoveryStep {
+                order: 1,
+                action: "Verify image digest".into(),
+                command: Some("image inspect {container} --format {{.RepoDigests}}".into()),
+                expected_result: "Image digest reported".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 2,
+                action: "Stop corrupted container".into(),
+                command: Some("stop -t 5 {container}".into()),
+                expected_result: "Container stopped".into(),
+                timeout_ms: 10_000,
+            },
+            RecoveryStep {
+                order: 3,
+                action: "Remove corrupted container".into(),
+                command: Some("rm -f {container}".into()),
+                expected_result: "Container removed".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 4,
+                action: "Rebuild image from scratch".into(),
+                command: Some("build --no-cache -t localhost/indrajaal-ex-app-1:latest .".into()),
+                expected_result: "Image built successfully".into(),
+                timeout_ms: 600_000,
+            },
+            RecoveryStep {
+                order: 5,
+                action: "Launch fresh container".into(),
+                command: Some("start {container}".into()),
+                expected_result: "Container running with fresh image".into(),
+                timeout_ms: 30_000,
+            },
         ],
     }
 }
@@ -504,10 +606,34 @@ fn playbook_clock_drift() -> RecoveryPlaybook {
         max_retries: MAX_RECOVERY_RETRIES,
         escalation: "Clock drift critical — manual NTP sync required".into(),
         steps: vec![
-            RecoveryStep { order: 1, action: "Check container clock".into(), command: Some("exec {container} date +%s".into()), expected_result: "Container timestamp reported".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 2, action: "Check host clock".into(), command: Some("host:date +%s".into()), expected_result: "Host timestamp reported".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 3, action: "Sync NTP on host".into(), command: Some("host:chronyc -a makestep".into()), expected_result: "NTP sync successful".into(), timeout_ms: 15_000 },
-            RecoveryStep { order: 4, action: "Restart container to pick up new time".into(), command: Some("restart -t 3 {container}".into()), expected_result: "Container restarted with correct time".into(), timeout_ms: 15_000 },
+            RecoveryStep {
+                order: 1,
+                action: "Check container clock".into(),
+                command: Some("exec {container} date +%s".into()),
+                expected_result: "Container timestamp reported".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 2,
+                action: "Check host clock".into(),
+                command: Some("host:date +%s".into()),
+                expected_result: "Host timestamp reported".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 3,
+                action: "Sync NTP on host".into(),
+                command: Some("host:chronyc -a makestep".into()),
+                expected_result: "NTP sync successful".into(),
+                timeout_ms: 15_000,
+            },
+            RecoveryStep {
+                order: 4,
+                action: "Restart container to pick up new time".into(),
+                command: Some("restart -t 3 {container}".into()),
+                expected_result: "Container restarted with correct time".into(),
+                timeout_ms: 15_000,
+            },
         ],
     }
 }
@@ -520,10 +646,34 @@ fn playbook_zombie_process() -> RecoveryPlaybook {
         max_retries: MAX_RECOVERY_RETRIES,
         escalation: "Zombie processes accumulating — container restart required".into(),
         steps: vec![
-            RecoveryStep { order: 1, action: "Count zombie processes".into(), command: Some("exec {container} sh -c \"ps aux | grep -c 'Z'\"".into()), expected_result: "Zombie count reported".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 2, action: "Send SIGCHLD to parent processes".into(), command: Some("exec {container} sh -c \"kill -SIGCHLD 1\"".into()), expected_result: "SIGCHLD sent to PID 1".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 3, action: "Verify zombies reaped".into(), command: Some("exec {container} sh -c \"ps aux | grep -c 'Z'\"".into()), expected_result: "Zombie count reduced".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 4, action: "Restart container if zombies persist".into(), command: Some("restart -t 5 {container}".into()), expected_result: "Container restarted clean".into(), timeout_ms: 30_000 },
+            RecoveryStep {
+                order: 1,
+                action: "Count zombie processes".into(),
+                command: Some("exec {container} sh -c \"ps aux | grep -c 'Z'\"".into()),
+                expected_result: "Zombie count reported".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 2,
+                action: "Send SIGCHLD to parent processes".into(),
+                command: Some("exec {container} sh -c \"kill -SIGCHLD 1\"".into()),
+                expected_result: "SIGCHLD sent to PID 1".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 3,
+                action: "Verify zombies reaped".into(),
+                command: Some("exec {container} sh -c \"ps aux | grep -c 'Z'\"".into()),
+                expected_result: "Zombie count reduced".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 4,
+                action: "Restart container if zombies persist".into(),
+                command: Some("restart -t 5 {container}".into()),
+                expected_result: "Container restarted clean".into(),
+                timeout_ms: 30_000,
+            },
         ],
     }
 }
@@ -536,10 +686,34 @@ fn playbook_registry_unavailable() -> RecoveryPlaybook {
         max_retries: MAX_RECOVERY_RETRIES,
         escalation: "Registry unavailable — check Podman registry service".into(),
         steps: vec![
-            RecoveryStep { order: 1, action: "Check registry connectivity".into(), command: Some("host:curl -sf http://localhost:5000/v2/".into()), expected_result: "Registry responds".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 2, action: "Restart registry if available".into(), command: Some("host:systemctl restart podman-registry".into()), expected_result: "Registry restarted".into(), timeout_ms: 15_000 },
-            RecoveryStep { order: 3, action: "Verify local images available".into(), command: Some("images --format {{.Repository}}".into()), expected_result: "Local images listed".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 4, action: "Retry container launch with local image".into(), command: Some("start {container}".into()), expected_result: "Container started from local image".into(), timeout_ms: 30_000 },
+            RecoveryStep {
+                order: 1,
+                action: "Check registry connectivity".into(),
+                command: Some("host:curl -sf http://localhost:5000/v2/".into()),
+                expected_result: "Registry responds".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 2,
+                action: "Restart registry if available".into(),
+                command: Some("host:systemctl restart podman-registry".into()),
+                expected_result: "Registry restarted".into(),
+                timeout_ms: 15_000,
+            },
+            RecoveryStep {
+                order: 3,
+                action: "Verify local images available".into(),
+                command: Some("images --format {{.Repository}}".into()),
+                expected_result: "Local images listed".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 4,
+                action: "Retry container launch with local image".into(),
+                command: Some("start {container}".into()),
+                expected_result: "Container started from local image".into(),
+                timeout_ms: 30_000,
+            },
         ],
     }
 }
@@ -552,10 +726,34 @@ fn playbook_config_drift() -> RecoveryPlaybook {
         max_retries: MAX_RECOVERY_RETRIES,
         escalation: "Configuration drift detected — manual reconciliation required".into(),
         steps: vec![
-            RecoveryStep { order: 1, action: "Inspect current container config".into(), command: Some("inspect {container} --format {{.Config.Env}}".into()), expected_result: "Current env vars reported".into(), timeout_ms: 5_000 },
-            RecoveryStep { order: 2, action: "Compare with expected config".into(), command: None, expected_result: "Drift identified".into(), timeout_ms: 1_000 },
-            RecoveryStep { order: 3, action: "Stop container".into(), command: Some("stop -t 5 {container}".into()), expected_result: "Container stopped".into(), timeout_ms: 10_000 },
-            RecoveryStep { order: 4, action: "Recreate with correct config".into(), command: Some("rm -f {container}".into()), expected_result: "Container removed for recreation".into(), timeout_ms: 5_000 },
+            RecoveryStep {
+                order: 1,
+                action: "Inspect current container config".into(),
+                command: Some("inspect {container} --format {{.Config.Env}}".into()),
+                expected_result: "Current env vars reported".into(),
+                timeout_ms: 5_000,
+            },
+            RecoveryStep {
+                order: 2,
+                action: "Compare with expected config".into(),
+                command: None,
+                expected_result: "Drift identified".into(),
+                timeout_ms: 1_000,
+            },
+            RecoveryStep {
+                order: 3,
+                action: "Stop container".into(),
+                command: Some("stop -t 5 {container}".into()),
+                expected_result: "Container stopped".into(),
+                timeout_ms: 10_000,
+            },
+            RecoveryStep {
+                order: 4,
+                action: "Recreate with correct config".into(),
+                command: Some("rm -f {container}".into()),
+                expected_result: "Container removed for recreation".into(),
+                timeout_ms: 5_000,
+            },
         ],
     }
 }
@@ -573,14 +771,18 @@ fn playbook_config_drift() -> RecoveryPlaybook {
 ///
 /// STAMP: SC-IGNITE-003 (auto-RCA on boot failure)
 pub async fn diagnose_failure(container: &str) -> Option<FailureMode> {
-    debug!("[recovery] Diagnosing failure for container '{}'", container);
+    debug!(
+        "[recovery] Diagnosing failure for container '{}'",
+        container
+    );
 
     // ── 1. Inspect exit code ──────────────────────────────────────────────────
-    let exit_code: i32 = podman::container_exit_code(container)
-        .await
-        .unwrap_or(-1);
+    let exit_code: i32 = podman::container_exit_code(container).await.unwrap_or(-1);
 
-    debug!("[recovery] Container '{}' exit_code={}", container, exit_code);
+    debug!(
+        "[recovery] Container '{}' exit_code={}",
+        container, exit_code
+    );
 
     // Exit code 1 with NIF-style logs is the primary NIF signal; we refine below.
     // Exit code 137 (SIGKILL / OOM) is not in top-5 FMEA — fall through to logs.
@@ -634,7 +836,8 @@ pub async fn diagnose_failure(container: &str) -> Option<FailureMode> {
         || logs.contains("timeout waiting")
         || logs.contains("health check failed")
         || logs.contains("readiness probe failed")
-        || exit_code == 124 // timeout(1) exit code
+        || exit_code == 124
+    // timeout(1) exit code
     {
         info!(
             "[recovery] Diagnosed '{}' as HealthTimeout (RPN 196)",
@@ -699,10 +902,7 @@ pub async fn diagnose_failure(container: &str) -> Option<FailureMode> {
 /// Returns `Ok(true)` on success, `Ok(false)` when the command exits non-zero
 /// (treated as a soft failure that aborts the current playbook attempt),
 /// `Err` only for infrastructure errors (timeout, io).
-async fn execute_step(
-    container: &str,
-    step: &RecoveryStep,
-) -> Result<bool, IgnitionError> {
+async fn execute_step(container: &str, step: &RecoveryStep) -> Result<bool, IgnitionError> {
     let timeout_dur = Duration::from_millis(step.timeout_ms);
 
     // ── Informational step ────────────────────────────────────────────────────
@@ -734,14 +934,10 @@ async fn execute_step(
                 .arg(&shell_cmd)
                 .output()
                 .await
-                .map_err(|e| {
-                    IgnitionError::PodmanExec(format!("host sh -c failed: {}", e))
-                })
+                .map_err(|e| IgnitionError::PodmanExec(format!("host sh -c failed: {}", e)))
         })
         .await
-        .map_err(|_| {
-            IgnitionError::Timeout(format!("host command timed out: {}", shell_cmd))
-        })??;
+        .map_err(|_| IgnitionError::Timeout(format!("host command timed out: {}", shell_cmd)))??;
 
         let stdout = String::from_utf8_lossy(&result.stdout).trim().to_string();
         let code = result.status.code().unwrap_or(-1);
@@ -772,7 +968,11 @@ async fn execute_step(
     // Format: "health-wait <target> <seconds>"
     if cmd_str.starts_with("health-wait ") {
         let parts: Vec<&str> = cmd_str.splitn(3, ' ').collect();
-        let target = if parts.len() >= 2 { parts[1] } else { container };
+        let target = if parts.len() >= 2 {
+            parts[1]
+        } else {
+            container
+        };
         let wait_secs: u64 = if parts.len() >= 3 {
             parts[2].parse().unwrap_or(60)
         } else {
@@ -808,7 +1008,10 @@ async fn execute_step(
     let rest = &cmd_str["exec ".len()..];
     let parts: Vec<&str> = rest.splitn(2, ' ').collect();
     if parts.is_empty() {
-        warn!("[recovery] Step {}: malformed exec command: '{}'", step.order, cmd_str);
+        warn!(
+            "[recovery] Step {}: malformed exec command: '{}'",
+            step.order, cmd_str
+        );
         return Ok(false);
     }
     let target_container = parts[0];
@@ -913,10 +1116,7 @@ pub async fn execute_recovery(container: &str, mode: FailureMode) -> RecoveryRes
                     steps_executed,
                     steps_total,
                     duration_ms: elapsed,
-                    detail: format!(
-                        "All {} steps passed on attempt {}",
-                        steps_total, attempt
-                    ),
+                    detail: format!("All {} steps passed on attempt {}", steps_total, attempt),
                 };
             }
         }
@@ -1022,10 +1222,7 @@ async fn health_wait(container: &str, wait_secs: u64) -> Result<bool, IgnitionEr
         debug!("[recovery] health_wait '{}' status={}", container, status);
 
         if status == "running" {
-            info!(
-                "[recovery] health_wait: '{}' is running",
-                container
-            );
+            info!("[recovery] health_wait: '{}' is running", container);
             return Ok(true);
         }
 
@@ -1200,7 +1397,10 @@ mod tests {
 
     #[test]
     fn test_step_counts_match_spec() {
-        assert_eq!(get_playbook(FailureMode::NifCompilationFailure).steps.len(), 5);
+        assert_eq!(
+            get_playbook(FailureMode::NifCompilationFailure).steps.len(),
+            5
+        );
         assert_eq!(get_playbook(FailureMode::GlibcMuslConflict).steps.len(), 6);
         assert_eq!(get_playbook(FailureMode::HealthTimeout).steps.len(), 4);
         assert_eq!(get_playbook(FailureMode::BootOrderingRace).steps.len(), 5);

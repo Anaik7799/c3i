@@ -374,6 +374,33 @@
   '';
 
   # ============================================
+  # RUST TOOLS (lib/rust/ workspace)
+  # SC-ZMOF-001, SC-MUDA-001, SC-UIGT-001
+  # ============================================
+
+  scripts.sa-regression.exec = ''
+    echo "🦀 C3I Browser Regression Suite (Ratatui TUI)..."
+    cargo run --release --manifest-path lib/rust/Cargo.toml -p c3i_browser_regression -- "$@"
+  '';
+
+  scripts.sa-fmea-gen.exec = ''
+    echo "🦀 Generating FMEA/STAMP directives (9 fractal layers)..."
+    cargo run --release --manifest-path lib/rust/Cargo.toml -p c3i_swarm_generator -- "$@"
+  '';
+
+  scripts.sa-agui-catalog.exec = ''
+    echo "🦀 Generating AG-UI idea catalog (200 ideas, 10 categories)..."
+    cargo run --release --manifest-path lib/rust/Cargo.toml -p c3i_agui_ideas -- "$@"
+  '';
+
+  scripts.rust-check.exec = ''
+    echo "🦀 Checking Rust crates (lib/rust workspace)..."
+    cargo clippy --manifest-path lib/rust/Cargo.toml --workspace -- -D warnings
+    cargo test --manifest-path lib/rust/Cargo.toml --workspace
+    echo "✓ All Rust crates: clippy clean + tests pass"
+  '';
+
+  # ============================================
   # STANDALONE ENVIRONMENT (SIL-6 Certified F# CLI)
   # SC-SIL6-001 to SC-SIL6-015, SC-CTRL-003
   # Uses compiled F# modules for robustness
@@ -1108,6 +1135,12 @@
     echo "║    governed-wallaby  CPU-safe Wallaby E2E (Chrome, port 4050)   ║"
     echo "║    governed-exec     CPU-safe arbitrary command                  ║"
     echo "║    cpu-status        CPU governor dashboard                     ║"
+    echo "║                                                                  ║"
+    echo "║  RUST TOOLS (lib/rust/ workspace, SC-ZMOF-001)                    ║"
+    echo "║    sa-regression    Browser regression TUI (--headless --url)   ║"
+    echo "║    sa-fmea-gen      Generate FMEA/STAMP directives (--format)  ║"
+    echo "║    sa-agui-catalog  Generate AG-UI idea catalog (--format)     ║"
+    echo "║    rust-check       Clippy + tests for all Rust crates         ║"
     echo "║                                                                  ║"
     echo "║  OTHER                                                           ║"
     echo "║    help             Show this help                               ║"

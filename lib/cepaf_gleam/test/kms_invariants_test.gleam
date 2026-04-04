@@ -1,8 +1,7 @@
-import cepaf_gleam/kms/catalog.{type Checkpoint, Checkpoint}
+import cepaf_gleam/kms/catalog.{Checkpoint}
 import gleam/dict
 import gleam/erlang/process
 import gleam/option.{None}
-import gleeunit/should
 
 // SC-SEC-001 Verification: Zero-Trust Key Management
 // This test simulates the invariants that must hold for the KMS Catalog.

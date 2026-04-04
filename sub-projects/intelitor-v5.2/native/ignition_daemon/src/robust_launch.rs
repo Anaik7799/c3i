@@ -27,8 +27,8 @@
 use crate::errors::IgnitionError;
 use crate::podman;
 use crate::types::{
-    DrainResult, TierCommitResult, MESH_NETWORK,
-    EMERGENCY_DRAIN_TIMEOUT_MS, MAX_CONCURRENT_LAUNCHES, STABILIZATION_WINDOW_MS,
+    DrainResult, TierCommitResult, EMERGENCY_DRAIN_TIMEOUT_MS, MAX_CONCURRENT_LAUNCHES,
+    MESH_NETWORK, STABILIZATION_WINDOW_MS,
 };
 use log::{error, info, warn};
 use std::collections::HashMap;
@@ -126,9 +126,10 @@ pub async fn launch_tier_atomic(
     let semaphore = tokio::sync::Semaphore::new(MAX_CONCURRENT_LAUNCHES);
 
     for spec in containers {
-        let _permit = semaphore.acquire().await.map_err(|e| {
-            IgnitionError::PodmanExec(format!("Semaphore acquire failed: {}", e))
-        })?;
+        let _permit = semaphore
+            .acquire()
+            .await
+            .map_err(|e| IgnitionError::PodmanExec(format!("Semaphore acquire failed: {}", e)))?;
 
         match launch_container_idempotent(&spec.name, &spec.image, &spec.args).await {
             Ok(result) => {
@@ -177,7 +178,9 @@ pub async fn launch_tier_atomic(
 
     info!(
         "[robust_launch] Tier {} atomic commit: {} containers started ({}ms)",
-        tier, started.len(), duration_ms
+        tier,
+        started.len(),
+        duration_ms
     );
 
     Ok(TierCommitResult {
@@ -185,10 +188,7 @@ pub async fn launch_tier_atomic(
         success: true,
         containers_started: started,
         containers_rolled_back: Vec::new(),
-        detail: format!(
-            "All {} containers started successfully",
-            containers.len()
-        ),
+        detail: format!("All {} containers started successfully", containers.len()),
     })
 }
 
@@ -292,10 +292,11 @@ async fn check_all_containers_health(containers: &[String]) -> HashMap<String, b
 /// their dependencies (e.g., app before DB, DB before Zenoh).
 ///
 /// Idea #30: Launch Abort with Emergency Drain
-pub async fn emergency_drain(
-    tiers: &[TierSpec],
-) -> Result<DrainResult, IgnitionError> {
-    info!("[robust_launch] EMERGENCY DRAIN initiated — {} tiers", tiers.len());
+pub async fn emergency_drain(tiers: &[TierSpec]) -> Result<DrainResult, IgnitionError> {
+    info!(
+        "[robust_launch] EMERGENCY DRAIN initiated — {} tiers",
+        tiers.len()
+    );
 
     let wall_start = Instant::now();
     let mut containers_stopped: Vec<String> = Vec::new();
@@ -305,7 +306,11 @@ pub async fn emergency_drain(
 
     // Stop containers in REVERSE tier order (highest tier first)
     for tier in tiers.iter().rev() {
-        info!("[robust_launch] Draining tier {} ({} containers)", tier.number, tier.containers.len());
+        info!(
+            "[robust_launch] Draining tier {} ({} containers)",
+            tier.number,
+            tier.containers.len()
+        );
 
         for container in &tier.containers {
             let timeout = Duration::from_millis(EMERGENCY_DRAIN_TIMEOUT_MS);
@@ -348,7 +353,10 @@ pub async fn emergency_drain(
 
                 if !in_use && containers_failed.is_empty() {
                     if let Err(e) = podman::remove_network(network).await {
-                        warn!("[robust_launch] Failed to remove network {}: {}", network, e);
+                        warn!(
+                            "[robust_launch] Failed to remove network {}: {}",
+                            network, e
+                        );
                     } else {
                         info!("[robust_launch] Cleaned up network {}", network);
                         networks_cleaned.push(network.clone());
@@ -543,8 +551,16 @@ mod tests {
     fn test_tier_reverse_order() {
         // Verify that reverse iteration works correctly for drain
         let tiers = vec![
-            TierSpec { number: 0, name: "T0".into(), containers: vec!["zenoh".into()] },
-            TierSpec { number: 4, name: "T4".into(), containers: vec!["app".into()] },
+            TierSpec {
+                number: 0,
+                name: "T0".into(),
+                containers: vec!["zenoh".into()],
+            },
+            TierSpec {
+                number: 4,
+                name: "T4".into(),
+                containers: vec!["app".into()],
+            },
         ];
 
         let mut reverse_order: Vec<u8> = tiers.iter().rev().map(|t| t.number).collect();

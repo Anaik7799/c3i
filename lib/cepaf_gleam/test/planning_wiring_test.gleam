@@ -197,7 +197,7 @@ pub fn a2ui_unknown_component_rejected_test() {
   case validator.validate_proposal(cat, proposal) {
     validator.Valid -> should.fail()
     validator.Invalid(reasons) ->
-      { list.length(reasons) > 0 } |> should.be_true()
+      { reasons != [] } |> should.be_true()
   }
 }
 

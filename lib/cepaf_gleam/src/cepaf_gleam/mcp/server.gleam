@@ -368,3 +368,8 @@ pub fn handle_request(
 ) -> Option(String) {
   dispatch(method, id, raw_line)
 }
+
+/// Process a raw JSON-RPC line (for Zenoh or other transports).
+pub fn handle_request_raw(line: String) -> Option(String) {
+  process_line(line)
+}

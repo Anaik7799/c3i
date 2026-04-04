@@ -95,9 +95,24 @@ DeonticAxioms = {
 U[φ_, ψ_] := Until[φ, ψ]    (* Until *)
 ```
 
----
+### §1.4 Planning & Task Authority (ℵₚ Set)
 
-## §1 FUNDAMENTAL AXIOMS (ℵ₀ SET)
+```mathematica
+(* Planning Authority Axioms *)
+PlanningAxioms = {
+  (* P1: sa-plan is the unique authoritative function for planning state updates *)
+  UniqueAuthoritativeFunction[TaskState, "sa-plan"],
+  
+  (* P2: All task updates MUST be performed via sa-plan *)
+  ∀t ∈ Tasks, ∀s ∈ Status, O[Agent, sa_plan_update[t, s]],
+  
+  (* P3: Manual edits to PROJECT_TODOLIST.md are prohibited *)
+  F[Agent, manual_edit["PROJECT_TODOLIST.md"]],
+  
+  (* P4: Consistency between Planning.db and PROJECT_TODOLIST.md is maintained by sa-plan *)
+  □(PlanningDB ⟺ ProjectTodoListMD) via sa_plan_sync
+}
+```
 
 ### Axiom 1: Patient Mode Invariant (Ω₁)
 

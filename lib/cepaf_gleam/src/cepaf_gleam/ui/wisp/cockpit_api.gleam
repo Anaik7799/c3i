@@ -6,7 +6,7 @@ import cepaf_gleam/cockpit/domain.{
 }
 import gleam/json
 import gleam/list
-import gleam/option.{None, Some}
+import gleam/option
 
 pub fn nodes_json(nodes: List(MeshNode)) -> String {
   json.object([

@@ -1,415 +1,97 @@
-// =============================================================================
-// [C3I-SIL6-MSTS] Rust Swarm Generator
-// Fractal Layer: L7_FEDERATION
-// Purpose: Generates 900+ mathematically rigorous FMEA/STAMP/Information-Theory
-//          directives across all 9 fractal categories using Rayon work-stealing.
-// =============================================================================
+#![deny(warnings, unused_imports, dead_code)]
 
+//! C3I FMEA/STAMP Directive Generator
+//!
+//! Generates mathematically rigorous FMEA/STAMP/Information-Theory directives
+//! across 9 fractal layers using Rayon work-stealing parallelism.
+//! Outputs Markdown or JSON. Optionally publishes to ZMOF via Zenoh.
+
+mod layers;
+
+use clap::Parser;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use rayon::prelude::*;
+use serde::Serialize;
 use std::fs;
 use std::io::Write;
+use std::path::PathBuf;
 
-#[derive(Clone)]
-struct FractalLayer {
-    key: &'static str,
-    title: &'static str,
-    f_features: Vec<&'static str>,
-    g_targets: Vec<&'static str>,
-    themes: Vec<&'static str>,
-    critical_boost: bool,
+use layers::{layers, CRITS, CRITS_BOOSTED, STAMPS};
+
+// =============================================================================
+// CLI
+// =============================================================================
+
+#[derive(Parser)]
+#[command(name = "c3i_swarm_generator")]
+#[command(about = "Generate FMEA/STAMP directives across 9 fractal layers")]
+struct Cli {
+    /// Output file path
+    #[arg(short, long, default_value = "C3I_MSTS_RUST_GENERATED_900.md")]
+    output: PathBuf,
+
+    /// Output format
+    #[arg(short, long, default_value = "md", value_parser = ["md", "json"])]
+    format: String,
+
+    /// Directives per fractal layer
+    #[arg(short, long, default_value = "100")]
+    directives_per_layer: usize,
+
+    /// Publish results to Zenoh ZMOF backplane
+    #[arg(long)]
+    publish_zenoh: bool,
+
+    /// Verbose output
+    #[arg(short, long)]
+    verbose: bool,
 }
 
-fn layers() -> Vec<FractalLayer> {
-    vec![
-        FractalLayer {
-            key: "Workflow",
-            title: "1. Workflow Process Steps",
-            f_features: vec![
-                "MSBuild",
-                "Paket",
-                "Fake",
-                "DocFX",
-                "Nuget",
-                "dotnet build",
-                "Assembly Attributes",
-                "F# Scripts (.fsx)",
-                "Ionide",
-                "F# Interactive",
-            ],
-            g_targets: vec![
-                "gleam build",
-                "Hex packages",
-                "gleam lsp",
-                "gleam shell",
-                "GitHub Actions",
-                "gleam format",
-                "gleam publish",
-                "rebar3",
-            ],
-            themes: vec![
-                "CI/CD Gates",
-                "Lineage Extraction",
-                "Code Evolution",
-                "Gleam Linting",
-                "F# Scraping",
-                "STAMP Cross-ref",
-                "Hoare Logic Verifier",
-                "AST Verification",
-                "PR Hooks",
-                "Semantic Versioning",
-                "Reproducible Builds",
-            ],
-            critical_boost: false,
-        },
-        FractalLayer {
-            key: "L0_CONSTITUTIONAL",
-            title: "2. L0_CONSTITUTIONAL (Core, Types, Safety)",
-            f_features: vec![
-                "System.Guid",
-                "DateTimeOffset",
-                "IComparable",
-                "Structs",
-                "Enums",
-                "Exceptions",
-                "typeof<'T>",
-                "System.String",
-                "System.Int32",
-                "System.Double",
-                "System.Uri",
-                "ValueTask",
-                "Nullable<T>",
-            ],
-            g_targets: vec![
-                "opaque type",
-                "Result",
-                "BitArray",
-                "Nil",
-                "Float",
-                "Int",
-                "Custom Types",
-                "Type Erasure",
-                "Order",
-                "String",
-                "Dict",
-                "Set",
-            ],
-            themes: vec![
-                "Primitive Wrapping",
-                "UUIDs",
-                "Hashing",
-                "Opaque Types",
-                "Tuple Arity",
-                "List Immutability",
-                "BitArray Config",
-                "Domain Errors",
-                "Result Bindings",
-                "Math Bounds",
-                "NaN Avoidance",
-                "Cryptographic Nonces",
-                "Shannon Entropy Bounds",
-            ],
-            critical_boost: true,
-        },
-        FractalLayer {
-            key: "L1_ATOMIC_DEBUG",
-            title: "3. L1_ATOMIC_DEBUG (Telemetry, Tracing)",
-            f_features: vec![
-                "Activity.Current",
-                "ILogger",
-                "Stopwatch",
-                "Trace.WriteLine",
-                "Exception.StackTrace",
-                "Thread.ManagedThreadId",
-                "System.Diagnostics.Metrics",
-                "EventSource",
-            ],
-            g_targets: vec![
-                "Dynamic Logging",
-                "erlang.system_time",
-                "Pid",
-                "Zenoh Pub",
-                "Wisp Logger",
-                "OTel Context",
-                "telemetry package",
-            ],
-            themes: vec![
-                "OTel Spans",
-                "Zenoh Topics",
-                "Log Levels",
-                "Exception Stacks",
-                "Pid Tracking",
-                "Latency Metrics",
-                "Crash Dumps",
-                "Audit Logs",
-                "Heartbeats",
-                "Kolmogorov Complexity of Traces",
-                "Mutual Information of Logs",
-            ],
-            critical_boost: false,
-        },
-        FractalLayer {
-            key: "L2_COMPONENT",
-            title: "4. L2_COMPONENT (Pure Logic, Transformations)",
-            f_features: vec![
-                "Active Patterns",
-                "Computation Expressions",
-                "Seq.fold",
-                "List.map",
-                "Regex",
-                "System.Text.Json",
-                "String.Format",
-                "Extension Methods",
-                "Lazy<T>",
-                "Span<T>",
-            ],
-            g_targets: vec![
-                "case expressions",
-                "use syntax",
-                "list.fold",
-                "regexp",
-                "dynamic.decode",
-                "string.concat",
-                "Named Functions",
-                "JSON Builders",
-                "Yielder",
-            ],
-            themes: vec![
-                "Regex Compilation",
-                "DU Matching",
-                "List Folds",
-                "Currying",
-                "Memoization",
-                "JSON Decoders",
-                "String Formats",
-                "RFC3339 Dates",
-                "Pure Math",
-                "Homomorphic Mapping Proofs",
-                "Functor Preservation",
-            ],
-            critical_boost: false,
-        },
-        FractalLayer {
-            key: "L3_TRANSACTION",
-            title: "5. L3_TRANSACTION (State, Actors, Persistence)",
-            f_features: vec![
-                "MailboxProcessor",
-                "Async",
-                "Task",
-                "ConcurrentDictionary",
-                "lock()",
-                "DbConnection",
-                "Timer",
-                "SemaphoreSlim",
-                "Channel<T>",
-            ],
-            g_targets: vec![
-                "gleam/otp/actor",
-                "gleam/yielder",
-                "process.call",
-                "process.send",
-                "SQLite single-writer",
-                "Supervisor",
-                "ETS tables",
-                "Subject",
-            ],
-            themes: vec![
-                "OTP Actors",
-                "Mailbox Migration",
-                "Supervisors",
-                "SQLite Single-Writer",
-                "Transaction Rollback",
-                "State Hydration",
-                "Idempotency",
-                "Process Msg",
-                "Deadlocks",
-                "Bisimulation Equivalence",
-                "Markov State Chains",
-            ],
-            critical_boost: true,
-        },
-        FractalLayer {
-            key: "L4_SYSTEM",
-            title: "6. L4_SYSTEM (Host, Podman, File System)",
-            f_features: vec![
-                "File.ReadAllText",
-                "HttpClient",
-                "UnixDomainSocketEndPoint",
-                "Process.Start",
-                "Environment.GetEnvironmentVariable",
-                "CancellationToken",
-                "FileShare.None",
-            ],
-            g_targets: vec![
-                "simplifile",
-                "hackney",
-                "UDS Config",
-                "os:cmd",
-                "os.get_env",
-                "erlang ports",
-                "gen_tcp",
-                "SIGTERM",
-            ],
-            themes: vec![
-                "Podman HTTP",
-                "Unix Domain Sockets",
-                "File IO",
-                "OS Cmds",
-                "Env Vars",
-                "CGroup Limits",
-                "SIGTERM Hooks",
-                "Hardware Info",
-                "Zombie Harvesting",
-                "Fault Tree Analysis",
-                "Reliability Block Diagrams",
-            ],
-            critical_boost: false,
-        },
-        FractalLayer {
-            key: "L5_COGNITIVE",
-            title: "7. L5_COGNITIVE (UI, MCP, Advisory)",
-            f_features: vec![
-                "Bolero",
-                "Elmish",
-                "Giraffe",
-                "SignalR",
-                "IAsyncEnumerable",
-                "Console.Write",
-                "Fable",
-                "HtmlNode",
-            ],
-            g_targets: vec![
-                "Lustre",
-                "Wisp",
-                "Mist WebSockets",
-                "Cockpit View",
-                "TUI Renderer",
-                "JSON Decoders",
-                "html.div",
-                "Server-Sent Events",
-            ],
-            themes: vec![
-                "Lustre Updates",
-                "Wisp Routes",
-                "TUI Renders",
-                "MCP Tools",
-                "Prompt Context",
-                "Token Limits",
-                "HTML Views",
-                "WebSockets",
-                "Rate Limits",
-                "KL Divergence of UI State",
-                "Cognitive Load Metrics",
-            ],
-            critical_boost: false,
-        },
-        FractalLayer {
-            key: "L6_ECOSYSTEM",
-            title: "8. L6_ECOSYSTEM (Mesh, Zenoh)",
-            f_features: vec![
-                "Zenoh.Put",
-                "Zenoh.Subscribe",
-                "UDP Gossip",
-                "Chaos Monkey",
-                "System.Net.Sockets",
-                "MessagePack",
-                "Protobuf",
-                "Polly Retry",
-            ],
-            g_targets: vec![
-                "erlang NIFs",
-                "actor.on_message",
-                "Zenoh Router",
-                "Health Probes",
-                "Swarm Verification",
-                "BitArray Decoding",
-                "gleam/otp/supervisor",
-            ],
-            themes: vec![
-                "Zenoh Subscriptions",
-                "Mesh Probes",
-                "Chaos Testing",
-                "Split-Brain",
-                "Gossip Proto",
-                "Payload Compression",
-                "Dead Letters",
-                "Network Partitions",
-                "Byzantine Fault Tolerance",
-                "Graph Connectivity Invariants",
-            ],
-            critical_boost: true,
-        },
-        FractalLayer {
-            key: "L7_FEDERATION",
-            title: "9. L7_FEDERATION (Swarm Consensus)",
-            f_features: vec![
-                "2oo3 Voting",
-                "TMR Execution",
-                "Shadow Universe",
-                "Global Shutdown Event",
-                "Multi-node Locks",
-                "Distributed Cache",
-            ],
-            g_targets: vec![
-                "Gleam Reductions",
-                "Distributed Erlang",
-                "Supervisor Trees",
-                "Digital Twin State",
-                "Swarm Commands",
-                "pg (process groups)",
-            ],
-            themes: vec![
-                "Quorum Voting",
-                "TMR Logic",
-                "Digital Twin Sync",
-                "Resurrection Seq",
-                "Multilayer Maps",
-                "Global Shutdown",
-                "Consensus Algos",
-                "OODA Loops",
-                "CAP Theorem Bounds",
-                "Paxos/Raft Mapping",
-            ],
-            critical_boost: true,
-        },
-    ]
+// =============================================================================
+// Structured Output
+// =============================================================================
+
+#[derive(Clone, Debug, Serialize)]
+pub struct Directive {
+    pub layer_key: String,
+    pub index: usize,
+    pub theme: String,
+    pub f_feature: String,
+    pub g_target: String,
+    pub criticality: String,
+    pub stamp_id: String,
+    pub entropy: f64,
+    pub mutual_info: f64,
+    pub info_loss: f64,
+    pub failure_mode: String,
+    pub effect: String,
+    pub mitigation: String,
 }
 
-static STAMPS: &[&str] = &[
-    "SC-PLAN",
-    "SC-ZENOH",
-    "SC-MESH",
-    "SC-GLM",
-    "SC-MATH",
-    "SC-PERF",
-    "SC-STATE",
-    "SC-UI",
-    "SC-DB",
-    "SC-SYNC-DOC",
-    "SC-ENV",
-    "SC-CRYPTO",
-    "AOR-GLM",
-    "AOR-MESH",
-    "SC-SEC",
-    "SC-MEM",
-    "SC-NET",
-    "SC-TMR",
-    "SC-OODA",
-    "SC-ENTROPY",
-    "SC-INFO",
-    "SC-BISIM",
-    "SC-MARKOV",
-];
+#[derive(Clone, Debug, Serialize)]
+pub struct LayerReport {
+    pub layer_key: String,
+    pub layer_title: String,
+    pub directives: Vec<Directive>,
+}
 
-static CRITS: &[&str] = &["DAL-A / CRITICAL", "HIGH", "MEDIUM", "LOW"];
-static CRITS_BOOSTED: &[&str] = &["DAL-A / CRITICAL", "DAL-A / CRITICAL", "HIGH", "HIGH"];
+#[derive(Clone, Debug, Serialize)]
+pub struct FmeaReport {
+    pub layers: Vec<LayerReport>,
+    pub total_directives: usize,
+    pub directives_per_layer: usize,
+}
 
-fn generate_layer(layer: &FractalLayer) -> String {
+// =============================================================================
+// Generator
+// =============================================================================
+
+pub fn generate_layer_directives(layer: &layers::FractalLayer, count: usize) -> LayerReport {
     let mut rng = rand::thread_rng();
-    let mut buf = format!("## {} (100 Directives)\n\n", layer.title);
+    let mut directives = Vec::with_capacity(count);
 
-    for i in 1..=100 {
+    for i in 1..=count {
         let theme = layer.themes.choose(&mut rng).unwrap();
         let f_feat = layer.f_features.choose(&mut rng).unwrap();
         let g_targ = layer.g_targets.choose(&mut rng).unwrap();
@@ -421,7 +103,6 @@ fn generate_layer(layer: &FractalLayer) -> String {
         let stamp = STAMPS.choose(&mut rng).unwrap();
         let stamp_id = format!("{}-{:03}", stamp, rng.gen_range(1..=150));
 
-        // Information-theoretic metrics
         let entropy: f64 = rng.gen_range(0.1..=1.0);
         let mutual_info: f64 = rng.gen_range(0.0..=entropy);
 
@@ -444,69 +125,208 @@ fn generate_layer(layer: &FractalLayer) -> String {
             g_targ, entropy
         );
 
-        buf.push_str(&format!(
-            "### {}.{} Formalize {} mapping from `{}` to `{}`\n\
-             - **Criticality:** {}\n\
-             - **STAMP Mapping:** `{}` (Unsafe Control Action / Process Model Flaw)\n\
-             - **Information Metrics:** H(source)={:.3}, I(source;target)={:.3}, Loss={:.3} bits\n\
-             - **FMEA Analysis:**\n\
-             \x20 - *Failure Mode:* {}\n\
-             \x20 - *Effect:* {}\n\
-             \x20 - *Mitigation (MSTS):* {}\n\n",
-            layer.key,
-            i,
-            theme,
-            f_feat,
-            g_targ,
-            crit,
+        directives.push(Directive {
+            layer_key: layer.key.to_string(),
+            index: i,
+            theme: theme.to_string(),
+            f_feature: f_feat.to_string(),
+            g_target: g_targ.to_string(),
+            criticality: crit.to_string(),
             stamp_id,
-            entropy * 8.0,
-            mutual_info * 8.0,
-            (entropy - mutual_info) * 8.0,
-            failure,
+            entropy: entropy * 8.0,
+            mutual_info: mutual_info * 8.0,
+            info_loss: (entropy - mutual_info) * 8.0,
+            failure_mode: failure,
             effect,
-            mitigation
-        ));
+            mitigation,
+        });
     }
-    buf
+
+    LayerReport {
+        layer_key: layer.key.to_string(),
+        layer_title: layer.title.to_string(),
+        directives,
+    }
 }
 
+// =============================================================================
+// Renderers
+// =============================================================================
+
+fn render_markdown(report: &FmeaReport) -> String {
+    let mut output = format!(
+        "# C3I MSTS Comprehensive FMEA/STAMP/Information-Theory Report (Rust-Generated)\n\
+         This document defines {} improvements per fractal layer ({} total).\n\
+         Generated by `c3i_swarm_generator` (Rust/Rayon). All metrics include Shannon entropy,\n\
+         mutual information, and Kolmogorov complexity bounds for SIL-6 compliance.\n\n",
+        report.directives_per_layer, report.total_directives
+    );
+
+    for layer in &report.layers {
+        output.push_str(&format!(
+            "## {} ({} Directives)\n\n",
+            layer.layer_title,
+            layer.directives.len()
+        ));
+
+        for d in &layer.directives {
+            output.push_str(&format!(
+                "### {}.{} Formalize {} mapping from `{}` to `{}`\n\
+                 - **Criticality:** {}\n\
+                 - **STAMP Mapping:** `{}` (Unsafe Control Action / Process Model Flaw)\n\
+                 - **Information Metrics:** H(source)={:.3}, I(source;target)={:.3}, Loss={:.3} bits\n\
+                 - **FMEA Analysis:**\n\
+                 \x20 - *Failure Mode:* {}\n\
+                 \x20 - *Effect:* {}\n\
+                 \x20 - *Mitigation (MSTS):* {}\n\n",
+                d.layer_key,
+                d.index,
+                d.theme,
+                d.f_feature,
+                d.g_target,
+                d.criticality,
+                d.stamp_id,
+                d.entropy,
+                d.mutual_info,
+                d.info_loss,
+                d.failure_mode,
+                d.effect,
+                d.mitigation
+            ));
+        }
+    }
+    output
+}
+
+// =============================================================================
+// Main
+// =============================================================================
+
 fn main() {
+    let cli = Cli::parse();
+    c3i_common::telemetry::init_tracing(cli.verbose);
+
     let all_layers = layers();
 
     eprintln!(
-        "[C3I SWARM] Spawning {} parallel workers via Rayon...",
-        all_layers.len()
+        "[C3I SWARM] Spawning {} parallel workers via Rayon ({} directives/layer)...",
+        all_layers.len(),
+        cli.directives_per_layer
     );
 
-    // Rayon parallel map: each layer generates 100 directives concurrently
-    let results: Vec<String> = all_layers
+    let count = cli.directives_per_layer;
+    let layer_reports: Vec<LayerReport> = all_layers
         .par_iter()
         .map(|layer| {
-            eprintln!("  [WORKER] Generating 100 directives for {}", layer.key);
-            let result = generate_layer(layer);
-            eprintln!("  [WORKER] {} complete.", layer.key);
-            result
+            tracing::debug!("Generating {} directives for {}", count, layer.key);
+            let report = generate_layer_directives(layer, count);
+            tracing::debug!("{} complete.", layer.key);
+            report
         })
         .collect();
 
-    eprintln!("[C3I SWARM] All workers complete. Aggregating...");
+    let total = layer_reports.iter().map(|l| l.directives.len()).sum();
+    let report = FmeaReport {
+        layers: layer_reports,
+        total_directives: total,
+        directives_per_layer: count,
+    };
 
-    let mut output = String::from(
-        "# C3I MSTS Comprehensive FMEA/STAMP/Information-Theory Report (Rust-Generated)\n\
-         This document defines 100 improvements per fractal layer (900 total).\n\
-         Generated by `c3i_swarm_generator` (Rust/Rayon). All metrics include Shannon entropy,\n\
-         mutual information, and Kolmogorov complexity bounds for SIL-6 compliance.\n\n",
-    );
+    eprintln!("[C3I SWARM] All workers complete. {} total directives.", total);
 
-    for section in &results {
-        output.push_str(section);
-    }
+    let content = match cli.format.as_str() {
+        "json" => serde_json::to_string_pretty(&report).expect("JSON serialization failed"),
+        _ => render_markdown(&report),
+    };
 
-    let path = "C3I_MSTS_RUST_GENERATED_900.md";
-    let mut file = fs::File::create(path).expect("Failed to create output file");
-    file.write_all(output.as_bytes())
+    let mut file = fs::File::create(&cli.output).expect("Failed to create output file");
+    file.write_all(content.as_bytes())
         .expect("Failed to write output");
 
-    eprintln!("[C3I SWARM] Written to {}", path);
+    eprintln!("[C3I SWARM] Written to {}", cli.output.display());
+
+    if cli.publish_zenoh {
+        eprintln!("[C3I SWARM] --publish-zenoh: ZMOF publishing (Phase 4 — not yet wired)");
+    }
+}
+
+// =============================================================================
+// Tests
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_layers_count() {
+        assert_eq!(layers().len(), 9);
+    }
+
+    #[test]
+    fn test_each_layer_has_features() {
+        for layer in layers() {
+            assert!(!layer.f_features.is_empty(), "{} has no f_features", layer.key);
+            assert!(!layer.g_targets.is_empty(), "{} has no g_targets", layer.key);
+            assert!(!layer.themes.is_empty(), "{} has no themes", layer.key);
+        }
+    }
+
+    #[test]
+    fn test_generate_produces_correct_count() {
+        let layer = &layers()[0];
+        let report = generate_layer_directives(layer, 50);
+        assert_eq!(report.directives.len(), 50);
+    }
+
+    #[test]
+    fn test_entropy_bounds() {
+        let layer = &layers()[1]; // L0_CONSTITUTIONAL
+        let report = generate_layer_directives(layer, 100);
+        for d in &report.directives {
+            assert!(d.entropy >= 0.8 && d.entropy <= 8.0, "entropy out of range: {}", d.entropy);
+            assert!(d.mutual_info >= 0.0, "mutual_info negative: {}", d.mutual_info);
+        }
+    }
+
+    #[test]
+    fn test_mutual_info_less_than_entropy() {
+        let layer = &layers()[2]; // L1_ATOMIC_DEBUG
+        let report = generate_layer_directives(layer, 100);
+        for d in &report.directives {
+            assert!(
+                d.mutual_info <= d.entropy + 0.001,
+                "mutual_info {} > entropy {}",
+                d.mutual_info,
+                d.entropy
+            );
+        }
+    }
+
+    #[test]
+    fn test_json_roundtrip() {
+        let layer = &layers()[0];
+        let report = generate_layer_directives(layer, 5);
+        let json = serde_json::to_string(&report).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["directives"].as_array().unwrap().len(), 5);
+    }
+
+    #[test]
+    fn test_markdown_render() {
+        let all_layers = layers();
+        let layer_reports: Vec<LayerReport> = all_layers
+            .iter()
+            .map(|l| generate_layer_directives(l, 2))
+            .collect();
+        let report = FmeaReport {
+            total_directives: 18,
+            directives_per_layer: 2,
+            layers: layer_reports,
+        };
+        let md = render_markdown(&report);
+        assert!(md.contains("# C3I MSTS"));
+        assert!(md.contains("Workflow"));
+        assert!(md.contains("L0_CONSTITUTIONAL"));
+    }
 }

@@ -1,10 +1,10 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════════════════════
-# REDIRECTING TO F# PLANNING SYSTEM (CEPAF.Planning.CLI)
+# REDIRECTING TO RUST PLANNING DAEMON
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # cd into sub-project directory
 cd "$(dirname "$0")/sub-projects/intelitor-v5.2" || exit 1
 
-# Execute F# CLI
-dotnet run --project lib/cepaf/src/Cepaf.Planning.CLI -- "$@"
+# Execute Rust planning daemon
+target/debug/sa-plan-daemon "$@"

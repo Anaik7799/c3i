@@ -674,7 +674,7 @@ pub fn view(model: DashboardModel) -> Element(Msg) {
 // Header rendering — Status bar with health score + mode selector
 // =============================================================================
 
-fn render_header(model: DashboardModel, health: Float, mode: CockpitMode) -> Element(Msg) {
+fn render_header(_model: DashboardModel, health: Float, mode: CockpitMode) -> Element(Msg) {
   let health_pct = float.round(health *. 100.0) |> int.to_string
   let mode_str = cockpit_mode_to_string(mode)
 

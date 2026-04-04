@@ -30,7 +30,7 @@
 
 use crate::errors::IgnitionError;
 use crate::types::{
-    AdaptiveTimeout, BuildEmaRecord, TimeoutSource, BUILD_HISTORY_DB_PATH, BOOT_TIMEOUT_MS,
+    AdaptiveTimeout, BuildEmaRecord, TimeoutSource, BOOT_TIMEOUT_MS, BUILD_HISTORY_DB_PATH,
     EMA_ALPHA, EMA_TIMEOUT_MULTIPLIER, MAX_ADAPTIVE_TIMEOUT_MS, MIN_ADAPTIVE_TIMEOUT_MS,
 };
 use log::{debug, info, warn};
@@ -187,7 +187,10 @@ pub fn read_all_ema(conn: &Connection) -> Result<Vec<BuildEmaRecord>, IgnitionEr
 ///
 /// Returns `Ok(None)` when the container has never been built (no row in
 /// `build_ema`). Returns `Ok(Some(...))` when EMA data is available.
-pub fn read_ema(conn: &Connection, container: &str) -> Result<Option<BuildEmaRecord>, IgnitionError> {
+pub fn read_ema(
+    conn: &Connection,
+    container: &str,
+) -> Result<Option<BuildEmaRecord>, IgnitionError> {
     let result = conn.query_row(
         "SELECT container_name, ema_duration_ms, ema_image_size, \
          total_builds, last_success, last_failure \
@@ -247,7 +250,11 @@ pub fn read_ema(conn: &Connection, container: &str) -> Result<Option<BuildEmaRec
 /// - Container start jitter
 ///
 /// ## STAMP: SC-IGNITE-005
-pub fn adaptive_timeout(conn: &Connection, container: &str, base_timeout_ms: u64) -> AdaptiveTimeout {
+pub fn adaptive_timeout(
+    conn: &Connection,
+    container: &str,
+    base_timeout_ms: u64,
+) -> AdaptiveTimeout {
     match read_ema(conn, container) {
         Ok(Some(ema)) => {
             let raw_ms = ema.ema_duration_ms * EMA_TIMEOUT_MULTIPLIER;
@@ -463,11 +470,7 @@ pub fn build_statistics(conn: &Connection) -> Result<BuildStats, IgnitionError> 
 
     // Containers with EMA records
     let containers_with_ema: u32 = conn
-        .query_row(
-            "SELECT COUNT(*) FROM build_ema",
-            [],
-            |r| r.get::<_, i64>(0),
-        )
+        .query_row("SELECT COUNT(*) FROM build_ema", [], |r| r.get::<_, i64>(0))
         .map_err(|e| IgnitionError::SqliteError(format!("build_statistics ema_count: {}", e)))?
         as u32;
 
@@ -591,7 +594,10 @@ pub fn load_timeouts() -> HashMap<String, AdaptiveTimeout> {
             default_all_timeouts()
         }
         Err(e) => {
-            warn!("[build_oracle] DB open failed ({}) — all timeouts use defaults", e);
+            warn!(
+                "[build_oracle] DB open failed ({}) — all timeouts use defaults",
+                e
+            );
             default_all_timeouts()
         }
     }
@@ -637,6 +643,90 @@ pub fn check_health() -> DbHealth {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// EMA WRITES (EVO-2)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// Open the DB for writing EMA updates (EVO-2)
+pub fn open_db_rw() -> Result<Connection, IgnitionError> {
+    let db_path = Path::new(BUILD_HISTORY_DB_PATH);
+    let flags = OpenFlags::SQLITE_OPEN_READ_WRITE
+        | OpenFlags::SQLITE_OPEN_CREATE
+        | OpenFlags::SQLITE_OPEN_NO_MUTEX;
+    let conn = Connection::open_with_flags(db_path, flags)
+        .map_err(|e| IgnitionError::SqliteError(format!("open_db_rw: {}", e)))?;
+    conn.execute_batch(
+        "PRAGMA journal_mode=WAL;
+         CREATE TABLE IF NOT EXISTS build_ema (
+             container_name TEXT PRIMARY KEY,
+             ema_duration_ms REAL NOT NULL,
+             ema_image_size REAL NOT NULL,
+             total_builds INTEGER NOT NULL,
+             last_success TEXT,
+             last_failure TEXT
+         );
+         CREATE TABLE IF NOT EXISTS build_history (
+             id INTEGER PRIMARY KEY AUTOINCREMENT,
+             container_name TEXT NOT NULL,
+             action TEXT NOT NULL,
+             success INTEGER NOT NULL,
+             duration_ms INTEGER NOT NULL,
+             image_size_bytes INTEGER,
+             cache_hits INTEGER,
+             cache_misses INTEGER,
+             step_count INTEGER,
+             timestamp TEXT NOT NULL,
+             error TEXT
+         );",
+    )
+    .map_err(|e| IgnitionError::SqliteError(format!("init_schema: {}", e)))?;
+    Ok(conn)
+}
+
+/// Update EMA record (EVO-2)
+pub fn update_ema(
+    conn: &Connection,
+    container: &str,
+    duration_ms: f64,
+    success: bool,
+) -> Result<(), IgnitionError> {
+    let current = read_ema(conn, container)?;
+    let now = chrono::Utc::now().to_rfc3339();
+    let (new_ema, new_total, last_success, last_failure) = match current {
+        Some(ema) => {
+            let next_ema = compute_ema(ema.ema_duration_ms, duration_ms);
+            let ls = if success {
+                Some(now.clone())
+            } else {
+                ema.last_success
+            };
+            let lf = if !success {
+                Some(now)
+            } else {
+                ema.last_failure
+            };
+            (next_ema, ema.total_builds + 1, ls, lf)
+        }
+        None => {
+            let ls = if success { Some(now.clone()) } else { None };
+            let lf = if !success { Some(now) } else { None };
+            (duration_ms, 1, ls, lf)
+        }
+    };
+
+    conn.execute(
+        "INSERT INTO build_ema (container_name, ema_duration_ms, ema_image_size, total_builds, last_success, last_failure)
+         VALUES (?1, ?2, 0.0, ?3, ?4, ?5)
+         ON CONFLICT(container_name) DO UPDATE SET
+         ema_duration_ms=excluded.ema_duration_ms,
+         total_builds=excluded.total_builds,
+         last_success=excluded.last_success,
+         last_failure=excluded.last_failure",
+        rusqlite::params![container, new_ema, new_total, last_success, last_failure],
+    ).map_err(|e| IgnitionError::SqliteError(format!("update_ema: {}", e)))?;
+    Ok(())
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // PRIVATE HELPERS
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -646,7 +736,9 @@ pub fn check_health() -> DbHealth {
 /// - Ceiling: `MAX_ADAPTIVE_TIMEOUT_MS` (600 000 ms) — never wait more than 10 min.
 #[inline]
 fn clamp_timeout(raw_ms: u64) -> u64 {
-    raw_ms.max(MIN_ADAPTIVE_TIMEOUT_MS).min(MAX_ADAPTIVE_TIMEOUT_MS)
+    raw_ms
+        .max(MIN_ADAPTIVE_TIMEOUT_MS)
+        .min(MAX_ADAPTIVE_TIMEOUT_MS)
 }
 
 /// Count rows in a table, returning `-1` on error (e.g., table not yet created).
@@ -776,8 +868,14 @@ mod tests {
     #[test]
     fn clamp_within_range_passes_through() {
         assert_eq!(clamp_timeout(60_000), 60_000);
-        assert_eq!(clamp_timeout(MIN_ADAPTIVE_TIMEOUT_MS), MIN_ADAPTIVE_TIMEOUT_MS);
-        assert_eq!(clamp_timeout(MAX_ADAPTIVE_TIMEOUT_MS), MAX_ADAPTIVE_TIMEOUT_MS);
+        assert_eq!(
+            clamp_timeout(MIN_ADAPTIVE_TIMEOUT_MS),
+            MIN_ADAPTIVE_TIMEOUT_MS
+        );
+        assert_eq!(
+            clamp_timeout(MAX_ADAPTIVE_TIMEOUT_MS),
+            MAX_ADAPTIVE_TIMEOUT_MS
+        );
     }
 
     #[test]
@@ -794,7 +892,10 @@ mod tests {
         // alpha = 0.3
         let result = compute_ema(100.0, 200.0);
         let expected = 0.3 * 200.0 + 0.7 * 100.0; // = 130.0
-        assert!((result - expected).abs() < 1e-9, "got {result}, expected {expected}");
+        assert!(
+            (result - expected).abs() < 1e-9,
+            "got {result}, expected {expected}"
+        );
     }
 
     #[test]
@@ -957,10 +1058,7 @@ mod tests {
 
         let map = all_adaptive_timeouts(&conn);
 
-        assert_eq!(
-            map["indrajaal-ex-app-1"].source,
-            TimeoutSource::BuildOracle
-        );
+        assert_eq!(map["indrajaal-ex-app-1"].source, TimeoutSource::BuildOracle);
         assert_eq!(map["indrajaal-db-prod"].source, TimeoutSource::BuildOracle);
         assert_eq!(map["zenoh-router"].source, TimeoutSource::Default);
     }

@@ -1,0 +1,73 @@
+-- allium: 3
+-- ZMOF (Zenoh-MCP-OTel Fractal Backplane) — Behavioral Specification
+-- Covers: Fractal Namespace routing, OTel-over-Zenoh (OoZ), MCP-over-Zenoh (MoZ)
+-- STAMP: SC-ZMOF-001..006, SC-MSG-001..004
+-- Date: 2026-04-04
+
+contract ZmofNamespace {
+    -- Mandate: SC-ZMOF-001 — Zenoh is the SOLE transport for internal mesh communication
+    
+    command publish(layer: String, domain: String, entity: String, payload: String)
+    command subscribe(layer: String, pattern: String)
+    
+    rule "Enforce Fractal Path" {
+        when call ZmofNamespace.publish
+        ensure layer in ["l0", "l1", "l2", "l3", "l4", "l5", "l6", "l7"]
+        ensure domain != ""
+    }
+    
+    rule "Prohibit Direct HTTP" {
+        when call http_post("internal_mesh_ip")
+        reject "SC-ZMOF-004: Point-to-point HTTP/gRPC for internal control is PROHIBITED"
+    }
+}
+
+contract OTelOverZenoh {
+    -- Mandate: SC-ZMOF-002 — OTel Spans MUST be published as Zenoh messages
+    
+    command export_span(layer: String, entity_id: String, json_span: String)
+    command ingest_span(topic: String, json_span: String)
+    
+    rule "Standardized Topic Prefix" {
+        when call OTelOverZenoh.export_span
+        then publish(topic = "indrajaal/otel/span/" ++ layer ++ "/" ++ entity_id)
+    }
+    
+    rule "Ingestor Subscription" {
+        when call OTelOverZenoh.ingest_span
+        ensure topic matches "indrajaal/otel/span/**"
+    }
+}
+
+contract McpOverZenoh {
+    -- Mandate: SC-ZMOF-003 — MCP Tool Calls MUST ride over Zenoh Pub/Sub
+    
+    command request_tool(tool_name: String, request_id: String, payload: String)
+    command execute_tool(tool_name: String, request_id: String)
+    command respond_tool(request_id: String, result: String)
+    
+    rule "Agent Request Routing" {
+        when call McpOverZenoh.request_tool
+        then publish(topic = "indrajaal/mcp/req/" ++ tool_name ++ "/" ++ request_id)
+    }
+    
+    rule "Provider Execution Validation" {
+        when call McpOverZenoh.execute_tool
+        ensure "Provider registered tool_name"
+        then respond_tool(request_id, "result")
+    }
+    
+    rule "Response Routing" {
+        when call McpOverZenoh.respond_tool
+        then publish(topic = "indrajaal/mcp/res/" ++ request_id)
+    }
+}
+
+-- =============================================================================
+-- External Entities
+-- =============================================================================
+
+external entity ZenohRouterMesh
+external entity OTelCollector
+external entity CortexAgent
+external entity GeminiAgent

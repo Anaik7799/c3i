@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::Write;
 use std::path::Path;
 use std::os::unix::fs::PermissionsExt;
 

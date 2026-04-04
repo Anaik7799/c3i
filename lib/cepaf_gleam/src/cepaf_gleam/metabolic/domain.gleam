@@ -5,7 +5,6 @@
 // This module defines the core domain entities for metabolic tracking.
 
 import cepaf_gleam/core/ids.{type HolonId}
-import gleam/option.{type Option}
 
 /// Represents the vital signs of a holon in the Indrajaal mesh.
 pub type MetabolicState {

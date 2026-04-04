@@ -7,8 +7,8 @@
 // =============================================================================
 
 import cepaf_gleam/ui/lustre/planning_dashboard.{
-  type DashboardModel, type TaskCard, Bright, CheckFail, CheckPass, CheckWarn,
-  ContainerWave, Dark, DashboardModel, Dim, EmergencyMode, Normal, ServiceNode,
+  type TaskCard, Bright, CheckFail, CheckPass, CheckWarn,
+  ContainerWave, Dark, DashboardModel, Dim, EmergencyMode, ServiceNode,
   SyncPhaseResult, TaskCard,
 }
 import cepaf_gleam/ui/tui/planning_dashboard_view

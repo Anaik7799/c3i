@@ -28,13 +28,23 @@ use tokio::time::sleep;
 /// All 16 SIL-6 containers grouped by their network role.
 const ZENOH_ROUTERS: &[&str] = &["zenoh-router-1", "zenoh-router-2", "zenoh-router-3"];
 const INFRA_CONTAINERS: &[&str] = &[
-    "zenoh-router-1", "zenoh-router-2", "zenoh-router-3",
-    "indrajaal-db-prod", "indrajaal-obs-prod", "indrajaal-cortex",
+    "zenoh-router-1",
+    "zenoh-router-2",
+    "zenoh-router-3",
+    "indrajaal-db-prod",
+    "indrajaal-obs-prod",
+    "indrajaal-cortex",
 ];
 const APP_CONTAINERS: &[&str] = &[
-    "indrajaal-ex-app-1", "indrajaal-ex-app-2", "indrajaal-ex-app-3",
-    "cepaf-bridge", "indrajaal-chaya", "indrajaal-ollama",
-    "indrajaal-ml-runner-1", "indrajaal-ml-runner-2", "indrajaal-mojo",
+    "indrajaal-ex-app-1",
+    "indrajaal-ex-app-2",
+    "indrajaal-ex-app-3",
+    "cepaf-bridge",
+    "indrajaal-chaya",
+    "indrajaal-ollama",
+    "indrajaal-ml-runner-1",
+    "indrajaal-ml-runner-2",
+    "indrajaal-mojo",
 ];
 
 /// Probe a single container from a source container via TCP.
@@ -58,7 +68,8 @@ async fn multi_path_probe(source: &str, target: &str, target_port: u16) -> PathR
     let path1 = probe_tcp(source, target, target_port).await;
     let path2 = probe_tcp(source, "zenoh-router-1", 7447).await
         && probe_tcp("zenoh-router-1", target, target_port).await;
-    let path3 = podman::container_status(target).await
+    let path3 = podman::container_status(target)
+        .await
         .map(|s| s == "running")
         .unwrap_or(false);
 
@@ -184,7 +195,11 @@ pub async fn detect_partitions() -> Result<PartitionResult, IgnitionError> {
     // Sort partitions by size (largest = majority)
     partitions.sort_by(|a, b| b.len().cmp(&a.len()));
     let majority = &partitions[0];
-    let minority: Vec<&str> = partitions[1..].iter().flat_map(|p| p.iter()).copied().collect();
+    let minority: Vec<&str> = partitions[1..]
+        .iter()
+        .flat_map(|p| p.iter())
+        .copied()
+        .collect();
 
     let fence_required = !minority.is_empty();
 
@@ -253,8 +268,7 @@ pub async fn execute_fencing(partition: &PartitionResult) -> Result<FencingRepor
 
     info!(
         "[partition] Fencing complete: {} containers fenced, quorum_preserved={}",
-        fenced_count,
-        quorum_preserved
+        fenced_count, quorum_preserved
     );
 
     Ok(FencingReport {
@@ -303,7 +317,10 @@ pub async fn wait_for_partition_heal(timeout_secs: u64) -> Result<bool, Ignition
         sleep(Duration::from_secs(2)).await;
     }
 
-    warn!("[partition] Partition did not heal within {}s timeout", timeout_secs);
+    warn!(
+        "[partition] Partition did not heal within {}s timeout",
+        timeout_secs
+    );
     Ok(false)
 }
 

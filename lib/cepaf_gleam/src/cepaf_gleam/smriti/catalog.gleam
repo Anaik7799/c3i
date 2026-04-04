@@ -48,22 +48,22 @@ pub type CatalogResult {
 
 pub fn search(query: CatalogQuery) -> Result(CatalogResult, String) {
   let _ = query
-  todo as "NYI: requires SQLite FTS"
+  panic as "NYI: requires SQLite FTS (SC-SMRITI-001)"
 }
 
 pub fn ingest(path: String) -> Result(Int, String) {
   let _ = path
-  todo as "NYI: requires file I/O"
+  panic as "NYI: requires file I/O (SC-SMRITI-001)"
 }
 
 pub fn index_entry(entry: CatalogEntry) -> Result(Nil, String) {
   let _ = entry
-  todo as "NYI: requires SQLite"
+  panic as "NYI: requires SQLite (SC-SMRITI-001)"
 }
 
 pub fn delete_entry(id: String) -> Result(Nil, String) {
   let _ = id
-  todo as "NYI: requires SQLite"
+  panic as "NYI: requires SQLite (SC-SMRITI-001)"
 }
 
 // =============================================================================

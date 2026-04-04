@@ -147,9 +147,7 @@ pub async fn check_all_containers() -> Vec<HealthConsensus> {
     let mut handles = Vec::with_capacity(containers.len());
 
     for (name, port, check_type) in containers {
-        let handle = tokio::spawn(async move {
-            check_consensus(&name, port, &check_type).await
-        });
+        let handle = tokio::spawn(async move { check_consensus(&name, port, &check_type).await });
         handles.push(handle);
     }
 
@@ -225,7 +223,10 @@ async fn method_running(container: &str) -> HealthMethodResult {
             }
         }
         Err(e) => {
-            debug!("[Orchestra/M1] {} error ({}ms): {}", container, latency_ms, e);
+            debug!(
+                "[Orchestra/M1] {} error ({}ms): {}",
+                container, latency_ms, e
+            );
             HealthMethodResult {
                 method: HealthMethod::Running,
                 passed: false,
@@ -333,25 +334,18 @@ async fn method_port_open(container: &str, port: u16) -> HealthMethodResult {
 /// This method is deliberately independent of Method 2 (PortOpen): the two
 /// can disagree (e.g. port listening but HTTP 500) giving the consensus a
 /// richer signal.
-async fn method_service_endpoint(
-    container: &str,
-    check: &HealthCheckType,
-) -> HealthMethodResult {
+async fn method_service_endpoint(container: &str, check: &HealthCheckType) -> HealthMethodResult {
     let start = Instant::now();
 
     let result = match check {
         HealthCheckType::PgIsReady => {
             health::check_postgres(container, Duration::from_secs(5)).await
         }
-        HealthCheckType::Http(url) => {
-            health::check_http(url, Duration::from_secs(5)).await
-        }
+        HealthCheckType::Http(url) => health::check_http(url, Duration::from_secs(5)).await,
         HealthCheckType::TcpPort(port) => {
             health::check_port(container, *port, Duration::from_secs(3)).await
         }
-        HealthCheckType::Running => {
-            health::check_running(container).await
-        }
+        HealthCheckType::Running => health::check_running(container).await,
     };
 
     let latency_ms = start.elapsed().as_millis() as u64;
@@ -420,7 +414,11 @@ async fn method_quorum_vote(container: &str) -> HealthMethodResult {
 
     let result = podman::podman_exec(
         container,
-        &["sh", "-c", &format!("nc -z zenoh-router {} 2>/dev/null", ZENOH_PORT)],
+        &[
+            "sh",
+            "-c",
+            &format!("nc -z zenoh-router {} 2>/dev/null", ZENOH_PORT),
+        ],
         Duration::from_secs(5),
     )
     .await;
@@ -443,16 +441,16 @@ async fn method_quorum_vote(container: &str) -> HealthMethodResult {
         Ok((_, stderr, code)) => {
             debug!(
                 "[Orchestra/M4] {} zenoh mesh unreachable (code={}, {}ms): {}",
-                container, code, latency_ms, stderr.trim()
+                container,
+                code,
+                latency_ms,
+                stderr.trim()
             );
             HealthMethodResult {
                 method: HealthMethod::QuorumVote,
                 passed: false,
                 latency_ms,
-                detail: format!(
-                    "zenoh-router:{} unreachable (nc exit {})",
-                    ZENOH_PORT, code
-                ),
+                detail: format!("zenoh-router:{} unreachable (nc exit {})", ZENOH_PORT, code),
             }
         }
         Err(e) => {
@@ -498,11 +496,8 @@ async fn method_digital_twin(container: &str, expected_port: u16) -> HealthMetho
 
     // Inspect running state and port bindings in a single podman call.
     // Format: "<running> <ports_json>"
-    let inspect_result = podman::podman_inspect(
-        container,
-        "{{.State.Running}} {{.NetworkSettings.Ports}}",
-    )
-    .await;
+    let inspect_result =
+        podman::podman_inspect(container, "{{.State.Running}} {{.NetworkSettings.Ports}}").await;
 
     let latency_ms = start.elapsed().as_millis() as u64;
 
@@ -555,8 +550,8 @@ async fn method_digital_twin(container: &str, expected_port: u16) -> HealthMetho
             // Check that the expected port string appears somewhere in the output.
             // `podman inspect` renders ports as e.g. `map[4000/tcp:[{0.0.0.0 4000}]]`
             let port_str = format!("{}/tcp", expected_port);
-            let port_present = output.contains(&port_str)
-                || output.contains(&expected_port.to_string());
+            let port_present =
+                output.contains(&port_str) || output.contains(&expected_port.to_string());
 
             if port_present {
                 debug!(
@@ -567,10 +562,7 @@ async fn method_digital_twin(container: &str, expected_port: u16) -> HealthMetho
                     method: HealthMethod::DigitalTwin,
                     passed: true,
                     latency_ms,
-                    detail: format!(
-                        "State.Running=true, port {}/tcp bound",
-                        expected_port
-                    ),
+                    detail: format!("State.Running=true, port {}/tcp bound", expected_port),
                 }
             } else {
                 debug!(
@@ -612,10 +604,10 @@ fn compute_status(agreed: u32, total: u32) -> HealthStatus {
         return HealthStatus::Unknown;
     }
     match agreed {
-        n if n == total => HealthStatus::Healthy,  // 5/5
-        3 | 4 => HealthStatus::Degraded,           // 3/5 or 4/5
-        1 | 2 => HealthStatus::Unhealthy,          // 1/5 or 2/5
-        0 => HealthStatus::Unreachable,            // 0/5
+        n if n == total => HealthStatus::Healthy, // 5/5
+        3 | 4 => HealthStatus::Degraded,          // 3/5 or 4/5
+        1 | 2 => HealthStatus::Unhealthy,         // 1/5 or 2/5
+        0 => HealthStatus::Unreachable,           // 0/5
         _ => HealthStatus::Unknown,
     }
 }
@@ -940,10 +932,7 @@ mod tests {
 
     #[test]
     fn test_check_type_label_running() {
-        assert_eq!(
-            check_type_label(&HealthCheckType::Running),
-            "running-state"
-        );
+        assert_eq!(check_type_label(&HealthCheckType::Running), "running-state");
     }
 
     #[test]

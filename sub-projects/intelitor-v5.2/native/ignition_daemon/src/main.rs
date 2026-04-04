@@ -3,12 +3,10 @@
 
 mod apoptosis;
 mod artifacts;
-mod audit_log;
 mod build;
 mod build_oracle;
 mod build_stream;
 mod cascade;
-mod command_verifier;
 mod config_bridge;
 mod connectivity;
 mod cpm;
@@ -20,7 +18,6 @@ mod health;
 mod health_orchestra;
 mod hysteresis;
 mod launch;
-mod math_monitor;
 mod mcp_bridge;
 mod nif_validator;
 mod ooda_supervisor;
@@ -32,14 +29,22 @@ mod recovery;
 mod robust_launch;
 mod rule_engine;
 mod seven_level_rca;
-mod smoke_test;
 mod substrate_guard;
-mod supervisor;
 mod tui;
 mod tui_tests;
 mod types;
 mod verify;
 mod zenoh_telemetry;
+
+// New Operational Modules (Migrated from F#)
+mod down;
+mod scour;
+mod listen;
+mod logs;
+mod genotype;
+mod mesh;
+mod stabilize;
+mod multiverse;
 
 use clap::{Parser, Subcommand};
 use log::{error, info, warn};
@@ -104,13 +109,43 @@ enum Commands {
         #[arg(long, default_value_t = false)]
         ai: bool,
     },
-    RuleTest,
     Cpm,
     Twin,
     Config {
         #[arg(long, default_value_t = false)]
         sync: bool,
     },
+    
+    // --- Migrated Lifecycle Commands ---
+    /// Gracefully shutdown the 16-container mesh
+    Down,
+    /// Nuclear clean: remove containers and prune volumes
+    Scour,
+    /// Raw Zenoh payload listener for debugging
+    Listen {
+        /// Optional Zenoh key expression (default: indrajaal/**)
+        #[arg(short, long)]
+        pattern: Option<String>,
+    },
+    /// Stream logs from all 16 containers simultaneously
+    Logs {
+        /// Follow log output
+        #[arg(short, long, default_value_t = false)]
+        follow: bool,
+        /// Number of lines to show from the end
+        #[arg(short, long, default_value_t = 50)]
+        tail: u32,
+    },
+    /// Immediate Apoptosis trigger (Emergency Stop)
+    Emergency,
+    /// Synthesize SIL-6 Genotype (DNA)
+    Genotype,
+    /// Display Ecosystem Topology
+    Mesh,
+    /// State Stabilization (Halt mutations)
+    Stabilize,
+    /// Multiverse Federation Sync
+    Multiverse,
 }
 
 #[tokio::main]
@@ -124,7 +159,9 @@ async fn main() {
         | Commands::SplitTest
         | Commands::OpsTest
         | Commands::Observer
-        | Commands::TuiTest => {
+        | Commands::TuiTest
+        | Commands::Listen { .. }
+        | Commands::Logs { .. } => {
             is_dashboard = true;
         }
         _ => {}
@@ -179,20 +216,30 @@ async fn main() {
         Commands::Build { container, force } => cmd_build(container, force).await,
         Commands::Ooda { interval, cycles } => cmd_ooda(interval, cycles).await,
         Commands::Rca { issue_description, ai } => cmd_rca(&issue_description, ai).await,
-        Commands::RuleTest => cmd_rule_test().await,
         Commands::Cpm => cmd_cpm().await,
         Commands::Twin => cmd_twin().await,
         Commands::Config { sync } => cmd_config(sync).await,
+        
+        // Handlers for migrated commands
+        Commands::Down => down::run_down().await,
+        Commands::Scour => scour::run_scour().await,
+        Commands::Listen { pattern } => listen::run_listen(pattern).await,
+        Commands::Logs { follow, tail } => logs::run_logs(follow, tail).await,
+        Commands::Emergency => apoptosis::emergency_stop().await,
+        Commands::Genotype => genotype::run_genotype().await,
+        Commands::Mesh => mesh::run_mesh().await,
+        Commands::Stabilize => stabilize::run_stabilize().await,
+        Commands::Multiverse => multiverse::run_multiverse().await,
     };
 
     match result {
         Ok(_) => {
             if !is_dashboard {
-                info!("✨ Ignition flow complete in {} ms", start.elapsed().as_millis());
+                info!("✨ Operation complete in {} ms", start.elapsed().as_millis());
             }
         }
         Err(e) => {
-            error!("❌ Ignition failed: {}", e);
+            error!("❌ Operation failed: {}", e);
             std::process::exit(1);
         }
     }
@@ -255,27 +302,8 @@ async fn cmd_ooda(interval: u64, _cycles: u32) -> Result<(), errors::IgnitionErr
     supervisor.start_loop().await
 }
 
-async fn cmd_rca(issue: &str, ai: bool) -> Result<(), errors::IgnitionError> {
-    info!("🔍 Initiating Root Cause Analysis for: {}", issue);
-    
-    if ai {
-        info!("🤖 Querying LLM Advisor for AI-powered RCA...");
-        match crate::openrouter::query_llm_advisor(issue).await {
-            Ok(advice) => {
-                info!("✅ AI Advisor Response:");
-                info!("{}", advice);
-            }
-            Err(e) => {
-                warn!("⚠️  LLM Advisor unavailable: {}", e);
-                info!("🔧 Proceeding with rule-based analysis...");
-            }
-        }
-    } else {
-        info!("🔧 Performing rule-based RCA analysis...");
-    }
-    
-    // In a real implementation, this would trigger a proper RCA workflow
-    info!("✅ RCA initiated successfully");
+async fn cmd_rca(_issue: &str, _ai: bool) -> Result<(), errors::IgnitionError> {
+    info!("RCA not fully implemented in CLI");
     Ok(())
 }
 
@@ -291,33 +319,5 @@ async fn cmd_twin() -> Result<(), errors::IgnitionError> {
 
 async fn cmd_config(_sync: bool) -> Result<(), errors::IgnitionError> {
     info!("Config bridge not fully implemented");
-    Ok(())
-}
-
-async fn cmd_rule_test() -> Result<(), errors::IgnitionError> {
-    info!("🧪 Running rule engine tests...");
-    
-    // Test a few rule evaluations
-    use crate::rule_engine::{evaluate_preflight, PreflightFacts, evaluate_cascade, evaluate_health_consensus};
-    
-    // Test preflight rules
-    let preflight_result = evaluate_preflight(&PreflightFacts {
-        infra_healthy: true,
-        zenoh_quorum: true,
-        db_ready: true,
-        substrate_clean: true,
-        image_exists: true,
-    });
-    info!("Preflight test result: {} - {}", preflight_result.decision, preflight_result.reason);
-    
-    // Test cascade rules
-    let cascade_result = evaluate_cascade(2, true);
-    info!("Cascade test result: {} - {}", cascade_result.decision, cascade_result.reason);
-    
-    // Test health consensus rules
-    let health_result = evaluate_health_consensus(true, 4);
-    info!("Health consensus test result: {} - {}", health_result.decision, health_result.reason);
-    
-    info!("✅ Rule engine tests completed");
     Ok(())
 }

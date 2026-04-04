@@ -1,6 +1,7 @@
-#!/usr/bin/env bash
-if [ $# -eq 0 ]; then
-    ./sa-mesh help
-else
-    ./sa-mesh "$@"
-fi
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# REDIRECTING TO RUST IGNITION DAEMON
+# ═══════════════════════════════════════════════════════════════════════════════
+
+cd "$(dirname "$0")" || exit 1
+target/debug/ignition mesh "$@"

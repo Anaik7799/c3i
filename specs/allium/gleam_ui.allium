@@ -1,0 +1,32 @@
+-- allium: 3
+-- Gleam Penta-Stack UI — Behavioral Specification
+-- Covers: Triple-Interface Mandate (SC-GLM-UI-001) and Stateless ZMOF TUI
+-- Date: 2026-04-04
+
+contract TripleInterfaceMandate {
+    -- Mandate: SC-GLM-UI-001 — Every UI feature MUST exist in Lustre + Wisp + TUI
+    
+    command define_ui_feature(feature_id: String)
+    command publish_state_change(state: String)
+    
+    rule "Triple Implementation Check" {
+        when call TripleInterfaceMandate.define_ui_feature
+        ensure "Lustre component exists"
+        ensure "Wisp endpoint exists"
+        ensure "TUI terminal view exists"
+        ensure "All share types from ui/domain.gleam"
+    }
+    
+    rule "Stateless TUI Update" {
+        -- Defines the ZMOF integration for the TUI
+        when call TripleInterfaceMandate.publish_state_change
+        then "TUI subscriber reacts to Zenoh topic indrajaal/**/state"
+        reject "TUI polling local processes"
+    }
+    
+    rule "OTel Publish Mandate" {
+        -- Mandate: SC-GLM-ZEN-001
+        when call TripleInterfaceMandate.publish_state_change
+        then "Publish OTel span via zenoh_otel.gleam"
+    }
+}

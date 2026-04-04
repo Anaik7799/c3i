@@ -3,7 +3,6 @@
 import cepaf_gleam/cockpit/visuals
 import cepaf_gleam/knowledge/domain.{
   type KnowledgeNode, Atomic, Ecosystem, Molecular, Organism, level_to_string,
-  rhetorical_to_string,
 }
 import cepaf_gleam/ui/lustre/knowledge.{type KnowledgeModel}
 import gleam/float

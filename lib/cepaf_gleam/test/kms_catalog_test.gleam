@@ -1,8 +1,7 @@
-import cepaf_gleam/kms/catalog.{type Checkpoint, Checkpoint}
+import cepaf_gleam/kms/catalog.{Checkpoint}
 import gleam/dict
 import gleam/erlang/process
 import gleam/option.{None}
-import gleeunit/should
 
 pub fn kms_catalog_lifecycle_test() {
   // Start the catalog actor with no Zenoh session

@@ -22,10 +22,25 @@ Rust NIFs → Gleam → Elixir → F# (if needed)
 | AOR-POLYGLOT-001 | Language boundaries (Gleam-Rust, Gleam-Elixir, Gleam-F#) must be explicitly documented and tested for interoperability. | Architectural diagrams, integration tests |
 | AOR-BUILD-002 | The build order MUST be strictly followed to ensure correct compilation dependencies across all languages. | CI script validation |
 | AOR-TOOL-001 | Root-level tools (`sa-up`, `sa-gleam`, `sa-plan`) are the authoritative interfaces for mesh and task management. | Functional verification |
+| AOR-TOOL-003 | ALL updates to task status and `PROJECT_TODOLIST.md` MUST be performed via `sa-plan`. Manual edits are FORBIDDEN. | Audit log check |
 | AOR-TOOL-002 | `sa-gleam` must maintain a 2-tier fallback (NIF -> CLI) for all critical data operations (SQLite, Podman). | Resilience testing |
 
 ## Canonical GEMINI.md Location
-Full spec: `dev/ver/c3i/GEMINI.md` (v21.5.0-GLM)
+Full spec: `dev/ver/c3i/GEMINI.md` (v21.6.0-GLM)
+
+---
+
+### Category N: Zenoh-MCP-OTel Fractal Backplane (ZMOF) (NEW)
+**Mandate**: SC-ZMOF-001 — Zenoh is the SOLE transport for internal mesh communication, observability (OTel), and AI tool calls (MCP).
+
+| ID | Constraint | Verification |
+|----|-----------|--------------|
+| SC-ZMOF-001 | All L0-L7 communication MUST follow the `indrajaal/{layer}/{domain}/...` namespace | Zenoh key audit |
+| SC-ZMOF-002 | OTel Spans MUST be published as Zenoh messages to `indrajaal/otel/span/...` | Span audit log |
+| SC-ZMOF-003 | MCP Tool Calls MUST ride over Zenoh Pub/Sub (MoZ Protocol) | Tool execution trace |
+| SC-ZMOF-004 | Point-to-point HTTP/gRPC for internal control is PROHIBITED | Network traffic audit |
+| SC-ZMOF-005 | Every `sa-up` action MUST be exposed as an MCP tool via Zenoh | Agent tool discovery |
+| SC-ZMOF-006 | 2oo3 voting (L2) MUST be performed via Zenoh broadcast | Consensus audit |
 
 ---
 

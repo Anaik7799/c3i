@@ -3,8 +3,7 @@
 /// Imports from zenoh/domain.gleam — no type duplication (SC-GLM-UI-009).
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-002, SC-GLM-UI-005, SC-GLM-UI-009
 import cepaf_gleam/zenoh/domain.{
-  type ConnectionStatus, type LifecycleState, type ZenohHealth, Connected,
-  Connecting, Disconnected, empty_health,
+  type LifecycleState, type ZenohHealth, Connected, empty_health,
 }
 import gleam/list
 

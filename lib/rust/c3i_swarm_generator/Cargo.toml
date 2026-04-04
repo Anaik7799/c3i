@@ -2,7 +2,15 @@
 name = "c3i_swarm_generator"
 version = "0.1.0"
 edition = "2021"
+description = "Generates 900+ FMEA/STAMP/Information-Theory directives across 9 fractal layers"
 
 [dependencies]
+c3i_common = { path = "../c3i_common" }
 rayon = "1.10"
 rand = "0.8"
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

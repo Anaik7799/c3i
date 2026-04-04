@@ -26,8 +26,6 @@
 import cepaf_gleam/core/ids
 import cepaf_gleam/core/types
 import cepaf_gleam/planning/domain.{type Task, Task}
-import gleam/int
-import gleam/io
 import gleam/list
 import gleam/option.{None, Some}
 import gleam/regexp

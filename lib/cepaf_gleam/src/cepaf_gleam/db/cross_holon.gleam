@@ -47,7 +47,7 @@ pub fn send_request(
   req: CrossHolonRequest,
 ) -> Result(CrossHolonResponse, String) {
   let _ = req
-  todo as "NYI: requires Zenoh FFI"
+  panic as "NYI: requires Zenoh FFI (SC-HOLON-003)"
 }
 
 pub fn compare_and_swap(
@@ -60,7 +60,7 @@ pub fn compare_and_swap(
   let _ = key
   let _ = expected
   let _ = value
-  todo as "NYI: requires FFI"
+  panic as "NYI: requires FFI (SC-HOLON-003)"
 }
 
 pub fn resolve_conflict(
@@ -71,7 +71,7 @@ pub fn resolve_conflict(
   let _ = a
   let _ = b
   let _ = strategy
-  todo as "NYI: requires merge logic"
+  panic as "NYI: requires merge logic (SC-HOLON-003)"
 }
 
 pub fn broadcast_state(
@@ -80,17 +80,17 @@ pub fn broadcast_state(
 ) -> Result(Nil, String) {
   let _ = holon_id
   let _ = state_json
-  todo as "NYI: requires Zenoh"
+  panic as "NYI: requires Zenoh (SC-HOLON-003)"
 }
 
 pub fn subscribe_updates(holon_id: String) -> Result(Nil, String) {
   let _ = holon_id
-  todo as "NYI: requires Zenoh"
+  panic as "NYI: requires Zenoh (SC-HOLON-003)"
 }
 
 pub fn get_remote_state(holon_id: String) -> Result(String, String) {
   let _ = holon_id
-  todo as "NYI: requires Zenoh"
+  panic as "NYI: requires Zenoh (SC-HOLON-003)"
 }
 
 // =============================================================================

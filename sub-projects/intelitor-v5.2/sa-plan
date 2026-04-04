@@ -1,1 +1,7 @@
-bin/Cepaf.Planning.CLI
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# REDIRECTING TO RUST PLANNING DAEMON
+# ═══════════════════════════════════════════════════════════════════════════════
+
+cd "$(dirname "$0")" || exit 1
+target/debug/sa-plan-daemon "$@"

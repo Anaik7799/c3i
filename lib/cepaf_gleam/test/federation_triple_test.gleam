@@ -7,8 +7,8 @@
 ///        SC-UIGT-003, SC-UIGT-007, SC-UIGT-008, SC-UIGT-009
 
 import cepaf_gleam/fractal/l7_federation.{
-  FederationPeer, FederationState, PeerConnected, PeerDisconnected,
-  PeerSuspected, add_peer, increment_version, initial_federation,
+  FederationPeer, PeerConnected, PeerDisconnected,
+  PeerSuspected, add_peer, initial_federation,
 }
 import cepaf_gleam/ui/domain
 import cepaf_gleam/ui/lustre/federation.{

@@ -1,7 +1,6 @@
 import cepaf_gleam/metabolic/service
 import cepaf_gleam/zenoh/client
 import gleam/result
-import gleeunit/should
 
 pub fn publish_telemetry_test() {
   // We attempt to open a Zenoh session. In a pure gleam test environment 

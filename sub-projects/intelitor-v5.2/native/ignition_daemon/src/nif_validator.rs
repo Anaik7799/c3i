@@ -40,7 +40,7 @@
 use crate::errors::IgnitionError;
 use crate::podman;
 use crate::types::{LibcFlavor, NifValidationResult};
-use goblin::elf::header::{EM_386, EM_AARCH64, EM_ARM, EM_X86_64, ELFCLASS32, ELFCLASS64};
+use goblin::elf::header::{ELFCLASS32, ELFCLASS64, EM_386, EM_AARCH64, EM_ARM, EM_X86_64};
 use goblin::Object;
 use log::{debug, error, info, warn};
 use std::path::{Path, PathBuf};
@@ -94,10 +94,7 @@ pub async fn validate_all_nifs(container: &str) -> Result<Vec<NifValidationResul
     let run_id = uuid_short();
     let temp_dir = format!("{}{}", TEMP_DIR_PREFIX, run_id);
     fs::create_dir_all(&temp_dir).await.map_err(|e| {
-        IgnitionError::NifValidationFailed(format!(
-            "Cannot create temp dir {}: {}",
-            temp_dir, e
-        ))
+        IgnitionError::NifValidationFailed(format!("Cannot create temp dir {}: {}", temp_dir, e))
     })?;
 
     let mut results = Vec::with_capacity(nif_paths.len());
@@ -122,10 +119,7 @@ pub async fn validate_all_nifs(container: &str) -> Result<Vec<NifValidationResul
 
     if invalid > 0 {
         for r in results.iter().filter(|r| !r.is_valid) {
-            warn!(
-                "[NIF] Invalid: {} — errors: {:?}",
-                r.nif_name, r.errors
-            );
+            warn!("[NIF] Invalid: {} — errors: {:?}", r.nif_name, r.errors);
         }
     }
 
@@ -152,9 +146,7 @@ pub fn validate_nif_binary(path: &Path) -> Result<NifValidationResult, IgnitionE
     debug!("[NIF] Parsing ELF: {}", path.display());
 
     // Read the file synchronously (called from a blocking context after async copy).
-    let bytes = std::fs::read(path).map_err(|e| {
-        IgnitionError::IoError(e)
-    })?;
+    let bytes = std::fs::read(path).map_err(|e| IgnitionError::IoError(e))?;
 
     let mut result = NifValidationResult {
         nif_name: nif_name.clone(),
@@ -191,11 +183,7 @@ pub fn validate_nif_binary(path: &Path) -> Result<NifValidationResult, IgnitionE
             let interpreter = elf.interpreter.unwrap_or("").to_string();
 
             // DT_NEEDED — dynamic library dependencies.
-            let dynamic_libs: Vec<String> = elf
-                .libraries
-                .iter()
-                .map(|s| s.to_string())
-                .collect();
+            let dynamic_libs: Vec<String> = elf.libraries.iter().map(|s| s.to_string()).collect();
 
             let libc_flavor = detect_libc_flavor(&interpreter, &dynamic_libs);
 
@@ -218,10 +206,7 @@ pub fn validate_nif_binary(path: &Path) -> Result<NifValidationResult, IgnitionE
         }
 
         Ok(Object::Unknown(magic)) => {
-            let msg = format!(
-                "Not a recognised binary format (magic={:#010x})",
-                magic
-            );
+            let msg = format!("Not a recognised binary format (magic={:#010x})", magic);
             warn!("[NIF] {}: {}", nif_name, msg);
             result.errors.push(msg);
         }
@@ -301,19 +286,20 @@ fn detect_libc_flavor(interp: &str, libs: &[String]) -> LibcFlavor {
 pub async fn check_cargo_available(container: &str) -> Result<bool, IgnitionError> {
     info!("[NIF] Checking cargo availability in {}…", container);
 
-    let (stdout, stderr, code) = podman::podman_exec(
-        container,
-        &["cargo", "--version"],
-        CARGO_CHECK_TIMEOUT,
-    )
-    .await
-    .unwrap_or_else(|e| {
-        warn!("[NIF] podman exec cargo --version failed: {}", e);
-        (String::new(), String::new(), -1)
-    });
+    let (stdout, stderr, code) =
+        podman::podman_exec(container, &["cargo", "--version"], CARGO_CHECK_TIMEOUT)
+            .await
+            .unwrap_or_else(|e| {
+                warn!("[NIF] podman exec cargo --version failed: {}", e);
+                (String::new(), String::new(), -1)
+            });
 
     if code == 0 {
-        let version = if stdout.is_empty() { stderr.trim().to_string() } else { stdout.trim().to_string() };
+        let version = if stdout.is_empty() {
+            stderr.trim().to_string()
+        } else {
+            stdout.trim().to_string()
+        };
         info!("[NIF] cargo available: {}", version);
         Ok(true)
     } else {
@@ -343,9 +329,12 @@ pub async fn discover_nif_paths(container: &str) -> Result<Vec<String>, Ignition
         &[
             "find",
             "/app/_build",
-            "-name", "*.so",
-            "-path", "*/priv/native/*",
-            "-type", "f",
+            "-name",
+            "*.so",
+            "-path",
+            "*/priv/native/*",
+            "-type",
+            "f",
         ],
         DISCOVER_TIMEOUT,
     )
@@ -362,7 +351,9 @@ pub async fn discover_nif_paths(container: &str) -> Result<Vec<String>, Ignition
         // exist yet (pre-compile state) — this is not a hard error.
         debug!(
             "[NIF] find exited {} in {} — stderr: {}",
-            code, container, stderr.trim()
+            code,
+            container,
+            stderr.trim()
         );
         return Ok(vec![]);
     }
@@ -401,7 +392,7 @@ pub fn check_libc_consistency(results: &[NifValidationResult]) -> Vec<String> {
     }
 
     let has_glibc = flavors.iter().any(|f| *f == LibcFlavor::Glibc);
-    let has_musl  = flavors.iter().any(|f| *f == LibcFlavor::Musl);
+    let has_musl = flavors.iter().any(|f| *f == LibcFlavor::Musl);
 
     if has_glibc && has_musl {
         // Critical: both flavors are present → the container contains a mix of
@@ -418,7 +409,7 @@ pub fn check_libc_consistency(results: &[NifValidationResult]) -> Vec<String> {
         for r in results.iter().filter(|r| r.is_valid) {
             let label = match r.libc_flavor {
                 LibcFlavor::Glibc => "glibc",
-                LibcFlavor::Musl  => "musl",
+                LibcFlavor::Musl => "musl",
                 _ => continue,
             };
             issues.push(format!(
@@ -431,7 +422,10 @@ pub fn check_libc_consistency(results: &[NifValidationResult]) -> Vec<String> {
     }
 
     // Warn on any NIFs that could not be classified.
-    for r in results.iter().filter(|r| r.is_valid && r.libc_flavor == LibcFlavor::Unknown) {
+    for r in results
+        .iter()
+        .filter(|r| r.is_valid && r.libc_flavor == LibcFlavor::Unknown)
+    {
         issues.push(format!(
             "WARNING: {} — libc flavor could not be determined \
              (interpreter='{}', libs={:?})",
@@ -490,7 +484,9 @@ async fn inspect_one_nif(
     if code != 0 {
         warn!(
             "[NIF] podman cp failed for {} (exit={}): {}",
-            nif_name, code, stderr.trim()
+            nif_name,
+            code,
+            stderr.trim()
         );
         return NifValidationResult {
             nif_name,
@@ -501,7 +497,11 @@ async fn inspect_one_nif(
             machine: String::new(),
             interpreter: String::new(),
             dynamic_libs: vec![],
-            errors: vec![format!("podman cp failed (exit={}): {}", code, stderr.trim())],
+            errors: vec![format!(
+                "podman cp failed (exit={}): {}",
+                code,
+                stderr.trim()
+            )],
         };
     }
 
@@ -579,11 +579,7 @@ async fn inspect_one_nif(
 /// Returns `(stdout, stderr, exit_code)`.  This mirrors the pattern used
 /// throughout `podman.rs` but uses the `podman cp` subcommand instead of
 /// `podman exec`.
-async fn podman_cp_binary(
-    _container: &str,
-    src: &str,
-    dst: &str,
-) -> (String, String, i32) {
+async fn podman_cp_binary(_container: &str, src: &str, dst: &str) -> (String, String, i32) {
     use std::process::Stdio;
     use tokio::process::Command;
     use tokio::time::timeout;
@@ -604,7 +600,7 @@ async fn podman_cp_binary(
         Ok(Ok(output)) => {
             let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
             let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-            let code   = output.status.code().unwrap_or(-1);
+            let code = output.status.code().unwrap_or(-1);
             (stdout, stderr, code)
         }
         Ok(Err(e)) => {
@@ -648,10 +644,7 @@ mod tests {
 
     #[test]
     fn test_glibc_interp_aarch64() {
-        let flavor = detect_libc_flavor(
-            "/lib/ld-linux-aarch64.so.1",
-            &["libc.so.6".to_string()],
-        );
+        let flavor = detect_libc_flavor("/lib/ld-linux-aarch64.so.1", &["libc.so.6".to_string()]);
         assert_eq!(flavor, LibcFlavor::Glibc);
     }
 
@@ -666,10 +659,7 @@ mod tests {
 
     #[test]
     fn test_musl_interp_aarch64() {
-        let flavor = detect_libc_flavor(
-            "/lib/ld-musl-aarch64.so.1",
-            &[],
-        );
+        let flavor = detect_libc_flavor("/lib/ld-musl-aarch64.so.1", &[]);
         assert_eq!(flavor, LibcFlavor::Musl);
     }
 
@@ -688,20 +678,14 @@ mod tests {
 
     #[test]
     fn test_unknown_interp_unrecognised_libs() {
-        let flavor = detect_libc_flavor(
-            "/lib/ld-custom.so",
-            &["libfoo.so.1".to_string()],
-        );
+        let flavor = detect_libc_flavor("/lib/ld-custom.so", &["libfoo.so.1".to_string()]);
         assert_eq!(flavor, LibcFlavor::Unknown);
     }
 
     #[test]
     fn test_musl_via_lib_name_only() {
         // No interpreter, but lib list reveals musl.
-        let flavor = detect_libc_flavor(
-            "",
-            &["libc.musl-x86_64.so.1".to_string()],
-        );
+        let flavor = detect_libc_flavor("", &["libc.musl-x86_64.so.1".to_string()]);
         assert_eq!(flavor, LibcFlavor::Musl);
     }
 
@@ -723,7 +707,11 @@ mod tests {
                 String::new()
             },
             dynamic_libs: vec![],
-            errors: if valid { vec![] } else { vec!["parse error".to_string()] },
+            errors: if valid {
+                vec![]
+            } else {
+                vec!["parse error".to_string()]
+            },
         }
     }
 
@@ -754,10 +742,7 @@ mod tests {
             make_result("math_engine.so", LibcFlavor::Musl, true),
         ];
         let issues = check_libc_consistency(&results);
-        assert!(
-            !issues.is_empty(),
-            "expected mismatch issues but got none"
-        );
+        assert!(!issues.is_empty(), "expected mismatch issues but got none");
         assert!(
             issues[0].contains("Mixed glibc+musl"),
             "first issue should mention mixed flavors: {}",
@@ -793,7 +778,9 @@ mod tests {
         let results = vec![make_result("exotic.so", LibcFlavor::Unknown, true)];
         let issues = check_libc_consistency(&results);
         assert!(
-            issues.iter().any(|i| i.contains("libc flavor could not be determined")),
+            issues
+                .iter()
+                .any(|i| i.contains("libc flavor could not be determined")),
             "expected unknown flavor warning: {:?}",
             issues
         );

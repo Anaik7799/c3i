@@ -1,8 +1,6 @@
 import gleam/dynamic.{type Dynamic}
 import gleam/erlang/process.{type Subject}
-import gleam/list
 import gleam/otp/actor
-import gleam/result
 
 pub type DbConnection
 

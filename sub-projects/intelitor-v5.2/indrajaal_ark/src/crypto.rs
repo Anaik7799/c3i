@@ -4,6 +4,7 @@ use std::io::Read;
 use std::fs::File;
 use std::path::Path;
 
+#[allow(dead_code)]
 pub fn calculate_hash(path: &Path) -> Result<String> {
     let mut file = File::open(path)?;
     let mut hasher = Hasher::new();
@@ -18,6 +19,7 @@ pub fn calculate_hash(path: &Path) -> Result<String> {
     Ok(hasher.finalize().to_hex().to_string())
 }
 
+#[allow(dead_code)]
 pub fn verify_shard(data: &[u8], expected_hash: &str) -> bool {
     let hash = blake3::hash(data);
     hash.to_hex().to_string() == expected_hash

@@ -1,15 +1,10 @@
 import cepaf_gleam/core/ids.{type TaskId}
 import cepaf_gleam/core/types
-import gleam/int
-import gleam/io
-import gleam/list
 
 import cepaf_gleam/planning/domain.{type CreateTaskInput, type Task, Task}
-import cepaf_gleam/substrate/file_system
 import gleam/option.{type Option, None, Some}
 import gleam/result
 import gleam/set
-import gleam/string
 
 // =============================================================================
 // Task Domain Types and Logic (Ported from F# Task.fs)

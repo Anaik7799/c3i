@@ -1,0 +1,9 @@
+[zenoh-router-3] (STDOUT) 22795a1581ef5bb3b339b41ac912e93ff7ff5b77ec0796680c2bd7ba2ca97d6e
+[zenoh-router-1] (STDOUT) 89fab05bcc284ffe55323d17568408562acf012b94126ef77fef03023d05e7b7
+[zenoh-router-2] (STDOUT) 6e6c83556348f2dc6e1f2e090ce4b0ec779d55164bcc75a5c00567f3e4f9ee47
+[indrajaal-mojo] (STDOUT) de0974c207edc5b62b63feaddaa7173de248e9f933a01bb3f7ee2e54cfb2f199
+[indrajaal-ollama] (STDOUT) a99d5f3c0f5a47a186be94a26f8d6c157019c32c28ba0145500064ac75c55ca0
+[indrajaal-obs-prod] (STDOUT) 53ff91f29bbbeae4166ba10bb422d491d264ec9502b2255c25d7e71a92107d76
+[indrajaal-db-prod] (STDOUT) 9f2911de0894651e80138f1e8b498fbb2b437cf5eb9478b8c72eabeffaa6b3ab
+[indrajaal-ml-runner-1] (STDOUT) 427d2e0a6664070814b063ef8055808fc4509ce4167e0406546d9186f1534aaa
+[indrajaal-ml-runner-2] (STDOUT) f01b753e8968706cd60abef031524ea37a6247ef2375d5c0011f2bcc2cdbd254

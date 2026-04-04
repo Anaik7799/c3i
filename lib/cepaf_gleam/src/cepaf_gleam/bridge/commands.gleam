@@ -35,12 +35,12 @@ pub type BridgeResponse {
 
 pub fn dispatch(cmd: BridgeCommand) -> Result(BridgeResponse, String) {
   let _ = cmd
-  todo as "NYI: requires Podman/Zenoh FFI"
+  panic as "NYI: requires Podman/Zenoh FFI (SC-BRIDGE-002)"
 }
 
 pub fn dispatch_json(raw_json: String) -> Result(String, String) {
   let _ = raw_json
-  todo as "NYI: requires JSON parse + dispatch"
+  panic as "NYI: requires JSON parse + dispatch (SC-BRIDGE-002)"
 }
 
 // =============================================================================

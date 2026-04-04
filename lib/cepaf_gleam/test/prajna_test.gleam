@@ -23,7 +23,6 @@ import cepaf_gleam/prajna/orchestrator_cmd.{
   StatusCmd, StopCmd,
 }
 import cepaf_gleam/prajna/smart_metrics
-import gleam/float
 import gleam/list
 import gleam/option.{None, Some}
 import gleeunit/should

@@ -86,20 +86,44 @@ fn connectivity_dependencies() -> HashMap<&'static str, Vec<&'static str>> {
         ("indrajaal-obs-prod", vec!["zenoh-router"]),
         // T3: Cognitive needs Zenoh + DB
         ("cepaf-bridge", vec!["zenoh-router", "indrajaal-db-prod"]),
-        ("indrajaal-cortex", vec!["zenoh-router", "indrajaal-db-prod"]),
+        (
+            "indrajaal-cortex",
+            vec!["zenoh-router", "indrajaal-db-prod"],
+        ),
         // T4: App needs everything
-        ("indrajaal-ex-app-1", vec![
-            "zenoh-router", "indrajaal-db-prod", "indrajaal-obs-prod", "cepaf-bridge",
-        ]),
+        (
+            "indrajaal-ex-app-1",
+            vec![
+                "zenoh-router",
+                "indrajaal-db-prod",
+                "indrajaal-obs-prod",
+                "cepaf-bridge",
+            ],
+        ),
         // T5: HA apps need seed node
-        ("indrajaal-ex-app-2", vec!["zenoh-router", "indrajaal-db-prod", "indrajaal-ex-app-1"]),
-        ("indrajaal-ex-app-3", vec!["zenoh-router", "indrajaal-db-prod", "indrajaal-ex-app-1"]),
+        (
+            "indrajaal-ex-app-2",
+            vec!["zenoh-router", "indrajaal-db-prod", "indrajaal-ex-app-1"],
+        ),
+        (
+            "indrajaal-ex-app-3",
+            vec!["zenoh-router", "indrajaal-db-prod", "indrajaal-ex-app-1"],
+        ),
         // T6: Chaya needs app, Ollama standalone
-        ("indrajaal-chaya", vec!["zenoh-router", "indrajaal-ex-app-1"]),
+        (
+            "indrajaal-chaya",
+            vec!["zenoh-router", "indrajaal-ex-app-1"],
+        ),
         ("indrajaal-ollama", vec!["zenoh-router"]),
         // T7: ML runners need Ollama
-        ("indrajaal-ml-runner-1", vec!["zenoh-router", "indrajaal-ollama"]),
-        ("indrajaal-ml-runner-2", vec!["zenoh-router", "indrajaal-ollama"]),
+        (
+            "indrajaal-ml-runner-1",
+            vec!["zenoh-router", "indrajaal-ollama"],
+        ),
+        (
+            "indrajaal-ml-runner-2",
+            vec!["zenoh-router", "indrajaal-ollama"],
+        ),
         ("indrajaal-mojo", vec!["zenoh-router", "indrajaal-ollama"]),
     ])
 }
@@ -154,7 +178,10 @@ pub async fn verify_connectivity() -> Result<ConnectivityMatrix, IgnitionError> 
             let latency_ms = probe_start.elapsed().as_millis() as u64;
 
             let error = if !reachable {
-                Some(format!("TCP connect to {}:{} from {} failed", target, target_port, source))
+                Some(format!(
+                    "TCP connect to {}:{} from {} failed",
+                    target, target_port, source
+                ))
             } else {
                 None
             };
@@ -249,7 +276,10 @@ pub async fn verify_zenoh_mesh_topology() -> Result<ZenohMeshReport, IgnitionErr
             .unwrap_or(false);
 
         if !running {
-            warn!("[connectivity] {} is not running — cannot verify mesh", router);
+            warn!(
+                "[connectivity] {} is not running — cannot verify mesh",
+                router
+            );
             report.fully_connected = false;
             report.peer_visibility.push(ZenohPeerVisibility {
                 router: router.to_string(),
@@ -311,21 +341,24 @@ pub async fn verify_zenoh_mesh_topology() -> Result<ZenohMeshReport, IgnitionErr
         if healthy {
             info!(
                 "[connectivity] {} — fully connected ({}/{} peers)",
-                router, visible_peers, routers.len() - 1
+                router,
+                visible_peers,
+                routers.len() - 1
             );
         } else {
             warn!(
                 "[connectivity] {} — partial connectivity ({}/{} peers, port_open={})",
-                router, visible_peers, routers.len() - 1, port_open
+                router,
+                visible_peers,
+                routers.len() - 1,
+                port_open
             );
         }
     }
 
     info!(
         "[connectivity] Zenoh mesh: {}/{} sessions established, fully_connected={}",
-        report.sessions_established,
-        report.total_sessions_expected,
-        report.fully_connected
+        report.sessions_established, report.total_sessions_expected, report.fully_connected
     );
 
     Ok(report)
@@ -363,7 +396,11 @@ mod tests {
     #[test]
     fn test_connectivity_deps_has_all_16() {
         let deps = connectivity_dependencies();
-        assert_eq!(deps.len(), 16, "All 16 containers must have dependency entries");
+        assert_eq!(
+            deps.len(),
+            16,
+            "All 16 containers must have dependency entries"
+        );
     }
 
     #[test]
@@ -388,8 +425,14 @@ mod tests {
     #[test]
     fn test_ml_runners_depend_on_ollama() {
         let deps = connectivity_dependencies();
-        assert!(deps.get("indrajaal-ml-runner-1").unwrap().contains(&"indrajaal-ollama"));
-        assert!(deps.get("indrajaal-ml-runner-2").unwrap().contains(&"indrajaal-ollama"));
+        assert!(deps
+            .get("indrajaal-ml-runner-1")
+            .unwrap()
+            .contains(&"indrajaal-ollama"));
+        assert!(deps
+            .get("indrajaal-ml-runner-2")
+            .unwrap()
+            .contains(&"indrajaal-ollama"));
     }
 
     #[test]

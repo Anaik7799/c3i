@@ -113,10 +113,7 @@ pub async fn run_all_checks(project_root: &Path) -> Result<SubstrateReport, Igni
     // ── Check 4: volume shadow analysis (sync, file read) ────────────────────
     let vol_check = check_volume_shadows(project_root);
     if !vol_check.passed {
-        warn!(
-            "[SubstrateGuard] AXIOM 0.2 WARNING: {}",
-            vol_check.detail
-        );
+        warn!("[SubstrateGuard] AXIOM 0.2 WARNING: {}", vol_check.detail);
     } else {
         debug!("[SubstrateGuard] volume shadow check passed");
     }
@@ -137,10 +134,7 @@ pub async fn run_all_checks(project_root: &Path) -> Result<SubstrateReport, Igni
     // ── Check 6: network integrity (async, podman call) ──────────────────────
     let net_check = check_network_integrity(MESH_NETWORK).await;
     if !net_check.passed {
-        warn!(
-            "[SubstrateGuard] Network check: {}",
-            net_check.detail
-        );
+        warn!("[SubstrateGuard] Network check: {}", net_check.detail);
     } else {
         debug!("[SubstrateGuard] network integrity check passed");
     }
@@ -325,10 +319,7 @@ fn check_nif_contamination(project_root: &Path) -> SubstrateCheck {
             detail: "No host-compiled NIF .so files found in _build".to_string(),
         }
     } else {
-        let paths: Vec<String> = found
-            .iter()
-            .map(|p| p.display().to_string())
-            .collect();
+        let paths: Vec<String> = found.iter().map(|p| p.display().to_string()).collect();
         SubstrateCheck {
             name,
             passed: false,
@@ -387,7 +378,7 @@ fn check_volume_shadows(project_root: &Path) -> SubstrateCheck {
                     compose_path.display(),
                     e
                 ),
-            }
+            };
         }
     };
 
@@ -460,13 +451,16 @@ fn check_zenoh_nif_enabled() -> SubstrateCheck {
             SubstrateCheck {
                 name,
                 passed: true,
-                detail: "SKIP_ZENOH_NIF is unset — Zenoh NIF will be loaded (SC-ZENOH-001 satisfied)".to_string(),
+                detail:
+                    "SKIP_ZENOH_NIF is unset — Zenoh NIF will be loaded (SC-ZENOH-001 satisfied)"
+                        .to_string(),
             }
         }
         Ok(ref val) if val == "0" => SubstrateCheck {
             name,
             passed: true,
-            detail: "SKIP_ZENOH_NIF=0 — Zenoh NIF is explicitly enabled (SC-ZENOH-001 satisfied)".to_string(),
+            detail: "SKIP_ZENOH_NIF=0 — Zenoh NIF is explicitly enabled (SC-ZENOH-001 satisfied)"
+                .to_string(),
         },
         Ok(val) => SubstrateCheck {
             name,
@@ -595,9 +589,7 @@ pub fn remediation_commands(report: &SubstrateReport) -> Vec<String> {
     let nif_paths: Vec<&PathBuf> = report
         .contamination_paths
         .iter()
-        .filter(|p| {
-            p.extension().map(|ext| ext == "so").unwrap_or(false)
-        })
+        .filter(|p| p.extension().map(|ext| ext == "so").unwrap_or(false))
         .collect();
 
     for nif_path in &nif_paths {
@@ -863,11 +855,20 @@ mod tests {
     #[test]
     fn build_check_fails_when_beam_present() {
         let tmp = make_temp_dir();
-        let dev = tmp.path().join("_build").join("dev").join("lib").join("app");
+        let dev = tmp
+            .path()
+            .join("_build")
+            .join("dev")
+            .join("lib")
+            .join("app");
         fs::create_dir_all(&dev).unwrap();
         fs::write(dev.join("module.beam"), b"FOR1").unwrap();
         let check = check_host_build(tmp.path());
-        assert!(!check.passed, "should fail with .beam present: {}", check.detail);
+        assert!(
+            !check.passed,
+            "should fail with .beam present: {}",
+            check.detail
+        );
         assert!(check.detail.contains("compiled artifacts"));
     }
 
@@ -939,7 +940,11 @@ mod tests {
         fs::create_dir_all(&native).unwrap();
         fs::write(native.join("libzenoh_nif.so"), b"\x7fELF").unwrap();
         let check = check_nif_contamination(tmp.path());
-        assert!(!check.passed, "should fail with .so present: {}", check.detail);
+        assert!(
+            !check.passed,
+            "should fail with .so present: {}",
+            check.detail
+        );
         assert!(check.detail.contains("glibc/musl conflict"));
     }
 
@@ -985,7 +990,11 @@ mod tests {
     fn contamination_paths_empty_when_clean() {
         let tmp = make_temp_dir();
         let paths = find_contamination_paths(tmp.path());
-        assert!(paths.is_empty(), "clean tree should have no paths: {:?}", paths);
+        assert!(
+            paths.is_empty(),
+            "clean tree should have no paths: {:?}",
+            paths
+        );
     }
 
     #[test]
@@ -993,7 +1002,12 @@ mod tests {
         let tmp = make_temp_dir();
 
         // Create _build with a .beam file.
-        let dev = tmp.path().join("_build").join("dev").join("lib").join("app");
+        let dev = tmp
+            .path()
+            .join("_build")
+            .join("dev")
+            .join("lib")
+            .join("app");
         fs::create_dir_all(&dev).unwrap();
         fs::write(dev.join("module.beam"), b"FOR1").unwrap();
 

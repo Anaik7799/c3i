@@ -343,13 +343,13 @@ pub fn swarm_generate_report_test() {
   report.ooda_metrics.compliance |> should.be_true()
   // Must contain 8 fractal layer entries (L0-L7)
   list.length(report.fractal_layers) |> should.equal(8)
-  let l0 =
+  let _l0 =
     list.find(report.fractal_layers, fn(l) { l.layer == 0 })
     |> should.be_ok()
-  let l1 =
+  let _l1 =
     list.find(report.fractal_layers, fn(l) { l.layer == 1 })
     |> should.be_ok()
-  let l4 =
+  let _l4 =
     list.find(report.fractal_layers, fn(l) { l.layer == 4 })
     |> should.be_ok()
 }

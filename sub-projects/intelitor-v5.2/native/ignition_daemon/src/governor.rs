@@ -82,7 +82,10 @@ pub async fn wait_until_available() -> Result<bool, std::io::Error> {
         }
 
         if elapsed_secs >= CPU_MAX_WAIT_SECS {
-            warn!("[Governor] Max wait {}s exceeded — proceeding with min parallelism", CPU_MAX_WAIT_SECS);
+            warn!(
+                "[Governor] Max wait {}s exceeded — proceeding with min parallelism",
+                CPU_MAX_WAIT_SECS
+            );
             return Ok(false);
         }
 
@@ -104,13 +107,33 @@ pub async fn wait_until_available() -> Result<bool, std::io::Error> {
 /// SC-CPU-GOV-006, SC-CPU-GOV-007
 pub fn adaptive_parallelism(cpu_pct: u8) -> ParallelismConfig {
     if cpu_pct < 60 {
-        ParallelismConfig { schedulers: 16, dirty_io: 16, mix_jobs: 16, nice_level: 10 }
+        ParallelismConfig {
+            schedulers: 16,
+            dirty_io: 16,
+            mix_jobs: 16,
+            nice_level: 10,
+        }
     } else if cpu_pct < 70 {
-        ParallelismConfig { schedulers: 12, dirty_io: 12, mix_jobs: 12, nice_level: 10 }
+        ParallelismConfig {
+            schedulers: 12,
+            dirty_io: 12,
+            mix_jobs: 12,
+            nice_level: 10,
+        }
     } else if cpu_pct < 80 {
-        ParallelismConfig { schedulers: 10, dirty_io: 10, mix_jobs: 10, nice_level: 15 }
+        ParallelismConfig {
+            schedulers: 10,
+            dirty_io: 10,
+            mix_jobs: 10,
+            nice_level: 15,
+        }
     } else {
-        ParallelismConfig { schedulers: 6, dirty_io: 6, mix_jobs: 6, nice_level: 19 }
+        ParallelismConfig {
+            schedulers: 6,
+            dirty_io: 6,
+            mix_jobs: 6,
+            nice_level: 19,
+        }
     }
 }
 
@@ -208,10 +231,18 @@ mod tests {
     fn test_adaptive_parallelism_all_boundary_values() {
         // Test every boundary: 0, 59, 60, 69, 70, 79, 80, 85, 100
         let cases: Vec<(u8, u8)> = vec![
-            (0, 16), (30, 16), (59, 16),   // full speed
-            (60, 12), (65, 12), (69, 12),   // slight
-            (70, 10), (75, 10), (79, 10),   // moderate
-            (80, 6), (85, 6), (100, 6),     // heavy
+            (0, 16),
+            (30, 16),
+            (59, 16), // full speed
+            (60, 12),
+            (65, 12),
+            (69, 12), // slight
+            (70, 10),
+            (75, 10),
+            (79, 10), // moderate
+            (80, 6),
+            (85, 6),
+            (100, 6), // heavy
         ];
         for (cpu, expected_schedulers) in cases {
             let config = adaptive_parallelism(cpu);

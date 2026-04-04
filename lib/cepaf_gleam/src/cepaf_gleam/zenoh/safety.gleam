@@ -23,7 +23,6 @@
 //// =============================================================================
 
 import gleam/dict.{type Dict}
-import gleam/list
 
 pub type TmrChannel {
   ChannelA

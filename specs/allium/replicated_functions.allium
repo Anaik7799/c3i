@@ -1,0 +1,60 @@
+-- allium: 3
+-- Detailed Replication Audit — F# to Rust/Gleam (Pass 2)
+-- Date: 2026-04-04
+-- Author: Gemini CLI
+
+contract OperationalGaps {
+    -- L4-System Lifecycle
+    rule "sa-down: Mesh Shutdown" {
+        ensure "Rust ignition cmd_down implements graceful 16-container stop"
+        status: PENDING
+    }
+    
+    rule "sa-scour: Substrate Nuclear Clean" {
+        ensure "Rust ignition cmd_scour implements down -v + volume prune"
+        status: PENDING
+    }
+    
+    rule "Manual Emergency Trigger" {
+        ensure "Rust ignition cmd_emergency wires to apoptosis::emergency_stop()"
+        status: PENDING
+    }
+    
+    -- L4-System Debugging
+    rule "sa-listen: Raw Zenoh Inspection" {
+        ensure "Rust ignition cmd_listen for raw payload inspection (not just spans)"
+        status: PENDING
+    }
+    
+    rule "sa-logs: Multi-container Logging" {
+        ensure "Rust ignition cmd_logs tails 16-container mesh simultaneously"
+        status: PENDING
+    }
+    
+    -- L5-Cognitive & Genetic
+    rule "Genotype Parser" {
+        ensure "Rust digital_twin.rs parses genotype from F# DSL or JSON artifact"
+        ensure "Eliminate hardcoded genomes in Rust"
+        status: PENDING
+    }
+    
+    rule "LethalMutationGate Enforcement" {
+        ensure "Rust ooda_supervisor enforces H(S) < 0.2 entropy floor"
+        status: PENDING
+    }
+    
+    -- L7-Federation & Multiverse
+    rule "sa-multiverse: Cross-Holon Logic" {
+        ensure "Rust implements coordination logic for multiple mesh instances"
+        status: PENDING
+    }
+}
+
+contract ReplicatedOperationalFunctions {
+    rule "sa-up: Boot Orchestration" { status: COMPLETED }
+    rule "sa-status: Swarm Health" { status: COMPLETED }
+    rule "sa-verify: 14-Point Validation" { status: COMPLETED }
+    rule "TUI Dashboard: Cockpit CLI" { status: COMPLETED }
+    rule "OODA Supervisor: Core Loop" { status: COMPLETED }
+    rule "RCA: 7-Level Analysis" { status: COMPLETED }
+}
