@@ -1552,7 +1552,7 @@
 
 
 ### 7c720957 - 8.4 - Implement Compensating Transactions (Rollback on Failure) (Rank 8) (P1)
-**Status**: pending | **Priority**: P1
+**Status**: completed | **Priority**: P1
 
 ### 7c83ec50 - P2-FEAT: Add CEPAF F# Cockpit TUI health dashboard with ANSI rendering (L4) (P2)
 **Status**: completed | **Priority**: P2
@@ -1841,7 +1841,7 @@
 
 
 ### 96ab7007 - 8.3 - Implement DAG-based Dependency Resolution (Wave Gating) (Rank 7) (P2)
-**Status**: pending | **Priority**: P2
+**Status**: completed | **Priority**: P2
 
 ### 96b59cfd - P2-FEAT: Add Prajna compliance dashboard with audit log display (P2)
 **Status**: completed | **Priority**: P2
@@ -3006,7 +3006,7 @@
 
 
 ### f925a860 - 8.1 - Implement Async Stream Parsing for I/O Capture (Rank 3) (P1)
-**Status**: pending | **Priority**: P1
+**Status**: completed | **Priority**: P1
 
 ### f9cb3936 - 8.4 - Implement Compensating Transactions (Rollback on Failure) (Rank 8) (P1)
 **Status**: pending | **Priority**: P1
@@ -3103,7 +3103,7 @@
 
 
 ### ff424c1d - 8.5 - Implement ProofToken Environment Injection (Ed25519) (Rank 9) (P0)
-**Status**: pending | **Priority**: P0
+**Status**: completed | **Priority**: P0
 
 ### ff6ea23b - S52-W2-T009 [P1][FMEA:RPN144][Ideas:66-68] Generative alert/dashboard/diff explainability [AC: all outputs include source references] (P3)
 **Status**: pending | **Priority**: P3

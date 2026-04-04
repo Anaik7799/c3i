@@ -896,6 +896,7 @@ checksum = "70e796c081cee67dc755e1a36a0a172b897fab85fc3f6bc48307991f64e4eca9"
 dependencies = [
  "curve25519-dalek",
  "ed25519",
+ "rand_core 0.6.4",
  "serde",
  "sha2",
  "subtle",
@@ -1502,6 +1503,7 @@ dependencies = [
  "log",
  "petgraph 0.6.5",
  "rand 0.8.5",
+ "rand_core 0.6.4",
  "ratatui",
  "rusqlite",
  "serde",
@@ -4045,6 +4047,7 @@ checksum = "5ac8b6f42ead25368cf5b098aeb3dc8a1a2c05a3eee8a9a1a68c640edbfc79d9"
 dependencies = [
  "getrandom 0.4.2",
  "js-sys",
+ "serde_core",
  "wasm-bindgen",
 ]
 

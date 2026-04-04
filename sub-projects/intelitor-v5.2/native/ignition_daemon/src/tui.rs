@@ -136,8 +136,6 @@ pub struct DashboardState {
     pub recovery_history: Vec<(String, String, bool)>,
     /// Names of currently-active recovery playbooks
     pub active_playbooks: Vec<String>,
-    /// Task 8.3: DAG-based waves for visualization
-    pub waves: Vec<Vec<String>>,
 }
 
 /// DevUI trace entry — one step in the agent's decision chain.
@@ -248,7 +246,6 @@ impl Default for DashboardState {
             substrate_contaminated: false,
             recovery_history: Vec::new(),
             active_playbooks: Vec::new(),
-            waves: Vec::new(),
         }
     }
 }
@@ -413,7 +410,7 @@ async fn refresh_state(state: &mut DashboardState) {
     state.last_refresh = Local::now().format("%H:%M:%S").to_string();
 
     // Populate DAG waves for Topology tab
-    let dg = launch::build_dependency_graph();
+    let dg = crate::launch::build_dependency_graph();
     state.waves = dg.calculate_waves();
 
     // Calculate ETC (Rank 14 TUI Idea / Task 6.2)

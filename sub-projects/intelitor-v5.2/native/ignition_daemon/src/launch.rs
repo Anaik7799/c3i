@@ -10,7 +10,7 @@ use crate::types::*;
 use log::{info, warn, error, debug};
 use std::time::Duration;
 use ed25519_dalek::{SigningKey, Signer, VerifyingKey};
-use rand::rngs::OsRng;
+use rand_core::OsRng;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
 /// Task 8.5: ProofToken Environment Injection (Rank 9)
@@ -39,6 +39,14 @@ pub fn generate_secret_key() -> String {
 /// Build the CMD chain for the app container.
 pub fn build_app_cmd() -> String {
     r#"LC_ALL=C redis-server --daemonize yes --protected-mode no --save "" --appendonly no --dir /tmp --port 6379 2>/dev/null || echo "WARN: redis"; mkdir -p data/tmp data/state; mix ecto.migrate 2>/dev/null; exec mix phx.server"#.to_string()
+}
+
+/// Build the CMD chain for the test app container.
+pub fn build_test_cmd(test_args: &str) -> String {
+    format!(
+        r#"LC_ALL=C redis-server --daemonize yes --protected-mode no --save "" --appendonly no --dir /tmp --port 6379 2>/dev/null || echo "WARN: redis"; mkdir -p data/tmp data/state; mix ecto.create 2>/dev/null; mix ecto.migrate 2>/dev/null; exec mix test {}"#,
+        test_args
+    )
 }
 
 /// Task 8.3: DAG-based Dependency Resolution (Rank 7)
@@ -78,7 +86,7 @@ async fn monitor_stderr(container_name: String, mut child: tokio::process::Child
         let name = container_name.clone();
         tokio::spawn(async move {
             while let Ok(Some(line)) = reader.next_line().await {
-                debug!("[{}] {}", name, line);
+                info!("[{}] {}", name, line);
             }
         });
     }
@@ -122,6 +130,51 @@ pub async fn launch_app(proof_token: &str, proof_pubkey: &str) -> Result<String,
     ];
 
     for (key, val) in app_env_vars(&secret_key, proof_token, proof_pubkey) {
+        args.push("--env".into());
+        args.push(format!("{}={}", key, val));
+    }
+
+    args.push("-v".into());
+    args.push("/home/an/dev/ver/intelitor-v5.2/priv/native:/workspace/priv/native:Z".into());
+    args.push(image.into());
+    args.push("sh".into());
+    args.push("-c".into());
+    args.push(cmd);
+
+    let args_ref: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
+    let child = podman::podman_spawn(&args_ref)?;
+    monitor_stderr(name.to_string(), child).await;
+
+    Ok(name.to_string())
+}
+
+/// Specialized launch for test application container.
+pub async fn launch_test_app(test_args: &str) -> Result<String, IgnitionError> {
+    let secret_key = generate_secret_key();
+    let (proof_token, proof_pubkey) = generate_proof_token();
+    let cmd = build_test_cmd(test_args);
+    let image = "localhost/indrajaal-ex-app-1:latest";
+    let name = TEST_CONTAINER_NAME;
+
+    info!("  [Launch] Starting {} (TEST) with ProofToken...", name);
+
+    if podman::container_exists(name).await {
+        podman::force_remove(name).await?;
+    }
+
+    let mut args: Vec<String> = vec![
+        "run".into(), "-d".into(),
+        "--name".into(), name.into(),
+        "--hostname".into(), name.into(),
+        "--network".into(), MESH_NETWORK.into(),
+        "--ip".into(), TEST_CONTAINER_IP.into(),
+        "--memory".into(), APP_MEMORY_LIMIT.into(),
+        "--memory-swap".into(), APP_MEMORY_SWAP.into(),
+        "-p".into(), format!("{}:{}", TEST_PHOENIX_PORT, TEST_PHOENIX_PORT),
+        "-p".into(), format!("{}:{}", TEST_HEALTH_PORT, TEST_HEALTH_PORT),
+    ];
+
+    for (key, val) in test_env_vars(&secret_key, &proof_token, &proof_pubkey) {
         args.push("--env".into());
         args.push(format!("{}={}", key, val));
     }
