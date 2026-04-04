@@ -475,10 +475,17 @@
 - ✅ Updated tests: `test_all_playbooks_returns_five` → `test_all_playbooks_returns_fifteen`
 - ✅ RPN ordering verified: [252, 230, 225, 210, 198, 196, 189, 175, 168, 162, 154, 147, 140, 138, 130]
 
-### Phase 10-12: Pending
-- ⏳ Network partition detection with multi-path probing
-- ⏳ Split-brain prevention with fencing
-- ⏳ Wire `connectivity.rs` into verification flow
+### Phase 10: Network Partition Detection + Split-Brain Prevention (COMPLETED)
+- ✅ `partition.rs` (439 lines) — Network partition detection (Idea #51, Score 95)
+  - `detect_partitions()`: Multi-path probing (direct, via zenoh, via host) across 6 infra containers
+  - BFS-based connected component detection to identify partitions
+  - `execute_fencing()`: Stop minority partition containers, preserve Zenoh 2oo3 quorum
+  - `wait_for_partition_heal()`: Poll every 2s until all paths restored (60s timeout)
+  - `elect_leader()`: Deterministic leader election (lowest-numbered zenoh-router)
+  - 10 unit tests for PathResult, PartitionResult, FencingReport
+
+### Phase 11-12: Pending
+- ⏳ Wire `connectivity.rs` into verification flow in `main.rs`
 - ⏳ Update TUI dashboard with new screens (S-RECOVERY, S-FRACTAL, S-SECURITY)
 
 ### Commits
@@ -489,22 +496,21 @@
 - ✅ `f4b60f7b` — Phase 2 robustness — expanded recovery playbooks, connectivity verification, TUI enhancements
 - ✅ `ba0246fa` — robust launch module — atomic tier commit, idempotent launch, emergency drain
 - ✅ `3f1dbbc2` — expand recovery playbooks from 5 to 15 (Idea #48, Score 96)
+- ✅ `a095068d` — network partition detection + split-brain prevention (Idea #51, Score 95)
 
 ### Build Status
 - ✅ `cargo check`: 0 errors, 120 warnings (pre-existing dead-code warnings)
-- ✅ `cargo test`: 240/240 tests passing (237 unit + 3 integration)
+- ✅ `cargo test`: 250/250 tests passing (247 unit + 3 integration)
 
 ### Remaining Work
-1. Implement network partition detection with multi-path probing
-2. Implement split-brain prevention with fencing
-3. Wire `connectivity.rs` into verification flow in `main.rs`
-4. Update TUI dashboard with new screens (S-RECOVERY, S-FRACTAL, S-SECURITY)
+1. Wire `connectivity.rs` into verification flow in `main.rs`
+2. Update TUI dashboard with new screens (S-RECOVERY, S-FRACTAL, S-SECURITY)
 
 ---
 
 **Version**: v21.5.0-GLM
-**Status**: Phase 1-9 COMPLETED, Phase 10-12 IN PROGRESS
-**Last Updated**: 2026-04-04 10:00 CEST
-**Code Written**: ~4,325 lines across 3 new Rust modules + types.rs expansion + podman.rs extensions + recovery.rs expansion
-**Tests Written**: 22 unit tests (total: 240/240 passing)
-**Next Action**: Implement network partition detection + split-brain prevention
+**Status**: Phase 1-10 COMPLETED, Phase 11-12 IN PROGRESS
+**Last Updated**: 2026-04-04 10:30 CEST
+**Code Written**: ~4,764 lines across 4 new Rust modules + types.rs expansion + podman.rs extensions + recovery.rs expansion + tui.rs updates
+**Tests Written**: 32 unit tests (total: 250/250 passing)
+**Next Action**: Wire connectivity.rs into verification flow, update TUI dashboard

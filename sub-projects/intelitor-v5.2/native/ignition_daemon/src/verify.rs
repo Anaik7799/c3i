@@ -208,6 +208,90 @@ pub async fn run_all() -> Result<VerifyReport, IgnitionError> {
     log_check(&v14);
     checks.push(v14);
 
+    // V-15: Inter-container connectivity (Idea #32)
+    let v15 = {
+        let start = Instant::now();
+        match crate::connectivity::verify_connectivity().await {
+            Ok(matrix) => {
+                let all_ok = matrix.all_reachable;
+                CheckResult {
+                    name: "V-15: Inter-container connectivity".into(),
+                    passed: all_ok,
+                    message: if all_ok {
+                        format!("{}/{} reachable", matrix.successful, matrix.total_probes)
+                    } else {
+                        format!("{}/{} reachable, {} failed", matrix.successful, matrix.total_probes, matrix.failed)
+                    },
+                    duration_ms: start.elapsed().as_millis() as u64,
+                }
+            }
+            Err(e) => CheckResult {
+                name: "V-15: Inter-container connectivity".into(),
+                passed: false,
+                message: format!("Error: {}", e),
+                duration_ms: start.elapsed().as_millis() as u64,
+            },
+        }
+    };
+    log_check(&v15);
+    checks.push(v15);
+
+    // V-16: Zenoh mesh topology (Idea #34)
+    let v16 = {
+        let start = Instant::now();
+        match crate::connectivity::verify_zenoh_mesh_topology().await {
+            Ok(report) => {
+                let ok = report.fully_connected;
+                CheckResult {
+                    name: "V-16: Zenoh mesh topology".into(),
+                    passed: ok,
+                    message: if ok {
+                        format!("{}/{} sessions established", report.sessions_established, report.total_sessions_expected)
+                    } else {
+                        format!("{} routers checked, {}/{} sessions", report.routers_checked, report.sessions_established, report.total_sessions_expected)
+                    },
+                    duration_ms: start.elapsed().as_millis() as u64,
+                }
+            }
+            Err(e) => CheckResult {
+                name: "V-16: Zenoh mesh topology".into(),
+                passed: false,
+                message: format!("Error: {}", e),
+                duration_ms: start.elapsed().as_millis() as u64,
+            },
+        }
+    };
+    log_check(&v16);
+    checks.push(v16);
+
+    // V-17: Network partition detection (Idea #51)
+    let v17 = {
+        let start = Instant::now();
+        match crate::partition::detect_partitions().await {
+            Ok(result) => {
+                let ok = !result.detected;
+                CheckResult {
+                    name: "V-17: Network partition check".into(),
+                    passed: ok,
+                    message: if ok {
+                        "No partitions detected".into()
+                    } else {
+                        format!("PARTITION: {} + {} containers", result.partition_a.len(), result.partition_b.len())
+                    },
+                    duration_ms: start.elapsed().as_millis() as u64,
+                }
+            }
+            Err(e) => CheckResult {
+                name: "V-17: Network partition check".into(),
+                passed: false,
+                message: format!("Error: {}", e),
+                duration_ms: start.elapsed().as_millis() as u64,
+            },
+        }
+    };
+    log_check(&v17);
+    checks.push(v17);
+
     let passed_count = checks.iter().filter(|c| c.passed).count() as u32;
     let total_count = checks.len() as u32;
     let all_passed = passed_count == total_count;

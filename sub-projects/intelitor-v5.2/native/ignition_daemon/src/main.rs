@@ -134,17 +134,25 @@ enum Commands {
 
 #[tokio::main]
 async fn main() {
-    tui_logger::init_logger(log::LevelFilter::Info).unwrap();
-    tui_logger::set_default_level(log::LevelFilter::Info);
-
     let cli = Cli::parse();
     let start = Instant::now();
 
     // Do not print directly to stdout here if we are starting the dashboard
-    let mut show_start_banner = true;
+    let mut is_dashboard = false;
     if let Commands::Dashboard { .. } = cli.command {
-        show_start_banner = false;
+        is_dashboard = true;
     }
+
+    if is_dashboard {
+        tui_logger::init_logger(log::LevelFilter::Info).unwrap();
+        tui_logger::set_default_level(log::LevelFilter::Info);
+    } else {
+        env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
+            .format_timestamp_millis()
+            .init();
+    }
+
+    let mut show_start_banner = !is_dashboard;
 
     if show_start_banner {
         info!("╔═══════════════════════════════════════════════════════╗");
