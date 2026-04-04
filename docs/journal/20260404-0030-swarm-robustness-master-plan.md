@@ -530,16 +530,18 @@
 - ✅ `cargo check`: 0 errors, 120 warnings (pre-existing dead-code warnings)
 - ✅ `cargo test`: 250/250 tests passing (247 unit + 3 integration)
 
-### Phase 12: TUI Dashboard Enhancement (PARTIALLY COMPLETED)
+### Phase 12: TUI Dashboard Enhancement (COMPLETED)
+- ✅ Tab 8 (S-FRACTAL): L0-L7 health propagation map
+  - Per-layer health bars with color-coded status (green/yellow/red)
+  - Element counts per layer (healthy/total)
+  - Propagation arrows: "↑ FAILURES propagate UP, ↓ RECOVERY propagates DOWN"
+  - Overall fractal health score with percentage
+- ✅ Tab 9 (S-SECURITY): Security audit dashboard
+  - Substrate integrity panel: Axiom 0.1/0.2 checks (6 items)
+  - NIF binary validation: libc flavor, ELF inspection, glibc/musl mismatch
+  - Security alerts panel: 5 real-time security status items
 - ✅ Recovery tab (Tab 7) updated to display all 15 FMEA playbooks
-  - Standby message now shows all 15 failure modes with RPN values across 3 lines
-  - RPN ordering: 252→230→225→210→198→196→189→175→168→162→154→147→140→138→130
-- ✅ Existing TUI already displays:
-  - Tab 0 (Swarm): 8-node health matrix + detailed container table with CPU/MEM
-  - Tab 4 (Topology): ASCII mesh visualization with health-colored nodes
-  - Tab 7 (Recovery): Full FMEA playbook table with active/standby status
-  - Tab 2 (Checks): State vector + preflight/verify results
-- ⏳ New dedicated screens (S-FRACTAL, S-SECURITY) deferred — existing tabs cover core functionality
+- ✅ Expanded tab bar from 10 to 12 tabs with proper cycling (0-11)
 
 ### Commits
 - ✅ `fe48dfe7` — comprehensive swarm robustness master plan + artifact sync + spec docs
@@ -551,7 +553,8 @@
 - ✅ `3f1dbbc2` — expand recovery playbooks from 5 to 15 (Idea #48, Score 96)
 - ✅ `a095068d` — network partition detection + split-brain prevention (Idea #51, Score 95)
 - ✅ `5e8e8c0c` — wire connectivity and partition checks into verification flow (V-15, V-16, V-17)
-- ✅ TUI update — recovery tab FMEA summary for 15 playbooks
+- ✅ `6a8c6290` — update recovery tab FMEA summary for 15 playbooks
+- ✅ `c1ad72f9` — add S-FRACTAL and S-SECURITY dashboard tabs (Tabs 8-9)
 
 ### Build Status
 - ✅ `cargo check`: 0 errors, 120 warnings (pre-existing dead-code warnings)
