@@ -67,6 +67,27 @@ pub fn ooda_phase_to_string(phase: OodaPhase) -> String {
   }
 }
 
+/// Convert a Page to its string representation for OTel spans.
+pub fn page_to_string(page: Page) -> String {
+  case page {
+    Dashboard -> "dashboard"
+    Planning -> "planning"
+    Immune -> "immune"
+    Knowledge -> "knowledge"
+    Zenoh -> "zenoh"
+    Cockpit -> "cockpit"
+    Verification -> "verification"
+    Substrate -> "substrate"
+    Metabolic -> "metabolic"
+    Podman -> "podman"
+    Mcp -> "mcp"
+    Kms -> "kms"
+    Telemetry -> "telemetry"
+    Federation -> "federation"
+    HealthGrid -> "health_grid"
+  }
+}
+
 // ---------------------------------------------------------------------------
 // FFI bindings
 // ---------------------------------------------------------------------------
@@ -101,7 +122,7 @@ fn span_to_json(span: OtelSpan) -> json.Json {
     #("span_id", json.string(span.span_id)),
     #("name", json.string(span.name)),
     #("ooda_phase", json.string(ooda_phase_to_string(span.ooda_phase))),
-    #("page", json.string(page_to_path(span.page))),
+    #("page", json.string(page_to_string(span.page))),
     #("element", json.string(span.element)),
     #("timestamp", json.int(span.timestamp)),
     #("duration_us", json.int(span.duration_us)),
@@ -111,7 +132,7 @@ fn span_to_json(span: OtelSpan) -> json.Json {
 
 /// Build the Zenoh topic for a given page and element.
 fn otel_topic(page: Page, element: String) -> String {
-  otel_prefix <> string.replace(page_to_path(page), "/", "_") <> "/" <> element
+  otel_prefix <> page_to_string(page) <> "/" <> element
 }
 
 /// Create a new OTel span for a UI state change.

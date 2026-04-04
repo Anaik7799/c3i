@@ -13,9 +13,9 @@
 /// subscription management, and message replay for testing.
 ///
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-003, SC-GLM-UI-007, SC-ZENOH-001
-import cepaf_gleam/ui/domain.{page_to_path}
-import cepaf_gleam/ui/domain.{page_to_path}
-import cepaf_gleam/ui/zenoh_otel.{type OodaPhase, type OtelSpan}
+import cepaf_gleam/ui/zenoh_otel.{
+  type OtelSpan, ooda_phase_to_string, page_to_string,
+}
 import cepaf_gleam/zenoh/domain.{
   type ConnectionStatus, type ZenohHealth, Connected, Connecting, Disconnected,
 }
@@ -84,9 +84,9 @@ pub fn message_inspection_json(
 pub fn topics_list_json(topics: List(#(String, Int))) -> String {
   let topic_entries =
     list.map(topics, fn(pair) {
-      let #(topic, count) = pair
+      let #(t, count) = pair
       json.object([
-        #("topic", json.string(topic)),
+        #("topic", json.string(t)),
         #("message_count", json.int(count)),
       ])
     })
@@ -94,7 +94,7 @@ pub fn topics_list_json(topics: List(#(String, Int))) -> String {
   json.object([
     #("endpoint", json.string("/zenoh/topics")),
     #("total_topics", json.int(list.length(topics))),
-    #("topics", json.array(topic_entries)),
+    #("topics", json.array(topic_entries, fn(j) { j })),
   ])
   |> json.to_string()
 }
@@ -110,21 +110,12 @@ fn otel_span_to_json(span: OtelSpan) -> json.Json {
     #("span_id", json.string(span.span_id)),
     #("name", json.string(span.name)),
     #("ooda_phase", json.string(ooda_phase_to_string(span.ooda_phase))),
-    #("page", json.string(span.page)),
+    #("page", json.string(page_to_string(span.page))),
     #("element", json.string(span.element)),
     #("timestamp", json.int(span.timestamp)),
     #("duration_us", json.int(span.duration_us)),
     #("attributes", span.attributes),
   ])
-}
-
-fn ooda_phase_to_string(phase: OodaPhase) -> String {
-  case phase {
-    zenoh_otel.Observe -> "Observe"
-    zenoh_otel.Orient -> "Orient"
-    zenoh_otel.Decide -> "Decide"
-    zenoh_otel.Act -> "Act"
-  }
 }
 
 /// JSON response for OTel span query by page.
@@ -135,7 +126,7 @@ pub fn otel_spans_by_page_json(page: String, spans: List(OtelSpan)) -> String {
     #("endpoint", json.string("/zenoh/otel/spans")),
     #("page", json.string(page)),
     #("span_count", json.int(list.length(spans))),
-    #("spans", json.array(span_entries)),
+    #("spans", json.array(span_entries, fn(j) { j })),
   ])
   |> json.to_string()
 }
@@ -148,7 +139,7 @@ pub fn otel_spans_by_phase_json(phase: String, spans: List(OtelSpan)) -> String 
     #("endpoint", json.string("/zenoh/otel/spans/phase")),
     #("ooda_phase", json.string(phase)),
     #("span_count", json.int(list.length(spans))),
-    #("spans", json.array(span_entries)),
+    #("spans", json.array(span_entries, fn(j) { j })),
   ])
   |> json.to_string()
 }
@@ -217,7 +208,7 @@ pub fn subscriptions_health_json(
   json.object([
     #("endpoint", json.string("/zenoh/subscriptions/health")),
     #("total_subscriptions", json.int(list.length(subscriptions))),
-    #("subscriptions", json.array(sub_entries)),
+    #("subscriptions", json.array(sub_entries, fn(j) { j })),
   ])
   |> json.to_string()
 }
@@ -268,16 +259,16 @@ pub fn batch_replay_result_json(
 ) -> String {
   let topic_entries =
     list.map(topics, fn(pair) {
-      let #(topic, count) = pair
+      let #(t, count) = pair
       json.object([
-        #("topic", json.string(topic)),
+        #("topic", json.string(t)),
         #("messages_replayed", json.int(count)),
       ])
     })
 
   json.object([
     #("endpoint", json.string("/zenoh/replay/batch")),
-    #("topics", json.array(topic_entries)),
+    #("topics", json.array(topic_entries, fn(j) { j })),
     #("total_messages", json.int(total_messages)),
     #("total_duration_ms", json.int(total_duration_ms)),
   ])

@@ -191,22 +191,10 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 
 ## §10.0 Active Constraints Cross-Reference
 
-| Constraint Family | Count | Purpose |
-|-------------------|-------|---------|
-| SC-GLM-UI | 10 | Triple interface, Lustre, Wisp, TUI, shared types |
-| SC-AGUI | 10 | AG-UI 32-event protocol, transport, HITL pattern |
-| SC-A2UI | 8 | A2UI declarative catalog, JSON-only |
-| SC-UIGT | 10 | UI graph theory testing (22-page digraph, LTS, prime paths) |
-| SC-HINT | 8 | Human Intent protection, alignment score ≥ 0.70 |
-| SC-MATH-COV | 6 | Shannon H, CCM, ITQS math gates |
-| SC-HMI | 80 | Human-Machine Interface (dark cockpit, color profiles) |
-| SC-VER | 79 | Fractal verification gates (L0-L7) |
+Full constraint registry (2,257 SC-* / 480 AOR-* at parity): `.claude/rules/constraint-registry.md`
 
-| SC-FRACTAL | 8 | Fractal agentic element model (L0-L7 widgets) |
-| SC-PROM | 7 | PROMETHEUS verification DAG gates |
+Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6) SC-HMI(80) SC-VER(79) SC-FRACTAL(8) SC-PROM(7)
 
-**See** `.claude/rules/gleam-web-ui-development.md` for full constraint text.
-**See** `.claude/rules/ui-graph-testing.md` for graph-theory UI testing.
 **See** `docs/GLEAM_UI_DEVELOPMENT_PROMPT.md` for development session prompt.
 
 ---
