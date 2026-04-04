@@ -502,15 +502,43 @@
 - ✅ `cargo check`: 0 errors, 120 warnings (pre-existing dead-code warnings)
 - ✅ `cargo test`: 250/250 tests passing (247 unit + 3 integration)
 
+### Phase 11: Verification Flow Wiring (COMPLETED)
+- ✅ `verify.rs` expanded from 14 to 17 checks
+  - V-15: Inter-container connectivity matrix — tests all container-to-container TCP connectivity
+  - V-16: Zenoh mesh topology — verifies all 3 zenoh routers see each other as peers
+  - V-17: Network partition detection — detects split-brain via BFS component analysis
+- ✅ All 3 new checks call into `connectivity.rs` and `partition.rs` modules
+- ✅ Error handling: each check catches errors and reports them as failed checks
+
+### Phase 12: TUI Dashboard (DEFERRED)
+- ⏳ New screens (S-RECOVERY, S-FRACTAL, S-SECURITY) deferred to next session
+- Existing TUI already displays FMEA table with all 15 failure modes
+- TUI already shows swarm health, connectivity status, and recovery playbooks
+
+### Commits
+- ✅ `fe48dfe7` — comprehensive swarm robustness master plan + artifact sync + spec docs
+- ✅ `082161ad` — integrate cascading failure containment module (Idea #46)
+- ✅ `d68b484d` — duplicate cascade commit (git index issue)
+- ✅ `92bd0fb1` — add inter-container connectivity matrix + Zenoh mesh topology verification
+- ✅ `f4b60f7b` — Phase 2 robustness — expanded recovery playbooks, connectivity verification, TUI enhancements
+- ✅ `ba0246fa` — robust launch module — atomic tier commit, idempotent launch, emergency drain
+- ✅ `3f1dbbc2` — expand recovery playbooks from 5 to 15 (Idea #48, Score 96)
+- ✅ `a095068d` — network partition detection + split-brain prevention (Idea #51, Score 95)
+- ✅ `5e8e8c0c` — wire connectivity and partition checks into verification flow (V-15, V-16, V-17)
+
+### Build Status
+- ✅ `cargo check`: 0 errors, 120 warnings (pre-existing dead-code warnings)
+- ✅ `cargo test`: 250/250 tests passing (247 unit + 3 integration)
+
 ### Remaining Work
-1. Wire `connectivity.rs` into verification flow in `main.rs`
-2. Update TUI dashboard with new screens (S-RECOVERY, S-FRACTAL, S-SECURITY)
+1. Update TUI dashboard with new screens (S-RECOVERY, S-FRACTAL, S-SECURITY) — deferred
 
 ---
 
 **Version**: v21.5.0-GLM
-**Status**: Phase 1-10 COMPLETED, Phase 11-12 IN PROGRESS
-**Last Updated**: 2026-04-04 10:30 CEST
-**Code Written**: ~4,764 lines across 4 new Rust modules + types.rs expansion + podman.rs extensions + recovery.rs expansion + tui.rs updates
+**Status**: Phase 1-11 COMPLETED, Phase 12 DEFERRED
+**Last Updated**: 2026-04-04 11:00 CEST
+**Code Written**: ~4,900 lines across 4 new Rust modules + types.rs expansion + podman.rs extensions + recovery.rs expansion + tui.rs updates + verify.rs wiring
 **Tests Written**: 32 unit tests (total: 250/250 passing)
-**Next Action**: Wire connectivity.rs into verification flow, update TUI dashboard
+**Commits**: 10 on main branch (including 1 duplicate)
+**Next Action**: TUI dashboard enhancement (S-RECOVERY, S-FRACTAL, S-SECURITY screens)

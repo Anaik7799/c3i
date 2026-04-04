@@ -2012,11 +2012,19 @@ fn draw_recovery_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
     let summary_lines = if state.active_playbooks.is_empty() && total_recoveries == 0 {
         vec![
             Line::from(Span::styled(
-                "  All playbooks on standby — no active recovery, no history",
+                "  All 15 playbooks on standby — no active recovery, no history",
                 Style::default().fg(INDRAJAAL_DIM),
             )),
             Line::from(Span::styled(
-                "  FMEA: 252 NIF | 225 glibc/musl | 196 HealthTimeout | 168 BootOrder | 140 Observability",
+                "  FMEA: 252 NIF | 230 Cascade | 225 glibc | 210 Disk | 198 Memory | 196 Timeout",
+                Style::default().fg(INDRAJAAL_DIM),
+            )),
+            Line::from(Span::styled(
+                "        189 Network | 175 Image | 168 BootOrder | 162 Cert | 154 Clock | 147 Zombie",
+                Style::default().fg(INDRAJAAL_DIM),
+            )),
+            Line::from(Span::styled(
+                "        140 Observ | 138 Registry | 130 Config",
                 Style::default().fg(INDRAJAAL_DIM),
             )),
         ]
