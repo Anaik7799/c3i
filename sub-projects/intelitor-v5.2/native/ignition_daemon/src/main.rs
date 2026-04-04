@@ -279,11 +279,6 @@ async fn cmd_launch(mode: LaunchMode, test_args: &str) -> Result<(), errors::Ign
             launch::launch_mesh().await?;
         }
         LaunchMode::Test => {
-            // Launch test container (isolated)
-            info!("── Test Container Launch ──");
-            let _test_id = launch::launch_test_app(test_args).await?;
-        }
-    }
             // Launch test container (isolated, separate ports/IP/name)
             info!("── Test Container Launch (SC-ENV-COMPILE-005 to SC-ENV-COMPILE-007) ──");
             let test_id = launch::launch_test_app(test_args).await?;
