@@ -392,20 +392,8 @@ async fn cmd_full(mode: LaunchMode, test_args: &str) -> Result<(), errors::Ignit
 
     match mode {
         LaunchMode::Prod => {
-            // Launch app + bridge (production)
-            let _app_id = launch::launch_app().await?;
-            match launch::launch_bridge().await {
-                Ok(bridge_id) => info!("Bridge container: {}", bridge_id),
-                Err(e) => {
-                    error!("Bridge launch failed: {}", e);
-                    let rr = recovery::auto_recover("cepaf-bridge").await;
-                    if rr.success {
-                        info!("  ✓ Bridge recovery succeeded: {}", rr.detail);
-                    } else {
-                        warn!("  ⚠ Bridge recovery failed: {}", rr.detail);
-                    }
-                }
-            }
+            // Use the new authoritative DAG-based mesh ignition
+            launch::launch_mesh().await?;
         }
         LaunchMode::Test => {
             // Launch test container (isolated)
