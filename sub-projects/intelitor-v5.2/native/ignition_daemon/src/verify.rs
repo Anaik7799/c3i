@@ -466,11 +466,12 @@ mod tests {
         // Simulate V-1 passed (container running) and V-2 passed (health)
         let sv = StateVector {
             compile: true,
-            migrations: true, // derived from V-1
-            containers: true, // derived from V-1
-            zenoh: true,      // from preflight
-            health: true,     // derived from V-2
-            quorum: true,     // from preflight
+            migrations: true,
+            containers: true,
+            zenoh: true,
+            health: true,
+            quorum: true,
+            quorum_count: 5,
         };
         assert!(sv.is_valid());
     }
@@ -482,8 +483,9 @@ mod tests {
             migrations: true,
             containers: true,
             zenoh: true,
-            health: false, // V-2 failed
+            health: false,
             quorum: true,
+            quorum_count: 5,
         };
         assert!(!sv.is_valid());
     }
@@ -492,11 +494,12 @@ mod tests {
     fn test_state_vector_from_failed_container() {
         let sv = StateVector {
             compile: true,
-            migrations: false, // V-1 failed
-            containers: false, // V-1 failed
+            migrations: false,
+            containers: false,
             zenoh: true,
             health: false,
             quorum: true,
+            quorum_count: 0,
         };
         assert!(!sv.is_valid());
         assert_eq!(sv.as_array(), [1, 0, 0, 1, 0, 1]);

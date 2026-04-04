@@ -51,9 +51,7 @@ use ratatui::{
     style::{Color, Modifier, Style, Stylize},
     symbols,
     text::{Line, Span},
-    widgets::{
-        Block, Borders, Cell, Gauge, Paragraph, Row, Table, Tabs, List, ListItem,
-    },
+    widgets::{Block, Borders, Cell, Gauge, List, ListItem, Paragraph, Row, Sparkline, Table, Tabs},
     Frame, Terminal,
 };
 use serde::{Deserialize, Serialize};
@@ -113,6 +111,8 @@ pub struct DashboardState {
     pub cpu_history: Vec<u8>,
     /// AG-UI generative: Boot timeline tier data (tier_name, start_ms, duration_ms, status)
     pub boot_timeline: Vec<BootTierEvent>,
+    /// TUI-001: Sparklines showing the timing/duration of each boot phase
+    pub phase_durations: Vec<u64>,
 
     // Tab 5 — Build Oracle
     /// EMA records loaded from build-history.db: (container, ema_ms, adaptive_timeout_ms)
@@ -147,12 +147,12 @@ pub struct DashboardState {
 #[derive(Debug, Clone)]
 pub struct TraceEntry {
     pub timestamp: String,
-    pub phase: String,       // "PF-2", "V-5", "LAUNCH"
-    pub action: String,      // "pg_isready -U postgres"
-    pub result: String,      // "exit 0 (230ms)"
+    pub phase: String,  // "PF-2", "V-5", "LAUNCH"
+    pub action: String, // "pg_isready -U postgres"
+    pub result: String, // "exit 0 (230ms)"
     pub decision: TraceDecision,
     pub duration_ms: u64,
-    pub timeout_ms: u64,     // budget for flame bar ratio
+    pub timeout_ms: u64, // budget for flame bar ratio
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -241,6 +241,7 @@ impl Default for DashboardState {
             trace_scroll: 0,
             cpu_history: Vec::with_capacity(60),
             boot_timeline: Vec::new(),
+            phase_durations: Vec::new(),
             build_emas: Vec::new(),
             build_db_healthy: false,
             build_db_health: None,
@@ -286,7 +287,7 @@ pub async fn run_dashboard(test_mode: bool) -> Result<(), IgnitionError> {
 
     loop {
         state.uptime_secs = start.elapsed().as_secs();
-        
+
         if test_mode {
             if let Some(ref mut t) = test_terminal {
                 t.draw(|f| draw_ui(f, &state)).unwrap();
@@ -315,25 +316,32 @@ pub async fn run_dashboard(test_mode: bool) -> Result<(), IgnitionError> {
                                 state.tab_index = (state.tab_index + 1) % 12;
                             }
                             KeyCode::BackTab | KeyCode::Left => {
-                                state.tab_index = if state.tab_index == 0 { 11 } else { state.tab_index - 1 };
+                                state.tab_index = if state.tab_index == 0 {
+                                    11
+                                } else {
+                                    state.tab_index - 1
+                                };
                             }
                             KeyCode::Up => {
                                 if state.tab_index == 3 {
                                     state.trace_scroll = state.trace_scroll.saturating_sub(1);
                                 } else if state.tab_index == 0 {
-                                    state.selected_container = state.selected_container.saturating_sub(1);
+                                    state.selected_container =
+                                        state.selected_container.saturating_sub(1);
                                 }
                             }
                             KeyCode::Down => {
                                 if state.tab_index == 3 {
                                     state.trace_scroll = state.trace_scroll.saturating_add(1);
                                 } else if state.tab_index == 0 {
-                                    state.selected_container = (state.selected_container + 1).min(state.containers.len().saturating_sub(1));
+                                    state.selected_container = (state.selected_container + 1)
+                                        .min(state.containers.len().saturating_sub(1));
                                 }
                             }
                             KeyCode::Char('s') => {
                                 if state.tab_index == 0 && !state.containers.is_empty() {
-                                    let name = state.containers[state.selected_container].name.clone();
+                                    let name =
+                                        state.containers[state.selected_container].name.clone();
                                     state.trace_entries.push(TraceEntry {
                                         timestamp: Local::now().format("%H:%M:%S").to_string(),
                                         phase: format!("OP ({})", name),
@@ -349,7 +357,8 @@ pub async fn run_dashboard(test_mode: bool) -> Result<(), IgnitionError> {
                             }
                             KeyCode::Char('x') => {
                                 if state.tab_index == 0 && !state.containers.is_empty() {
-                                    let name = state.containers[state.selected_container].name.clone();
+                                    let name =
+                                        state.containers[state.selected_container].name.clone();
                                     state.trace_entries.push(TraceEntry {
                                         timestamp: Local::now().format("%H:%M:%S").to_string(),
                                         phase: format!("OP ({})", name),
@@ -372,7 +381,7 @@ pub async fn run_dashboard(test_mode: bool) -> Result<(), IgnitionError> {
             // Auto-refresh every 2 seconds (Full refresh now for metrics)
             if start.elapsed().as_secs() % 2 == 0 {
                 refresh_state(&mut state).await;
-                
+
                 // OTel sparkline: record CPU to ring buffer
                 state.cpu_history.push(state.cpu_pct);
                 if state.cpu_history.len() > 60 {
@@ -410,7 +419,9 @@ async fn refresh_state(state: &mut DashboardState) {
 
     state.containers.clear();
     for name in &containers {
-        let status = podman::container_status(name).await.unwrap_or_else(|_| "not found".into());
+        let status = podman::container_status(name)
+            .await
+            .unwrap_or_else(|_| "not found".into());
         let ip = podman::container_ip(name).await.unwrap_or_default();
         let health = match status.as_str() {
             "running" => HealthStatus::Healthy,
@@ -420,12 +431,23 @@ async fn refresh_state(state: &mut DashboardState) {
         };
 
         // Find stats for this container
-        let (cpu, mem_pct, mem_usage, net_io) = match stats.iter().find(|s| s.name == *name || s.name == format!("/{}", name)) {
+        let (cpu, mem_pct, mem_usage, net_io) = match stats
+            .iter()
+            .find(|s| s.name == *name || s.name == format!("/{}", name))
+        {
             Some(s) => {
-                let cpu_val = s.cpu_pct.trim_end_matches('%').parse::<f64>().unwrap_or(0.0) as u8;
-                let mem_val = s.mem_pct.trim_end_matches('%').parse::<f64>().unwrap_or(0.0) as u8;
+                let cpu_val = s
+                    .cpu_pct
+                    .trim_end_matches('%')
+                    .parse::<f64>()
+                    .unwrap_or(0.0) as u8;
+                let mem_val = s
+                    .mem_pct
+                    .trim_end_matches('%')
+                    .parse::<f64>()
+                    .unwrap_or(0.0) as u8;
                 (cpu_val, mem_val, s.mem_usage.clone(), s.net_io.clone())
-            },
+            }
             None => (0, 0, "0B / 0B".to_string(), "0B / 0B".to_string()),
         };
 
@@ -455,7 +477,9 @@ async fn refresh_state(state: &mut DashboardState) {
     for c in &state.containers {
         if c.health != HealthStatus::Healthy {
             // Find EMA for this container
-            if let Some((_, ema_ms, _)) = state.build_emas.iter().find(|(name, _, _)| name == &c.name) {
+            if let Some((_, ema_ms, _)) =
+                state.build_emas.iter().find(|(name, _, _)| name == &c.name)
+            {
                 remaining_ms += *ema_ms;
             } else {
                 // Default fallback if no EMA data
@@ -463,7 +487,7 @@ async fn refresh_state(state: &mut DashboardState) {
             }
         }
     }
-    
+
     if remaining_ms > 0.0 {
         // Factor in parallelism (rough estimate: divide by 4)
         let estimated_remaining_secs = (remaining_ms / 4000.0) as u64;
@@ -475,7 +499,11 @@ async fn refresh_state(state: &mut DashboardState) {
     }
 
     // Update state vector
-    let running_count = state.containers.iter().filter(|c| c.status == "running").count();
+    let running_count = state
+        .containers
+        .iter()
+        .filter(|c| c.status == "running")
+        .count();
     state.state_vector.containers = running_count >= 6;
     state.state_vector.zenoh = state
         .containers
@@ -548,7 +576,7 @@ fn draw_ui_area(f: &mut Frame, area: Rect, state: &DashboardState) {
         .constraints([
             Constraint::Length(3), // Header
             Constraint::Length(3), // Tabs
-            Constraint::Min(10),  // Body
+            Constraint::Min(10),   // Body
             Constraint::Length(3), // Footer
         ])
         .split(area);
@@ -578,10 +606,7 @@ fn draw_ui_area(f: &mut Frame, area: Rect, state: &DashboardState) {
 fn draw_header(f: &mut Frame, area: Rect, state: &DashboardState) {
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage(60),
-            Constraint::Percentage(40),
-        ])
+        .constraints([Constraint::Percentage(60), Constraint::Percentage(40)])
         .split(area);
 
     let phase_color = match state.phase {
@@ -593,13 +618,20 @@ fn draw_header(f: &mut Frame, area: Rect, state: &DashboardState) {
         IgnitionPhase::Failed => INDRAJAAL_RED,
     };
 
-    let running = state.containers.iter().filter(|c| c.status == "running").count();
+    let running = state
+        .containers
+        .iter()
+        .filter(|c| c.status == "running")
+        .count();
     let total = state.containers.len();
 
     // Rank 16 Idea: Agent CoT (Chain of Thought) Ticker
     // Display the most recent DevUI trace entry as a marquee/ticker
     let latest_thought = if let Some(last) = state.trace_entries.last() {
-        format!(" 🧠 CoT: [{}] {} ➜ {}", last.phase, last.action, last.result)
+        format!(
+            " 🧠 CoT: [{}] {} ➜ {}",
+            last.phase, last.action, last.result
+        )
     } else {
         " 🧠 CoT: Awaiting telemetry...".to_string()
     };
@@ -611,47 +643,54 @@ fn draw_header(f: &mut Frame, area: Rect, state: &DashboardState) {
 
     let header_text = vec![
         Line::from(vec![
-            Span::styled(" ◈ INDRAJAAL C3I ", Style::default().fg(INDRAJAAL_CYAN).bold()),
+            Span::styled(
+                " ◈ INDRAJAAL C3I ",
+                Style::default().fg(INDRAJAAL_CYAN).bold(),
+            ),
             Span::styled("v21.3.2-SIL6 ", Style::default().fg(INDRAJAAL_DIM)),
             Span::styled("│ ", Style::default().fg(INDRAJAAL_BORDER)),
-            Span::styled(format!("{} ", state.phase), Style::default().fg(phase_color).bold()),
+            Span::styled(
+                format!("{} ", state.phase),
+                Style::default().fg(phase_color).bold(),
+            ),
             Span::styled("│ ", Style::default().fg(INDRAJAAL_BORDER)),
-            Span::styled(format!("Uptime: {}s ", state.uptime_secs), Style::default().fg(INDRAJAAL_CYAN)),
+            Span::styled(
+                format!("Uptime: {}s ", state.uptime_secs),
+                Style::default().fg(INDRAJAAL_CYAN),
+            ),
             Span::styled("│ ", Style::default().fg(INDRAJAAL_BORDER)),
             Span::styled(etc_text, Style::default().fg(INDRAJAAL_YELLOW)),
         ]),
-        Line::from(vec![
-            Span::styled(latest_thought, Style::default().fg(INDRAJAAL_MAGENTA).add_modifier(Modifier::ITALIC)),
-        ]),
+        Line::from(vec![Span::styled(
+            latest_thought,
+            Style::default()
+                .fg(INDRAJAAL_MAGENTA)
+                .add_modifier(Modifier::ITALIC),
+        )]),
     ];
 
-    let header = Paragraph::new(header_text)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(INDRAJAAL_BORDER))
-                .style(Style::default().bg(INDRAJAAL_BG)),
-        );
+    let header = Paragraph::new(header_text).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(INDRAJAAL_BORDER))
+            .style(Style::default().bg(INDRAJAAL_BG)),
+    );
     f.render_widget(header, chunks[0]);
 
-    // Mesh Integrity Gauge (Visual Concept)
-    let integrity_pct = if total > 0 { (running as f64 / total as f64) * 100.0 } else { 0.0 };
-    let integrity_color = if integrity_pct > 90.0 { INDRAJAAL_GREEN } else if integrity_pct > 50.0 { INDRAJAAL_YELLOW } else { INDRAJAAL_RED };
-    
-    let gauge = Gauge::default()
+    // TUI-001: Phase Transition Sparklines
+    let sparkline = Sparkline::default()
         .block(
             Block::default()
-                .title(" Mesh Integrity Score ")
+                .title(" Phase Durations ")
                 .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(INDRAJAAL_BORDER))
                 .style(Style::default().bg(INDRAJAAL_BG)),
         )
-        .gauge_style(Style::default().fg(integrity_color).bg(Color::Rgb(30, 30, 40)))
-        .ratio(integrity_pct / 100.0)
-        .label(format!("{:.0}% ({} / {} Active)", integrity_pct, running, total));
-    
-    f.render_widget(gauge, chunks[1]);
+        .data(&state.phase_durations)
+        .style(Style::default().fg(INDRAJAAL_MAGENTA));
+
+    f.render_widget(sparkline, chunks[1]);
 }
 
 fn draw_tabs(f: &mut Frame, area: Rect, state: &DashboardState) {
@@ -694,53 +733,83 @@ fn draw_agentui_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
 
     let dialogue_text = vec![
         Line::from(vec![
-            Span::styled("🤖 Cortex Agent: ", Style::default().fg(INDRAJAAL_MAGENTA).bold()),
+            Span::styled(
+                "🤖 Cortex Agent: ",
+                Style::default().fg(INDRAJAAL_MAGENTA).bold(),
+            ),
             Span::raw("Analyzing substrate... Axiom 0.1 verified. Proceeding to Wave 0."),
         ]),
         Line::from(vec![
-            Span::styled("🤖 Cortex Agent: ", Style::default().fg(INDRAJAAL_MAGENTA).bold()),
-            Span::raw("Detected stale container 'indrajaal-db-prod'. Applying Ghost Purge strategy."),
+            Span::styled(
+                "🤖 Cortex Agent: ",
+                Style::default().fg(INDRAJAAL_MAGENTA).bold(),
+            ),
+            Span::raw(
+                "Detected stale container 'indrajaal-db-prod'. Applying Ghost Purge strategy.",
+            ),
         ]),
         Line::from(vec![
-            Span::styled("🤖 Cortex Agent: ", Style::default().fg(INDRAJAAL_MAGENTA).bold()),
-            Span::styled("Action Required: Auto-remediation executed. Removed 1 stale lockfile.", Style::default().fg(INDRAJAAL_YELLOW)),
+            Span::styled(
+                "🤖 Cortex Agent: ",
+                Style::default().fg(INDRAJAAL_MAGENTA).bold(),
+            ),
+            Span::styled(
+                "Action Required: Auto-remediation executed. Removed 1 stale lockfile.",
+                Style::default().fg(INDRAJAAL_YELLOW),
+            ),
         ]),
         Line::from(vec![
-            Span::styled("🤖 Cortex Agent: ", Style::default().fg(INDRAJAAL_MAGENTA).bold()),
-            Span::styled("Mesh Quorum Achieved (2oo3). Ignition phase transitioning to COMPLETE.", Style::default().fg(INDRAJAAL_GREEN)),
+            Span::styled(
+                "🤖 Cortex Agent: ",
+                Style::default().fg(INDRAJAAL_MAGENTA).bold(),
+            ),
+            Span::styled(
+                "Mesh Quorum Achieved (2oo3). Ignition phase transitioning to COMPLETE.",
+                Style::default().fg(INDRAJAAL_GREEN),
+            ),
         ]),
     ];
 
-    let dialogue = Paragraph::new(dialogue_text)
-        .block(
-            Block::default()
-                .title(" Agent DevUI Dialogue (SC-HMI-010) ")
-                .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(INDRAJAAL_BORDER))
-                .style(Style::default().bg(INDRAJAAL_BG)),
-        );
+    let dialogue = Paragraph::new(dialogue_text).block(
+        Block::default()
+            .title(" Agent DevUI Dialogue (SC-HMI-010) ")
+            .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(INDRAJAAL_BORDER))
+            .style(Style::default().bg(INDRAJAAL_BG)),
+    );
     f.render_widget(dialogue, chunks[0]);
 
     let rules_text = vec![
         Line::from("Confidence Score:"),
-        Line::from(Span::styled("██████████████████░░ 92%", Style::default().fg(INDRAJAAL_GREEN))),
+        Line::from(Span::styled(
+            "██████████████████░░ 92%",
+            Style::default().fg(INDRAJAAL_GREEN),
+        )),
         Line::from(""),
         Line::from("Active Directives:"),
-        Line::from(Span::styled("✓ SC-IGNITE-001 (Sole Auth)", Style::default().fg(INDRAJAAL_GREEN))),
-        Line::from(Span::styled("✓ SC-BOOT-004 (OOM Prevent)", Style::default().fg(INDRAJAAL_GREEN))),
-        Line::from(Span::styled("✓ SC-SIL4-006 (FPPS Quorum)", Style::default().fg(INDRAJAAL_GREEN))),
+        Line::from(Span::styled(
+            "✓ SC-IGNITE-001 (Sole Auth)",
+            Style::default().fg(INDRAJAAL_GREEN),
+        )),
+        Line::from(Span::styled(
+            "✓ SC-BOOT-004 (OOM Prevent)",
+            Style::default().fg(INDRAJAAL_GREEN),
+        )),
+        Line::from(Span::styled(
+            "✓ SC-SIL4-006 (FPPS Quorum)",
+            Style::default().fg(INDRAJAAL_GREEN),
+        )),
     ];
 
-    let rules = Paragraph::new(rules_text)
-        .block(
-            Block::default()
-                .title(" Cognitive State ")
-                .title_style(Style::default().fg(INDRAJAAL_YELLOW).bold())
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(INDRAJAAL_BORDER))
-                .style(Style::default().bg(INDRAJAAL_BG)),
-        );
+    let rules = Paragraph::new(rules_text).block(
+        Block::default()
+            .title(" Cognitive State ")
+            .title_style(Style::default().fg(INDRAJAAL_YELLOW).bold())
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(INDRAJAAL_BORDER))
+            .style(Style::default().bg(INDRAJAAL_BG)),
+    );
     f.render_widget(rules, chunks[1]);
 }
 
@@ -753,56 +822,128 @@ fn draw_fractal_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
     let layer_health = |tier: u8| -> (f64, usize, usize) {
         let (total, healthy) = match tier {
             0 => {
-                let all: Vec<_> = state.containers.iter().filter(|c| c.name.starts_with("zenoh")).collect();
-                let h = all.iter().filter(|c| c.health == HealthStatus::Healthy).count();
+                let all: Vec<_> = state
+                    .containers
+                    .iter()
+                    .filter(|c| c.name.starts_with("zenoh"))
+                    .collect();
+                let h = all
+                    .iter()
+                    .filter(|c| c.health == HealthStatus::Healthy)
+                    .count();
                 (all.len(), h)
             }
             1 => {
                 let db = state.containers.iter().find(|c| c.name.contains("db"));
-                (1, if db.map(|c| c.health == HealthStatus::Healthy).unwrap_or(false) { 1 } else { 0 })
+                (
+                    1,
+                    if db
+                        .map(|c| c.health == HealthStatus::Healthy)
+                        .unwrap_or(false)
+                    {
+                        1
+                    } else {
+                        0
+                    },
+                )
             }
             2 => {
                 let obs = state.containers.iter().find(|c| c.name.contains("obs"));
-                (1, if obs.map(|c| c.health == HealthStatus::Healthy).unwrap_or(false) { 1 } else { 0 })
+                (
+                    1,
+                    if obs
+                        .map(|c| c.health == HealthStatus::Healthy)
+                        .unwrap_or(false)
+                    {
+                        1
+                    } else {
+                        0
+                    },
+                )
             }
             3 => {
-                let cogs: Vec<_> = state.containers.iter().filter(|c| c.name.contains("bridge") || c.name.contains("cortex")).collect();
-                let h = cogs.iter().filter(|c| c.health == HealthStatus::Healthy).count();
+                let cogs: Vec<_> = state
+                    .containers
+                    .iter()
+                    .filter(|c| c.name.contains("bridge") || c.name.contains("cortex"))
+                    .collect();
+                let h = cogs
+                    .iter()
+                    .filter(|c| c.health == HealthStatus::Healthy)
+                    .count();
                 (cogs.len(), h)
             }
             4 => {
-                let apps: Vec<_> = state.containers.iter().filter(|c| c.name.contains("ex-app")).collect();
-                let h = apps.iter().filter(|c| c.health == HealthStatus::Healthy).count();
+                let apps: Vec<_> = state
+                    .containers
+                    .iter()
+                    .filter(|c| c.name.contains("ex-app"))
+                    .collect();
+                let h = apps
+                    .iter()
+                    .filter(|c| c.health == HealthStatus::Healthy)
+                    .count();
                 (apps.len(), h)
             }
             5 => {
                 let chaya = state.containers.iter().find(|c| c.name.contains("chaya"));
-                (1, if chaya.map(|c| c.health == HealthStatus::Healthy).unwrap_or(false) { 1 } else { 0 })
+                (
+                    1,
+                    if chaya
+                        .map(|c| c.health == HealthStatus::Healthy)
+                        .unwrap_or(false)
+                    {
+                        1
+                    } else {
+                        0
+                    },
+                )
             }
             6 => {
                 let ollama = state.containers.iter().find(|c| c.name.contains("ollama"));
-                (1, if ollama.map(|c| c.health == HealthStatus::Healthy).unwrap_or(false) { 1 } else { 0 })
+                (
+                    1,
+                    if ollama
+                        .map(|c| c.health == HealthStatus::Healthy)
+                        .unwrap_or(false)
+                    {
+                        1
+                    } else {
+                        0
+                    },
+                )
             }
             7 => {
-                let ml: Vec<_> = state.containers.iter().filter(|c| c.name.contains("ml") || c.name.contains("mojo")).collect();
-                let h = ml.iter().filter(|c| c.health == HealthStatus::Healthy).count();
+                let ml: Vec<_> = state
+                    .containers
+                    .iter()
+                    .filter(|c| c.name.contains("ml") || c.name.contains("mojo"))
+                    .collect();
+                let h = ml
+                    .iter()
+                    .filter(|c| c.health == HealthStatus::Healthy)
+                    .count();
                 (ml.len(), h)
             }
             _ => (0, 0),
         };
-        let pct = if total > 0 { (healthy as f64 / total as f64) * 100.0 } else { 0.0 };
+        let pct = if total > 0 {
+            (healthy as f64 / total as f64) * 100.0
+        } else {
+            0.0
+        };
         (pct, healthy, total)
     };
 
     let layers = [
-        ("L0", "CONSTITUTIONAL",  "Guardian + Psi-0..5"),
-        ("L1", "ATOMIC/DEBUG",    "Probes + Telemetry"),
-        ("L2", "COMPONENT",       "Pure Logic + Parsers"),
-        ("L3", "TRANSACTION",     "State + Actors"),
-        ("L4", "SYSTEM",          "Podman + Host OS"),
-        ("L5", "COGNITIVE",       "MCP + UI Logic"),
-        ("L6", "ECOSYSTEM",       "Mesh + Zenoh"),
-        ("L7", "FEDERATION",      "Multi-node Consensus"),
+        ("L0", "CONSTITUTIONAL", "Guardian + Psi-0..5"),
+        ("L1", "ATOMIC/DEBUG", "Probes + Telemetry"),
+        ("L2", "COMPONENT", "Pure Logic + Parsers"),
+        ("L3", "TRANSACTION", "State + Actors"),
+        ("L4", "SYSTEM", "Podman + Host OS"),
+        ("L5", "COGNITIVE", "MCP + UI Logic"),
+        ("L6", "ECOSYSTEM", "Mesh + Zenoh"),
+        ("L7", "FEDERATION", "Multi-node Consensus"),
     ];
 
     let mut lines: Vec<Line> = Vec::new();
@@ -842,32 +983,62 @@ fn draw_fractal_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
 
         let bar_str = format!("{}{}", "█".repeat(filled), "░".repeat(empty));
         lines.push(Line::from(vec![
-            Span::styled(format!("  {} ", id), Style::default().fg(layer_color).bold()),
+            Span::styled(
+                format!("  {} ", id),
+                Style::default().fg(layer_color).bold(),
+            ),
             Span::styled(format!("{:<16}", name), Style::default().fg(layer_color)),
-            Span::styled(format!(" {} ", status_icon), Style::default().fg(layer_color)),
-            Span::styled(format!("[{}] {:.0}%", bar_str, pct), Style::default().fg(layer_color)),
-            Span::styled(format!("  {}/{}", healthy, total), Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                format!(" {} ", status_icon),
+                Style::default().fg(layer_color),
+            ),
+            Span::styled(
+                format!("[{}] {:.0}%", bar_str, pct),
+                Style::default().fg(layer_color),
+            ),
+            Span::styled(
+                format!("  {}/{}", healthy, total),
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
         ]));
-        lines.push(Line::from(Span::styled(format!("       {}", desc), Style::default().fg(INDRAJAAL_DIM))));
+        lines.push(Line::from(Span::styled(
+            format!("       {}", desc),
+            Style::default().fg(INDRAJAAL_DIM),
+        )));
         lines.push(Line::from(""));
     }
 
-    let overall_pct = if total_elements > 0 { (total_healthy as f64 / total_elements as f64) * 100.0 } else { 0.0 };
-    let overall_color = if overall_pct >= 100.0 { INDRAJAAL_GREEN } else if overall_pct >= 50.0 { INDRAJAAL_YELLOW } else { INDRAJAAL_RED };
+    let overall_pct = if total_elements > 0 {
+        (total_healthy as f64 / total_elements as f64) * 100.0
+    } else {
+        0.0
+    };
+    let overall_color = if overall_pct >= 100.0 {
+        INDRAJAAL_GREEN
+    } else if overall_pct >= 50.0 {
+        INDRAJAAL_YELLOW
+    } else {
+        INDRAJAAL_RED
+    };
     lines.push(Line::from(vec![
-        Span::styled("  Overall Fractal Health: ", Style::default().fg(INDRAJAAL_DIM)),
-        Span::styled(format!("{:.0}% ({}/{})", overall_pct, total_healthy, total_elements), Style::default().fg(overall_color).bold()),
+        Span::styled(
+            "  Overall Fractal Health: ",
+            Style::default().fg(INDRAJAAL_DIM),
+        ),
+        Span::styled(
+            format!("{:.0}% ({}/{})", overall_pct, total_healthy, total_elements),
+            Style::default().fg(overall_color).bold(),
+        ),
     ]));
 
-    let paragraph = Paragraph::new(lines)
-        .block(
-            Block::default()
-                .title(" Fractal Layer Health (L0-L7) ")
-                .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(INDRAJAAL_BORDER))
-                .style(Style::default().bg(INDRAJAAL_BG)),
-        );
+    let paragraph = Paragraph::new(lines).block(
+        Block::default()
+            .title(" Fractal Layer Health (L0-L7) ")
+            .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(INDRAJAAL_BORDER))
+            .style(Style::default().bg(INDRAJAAL_BG)),
+    );
     f.render_widget(paragraph, area);
 }
 
@@ -880,9 +1051,9 @@ fn draw_security_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(10),  // Substrate Guard
-            Constraint::Length(10),  // NIF Validation
-            Constraint::Min(6),      // Security Alerts
+            Constraint::Length(10), // Substrate Guard
+            Constraint::Length(10), // NIF Validation
+            Constraint::Min(6),     // Security Alerts
         ])
         .split(area);
 
@@ -893,42 +1064,65 @@ fn draw_security_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
     };
 
     let substrate_lines = vec![
-        Line::from(Span::styled("  ═══ SUBSTRATE GUARD (Axiom 0.1/0.2) ═══", Style::default().fg(INDRAJAAL_CYAN).bold())),
+        Line::from(Span::styled(
+            "  ═══ SUBSTRATE GUARD (Axiom 0.1/0.2) ═══",
+            Style::default().fg(INDRAJAAL_CYAN).bold(),
+        )),
         Line::from(""),
         Line::from(vec![
-            Span::styled("  Axiom 0.1: _build contamination  ", Style::default().fg(INDRAJAAL_DIM)),
-            Span::styled(substrate_status.0, Style::default().fg(substrate_status.1).bold()),
+            Span::styled(
+                "  Axiom 0.1: _build contamination  ",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
+            Span::styled(
+                substrate_status.0,
+                Style::default().fg(substrate_status.1).bold(),
+            ),
         ]),
         Line::from(vec![
-            Span::styled("  Axiom 0.2: Volume shadowing      ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "  Axiom 0.2: Volume shadowing      ",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
             Span::styled("✓ CLEAN", Style::default().fg(INDRAJAAL_GREEN)),
         ]),
         Line::from(vec![
-            Span::styled("  Host artifact leakage            ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "  Host artifact leakage            ",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
             Span::styled("✓ NONE DETECTED", Style::default().fg(INDRAJAAL_GREEN)),
         ]),
         Line::from(vec![
-            Span::styled("  Container isolation              ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "  Container isolation              ",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
             Span::styled("✓ ENFORCED", Style::default().fg(INDRAJAAL_GREEN)),
         ]),
         Line::from(vec![
-            Span::styled("  Rootless Podman (5.4.1+)         ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "  Rootless Podman (5.4.1+)         ",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
             Span::styled("✓ ACTIVE", Style::default().fg(INDRAJAAL_GREEN)),
         ]),
         Line::from(vec![
-            Span::styled("  Network namespace (sil6-mesh)    ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "  Network namespace (sil6-mesh)    ",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
             Span::styled("✓ ISOLATED", Style::default().fg(INDRAJAAL_GREEN)),
         ]),
     ];
-    let substrate_para = Paragraph::new(substrate_lines)
-        .block(
-            Block::default()
-                .title(" Substrate Integrity ")
-                .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(INDRAJAAL_BORDER))
-                .style(Style::default().bg(INDRAJAAL_BG)),
-        );
+    let substrate_para = Paragraph::new(substrate_lines).block(
+        Block::default()
+            .title(" Substrate Integrity ")
+            .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(INDRAJAAL_BORDER))
+            .style(Style::default().bg(INDRAJAAL_BG)),
+    );
     f.render_widget(substrate_para, chunks[0]);
 
     let libc_color = match state.libc_flavor.as_str() {
@@ -939,78 +1133,140 @@ fn draw_security_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
     };
 
     let nif_lines = vec![
-        Line::from(Span::styled("  ═══ NIF BINARY VALIDATION ═══", Style::default().fg(INDRAJAAL_CYAN).bold())),
+        Line::from(Span::styled(
+            "  ═══ NIF BINARY VALIDATION ═══",
+            Style::default().fg(INDRAJAAL_CYAN).bold(),
+        )),
         Line::from(""),
         Line::from(vec![
-            Span::styled("  Detected libc flavor:  ", Style::default().fg(INDRAJAAL_DIM)),
-            Span::styled(format!("{} ", state.libc_flavor.to_uppercase()), Style::default().fg(libc_color).bold()),
-            Span::styled(if state.libc_flavor == "musl" { "(correct)" } else { "(WARNING)" }, Style::default().fg(if state.libc_flavor == "musl" { INDRAJAAL_GREEN } else { INDRAJAAL_RED })),
+            Span::styled(
+                "  Detected libc flavor:  ",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
+            Span::styled(
+                format!("{} ", state.libc_flavor.to_uppercase()),
+                Style::default().fg(libc_color).bold(),
+            ),
+            Span::styled(
+                if state.libc_flavor == "musl" {
+                    "(correct)"
+                } else {
+                    "(WARNING)"
+                },
+                Style::default().fg(if state.libc_flavor == "musl" {
+                    INDRAJAAL_GREEN
+                } else {
+                    INDRAJAAL_RED
+                }),
+            ),
         ]),
         Line::from(vec![
-            Span::styled("  NIF compilation:       ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "  NIF compilation:       ",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
             Span::styled("✓ ENFORCED", Style::default().fg(INDRAJAAL_GREEN)),
         ]),
         Line::from(vec![
-            Span::styled("  ELF binary inspection: ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "  ELF binary inspection: ",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
             Span::styled("✓ PASSED", Style::default().fg(INDRAJAAL_GREEN)),
         ]),
         Line::from(vec![
-            Span::styled("  glibc/musl mismatch:   ", Style::default().fg(INDRAJAAL_DIM)),
-            Span::styled(if state.libc_flavor == "glibc" { "✗ DETECTED" } else { "✓ NONE" }, Style::default().fg(if state.libc_flavor == "glibc" { INDRAJAAL_RED } else { INDRAJAAL_GREEN })),
+            Span::styled(
+                "  glibc/musl mismatch:   ",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
+            Span::styled(
+                if state.libc_flavor == "glibc" {
+                    "✗ DETECTED"
+                } else {
+                    "✓ NONE"
+                },
+                Style::default().fg(if state.libc_flavor == "glibc" {
+                    INDRAJAAL_RED
+                } else {
+                    INDRAJAAL_GREEN
+                }),
+            ),
         ]),
         Line::from(vec![
-            Span::styled("  Rustler version:       ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "  Rustler version:       ",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
             Span::styled("✓ COMPATIBLE", Style::default().fg(INDRAJAAL_GREEN)),
         ]),
         Line::from(vec![
-            Span::styled("  NIF load test:         ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "  NIF load test:         ",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
             Span::styled("✓ ALL LOADED", Style::default().fg(INDRAJAAL_GREEN)),
         ]),
     ];
-    let nif_para = Paragraph::new(nif_lines)
-        .block(
-            Block::default()
-                .title(" NIF Binary Validation ")
-                .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(INDRAJAAL_BORDER))
-                .style(Style::default().bg(INDRAJAAL_BG)),
-        );
+    let nif_para = Paragraph::new(nif_lines).block(
+        Block::default()
+            .title(" NIF Binary Validation ")
+            .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(INDRAJAAL_BORDER))
+            .style(Style::default().bg(INDRAJAAL_BG)),
+    );
     f.render_widget(nif_para, chunks[1]);
 
     let alert_lines = vec![
-        Line::from(Span::styled("  ═══ SECURITY ALERTS ═══", Style::default().fg(INDRAJAAL_CYAN).bold())),
+        Line::from(Span::styled(
+            "  ═══ SECURITY ALERTS ═══",
+            Style::default().fg(INDRAJAAL_CYAN).bold(),
+        )),
         Line::from(""),
         Line::from(vec![
             Span::styled("  [INFO]  ", Style::default().fg(INDRAJAAL_GREEN)),
-            Span::styled("All containers running in rootless mode", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "All containers running in rootless mode",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  [INFO]  ", Style::default().fg(INDRAJAAL_GREEN)),
-            Span::styled("Zenoh mesh network isolated from host", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "Zenoh mesh network isolated from host",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  [INFO]  ", Style::default().fg(INDRAJAAL_GREEN)),
-            Span::styled("NIF binaries verified — no glibc/musl conflicts", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "NIF binaries verified — no glibc/musl conflicts",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  [WATCH] ", Style::default().fg(INDRAJAAL_YELLOW)),
-            Span::styled("Monitor container escape indicators", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "Monitor container escape indicators",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  [INFO]  ", Style::default().fg(INDRAJAAL_GREEN)),
-            Span::styled("Audit log immutable — hash chain verified", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "Audit log immutable — hash chain verified",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
         ]),
     ];
-    let alert_para = Paragraph::new(alert_lines)
-        .block(
-            Block::default()
-                .title(" Security Audit ")
-                .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(INDRAJAAL_BORDER))
-                .style(Style::default().bg(INDRAJAAL_BG)),
-        );
+    let alert_para = Paragraph::new(alert_lines).block(
+        Block::default()
+            .title(" Security Audit ")
+            .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(INDRAJAAL_BORDER))
+            .style(Style::default().bg(INDRAJAAL_BG)),
+    );
     f.render_widget(alert_para, chunks[2]);
 }
 
@@ -1048,7 +1304,9 @@ fn draw_swarm_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         .split(chunks[0]);
 
     for (i, c) in state.containers.iter().enumerate() {
-        if i >= 8 { break; }
+        if i >= 8 {
+            break;
+        }
         let color = match c.health {
             HealthStatus::Healthy => INDRAJAAL_GREEN,
             HealthStatus::Degraded => INDRAJAAL_YELLOW,
@@ -1056,19 +1314,19 @@ fn draw_swarm_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
             _ => INDRAJAAL_DIM,
         };
         let block = Block::default()
-            .title(format!(" Node {} ", i+1))
+            .title(format!(" Node {} ", i + 1))
             .title_style(Style::default().fg(Color::White).bold())
             .borders(Borders::ALL)
             .border_style(Style::default().fg(color))
             .style(Style::default().bg(INDRAJAAL_BG));
-        
+
         let label = Paragraph::new(vec![
             Line::from(Span::styled(&c.name, Style::default().fg(color).bold())),
             Line::from(Span::styled(&c.status, Style::default().fg(INDRAJAAL_DIM))),
         ])
         .alignment(ratatui::layout::Alignment::Center)
         .block(block);
-        
+
         f.render_widget(label, matrix_chunks[i]);
     }
 
@@ -1102,9 +1360,12 @@ fn draw_swarm_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
             };
 
             let resources = format!("CPU: {}% MEM: {} ({})", c.cpu_pct, c.mem_pct, c.mem_usage);
-            
+
             let row_style = if i == state.selected_container {
-                Style::default().bg(Color::Rgb(40, 50, 80)).fg(Color::White).bold()
+                Style::default()
+                    .bg(Color::Rgb(40, 50, 80))
+                    .fg(Color::White)
+                    .bold()
             } else {
                 Style::default()
             };
@@ -1115,24 +1376,19 @@ fn draw_swarm_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
                 Cell::from(visual_bar).style(status_style),
                 Cell::from(resources).style(Style::default().fg(INDRAJAAL_CYAN)),
                 Cell::from(c.ip.clone()).style(Style::default().fg(INDRAJAAL_DIM)),
-            ]).style(row_style)
+            ])
+            .style(row_style)
         })
         .collect();
 
     let table_chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage(75),
-            Constraint::Percentage(25),
-        ])
+        .constraints([Constraint::Percentage(75), Constraint::Percentage(25)])
         .split(chunks[1]);
 
     let bottom_chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Percentage(60),
-            Constraint::Percentage(40),
-        ])
+        .constraints([Constraint::Percentage(60), Constraint::Percentage(40)])
         .split(table_chunks[0]);
 
     let table = Table::new(
@@ -1146,9 +1402,15 @@ fn draw_swarm_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         ],
     )
     .header(
-        Row::new(vec!["Container", "Status", "Boot Transition Graph", "Resources", "IP"])
-            .style(Style::default().fg(INDRAJAAL_CYAN).bold())
-            .bottom_margin(1),
+        Row::new(vec![
+            "Container",
+            "Status",
+            "Boot Transition Graph",
+            "Resources",
+            "IP",
+        ])
+        .style(Style::default().fg(INDRAJAAL_CYAN).bold())
+        .bottom_margin(1),
     )
     .block(
         Block::default()
@@ -1162,11 +1424,21 @@ fn draw_swarm_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
 
     // 3. Live Logs Pane (Rank 3 Idea)
     // Filter trace entries for the selected container (if phase contains container name) or show recent traces
-    let selected_name = state.containers.get(state.selected_container).map(|c| c.name.as_str()).unwrap_or("None");
-    
-    let log_lines: Vec<Line> = state.trace_entries.iter()
+    let selected_name = state
+        .containers
+        .get(state.selected_container)
+        .map(|c| c.name.as_str())
+        .unwrap_or("None");
+
+    let log_lines: Vec<Line> = state
+        .trace_entries
+        .iter()
         .rev() // Show newest logs at top or bottom? Paragraph usually scrolls top-down.
-        .filter(|e| e.phase.contains(selected_name) || e.action.contains(selected_name) || e.result.contains(selected_name))
+        .filter(|e| {
+            e.phase.contains(selected_name)
+                || e.action.contains(selected_name)
+                || e.result.contains(selected_name)
+        })
         .take(10)
         .map(|e| {
             let color = match e.decision {
@@ -1175,8 +1447,14 @@ fn draw_swarm_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
                 _ => INDRAJAAL_DIM,
             };
             Line::from(vec![
-                Span::styled(format!(" [{}] ", e.phase), Style::default().fg(INDRAJAAL_CYAN)),
-                Span::styled(format!("{} ➜ ", e.action), Style::default().fg(Color::White)),
+                Span::styled(
+                    format!(" [{}] ", e.phase),
+                    Style::default().fg(INDRAJAAL_CYAN),
+                ),
+                Span::styled(
+                    format!("{} ➜ ", e.action),
+                    Style::default().fg(Color::White),
+                ),
                 Span::styled(&e.result, Style::default().fg(color)),
             ])
         })
@@ -1185,8 +1463,14 @@ fn draw_swarm_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
     let logs = if log_lines.is_empty() {
         Paragraph::new(vec![
             Line::from(""),
-            Line::from(Span::styled(format!("  [SYSTEM] Tail capture active for {}...", selected_name), Style::default().fg(INDRAJAAL_DIM))),
-            Line::from(Span::styled("  [OK] No specific trace entries for this holon.", Style::default().fg(INDRAJAAL_DIM))),
+            Line::from(Span::styled(
+                format!("  [SYSTEM] Tail capture active for {}...", selected_name),
+                Style::default().fg(INDRAJAAL_DIM),
+            )),
+            Line::from(Span::styled(
+                "  [OK] No specific trace entries for this holon.",
+                Style::default().fg(INDRAJAAL_DIM),
+            )),
         ])
     } else {
         Paragraph::new(log_lines)
@@ -1198,7 +1482,7 @@ fn draw_swarm_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         .borders(Borders::ALL)
         .border_style(Style::default().fg(INDRAJAAL_BORDER))
         .style(Style::default().bg(INDRAJAAL_BG));
-    
+
     f.render_widget(logs.block(log_block), bottom_chunks[1]);
 
     // 4. Metadata / FMEA Inspector (Rank 7 Idea)
@@ -1208,28 +1492,53 @@ fn draw_swarm_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         .borders(Borders::ALL)
         .border_style(Style::default().fg(INDRAJAAL_BORDER))
         .style(Style::default().bg(INDRAJAAL_BG));
-    
+
     // Dynamic metadata based on container role/criticality
-    let (role, crit, crit_color) = if selected_name.contains("db") || selected_name.contains("zenoh") {
-        ("Substrate", "SIL-6", INDRAJAAL_RED)
-    } else if selected_name.contains("cortex") || selected_name.contains("bridge") {
-        ("Cognitive", "SIL-4", INDRAJAAL_YELLOW)
-    } else {
-        ("Application", "SIL-2", INDRAJAAL_GREEN)
-    };
+    let (role, crit, crit_color) =
+        if selected_name.contains("db") || selected_name.contains("zenoh") {
+            ("Substrate", "SIL-6", INDRAJAAL_RED)
+        } else if selected_name.contains("cortex") || selected_name.contains("bridge") {
+            ("Cognitive", "SIL-4", INDRAJAAL_YELLOW)
+        } else {
+            ("Application", "SIL-2", INDRAJAAL_GREEN)
+        };
 
     let metadata_text = vec![
-        Line::from(vec![Span::styled("  Role:      ", Style::default().fg(INDRAJAAL_DIM)), Span::raw(role)]),
-        Line::from(vec![Span::styled("  Criticality:", Style::default().fg(INDRAJAAL_DIM)), Span::styled(format!(" {}", crit), Style::default().fg(crit_color).bold())]),
-        Line::from(vec![Span::styled("  Uptime:    ", Style::default().fg(INDRAJAAL_DIM)), Span::raw(format!("{}s", state.uptime_secs))]),
-        Line::from(vec![Span::styled("  Network:   ", Style::default().fg(INDRAJAAL_DIM)), Span::raw("sil6-mesh")]),
-        Line::from(vec![Span::styled("  Isolation: ", Style::default().fg(INDRAJAAL_DIM)), Span::styled("Rootless", Style::default().fg(INDRAJAAL_GREEN))]),
-        Line::from(vec![Span::styled("  FMEA RPN:  ", Style::default().fg(INDRAJAAL_DIM)), Span::raw("140 (Medium)")]),
+        Line::from(vec![
+            Span::styled("  Role:      ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::raw(role),
+        ]),
+        Line::from(vec![
+            Span::styled("  Criticality:", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(format!(" {}", crit), Style::default().fg(crit_color).bold()),
+        ]),
+        Line::from(vec![
+            Span::styled("  Uptime:    ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::raw(format!("{}s", state.uptime_secs)),
+        ]),
+        Line::from(vec![
+            Span::styled("  Network:   ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::raw("sil6-mesh"),
+        ]),
+        Line::from(vec![
+            Span::styled("  Isolation: ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled("Rootless", Style::default().fg(INDRAJAAL_GREEN)),
+        ]),
+        Line::from(vec![
+            Span::styled("  FMEA RPN:  ", Style::default().fg(INDRAJAAL_DIM)),
+            Span::raw("140 (Medium)"),
+        ]),
         Line::from(""),
-        Line::from(Span::styled("  Active Playbook:", Style::default().fg(INDRAJAAL_DIM))),
-        Line::from(Span::styled("  ▶ RESTART_ON_FAIL", Style::default().fg(INDRAJAAL_GREEN))),
+        Line::from(Span::styled(
+            "  Active Playbook:",
+            Style::default().fg(INDRAJAAL_DIM),
+        )),
+        Line::from(Span::styled(
+            "  ▶ RESTART_ON_FAIL",
+            Style::default().fg(INDRAJAAL_GREEN),
+        )),
     ];
-    
+
     let metadata = Paragraph::new(metadata_text).block(metadata_block);
     f.render_widget(metadata, table_chunks[1]);
 }
@@ -1242,7 +1551,7 @@ fn draw_governor_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
             Constraint::Length(4), // CPU sparkline history
             Constraint::Length(6), // Substrate Heatmap
             Constraint::Length(7), // Parallelism table
-            Constraint::Min(3),   // Thresholds
+            Constraint::Min(3),    // Thresholds
         ])
         .split(area);
 
@@ -1268,10 +1577,15 @@ fn draw_governor_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         .label(format!(
             "{}% — {} mode",
             state.cpu_pct,
-            if state.cpu_pct < 60 { "FULL" }
-            else if state.cpu_pct < 70 { "SLIGHT" }
-            else if state.cpu_pct < 80 { "MODERATE" }
-            else { "HEAVY" }
+            if state.cpu_pct < 60 {
+                "FULL"
+            } else if state.cpu_pct < 70 {
+                "SLIGHT"
+            } else if state.cpu_pct < 80 {
+                "MODERATE"
+            } else {
+                "HEAVY"
+            }
         ));
     f.render_widget(gauge, chunks[0]);
 
@@ -1281,20 +1595,31 @@ fn draw_governor_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         "  Collecting CPU history...".to_string()
     } else {
         let spark_chars = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
-        let line: String = state.cpu_history.iter().map(|&v| {
-            let idx = ((v as usize).min(99) * 7) / 100;
-            spark_chars[idx]
-        }).collect();
+        let line: String = state
+            .cpu_history
+            .iter()
+            .map(|&v| {
+                let idx = ((v as usize).min(99) * 7) / 100;
+                spark_chars[idx]
+            })
+            .collect();
         let min = state.cpu_history.iter().min().unwrap_or(&0);
         let max = state.cpu_history.iter().max().unwrap_or(&0);
         let avg: u32 = state.cpu_history.iter().map(|&v| v as u32).sum::<u32>()
             / state.cpu_history.len().max(1) as u32;
-        format!("  {} min:{}% avg:{}% max:{}% ({} samples)",
-            line, min, avg, max, state.cpu_history.len())
+        format!(
+            "  {} min:{}% avg:{}% max:{}% ({} samples)",
+            line,
+            min,
+            avg,
+            max,
+            state.cpu_history.len()
+        )
     };
-    let sparkline = Paragraph::new(Line::from(vec![
-        Span::styled(&sparkline_data, Style::default().fg(INDRAJAAL_CYAN)),
-    ]))
+    let sparkline = Paragraph::new(Line::from(vec![Span::styled(
+        &sparkline_data,
+        Style::default().fg(INDRAJAAL_CYAN),
+    )]))
     .block(
         Block::default()
             .title(" CPU History (2 min) — OTel Sparkline ")
@@ -1314,26 +1639,34 @@ fn draw_governor_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         ]),
         Line::from(vec![
             Span::styled("  Memory:    ", Style::default().fg(INDRAJAAL_DIM)),
-            Span::styled("▰▰▰▰▰▰▰▰▰▰▰▰▰▱▱▱▱▱▱▱ (65% Active)", Style::default().fg(INDRAJAAL_YELLOW)),
+            Span::styled(
+                "▰▰▰▰▰▰▰▰▰▰▰▰▰▱▱▱▱▱▱▱ (65% Active)",
+                Style::default().fg(INDRAJAAL_YELLOW),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  Disk I/O:  ", Style::default().fg(INDRAJAAL_DIM)),
-            Span::styled("▂▃▄▅  (12 MB/s Read, 4 MB/s Write)", Style::default().fg(INDRAJAAL_GREEN)),
+            Span::styled(
+                "▂▃▄▅  (12 MB/s Read, 4 MB/s Write)",
+                Style::default().fg(INDRAJAAL_GREEN),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  Net Tx/Rx: ", Style::default().fg(INDRAJAAL_DIM)),
-            Span::styled("▅▆▇   (veth: 450 kbps peak)", Style::default().fg(INDRAJAAL_CYAN)),
+            Span::styled(
+                "▅▆▇   (veth: 450 kbps peak)",
+                Style::default().fg(INDRAJAAL_CYAN),
+            ),
         ]),
     ];
-    let heatmap = Paragraph::new(heatmap_lines)
-        .block(
-            Block::default()
-                .title(" Substrate Heatmap (L0 Telemetry) ")
-                .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(INDRAJAAL_BORDER))
-                .style(Style::default().bg(INDRAJAAL_BG)),
-        );
+    let heatmap = Paragraph::new(heatmap_lines).block(
+        Block::default()
+            .title(" Substrate Heatmap (L0 Telemetry) ")
+            .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(INDRAJAAL_BORDER))
+            .style(Style::default().bg(INDRAJAAL_BG)),
+    );
     f.render_widget(heatmap, chunks[2]);
 
     // Parallelism table
@@ -1358,8 +1691,7 @@ fn draw_governor_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
     ];
     let table = Table::new(rows, [Constraint::Length(20), Constraint::Length(15)])
         .header(
-            Row::new(vec!["Parameter", "Value"])
-                .style(Style::default().fg(INDRAJAAL_CYAN).bold()),
+            Row::new(vec!["Parameter", "Value"]).style(Style::default().fg(INDRAJAAL_CYAN).bold()),
         )
         .block(
             Block::default()
@@ -1405,10 +1737,7 @@ fn draw_governor_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
 fn draw_checks_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage(70),
-            Constraint::Percentage(30),
-        ])
+        .constraints([Constraint::Percentage(70), Constraint::Percentage(30)])
         .split(area);
 
     // State vector display
@@ -1429,8 +1758,18 @@ fn draw_checks_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         Span::styled("]", Style::default().fg(INDRAJAAL_DIM)),
         Span::raw("  "),
         Span::styled(
-            if sv.is_valid() { "VALID ✓" } else { "INCOMPLETE" },
-            Style::default().fg(if sv.is_valid() { INDRAJAAL_GREEN } else { INDRAJAAL_YELLOW }).bold(),
+            if sv.is_valid() {
+                "VALID ✓"
+            } else {
+                "INCOMPLETE"
+            },
+            Style::default()
+                .fg(if sv.is_valid() {
+                    INDRAJAAL_GREEN
+                } else {
+                    INDRAJAAL_YELLOW
+                })
+                .bold(),
         ),
     ]);
 
@@ -1451,7 +1790,10 @@ fn draw_checks_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
             lines.push(Line::from(vec![
                 Span::raw(format!("  {} ", icon)),
                 Span::styled(&r.name, Style::default().fg(color)),
-                Span::styled(format!(" — {}", r.message), Style::default().fg(INDRAJAAL_DIM)),
+                Span::styled(
+                    format!(" — {}", r.message),
+                    Style::default().fg(INDRAJAAL_DIM),
+                ),
             ]));
         }
     }
@@ -1472,7 +1814,10 @@ fn draw_checks_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
             lines.push(Line::from(vec![
                 Span::raw(format!("  {} ", icon)),
                 Span::styled(&r.name, Style::default().fg(color)),
-                Span::styled(format!(" — {}", r.message), Style::default().fg(INDRAJAAL_DIM)),
+                Span::styled(
+                    format!(" — {}", r.message),
+                    Style::default().fg(INDRAJAAL_DIM),
+                ),
             ]));
         }
     }
@@ -1494,39 +1839,24 @@ fn draw_checks_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
     );
     f.render_widget(para, chunks[0]);
 
-    // Rank 5 TUI Idea: Consensus Quorum Ring
-    let q_color = if sv.quorum { INDRAJAAL_GREEN } else { INDRAJAAL_RED };
-    let q_ring_text = vec![
-        Line::from(""),
-        Line::from(Span::styled("      ▤ ▤ ▤      ", Style::default().fg(q_color).bold())),
-        Line::from(Span::styled("    ▤       ▤    ", Style::default().fg(q_color))),
-        Line::from(vec![
-            Span::styled("  ▤   ", Style::default().fg(q_color)),
-            Span::styled("FPPS", Style::default().fg(Color::White).bold()),
-            Span::styled("   ▤  ", Style::default().fg(q_color)),
-        ]),
-        Line::from(vec![
-            Span::styled("  ▤   ", Style::default().fg(q_color)),
-            Span::styled("RING", Style::default().fg(Color::White).bold()),
-            Span::styled("   ▤  ", Style::default().fg(q_color)),
-        ]),
-        Line::from(Span::styled("    ▤       ▤    ", Style::default().fg(q_color))),
-        Line::from(Span::styled("      ▤ ▤ ▤      ", Style::default().fg(q_color).bold())),
-        Line::from(""),
-        Line::from(Span::styled(if sv.quorum { "  CONSENSUS REACHED" } else { "  QUORUM PENDING..." }, Style::default().fg(q_color).bold())),
-    ];
-
-    let quorum_ring = Paragraph::new(q_ring_text)
-        .alignment(ratatui::layout::Alignment::Center)
-        .block(
-            Block::default()
-                .title(" Consensus Quorum Ring ")
-                .title_style(Style::default().fg(INDRAJAAL_CYAN).bold())
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(INDRAJAAL_BORDER))
-                .style(Style::default().bg(INDRAJAAL_BG)),
-        );
-    f.render_widget(quorum_ring, chunks[1]);
+    // TUI-006: Consensus Quorum Ring
+    let q_color = if sv.quorum {
+        INDRAJAAL_GREEN
+    } else {
+        INDRAJAAL_RED
+    };
+    
+    let quorum_pct = (sv.quorum_count as u16 * 100) / 5;
+    let gauge = Gauge::default()
+        .block(Block::default()
+            .title(" FPPS Consensus ")
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(INDRAJAAL_BORDER)))
+        .gauge_style(Style::default().fg(q_color).bg(INDRAJAAL_BG))
+        .percent(quorum_pct)
+        .label(format!("{}/5 Methods", sv.quorum_count));
+    
+    f.render_widget(gauge, chunks[1]);
 }
 
 /// Golden Triangle Tab 3: DevUI Agent Execution Trace
@@ -1607,11 +1937,18 @@ fn draw_trace_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
                 let bar_width = 15;
                 let filled = (ratio * bar_width as f64) as usize;
                 let empty_count = bar_width - filled;
-                
+
                 // Color gradient based on heat (cost)
-                let heat_char = if ratio > 0.8 { "🔥" } else if ratio > 0.5 { "🟧" } else { "🟩" };
-                
-                format!("{} {}{}",
+                let heat_char = if ratio > 0.8 {
+                    "🔥"
+                } else if ratio > 0.5 {
+                    "🟧"
+                } else {
+                    "🟩"
+                };
+
+                format!(
+                    "{} {}{}",
                     heat_char,
                     "▰".repeat(filled),
                     "▱".repeat(empty_count)
@@ -1622,16 +1959,23 @@ fn draw_trace_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
 
             let flame_color = if entry.timeout_ms > 0 {
                 let ratio = entry.duration_ms as f64 / entry.timeout_ms as f64;
-                if ratio < 0.5 { INDRAJAAL_GREEN }
-                else if ratio < 0.8 { INDRAJAAL_YELLOW }
-                else { INDRAJAAL_RED }
+                if ratio < 0.5 {
+                    INDRAJAAL_GREEN
+                } else if ratio < 0.8 {
+                    INDRAJAAL_YELLOW
+                } else {
+                    INDRAJAAL_RED
+                }
             } else {
                 INDRAJAAL_DIM
             };
 
             // Rank 11 Idea: Log Anomaly Highlighting
             let action_lower = entry.action.to_lowercase();
-            let action_style = if action_lower.contains("error") || action_lower.contains("failed") || action_lower.contains("fail") {
+            let action_style = if action_lower.contains("error")
+                || action_lower.contains("failed")
+                || action_lower.contains("fail")
+            {
                 Style::default().fg(INDRAJAAL_RED).bold()
             } else {
                 Style::default().fg(Color::White)
@@ -1641,7 +1985,8 @@ fn draw_trace_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
                 Cell::from(entry.timestamp.clone()).style(Style::default().fg(INDRAJAAL_DIM)),
                 Cell::from(format!("{} {}", decision_icon, entry.phase)).style(decision_style),
                 Cell::from(entry.action.clone()).style(action_style),
-                Cell::from(format!("{}ms", entry.duration_ms)).style(Style::default().fg(INDRAJAAL_DIM)),
+                Cell::from(format!("{}ms", entry.duration_ms))
+                    .style(Style::default().fg(INDRAJAAL_DIM)),
                 Cell::from(flame).style(Style::default().fg(flame_color)),
             ])
         })
@@ -1650,18 +1995,23 @@ fn draw_trace_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
     let table = Table::new(
         rows,
         [
-            Constraint::Length(10),  // timestamp
-            Constraint::Length(12),  // phase + icon
-            Constraint::Length(28),  // action
-            Constraint::Length(8),   // result/latency
-            Constraint::Length(22),  // flame bar
+            Constraint::Length(10), // timestamp
+            Constraint::Length(12), // phase + icon
+            Constraint::Length(28), // action
+            Constraint::Length(8),  // result/latency
+            Constraint::Length(22), // flame bar
         ],
     )
     .header(
-        Row::new(vec!["Time", "Phase", "Action", "Latency", "OTel Flame Graph"])
-
-            .style(Style::default().fg(INDRAJAAL_CYAN).bold())
-            .bottom_margin(1),
+        Row::new(vec![
+            "Time",
+            "Phase",
+            "Action",
+            "Latency",
+            "OTel Flame Graph",
+        ])
+        .style(Style::default().fg(INDRAJAAL_CYAN).bold())
+        .bottom_margin(1),
     )
     .block(
         Block::default()
@@ -1693,7 +2043,9 @@ fn draw_trace_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
 fn draw_topology_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
     // Map container names to health for coloring
     let health_of = |name: &str| -> HealthStatus {
-        state.containers.iter()
+        state
+            .containers
+            .iter()
             .find(|c| c.name == name)
             .map(|c| c.health)
             .unwrap_or(HealthStatus::Unknown)
@@ -1758,7 +2110,10 @@ fn draw_topology_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         Line::from(vec![
             Span::styled("  Tier 1 (DB)   ", l),
             Span::styled("─── ", d),
-            Span::styled(format!("              [ {} ]", &db), Style::default().fg(db_c)),
+            Span::styled(
+                format!("              [ {} ]", &db),
+                Style::default().fg(db_c),
+            ),
             Span::styled("  ◄═══", d),
         ]),
         Line::from(vec![
@@ -1768,7 +2123,10 @@ fn draw_topology_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         Line::from(vec![
             Span::styled("  Tier 2 (OBS)  ", l),
             Span::styled("─── ", d),
-            Span::styled(format!("              [ {} ]", &obs), Style::default().fg(obs_c)),
+            Span::styled(
+                format!("              [ {} ]", &obs),
+                Style::default().fg(obs_c),
+            ),
             Span::styled("  ◄═══", d),
         ]),
         Line::from(vec![
@@ -1778,7 +2136,10 @@ fn draw_topology_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         Line::from(vec![
             Span::styled("  Tier 3 (AI)   ", l),
             Span::styled("─── ", d),
-            Span::styled(format!("         ( {} ) ", &brg), Style::default().fg(brg_c)),
+            Span::styled(
+                format!("         ( {} ) ", &brg),
+                Style::default().fg(brg_c),
+            ),
             Span::styled(" ──► ", d),
             Span::styled(format!("( {} )", &ctx), Style::default().fg(ctx_c)),
             Span::styled(" ═╝", d),
@@ -1790,42 +2151,65 @@ fn draw_topology_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         Line::from(vec![
             Span::styled("  Tier 4 (App)  ", l),
             Span::styled("─── ", d),
-            Span::styled(format!("             {{ {{  {}  }} }}", &app), Style::default().fg(app_c).bold()),
+            Span::styled(
+                format!("             {{ {{  {}  }} }}", &app),
+                Style::default().fg(app_c).bold(),
+            ),
         ]),
         Line::from(""),
-        Line::from(vec![
-            Span::styled("  ═══ Real-Time Dependency DAG Visualization (Rank 1 Idea) ═══  ", Style::default().fg(INDRAJAAL_MAGENTA).bold()),
-        ]),
+        Line::from(vec![Span::styled(
+            "  ═══ Real-Time Dependency DAG Visualization (Rank 1 Idea) ═══  ",
+            Style::default().fg(INDRAJAAL_MAGENTA).bold(),
+        )]),
         Line::from(vec![
             Span::styled("  Quorum: ", l),
             Span::styled(
-                format!("{}/3 Zenoh routers",
-                    state.containers.iter()
+                format!(
+                    "{}/3 Zenoh routers",
+                    state
+                        .containers
+                        .iter()
                         .filter(|c| c.name.starts_with("zenoh") && c.status == "running")
-                        .count()),
-                Style::default().fg(
-                    if state.containers.iter()
-                        .filter(|c| c.name.starts_with("zenoh") && c.status == "running")
-                        .count() >= 2
-                    { INDRAJAAL_GREEN } else { INDRAJAAL_RED }
-                ).bold(),
+                        .count()
+                ),
+                Style::default()
+                    .fg(
+                        if state
+                            .containers
+                            .iter()
+                            .filter(|c| c.name.starts_with("zenoh") && c.status == "running")
+                            .count()
+                            >= 2
+                        {
+                            INDRAJAAL_GREEN
+                        } else {
+                            INDRAJAAL_RED
+                        },
+                    )
+                    .bold(),
             ),
             Span::styled("    Network: ", l),
             Span::styled("indrajaal-sil6-mesh", Style::default().fg(INDRAJAAL_CYAN)),
         ]),
         Line::from(""),
-        Line::from(Span::styled("  Task 8.3: DAG Waves (Parallelizable Steps)", Style::default().fg(INDRAJAAL_YELLOW).bold())),
+        Line::from(Span::styled(
+            "  Task 8.3: DAG Waves (Parallelizable Steps)",
+            Style::default().fg(INDRAJAAL_YELLOW).bold(),
+        )),
     ];
 
     let mut waves_lines = vec![];
     for (i, wave) in state.waves.iter().enumerate() {
         let wave_str = wave.join(" + ");
         waves_lines.push(Line::from(vec![
-            Span::styled(format!("    Wave {}: ", i), Style::default().fg(INDRAJAAL_CYAN)),
+            Span::styled(
+                format!("    Wave {}: ", i),
+                Style::default().fg(INDRAJAAL_CYAN),
+            ),
             Span::styled(wave_str, Style::default().fg(Color::White)),
         ]));
     }
-    
+
     let mut final_lines = lines;
     final_lines.extend(waves_lines);
 
@@ -1838,29 +2222,47 @@ fn draw_topology_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
 
     let top_chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage(70),
-            Constraint::Percentage(30),
-        ])
+        .constraints([Constraint::Percentage(70), Constraint::Percentage(30)])
         .split(area);
 
     let para = Paragraph::new(final_lines).block(block);
     f.render_widget(para, top_chunks[0]);
 
     // Rank 12 Idea: Zenoh Topology / Stats (Task 6.4)
-    let zenoh_active = state.containers.iter().filter(|c| c.name.starts_with("zenoh") && c.status == "running").count();
-    let zenoh_color = if zenoh_active >= 2 { INDRAJAAL_GREEN } else { INDRAJAAL_RED };
+    let zenoh_active = state
+        .containers
+        .iter()
+        .filter(|c| c.name.starts_with("zenoh") && c.status == "running")
+        .count();
+    let zenoh_color = if zenoh_active >= 2 {
+        INDRAJAAL_GREEN
+    } else {
+        INDRAJAAL_RED
+    };
 
     let zenoh_stats_text = vec![
-        Line::from(Span::styled("  MESH BACKPLANE", Style::default().fg(INDRAJAAL_MAGENTA).bold())),
+        Line::from(Span::styled(
+            "  MESH BACKPLANE",
+            Style::default().fg(INDRAJAAL_MAGENTA).bold(),
+        )),
         Line::from(""),
         Line::from(vec![
             Span::styled("  Status:     ", l),
-            Span::styled(if zenoh_active >= 2 { "ONLINE" } else { "DEGRADED" }, Style::default().fg(zenoh_color).bold()),
+            Span::styled(
+                if zenoh_active >= 2 {
+                    "ONLINE"
+                } else {
+                    "DEGRADED"
+                },
+                Style::default().fg(zenoh_color).bold(),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  Peers:      ", l),
-            Span::styled(format!("{}/3 active", zenoh_active), Style::default().fg(zenoh_color)),
+            Span::styled(
+                format!("{}/3 active", zenoh_active),
+                Style::default().fg(zenoh_color),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  Throughput: ", l),
@@ -1871,23 +2273,30 @@ fn draw_topology_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
             Span::styled("1.4 ms", Style::default().fg(INDRAJAAL_GREEN)),
         ]),
         Line::from(""),
-        Line::from(Span::styled("  REAL-TIME FLOW", Style::default().fg(INDRAJAAL_DIM).bold())),
-        Line::from(Span::styled("  [→] pub: indrajaal/telemetry", Style::default().fg(INDRAJAAL_DIM))),
-        Line::from(Span::styled("  [←] sub: indrajaal/commands", Style::default().fg(INDRAJAAL_DIM))),
+        Line::from(Span::styled(
+            "  REAL-TIME FLOW",
+            Style::default().fg(INDRAJAAL_DIM).bold(),
+        )),
+        Line::from(Span::styled(
+            "  [→] pub: indrajaal/l4/ignition/telemetry",
+            Style::default().fg(INDRAJAAL_DIM),
+        )),
+        Line::from(Span::styled(
+            "  [←] sub: indrajaal/l4/ignition/commands",
+            Style::default().fg(INDRAJAAL_DIM),
+        )),
     ];
 
-    let zenoh_stats = Paragraph::new(zenoh_stats_text)
-        .block(
-            Block::default()
-                .title(" Zenoh Mesh Telemetry (SC-Z-004) ")
-                .title_style(Style::default().fg(INDRAJAAL_MAGENTA).bold())
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(INDRAJAAL_BORDER))
-                .style(Style::default().bg(INDRAJAAL_BG)),
-        );
+    let zenoh_stats = Paragraph::new(zenoh_stats_text).block(
+        Block::default()
+            .title(" Zenoh Mesh Telemetry (SC-Z-004) ")
+            .title_style(Style::default().fg(INDRAJAAL_MAGENTA).bold())
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(INDRAJAAL_BORDER))
+            .style(Style::default().bg(INDRAJAAL_BG)),
+    );
     f.render_widget(zenoh_stats, top_chunks[1]);
-    }
-
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Tab 5: Build Oracle — EMA Predictions
@@ -1914,7 +2323,11 @@ fn draw_build_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
     // ── DB health banner ────────────────────────────────────────────────────
     let (db_icon, db_color, db_detail) = match &state.build_db_health {
         None => ("?", INDRAJAAL_DIM, "No health data yet".to_string()),
-        Some(h) if !h.db_exists => ("✗", INDRAJAAL_RED, "build-history.db not found (first boot)".to_string()),
+        Some(h) if !h.db_exists => (
+            "✗",
+            INDRAJAAL_RED,
+            "build-history.db not found (first boot)".to_string(),
+        ),
         Some(h) if !h.wal_mode => (
             "⚠",
             INDRAJAAL_YELLOW,
@@ -1937,7 +2350,10 @@ fn draw_build_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
 
     let banner_lines = vec![
         Line::from(vec![
-            Span::styled("  build-history.db  ", Style::default().fg(INDRAJAAL_CYAN).bold()),
+            Span::styled(
+                "  build-history.db  ",
+                Style::default().fg(INDRAJAAL_CYAN).bold(),
+            ),
             Span::styled(db_icon, Style::default().fg(db_color).bold()),
             Span::styled("  ", Style::default()),
             Span::styled(&db_detail, Style::default().fg(db_color)),
@@ -1947,7 +2363,10 @@ fn draw_build_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
                 "  Path: lib/cepaf/artifacts/build-history.db  ",
                 Style::default().fg(INDRAJAAL_DIM),
             ),
-            Span::styled("(read-only from Rust — F# owns writes)", Style::default().fg(INDRAJAAL_DIM)),
+            Span::styled(
+                "(read-only from Rust — F# owns writes)",
+                Style::default().fg(INDRAJAAL_DIM),
+            ),
         ]),
     ];
     let banner = Paragraph::new(banner_lines).block(
@@ -2034,8 +2453,7 @@ fn draw_build_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
                 Cell::from(short_name).style(Style::default().fg(Color::White)),
                 Cell::from(format!("{:.0} ms", ema_ms)).style(Style::default().fg(ema_color)),
                 Cell::from(format!("{:.1} s", ema_secs)).style(Style::default().fg(ema_color)),
-                Cell::from(format!("{} ms", timeout_ms))
-                    .style(Style::default().fg(INDRAJAAL_CYAN)),
+                Cell::from(format!("{} ms", timeout_ms)).style(Style::default().fg(INDRAJAAL_CYAN)),
                 Cell::from(bar).style(Style::default().fg(ema_color)),
             ])
         })
@@ -2052,9 +2470,15 @@ fn draw_build_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         ],
     )
     .header(
-        Row::new(vec!["Container", "EMA (ms)", "EMA (s)", "Timeout", "Relative Cost"])
-            .style(Style::default().fg(INDRAJAAL_CYAN).bold())
-            .bottom_margin(1),
+        Row::new(vec![
+            "Container",
+            "EMA (ms)",
+            "EMA (s)",
+            "Timeout",
+            "Relative Cost",
+        ])
+        .style(Style::default().fg(INDRAJAAL_CYAN).bold())
+        .bottom_margin(1),
     )
     .block(
         Block::default()
@@ -2098,7 +2522,10 @@ fn draw_nif_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
     // ── Substrate guard banner ───────────────────────────────────────────────
     let (libc_color, libc_label) = match state.libc_flavor.as_str() {
         "glibc" => (INDRAJAAL_GREEN, "glibc (NixOS / Debian / RHEL compatible)"),
-        "musl" => (INDRAJAAL_YELLOW, "musl (Alpine / static — check NIF compatibility)"),
+        "musl" => (
+            INDRAJAAL_YELLOW,
+            "musl (Alpine / static — check NIF compatibility)",
+        ),
         "static" => (INDRAJAAL_DIM, "statically linked (no interpreter required)"),
         _ => (INDRAJAAL_DIM, "unknown — run preflight to detect"),
     };
@@ -2110,7 +2537,11 @@ fn draw_nif_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
             "CONTAMINATED — host _build or deps detected (Axiom 0.1 violation)",
         )
     } else {
-        (INDRAJAAL_GREEN, "✓", "Clean — no host _build / deps contamination")
+        (
+            INDRAJAAL_GREEN,
+            "✓",
+            "Clean — no host _build / deps contamination",
+        )
     };
 
     let banner_lines = vec![
@@ -2196,18 +2627,12 @@ fn draw_nif_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
                 ("✗", INDRAJAAL_RED)
             };
             // Short NIF name — keep last path component
-            let short_name = name
-                .rsplit('/')
-                .next()
-                .unwrap_or(name.as_str())
-                .to_string();
+            let short_name = name.rsplit('/').next().unwrap_or(name.as_str()).to_string();
 
             Row::new(vec![
-                Cell::from(format!("{} {}", icon, short_name))
-                    .style(Style::default().fg(color)),
+                Cell::from(format!("{} {}", icon, short_name)).style(Style::default().fg(color)),
                 // libc flavor is embedded in detail for now; shown in detail column
-                Cell::from(state.libc_flavor.clone())
-                    .style(Style::default().fg(libc_color)),
+                Cell::from(state.libc_flavor.clone()).style(Style::default().fg(libc_color)),
                 Cell::from(if *ok { "VALID" } else { "INVALID" })
                     .style(Style::default().fg(color).bold()),
                 Cell::from(detail.clone()).style(Style::default().fg(INDRAJAAL_DIM)),
@@ -2237,11 +2662,15 @@ fn draw_nif_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
                 state.nif_results.len(),
                 fail_count
             ))
-            .title_style(Style::default().fg(if fail_count == 0 {
-                INDRAJAAL_GREEN
-            } else {
-                INDRAJAAL_RED
-            }).bold())
+            .title_style(
+                Style::default()
+                    .fg(if fail_count == 0 {
+                        INDRAJAAL_GREEN
+                    } else {
+                        INDRAJAAL_RED
+                    })
+                    .bold(),
+            )
             .borders(Borders::ALL)
             .border_style(Style::default().fg(INDRAJAAL_BORDER))
             .style(Style::default().bg(INDRAJAAL_BG)),
@@ -2313,7 +2742,9 @@ fn draw_recovery_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
             };
 
             let style = if is_active {
-                Style::default().fg(INDRAJAAL_YELLOW).add_modifier(Modifier::BOLD)
+                Style::default()
+                    .fg(INDRAJAAL_YELLOW)
+                    .add_modifier(Modifier::BOLD)
             } else {
                 Style::default().fg(Color::White)
             };
@@ -2323,8 +2754,12 @@ fn draw_recovery_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
                 Cell::from(pb.rpn.to_string()).style(Style::default().fg(rpn_color).bold()),
                 Cell::from(primary_container).style(Style::default().fg(INDRAJAAL_DIM)),
                 Cell::from(status_icon).style(Style::default().fg(status_color).bold()),
-                Cell::from(format!("{} steps  retry≤{}", pb.steps.len(), pb.max_retries))
-                    .style(Style::default().fg(INDRAJAAL_DIM)),
+                Cell::from(format!(
+                    "{} steps  retry≤{}",
+                    pb.steps.len(),
+                    pb.max_retries
+                ))
+                .style(Style::default().fg(INDRAJAAL_DIM)),
             ])
         })
         .collect();
@@ -2340,9 +2775,15 @@ fn draw_recovery_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
         ],
     )
     .header(
-        Row::new(vec!["Failure Mode", "RPN", "Container", "Status", "Playbook"])
-            .style(Style::default().fg(INDRAJAAL_CYAN).bold())
-            .bottom_margin(1),
+        Row::new(vec![
+            "Failure Mode",
+            "RPN",
+            "Container",
+            "Status",
+            "Playbook",
+        ])
+        .style(Style::default().fg(INDRAJAAL_CYAN).bold())
+        .bottom_margin(1),
     )
     .block(
         Block::default()
@@ -2356,7 +2797,11 @@ fn draw_recovery_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
 
     // ── Active playbooks / history summary ──────────────────────────────────
     let total_recoveries = state.recovery_history.len();
-    let successful = state.recovery_history.iter().filter(|(_, _, ok)| *ok).count();
+    let successful = state
+        .recovery_history
+        .iter()
+        .filter(|(_, _, ok)| *ok)
+        .count();
     let failed = total_recoveries - successful;
 
     let summary_lines = if state.active_playbooks.is_empty() && total_recoveries == 0 {
@@ -2403,7 +2848,11 @@ fn draw_recovery_tab(f: &mut Frame, area: Rect, state: &DashboardState) {
                 Span::styled("  ", Style::default()),
                 Span::styled(
                     format!("{} failed", failed),
-                    Style::default().fg(if failed > 0 { INDRAJAAL_RED } else { INDRAJAAL_DIM }),
+                    Style::default().fg(if failed > 0 {
+                        INDRAJAAL_RED
+                    } else {
+                        INDRAJAAL_DIM
+                    }),
                 ),
             ]),
             Line::from(Span::styled(
@@ -2469,7 +2918,13 @@ fn failure_mode_container(mode: FailureMode) -> &'static str {
 fn sv_span(label: &str, value: bool) -> Span<'_> {
     Span::styled(
         label,
-        Style::default().fg(if value { INDRAJAAL_GREEN } else { INDRAJAAL_RED }).bold(),
+        Style::default()
+            .fg(if value {
+                INDRAJAAL_GREEN
+            } else {
+                INDRAJAAL_RED
+            })
+            .bold(),
     )
 }
 
@@ -2513,7 +2968,7 @@ pub async fn run_split_test() -> Result<(), IgnitionError> {
     let mut terminal = Terminal::new(backend).map_err(|e| IgnitionError::IoError(e))?;
 
     let mut state = DashboardState::default();
-    
+
     // Seed the state with realistic test data
     state.containers = vec![
         ContainerRow {
@@ -2553,7 +3008,7 @@ pub async fn run_split_test() -> Result<(), IgnitionError> {
 
     let start = Instant::now();
     let mut current_step = 0;
-    
+
     // Test parameters
     let total_steps = 120; // 12 tabs * 10 ticks each
     let ticks_per_tab = 10;
@@ -2580,27 +3035,38 @@ pub async fn run_split_test() -> Result<(), IgnitionError> {
         current_step += 1;
         state.tab_index = ((current_step - 1) / ticks_per_tab) % 12;
 
-        terminal.draw(|f| {
-            let chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([Constraint::Percentage(55), Constraint::Percentage(45)])
-                .split(f.area());
+        terminal
+            .draw(|f| {
+                let chunks = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([Constraint::Percentage(55), Constraint::Percentage(45)])
+                    .split(f.area());
 
-            // Top: The TUI being tested
-            draw_ui_area(f, chunks[0], &state);
+                // Top: The TUI being tested
+                draw_ui_area(f, chunks[0], &state);
 
-            // Bottom: Test Execution Dashboard
-            draw_test_dashboard(f, chunks[1], current_step, total_steps, state.tab_index, &tabs_info);
-        }).map_err(|e| IgnitionError::IoError(e))?;
+                // Bottom: Test Execution Dashboard
+                draw_test_dashboard(
+                    f,
+                    chunks[1],
+                    current_step,
+                    total_steps,
+                    state.tab_index,
+                    &tabs_info,
+                );
+            })
+            .map_err(|e| IgnitionError::IoError(e))?;
 
         if event::poll(Duration::from_millis(150)).map_err(|e| IgnitionError::IoError(e))? {
             if let Event::Key(key) = event::read().map_err(|e| IgnitionError::IoError(e))? {
-                if key.kind == KeyEventKind::Press && (key.code == KeyCode::Char('q') || key.code == KeyCode::Esc) {
+                if key.kind == KeyEventKind::Press
+                    && (key.code == KeyCode::Char('q') || key.code == KeyCode::Esc)
+                {
                     break;
                 }
             }
         }
-        
+
         if current_step >= total_steps {
             // Loop for a bit longer so user sees the "Complete" screen
             tokio::time::sleep(Duration::from_secs(2)).await;
@@ -2609,23 +3075,32 @@ pub async fn run_split_test() -> Result<(), IgnitionError> {
     }
 
     disable_raw_mode().map_err(|e| IgnitionError::IoError(e))?;
-    stdout().execute(LeaveAlternateScreen).map_err(|e| IgnitionError::IoError(e))?;
+    stdout()
+        .execute(LeaveAlternateScreen)
+        .map_err(|e| IgnitionError::IoError(e))?;
     Ok(())
 }
 
-fn draw_test_dashboard(f: &mut Frame, area: Rect, step: usize, total_steps: usize, tab_idx: usize, tabs_info: &[(&str, &str, u64); 12]) {
+fn draw_test_dashboard(
+    f: &mut Frame,
+    area: Rect,
+    step: usize,
+    total_steps: usize,
+    tab_idx: usize,
+    tabs_info: &[(&str, &str, u64); 12],
+) {
     let block = Block::default()
         .title(" SA-UP Test Execution & KPI Dashboard (SC-COV-012) ")
         .title_style(Style::default().fg(Color::Yellow).bold())
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::Cyan))
         .style(Style::default().bg(INDRAJAAL_BG));
-    
+
     let inner_area = block.inner(area);
     f.render_widget(block, area);
-    
+
     let info = tabs_info[tab_idx];
-    
+
     let mut table_rows = Vec::new();
     for (i, (name, elements, dur)) in tabs_info.iter().enumerate() {
         let status = if i < tab_idx || step >= total_steps {
@@ -2635,28 +3110,34 @@ fn draw_test_dashboard(f: &mut Frame, area: Rect, step: usize, total_steps: usiz
         } else {
             "WAITING"
         };
-        
+
         let status_color = match status {
             "PASS" => INDRAJAAL_GREEN,
             "RUNNING" => INDRAJAAL_YELLOW,
             _ => INDRAJAAL_DIM,
         };
-        
+
         let row_style = if i == tab_idx {
-            Style::default().bg(Color::Rgb(40, 50, 80)).fg(Color::White).bold()
+            Style::default()
+                .bg(Color::Rgb(40, 50, 80))
+                .fg(Color::White)
+                .bold()
         } else {
             Style::default()
         };
 
-        table_rows.push(Row::new(vec![
-            Cell::from(name.to_string()),
-            Cell::from(elements.to_string()),
-            Cell::from(format!("{}s", dur)),
-            Cell::from("No Panic").style(Style::default().fg(INDRAJAAL_GREEN)),
-            Cell::from(status).style(Style::default().fg(status_color).bold()),
-        ]).style(row_style));
+        table_rows.push(
+            Row::new(vec![
+                Cell::from(name.to_string()),
+                Cell::from(elements.to_string()),
+                Cell::from(format!("{}s", dur)),
+                Cell::from("No Panic").style(Style::default().fg(INDRAJAAL_GREEN)),
+                Cell::from(status).style(Style::default().fg(status_color).bold()),
+            ])
+            .style(row_style),
+        );
     }
-    
+
     let widths = [
         Constraint::Length(15),
         Constraint::Length(25),
@@ -2664,7 +3145,7 @@ fn draw_test_dashboard(f: &mut Frame, area: Rect, step: usize, total_steps: usiz
         Constraint::Length(15),
         Constraint::Length(10),
     ];
-    
+
     let table = Table::new(table_rows, widths)
         .header(Row::new(vec![
             Cell::from("Tab Component").style(Style::default().fg(Color::White).bold()),
@@ -2679,40 +3160,71 @@ fn draw_test_dashboard(f: &mut Frame, area: Rect, step: usize, total_steps: usiz
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(70), Constraint::Percentage(30)])
         .split(inner_area);
-        
+
     f.render_widget(table, chunks[0]);
 
     // Right pane: Real-time execution stats
     let completion_pct = (step as f64 / total_steps as f64) * 100.0;
     let gauge = ratatui::widgets::Gauge::default()
-        .block(Block::default().title(" Overall Progress ").borders(Borders::ALL))
+        .block(
+            Block::default()
+                .title(" Overall Progress ")
+                .borders(Borders::ALL),
+        )
         .gauge_style(Style::default().fg(INDRAJAAL_MAGENTA))
         .percent(completion_pct as u16);
-        
+
     let stats_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Length(3), Constraint::Min(10)])
         .split(chunks[1]);
-        
+
     f.render_widget(gauge, stats_chunks[0]);
 
     let stats_text = vec![
-        Line::from(vec![Span::styled("Execution Step:", Style::default().fg(Color::Cyan)), Span::raw(format!(" {}/{}", step, total_steps))]),
-        Line::from(vec![Span::styled("Active Tab:", Style::default().fg(Color::Cyan)), Span::raw(format!(" {}", info.0))]),
-        Line::from(vec![Span::styled("Elements:", Style::default().fg(Color::Cyan)), Span::raw(format!(" {}", info.1))]),
-        Line::from(vec![Span::styled("Simulated Duration:", Style::default().fg(Color::Cyan)), Span::raw(format!(" {}s", info.2))]),
+        Line::from(vec![
+            Span::styled("Execution Step:", Style::default().fg(Color::Cyan)),
+            Span::raw(format!(" {}/{}", step, total_steps)),
+        ]),
+        Line::from(vec![
+            Span::styled("Active Tab:", Style::default().fg(Color::Cyan)),
+            Span::raw(format!(" {}", info.0)),
+        ]),
+        Line::from(vec![
+            Span::styled("Elements:", Style::default().fg(Color::Cyan)),
+            Span::raw(format!(" {}", info.1)),
+        ]),
+        Line::from(vec![
+            Span::styled("Simulated Duration:", Style::default().fg(Color::Cyan)),
+            Span::raw(format!(" {}s", info.2)),
+        ]),
         Line::from(""),
-        Line::from(Span::styled("KPI: 0.00% Panic Rate", Style::default().fg(INDRAJAAL_GREEN).bold())),
-        Line::from(Span::styled("Entropy H >= 2.5 Bits", Style::default().fg(Color::White))),
+        Line::from(Span::styled(
+            "KPI: 0.00% Panic Rate",
+            Style::default().fg(INDRAJAAL_GREEN).bold(),
+        )),
+        Line::from(Span::styled(
+            "Entropy H >= 2.5 Bits",
+            Style::default().fg(Color::White),
+        )),
         Line::from(""),
-        Line::from(Span::styled("Corrective Action: None required.", Style::default().fg(INDRAJAAL_DIM))),
-        Line::from(Span::styled("System is mathematically reified.", Style::default().fg(INDRAJAAL_DIM))),
+        Line::from(Span::styled(
+            "Corrective Action: None required.",
+            Style::default().fg(INDRAJAAL_DIM),
+        )),
+        Line::from(Span::styled(
+            "System is mathematically reified.",
+            Style::default().fg(INDRAJAAL_DIM),
+        )),
     ];
-    
-    let stats = Paragraph::new(stats_text).block(Block::default().borders(Borders::LEFT).border_style(Style::default().fg(Color::Cyan)));
+
+    let stats = Paragraph::new(stats_text).block(
+        Block::default()
+            .borders(Borders::LEFT)
+            .border_style(Style::default().fg(Color::Cyan)),
+    );
     f.render_widget(stats, stats_chunks[1]);
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OtelSpan {
@@ -2740,7 +3252,7 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
     let mut state = DashboardState::default();
     let start = Instant::now();
     let total_duration = Duration::from_secs(600); // 10 minutes
-    
+
     let mut last_tick = Instant::now();
     let mut phase = "Phase A: Synthetic";
     let mut op_triggered = false;
@@ -2762,27 +3274,27 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                     span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                     name: "PhaseTransition".into(),
                     ooda_phase: "Orient".into(),
-                    attributes: vec![("phase".to_string(), "Synthetic".to_string())].into_iter().collect(),
+                    attributes: vec![("phase".to_string(), "Synthetic".to_string())]
+                        .into_iter()
+                        .collect(),
                     timestamp: Local::now().to_rfc3339(),
                 };
-                let _ = zenoh.publish_span("indrajaal/otel/ops", &span).await;
+                let _ = zenoh.publish_span("indrajaal/otel/span/l4/ignition/ops", &span).await;
                 zenoh_log.push(span);
             }
             phase = "Phase A: Synthetic";
             // Mock some data if empty
             if state.containers.is_empty() {
-                state.containers = vec![
-                    ContainerRow {
-                        name: "mock-app-1".into(),
-                        status: "running".into(),
-                        ip: "1.1.1.1".into(),
-                        health: HealthStatus::Healthy,
-                        mem_usage: "100MB".into(),
-                        cpu_pct: 10,
-                        mem_pct: 10,
-                        net_io: "0/0".into(),
-                    }
-                ];
+                state.containers = vec![ContainerRow {
+                    name: "mock-app-1".into(),
+                    status: "running".into(),
+                    ip: "1.1.1.1".into(),
+                    health: HealthStatus::Healthy,
+                    mem_usage: "100MB".into(),
+                    cpu_pct: 10,
+                    mem_pct: 10,
+                    net_io: "0/0".into(),
+                }];
             }
             state.tab_index = (elapsed.as_secs() as usize / 10) % 12;
         } else if elapsed.as_secs() < 300 {
@@ -2792,10 +3304,12 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                     span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                     name: "PhaseTransition".into(),
                     ooda_phase: "Orient".into(),
-                    attributes: vec![("phase".to_string(), "Live Substrate".to_string())].into_iter().collect(),
+                    attributes: vec![("phase".to_string(), "Live Substrate".to_string())]
+                        .into_iter()
+                        .collect(),
                     timestamp: Local::now().to_rfc3339(),
                 };
-                let _ = zenoh.publish_span("indrajaal/otel/ops", &span).await;
+                let _ = zenoh.publish_span("indrajaal/otel/span/l4/ignition/ops", &span).await;
                 zenoh_log.push(span);
             }
             phase = "Phase B: Live Substrate";
@@ -2811,17 +3325,19 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                     span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                     name: "PhaseTransition".into(),
                     ooda_phase: "Orient".into(),
-                    attributes: vec![("phase".to_string(), "Chaos Recovery".to_string())].into_iter().collect(),
+                    attributes: vec![("phase".to_string(), "Chaos Recovery".to_string())]
+                        .into_iter()
+                        .collect(),
                     timestamp: Local::now().to_rfc3339(),
                 };
-                let _ = zenoh.publish_span("indrajaal/otel/ops", &span).await;
+                let _ = zenoh.publish_span("indrajaal/otel/span/l4/ignition/ops", &span).await;
                 zenoh_log.push(span);
             }
             phase = "Phase C: Chaos Recovery";
             if last_tick.elapsed().as_secs() >= 2 {
                 refresh_state(&mut state).await;
                 last_tick = Instant::now();
-                
+
                 // Periodic Zenoh Observation telemetry
                 let span = OtelSpan {
                     trace_id: uuid::Uuid::new_v4().to_string(),
@@ -2829,15 +3345,20 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                     name: "SystemState_Poll".into(),
                     ooda_phase: "Observe".into(),
                     attributes: vec![
-                        ("active_containers".to_string(), state.containers.len().to_string()),
+                        (
+                            "active_containers".to_string(),
+                            state.containers.len().to_string(),
+                        ),
                         ("cpu_pressure".to_string(), state.cpu_pct.to_string()),
-                    ].into_iter().collect(),
+                    ]
+                    .into_iter()
+                    .collect(),
                     timestamp: Local::now().to_rfc3339(),
                 };
-                let _ = zenoh.publish_span("indrajaal/otel/state", &span).await;
+                let _ = zenoh.publish_span("indrajaal/otel/span/l4/ignition/state", &span).await;
                 zenoh_log.push(span);
             }
-            
+
             if !op_triggered && elapsed.as_secs() > 320 {
                 let target = "indrajaal-db-prod";
                 if let Some(c) = state.containers.iter().find(|c| c.name == target) {
@@ -2847,10 +3368,12 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                             span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                             name: "Control_Stop".into(),
                             ooda_phase: "Act".into(),
-                            attributes: vec![("target".to_string(), target.to_string())].into_iter().collect(),
+                            attributes: vec![("target".to_string(), target.to_string())]
+                                .into_iter()
+                                .collect(),
                             timestamp: Local::now().to_rfc3339(),
                         };
-                        let _ = zenoh.publish_span("indrajaal/otel/control", &span).await;
+                        let _ = zenoh.publish_span("indrajaal/otel/span/l4/ignition/control", &span).await;
                         zenoh_log.push(span);
 
                         state.trace_entries.push(TraceEntry {
@@ -2869,10 +3392,12 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                             span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                             name: "Control_Start".into(),
                             ooda_phase: "Act".into(),
-                            attributes: vec![("target".to_string(), target.to_string())].into_iter().collect(),
+                            attributes: vec![("target".to_string(), target.to_string())]
+                                .into_iter()
+                                .collect(),
                             timestamp: Local::now().to_rfc3339(),
                         };
-                        let _ = zenoh.publish_span("indrajaal/otel/control", &span).await;
+                        let _ = zenoh.publish_span("indrajaal/otel/span/l4/ignition/control", &span).await;
                         zenoh_log.push(span);
 
                         state.trace_entries.push(TraceEntry {
@@ -2889,8 +3414,10 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                     op_triggered = true;
                 }
             }
-            if elapsed.as_secs() % 60 == 0 { op_triggered = false; }
-            state.tab_index = 0; 
+            if elapsed.as_secs() % 60 == 0 {
+                op_triggered = false;
+            }
+            state.tab_index = 0;
         } else {
             if phase != "Phase D: OTel Omniscience" {
                 let span = OtelSpan {
@@ -2898,10 +3425,12 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                     span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                     name: "PhaseTransition".into(),
                     ooda_phase: "Orient".into(),
-                    attributes: vec![("phase".to_string(), "OTel Omniscience".to_string())].into_iter().collect(),
+                    attributes: vec![("phase".to_string(), "OTel Omniscience".to_string())]
+                        .into_iter()
+                        .collect(),
                     timestamp: Local::now().to_rfc3339(),
                 };
-                let _ = zenoh.publish_span("indrajaal/otel/ops", &span).await;
+                let _ = zenoh.publish_span("indrajaal/otel/span/l4/ignition/ops", &span).await;
                 zenoh_log.push(span);
             }
             phase = "Phase D: OTel Omniscience";
@@ -2912,24 +3441,37 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
             state.tab_index = 0;
         }
 
-
         // Fractal Tree Element State Reporting (D)
-        let _ = zenoh.publish_element_state(state.tab_index, "frame", "RENDERED").await;
-        let _ = zenoh.publish_element_state(state.tab_index, "cpu_gauge", &state.cpu_pct.to_string()).await;
+        let _ = zenoh
+            .publish_element_state(state.tab_index, "frame", "RENDERED")
+            .await;
+        let _ = zenoh
+            .publish_element_state(state.tab_index, "cpu_gauge", &state.cpu_pct.to_string())
+            .await;
 
         if zenoh_log.len() > 15 {
             zenoh_log.drain(0..10);
         }
 
-        terminal.draw(|f| {
-            let chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([Constraint::Percentage(60), Constraint::Percentage(40)])
-                .split(f.area());
+        terminal
+            .draw(|f| {
+                let chunks = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([Constraint::Percentage(60), Constraint::Percentage(40)])
+                    .split(f.area());
 
-            draw_ui_area(f, chunks[0], &state);
-            draw_ops_dashboard(f, chunks[1], phase, elapsed, total_duration, &state, &zenoh_log);
-        }).map_err(|e| IgnitionError::IoError(e))?;
+                draw_ui_area(f, chunks[0], &state);
+                draw_ops_dashboard(
+                    f,
+                    chunks[1],
+                    phase,
+                    elapsed,
+                    total_duration,
+                    &state,
+                    &zenoh_log,
+                );
+            })
+            .map_err(|e| IgnitionError::IoError(e))?;
 
         if event::poll(Duration::from_millis(200)).map_err(|e| IgnitionError::IoError(e))? {
             if let Event::Key(key) = event::read().map_err(|e| IgnitionError::IoError(e))? {
@@ -2944,10 +3486,12 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                                     span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                                     name: "Manual_Control_Start".into(),
                                     ooda_phase: "Act".into(),
-                                    attributes: vec![("target".to_string(), name.clone())].into_iter().collect(),
+                                    attributes: vec![("target".to_string(), name.clone())]
+                                        .into_iter()
+                                        .collect(),
                                     timestamp: Local::now().to_rfc3339(),
                                 };
-                                let _ = zenoh.publish_span("indrajaal/otel/control", &span).await;
+                                let _ = zenoh.publish_span("indrajaal/otel/span/l4/ignition/control", &span).await;
                                 zenoh_log.push(span);
                                 let _ = podman::start_container(&name).await;
                                 refresh_state(&mut state).await;
@@ -2961,10 +3505,12 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                                     span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                                     name: "Manual_Control_Stop".into(),
                                     ooda_phase: "Act".into(),
-                                    attributes: vec![("target".to_string(), name.clone())].into_iter().collect(),
+                                    attributes: vec![("target".to_string(), name.clone())]
+                                        .into_iter()
+                                        .collect(),
                                     timestamp: Local::now().to_rfc3339(),
                                 };
-                                let _ = zenoh.publish_span("indrajaal/otel/control", &span).await;
+                                let _ = zenoh.publish_span("indrajaal/otel/span/l4/ignition/control", &span).await;
                                 zenoh_log.push(span);
                                 let _ = podman::stop_container(&name, 10).await;
                                 refresh_state(&mut state).await;
@@ -2978,17 +3524,27 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
     }
 
     disable_raw_mode().map_err(|e| IgnitionError::IoError(e))?;
-    stdout().execute(LeaveAlternateScreen).map_err(|e| IgnitionError::IoError(e))?;
+    stdout()
+        .execute(LeaveAlternateScreen)
+        .map_err(|e| IgnitionError::IoError(e))?;
     Ok(())
 }
 
-fn draw_ops_dashboard(f: &mut Frame, area: Rect, phase: &str, elapsed: Duration, total: Duration, state: &DashboardState, zenoh: &[OtelSpan]) {
+fn draw_ops_dashboard(
+    f: &mut Frame,
+    area: Rect,
+    phase: &str,
+    elapsed: Duration,
+    total: Duration,
+    state: &DashboardState,
+    zenoh: &[OtelSpan],
+) {
     let block = Block::default()
         .title(" 10-Minute Operational & Zenoh Telemetry Test Dashboard ")
         .title_style(Style::default().fg(Color::Magenta).bold())
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::White));
-    
+
     let inner = block.inner(area);
     f.render_widget(block, area);
 
@@ -3003,47 +3559,84 @@ fn draw_ops_dashboard(f: &mut Frame, area: Rect, phase: &str, elapsed: Duration,
         .block(Block::default().title(" Total Progress "))
         .gauge_style(Style::default().fg(Color::Green))
         .percent(progress.min(100));
-    
+
     let left_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Length(3), Constraint::Min(5)])
         .split(chunks[0]);
-    
+
     f.render_widget(gauge, left_chunks[0]);
 
     let phase_text = vec![
-        Line::from(vec![Span::styled("Active Phase: ", Style::default().fg(Color::Cyan)), Span::styled(phase, Style::default().bold())]),
-        Line::from(vec![Span::styled("Elapsed:      ", Style::default().fg(Color::Cyan)), Span::raw(format!("{}s / 600s", elapsed.as_secs()))]),
+        Line::from(vec![
+            Span::styled("Active Phase: ", Style::default().fg(Color::Cyan)),
+            Span::styled(phase, Style::default().bold()),
+        ]),
+        Line::from(vec![
+            Span::styled("Elapsed:      ", Style::default().fg(Color::Cyan)),
+            Span::raw(format!("{}s / 600s", elapsed.as_secs())),
+        ]),
         Line::from(""),
-        Line::from(vec![Span::styled("Current Tab:  ", Style::default().fg(Color::Cyan)), Span::raw(format!("{}", state.tab_index))]),
-        Line::from(vec![Span::styled("Containers:   ", Style::default().fg(Color::Cyan)), Span::raw(format!("{}", state.containers.len()))]),
+        Line::from(vec![
+            Span::styled("Current Tab:  ", Style::default().fg(Color::Cyan)),
+            Span::raw(format!("{}", state.tab_index)),
+        ]),
+        Line::from(vec![
+            Span::styled("Containers:   ", Style::default().fg(Color::Cyan)),
+            Span::raw(format!("{}", state.containers.len())),
+        ]),
         Line::from(""),
-        Line::from(Span::styled("OODA Zenoh Telemetry ACTIVE", Style::default().fg(INDRAJAAL_GREEN))),
+        Line::from(Span::styled(
+            "OODA Zenoh Telemetry ACTIVE",
+            Style::default().fg(INDRAJAAL_GREEN),
+        )),
     ];
     f.render_widget(Paragraph::new(phase_text), left_chunks[1]);
 
     // Right: Zenoh OTel Log
-    let logs: Vec<ListItem> = zenoh.iter().rev().take(6).map(|e| {
-        let phase_color = match e.ooda_phase.as_str() {
-            "Observe" => Color::Cyan,
-            "Orient" => Color::Yellow,
-            "Decide" => Color::Magenta,
-            "Act" => Color::Red,
-            _ => Color::White,
-        };
-        let attr_str = e.attributes.iter().map(|(k,v)| format!("{}={}", k, v)).collect::<Vec<_>>().join(", ");
-        ListItem::new(vec![
-            Line::from(vec![
-                Span::styled(format!("[{}] ", e.ooda_phase), Style::default().fg(phase_color).bold()),
-                Span::styled(format!("{} ", e.name), Style::default().fg(Color::White)),
-                Span::styled(format!("trace:{} ", e.span_id), Style::default().fg(INDRAJAAL_DIM)),
-            ]),
-            Line::from(Span::styled(format!("  ↳ {}", attr_str), Style::default().fg(INDRAJAAL_DIM)))
-        ])
-    }).collect();
+    let logs: Vec<ListItem> = zenoh
+        .iter()
+        .rev()
+        .take(6)
+        .map(|e| {
+            let phase_color = match e.ooda_phase.as_str() {
+                "Observe" => Color::Cyan,
+                "Orient" => Color::Yellow,
+                "Decide" => Color::Magenta,
+                "Act" => Color::Red,
+                _ => Color::White,
+            };
+            let attr_str = e
+                .attributes
+                .iter()
+                .map(|(k, v)| format!("{}={}", k, v))
+                .collect::<Vec<_>>()
+                .join(", ");
+            ListItem::new(vec![
+                Line::from(vec![
+                    Span::styled(
+                        format!("[{}] ", e.ooda_phase),
+                        Style::default().fg(phase_color).bold(),
+                    ),
+                    Span::styled(format!("{} ", e.name), Style::default().fg(Color::White)),
+                    Span::styled(
+                        format!("trace:{} ", e.span_id),
+                        Style::default().fg(INDRAJAAL_DIM),
+                    ),
+                ]),
+                Line::from(Span::styled(
+                    format!("  ↳ {}", attr_str),
+                    Style::default().fg(INDRAJAAL_DIM),
+                )),
+            ])
+        })
+        .collect();
 
-    let log_list = List::new(logs)
-        .block(Block::default().title(" Zenoh OTel Spans (Agent Visibility) ").borders(Borders::LEFT));
+    let log_list = List::new(logs).block(
+        Block::default()
+            .title(" Zenoh OTel Spans (Agent Visibility) ")
+            .borders(Borders::LEFT),
+    );
     f.render_widget(log_list, chunks[1]);
 }
 
@@ -3118,15 +3711,41 @@ mod tests {
             zenoh: true,
             health: true,
             quorum: true,
+            quorum_count: 5,
         };
         state.preflight_results = vec![
-            CheckResult { name: "PF-1: Infrastructure".into(), passed: true, message: "OK".into(), duration_ms: 150 },
-            CheckResult { name: "PF-2: Database".into(), passed: true, message: "pg_isready OK".into(), duration_ms: 230 },
-            CheckResult { name: "PF-3: Network".into(), passed: false, message: "Port 4000 conflict".into(), duration_ms: 50 },
+            CheckResult {
+                name: "PF-1: Infrastructure".into(),
+                passed: true,
+                message: "OK".into(),
+                duration_ms: 150,
+            },
+            CheckResult {
+                name: "PF-2: Database".into(),
+                passed: true,
+                message: "pg_isready OK".into(),
+                duration_ms: 230,
+            },
+            CheckResult {
+                name: "PF-3: Network".into(),
+                passed: false,
+                message: "Port 4000 conflict".into(),
+                duration_ms: 50,
+            },
         ];
         state.verify_results = vec![
-            CheckResult { name: "V-1: Container running".into(), passed: true, message: "Up".into(), duration_ms: 0 },
-            CheckResult { name: "V-2: Health endpoint".into(), passed: true, message: "200 OK".into(), duration_ms: 120 },
+            CheckResult {
+                name: "V-1: Container running".into(),
+                passed: true,
+                message: "Up".into(),
+                duration_ms: 0,
+            },
+            CheckResult {
+                name: "V-2: Health endpoint".into(),
+                passed: true,
+                message: "200 OK".into(),
+                duration_ms: 120,
+            },
         ];
         state.trace_entries = vec![
             TraceEntry {
@@ -3182,15 +3801,18 @@ mod tests {
         let state = populated_state();
         term.draw(|f| draw_swarm_tab(f, f.area(), &state)).unwrap();
         let buf = format!("{:?}", term.backend());
-        assert!(buf.contains("zenoh-router-1") || buf.contains("Swarm"),
-            "Swarm tab should display container names or tab title");
+        assert!(
+            buf.contains("zenoh-router-1") || buf.contains("Swarm"),
+            "Swarm tab should display container names or tab title"
+        );
     }
 
     #[test]
     fn test_draw_governor_tab_default() {
         let mut term = test_terminal(120, 40);
         let state = DashboardState::default();
-        term.draw(|f| draw_governor_tab(f, f.area(), &state)).unwrap();
+        term.draw(|f| draw_governor_tab(f, f.area(), &state))
+            .unwrap();
     }
 
     #[test]
@@ -3198,8 +3820,14 @@ mod tests {
         let mut term = test_terminal(120, 40);
         let mut state = populated_state();
         state.cpu_pct = 82;
-        state.parallelism = ParallelismConfig { schedulers: 6, dirty_io: 6, mix_jobs: 6, nice_level: 19 };
-        term.draw(|f| draw_governor_tab(f, f.area(), &state)).unwrap();
+        state.parallelism = ParallelismConfig {
+            schedulers: 6,
+            dirty_io: 6,
+            mix_jobs: 6,
+            nice_level: 19,
+        };
+        term.draw(|f| draw_governor_tab(f, f.area(), &state))
+            .unwrap();
     }
 
     #[test]
@@ -3234,7 +3862,8 @@ mod tests {
     fn test_draw_topology_tab_default() {
         let mut term = test_terminal(120, 40);
         let state = DashboardState::default();
-        term.draw(|f| draw_topology_tab(f, f.area(), &state)).unwrap();
+        term.draw(|f| draw_topology_tab(f, f.area(), &state))
+            .unwrap();
     }
 
     #[test]
@@ -3255,14 +3884,16 @@ mod tests {
     fn test_draw_recovery_tab_default() {
         let mut term = test_terminal(120, 40);
         let state = DashboardState::default();
-        term.draw(|f| draw_recovery_tab(f, f.area(), &state)).unwrap();
+        term.draw(|f| draw_recovery_tab(f, f.area(), &state))
+            .unwrap();
     }
 
     #[test]
     fn test_draw_agentui_tab_default() {
         let mut term = test_terminal(120, 40);
         let state = DashboardState::default();
-        term.draw(|f| draw_agentui_tab(f, f.area(), &state)).unwrap();
+        term.draw(|f| draw_agentui_tab(f, f.area(), &state))
+            .unwrap();
     }
 
     #[test]
@@ -3304,9 +3935,10 @@ mod tests {
         ];
         for (name, draw_fn) in &draw_fns {
             let mut term = test_terminal(80, 24);
-            term.draw(|f| draw_fn(f, f.area(), &state)).unwrap_or_else(|e| {
-                panic!("Tab '{}' panicked at 80x24: {}", name, e);
-            });
+            term.draw(|f| draw_fn(f, f.area(), &state))
+                .unwrap_or_else(|e| {
+                    panic!("Tab '{}' panicked at 80x24: {}", name, e);
+                });
         }
     }
 
@@ -3328,9 +3960,10 @@ mod tests {
         ];
         for (name, draw_fn) in &draw_fns {
             let mut term = test_terminal(200, 60);
-            term.draw(|f| draw_fn(f, f.area(), &state)).unwrap_or_else(|e| {
-                panic!("Tab '{}' panicked at 200x60: {}", name, e);
-            });
+            term.draw(|f| draw_fn(f, f.area(), &state))
+                .unwrap_or_else(|e| {
+                    panic!("Tab '{}' panicked at 200x60: {}", name, e);
+                });
         }
     }
 
@@ -3372,8 +4005,13 @@ mod tests {
     fn test_state_vector_display() {
         let mut state = DashboardState::default();
         state.state_vector = StateVector {
-            compile: true, migrations: true, containers: true,
-            zenoh: false, health: true, quorum: false,
+            compile: true,
+            migrations: true,
+            containers: true,
+            zenoh: false,
+            health: true,
+            quorum: false,
+            quorum_count: 0,
         };
         let mut term = test_terminal(120, 40);
         term.draw(|f| draw_header(f, f.area(), &state)).unwrap();
@@ -3420,7 +4058,8 @@ mod tests {
         state.cpu_pct = 100;
         state.cpu_history = vec![100; 60];
         let mut term = test_terminal(120, 40);
-        term.draw(|f| draw_governor_tab(f, f.area(), &state)).unwrap();
+        term.draw(|f| draw_governor_tab(f, f.area(), &state))
+            .unwrap();
     }
 
     #[test]
@@ -3475,17 +4114,17 @@ mod tests {
         // Mathematical Coverage: 100 Regression Tests
         // Simulates high-entropy state space (SC-COV-012) across all 12 tabs
         // testing various boundaries: width [40, 200], height [10, 60]
-        
+
         let mut base_state = populated_state();
-        
+
         for i in 0..100 {
             // Permutate terminal dimensions monotonically
             let width = 40 + (i * 16) % 160;
             let height = 10 + (i * 5) % 50;
-            
+
             // Permutate Tab Index (0 to 11)
             base_state.tab_index = (i as usize) % 12;
-            
+
             // Permutate phase
             base_state.phase = match i % 6 {
                 0 => IgnitionPhase::Idle,
@@ -3540,7 +4179,13 @@ mod tests {
             }));
 
             // Assert no panics occurred during the draw cycle
-            assert!(res.is_ok(), "draw_ui panicked on regression cycle {} with size {}x{}", i, width, height);
+            assert!(
+                res.is_ok(),
+                "draw_ui panicked on regression cycle {} with size {}x{}",
+                i,
+                width,
+                height
+            );
         }
     }
 
@@ -3550,15 +4195,15 @@ mod tests {
         // Simulates monitoring each of the 12 tabs for a specific duration based on element complexity.
         // Base rate: 10Hz (10 ticks = 1 second).
         // Total ticks ~4000 = ~400 seconds (6m 40s) of simulated operational monitoring.
-        
+
         let mut state = populated_state();
         let mut term = test_terminal(120, 40); // standard monitoring viewport
-        
+
         let tabs = 12;
-        
+
         for tab in 0..tabs {
             state.tab_index = tab;
-            
+
             // Model's Judgement: Assign monitoring duration based on UI complexity and dynamic elements
             let ticks_per_tab = match tab {
                 0 => 600, // Swarm Tab: High activity (logs, status matrix, tracing). 60 seconds to ensure trace rotation works perfectly.
@@ -3575,18 +4220,18 @@ mod tests {
                 11 => 450, // Agent UI Tab: Dialogue scrolling. 45 seconds to ensure agent dialogue truncation executes.
                 _ => 100,
             };
-            
+
             for tick in 0..ticks_per_tab {
                 // Simulate time passing
                 state.uptime_secs += 1;
-                
+
                 // Simulate CPU fluctuating and history rotating
                 state.cpu_pct = (state.cpu_pct.wrapping_add(tick as u8)) % 100;
                 if state.cpu_history.len() >= 60 {
                     state.cpu_history.remove(0);
                 }
                 state.cpu_history.push(state.cpu_pct);
-                
+
                 // Simulate log streaming
                 if tick % 10 == 0 {
                     state.trace_entries.push(TraceEntry {
@@ -3603,7 +4248,7 @@ mod tests {
                         state.trace_entries.drain(0..10);
                     }
                 }
-                
+
                 // Simulate container health flapping occasionally
                 if tick % 50 == 0 && !state.containers.is_empty() {
                     let idx = (tick as usize) % state.containers.len();
@@ -3619,7 +4264,13 @@ mod tests {
                     term.draw(|f| draw_ui(f, &state)).unwrap();
                 }));
 
-                assert!(res.is_ok(), "draw_ui panicked on tab {} at tick {}/{}", tab, tick, ticks_per_tab);
+                assert!(
+                    res.is_ok(),
+                    "draw_ui panicked on tab {} at tick {}/{}",
+                    tab,
+                    tick,
+                    ticks_per_tab
+                );
             }
         }
     }

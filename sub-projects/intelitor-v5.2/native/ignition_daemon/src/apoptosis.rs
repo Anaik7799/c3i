@@ -116,33 +116,16 @@ impl ApoptosisManager {
     }
 }
 
-/// Executes a total emergency stop of the SIL-6 biomorphic mesh
+/// Executes a total emergency stop of the SIL-6 biomorphic mesh.
+/// Uses dynamic genome list from artifacts.rs (not hardcoded).
 pub async fn emergency_stop() -> Result<(), IgnitionError> {
     warn!("Executing EMERGENCY STOP for all containers...");
-    let containers = [
-        "zenoh-router",
-        "zenoh-router-1",
-        "zenoh-router-2",
-        "zenoh-router-3",
-        "indrajaal-db-prod",
-        "indrajaal-obs-prod",
-        "indrajaal-cortex",
-        "cepaf-bridge",
-        "indrajaal-ex-app-1",
-        "indrajaal-ex-app-2",
-        "indrajaal-ex-app-3",
-        "indrajaal-chaya",
-        "indrajaal-ollama",
-        "indrajaal-mojo",
-        "indrajaal-ml-runner-1",
-        "indrajaal-ml-runner-2",
-    ];
 
-    for name in containers {
-        // Attempt to stop each container, ignore errors during emergency halt
+    // Dynamic container list from genome (SC-ARCH-SPLIT: Rust owns this)
+    for name in crate::artifacts::SIL6_GENOME {
         let _ = crate::podman::stop_container(name, 0).await;
     }
 
-    info!("Emergency stop completed.");
+    info!("Emergency stop completed for {} containers.", crate::artifacts::SIL6_GENOME.len());
     Ok(())
 }
