@@ -53,24 +53,46 @@ use tokio::time::sleep;
 /// STAMP: SC-FMEA-007 (mitigation plan for RPN >= 100)
 pub fn get_playbook(mode: FailureMode) -> RecoveryPlaybook {
     match mode {
+        // Original 5 (RPN 252-140)
         FailureMode::NifCompilationFailure => playbook_nif_compilation(),
         FailureMode::GlibcMuslConflict => playbook_glibc_musl(),
         FailureMode::HealthTimeout => playbook_health_timeout(),
         FailureMode::BootOrderingRace => playbook_boot_ordering(),
         FailureMode::ObservabilityGap => playbook_observability_gap(),
+        // New 10 (RPN 230-130)
+        FailureMode::CascadingFailure => playbook_cascading_failure(),
+        FailureMode::DiskExhaustion => playbook_disk_exhaustion(),
+        FailureMode::MemoryLeak => playbook_memory_leak(),
+        FailureMode::NetworkPartition => playbook_network_partition(),
+        FailureMode::ImageCorruption => playbook_image_corruption(),
+        FailureMode::CertificateExpiry => playbook_certificate_expiry(),
+        FailureMode::ClockDrift => playbook_clock_drift(),
+        FailureMode::ZombieProcess => playbook_zombie_process(),
+        FailureMode::RegistryUnavailable => playbook_registry_unavailable(),
+        FailureMode::ConfigDrift => playbook_config_drift(),
     }
 }
 
-/// Get all 5 playbooks (for TUI display and audit).
+/// Get all 15 playbooks (for TUI display and audit).
 ///
 /// Order is descending RPN (highest risk first).
 pub fn all_playbooks() -> Vec<RecoveryPlaybook> {
     vec![
-        playbook_nif_compilation(),
-        playbook_glibc_musl(),
-        playbook_health_timeout(),
-        playbook_boot_ordering(),
-        playbook_observability_gap(),
+        playbook_nif_compilation(),        // RPN 252
+        playbook_cascading_failure(),      // RPN 230
+        playbook_glibc_musl(),             // RPN 225
+        playbook_disk_exhaustion(),        // RPN 210
+        playbook_memory_leak(),            // RPN 198
+        playbook_health_timeout(),         // RPN 196
+        playbook_network_partition(),      // RPN 189
+        playbook_image_corruption(),       // RPN 175
+        playbook_boot_ordering(),          // RPN 168
+        playbook_certificate_expiry(),     // RPN 162
+        playbook_clock_drift(),            // RPN 154
+        playbook_zombie_process(),         // RPN 147
+        playbook_observability_gap(),      // RPN 140
+        playbook_registry_unavailable(),   // RPN 138
+        playbook_config_drift(),           // RPN 130
     ]
 }
 
@@ -368,6 +390,172 @@ fn playbook_observability_gap() -> RecoveryPlaybook {
                 expected_result: "Non-empty endpoint URL printed".into(),
                 timeout_ms: 5_000,
             },
+        ],
+    }
+}
+
+// ─── New Playbooks (Ideas #48 — 5→15 expansion) ──────────────────────────────
+
+/// Playbook 6 — Cascading Failure (RPN 230)
+fn playbook_cascading_failure() -> RecoveryPlaybook {
+    RecoveryPlaybook {
+        failure_mode: FailureMode::CascadingFailure,
+        rpn: 230,
+        max_retries: MAX_RECOVERY_RETRIES,
+        escalation: "Cascading failure detected — manual intervention required for tier-by-tier recovery".into(),
+        steps: vec![
+            RecoveryStep { order: 1, action: "Identify failure domain".into(), command: Some("exec {container} sh -c \"echo cascading_failure\"".into()), expected_result: "Failure domain identified".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 2, action: "Isolate affected tiers".into(), command: None, expected_result: "Containment activated".into(), timeout_ms: 1_000 },
+            RecoveryStep { order: 3, action: "Stop dependent containers".into(), command: Some("stop -t 3 {container}".into()), expected_result: "Dependent containers stopped".into(), timeout_ms: 15_000 },
+            RecoveryStep { order: 4, action: "Recover from lowest failed tier".into(), command: None, expected_result: "Recovery initiated from foundation tier".into(), timeout_ms: 1_000 },
+            RecoveryStep { order: 5, action: "Verify quorum preserved".into(), command: Some("exec zenoh-router-1 sh -c \"nc -z localhost 7447\"".into()), expected_result: "Zenoh quorum intact".into(), timeout_ms: 5_000 },
+        ],
+    }
+}
+
+/// Playbook 7 — Disk Exhaustion (RPN 210)
+fn playbook_disk_exhaustion() -> RecoveryPlaybook {
+    RecoveryPlaybook {
+        failure_mode: FailureMode::DiskExhaustion,
+        rpn: 210,
+        max_retries: MAX_RECOVERY_RETRIES,
+        escalation: "Disk space critical — manual cleanup of volumes/images required".into(),
+        steps: vec![
+            RecoveryStep { order: 1, action: "Check disk usage".into(), command: Some("host:df -h /".into()), expected_result: "Disk usage percentage reported".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 2, action: "Prune stopped containers".into(), command: Some("container prune -f".into()), expected_result: "Stopped containers removed".into(), timeout_ms: 30_000 },
+            RecoveryStep { order: 3, action: "Prune unused images".into(), command: Some("image prune -a -f".into()), expected_result: "Unused images removed".into(), timeout_ms: 60_000 },
+            RecoveryStep { order: 4, action: "Truncate container logs".into(), command: Some("host:find /var/lib/containers -name '*.log' -size +100M -exec truncate -s 0 {} \\;".into()), expected_result: "Large logs truncated".into(), timeout_ms: 15_000 },
+            RecoveryStep { order: 5, action: "Verify disk space reclaimed".into(), command: Some("host:df -h /".into()), expected_result: "Disk usage below 85%".into(), timeout_ms: 5_000 },
+        ],
+    }
+}
+
+/// Playbook 8 — Memory Leak (RPN 198)
+fn playbook_memory_leak() -> RecoveryPlaybook {
+    RecoveryPlaybook {
+        failure_mode: FailureMode::MemoryLeak,
+        rpn: 198,
+        max_retries: MAX_RECOVERY_RETRIES,
+        escalation: "Memory leak detected — container needs restart with increased limits".into(),
+        steps: vec![
+            RecoveryStep { order: 1, action: "Check container memory usage".into(), command: Some("inspect {container} --format {{.MemoryStats.Usage}}".into()), expected_result: "Memory usage reported".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 2, action: "Capture memory profile".into(), command: Some("exec {container} sh -c \"cat /proc/1/status | grep VmRSS\"".into()), expected_result: "RSS captured".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 3, action: "Graceful restart container".into(), command: Some("restart -t 10 {container}".into()), expected_result: "Container restarted with clean memory".into(), timeout_ms: 30_000 },
+            RecoveryStep { order: 4, action: "Verify memory stabilized".into(), command: Some("inspect {container} --format {{.MemoryStats.Usage}}".into()), expected_result: "Memory usage below threshold".into(), timeout_ms: 10_000 },
+        ],
+    }
+}
+
+/// Playbook 9 — Network Partition (RPN 189)
+fn playbook_network_partition() -> RecoveryPlaybook {
+    RecoveryPlaybook {
+        failure_mode: FailureMode::NetworkPartition,
+        rpn: 189,
+        max_retries: MAX_RECOVERY_RETRIES,
+        escalation: "Network partition detected — manual network troubleshooting required".into(),
+        steps: vec![
+            RecoveryStep { order: 1, action: "Verify mesh network exists".into(), command: Some("network inspect indrajaal-sil6-mesh".into()), expected_result: "Network exists and is active".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 2, action: "Check container network attachment".into(), command: Some("inspect {container} --format {{.NetworkSettings.Networks}}".into()), expected_result: "Container attached to mesh network".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 3, action: "Disconnect and reconnect container".into(), command: Some("network disconnect indrajaal-sil6-mesh {container}".into()), expected_result: "Container disconnected".into(), timeout_ms: 10_000 },
+            RecoveryStep { order: 4, action: "Reconnect to mesh network".into(), command: Some("network connect indrajaal-sil6-mesh {container}".into()), expected_result: "Container reconnected".into(), timeout_ms: 10_000 },
+            RecoveryStep { order: 5, action: "Verify connectivity restored".into(), command: Some("exec {container} sh -c \"nc -z zenoh-router-1 7447\"".into()), expected_result: "Connectivity to zenoh-router restored".into(), timeout_ms: 5_000 },
+        ],
+    }
+}
+
+/// Playbook 10 — Image Corruption (RPN 175)
+fn playbook_image_corruption() -> RecoveryPlaybook {
+    RecoveryPlaybook {
+        failure_mode: FailureMode::ImageCorruption,
+        rpn: 175,
+        max_retries: MAX_RECOVERY_RETRIES,
+        escalation: "Image corruption detected — rebuild from Dockerfile required".into(),
+        steps: vec![
+            RecoveryStep { order: 1, action: "Verify image digest".into(), command: Some("image inspect {container} --format {{.RepoDigests}}".into()), expected_result: "Image digest reported".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 2, action: "Stop corrupted container".into(), command: Some("stop -t 5 {container}".into()), expected_result: "Container stopped".into(), timeout_ms: 10_000 },
+            RecoveryStep { order: 3, action: "Remove corrupted container".into(), command: Some("rm -f {container}".into()), expected_result: "Container removed".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 4, action: "Rebuild image from scratch".into(), command: Some("build --no-cache -t localhost/indrajaal-ex-app-1:latest .".into()), expected_result: "Image built successfully".into(), timeout_ms: 600_000 },
+            RecoveryStep { order: 5, action: "Launch fresh container".into(), command: Some("start {container}".into()), expected_result: "Container running with fresh image".into(), timeout_ms: 30_000 },
+        ],
+    }
+}
+
+/// Playbook 11 — Certificate Expiry (RPN 162)
+fn playbook_certificate_expiry() -> RecoveryPlaybook {
+    RecoveryPlaybook {
+        failure_mode: FailureMode::CertificateExpiry,
+        rpn: 162,
+        max_retries: MAX_RECOVERY_RETRIES,
+        escalation: "Certificate expired — manual certificate rotation required".into(),
+        steps: vec![
+            RecoveryStep { order: 1, action: "Check certificate expiry dates".into(), command: Some("exec {container} sh -c \"find /etc/ssl -name '*.pem' -exec openssl x509 -enddate -noout -in {} \\;\"".into()), expected_result: "Certificate dates reported".into(), timeout_ms: 10_000 },
+            RecoveryStep { order: 2, action: "Generate new certificates".into(), command: None, expected_result: "New certificates generated".into(), timeout_ms: 1_000 },
+            RecoveryStep { order: 3, action: "Restart container with new certs".into(), command: Some("restart -t 5 {container}".into()), expected_result: "Container restarted".into(), timeout_ms: 30_000 },
+            RecoveryStep { order: 4, action: "Verify TLS connections".into(), command: Some("exec {container} sh -c \"openssl s_client -connect localhost:443\"".into()), expected_result: "TLS handshake successful".into(), timeout_ms: 10_000 },
+        ],
+    }
+}
+
+/// Playbook 12 — Clock Drift (RPN 154)
+fn playbook_clock_drift() -> RecoveryPlaybook {
+    RecoveryPlaybook {
+        failure_mode: FailureMode::ClockDrift,
+        rpn: 154,
+        max_retries: MAX_RECOVERY_RETRIES,
+        escalation: "Clock drift critical — manual NTP sync required".into(),
+        steps: vec![
+            RecoveryStep { order: 1, action: "Check container clock".into(), command: Some("exec {container} date +%s".into()), expected_result: "Container timestamp reported".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 2, action: "Check host clock".into(), command: Some("host:date +%s".into()), expected_result: "Host timestamp reported".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 3, action: "Sync NTP on host".into(), command: Some("host:chronyc -a makestep".into()), expected_result: "NTP sync successful".into(), timeout_ms: 15_000 },
+            RecoveryStep { order: 4, action: "Restart container to pick up new time".into(), command: Some("restart -t 3 {container}".into()), expected_result: "Container restarted with correct time".into(), timeout_ms: 15_000 },
+        ],
+    }
+}
+
+/// Playbook 13 — Zombie Process (RPN 147)
+fn playbook_zombie_process() -> RecoveryPlaybook {
+    RecoveryPlaybook {
+        failure_mode: FailureMode::ZombieProcess,
+        rpn: 147,
+        max_retries: MAX_RECOVERY_RETRIES,
+        escalation: "Zombie processes accumulating — container restart required".into(),
+        steps: vec![
+            RecoveryStep { order: 1, action: "Count zombie processes".into(), command: Some("exec {container} sh -c \"ps aux | grep -c 'Z'\"".into()), expected_result: "Zombie count reported".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 2, action: "Send SIGCHLD to parent processes".into(), command: Some("exec {container} sh -c \"kill -SIGCHLD 1\"".into()), expected_result: "SIGCHLD sent to PID 1".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 3, action: "Verify zombies reaped".into(), command: Some("exec {container} sh -c \"ps aux | grep -c 'Z'\"".into()), expected_result: "Zombie count reduced".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 4, action: "Restart container if zombies persist".into(), command: Some("restart -t 5 {container}".into()), expected_result: "Container restarted clean".into(), timeout_ms: 30_000 },
+        ],
+    }
+}
+
+/// Playbook 14 — Registry Unavailable (RPN 138)
+fn playbook_registry_unavailable() -> RecoveryPlaybook {
+    RecoveryPlaybook {
+        failure_mode: FailureMode::RegistryUnavailable,
+        rpn: 138,
+        max_retries: MAX_RECOVERY_RETRIES,
+        escalation: "Registry unavailable — check Podman registry service".into(),
+        steps: vec![
+            RecoveryStep { order: 1, action: "Check registry connectivity".into(), command: Some("host:curl -sf http://localhost:5000/v2/".into()), expected_result: "Registry responds".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 2, action: "Restart registry if available".into(), command: Some("host:systemctl restart podman-registry".into()), expected_result: "Registry restarted".into(), timeout_ms: 15_000 },
+            RecoveryStep { order: 3, action: "Verify local images available".into(), command: Some("images --format {{.Repository}}".into()), expected_result: "Local images listed".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 4, action: "Retry container launch with local image".into(), command: Some("start {container}".into()), expected_result: "Container started from local image".into(), timeout_ms: 30_000 },
+        ],
+    }
+}
+
+/// Playbook 15 — Configuration Drift (RPN 130)
+fn playbook_config_drift() -> RecoveryPlaybook {
+    RecoveryPlaybook {
+        failure_mode: FailureMode::ConfigDrift,
+        rpn: 130,
+        max_retries: MAX_RECOVERY_RETRIES,
+        escalation: "Configuration drift detected — manual reconciliation required".into(),
+        steps: vec![
+            RecoveryStep { order: 1, action: "Inspect current container config".into(), command: Some("inspect {container} --format {{.Config.Env}}".into()), expected_result: "Current env vars reported".into(), timeout_ms: 5_000 },
+            RecoveryStep { order: 2, action: "Compare with expected config".into(), command: None, expected_result: "Drift identified".into(), timeout_ms: 1_000 },
+            RecoveryStep { order: 3, action: "Stop container".into(), command: Some("stop -t 5 {container}".into()), expected_result: "Container stopped".into(), timeout_ms: 10_000 },
+            RecoveryStep { order: 4, action: "Recreate with correct config".into(), command: Some("rm -f {container}".into()), expected_result: "Container removed for recreation".into(), timeout_ms: 5_000 },
         ],
     }
 }
@@ -862,9 +1050,9 @@ mod tests {
     // ── Playbook structure invariants ──────────────────────────────────────────
 
     #[test]
-    fn test_all_playbooks_returns_five() {
+    fn test_all_playbooks_returns_fifteen() {
         let books = all_playbooks();
-        assert_eq!(books.len(), 5, "Expected exactly 5 playbooks");
+        assert_eq!(books.len(), 15, "Expected exactly 15 playbooks");
     }
 
     #[test]

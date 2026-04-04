@@ -451,21 +451,24 @@
 - ✅ `d68b484d` — duplicate cascade commit (git index issue)
 - ✅ `92bd0fb1` — add inter-container connectivity matrix + Zenoh mesh topology verification
 - ✅ `f4b60f7b` — Phase 2 robustness — expanded recovery playbooks, connectivity verification, TUI enhancements
+- ✅ `ba0246fa` — robust launch module — atomic tier commit, idempotent launch, emergency drain
+
+### Build Status
+- ✅ `cargo check`: 0 errors, 120 warnings (pre-existing dead-code warnings)
+- ✅ `cargo test`: 240/240 tests passing (237 unit + 3 integration)
 
 ### Remaining Work
-1. Wire `robust_launch.rs` into `main.rs` module declarations
-2. Implement 10 new FMEA recovery playbooks (disk exhaustion, memory leak, network partition, etc.)
-3. Implement network partition detection with multi-path probing
-4. Implement split-brain prevention with fencing
-5. Wire `connectivity.rs` into verification flow
-6. Update TUI dashboard with new screens (S-RECOVERY, S-FRACTAL, S-SECURITY)
-7. Run `cargo build && cargo test` to verify all new modules compile and tests pass
+1. Implement 10 new FMEA recovery playbooks (disk exhaustion, memory leak, network partition, etc.)
+2. Implement network partition detection with multi-path probing
+3. Implement split-brain prevention with fencing
+4. Wire `connectivity.rs` into verification flow in `main.rs`
+5. Update TUI dashboard with new screens (S-RECOVERY, S-FRACTAL, S-SECURITY)
 
 ---
 
 **Version**: v21.5.0-GLM
-**Status**: Phase 1-7 COMPLETED, Phase 8-10 IN PROGRESS
-**Last Updated**: 2026-04-04 08:30 CEST
-**Code Written**: ~2,300 lines across 3 new Rust modules + types.rs expansion
-**Tests Written**: 22 unit tests
-**Next Action**: Wire robust_launch.rs into main.rs, implement expanded recovery playbooks
+**Status**: Phase 1-8 COMPLETED, Phase 9-10 IN PROGRESS
+**Last Updated**: 2026-04-04 09:30 CEST
+**Code Written**: ~4,071 lines across 3 new Rust modules + types.rs expansion + podman.rs extensions
+**Tests Written**: 22 unit tests (total: 240/240 passing)
+**Next Action**: Implement expanded recovery playbooks (5→15), network partition detection

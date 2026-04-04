@@ -512,9 +512,10 @@ pub struct HealthConsensus {
 }
 
 /// Recovery playbook — Source: recovery.rs
-/// Deterministic recovery actions for top-5 failure modes
+/// Deterministic recovery actions for top-15 failure modes (expanded from 5)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum FailureMode {
+    // Original 5 (RPN 252-140)
     /// RPN 252: NIF compilation failure (cargo not found, missing deps)
     NifCompilationFailure,
     /// RPN 225: glibc/musl NIF binary conflict (host _build leaks into container)
@@ -525,6 +526,27 @@ pub enum FailureMode {
     BootOrderingRace,
     /// RPN 140: Operator observability gaps
     ObservabilityGap,
+    // New 10 (Idea #48 — Self-Healing Playbook Expansion)
+    /// RPN 230: Cascading failure across multiple tiers
+    CascadingFailure,
+    /// RPN 210: Disk exhaustion (container logs, volumes, images)
+    DiskExhaustion,
+    /// RPN 198: Memory leak (container RSS growing unbounded)
+    MemoryLeak,
+    /// RPN 189: Network partition (containers isolated from mesh)
+    NetworkPartition,
+    /// RPN 175: Image corruption (layer mismatch, digest mismatch)
+    ImageCorruption,
+    /// RPN 162: Certificate expiry (TLS certs expiring within 30 days)
+    CertificateExpiry,
+    /// RPN 154: Clock drift (NTP desync > 100ms between containers)
+    ClockDrift,
+    /// RPN 147: Zombie processes (defunct processes accumulating)
+    ZombieProcess,
+    /// RPN 138: Registry unavailable (localhost registry unreachable)
+    RegistryUnavailable,
+    /// RPN 130: Configuration drift (env vars, ports, volumes changed)
+    ConfigDrift,
 }
 
 /// Recovery step — single action in a playbook

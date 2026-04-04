@@ -2074,6 +2074,16 @@ fn failure_mode_label(mode: FailureMode) -> &'static str {
         FailureMode::HealthTimeout => "Health Timeout",
         FailureMode::BootOrderingRace => "Boot Ordering Race",
         FailureMode::ObservabilityGap => "Observability Gap",
+        FailureMode::CascadingFailure => "Cascading Failure",
+        FailureMode::DiskExhaustion => "Disk Exhaustion",
+        FailureMode::MemoryLeak => "Memory Leak",
+        FailureMode::NetworkPartition => "Network Partition",
+        FailureMode::ImageCorruption => "Image Corruption",
+        FailureMode::CertificateExpiry => "Certificate Expiry",
+        FailureMode::ClockDrift => "Clock Drift",
+        FailureMode::ZombieProcess => "Zombie Process",
+        FailureMode::RegistryUnavailable => "Registry Unavailable",
+        FailureMode::ConfigDrift => "Config Drift",
     }
 }
 
@@ -2085,6 +2095,16 @@ fn failure_mode_container(mode: FailureMode) -> &'static str {
         FailureMode::HealthTimeout => "indrajaal-db-prod",
         FailureMode::BootOrderingRace => "zenoh-router",
         FailureMode::ObservabilityGap => "indrajaal-obs-prod",
+        FailureMode::CascadingFailure => "multiple",
+        FailureMode::DiskExhaustion => "host",
+        FailureMode::MemoryLeak => "indrajaal-ex-app-1",
+        FailureMode::NetworkPartition => "zenoh-router-1",
+        FailureMode::ImageCorruption => "indrajaal-ex-app-1",
+        FailureMode::CertificateExpiry => "zenoh-router",
+        FailureMode::ClockDrift => "indrajaal-db-prod",
+        FailureMode::ZombieProcess => "indrajaal-ex-app-1",
+        FailureMode::RegistryUnavailable => "host",
+        FailureMode::ConfigDrift => "indrajaal-ex-app-1",
     }
 }
 
