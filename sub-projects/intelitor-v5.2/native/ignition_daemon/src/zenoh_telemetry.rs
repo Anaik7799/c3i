@@ -183,3 +183,226 @@ pub async fn run_observer() -> Result<(), IgnitionError> {
 
     Ok(())
 }
+
+// ─── Checkpoint IDs (CP-BOOT-01..10) ────────────────────────────────────────
+
+/// Boot checkpoint identifiers aligned to the 7-tier SIL-6 boot hierarchy.
+/// SC-BOOT-010: checkpoints at each stage.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CheckpointId {
+    /// Pre-flight NIF + Zenoh path validation
+    CpBoot01,
+    /// DAG acyclicity verified (Kahn's algorithm)
+    CpBoot02,
+    /// Database layer healthy (pg_isready -p 5433)
+    CpBoot03,
+    /// Observability stack reachable (OTEL port 4317)
+    CpBoot04,
+    /// Zenoh quorum routers (-1/-2/-3) healthy
+    CpBoot05,
+    /// CEPAF bridge + Cortex containers healthy
+    CpBoot06,
+    /// Cortex cognitive layer confirmed running
+    CpBoot07,
+    /// Seed app (ex-app-1) fully responding on port 4000
+    CpBoot08,
+    /// Homeostasis PID verified (health checks converged)
+    CpBoot09,
+    /// Mesh ignition complete — all 16 containers healthy
+    CpBoot10,
+}
+
+/// Returns the canonical hyphenated string for a checkpoint ID.
+/// Used as the `phase` field in `CheckpointMessage`.
+pub fn checkpoint_id_to_string(id: CheckpointId) -> &'static str {
+    match id {
+        CheckpointId::CpBoot01 => "CP-BOOT-01",
+        CheckpointId::CpBoot02 => "CP-BOOT-02",
+        CheckpointId::CpBoot03 => "CP-BOOT-03",
+        CheckpointId::CpBoot04 => "CP-BOOT-04",
+        CheckpointId::CpBoot05 => "CP-BOOT-05",
+        CheckpointId::CpBoot06 => "CP-BOOT-06",
+        CheckpointId::CpBoot07 => "CP-BOOT-07",
+        CheckpointId::CpBoot08 => "CP-BOOT-08",
+        CheckpointId::CpBoot09 => "CP-BOOT-09",
+        CheckpointId::CpBoot10 => "CP-BOOT-10",
+    }
+}
+
+/// Maps a checkpoint ID to its progress percentage (0–100).
+/// Ten equidistant checkpoints across the 0–100 range.
+fn checkpoint_progress(id: CheckpointId) -> u8 {
+    match id {
+        CheckpointId::CpBoot01 => 5,
+        CheckpointId::CpBoot02 => 15,
+        CheckpointId::CpBoot03 => 25,
+        CheckpointId::CpBoot04 => 35,
+        CheckpointId::CpBoot05 => 50,
+        CheckpointId::CpBoot06 => 60,
+        CheckpointId::CpBoot07 => 70,
+        CheckpointId::CpBoot08 => 80,
+        CheckpointId::CpBoot09 => 90,
+        CheckpointId::CpBoot10 => 100,
+    }
+}
+
+/// Publishes a boot checkpoint telemetry event over the existing tx channel.
+///
+/// # Arguments
+/// * `zenoh`     – Active `ZenohTelemetry` instance with a running worker task.
+/// * `id`        – Which CP-BOOT-XX checkpoint was reached.
+/// * `container` – Optional container name associated with this checkpoint.
+/// * `details`   – Human-readable status string for the dashboard.
+pub async fn publish_boot_checkpoint(
+    zenoh: &ZenohTelemetry,
+    id: CheckpointId,
+    container: Option<&str>,
+    details: &str,
+) {
+    let phase = checkpoint_id_to_string(id).to_string();
+    let progress = checkpoint_progress(id);
+
+    let detail_str = match container {
+        Some(c) => format!("[{}] {}", c, details),
+        None => details.to_string(),
+    };
+
+    let state_vector = BootStateVector {
+        compile: progress >= 5,
+        migrations: progress >= 25,
+        containers: progress >= 60,
+        zenoh: progress >= 50,
+        health: progress >= 80,
+        quorum: progress >= 50,
+    };
+
+    let checkpoint = CheckpointMessage {
+        phase,
+        progress,
+        state_vector,
+        details: Some(detail_str),
+    };
+
+    let key = format!("indrajaal/l4/ignition/checkpoint/{}", checkpoint_id_to_string(id));
+    if let Err(e) = zenoh.publish_checkpoint(&key, &checkpoint).await {
+        error!("Failed to publish boot checkpoint {:?}: {}", id, e);
+    }
+}
+
+// ─── Phase Status & Boot State Vector helpers ────────────────────────────────
+
+/// Lifecycle status for a single boot phase.
+/// Used by the TUI dashboard to colour-code phase rows.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum PhaseStatus {
+    #[default]
+    Pending,
+    Running,
+    Complete,
+    Failed,
+    Skipped,
+}
+
+/// Updates the boolean field of `BootStateVector` corresponding to `phase`,
+/// then publishes a CP-BOOT-XX checkpoint with the new state.
+///
+/// Phase mapping (matches the 6 boolean fields in `BootStateVector`):
+///   0 → compile, 1 → migrations, 2 → containers,
+///   3 → zenoh,   4 → health,     5 → quorum
+/// Phases 6-9 update no boolean but still publish a checkpoint.
+///
+/// `Complete` sets the field to `true`; `Failed` sets it to `false`.
+/// All other statuses leave the field unchanged.
+pub async fn update_boot_phase(
+    zenoh: &ZenohTelemetry,
+    state_vector: &mut BootStateVector,
+    phase: usize,
+    status: PhaseStatus,
+) {
+    // Update the corresponding boolean field
+    match status {
+        PhaseStatus::Complete => match phase {
+            0 => state_vector.compile = true,
+            1 => state_vector.migrations = true,
+            2 => state_vector.containers = true,
+            3 => state_vector.zenoh = true,
+            4 => state_vector.health = true,
+            5 => state_vector.quorum = true,
+            _ => {}
+        },
+        PhaseStatus::Failed => match phase {
+            0 => state_vector.compile = false,
+            1 => state_vector.migrations = false,
+            2 => state_vector.containers = false,
+            3 => state_vector.zenoh = false,
+            4 => state_vector.health = false,
+            5 => state_vector.quorum = false,
+            _ => {}
+        },
+        _ => {}
+    }
+
+    // Map phase index to a checkpoint ID
+    let checkpoint_id = match phase {
+        0 => CheckpointId::CpBoot01,
+        1 => CheckpointId::CpBoot02,
+        2 => CheckpointId::CpBoot03,
+        3 => CheckpointId::CpBoot04,
+        4 => CheckpointId::CpBoot05,
+        5 => CheckpointId::CpBoot06,
+        6 => CheckpointId::CpBoot07,
+        7 => CheckpointId::CpBoot08,
+        8 => CheckpointId::CpBoot09,
+        _ => CheckpointId::CpBoot10,
+    };
+
+    let detail = format!("phase {} → {:?}", phase, status);
+    publish_boot_checkpoint(zenoh, checkpoint_id, None, &detail).await;
+}
+
+// ─── Tests ───────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn checkpoint_id_string_all_variants() {
+        assert_eq!(checkpoint_id_to_string(CheckpointId::CpBoot01), "CP-BOOT-01");
+        assert_eq!(checkpoint_id_to_string(CheckpointId::CpBoot02), "CP-BOOT-02");
+        assert_eq!(checkpoint_id_to_string(CheckpointId::CpBoot03), "CP-BOOT-03");
+        assert_eq!(checkpoint_id_to_string(CheckpointId::CpBoot04), "CP-BOOT-04");
+        assert_eq!(checkpoint_id_to_string(CheckpointId::CpBoot05), "CP-BOOT-05");
+        assert_eq!(checkpoint_id_to_string(CheckpointId::CpBoot06), "CP-BOOT-06");
+        assert_eq!(checkpoint_id_to_string(CheckpointId::CpBoot07), "CP-BOOT-07");
+        assert_eq!(checkpoint_id_to_string(CheckpointId::CpBoot08), "CP-BOOT-08");
+        assert_eq!(checkpoint_id_to_string(CheckpointId::CpBoot09), "CP-BOOT-09");
+        assert_eq!(checkpoint_id_to_string(CheckpointId::CpBoot10), "CP-BOOT-10");
+    }
+
+    #[test]
+    fn phase_status_default_is_pending() {
+        let status: PhaseStatus = PhaseStatus::default();
+        assert_eq!(status, PhaseStatus::Pending);
+    }
+
+    #[test]
+    fn boot_state_vector_init_all_false() {
+        // A freshly constructed BootStateVector should start with all flags false
+        // so the TUI can track incremental boot progress correctly.
+        let sv = BootStateVector {
+            compile: false,
+            migrations: false,
+            containers: false,
+            zenoh: false,
+            health: false,
+            quorum: false,
+        };
+        assert!(!sv.compile);
+        assert!(!sv.migrations);
+        assert!(!sv.containers);
+        assert!(!sv.zenoh);
+        assert!(!sv.health);
+        assert!(!sv.quorum);
+    }
+}

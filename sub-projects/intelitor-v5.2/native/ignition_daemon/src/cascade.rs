@@ -222,6 +222,51 @@ pub async fn detect_cascade(failed_containers: &[&str]) -> Option<CascadeState> 
     })
 }
 
+/// Gracefully shut down all 16 SIL-6 genome containers.
+///
+/// When `reverse_order` is `true` the shutdown proceeds in reverse tier order
+/// (application containers first, Zenoh control plane last), matching the
+/// mirror-image of the boot DAG and satisfying SC-SIL4-013.
+///
+/// Each container is stopped with a 10-second drain timeout.
+///
+/// STAMP: SC-SIL4-013, SC-IGNITE-009, SC-SIL6-001
+pub async fn graceful_mesh_shutdown(reverse_order: bool) -> Result<(), IgnitionError> {
+    let mut names: Vec<&str> = crate::artifacts::SIL6_GENOME.to_vec();
+    if reverse_order {
+        names.reverse();
+    }
+
+    info!(
+        "[shutdown] Beginning graceful mesh shutdown ({} containers, reverse={})",
+        names.len(),
+        reverse_order
+    );
+
+    for name in &names {
+        info!("[shutdown] Stopping {}", name);
+        if let Err(e) = crate::podman::stop_container(name, 10).await {
+            warn!("[shutdown] Failed to stop {}: {} — continuing", name, e);
+        }
+    }
+
+    info!("[shutdown] Graceful mesh shutdown complete");
+    Ok(())
+}
+
+/// Return the SIL-6 genome in reverse tier order: app containers first, Zenoh last.
+///
+/// This is the canonical shutdown order matching SC-SIL4-013 (6 shutdown phases).
+/// Callers that need ordered teardown (e.g. CI, test harnesses) use this list
+/// rather than hard-coding container names.
+pub fn shutdown_order() -> Vec<String> {
+    crate::artifacts::SIL6_GENOME
+        .iter()
+        .rev()
+        .map(|s| s.to_string())
+        .collect()
+}
+
 /// Isolate failure domains by grouping containers that share dependencies.
 /// Containers with no shared dependencies are in separate domains.
 fn isolate_failure_domains(failed: &[&str], deps: &HashMap<&str, Vec<&str>>) -> Vec<Vec<String>> {
@@ -401,8 +446,6 @@ pub async fn save_known_good() -> Result<KnownGoodConfig, IgnitionError> {
 
     let container_count = container_states.len();
 
-    let container_count = container_states.len();
-
     let config = KnownGoodConfig {
         version: 1, // Would increment from stored version
         timestamp: Utc::now(),
@@ -529,5 +572,32 @@ mod tests {
         assert_eq!(cp.tier, 2);
         assert!(cp.preflight_passed);
         assert_eq!(cp.containers_started.len(), 1);
+    }
+
+    #[test]
+    fn shutdown_order_has_16() {
+        let order = shutdown_order();
+        assert_eq!(order.len(), 16, "shutdown_order must list all 16 SIL-6 containers");
+    }
+
+    #[test]
+    fn shutdown_order_app_before_zenoh() {
+        let order = shutdown_order();
+        // In reverse tier order the ML runners (last in genome) come first,
+        // and zenoh-router (first in genome) comes last.
+        let zenoh_pos = order
+            .iter()
+            .position(|n| n == "zenoh-router")
+            .expect("zenoh-router must appear in shutdown order");
+        let ml_pos = order
+            .iter()
+            .position(|n| n == "indrajaal-ml-runner-2")
+            .expect("indrajaal-ml-runner-2 must appear in shutdown order");
+        assert!(
+            ml_pos < zenoh_pos,
+            "app containers (ml-runner-2 at {}) must stop before zenoh-router (at {})",
+            ml_pos,
+            zenoh_pos
+        );
     }
 }

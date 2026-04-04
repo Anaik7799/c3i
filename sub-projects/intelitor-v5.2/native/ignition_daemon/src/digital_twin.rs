@@ -94,6 +94,48 @@ pub fn checkpoint_json(genotypes: &[Genotype], drifts: &[TwinDrift]) -> String {
     }).to_string()
 }
 
+/// Compare all genotypes against their matching phenotypes by container name.
+///
+/// Returns one `TwinDrift` per genotype whose container name has a matching
+/// phenotype.  Genotypes with no matching phenotype are omitted — use
+/// `missing_containers` to find those separately.
+pub fn compare_all_twins(genotypes: &[Genotype], phenotypes: &[Phenotype]) -> Vec<TwinDrift> {
+    genotypes
+        .iter()
+        .filter_map(|geno| {
+            phenotypes
+                .iter()
+                .find(|pheno| pheno.container_name == geno.container_name)
+                .map(|pheno| compare_twin(geno, pheno))
+        })
+        .collect()
+}
+
+/// Return genotype names that have no matching phenotype (not yet running).
+pub fn missing_containers(genotypes: &[Genotype], phenotypes: &[Phenotype]) -> Vec<String> {
+    genotypes
+        .iter()
+        .filter(|geno| {
+            !phenotypes
+                .iter()
+                .any(|pheno| pheno.container_name == geno.container_name)
+        })
+        .map(|geno| geno.container_name.clone())
+        .collect()
+}
+
+/// Compute overall alignment score across a set of drift reports.
+///
+/// Returns `aligned_count / total` in the range [0.0, 1.0].
+/// An empty slice returns 1.0 (vacuously aligned).
+pub fn overall_alignment_score(drifts: &[TwinDrift]) -> f64 {
+    if drifts.is_empty() {
+        return 1.0;
+    }
+    let aligned = drifts.iter().filter(|d| d.is_aligned).count();
+    aligned as f64 / drifts.len() as f64
+}
+
 pub fn compare_twin(genotype: &Genotype, phenotype: &Phenotype) -> TwinDrift {
     let image_drift = genotype.expected_image != phenotype.actual_image;
 
@@ -120,5 +162,90 @@ pub fn compare_twin(genotype: &Genotype, phenotype: &Phenotype) -> TwinDrift {
         port_drift,
         env_drift,
         is_aligned,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_genotype(name: &str, image: &str, ports: &[u16]) -> Genotype {
+        Genotype {
+            container_name: name.into(),
+            expected_image: image.into(),
+            expected_ports: ports.to_vec(),
+            expected_env: HashMap::new(),
+        }
+    }
+
+    fn make_phenotype(name: &str, image: &str, ports: &[u16], running: bool) -> Phenotype {
+        Phenotype {
+            container_name: name.into(),
+            actual_image: image.into(),
+            actual_ports: ports.to_vec(),
+            actual_env: HashMap::new(),
+            running,
+        }
+    }
+
+    #[test]
+    fn compare_all_twins_aligned() {
+        let genotypes = vec![
+            make_genotype("db", "localhost/db:latest", &[5433]),
+            make_genotype("app", "localhost/app:latest", &[4000]),
+        ];
+        let phenotypes = vec![
+            make_phenotype("db", "localhost/db:latest", &[5433], true),
+            make_phenotype("app", "localhost/app:latest", &[4000], true),
+        ];
+        let drifts = compare_all_twins(&genotypes, &phenotypes);
+        assert_eq!(drifts.len(), 2);
+        assert!(drifts.iter().all(|d| d.is_aligned));
+    }
+
+    #[test]
+    fn compare_all_twins_drifted() {
+        let genotypes = vec![
+            make_genotype("db", "localhost/db:latest", &[5433]),
+        ];
+        let phenotypes = vec![
+            // Wrong image — should produce drift
+            make_phenotype("db", "localhost/db:old", &[5433], true),
+        ];
+        let drifts = compare_all_twins(&genotypes, &phenotypes);
+        assert_eq!(drifts.len(), 1);
+        assert!(drifts[0].image_drift);
+        assert!(!drifts[0].is_aligned);
+    }
+
+    #[test]
+    fn missing_containers_test() {
+        let genotypes = vec![
+            make_genotype("db", "localhost/db:latest", &[5433]),
+            make_genotype("app", "localhost/app:latest", &[4000]),
+            make_genotype("cache", "localhost/cache:latest", &[6379]),
+        ];
+        let phenotypes = vec![
+            make_phenotype("db", "localhost/db:latest", &[5433], true),
+        ];
+        let missing = missing_containers(&genotypes, &phenotypes);
+        assert_eq!(missing.len(), 2);
+        assert!(missing.contains(&"app".to_string()));
+        assert!(missing.contains(&"cache".to_string()));
+    }
+
+    #[test]
+    fn alignment_score_test() {
+        // 2 aligned, 1 drifted → score = 2/3 ≈ 0.666
+        let drifts = vec![
+            TwinDrift { container_name: "a".into(), image_drift: false, port_drift: vec![], env_drift: vec![], is_aligned: true },
+            TwinDrift { container_name: "b".into(), image_drift: false, port_drift: vec![], env_drift: vec![], is_aligned: true },
+            TwinDrift { container_name: "c".into(), image_drift: true,  port_drift: vec![], env_drift: vec![], is_aligned: false },
+        ];
+        let score = overall_alignment_score(&drifts);
+        assert!((score - 2.0 / 3.0).abs() < 1e-10);
+
+        // Empty slice → 1.0
+        assert_eq!(overall_alignment_score(&[]), 1.0);
     }
 }

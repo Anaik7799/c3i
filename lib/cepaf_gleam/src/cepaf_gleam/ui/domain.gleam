@@ -182,6 +182,56 @@ pub type FractalElement {
   )
 }
 
+/// Boot phase for the 7-tier ignition sequence.
+pub type BootPhase {
+  Preflight
+  Foundation
+  Mesh
+  Cognitive
+  Application
+  Homeostasis
+  Swarm
+}
+
+/// Mesh operating mode.
+pub type MeshMode {
+  Standalone
+  Clustered
+  Federated
+}
+
+/// Boot configuration parameters.
+pub type BootConfig {
+  BootConfig(
+    mode: MeshMode,
+    timeout_ms: Int,
+    max_retries: Int,
+    patient_mode: Bool,
+  )
+}
+
+/// Convert boot phase to string.
+pub fn boot_phase_to_string(phase: BootPhase) -> String {
+  case phase {
+    Preflight -> "preflight"
+    Foundation -> "foundation"
+    Mesh -> "mesh"
+    Cognitive -> "cognitive"
+    Application -> "application"
+    Homeostasis -> "homeostasis"
+    Swarm -> "swarm"
+  }
+}
+
+/// Convert mesh mode to string.
+pub fn mesh_mode_to_string(mode: MeshMode) -> String {
+  case mode {
+    Standalone -> "standalone"
+    Clustered -> "clustered"
+    Federated -> "federated"
+  }
+}
+
 /// Convert fractal layer to string.
 pub fn layer_to_string(layer: FractalLayer) -> String {
   case layer {
