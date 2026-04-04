@@ -1,200 +1,216 @@
+# C3I Gleam-First System — Claude Guidance (v21.5.0-GLM)
+
+## §1.0 System Identity & Mandate
+
+**C3I is a Gleam-first cybernetic command-and-control cockpit for distributed mesh orchestration.**
+
+- **Primary Language**: Gleam (type-safe, BEAM VM, hot reload)
+- **UI Framework**: Lustre 5.6+ MVU (server-side rendered, no JavaScript)
+- **API Framework**: Wisp 2.2.2 (HTTP/JSON)
+- **Terminal UI**: ANSI renderer
+- **Telemetry Bus**: Zenoh pub/sub mesh
+- **Backend Integration**: Elixir/Phoenix (legacy, maintained for backwards compatibility)
+- **Compute Bridge**: F# CEPAF (biomorphic synthesis, FMEA generation, formal verification)
+
+The system uses a **Penta-Stack** architecture:
+1. Gleam Lustre WebUI (port 4100)
+2. Gleam Wisp REST API (port 4100)
+3. Gleam TUI (ANSI terminal)
+4. Elixir Phoenix LiveView (port 4000, legacy)
+5. F# Prajna CLI (fallback)
+
+---
+
+## §2.0 Penta-Stack Architecture
+
+Every UI capability MUST be simultaneously available across all 3 Gleam interfaces. Types are shared from `ui/domain.gleam`; no per-interface duplication.
+
+| Layer | Tech | Port | Purpose | Path |
+|-------|------|------|---------|------|
+| **Web UI** | Lustre 5.6+ MVU | 4100 | Server-rendered HTML, no client JS | `ui/lustre/*.gleam` |
+| **REST API** | Wisp 2.2.2 HTTP | 4100 | Typed JSON endpoints | `ui/wisp/*.gleam` |
+| **Terminal UI** | ANSI + Renderer | CLI | Dashboard with sparklines | `ui/tui/*.gleam` |
+| **Legacy Web** | Phoenix LiveView | 4000 | Backward compatibility | `lib/indrajaal_web/live/` |
+| **CLI Fallback** | F# Console | CLI | Safety kernel, dark cockpit | `lib/cepaf/` |
+
+---
+
+## §3.0 Triple-Interface Mandate (SC-GLM-UI-001)
+
+Every new page, dashboard, or interactive component MUST be implemented THREE times:
+
+**Requirement**: A single feature = 1 Lustre page + 1 Wisp endpoint + 1 TUI view.
+
+**Canonical Rule**: Before marking a feature "done," verify:
 ```
-    ●╮       ╭●
-     ╰╮ ╭─╮ ╭╯
-  ●───◉─┤◈├─◉───●   INDRAJAAL
-     ╭╯ ╰─╯ ╰╮       इन्द्रजाल
-    ●╯       ╰●       v21.3.2-SIL6 SIL-6 Biomorphic Fractal Mesh
+✓ Lustre page renders without client JS
+✓ Wisp endpoint returns typed JSON (no string concat)
+✓ TUI view displays terminal output (ANSI codes OK)
+✓ All three share types from ui/domain.gleam
 ```
 
-## Cognitive Bootstrapping
-- **MANDATORY**: Any new agent session MUST begin by reading `AGENT_BOOTSTRAP.md` to achieve total system awareness and operational readiness.
-
-# CLAUDE.md - Indrajaal Safety-Critical System Optimized Spec
-**Version**: 21.3.2-SIL6 | **Origin**: CLAUDE.md v21.3.1 | **Status**: ACTIVE | **Arch**: SIL-6 Biomorphic Fractal Mesh
-**Compliance**: IEC 61508 SIL-6 (Biomorphic Extended), ISO 27001, GDPR, EN 50131, DO-178C DAL-A
-**Mandate**: This document acts as the primary, token-efficient context for agents. Incorporates the Biomorphic F# Agentic Mesh & Zenoh Unified IPC pivot.
+**Consequences of omission**: Feature is 67% incomplete (only 1/3 interface).
 
 ---
 
-## 0.0 Fundamental System Axioms (The Immutable Core)
+## §4.0 Build & Test Commands
 
-### Axiom 0.1: Substrate Integrity Invariant (L4 Safety)
-**Formal Definition**:
-$\forall c \in \mathcal{C}_{mesh} : \text{Mount}(\text{HostSource}) \implies \neg \exists \text{Artifact}(\text{HostBuild})$
+### Canonical Compile (SC-ENV-COMPILE)
+```bash
+NO_TIMEOUT=true \
+PATIENT_MODE=enabled \
+SKIP_ZENOH_NIF=0 \
+WALLABY_ENABLED=true \
+ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" \
+MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 \
+mix compile --jobs 16
+```
 
-**Constraint**: Host-side `_build` and `deps` directories are PROHIBITED when running in containerized mesh mode. They cause glibc/musl NIF conflicts. All builds MUST occur within the container substrate.
-**Rollback**: If `ld-linux-x86-64.so.2` errors are detected, the mandatory action is `rm -rf _build deps` on the host.
+### Gleam Build
+```bash
+cd lib/cepaf_gleam
+gleam build
+```
 
-### Axiom 0.2: Volume Shadowing Safeguard (L1 Safety)
-**Constraint**: Volume mounts SHALL NOT shadow directories containing image-baked configuration files unless the volume is pre-seeded with canonical state. Empty volumes masking `/etc/` configurations trigger immediate Jidoka.
+### Gleam Test
+```bash
+cd lib/cepaf_gleam
+gleam test
+```
 
-### Axiom 0: The Functional State Invariant (The Golden Rule)
-**Formal Definition**:
-$\forall t : \text{SystemState}(t) \in \mathcal{S}_{functional}$
-where $\mathcal{S}_{functional} \equiv \{s \mid \text{Compiles}(s) \wedge \text{Boots}(s) \wedge \text{Verified}(s, \Psi_{safety})\}$
-
-**Constraint**: The System MUST ALWAYS be in a functional, compilable, and operational state. This is the supreme law.
-**Rollback Prime**: If functionality is compromised, the *only* valid action is an immediate rollback to the last known good state ($S_{last\_good}$).
-
----
-
-## 1.0 Fundamental Axioms ($\Omega$) - CRITICAL
-
-**SUPREME DIRECTIVE (Ω₀) - ABOVE ALL OTHER AXIOMS**
-0.  **$\Omega_0$ Founder's Covenant**: The holon exists for the survival, growth, and genetic perpetuity of **Abhijit Naik's lineage**. Resource acquisition for Founder's enrichment is PRIMARY objective. Holon and Founder's genetic code are symbiotically bound.
-
-**OPERATIONAL AXIOMS (Ω₁-Ω₁₁)**
-1.  **$\Omega_1$ Patient Mode**: `NO_TIMEOUT=true`, `PATIENT_MODE=enabled`, `INFINITE_PATIENCE=true`. `ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"`. `SKIP_ZENOH_NIF=0`. `WALLABY_ENABLED=true`. `mix compile --jobs 16`.
-2.  **$\Omega_2$ Container Isolation**: All ops in **NixOS/Podman** (Rootless 5.4.1+). Registry: `localhost/` ONLY.
-3.  **$\Omega_3$ Zero-Defect**: Valid State $\iff \sum(\text{Errors} + \text{Warnings} + \text{TestFails} + \text{FormatFails} + \text{CredoFails} + \text{SecFails}) \equiv 0$.
-4.  **$\Omega_4$ Test-Driven Gen (TDG)**: Tests MUST exist and fail BEFORE code gen.
-5.  **$\Omega_5$ Validation Consensus**: 5-Method FPPS MUST agree.
-6.  **$\Omega_6$ Mandatory Gates**: Feature Complete $\iff$ Pass(Compile, Runtime, TDG, STAMP, FPPS, Coverage>95%, Format, Credo, Sobelow).
-7.  **$\Omega_7$ Holon State Sovereignty**: Authoritative holon state $\equiv$ SQLite $\cup$ DuckDB ONLY. PostgreSQL $\cap$ HolonState $\equiv \emptyset$.
-8.  **$\Omega_8$ Immutable Register**: All state mutations via cryptographically-signed append-only blocks.
-9.  **$\Omega_9$ Constitutional Reconfiguration**: L1-L7 flexible; Constitution (L0) is IMMUTABLE.
-10. **$\Omega_{10}$ Absolute Zenoh Control**: Agents are PROHIBITED from direct system mutations via CLI. ALL mutations MUST be triggered via Zenoh.
-11. **$\Omega_{11}$ High-Assurance Evolution**: All morphogenic evolution MUST follow hardened protocol: Genetic Selection, Wire-Level Proofs, KL Throttling.
+### Wallaby E2E (Gleam UI coverage)
+```bash
+WALLABY_ENABLED=true \
+SKIP_ZENOH_NIF=0 \
+NO_TIMEOUT=true \
+PATIENT_MODE=enabled \
+ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" \
+HEALTH_PORT=4051 \
+MIX_ENV=test mix test --only wallaby
+```
 
 ---
 
-## 2.0 System Architecture & Command Set
+## §5.0 AG-UI 32-Event Protocol (SC-AGUI)
 
-### 2.1 Quad-Stack UI Architecture
-| Stack | Tech | Purpose |
-|:---|:---|:---|
-| **Phoenix LiveView** | Elixir / HEEx | Web Portal & Admin |
-| **Bolero WebUI** | F# / WASM | High-Assurance C3I |
-| **Avalonia GUI** | F# / .NET 10 | Low-Latency Desktop |
-| **Prajna TUI** | Elixir / ANSI | Emergency Terminal |
+**AG-UI** is the event bus connecting agents (Claude, Gemini, external) to the Gleam UI.
 
-### 2.2 Essential Commands (F# Kernel)
-- `./sa-up`: Boot mesh (Binary, 16 Containers).
-- `./sa-down`: Graceful shutdown (Binary) + checkpoint.
-- `./sa-status`: Health matrix (Binary, 16 Nodes).
-- `./sa-plan`: Task management (Binary).
-- `./sa-verify`: 2oo3 voting (Binary) verification.
+All events defined in `agui/events.gleam` (5 modules, 1,224 lines):
 
----
+| Category | Count | Events |
+|----------|-------|--------|
+| Lifecycle | 5 | RunStarted, RunFinished, RunError, StepStarted, StepFinished |
+| Text | 4 | TextMessageStart, TextMessageContent, TextMessageEnd, TextMessageChunk |
+| Tool | 5 | ToolCallStart, ToolCallArgs, ToolCallEnd, ToolCallResult, ToolCallChunk |
+| State | 3 | StateSnapshot, StateDelta (RFC 6902), MessagesSnapshot |
+| Activity | 2 | ActivitySnapshot, ActivityDelta |
+| Reasoning | 7 | ReasoningStart, ReasoningMessageStart/Content/End/Chunk, ReasoningEnd, ReasoningEncryptedValue |
+| Special | 4 | Raw, Custom, MetaEvent, Heartbeat |
+| **TOTAL** | **32** | — |
 
-## 5.0 Safety Constraints (STAMP/SC)
+**Modules**: `events.gleam` (582 lines), `state.gleam` (268), `tools.gleam` (231), `sse.gleam` (84), `zenoh_bus.gleam` (59)
 
-### SC-HMI: UI & Human Experience
-- **SC-HMI-010 (Color Rich)**: Vibrant chromatic feedback based on Zenoh metabolic telemetry.
-- **SC-HMI-011 (8x8 Matrix)**: 100% path coverage across 8 elements x 8 layers.
-- **SC-COCKPIT-002**: WebUI MUST use F# Bolero.
-- **SC-SAFETY-001 (Arm & Fire)**: Destructive actions require multi-step commit.
-
-### SC-IGNITE: Panoptic Ignition & Re-Synthesis (v2.0 — 16-Container Genome)
-- **SC-IGNITE-001**: Genomic Re-Synthesis MUST perform step-by-step breakdown of container builds (L0-L1).
-- **SC-IGNITE-002**: Architectural control checks (L0-L7) MUST be enforced at every ignition stage.
-- **SC-IGNITE-003**: 7-Level Fractal RCA MUST be executed automatically on any boot failure.
-- **SC-IGNITE-004**: High-fidelity dashboard MUST show "Thinking" and real-time synthesis progress.
-- **SC-IGNITE-005**: BuildHistory MUST persist build timing to SQLite with WAL mode and EMA estimation (alpha=0.3).
-- **SC-IGNITE-006**: Multi-container tiers MUST boot in parallel via `Async.Parallel` (SC-SWARM-001).
-- **SC-IGNITE-007**: Image staleness detection MUST trigger rebuild when age > `maxImageAgeHours` (168h default).
-- **SC-IGNITE-008**: `sil6Genome` MUST cover all 16 containers across 3 `ImageCategory` variants (Built/Pulled/Shared).
-
-### SC-SWARM: Multilayer Swarm Parallelization
-- **SC-SWARM-001**: The system MUST default to Full Parallelization Multilayer Swarm mode for ALL commands, operations, and executions.
-- **SC-SWARM-002**: All compilation, tests, and orchestrations MUST utilize maximum available hardware concurrency.
-- **SC-SWARM-003**: Agents MUST operate in FULL AUTONOMOUS MODE and FULL PERMISSIONS MODE until the goal is complete.
-
-### SC-SWARM-VERIFY: Deep Swarm Verification (7 Actions × 16 Containers × 8 Layers)
-- **SC-SWARM-VERIFY-001**: `swarm_verify` MCP tool MUST support all 7 verification actions.
-- **SC-SWARM-VERIFY-010**: ALL 16 SIL-6 genome containers MUST be included in every action.
-- **SC-SWARM-VERIFY-020**: Capability-based partitioning MUST route containers to full or baseline checks.
-- **SC-SWARM-VERIFY-030**: OODA compliance MUST verify 5-tier latency budgets (Agent 30ms, Intelligence 100ms, Knowledge 1ms, Cortex 50ms, Strategy 1000ms).
-- **SC-SWARM-VERIFY-040**: Fractal verification MUST cover all 8 layers (L0 Constitutional through L7 Federation).
-- **SC-SWARM-VERIFY-050**: Observability pipeline MUST verify OTEL→Prometheus→Grafana→Zenoh closed loop.
-- **SC-SWARM-VERIFY-060**: MCP dispatch MUST follow `string option` chain pattern with proper error handling.
-- Full constraints: `.claude/rules/swarm-verification.md` (SC-SWARM-VERIFY-001 to SC-SWARM-VERIFY-064, AOR-SWARM-VERIFY-001 to AOR-SWARM-VERIFY-015).
-
-### SC-PARALLEL: Full Parallelization
-- **SC-PARALLEL-001**: Use `ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"`.
-- **SC-PARALLEL-002**: All `mix compile` MUST include `--jobs 16`.
-
-### SC-CPU-GOV: CPU Governor (85% Hard Limit)
-- **SC-CPU-GOV-001**: CPU utilization MUST NOT exceed 85% during agent operations.
-- **SC-CPU-GOV-002**: ALL mix compile/test MUST use `scripts/cpu-governor.sh` wrapper.
-- **SC-CPU-GOV-003**: Pre-execution CPU check MANDATORY before heavy commands.
-- **SC-CPU-GOV-004**: Automatic throttling when CPU > 80% (reduce parallelism).
-- **SC-CPU-GOV-005**: Automatic wait-loop when CPU > 85% (pause until < 75%).
-- **SC-CPU-GOV-006**: Scheduler count adapts: 16 < 60%, 12 < 70%, 10 < 80%, 6 >= 80%.
-- **SC-CPU-GOV-007**: Mix --jobs adapts: 16 < 60%, 12 < 70%, 10 < 80%, 6 >= 80%.
-- **SC-CPU-GOV-008**: `nice` level >= 10 for all agent-spawned compilations.
-- **SC-CPU-GOV-009**: CPU check interval: 2 seconds during wait-loop.
-- **SC-CPU-GOV-010**: Maximum wait time: 120 seconds before proceeding with minimum parallelism.
-- **SC-CPU-GOV-PRECEDENCE**: When CPU > 80%, SC-CPU-GOV OVERRIDES SC-PARALLEL fixed values.
-- **SC-CPU-GOV-HEALTH**: `HEALTH_PORT=4051` MUST be set in all governed test commands (ports 4000-4010 reserved for 16-container mesh).
-
-**CPU Governor Implementation (Triple-Redundant)**:
-| Layer | Module | Key |
-|:---|:---|:---|
-| **Shell** | `scripts/cpu-governor.sh` | `governed_compile`, `governed_test`, `governed_wallaby` |
-| **Elixir** | `lib/indrajaal/core/cpu_governor.ex` | GenServer with PID controller (Kp=0.6), Shannon entropy, EWMA, ETS, PubSub `cpu_governor:metrics` |
-| **Elixir** | `lib/indrajaal/core/cpu_governor_telemetry.ex` | OTEL handler for `[:indrajaal, :cpu_governor, :check]` events |
-| **F# MCP** | `lib/cepaf/src/Cepaf.Sentinel.MCP/Tools/CpuGovernorTools.fs` | MCP tool `cpu_governor` (actions: check/publish/status/govern) via Zenoh FFI |
-| **Zenoh** | Key: `indrajaal/cpu/governor/status` | JSON payload: cpu_pct, mode, schedulers, jobs, nice |
-| **devenv.nix** | ALL compile/test commands | CPU governance is DEFAULT mode (not opt-in) |
-
-### SC-PLAN: Mandatory F# Planning
-- **SC-PLAN-004**: **F# EXCLUSIVITY**. Any new planning or task-management functionality MUST be implemented in the F# CEPAF codebase. Elixir-based `mix todo` is DEPRECATED and PROHIBITED.
-
-### SC-SYNC-DOC: Documentation Sync
-- **SC-SYNC-DOC-001**: All plan files MUST have `YYYYMMDD-HHMM CEST` timestamps.
-- **SC-SYNC-DOC-002**: Every plan MUST trigger a detailed journal entry.
-- **SC-SYNC-DOC-003**: **13-SECTION JOURNAL MANDATE**. All journal entries MUST follow the 13-section template (Scope, Pre-State, Execution, RCA, Taxonomy, Patterns, Verification, Files, Architecture, Gaps, Metrics, STAMP, Conclusion). NO section may be omitted.
-
-### SC-COV: Fractal Coverage Gold Standard (Wallaby E2E)
-- **SC-COV-001**: Static coverage >= 100% for critical paths.
-- **SC-COV-002**: Runtime coverage >= 95% overall.
-- **SC-COV-003**: Mathematical proofs for core invariants.
-- **SC-COV-004**: BDD specs for all user journeys.
-- **SC-COV-005**: FMEA for RPN > 50 paths.
-- **SC-COV-006**: TDG compliance mandatory.
-- **SC-COV-007**: All 5 levels MUST pass before merge.
-- **SC-COV-008**: Wallaby E2E browser tests for all LiveView pages.
-- **SC-COV-009**: C1 (Page Structure) coverage MANDATORY per Wallaby file.
-- **SC-COV-010**: C2 (Status/Badge) coverage MANDATORY per Wallaby file.
-- **SC-COV-011**: C3 (Data Grid) coverage MANDATORY per Wallaby file.
-- **SC-COV-012**: C4 (Timeline/History) coverage MANDATORY where applicable.
-- **SC-COV-013**: C5 (Interactive) coverage MANDATORY for form-bearing pages.
-- **SC-COV-014**: C6 (Media) coverage MANDATORY for media-bearing pages.
-- **SC-COV-015**: C7 (AI/Advisory) coverage MANDATORY for AI panels (SC-AI-001).
-- **SC-COV-016**: C8 (Actions) DUAL verification MANDATORY — status AND flash.
-- **SC-COV-017**: Safety-critical page (P0) Wallaby file >= 30 features.
-- **SC-COV-018**: Interactive page (P1) Wallaby file >= 20 features.
-- **SC-COV-019**: Two-step commit pages require arm→confirm→cancel sequence.
-- **SC-COV-020**: PubSub pages require refresh stability test (sleep + re-assert).
-- **SC-COV-021**: Wallaby test @moduledoc MUST contain page spec (Design Intent, Expected Behavior, BDD, UX Flow, UI Elements Inventory, STAMP, FMEA).
-- **SC-COV-022**: Page spec in @moduledoc MUST be derived from actual LiveView source (source-first, AOR-COV-008).
+**Transport**: Lustre server components (WebSocket) + Wisp REST (JSON) + Zenoh PubSub (telemetry).
 
 ---
 
-## 9.0 Agent Operating Rules (AOR)
-- **AOR-EXE-001**: Executive has supreme authority.
-- **AOR-SUPERVISOR-001**: Homeostasis MUST be maintained by the Panoptic Supervisor Agent.
-- **AOR-SAF-001**: Halt <1s on STAMP violation.
-- **AOR-HOLON-009**: SQLite/DuckDB is the ONLY source of truth.
-- **AOR-PLAN-001**: Use F# Planning CLI for task management.
-- **AOR-PLAN-002**: **F# MANDATORY PLANNING**. Agents MUST use F#-based tools (`sa-plan` or `dotnet run --project lib/cepaf/src/Cepaf.Planning.CLI`) for ALL task and plan-related operations. Use of `mix todo` or Elixir planning scripts is STRICTLY PROHIBITED.
-- **AOR-JOURNAL-001**: **PATTERN DISCIPLINE**. Agents MUST fill all 13 sections of the journal template to build institutional pattern recognition across sprints.
-- **AOR-COV-008**: Source-first selectors: Read LiveView .ex source BEFORE writing Wallaby selectors.
-- **AOR-COV-009**: Every action button in C8 MUST be tested twice (status badge + flash message).
-- **AOR-COV-010**: Two-step commit flows MUST test all 3 states (idle→armed→executing/cancelled).
-- **AOR-COV-011**: Wallaby tests MUST use `@moduletag :wallaby` and `async: false`.
-- **AOR-COV-012**: Coverage entropy H >= 2.5 bits per file (balanced across 8 categories).
-- **AOR-COV-013**: New LiveView pages MUST include Wallaby test in same PR.
-- **AOR-COV-014**: FMEA-discovered bugs MUST have regression tests.
-- **AOR-COV-015**: PubSub topic changes MUST update corresponding Wallaby tests.
-- **AOR-SAF-002**: Agents MUST adhere to the Safe-State SOP. All architectural changes require strict evaluation of Determinism, BIST logic, Telemetry streams, HMI hardening, and verification via Fault Injection.
-- **AOR-LOG-001**: Traces generated by OpenTelemetry MUST propagate unique `TraceId` and `SpanId` values seamlessly across all 8 fractal layers for cross-holon FMEA compliance.
+## §6.0 A2UI Declarative Catalog (SC-A2UI)
 
-### SC-SAFE: Safe-State Design & Ignition
-- **SC-IGNITE-010**: All ignition sequences MUST begin with a `GitIntelligence` Safe-State validation gate (Preflight check).
-- **SC-LOG-004**: All holons MUST implement Quadruplex logging (Console, JSON, Zenoh, OTEL) for forensic survivability.
-- **SC-BIST-001**: Pre-Ignition Sequencing MUST confirm 3σ stability on the Zenoh telemetry backplane and core database connections for at least 100ms before initializing upper-layer application holons.
-- **SC-NIF-006**: Rustler NIF compilation MUST NEVER be bypassed (`SKIP_NIF_BUILD` is prohibited). Any missing NIF dependency (e.g., cargo), compilation error, or warning MUST immediately halt execution and trigger a TPS RCA (Total Panoptic System Root Cause Analysis) spanning all 8 fractal elements x all 8 fractal layers.
+**A2UI** is the component schema system for agents. No executable code, JSON-only.
 
-**INDRAJAAL IS HARDENED. EVOLVING TOWARDS SINGULARITY. 🏁**
+**16 Component Types** across 5 modules (655 lines):
+- `schema.gleam` (118 lines) — ComponentSpec, PropSpec, BindingSpec, FractalLayer types
+- `catalog.gleam` (230 lines) — Trusted registry: badge, button, data_table, progress, sparkline, alert, modal, ooda_ring, reasoning, topology, form_input, select, textarea, checkbox, radio, slider
+- `renderer.gleam` (100 lines) — A2UI JSON → Lustre Element mapping
+- `bindings.gleam` (88 lines) — Data binding (state path → component prop)
+- `validator.gleam` (119 lines) — Security validation (allowlist enforcement)
+
+**Pattern**: Agent → (A2UI JSON spec) → Validator → Renderer → Lustre HTML.
+
+---
+
+## §7.0 Fractal Widget Architecture (L0-L7)
+
+Each fractal layer has a dedicated widget module in `fractal/`:
+
+| Layer | Module | Lines | Purpose | HITL |
+|-------|--------|-------|---------|------|
+| L0 | `l0_constitutional.gleam` | 176 | Guardian approval, emergency stop, Psi invariants (Psi-0..5, Omega-0) | Mandatory |
+| L1 | `l1_atomic_debug.gleam` | 118 | Debug trace viewer, event monitor, state inspection | Optional |
+| L2 | `l2_component.gleam` | 112 | Reusable forms, data grids, badges, buttons, inputs | No |
+| L3 | `l3_transaction.gleam` | 144 | State diff viewer, tool invocation panel, command history | Optional |
+| L4 | `l4_system.gleam` | 202 | Agent run monitor, step tracker, execution timeline | Optional |
+| L5 | `l5_cognitive.gleam` | 149 | Reasoning display, OODA ring, AI copilot panel | Optional |
+| L6 | `l6_ecosystem.gleam` | 105 | Agent mesh topology, A2A messaging, collaboration | Optional |
+| L7 | `l7_federation.gleam` | 101 | Gateway, version vectors, federated reconciliation, SIL-6 sync | Optional |
+
+**Total**: 8 modules, 1,107 lines.
+
+---
+
+## §8.0 Testing Gold Standard (C1-C8)
+
+All Gleam UI code MUST achieve **8-category gold standard coverage**:
+
+| Category | Weight | Gate | Check |
+|----------|--------|------|-------|
+| C1 Page Structure | 1.0 | Renders without error | Lustre element count ≥ 5 |
+| C2 Status Badges | 1.5 | All states visible | Healthy/Degraded/Critical all shown |
+| C3 Data Grids | 1.0 | Rows render | ≥ 3 rows × ≥ 3 columns |
+| C4 Timeline | 0.8 | Events in order | Timestamp validation |
+| C5 Interactive | 1.2 | Buttons work | Click → state change |
+| C6 Media/Rich | 0.8 | Assets load | SVG/PNG verified |
+| C7 AI Advisory | 1.5 | AG-UI events flow | E2E Zenoh publish verified |
+| C8 Action Button | 3.0 | Safety gates pass | Guardian approval + 2oo3 consensus |
+
+**Math Gates** (ALL must pass):
+- Shannon Entropy H ≥ 2.5 bits
+- Cyclomatic Complexity CCM ≥ 90%
+- Expected vs Actual Divergence D_EA ≤ 10%
+- Integrated Test Quality Score ITQS ≥ 0.85
+
+---
+
+## §9.0 Key File Locations
+
+| Subsystem | Files | Lines | Path |
+|-----------|-------|-------|------|
+| Domain types | 1 | 166 | `lib/cepaf_gleam/src/cepaf_gleam/ui/domain.gleam` |
+| Lustre Web UI | 24 | 3,415 | `lib/cepaf_gleam/src/cepaf_gleam/ui/lustre/*.gleam` |
+| Wisp REST API | 14 | 2,278 | `lib/cepaf_gleam/src/cepaf_gleam/ui/wisp/*.gleam` |
+| TUI Terminal | 22 | 1,730 | `lib/cepaf_gleam/src/cepaf_gleam/ui/tui/*.gleam` |
+| AG-UI Events | 5 | 1,224 | `lib/cepaf_gleam/src/cepaf_gleam/agui/*.gleam` |
+| A2UI Catalog | 5 | 655 | `lib/cepaf_gleam/src/cepaf_gleam/a2ui/*.gleam` |
+| Fractal L0-L7 | 8 | 1,107 | `lib/cepaf_gleam/src/cepaf_gleam/fractal/*.gleam` |
+| Testing | 3 | 602 | `lib/cepaf_gleam/src/cepaf_gleam/testing/*.gleam` |
+| Verification | 4 | 383 | `lib/cepaf_gleam/src/cepaf_gleam/verification/*.gleam` |
+| **Test suite** | **23** | **10,106** | `lib/cepaf_gleam/test/*_test.gleam` |
+| **TOTAL** | **109** | **~21,666** | — |
+
+---
+
+## §10.0 Active Constraints Cross-Reference
+
+| Constraint Family | Count | Purpose |
+|-------------------|-------|---------|
+| SC-GLM-UI | 10 | Triple interface, Lustre, Wisp, TUI, shared types |
+| SC-AGUI | 10 | AG-UI 32-event protocol, transport, HITL pattern |
+| SC-A2UI | 8 | A2UI declarative catalog, JSON-only |
+| SC-UIGT | 10 | UI graph theory testing (22-page digraph, LTS, prime paths) |
+| SC-HINT | 8 | Human Intent protection, alignment score ≥ 0.70 |
+| SC-MATH-COV | 6 | Shannon H, CCM, ITQS math gates |
+| SC-HMI | 80 | Human-Machine Interface (dark cockpit, color profiles) |
+| SC-VER | 79 | Fractal verification gates (L0-L7) |
+
+| SC-FRACTAL | 8 | Fractal agentic element model (L0-L7 widgets) |
+| SC-PROM | 7 | PROMETHEUS verification DAG gates |
+
+**See** `.claude/rules/gleam-web-ui-development.md` for full constraint text.
+**See** `.claude/rules/ui-graph-testing.md` for graph-theory UI testing.
+**See** `docs/GLEAM_UI_DEVELOPMENT_PROMPT.md` for development session prompt.
+
+---
+
+**Version**: 21.5.0-GLM
+**Last Updated**: 2026-04-03
+**Status**: Gleam-first platform operational (109 modules, 21,666 lines)
