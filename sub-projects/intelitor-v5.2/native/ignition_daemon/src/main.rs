@@ -64,7 +64,7 @@ mod recovery;           // W5: Automated recovery playbooks for top-5 failure mo
 mod cascade;            // W6: Cascading failure containment, checkpointing, rollback
 mod connectivity;       // W7: Inter-container connectivity matrix, Zenoh mesh topology
 mod robust_launch;      // W8: Atomic tier commit, idempotent launch, emergency drain
-
+mod partition;          // W9: Network partition detection, split-brain prevention, fencing
 use clap::{Parser, Subcommand};
 use log::{error, info, warn};
 use std::path::Path;

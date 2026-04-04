@@ -457,18 +457,54 @@
 - ✅ `cargo check`: 0 errors, 120 warnings (pre-existing dead-code warnings)
 - ✅ `cargo test`: 240/240 tests passing (237 unit + 3 integration)
 
+### Phase 9: Expanded Recovery Playbooks (COMPLETED)
+- ✅ `recovery.rs` expanded from 5 to 15 playbooks (Idea #48, Score 96)
+  - Cascading Failure (RPN 230): isolate domains, tier-by-tier recovery, quorum preservation
+  - Disk Exhaustion (RPN 210): prune containers/images, truncate logs, verify reclaimed
+  - Memory Leak (RPN 198): capture RSS profile, graceful restart, verify stabilization
+  - Network Partition (RPN 189): disconnect/reconnect from mesh, verify connectivity
+  - Image Corruption (RPN 175): verify digest, stop/remove, rebuild --no-cache, relaunch
+  - Certificate Expiry (RPN 162): check dates, generate new certs, restart, verify TLS
+  - Clock Drift (RPN 154): check container/host clocks, sync NTP, restart container
+  - Zombie Process (RPN 147): count zombies, SIGCHLD, verify reaped, restart if needed
+  - Registry Unavailable (RPN 138): check connectivity, restart registry, use local images
+  - Config Drift (RPN 130): inspect current config, compare with expected, recreate
+- ✅ Updated `get_playbook()` match arms for all 15 variants
+- ✅ Updated `all_playbooks()` to return all 15 in RPN descending order
+- ✅ Updated `tui.rs` `failure_mode_label()` and `failure_mode_container()` for all 15
+- ✅ Updated tests: `test_all_playbooks_returns_five` → `test_all_playbooks_returns_fifteen`
+- ✅ RPN ordering verified: [252, 230, 225, 210, 198, 196, 189, 175, 168, 162, 154, 147, 140, 138, 130]
+
+### Phase 10-12: Pending
+- ⏳ Network partition detection with multi-path probing
+- ⏳ Split-brain prevention with fencing
+- ⏳ Wire `connectivity.rs` into verification flow
+- ⏳ Update TUI dashboard with new screens (S-RECOVERY, S-FRACTAL, S-SECURITY)
+
+### Commits
+- ✅ `fe48dfe7` — comprehensive swarm robustness master plan + artifact sync + spec docs
+- ✅ `082161ad` — integrate cascading failure containment module (Idea #46)
+- ✅ `d68b484d` — duplicate cascade commit (git index issue)
+- ✅ `92bd0fb1` — add inter-container connectivity matrix + Zenoh mesh topology verification
+- ✅ `f4b60f7b` — Phase 2 robustness — expanded recovery playbooks, connectivity verification, TUI enhancements
+- ✅ `ba0246fa` — robust launch module — atomic tier commit, idempotent launch, emergency drain
+- ✅ `3f1dbbc2` — expand recovery playbooks from 5 to 15 (Idea #48, Score 96)
+
+### Build Status
+- ✅ `cargo check`: 0 errors, 120 warnings (pre-existing dead-code warnings)
+- ✅ `cargo test`: 240/240 tests passing (237 unit + 3 integration)
+
 ### Remaining Work
-1. Implement 10 new FMEA recovery playbooks (disk exhaustion, memory leak, network partition, etc.)
-2. Implement network partition detection with multi-path probing
-3. Implement split-brain prevention with fencing
-4. Wire `connectivity.rs` into verification flow in `main.rs`
-5. Update TUI dashboard with new screens (S-RECOVERY, S-FRACTAL, S-SECURITY)
+1. Implement network partition detection with multi-path probing
+2. Implement split-brain prevention with fencing
+3. Wire `connectivity.rs` into verification flow in `main.rs`
+4. Update TUI dashboard with new screens (S-RECOVERY, S-FRACTAL, S-SECURITY)
 
 ---
 
 **Version**: v21.5.0-GLM
-**Status**: Phase 1-8 COMPLETED, Phase 9-10 IN PROGRESS
-**Last Updated**: 2026-04-04 09:30 CEST
-**Code Written**: ~4,071 lines across 3 new Rust modules + types.rs expansion + podman.rs extensions
+**Status**: Phase 1-9 COMPLETED, Phase 10-12 IN PROGRESS
+**Last Updated**: 2026-04-04 10:00 CEST
+**Code Written**: ~4,325 lines across 3 new Rust modules + types.rs expansion + podman.rs extensions + recovery.rs expansion
 **Tests Written**: 22 unit tests (total: 240/240 passing)
-**Next Action**: Implement expanded recovery playbooks (5→15), network partition detection
+**Next Action**: Implement network partition detection + split-brain prevention
