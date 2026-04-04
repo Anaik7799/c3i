@@ -286,6 +286,53 @@ A full benchmark comparison of new vs original content identified 10 critical in
 
 ---
 
+## Git Record
+
+### Commits
+| SHA | Message | Files | Delta |
+|-----|---------|-------|-------|
+| `a22e1700` | `docs(journal): finalize session 20260404 with comprehensive reification report` | Initial consolidation: 21 redirects, 7 new files, CLAUDE.md edit | +683 -5,400 (est.) |
+| `ceccfe3c` | `refactor(sync): enrich .claude/rules after benchmark audit — +22% info, 81% reduction maintained` | 8 modified, 1 created (journal) | +683 -1,673 |
+
+### Tag: `20260404-dotclaude-critical-items`
+**Type**: Annotated | **Commit**: `ceccfe3c` | **Date**: 2026-04-04
+
+### Changes by File and Impact
+
+| File | Change | Lines | Impact |
+|------|--------|-------|--------|
+| **constraint-registry.md** | Added 16 key P0-SAFETY individual constraint texts (SIL4, SAFETY, ENFORCE, DMS, GUARD, PRIME) | +20 | Agent can now verify specific safety constraints without code lookup. Prevents misinterpretation of P0 family ranges. |
+| **core-protocols.md** | Added AOR-FUNC table (8 rules with violation responses), AOR-DELETE table (7 rules), Jidoka 6-step protocol, 5-step backup protocol with explicit WAIT-for-approval, 3 operational modes | +44 -17 | Agent now knows exact violation response per functional invariant (BLOCK commit vs auto-rollback vs Jidoka halt). Deletion safeguard now enforces human approval gate — prevents autonomous file destruction. |
+| **build-and-test.md** | Added POSTGRES_USER/PASSWORD/DATABASE_URL to Wallaby command, Wallaby config requirements table (5 settings), port 4052, devenv.nix authoritative source reference | +14 | **Operational bug fix**: Wallaby E2E tests would fail without POSTGRES vars. Agent now has complete copy-paste command. Config table prevents Phoenix/Oban/port misconfiguration. |
+| **git-and-workflow.md** | Added 4 em-dash commit examples, F# dotnet build/test verification commands, ICP v2.0 heredoc commit template, 4-layer reversal command table, 5-row failure recovery table | +37 -14 | Agent can now verify F# changes (not just Elixir). Reversal table gives exact commands per layer instead of compressed one-liner. Failure recovery covers 5 common scenarios with specific solutions. |
+| **operational-architecture.md** | Added AOR-IGNITE (5 rules incl. tier halt mandate), AOR-ZENOH (8 rules incl. production SKIP_ZENOH_NIF=1 prohibition), SC-ZENOH-004/005/006, Zenoh env vars YAML block, context consumption limits | +37 | Tier boot failures now explicitly mandate pipeline halt (was implicit). Zenoh production safety rules restored — agent cannot accidentally disable NIF in staging/prod. Context limits prevent resource exhaustion in biomorphic mode. |
+| **constraint-sync.md** | Added SC-SYNC-DOC-003..016 (11 missing constraints), health thresholds (HEALTHY/DEGRADED/CRITICAL) | +18 -2 | Session-start sync check mandate restored (SC-SYNC-DOC-003). Weekly reconciliation gate restored (005). .claude/ inventory auditing mandates restored (006-008). Agent can now assess sync health status. |
+| **gleam-web-ui-development.md** | Compressed from 1,052 to ~280 lines. Removed inline code examples (in codebase), §12 Human Intent (→ core-protocols), §14 Build Commands (→ build-and-test), §13 File Structure (110→20 lines). Kept all STAMP tables, module maps, architecture tables, verification checklist. | +230 -1,104 | 73% reduction for path-scoped file. Removes ~10K tokens from Gleam dev sessions. All actionable rules preserved; code examples retrievable from source files. |
+| **ui-graph-testing.md** | Compressed from 749 to ~180 lines. Removed verbose test code examples (in test files), compressed math notation, kept all 15 SC-UIGT + 10 AOR-UIGT + 22-page table + coverage criteria + tier table. | +133 -791 | 76% reduction for path-scoped file. All mathematical foundations, page vertex set, and coverage criteria preserved in compact form. Test patterns shown as minimal examples instead of full 50-line blocks. |
+| **journal (this file)** | Created with 13-section template + enrichment addendum | +291 | Full audit trail per SC-CHG-001. |
+
+### Aggregate Impact
+
+| Dimension | Before (original) | After consolidation (v1) | After enrichment (v2) |
+|-----------|-------------------|--------------------------|----------------------|
+| Session-start tokens | ~78,000+ | ~12,000 | ~15,000 |
+| Context available for work | ~45% | ~88% | ~85% |
+| Gleam dev session tokens | +13,700 (path-scoped) | +13,700 (unchanged in v1) | +5,500 |
+| Critical info gaps (score >= 20/40) | 0 (verbose = complete) | 10 | 0 |
+| Total non-path-scoped lines | ~7,000+ | 569 | 683 |
+| AOR rules with violation responses | All (verbose) | 0 (compressed to prose) | 23 (top-criticality restored) |
+| P0 individual constraint texts | All 120+ | 0 (ranges only) | 16 (key decision-critical) |
+| Operational commands complete | Yes | No (missing POSTGRES, F#) | Yes |
+
+### Decision Criticality Assessment
+The enrichment pass targeted information that directly affects agent **decision-making at runtime**:
+- **Safety gates**: AOR-FUNC violation responses tell agent whether to BLOCK, ROLLBACK, or HALT — wrong choice has cascading effects
+- **Deletion protection**: "WAIT for explicit approval" is the single most critical behavioral constraint for autonomous agents
+- **Build correctness**: Missing POSTGRES vars = silent test failures = false confidence in code quality
+- **Tier halt mandate**: "Tier boot failures MUST halt the pipeline" prevents cascading container failures in mesh startup
+
+---
+
 **Layer**: L4-ECOSYSTEM(2)
 **STAMP**: SC-SYNC-DOC-006, AOR-CTX-001
 **Authoritative Audit**: SC-SYNC-DOC compliant. Constraint parity maintained. All top-10 critical gaps resolved.
