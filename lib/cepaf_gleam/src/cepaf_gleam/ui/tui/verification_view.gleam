@@ -4,7 +4,7 @@ import cepaf_gleam/cockpit/visuals
 import cepaf_gleam/ui/lustre/verification.{type VerificationModel}
 import cepaf_gleam/verification/graph_verification.{type GraphCheck}
 import cepaf_gleam/verification/prometheus.{
-  type ProofToken, type VerificationResult, Inconclusive, Rejected, Verified,
+  type VerificationResult, Inconclusive, Rejected, Verified,
 }
 import cepaf_gleam/verification/swarm.{type FractalLayerReport, type SwarmReport}
 import gleam/int

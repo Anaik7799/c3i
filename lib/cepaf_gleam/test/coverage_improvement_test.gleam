@@ -4,8 +4,8 @@
 
 import cepaf_gleam/cockpit/visuals
 import cepaf_gleam/testing/coverage_math.{
-  type FileCoverage, type Grade, FileCoverage, GradeA, GradeB, GradeC, GradeD,
-  P0, P1, P2,
+  type FileCoverage, FileCoverage, GradeA, GradeB, GradeD,
+  P2,
 }
 import cepaf_gleam/testing/test_dashboard
 import cepaf_gleam/ui/domain
@@ -21,8 +21,6 @@ import cepaf_gleam/ui/lustre/telemetry
 import cepaf_gleam/ui/lustre/verification
 import cepaf_gleam/ui/lustre/zenoh_mesh
 import cepaf_gleam/ui/zenoh_otel
-import gleam/float
-import gleam/int
 import gleam/json
 import gleam/list
 import gleam/string
@@ -306,7 +304,7 @@ pub fn per_element_kpi_grade_for_gold_test() {
 pub fn corrective_actions_identifies_gaps_test() {
   let cov = [make_coverage("low", 1, 1, 1, 1, 1, 1, 1, 1)]
   let actions = coverage_math.corrective_actions_for_ccm_gap(cov, 0.90)
-  { list.length(actions) > 0 } |> should.equal(True)
+  { actions != [] } |> should.equal(True)
 }
 
 pub fn weighted_suite_ccm_non_negative_test() {

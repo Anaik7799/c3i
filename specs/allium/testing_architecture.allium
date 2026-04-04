@@ -1,0 +1,58 @@
+-- allium: 3
+-- Comprehensive Testing Architecture & Fractal Verification Spec
+-- Covers: Maximum Parallelization, Autonomous Verification, Two-Layer Supervisor Model
+-- Date: 2026-04-04
+
+contract AutonomousVerification {
+    -- Mandate: SC-TEST-001 — Unattended Full System Verification
+    
+    state test_coverage_l0_l4: Decimal = 0.0
+    state test_coverage_l5_l7: Decimal = 0.0
+    state all_tests_passed: Boolean = false
+    
+    command trigger_execution_supervisor()
+    command trigger_cognitive_supervisor()
+    command report_test_results(layer: String, coverage: Decimal, passed: Boolean)
+    
+    rule "Maximum Parallelization" {
+        when call AutonomousVerification.trigger_execution_supervisor
+        ensure "System concurrency is saturated (e.g., test-threads=MAX)"
+    }
+    
+    rule "Layer 1 Supervisor (Execution)" {
+        when call AutonomousVerification.trigger_execution_supervisor
+        then "Execute all Rust tests for ignition, podman, and apoptosis"
+        then report_test_results("L0-L4", _, _)
+    }
+    
+    rule "Layer 2 Supervisor (Cognitive)" {
+        when call AutonomousVerification.trigger_cognitive_supervisor
+        then "Execute all Rust tests for planning_daemon and Gleam tests for UI"
+        then report_test_results("L5-L7", _, _)
+    }
+    
+    rule "Migration Completion Gate" {
+        invariant test_coverage_l0_l4 >= 0.95
+        invariant test_coverage_l5_l7 >= 0.95
+        invariant all_tests_passed == true
+    }
+}
+
+contract ComponentVerificationMatrix {
+    -- Specific test assertions mandated for individual components
+    
+    rule "ZMOF Backplane Verification" {
+        ensure "Zenoh message delivery latency < 30ms under load"
+        ensure "MCP Tool catalog correctly registers all ignition subcommands"
+    }
+    
+    rule "Planning Authority Verification" {
+        ensure "Concurrent writes to planning.db do not corrupt state"
+        ensure "PROJECT_TODOLIST.md generation is deterministic"
+    }
+    
+    rule "Lifecycle Idempotency" {
+        ensure "ignition down invoked twice does not panic"
+        ensure "ignition scour removes all containers and orphaned volumes"
+    }
+}

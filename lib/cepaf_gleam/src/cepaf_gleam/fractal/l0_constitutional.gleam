@@ -119,12 +119,11 @@ pub fn arm_emergency(state: EmergencyState) -> EmergencyState {
 }
 
 pub fn trigger_emergency(
-  state: EmergencyState,
+  _state: EmergencyState,
   reason: String,
   timestamp: Int,
 ) -> EmergencyState {
   EmergencyState(
-    ..state,
     armed: False,
     triggered: True,
     trigger_reason: Some(reason),

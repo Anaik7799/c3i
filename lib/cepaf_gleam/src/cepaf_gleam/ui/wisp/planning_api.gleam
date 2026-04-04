@@ -3,7 +3,6 @@
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-003, SC-GLM-UI-007
 import gleam/json
 import gleam/list
-import gleam/option
 
 pub type TaskSummary {
   TaskSummary(id: String, title: String, status: String, priority: String)

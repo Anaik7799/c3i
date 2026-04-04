@@ -123,7 +123,7 @@ pub fn agui_text_content_adds_to_chat_test() {
       model,
       planning_dashboard.AgUiTextContent("msg-1", "Hello operator"),
     )
-  { list.length(model.chat_messages) > 0 } |> should.be_true()
+  { model.chat_messages != [] } |> should.be_true()
 }
 
 pub fn agui_tool_call_recorded_in_chat_test() {
@@ -133,7 +133,7 @@ pub fn agui_tool_call_recorded_in_chat_test() {
       model,
       planning_dashboard.AgUiToolCallStart("tc-1", "search"),
     )
-  { list.length(model.chat_messages) > 0 } |> should.be_true()
+  { model.chat_messages != [] } |> should.be_true()
 }
 
 // ── HITL: Approval ───────────────────────────────────────────
@@ -154,7 +154,7 @@ pub fn hitl_approved_adds_to_chat_test() {
       model,
       planning_dashboard.HitlUserApproved("req-1"),
     )
-  { list.length(model.chat_messages) > 0 } |> should.be_true()
+  { model.chat_messages != [] } |> should.be_true()
 }
 
 // ── A2UI: Catalog Validation ─────────────────────────────────

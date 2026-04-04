@@ -5,12 +5,9 @@ import cepaf_gleam/planning/manager
 import cepaf_gleam/planning/parser
 import cepaf_gleam/planning/task
 import cepaf_gleam/substrate/file_system
-import gleam/dynamic
 import gleam/int
 import gleam/io
 import gleam/list
-import gleam/option.{None}
-import gleam/result
 
 // =============================================================================
 // Task Management CLI Entrypoint

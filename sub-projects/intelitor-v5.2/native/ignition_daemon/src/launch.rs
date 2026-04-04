@@ -27,7 +27,7 @@ pub fn generate_proof_token() -> (String, String) {
 
     let signature = signing_key.sign(message.as_bytes());
     let token = format!(
-        "{}:{}:{}",
+        "{}|{}|{}",
         timestamp,
         nonce,
         hex::encode(signature.to_bytes())
@@ -747,11 +747,11 @@ mod tests {
     #[test]
     fn test_proof_token_format() {
         let (token, pubkey) = generate_proof_token();
-        // Token format: "{timestamp}:{nonce}:{hex_signature}"
-        let parts: Vec<&str> = token.split(':').collect();
+        // Token format: "{timestamp}|{nonce}|{hex_signature}"
+        let parts: Vec<&str> = token.split('|').collect();
         assert!(
             parts.len() >= 3,
-            "Token should have at least 3 colon-separated parts"
+            "Token should have at least 3 pipe-separated parts"
         );
         // Pubkey is hex-encoded ed25519 public key (32 bytes = 64 hex chars)
         assert_eq!(pubkey.len(), 64, "Ed25519 public key = 64 hex chars");
@@ -770,7 +770,7 @@ mod tests {
     #[test]
     fn test_proof_token_verification() {
         let (token, pubkey_hex) = generate_proof_token();
-        let parts: Vec<&str> = token.split(':').collect();
+        let parts: Vec<&str> = token.split('|').collect();
         assert_eq!(parts.len(), 3);
 
         let timestamp = parts[0];

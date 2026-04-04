@@ -57,25 +57,25 @@ pub fn render_logs_respects_max_lines_test() {
 
 pub fn cmd_start_has_name_test() {
   let cmd = CmdStart("app-1")
-  let assert CmdStart(name) = cmd
+  let CmdStart(name) = cmd
   name |> should.equal("app-1")
 }
 
 pub fn cmd_stop_has_name_test() {
   let cmd = CmdStop("app-1")
-  let assert CmdStop(name) = cmd
+  let CmdStop(name) = cmd
   name |> should.equal("app-1")
 }
 
 pub fn cmd_restart_has_name_test() {
   let cmd = CmdRestart("app-1")
-  let assert CmdRestart(name) = cmd
+  let CmdRestart(name) = cmd
   name |> should.equal("app-1")
 }
 
 pub fn cmd_logs_has_name_and_tail_test() {
   let cmd = CmdLogs("app-1", 100)
-  let assert CmdLogs(name, tail) = cmd
+  let CmdLogs(name, tail) = cmd
   name |> should.equal("app-1")
   tail |> should.equal(100)
 }

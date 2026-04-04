@@ -13,8 +13,7 @@
 /// and control messages, provides verification functions, and generates reports.
 ///
 /// STAMP: SC-GLM-CORE-001, SC-GLM-CORE-002, SC-GLM-CORE-003, SC-COV-001
-import cepaf_gleam/ui/domain.{type Page}
-import cepaf_gleam/ui/zenoh_otel.{type OodaPhase, type OtelSpan}
+import cepaf_gleam/ui/zenoh_otel.{type OtelSpan}
 import gleam/dict.{type Dict}
 import gleam/float
 import gleam/int

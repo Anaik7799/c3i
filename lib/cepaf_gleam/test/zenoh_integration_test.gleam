@@ -1,22 +1,16 @@
-import cepaf_gleam/testing/zenoh_test_observer.{type ObserverState}
+import cepaf_gleam/testing/zenoh_test_observer
 import cepaf_gleam/ui/domain.{
   Cockpit, Dashboard, Federation, HealthGrid, Immune, Kms, Knowledge, Mcp,
   Metabolic, Planning, Podman, Substrate, Telemetry, Verification, Zenoh,
 }
 import cepaf_gleam/ui/zenoh_otel.{
-  type OodaPhase, type OtelSpan, Act, Decide, Observe, Orient, cockpit_span,
-  dashboard_span, error_attrs, federation_span, health_grid_span, immune_span,
-  kms_span, knowledge_span, mcp_span, metabolic_span, new_span,
-  ooda_phase_to_string, page_to_string, planning_span, podman_span,
-  publish_for_page, publish_span, state_change_attrs, substrate_span,
-  telemetry_span, user_action_attrs, verification_span, zenoh_mesh_span,
+  type OtelSpan, Act, Decide, Observe, Orient, error_attrs, new_span,
+  ooda_phase_to_string, page_to_string, state_change_attrs, user_action_attrs,
   zenoh_message_attrs,
 }
-import cepaf_gleam/zenoh/client.{type Session}
 import gleam/json
 import gleam/list
 import gleam/option.{None, Some}
-import gleam/result
 import gleam/string
 import gleeunit/should
 
@@ -325,13 +319,3 @@ fn span_to_json_for_test(span: OtelSpan) -> json.Json {
   ])
 }
 
-fn invalid_session_for_test() -> Session {
-  panic as "No valid Zenoh session in test context"
-}
-
-fn should_error(result: Result(a, String)) -> Bool {
-  case result {
-    Error(_) -> True
-    Ok(_) -> False
-  }
-}

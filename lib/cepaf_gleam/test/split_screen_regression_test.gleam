@@ -11,17 +11,17 @@
 // =============================================================================
 
 import cepaf_gleam/testing/flight_check.{
-  type FlightDecision, AbortWithJidoka, CheckFailed, CheckPassed, CheckSkipped,
-  FlightCheck, GoForLaunch, HoldForRca,
+  CheckFailed, CheckPassed, CheckSkipped,
+  FlightCheck, GoForLaunch,
 }
 import cepaf_gleam/testing/test_dashboard
 import cepaf_gleam/ui/domain.{
-  L0Constitutional, L1AtomicDebug, L2Component, L3Transaction, L4System,
-  L5Cognitive, L6Ecosystem, L7Federation,
+  L0Constitutional, L1AtomicDebug, L3Transaction, L4System,
+  L6Ecosystem, L7Federation,
 }
 import cepaf_gleam/ui/lustre/planning_dashboard
 import cepaf_gleam/ui/tui/split_screen.{
-  type SplitConfig, CmdRestart, CmdStart, CmdStop, ContainerAction,
+  CmdStart, CmdStop, ContainerAction,
   DashboardUpdate, FlightCheckResult, SplitConfig, TestUpdate, Tick,
 }
 import gleam/list

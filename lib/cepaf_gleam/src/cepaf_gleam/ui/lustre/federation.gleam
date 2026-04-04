@@ -43,7 +43,7 @@ pub fn init() -> FederationModel {
 pub fn update(model: FederationModel, msg: FederationMsg) -> FederationModel {
   case msg {
     StateReceived(s) ->
-      FederationModel(..model, state: Some(s), loading: False, error: None)
+      FederationModel(state: Some(s), loading: False, error: None)
 
     PeerAdded(peer) ->
       case model.state {

@@ -20,6 +20,71 @@ pub fn generate_markdown() -> Result<(), IgnitionError> {
         content.push_str(&format!("{} {} - {} ({}) [{}]\n", status_mark, task.id, task.title, task.priority, task.status.to_uppercase()));
     }
     
-    fs::write("PROJECT_TODOLIST.md", content)?;
+    let path = std::env::var("PLANNING_TODOLIST_PATH").unwrap_or_else(|_| "PROJECT_TODOLIST.md".to_string());
+    fs::write(path, content)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::NamedTempFile;
+    use crate::db::{add_task, open_db};
+    use rusqlite::Connection;
+
+    fn setup_test_db() -> NamedTempFile {
+        let file = NamedTempFile::new().unwrap();
+        let path = file.path().to_str().unwrap().to_string();
+        std::env::set_var("PLANNING_DB_PATH", &path);
+        
+        let conn = Connection::open(&path).unwrap();
+        conn.execute(
+            "CREATE TABLE Tasks (
+                Id TEXT PRIMARY KEY,
+                Title TEXT NOT NULL,
+                Status TEXT NOT NULL,
+                Priority TEXT NOT NULL,
+                ParentId TEXT,
+                Owner TEXT,
+                Created TEXT NOT NULL,
+                RawLines TEXT
+            )",
+            [],
+        ).unwrap();
+        file
+    }
+
+    #[test]
+    fn test_deterministic_markdown_generation() {
+        let _tmp_db = setup_test_db();
+        let tmp_md = NamedTempFile::new().unwrap();
+        let md_path = tmp_md.path().to_str().unwrap().to_string();
+        std::env::set_var("PLANNING_TODOLIST_PATH", &md_path);
+
+        // Add tasks in non-sequential order if needed, but Created is sequential
+        add_task("Task 1", "P0").unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(10));
+        add_task("Task 2", "P1").unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(10));
+        add_task("Task 3", "P2").unwrap();
+
+        generate_markdown().expect("Failed to generate markdown");
+        let content1 = fs::read_to_string(&md_path).unwrap();
+
+        generate_markdown().expect("Failed to generate markdown");
+        let content2 = fs::read_to_string(&md_path).unwrap();
+
+        assert_eq!(content1, content2, "Markdown generation should be deterministic");
+        assert!(content1.contains("Task 1"));
+        assert!(content1.contains("Task 2"));
+        assert!(content1.contains("Task 3"));
+        
+        // Check order
+        let lines: Vec<&str> = content1.lines().collect();
+        let task_lines: Vec<&str> = lines.iter().filter(|l| l.contains("Task")).cloned().collect();
+        assert_eq!(task_lines.len(), 3);
+        assert!(task_lines[0].contains("Task 1"));
+        assert!(task_lines[1].contains("Task 2"));
+        assert!(task_lines[2].contains("Task 3"));
+    }
 }

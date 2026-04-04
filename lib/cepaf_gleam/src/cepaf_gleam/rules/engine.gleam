@@ -20,7 +20,6 @@
 //// STAMP: SC-OODA-003 (decide phase), SC-ALLIUM-001
 
 import gleam/list
-import gleam/result
 import gleam/string
 
 // =============================================================================

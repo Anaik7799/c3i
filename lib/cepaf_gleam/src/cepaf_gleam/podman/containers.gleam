@@ -7,7 +7,6 @@ import gleam/dict
 import gleam/dynamic/decode
 import gleam/http
 import gleam/int
-import gleam/io
 import gleam/json
 import gleam/list
 import gleam/option

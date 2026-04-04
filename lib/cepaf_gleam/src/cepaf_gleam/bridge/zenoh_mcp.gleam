@@ -10,7 +10,6 @@
 import cepaf_gleam/mcp/server
 import cepaf_gleam/zenoh/client as zenoh
 import gleam/erlang/process.{type Subject}
-import gleam/json
 import gleam/option.{None, Some}
 import gleam/otp/actor
 import gleam/result
