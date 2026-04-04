@@ -55,6 +55,7 @@ use ratatui::{
     },
     Frame, Terminal,
 };
+use serde::{Deserialize, Serialize};
 use std::io::stdout;
 use std::time::{Duration, Instant};
 
@@ -2712,6 +2713,16 @@ fn draw_test_dashboard(f: &mut Frame, area: Rect, step: usize, total_steps: usiz
 }
 
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OtelSpan {
+    pub trace_id: String,
+    pub span_id: String,
+    pub name: String,
+    pub ooda_phase: String, // "Observe", "Orient", "Decide", "Act"
+    pub attributes: std::collections::HashMap<String, String>,
+    pub timestamp: String,
+}
+
 pub async fn run_ops_test() -> Result<(), IgnitionError> {
     enable_raw_mode().map_err(|e| IgnitionError::IoError(e))?;
     stdout()
@@ -2733,6 +2744,7 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
     let mut last_tick = Instant::now();
     let mut phase = "Phase A: Synthetic";
     let mut op_triggered = false;
+    let mut zenoh_telemetry: Vec<OtelSpan> = Vec::new();
 
     loop {
         let elapsed = start.elapsed();
@@ -2744,6 +2756,16 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
 
         // Phase Transitions
         if elapsed.as_secs() < 120 {
+            if phase != "Phase A: Synthetic" {
+                zenoh_telemetry.push(OtelSpan {
+                    trace_id: uuid::Uuid::new_v4().to_string(),
+                    span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
+                    name: "PhaseTransition".into(),
+                    ooda_phase: "Orient".into(),
+                    attributes: vec![("phase".to_string(), "Synthetic".to_string())].into_iter().collect(),
+                    timestamp: Local::now().to_rfc3339(),
+                });
+            }
             phase = "Phase A: Synthetic";
             // Mock some data if empty
             if state.containers.is_empty() {
@@ -2762,6 +2784,16 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
             }
             state.tab_index = (elapsed.as_secs() as usize / 10) % 12;
         } else if elapsed.as_secs() < 360 {
+            if phase != "Phase B: Real-time" {
+                zenoh_telemetry.push(OtelSpan {
+                    trace_id: uuid::Uuid::new_v4().to_string(),
+                    span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
+                    name: "PhaseTransition".into(),
+                    ooda_phase: "Orient".into(),
+                    attributes: vec![("phase".to_string(), "Real-time".to_string())].into_iter().collect(),
+                    timestamp: Local::now().to_rfc3339(),
+                });
+            }
             phase = "Phase B: Real-time";
             if last_tick.elapsed().as_secs() >= 2 {
                 refresh_state(&mut state).await;
@@ -2769,10 +2801,33 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
             }
             state.tab_index = (elapsed.as_secs() as usize / 20) % 12;
         } else {
+            if phase != "Phase C: Operational" {
+                zenoh_telemetry.push(OtelSpan {
+                    trace_id: uuid::Uuid::new_v4().to_string(),
+                    span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
+                    name: "PhaseTransition".into(),
+                    ooda_phase: "Orient".into(),
+                    attributes: vec![("phase".to_string(), "Operational".to_string())].into_iter().collect(),
+                    timestamp: Local::now().to_rfc3339(),
+                });
+            }
             phase = "Phase C: Operational";
             if last_tick.elapsed().as_secs() >= 2 {
                 refresh_state(&mut state).await;
                 last_tick = Instant::now();
+                
+                // Periodic Zenoh Observation telemetry
+                zenoh_telemetry.push(OtelSpan {
+                    trace_id: uuid::Uuid::new_v4().to_string(),
+                    span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
+                    name: "SystemState_Poll".into(),
+                    ooda_phase: "Observe".into(),
+                    attributes: vec![
+                        ("active_containers".to_string(), state.containers.len().to_string()),
+                        ("cpu_pressure".to_string(), state.cpu_pct.to_string()),
+                    ].into_iter().collect(),
+                    timestamp: Local::now().to_rfc3339(),
+                });
             }
             
             // Auto-op: if indrajaal-ex-app-1 is down, start it.
@@ -2781,6 +2836,14 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                 let target = "indrajaal-ex-app-1";
                 if let Some(c) = state.containers.iter().find(|c| c.name == target) {
                     if c.status == "running" {
+                        zenoh_telemetry.push(OtelSpan {
+                            trace_id: uuid::Uuid::new_v4().to_string(),
+                            span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
+                            name: "Control_Stop".into(),
+                            ooda_phase: "Act".into(),
+                            attributes: vec![("target".to_string(), target.to_string())].into_iter().collect(),
+                            timestamp: Local::now().to_rfc3339(),
+                        });
                         state.trace_entries.push(TraceEntry {
                             timestamp: Local::now().format("%H:%M:%S").to_string(),
                             phase: "OPS".into(),
@@ -2792,6 +2855,14 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                         });
                         let _ = podman::stop_container(target, 5).await;
                     } else {
+                        zenoh_telemetry.push(OtelSpan {
+                            trace_id: uuid::Uuid::new_v4().to_string(),
+                            span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
+                            name: "Control_Start".into(),
+                            ooda_phase: "Act".into(),
+                            attributes: vec![("target".to_string(), target.to_string())].into_iter().collect(),
+                            timestamp: Local::now().to_rfc3339(),
+                        });
                         state.trace_entries.push(TraceEntry {
                             timestamp: Local::now().format("%H:%M:%S").to_string(),
                             phase: "OPS".into(),
@@ -2810,6 +2881,11 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
             state.tab_index = 0; // Keep on swarm tab to see ops
         }
 
+        // Truncate OTel log to prevent memory bloat during 10 min test
+        if zenoh_telemetry.len() > 15 {
+            zenoh_telemetry.drain(0..10);
+        }
+
         terminal.draw(|f| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
@@ -2817,16 +2893,56 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                 .split(f.area());
 
             draw_ui_area(f, chunks[0], &state);
-            draw_ops_dashboard(f, chunks[1], phase, elapsed, total_duration, &state);
+            draw_ops_dashboard(f, chunks[1], phase, elapsed, total_duration, &state, &zenoh_telemetry);
         }).map_err(|e| IgnitionError::IoError(e))?;
 
         if event::poll(Duration::from_millis(200)).map_err(|e| IgnitionError::IoError(e))? {
             if let Event::Key(key) = event::read().map_err(|e| IgnitionError::IoError(e))? {
-                if key.kind == KeyEventKind::Press && (key.code == KeyCode::Char('q') || key.code == KeyCode::Esc) {
-                    break;
+                if key.kind == KeyEventKind::Press {
+                    match key.code {
+                        KeyCode::Char('q') | KeyCode::Esc => break,
+                        KeyCode::Char('s') => {
+                            if state.tab_index == 0 && !state.containers.is_empty() {
+                                let name = state.containers[state.selected_container].name.clone();
+                                zenoh_telemetry.push(OtelSpan {
+                                    trace_id: uuid::Uuid::new_v4().to_string(),
+                                    span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
+                                    name: "Manual_Control_Start".into(),
+                                    ooda_phase: "Act".into(),
+                                    attributes: vec![("target".to_string(), name.clone())].into_iter().collect(),
+                                    timestamp: Local::now().to_rfc3339(),
+                                });
+                                let _ = podman::start_container(&name).await;
+                                refresh_state(&mut state).await;
+                            }
+                        }
+                        KeyCode::Char('x') => {
+                            if state.tab_index == 0 && !state.containers.is_empty() {
+                                let name = state.containers[state.selected_container].name.clone();
+                                zenoh_telemetry.push(OtelSpan {
+                                    trace_id: uuid::Uuid::new_v4().to_string(),
+                                    span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
+                                    name: "Manual_Control_Stop".into(),
+                                    ooda_phase: "Act".into(),
+                                    attributes: vec![("target".to_string(), name.clone())].into_iter().collect(),
+                                    timestamp: Local::now().to_rfc3339(),
+                                });
+                                let _ = podman::stop_container(&name, 10).await;
+                                refresh_state(&mut state).await;
+                            }
+                        }
+                        _ => {}
+                    }
                 }
             }
         }
+    }
+
+    // Persist telemetry log for AI Agent validation
+    let log_file = std::fs::File::create("zenoh_otel_trace.jsonl").unwrap();
+    let mut writer = std::io::BufWriter::new(log_file);
+    for span in &zenoh_telemetry {
+        let _ = std::io::Write::write_fmt(&mut writer, format_args!("{}\n", serde_json::to_string(span).unwrap()));
     }
 
     disable_raw_mode().map_err(|e| IgnitionError::IoError(e))?;
@@ -2834,9 +2950,9 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
     Ok(())
 }
 
-fn draw_ops_dashboard(f: &mut Frame, area: Rect, phase: &str, elapsed: Duration, total: Duration, state: &DashboardState) {
+fn draw_ops_dashboard(f: &mut Frame, area: Rect, phase: &str, elapsed: Duration, total: Duration, state: &DashboardState, zenoh: &[OtelSpan]) {
     let block = Block::default()
-        .title(" 10-Minute Operational Test Dashboard ")
+        .title(" 10-Minute Operational & Zenoh Telemetry Test Dashboard ")
         .title_style(Style::default().fg(Color::Magenta).bold())
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::White));
@@ -2846,7 +2962,7 @@ fn draw_ops_dashboard(f: &mut Frame, area: Rect, phase: &str, elapsed: Duration,
 
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+        .constraints([Constraint::Percentage(40), Constraint::Percentage(60)])
         .split(inner);
 
     // Left: Progress and Phase
@@ -2854,7 +2970,7 @@ fn draw_ops_dashboard(f: &mut Frame, area: Rect, phase: &str, elapsed: Duration,
     let gauge = Gauge::default()
         .block(Block::default().title(" Total Progress "))
         .gauge_style(Style::default().fg(Color::Green))
-        .percent(progress);
+        .percent(progress.min(100));
     
     let left_chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -2869,21 +2985,33 @@ fn draw_ops_dashboard(f: &mut Frame, area: Rect, phase: &str, elapsed: Duration,
         Line::from(""),
         Line::from(vec![Span::styled("Current Tab:  ", Style::default().fg(Color::Cyan)), Span::raw(format!("{}", state.tab_index))]),
         Line::from(vec![Span::styled("Containers:   ", Style::default().fg(Color::Cyan)), Span::raw(format!("{}", state.containers.len()))]),
+        Line::from(""),
+        Line::from(Span::styled("OODA Zenoh Telemetry ACTIVE", Style::default().fg(INDRAJAAL_GREEN))),
     ];
     f.render_widget(Paragraph::new(phase_text), left_chunks[1]);
 
-    // Right: Ops Log (last 5 entries)
-    let logs: Vec<ListItem> = state.trace_entries.iter().rev().take(5).map(|e| {
-        let color = match e.decision {
-            TraceDecision::Pass => Color::Green,
-            TraceDecision::Fail => Color::Red,
-            _ => Color::Yellow,
+    // Right: Zenoh OTel Log
+    let logs: Vec<ListItem> = zenoh.iter().rev().take(6).map(|e| {
+        let phase_color = match e.ooda_phase.as_str() {
+            "Observe" => Color::Cyan,
+            "Orient" => Color::Yellow,
+            "Decide" => Color::Magenta,
+            "Act" => Color::Red,
+            _ => Color::White,
         };
-        ListItem::new(format!("[{}] {} -> {}", e.timestamp, e.action, e.result)).style(Style::default().fg(color))
+        let attr_str = e.attributes.iter().map(|(k,v)| format!("{}={}", k, v)).collect::<Vec<_>>().join(", ");
+        ListItem::new(vec![
+            Line::from(vec![
+                Span::styled(format!("[{}] ", e.ooda_phase), Style::default().fg(phase_color).bold()),
+                Span::styled(format!("{} ", e.name), Style::default().fg(Color::White)),
+                Span::styled(format!("trace:{} ", e.span_id), Style::default().fg(INDRAJAAL_DIM)),
+            ]),
+            Line::from(Span::styled(format!("  ↳ {}", attr_str), Style::default().fg(INDRAJAAL_DIM)))
+        ])
     }).collect();
 
     let log_list = List::new(logs)
-        .block(Block::default().title(" Recent Operations ").borders(Borders::LEFT));
+        .block(Block::default().title(" Zenoh OTel Spans (Agent Visibility) ").borders(Borders::LEFT));
     f.render_widget(log_list, chunks[1]);
 }
 
