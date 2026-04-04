@@ -3,6 +3,7 @@
 
 mod apoptosis;
 mod artifacts;
+mod audit_log;
 mod build;
 mod build_oracle;
 mod build_stream;
@@ -33,6 +34,7 @@ mod rule_engine;
 mod seven_level_rca;
 mod smoke_test;
 mod substrate_guard;
+mod supervisor;
 mod tui;
 mod tui_tests;
 mod types;

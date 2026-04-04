@@ -200,6 +200,84 @@ pub enum ShutdownPhase {
     Stopped,
 }
 
+/// Full boot FSM state for mesh lifecycle tracking.
+/// Source: F# FSM.fs — MeshLifecycle discriminated union
+/// SC-BOOT-001: State vector verified before each stage
+/// SC-SIL4-015: Split-brain detection triggers apoptosis
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum MeshState {
+    Offline,
+    Preflight,
+    Booting(u8),      // tier number 0-7
+    Verifying,
+    Running,
+    Degraded(String), // reason
+    ShuttingDown(u8), // phase 0-5
+    Emergency,
+    Terminated,
+}
+
+impl MeshState {
+    pub fn is_operational(&self) -> bool {
+        matches!(self, MeshState::Running | MeshState::Degraded(_))
+    }
+    pub fn is_booting(&self) -> bool {
+        matches!(
+            self,
+            MeshState::Preflight | MeshState::Booting(_) | MeshState::Verifying
+        )
+    }
+}
+
+impl std::fmt::Display for MeshState {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            MeshState::Offline => write!(f, "OFFLINE"),
+            MeshState::Preflight => write!(f, "PREFLIGHT"),
+            MeshState::Booting(t) => write!(f, "BOOTING(tier-{})", t),
+            MeshState::Verifying => write!(f, "VERIFYING"),
+            MeshState::Running => write!(f, "RUNNING"),
+            MeshState::Degraded(r) => write!(f, "DEGRADED({})", r),
+            MeshState::ShuttingDown(p) => write!(f, "SHUTTING_DOWN(phase-{})", p),
+            MeshState::Emergency => write!(f, "EMERGENCY"),
+            MeshState::Terminated => write!(f, "TERMINATED"),
+        }
+    }
+}
+
+#[cfg(test)]
+mod mesh_state_tests {
+    use super::*;
+
+    #[test]
+    fn test_mesh_state_operational() {
+        assert!(MeshState::Running.is_operational());
+        assert!(MeshState::Degraded("disk full".into()).is_operational());
+        assert!(!MeshState::Offline.is_operational());
+        assert!(!MeshState::Booting(3).is_operational());
+        assert!(!MeshState::Emergency.is_operational());
+    }
+
+    #[test]
+    fn test_mesh_state_display() {
+        assert_eq!(MeshState::Offline.to_string(), "OFFLINE");
+        assert_eq!(MeshState::Preflight.to_string(), "PREFLIGHT");
+        assert_eq!(MeshState::Booting(2).to_string(), "BOOTING(tier-2)");
+        assert_eq!(MeshState::Verifying.to_string(), "VERIFYING");
+        assert_eq!(MeshState::Running.to_string(), "RUNNING");
+        assert_eq!(
+            MeshState::Degraded("zenoh timeout".into()).to_string(),
+            "DEGRADED(zenoh timeout)"
+        );
+        assert_eq!(
+            MeshState::ShuttingDown(1).to_string(),
+            "SHUTTING_DOWN(phase-1)"
+        );
+        assert_eq!(MeshState::Emergency.to_string(), "EMERGENCY");
+        assert_eq!(MeshState::Terminated.to_string(), "TERMINATED");
+    }
+}
+
 /// Boot tier — Source: PanopticIgnition.fs:722-981
 /// SC-BOOT-005: boot time < 120s (target 60s)
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -240,16 +318,16 @@ pub enum BootCheckpoint {
 impl BootCheckpoint {
     pub fn topic(&self) -> &'static str {
         match self {
-            Self::PreflightStart => "indrajaal/boot/preflight/start",
-            Self::PreflightComplete => "indrajaal/boot/preflight/complete",
-            Self::DbReady => "indrajaal/boot/foundation/db_ready",
-            Self::ObsReady => "indrajaal/boot/foundation/obs_ready",
-            Self::MeshQuorum => "indrajaal/boot/mesh/quorum",
-            Self::CognitiveBridge => "indrajaal/boot/cognitive/bridge",
-            Self::CognitiveCortex => "indrajaal/boot/cognitive/cortex",
-            Self::AppSeedReady => "indrajaal/boot/app/seed_ready",
-            Self::HomeostasisVerified => "indrajaal/boot/homeostasis/verified",
-            Self::BootComplete => "indrajaal/boot/complete",
+            Self::PreflightStart => "indrajaal/l4/ignition/boot/preflight/start",
+            Self::PreflightComplete => "indrajaal/l4/ignition/boot/preflight/complete",
+            Self::DbReady => "indrajaal/l4/ignition/boot/foundation/db_ready",
+            Self::ObsReady => "indrajaal/l4/ignition/boot/foundation/obs_ready",
+            Self::MeshQuorum => "indrajaal/l4/ignition/boot/mesh/quorum",
+            Self::CognitiveBridge => "indrajaal/l4/ignition/boot/cognitive/bridge",
+            Self::CognitiveCortex => "indrajaal/l4/ignition/boot/cognitive/cortex",
+            Self::AppSeedReady => "indrajaal/l4/ignition/boot/app/seed_ready",
+            Self::HomeostasisVerified => "indrajaal/l4/ignition/boot/homeostasis/verified",
+            Self::BootComplete => "indrajaal/l4/ignition/boot/complete",
         }
     }
 
@@ -318,6 +396,7 @@ pub struct StateVector {
     pub zenoh: bool,
     pub health: bool,
     pub quorum: bool,
+    pub quorum_count: u8, // TUI-006: 0 to 5
 }
 
 impl StateVector {
@@ -703,84 +782,4 @@ pub struct TierCommitResult {
 // DEPENDENCY GRAPH TYPE (for launch.rs DAG-based resolution)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/// Directed acyclic graph for container boot ordering.
-/// Source: launch.rs — DAG-based dependency resolution
-#[derive(Debug, Clone)]
-pub struct DependencyGraph {
-    containers: Vec<String>,
-    dependencies: std::collections::HashMap<String, Vec<String>>,
-}
-
-impl DependencyGraph {
-    pub fn new() -> Self {
-        Self {
-            containers: Vec::new(),
-            dependencies: std::collections::HashMap::new(),
-        }
-    }
-
-    pub fn add_container(&mut self, name: &str) {
-        if !self.containers.contains(&name.to_string()) {
-            self.containers.push(name.to_string());
-        }
-    }
-
-    pub fn add_dependency(&mut self, container: &str, dependency: &str) {
-        self.add_container(container);
-        self.add_container(dependency);
-        self.dependencies
-            .entry(container.to_string())
-            .or_default()
-            .push(dependency.to_string());
-    }
-
-    /// Calculate boot waves using topological sort (Kahn's algorithm).
-    /// Returns vectors of container names that can boot in parallel.
-    pub fn calculate_waves(&self) -> Vec<Vec<String>> {
-        let mut in_degree: std::collections::HashMap<String, usize> =
-            std::collections::HashMap::new();
-        for c in &self.containers {
-            in_degree.entry(c.clone()).or_insert(0);
-        }
-        for deps in self.dependencies.values() {
-            for dep in deps {
-                *in_degree.entry(dep.clone()).or_insert(0);
-            }
-        }
-        for (container, deps) in &self.dependencies {
-            for dep in deps {
-                *in_degree.entry(container.clone()).or_insert(0) += 1;
-            }
-        }
-
-        let mut waves = Vec::new();
-        let mut remaining = in_degree.clone();
-
-        loop {
-            let wave: Vec<String> = remaining
-                .iter()
-                .filter(|(_, &deg)| deg == 0)
-                .map(|(name, _)| name.clone())
-                .collect();
-
-            if wave.is_empty() {
-                break;
-            }
-
-            for name in &wave {
-                remaining.remove(name);
-                for (container, deps) in &self.dependencies {
-                    if deps.contains(name) {
-                        if let Some(deg) = remaining.get_mut(container) {
-                            *deg -= 1;
-                        }
-                    }
-                }
-            }
-
-            waves.push(wave);
-        }
-
-        waves
-    }
-}
+// Moved to src/dag.rs

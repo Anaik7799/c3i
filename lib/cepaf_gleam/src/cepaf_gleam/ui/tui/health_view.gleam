@@ -71,3 +71,27 @@ fn pad_right(str: String, width: Int) -> String {
 fn float_to_pct(f: Float) -> String {
   int.to_string(float.round(f *. 100.0)) <> "%"
 }
+
+/// Calculate overall health score from container statuses.
+pub fn health_score(healthy: Int, total: Int) -> Float {
+  case total {
+    0 -> 0.0
+    _ -> int.to_float(healthy) /. int.to_float(total)
+  }
+}
+
+/// Health grade from score.
+pub fn health_grade(score: Float) -> String {
+  case score >=. 0.9 {
+    True -> "A"
+    False ->
+      case score >=. 0.7 {
+        True -> "B"
+        False ->
+          case score >=. 0.5 {
+            True -> "C"
+            False -> "D"
+          }
+      }
+  }
+}

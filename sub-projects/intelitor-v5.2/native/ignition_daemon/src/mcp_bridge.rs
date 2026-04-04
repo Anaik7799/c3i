@@ -45,6 +45,72 @@ pub struct McpCatalog {
     pub tools: Vec<McpTool>,
 }
 
+/// List all available MCP tools as a catalog.
+/// Source: F# CliEnvelope.fs parity — canonical tool registry for ignition daemon.
+/// SC-MCP-001: MCP tool catalog MUST be published on startup.
+pub fn tool_catalog() -> McpCatalog {
+    McpCatalog {
+        tools: vec![
+            McpTool {
+                name: "ignition_status".into(),
+                description: "Get current mesh status (containers, CPU, health)".into(),
+                input_schema: serde_json::json!({"type": "object", "properties": {}}),
+            },
+            McpTool {
+                name: "ignition_preflight".into(),
+                description: "Run 18 preflight checks".into(),
+                input_schema: serde_json::json!({"type": "object", "properties": {}}),
+            },
+            McpTool {
+                name: "ignition_ooda".into(),
+                description: "Run OODA supervisor cycle".into(),
+                input_schema: serde_json::json!({
+                    "type": "object",
+                    "properties": {
+                        "cycles": {"type": "integer"}
+                    }
+                }),
+            },
+            McpTool {
+                name: "ignition_rca".into(),
+                description: "Run 7-level root cause analysis".into(),
+                input_schema: serde_json::json!({
+                    "type": "object",
+                    "properties": {
+                        "error": {"type": "string"}
+                    },
+                    "required": ["error"]
+                }),
+            },
+            McpTool {
+                name: "ignition_build".into(),
+                description: "Build/rebuild container image".into(),
+                input_schema: serde_json::json!({
+                    "type": "object",
+                    "properties": {
+                        "container": {"type": "string"}
+                    }
+                }),
+            },
+            McpTool {
+                name: "ignition_launch".into(),
+                description: "Launch full SIL-6 mesh".into(),
+                input_schema: serde_json::json!({
+                    "type": "object",
+                    "properties": {
+                        "mode": {"type": "string", "enum": ["prod", "test"]}
+                    }
+                }),
+            },
+        ],
+    }
+}
+
+/// Count available tools in the catalog.
+pub fn tool_count() -> usize {
+    tool_catalog().tools.len()
+}
+
 pub struct ZenohMcpBridge {
     session: Arc<Session>,
     node_id: String,
@@ -272,10 +338,10 @@ impl ZenohMcpBridge {
         // We need tiers for emergency_drain
         // For now, let's build a default set or use the one from launch.rs if available
         let dg = launch::build_dependency_graph();
-        // We'd need to convert the graph to tiers. 
+        // We'd need to convert the graph to tiers.
         // For simplicity in this bridge, let's just use a hardcoded list if we can't easily get tiers.
         // Actually, let's try to get tiers.
-        
+
         match robust_launch::emergency_drain(&[]).await { // Passing empty tiers for now as placeholder
             Ok(res) => Ok(serde_json::json!(res)),
             Err(e) => Err(McpError {
@@ -283,6 +349,44 @@ impl ZenohMcpBridge {
                 message: format!("Drain failed: {}", e),
                 data: None,
             }),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tool_catalog_count() {
+        assert_eq!(tool_count(), 6, "tool_catalog must expose exactly 6 tools");
+    }
+
+    #[test]
+    fn test_tool_catalog_has_status() {
+        let catalog = tool_catalog();
+        let names: Vec<&str> = catalog.tools.iter().map(|t| t.name.as_str()).collect();
+        assert!(
+            names.contains(&"ignition_status"),
+            "catalog must include ignition_status; found: {:?}",
+            names
+        );
+        // Also verify all 6 expected names are present.
+        let expected = [
+            "ignition_status",
+            "ignition_preflight",
+            "ignition_ooda",
+            "ignition_rca",
+            "ignition_build",
+            "ignition_launch",
+        ];
+        for name in &expected {
+            assert!(
+                names.contains(name),
+                "catalog missing tool '{}'; found: {:?}",
+                name,
+                names
+            );
         }
     }
 }
