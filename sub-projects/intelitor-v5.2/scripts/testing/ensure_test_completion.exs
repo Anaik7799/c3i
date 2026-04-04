@@ -159,7 +159,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
 
     # Set environment
     System.put_env("MIX_ENV", "test")
-    System.put_env("ELIXIR_ERL_OPTIONS", "+P 5_000_000 +Q 1_000_000")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +P 5_000_000 +Q 1_000_000")
 
     # Ensure __database is ready
     System.cmd("mix", ["ecto.create", "--quiet"], env: [{"MIX_ENV", "test"}])

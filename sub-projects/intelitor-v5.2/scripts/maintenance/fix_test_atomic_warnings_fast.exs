@@ -338,7 +338,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
 
     # Quick check without full recompilation
     {_output, __} = System.cmd("bash", ["-c",
-      "MIX_ENV=test ELIXIR_ERL_OPTIONS='+S 16' mix compile --jobs 16 2>&1 | grep -c 'cannot be done atomically' || true"])
+      "MIX_ENV=test ELIXIR_ERL_OPTIONS='+fnu +S 16' mix compile --jobs 16 2>&1 | grep -c 'cannot be done atomically' || true"])
 
     count = String.trim(output) |> String.to_integer()
 
@@ -351,7 +351,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
 
       # Get first few warnings for analysis
       {_warnings, __} = System.cmd("bash", ["-c",
-        "MIX_ENV=test ELIXIR_ERL_OPTIONS='+S 16' mix compile --jobs 16 2>&1 | grep -A2 -B2 'cannot be done atomically' | head -20"])
+        "MIX_ENV=test ELIXIR_ERL_OPTIONS='+fnu +S 16' mix compile --jobs 16 2>&1 | grep -A2 -B2 'cannot be done atomically' | head -20"])
 
       IO.puts("\nFirst few warnings:")
       IO.puts(warnings)

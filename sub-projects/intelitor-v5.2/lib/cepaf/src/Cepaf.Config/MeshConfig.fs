@@ -381,7 +381,7 @@ module EnvironmentConfig =
 
     /// Mandatory environment variables (SC-METRICS-003)
     module Mandatory =
-        let elixirErlOptions = "+S 16:16 +SDio 16"
+        let elixirErlOptions = "+fnu +S 16:16 +SDio 16"
         let noTimeout = "true"
         let patientMode = "enabled"
         let infinitePatience = "true"

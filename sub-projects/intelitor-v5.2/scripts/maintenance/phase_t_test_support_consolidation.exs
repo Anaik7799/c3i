@@ -28,7 +28,7 @@
 # Agent: Supervisor-1 (Strategic Oversight Agent)
 # Mission: Eliminate test/support and controller test duplications
 # Target: demo_test_helpers.ex and mobile controller test patterns
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase T Test Support Consolidation")
 IO.puts("=================================================================")

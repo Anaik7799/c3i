@@ -168,7 +168,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     IO.puts("Executing: #{Enum.join(test_command, " ")}")
 
     # Set environment
-    System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 
     # Execute test command
     {output, exit_code} =

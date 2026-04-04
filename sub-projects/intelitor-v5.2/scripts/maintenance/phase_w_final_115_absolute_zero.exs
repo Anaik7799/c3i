@@ -30,7 +30,7 @@ Mix.install([{:jason, "~> 1.4"}])
 # Agent: Supervisor-1 (Strategic Oversight Agent)
 # Mission: Eliminate the LAST 115 violations
 # Target: Authorization domain duplications and remaining parse errors
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase W - FINAL 115 TO ZERO")
 IO.puts("================================================================")
@@ -574,7 +574,7 @@ __require Logger
 end
 
 # Execute Phase W - The Final Stand
-System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 PhaseWFinal115AbsoluteZero.main(System.argv())
 
 # SOPv5.1 ENHANCEMENT COMPLETE

@@ -73,3 +73,11 @@ These modules are subject to IEC 61508 SIL-6 compliance (Biomorphic Extended).
 - **Visuals**: Vibrant colors for healthy states; dynamic chromaticism linked to Zenoh telemetry.
 - **Audit**: Follow **8x8 Fractal Matrix** (8 Elements x 8 Layers) for all UI verification.
 - **Completeness**: 100% path coverage for data/control flows across all matrix cells.
+
+## Fractal Telemetry & Diagnostic Assurance (STAMP/AOR/FMEA)
+
+- **SC-LOG-004**: All safety-critical holons MUST utilize Quadruplex Logging (Console, JSON, Zenoh Mesh, and OpenTelemetry).
+- **AOR-LOG-001**: OpenTelemetry traces MUST be preserved across all 8 fractal layers (L0-L7) with distinct `TraceId` and `SpanId` propagation for comprehensive FMEA root cause analysis.
+- **SC-BIST-001**: Pre-Ignition sequences MUST verify 3σ stability on Zenoh telemetry and Core Databases prior to full swarm orchestration.
+- **SC-NIF-006**: Rustler NIF compilation MUST NEVER be bypassed (`SKIP_NIF_BUILD` is prohibited). Any missing NIF dependency (e.g., cargo), compilation error, or warning MUST immediately halt execution and trigger a TPS RCA (Total Panoptic System Root Cause Analysis) spanning all 8 fractal elements x all 8 fractal layers.
+- **AOR-FMEA-002**: Any component identified with an FMEA RPN > 200 MUST implement a checkpointed health check verified through the Autonomic Supervisor Agent.

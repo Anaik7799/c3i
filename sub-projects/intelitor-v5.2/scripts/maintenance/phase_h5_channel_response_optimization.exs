@@ -28,7 +28,7 @@
 # Agent: Supervisor-1 (Strategic Oversight Agent)
 # Mission: Eliminate ALL channel and response formatter duplications
 # Target: Notification and alarm channel duplications (100+ violations)
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase H.5 Channel Response Optimization")
 IO.puts("========================================================================")

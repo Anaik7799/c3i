@@ -47,7 +47,7 @@ defmodule TestGitAwareBuild do
     System.put_env("CONTAINER_OS", "nixos")
     System.put_env("NO_TIMEOUT", "true")
     System.put_env("MAX_PARALLELIZATION", "true")
-    System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 
     IO.puts("""
     🧪 Testing Git-Aware Build System

@@ -1,0 +1,15 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# C3I UNIFIED BOOTSTRAP ROUTER (RUST AUTH)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Route to the authoritative Rust Ignition binary
+BINARY="./sub-projects/intelitor-v5.2/target/release/ignition"
+
+if [ "$#" -eq 0 ]; then
+    # Default to interactive visual dashboard with automated ignition
+    $BINARY dashboard --auto-boot
+else
+    # Route to specific command (preflight, status, etc.)
+    $BINARY "$@"
+fi

@@ -358,7 +358,8 @@ if config_env() == :prod do
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
     ssl: System.get_env("DATABASE_SSL", "true") == "true",
-    ssl_opts: [
+    # SC-FIX-SSL: Use :ssl option instead of deprecated :ssl_opts (Postgrex 0.17+)
+    ssl: [
       verify: :verify_none
     ]
 

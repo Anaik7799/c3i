@@ -1,3 +1,10 @@
+# =============================================================================
+# Dockerfile.sopv51-app - Elixir Application Container
+# =============================================================================
+# Version: v21.3.2-SIL6
+# Build: docker build -f Dockerfile.sopv51-app -t localhost/indrajaal-sopv51-elixir-app:nixos-devenv .
+# Run:   podman run --env SKIP_ZENOH_NIF=0 --env DATABASE_URL=... localhost/indrajaal-sopv51-elixir-app:nixos-devenv
+# =============================================================================
 
 # SOPv5.1 Elixir Application (SIL-6 Biomorphic)
 FROM localhost/sopv51-base:latest
@@ -7,40 +14,139 @@ LABEL sopv51.phics.enabled="true"
 
 WORKDIR /workspace
 
-# Genetic Re-Synthesis Environment
+# =============================================================================
+# Environment Variables - CRITICAL FOR NIF BUILD
+# =============================================================================
+
 # XLA_BUILD=false downloads prebuilt binaries (bazel not available in container)
-# SKIP_ZENOH_NIF=1 — Zenoh accessed via mesh network, not in-process NIF
+# XLA_TARGET=cpu for CPU-only inference (no GPU in container)
 ENV XLA_TARGET=cpu
 ENV XLA_BUILD=false
-ENV SKIP_ZENOH_NIF=1
-ENV SKIP_LINEAGE_NIF=1
+
+# =============================================================================
+# CRITICAL: NIF Build Configuration
+# =============================================================================
+# SKIP_ZENOH_NIF=0 - ENABLE NIF BUILDING (REQUIRED for NIF functionality)
+# SKIP_ZENOH_NIF=1 - DISABLE NIF BUILDING (NIF functions will fail with "Function not found")
+#
+# IMPORTANT: The NIF MUST be built inside the container because:
+# 1. NixOS uses musl libc, different from host glibc
+# 2. NIFs built on host will NOT work in container (ABI mismatch)
+# 3. The Rust toolchain is installed inside the container
+ENV SKIP_ZENOH_NIF=0
+
+# SKIP_LINEAGE_NIF - Enable/disable lineage NIF (set to 0 to enable)
+ENV SKIP_LINEAGE_NIF=0
+
+# MIX_ENV=prod - Build in release mode (optimized NIFs)
 ENV MIX_ENV=prod
+
+# SECRET_KEY_BASE - Placeholder, will be overridden at runtime
 ENV SECRET_KEY_BASE=container-build-placeholder-key-will-be-overridden-at-runtime-0123456789abcdef
 
-# TARGETED GENETIC INJECTION: Only essential source DNA
-COPY mix.exs mix.lock ./
+# =============================================================================
+# CRITICAL: Fix Latin1 Encoding Warning
+# =============================================================================
+# Without this, Elixir shows:
+#   "warning: the VM is running with native name encoding of latin1 which may cause
+#    Elixir to malfunction as it expects utf8."
+#
+# +fnu = force native unicode (fixes encoding)
+ENV ELIXIR_ERL_OPTIONS="+fnu"
+
+# =============================================================================
+# CRITICAL: Database Connection
+# =============================================================================
+# DATABASE_URL must be provided at runtime. Example:
+#   --env DATABASE_URL="ecto://postgres:postgres@172.28.0.5/indrajaal"
+#
+# REDIS_URL must be provided at runtime. Example:
+#   --env REDIS_URL="redis://localhost:6379"
+
+# =============================================================================
+# Source Code Injection
+# =============================================================================
+# These files are copied to enable mix compile to build NIFs
+COPY mix.exs mix.lock Cargo.toml Cargo.lock ./
 COPY config ./config
 COPY lib ./lib
 COPY priv ./priv
+COPY native ./native
 COPY scripts/containers/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-# Install toolchain inside container (musl-libc alignment)
-# gnumake + gcc needed for NIF compilation (bcrypt, jason_native, etc.)
+# =============================================================================
+# Toolchain Installation (CRITICAL FOR NIF BUILD)
+# =============================================================================
+# NixOS/Nix package installation for:
+# - elixir_1_19: Elixir runtime
+# - erlang_28: Erlang runtime
+# - tini: Minimal init system (PID 1)
+# - gnumake: Required for NIF compilation
+# - gcc: C compiler for native deps
+# - cmake: Build system
+# - cargo: Rust compiler (REQUIRED for NIF)
 RUN nix-channel --update && \
     nix-env -iA nixpkgs.elixir_1_19 \
                 nixpkgs.erlang_28 \
                 nixpkgs.tini \
                 nixpkgs.gnumake \
                 nixpkgs.gcc \
-                nixpkgs.cmake
+                nixpkgs.cmake \
+                nixpkgs.cargo
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Force NIF compilation inside the container toolchain
+# =============================================================================
+# NIF Compilation - CRITICAL STEP
+# =============================================================================
+# This step builds the Rust NIFs (zenoh_nif, math_engine, lineage_auth)
+# The mix compile command will invoke cargo to build NIFs from native/*/src
+#
+# NIF files are placed in:
+#   priv/native/zenoh_nif.so
+#   priv/native/math_engine.so
+#   priv/native/lineage_auth.so
+#
+# These NIFs are loaded at runtime by the Elixir application
 RUN mix local.hex --force && \
     mix local.rebar --force && \
     mix deps.get && \
     mix compile
 
+# =============================================================================
+# Entrypoint and Command
+# =============================================================================
+# ENTRYPOINT: tini wrapper for proper signal handling
+# CMD: Start Phoenix server (mix phx.server)
+#
+# Override CMD to run custom commands:
+#   podman run ... /bin/sh -c "mix phx.server"
+#   podman run ... /bin/sh -c "mix compile && mix phx.server"
 ENTRYPOINT ["tini", "--", "/usr/local/bin/entrypoint.sh"]
 CMD ["phx.server"]
+
+# =============================================================================
+# Runtime Environment Variables
+# =============================================================================
+# Required at runtime:
+#   DATABASE_URL - PostgreSQL connection string
+#   REDIS_URL - Redis connection string
+#   SECRET_KEY_BASE - Phoenix secret key (generate with: mix phx.gen.secret)
+#   PORT - HTTP port (default: 4000)
+#
+# Optional:
+#   SKIP_ZENOH_NIF=0 - Build NIFs (keep 0)
+#   ELIXIR_ERL_OPTIONS="+fnu" - UTF-8 encoding (keep "+fnu")
+#   MIX_ENV=prod - Production mode
+#
+# Example runtime command:
+#   podman run -d \
+#     --name indrajaal-ex-app-1 \
+#     --env MIX_ENV=prod \
+#     --env SKIP_ZENOH_NIF=0 \
+#     --env ELIXIR_ERL_OPTIONS="+fnu" \
+#     --env DATABASE_URL="ecto://postgres:postgres@172.28.0.5/indrajaal" \
+#     --env REDIS_URL="redis://localhost:6379" \
+#     --env PORT=4000 \
+#     localhost/indrajaal-sopv51-elixir-app:nixos-devenv
+# =============================================================================

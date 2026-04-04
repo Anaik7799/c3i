@@ -29,7 +29,7 @@
 # Mission: Eliminate 150+ violations through factory complexity optimization
 # Target: lib/test/support/factories/* and high-ABC functions
 # Expected Impact: 150-200 violations elimination (PHASE C PRIORITY)
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Factory Complexity Optimization")
 IO.puts("==============================================================")
@@ -434,7 +434,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       elixir factory_complexity_optimizer_fixed.exs --analyze-complexity
 
       # Execute comprehensive Phase C with maximum parallelization
-      ELIXIR_ERL_OPTIONS="+S 16" elixir factory_complexity_optimizer_fixed.exs --comprehensive
+      ELIXIR_ERL_OPTIONS="+fnu +S 16" elixir factory_complexity_optimizer_fixed.exs --comprehensive
     """)
   end
 end

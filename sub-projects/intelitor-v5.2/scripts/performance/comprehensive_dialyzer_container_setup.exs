@@ -191,7 +191,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       ],
       environment: %{
         "MIX_ENV" => "test",
-        "ELIXIR_ERL_OPTIONS" => "+S 16",
+        "ELIXIR_ERL_OPTIONS" => "+fnu +S 16",
         "DATABASE_URL" => "postgres://postgres:postgres@localhost/indrajaal_test"
       },
       packages: [

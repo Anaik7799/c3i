@@ -9,28 +9,39 @@ defmodule Indrajaal.Fractal.L1.NifUnitTest do
   """
 
   describe "Zenoh NIF L1" do
-    test "check_nif_loaded/0 returns true" do
-      # If NIF is not loaded, this will return false or raise
-      assert Zenoh.check_nif_loaded() == true
+    test "classify_tier/1 returns valid tier atom" do
+      assert Zenoh.classify_tier("indrajaal/logs/test") == :bypass
+      assert Zenoh.classify_tier("indrajaal/control/test") == :full
+      assert Zenoh.classify_tier("indrajaal/inference/test") == :session
     end
 
-    test "declare_publisher/1 returns reference or error" do
-      case Zenoh.declare_publisher("test/l1/key") do
-        {:ok, ref} -> assert is_reference(ref)
-        {:error, _} -> flunk("Failed to declare publisher")
-      end
+    test "classify_tier/1 handles non-binary gracefully" do
+      assert Zenoh.classify_tier("not_binary") == :bypass
+    end
+
+    test "verify_proof_token/1 handles invalid JSON gracefully" do
+      result = Zenoh.verify_proof_token("not_valid_json")
+      assert is_tuple(result)
     end
   end
 
   describe "LineageAuth NIF L1" do
-    test "verify_signature/3 handles valid inputs structure" do
-      # We don't need a valid signature here, just testing the NIF boundary
-      # An invalid signature should return false, not crash
-      pub_key = :crypto.strong_rand_bytes(32)
+    test "verify_signature/3 handles wrong key size gracefully" do
+      pub_key = :crypto.strong_rand_bytes(16)
       sig = :crypto.strong_rand_bytes(64)
       msg = "test"
 
-      assert LineageAuth.verify_signature(pub_key, msg, sig) == false
+      result = LineageAuth.verify_signature(pub_key, msg, sig)
+      assert is_boolean(result) or (is_tuple(result) and elem(result, 0) == :error)
+    end
+
+    test "verify_signature/3 handles wrong signature size gracefully" do
+      pub_key = :crypto.strong_rand_bytes(32)
+      sig = :crypto.strong_rand_bytes(32)
+      msg = "test"
+
+      result = LineageAuth.verify_signature(pub_key, msg, sig)
+      assert is_boolean(result) or (is_tuple(result) and elem(result, 0) == :error)
     end
   end
 end

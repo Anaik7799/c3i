@@ -544,8 +544,8 @@ defmodule TestCompilationCheck do
     end
 
     if not String.contains?(results.environment.elixir_erl_options || "", "+S 16") do
-      IO.puts("  Setting ELIXIR_ERL_OPTIONS=+S 16:16 +SDio 16")
-      System.put_env("ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16")
+      IO.puts("  Setting ELIXIR_ERL_OPTIONS=+fnu +S 16:16 +SDio 16")
+      System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16")
       System.put_env("MIX_OS_DEPS_COMPILE_PARTITION_COUNT", "8")
     end
 

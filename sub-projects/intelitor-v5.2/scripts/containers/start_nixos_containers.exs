@@ -1,6 +1,6 @@
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # SOPv5.1 ENHANCED ENVIRONMENT CONFIGURATION - start_nixos_containers.exs
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 #
 # Enhanced: 2025-08-02 17:30:00 CEST
 # Framework: SOPv5.1 + TPS + STAMP + TDG + GDE + Patient Mode + Container-Only
@@ -24,7 +24,7 @@
 # - Container-Only: Mandatory NixOS container execution with PHICS integration
 # - 11-Agent Architecture: Multi-agent coordination with dynamic load balancing
 #
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 #!/usr/bin/env elixir
 
@@ -43,13 +43,13 @@ defmodule StartNixosContainers do
   Framework: SOPv5.1 + PHICS + TPS + STAMP
   """
 
-  __require Logger
+  __require(Logger)
 
   @project_root File.cwd!()
 
   @spec main(any()) :: any()
   def main(args \\ []) do
-    IO.puts """
+    IO.puts("""
     🚀 Starting NixOS Containers with PHICS
     ======================================
     Project Root: #{@project_root}
@@ -61,17 +61,18 @@ defmodule StartNixosContainers do
     Level 3: SOPv5.1 compliance mandatory
     Level 4: Systematic startup needed
     Level 5: Container orchestration solution
-    """
+    """)
 
     # Agent: Parse options
-    {__opts, _, _} = OptionParser.parse(args,
-      switches: [
-        compose: :boolean,
-        individual: :boolean,
-        validate: :boolean,
-        force: :boolean
-      ]
-    )
+    {__opts, _, _} =
+      OptionParser.parse(args,
+        switches: [
+          compose: :boolean,
+          individual: :boolean,
+          validate: :boolean,
+          force: :boolean
+        ]
+      )
 
     # Agent: Check pre__requisites
     unless pre__requisites_met?() do
@@ -103,10 +104,12 @@ defmodule StartNixosContainers do
       {_, 0} ->
         # Agent: Check project directories
         dirs = ["__data", "__data/postgres", "__data/redis", "logs", "tmp"]
+
         Enum.all?(dirs, fn dir ->
           path = Path.join(@project_root, dir)
           File.dir?(path) || (File.mkdir_p!(path) && true)
         end)
+
       _ ->
         false
     end
@@ -126,6 +129,7 @@ defmodule StartNixosContainers do
     case System.cmd("podman-compose", ["up", "-d"], into: IO.stream(:stdio, :line)) do
       {_, 0} ->
         IO.puts("✅ Containers started successfully with podman-compose")
+
       {_, code} ->
         IO.puts("❌ Failed to start containers (exit code: #{code})")
         System.halt(1)
@@ -151,18 +155,30 @@ defmodule StartNixosContainers do
     IO.puts("\n  Starting PostgreSQL container...")
 
     args = [
-      "run", "-d",
-      "--name", "indrajaal-postgres-demo",
-      "-p", "5433:5433",
-      "-v", "#{@project_root}/__data/postgres:/var/lib/postgresql/__data:z",
-      "-e", "POSTGRES_DB=indrajaal_demo",
-      "-e", "POSTGRES_USER=postgres",
-      "-e", "POSTGRES_PASSWORD=postgres",
-      "-e", "PGPORT=5433",
-      "-e", "PHICS_ENABLED=true",
-      "-e", "NO_TIMEOUT=true",
-      "-e", "CONTAINER_OS=nixos",
-      "-e", "MAX_PARALLELIZATION=true",
+      "run",
+      "-d",
+      "--name",
+      "indrajaal-postgres-demo",
+      "-p",
+      "5433:5433",
+      "-v",
+      "#{@project_root}/__data/postgres:/var/lib/postgresql/__data:z",
+      "-e",
+      "POSTGRES_DB=indrajaal_demo",
+      "-e",
+      "POSTGRES_USER=postgres",
+      "-e",
+      "POSTGRES_PASSWORD=postgres",
+      "-e",
+      "PGPORT=5433",
+      "-e",
+      "PHICS_ENABLED=true",
+      "-e",
+      "NO_TIMEOUT=true",
+      "-e",
+      "CONTAINER_OS=nixos",
+      "-e",
+      "MAX_PARALLELIZATION=true",
       "localhost/indrajaal-postgres-demo:demo-ready"
     ]
 
@@ -170,6 +186,7 @@ defmodule StartNixosContainers do
       {_, 0} ->
         IO.puts("    ✅ PostgreSQL started")
         :ok
+
       _ ->
         IO.puts("    ❌ Failed to start PostgreSQL")
         :error
@@ -181,14 +198,22 @@ defmodule StartNixosContainers do
     IO.puts("\n  Starting Redis container...")
 
     args = [
-      "run", "-d",
-      "--name", "indrajaal-redis-demo",
-      "-p", "6379:6379",
-      "-v", "#{@project_root}/__data/redis:/__data:z",
-      "-e", "PHICS_ENABLED=true",
-      "-e", "NO_TIMEOUT=true",
-      "-e", "CONTAINER_OS=nixos",
-      "-e", "MAX_PARALLELIZATION=true",
+      "run",
+      "-d",
+      "--name",
+      "indrajaal-redis-demo",
+      "-p",
+      "6379:6379",
+      "-v",
+      "#{@project_root}/__data/redis:/__data:z",
+      "-e",
+      "PHICS_ENABLED=true",
+      "-e",
+      "NO_TIMEOUT=true",
+      "-e",
+      "CONTAINER_OS=nixos",
+      "-e",
+      "MAX_PARALLELIZATION=true",
       "localhost/indrajaal-redis-demo:demo-ready"
     ]
 
@@ -196,6 +221,7 @@ defmodule StartNixosContainers do
       {_, 0} ->
         IO.puts("    ✅ Redis started")
         :ok
+
       _ ->
         IO.puts("    ❌ Failed to start Redis")
         :error
@@ -207,29 +233,48 @@ defmodule StartNixosContainers do
     IO.puts("\n  Starting Elixir app container...")
 
     args = [
-      "run", "-d",
-      "--name", "indrajaal-app-demo",
-      "-p", "4000:4000",
-      "-p", "4001:4001",
-      "-v", "#{@project_root}:/workspace:z",
-      "-w", "/workspace",
-      "-e", "MIX_ENV=demo",
-      "-e", "DATABASE_URL=postgres://postgres:postgres@indrajaal-postgres-demo:5433/indrajaal_demo",
-      "-e", "REDIS_URL=redis://indrajaal-redis-demo:6379",
-      "-e", "PHICS_ENABLED=true",
-      "-e", "NO_TIMEOUT=true",
-      "-e", "CONTAINER_OS=nixos",
-      "-e", "MAX_PARALLELIZATION=true",
-      "-e", "ELIXIR_ERL_OPTIONS=+S 16",
-      "-e", "CONTAINER_ENFORCEMENT=true",
+      "run",
+      "-d",
+      "--name",
+      "indrajaal-app-demo",
+      "-p",
+      "4000:4000",
+      "-p",
+      "4001:4001",
+      "-v",
+      "#{@project_root}:/workspace:z",
+      "-w",
+      "/workspace",
+      "-e",
+      "MIX_ENV=demo",
+      "-e",
+      "DATABASE_URL=postgres://postgres:postgres@indrajaal-postgres-demo:5433/indrajaal_demo",
+      "-e",
+      "REDIS_URL=redis://indrajaal-redis-demo:6379",
+      "-e",
+      "PHICS_ENABLED=true",
+      "-e",
+      "NO_TIMEOUT=true",
+      "-e",
+      "CONTAINER_OS=nixos",
+      "-e",
+      "MAX_PARALLELIZATION=true",
+      "-e",
+      "ELIXIR_ERL_OPTIONS=+fnu +S 16",
+      "-e",
+      "CONTAINER_ENFORCEMENT=true",
       "localhost/indrajaal-app-demo:demo-ready",
-      "iex", "-S", "mix", "phx.server"
+      "iex",
+      "-S",
+      "mix",
+      "phx.server"
     ]
 
     case System.cmd("podman", args) do
       {_, 0} ->
         IO.puts("    ✅ Elixir app started")
         :ok
+
       _ ->
         IO.puts("    ❌ Failed to start Elixir app")
         :error
@@ -239,42 +284,43 @@ end
 
 # Agent: Execute startup
 StartNixosContainers.main(System.argv())
-#═══════════════════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # PATIENT MODE - NO_TIMEOUT POLICY VARIABLES
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 # Patient Mode Configuration
-export PATIENT_MODE=enabled
-export NO_TIMEOUT=true
-export INFINITE_PATIENCE=true
-export TIMEOUT_POLICY=none
+export(PATIENT_MODE = enabled)
+export(NO_TIMEOUT = true)
+export(INFINITE_PATIENCE = true)
+export(TIMEOUT_POLICY = none)
 
 # Patient Mode Execution Settings
-export COMPILE_TIMEOUT=infinity
-export TEST_TIMEOUT=infinity
-export DEMO_TIMEOUT=infinity
-export TASK_TIMEOUT=infinity
+export(COMPILE_TIMEOUT = infinity)
+export(TEST_TIMEOUT = infinity)
+export(DEMO_TIMEOUT = infinity)
+export(TASK_TIMEOUT = infinity)
 
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # 11-AGENT ARCHITECTURE COORDINATION VARIABLES
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 # Agent Architecture Configuration
-export AGENT_COORDINATION=enabled
-export SUPERVISOR_AGENTS=1
-export HELPER_AGENTS=4
-export WORKER_AGENTS=6
-export TOTAL_AGENTS=11
+export(AGENT_COORDINATION = enabled)
+export(SUPERVISOR_AGENTS = 1)
+export(HELPER_AGENTS = 4)
+export(WORKER_AGENTS = 6)
+export(TOTAL_AGENTS = 11)
 
 # Agent Coordination Settings
-export MULTI_AGENT_COORDINATION=enabled
-export DYNAMIC_LOAD_BALANCING=enabled
-export AGENT_COMMUNICATION=enabled
-export COORDINATION_STRATEGY=cybernetic
+export(MULTI_AGENT_COORDINATION = enabled)
+export(DYNAMIC_LOAD_BALANCING = enabled)
+export(AGENT_COMMUNICATION = enabled)
+export(COORDINATION_STRATEGY = cybernetic)
 
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # SOPv5.1 ENVIRONMENT ENHANCEMENT COMPLETE
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 #
 # Enhancement Date: 2025-08-02 17:30:00 CEST
 # Framework: Complete SOPv5.1 + TPS + STAMP + TDG + GDE + Patient Mode + Containe
@@ -295,7 +341,6 @@ export COORDINATION_STRATEGY=cybernetic
 # Strategic Value: Enhanced environment configuration contributing to overall $25
 # business value through systematic excellence and enterprise-grade reliability.
 #
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # 🚀 SOPv5.1 Cybernetic Excellence Achieved
-#═══════════════════════════════════════════════════════════════════════════════
-
+# ═══════════════════════════════════════════════════════════════════════════════

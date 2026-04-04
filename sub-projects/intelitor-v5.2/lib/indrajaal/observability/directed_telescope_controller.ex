@@ -66,7 +66,7 @@ defmodule Indrajaal.Observability.DirectedTelescopeController do
     full_production: %{
       log_level: :info,
       heartbeat_interval_ms: 500,
-      heartbeat_timeout_ms: 2_000,
+      heartbeat_timeout_ms: 300_000,
       retry_backoff_base_ms: 1_000,
       retry_silence_after: 10,
       enable_zenoh_reconnect: true,
@@ -79,7 +79,7 @@ defmodule Indrajaal.Observability.DirectedTelescopeController do
     staging: %{
       log_level: :info,
       heartbeat_interval_ms: 1_000,
-      heartbeat_timeout_ms: 5_000,
+      heartbeat_timeout_ms: 300_000,
       retry_backoff_base_ms: 2_000,
       retry_silence_after: 5,
       enable_zenoh_reconnect: true,
@@ -92,7 +92,7 @@ defmodule Indrajaal.Observability.DirectedTelescopeController do
     development: %{
       log_level: :debug,
       heartbeat_interval_ms: 5_000,
-      heartbeat_timeout_ms: 30_000,
+      heartbeat_timeout_ms: 300_000,
       retry_backoff_base_ms: 5_000,
       retry_silence_after: 3,
       enable_zenoh_reconnect: true,
@@ -105,7 +105,7 @@ defmodule Indrajaal.Observability.DirectedTelescopeController do
     integration_test: %{
       log_level: :warning,
       heartbeat_interval_ms: 10_000,
-      heartbeat_timeout_ms: 60_000,
+      heartbeat_timeout_ms: 300_000,
       retry_backoff_base_ms: 10_000,
       retry_silence_after: 2,
       enable_zenoh_reconnect: false,

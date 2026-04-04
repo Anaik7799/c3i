@@ -212,8 +212,8 @@ config :indrajaal, :logging_control,
 # Logger configuration with TRIPLE logging (Console + SigNoz + TimescaleDB)
 # MANDATORY: All three logging backends must be active for complete observability
 # TDG: Configuration validated by tests before implementation
+# SC-FIX-LOGGER: Removed deprecated :backends key (Elixir 1.15+)
 config :logger,
-  backends: [:console, LoggerJSON],
   # STAMP: Prevent log overflow
   truncate: 8192,
   compile_time_purge_matching: [

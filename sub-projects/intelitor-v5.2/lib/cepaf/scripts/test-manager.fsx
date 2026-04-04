@@ -5,7 +5,7 @@
 // Version: 1.1.0
 // Architecture: External Observer (F#) monitoring System (Elixir/Podman)
 // Compliance: SC-SIL6-020 (Separation of Concerns), SC-METRICS-003 (Mandatory Parallelization)
-// ELIXIR_ERL_OPTIONS: "+S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
+// ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
 // =========================================================================================
 
 #r "nuget: Microsoft.Data.Sqlite"
@@ -98,7 +98,7 @@ let logTelemetry execId level source data =
 
 // SC-METRICS-003: Mandatory parallelization environment variables
 let mandatoryEnvVars = [
-    ("ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16")
+    ("ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16")
     ("NO_TIMEOUT", "true")
     ("PATIENT_MODE", "enabled")
     ("INFINITE_PATIENCE", "true")

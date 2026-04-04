@@ -29,7 +29,7 @@
 # Mission: Eliminate ALL validate_bulk_stamp_constraints duplications (17+ controllers)
 # Target: Complete consolidation with MobileSecurityValidator
 # Expected Impact: 400+ violations elimination (PHASE E PRIORITY 1)
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase E Ultimate Mobile Controller Consolidation")
 IO.puts("======================================================================================")

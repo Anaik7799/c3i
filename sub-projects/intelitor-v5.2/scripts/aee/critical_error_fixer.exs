@@ -164,7 +164,7 @@ defmodule CriticalErrorFixer do
   defp compile_test do
     {_output, __} = System.cmd("mix", ["compile"], 
                              stderr_to_stdout: true,
-                             env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}])
+                             env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}])
     
     errors = length(Regex.scan(~r/\s+error:/, output))
     warnings = length(Regex.scan(~r/\s+warning:/, output))

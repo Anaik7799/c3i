@@ -180,7 +180,7 @@ defmodule SimpleSOPv51ContainerBuild do
     ENV CONTAINER_ENFORCEMENT=false
     ENV PHICS_ENABLED=true
     ENV NO_TIMEOUT=#{options.no_timeout}
-    ENV ELIXIR_ERL_OPTIONS="+S 16"
+    ENV ELIXIR_ERL_OPTIONS="+fnu +S 16"
     ENV SOP_V51_MODE=enabled
     ENV TPS_METHODOLOGY=active
     ENV STAMP_INTEGRATION=enabled

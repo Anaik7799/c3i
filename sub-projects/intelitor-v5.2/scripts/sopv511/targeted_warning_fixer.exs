@@ -51,7 +51,7 @@ defmodule SOPv511.TargetedWarningFixer do
         IO.puts "   🧪 Testing compilation..."
         {__, _exit_code} = System.cmd("mix", ["compile"], 
           stderr_to_stdout: true,
-          env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}]
+          env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}]
         )
         
         if exit_code == 0 do

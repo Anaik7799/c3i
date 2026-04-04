@@ -268,7 +268,7 @@ defmodule MachineLearningInsightsBatchFixer do
     - currentstate -> current_state
 
     Next Steps:
-    1. Run compilation validation: env ELIXIR_ERL_OPTIONS="+S 16" mix compile --jobs 16 --warnings-as-errors
+    1. Run compilation validation: env ELIXIR_ERL_OPTIONS="+fnu +S 16" mix compile --jobs 16 --warnings-as-errors
     2. If successful, commit changes and proceed to next batch
     3. If failed, analyze errors and adjust fixes
     """

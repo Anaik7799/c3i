@@ -6,7 +6,6 @@
 // ported from the F# CEPAF codebase.
 
 import gleam/option.{type Option}
-import gleam/result
 import gleam/string
 
 // =============================================================================

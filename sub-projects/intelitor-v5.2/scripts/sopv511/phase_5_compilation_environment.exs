@@ -140,7 +140,7 @@ defmodule SOPv511Phase5CompilationEnvironment do
             "NO_TIMEOUT=true",
             "PATIENT_MODE=enabled",
             "INFINITE_PATIENCE=true",
-            "ELIXIR_ERL_OPTIONS=+S 16:16 +SDio 16",
+            "ELIXIR_ERL_OPTIONS=+fnu +S 16:16 +SDio 16",
             "MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8"
           ]
         },
@@ -243,7 +243,7 @@ defmodule SOPv511Phase5CompilationEnvironment do
     export NO_TIMEOUT=true
     export PATIENT_MODE=enabled
     export INFINITE_PATIENCE=true
-    export ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"
+    export ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16"
     export MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8
 
     # Validate environment
@@ -256,7 +256,7 @@ defmodule SOPv511Phase5CompilationEnvironment do
     echo "🔄 Starting patient compilation (NO timeout, INFINITE patience)..."
 
     # Execute patient compilation with complete logging (SC-METRICS-003)
-    NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 \\
+    NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 \\
         mix compile --jobs 16 --warnings-as-errors --verbose 2>&1 | tee -a "./__data/compilation/logs/patient_compilation_$(date +%Y%m%d-%H%M).log"
     
     COMPILE_EXIT_CODE=$?
@@ -453,7 +453,7 @@ defmodule SOPv511Phase5CompilationEnvironment do
         export NO_TIMEOUT=true &&
         export PATIENT_MODE=enabled &&
         export INFINITE_PATIENCE=true &&
-        export ELIXIR_ERL_OPTIONS='+S 16:16 +SDio 16' &&
+        export ELIXIR_ERL_OPTIONS='+fnu +S 16:16 +SDio 16' &&
         export MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 &&
         mix compile --jobs 16 --warnings-as-errors --verbose 2>&1 | tee compilation.log
     "
@@ -760,7 +760,7 @@ defmodule SOPv511Phase5CompilationEnvironment do
     echo "⚡ Configuring parallel compilation environment (SC-METRICS-003)..."
 
     # Set parallel compilation environment - SC-METRICS-003: MANDATORY
-    export ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"
+    export ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16"
     export MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8
     export MIX_ENV=dev
     export ERL_AFLAGS="-kernel shell_history enabled"
@@ -781,7 +781,7 @@ defmodule SOPv511Phase5CompilationEnvironment do
     echo "🔄 Starting parallel patient mode compilation..."
 
     NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true \\
-        ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" \\
+        ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" \\
         MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 \\
         time mix compile --jobs 16 --warnings-as-errors --verbose --parallel \\
         2>&1 | tee "./__data/compilation/logs/parallel_compilation_$(date +%Y%m%d-%H%M).log"

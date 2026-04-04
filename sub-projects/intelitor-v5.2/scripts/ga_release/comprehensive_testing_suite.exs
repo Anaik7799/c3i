@@ -75,7 +75,7 @@ defmodule ComprehensiveTestingSuite do
     System.put_env("GIT_BASED_TESTING", "true")
     System.put_env("CONTAINER_TESTING", "true")
     System.put_env("MIX_ENV", "test")
-    System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 
     # Create testing directories
     File.mkdir_p!("test_results")
@@ -229,7 +229,7 @@ defmodule ComprehensiveTestingSuite do
 
     # Execute unit tests with coverage
     unit_test_result = case System.cmd("mix", ["test", "--cover"],
-                                      env: [{"MIX_ENV", "test"}, {"ELIXIR_ERL_OPTIONS", "+S 16"}],
+                                      env: [{"MIX_ENV", "test"}, {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}],
                                       stderr_to_stdout: true) do
       {output, 0} ->
         %{status: "success", output: output, tests_run: extract_test_count(output)}

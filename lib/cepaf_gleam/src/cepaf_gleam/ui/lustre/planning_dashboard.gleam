@@ -145,6 +145,9 @@ pub type DashboardModel {
   )
 }
 
+pub type Msg =
+  DashboardMsg
+
 pub type DashboardMsg {
   // Task messages
   SetTaskFilter(String)
@@ -182,6 +185,9 @@ pub type DashboardMsg {
   AgUiConnected(Bool)
   ChatMessageReceived(ChatMessage)
   RefreshAll
+  NextCockpitMode
+  SelectPanel(PanelId)
+  CloseDetail
   // --- AG-UI Protocol Events (SC-AGUI-001) ---
   AgUiRunStarted(thread_id: String, run_id: String)
   AgUiRunFinished(thread_id: String, run_id: String)
@@ -513,6 +519,23 @@ pub fn update(model: DashboardModel, msg: DashboardMsg) -> DashboardModel {
         })
       DashboardModel(..model, tasks: updated_tasks)
     }
+
+    NextCockpitMode ->
+      DashboardModel(..model, cockpit_mode: next_cockpit_mode(model.cockpit_mode))
+
+    SelectPanel(panel) -> DashboardModel(..model, active_panel: panel)
+
+    CloseDetail -> DashboardModel(..model, selected_task: None)
+  }
+}
+
+fn next_cockpit_mode(mode: CockpitMode) -> CockpitMode {
+  case mode {
+    Dark -> Dim
+    Dim -> Normal
+    Normal -> Bright
+    Bright -> EmergencyMode
+    EmergencyMode -> Dark
   }
 }
 
@@ -596,6 +619,7 @@ pub fn determine_cockpit_mode(model: DashboardModel) -> CockpitMode {
 import lustre/element.{type Element}
 import lustre/element/html
 import lustre/attribute as attr
+import lustre/event
 
 pub fn view(model: DashboardModel) -> Element(Msg) {
   let health = health_score(model)
@@ -707,11 +731,11 @@ fn render_sidebar(model: DashboardModel) -> Element(Msg) {
           html.select(
             [on_change(SetTaskFilter)],
             [
-              html.option([attr.value("all")], [html.text("All Tasks")]),
-              html.option([attr.value("pending")], [html.text("Pending")]),
-              html.option([attr.value("in_progress")], [html.text("In Progress")]),
-              html.option([attr.value("completed")], [html.text("Completed")]),
-              html.option([attr.value("blocked")], [html.text("Blocked")]),
+              html.option([attr.value("all")], "All Tasks"),
+              html.option([attr.value("pending")], "Pending"),
+              html.option([attr.value("in_progress")], "In Progress"),
+              html.option([attr.value("completed")], "Completed"),
+              html.option([attr.value("blocked")], "Blocked"),
             ],
           ),
         ],
@@ -1170,25 +1194,26 @@ fn render_chat_message(msg: ChatMessage) -> Element(Msg) {
 // =============================================================================
 
 fn on_click(msg: Msg) -> attr.Attribute(Msg) {
-  attr.on("click", fn(_) { Ok(msg) })
+  event.on_click(msg)
 }
 
 fn on_change(f: fn(String) -> Msg) -> attr.Attribute(Msg) {
-  attr.on("change", fn(_json) {
-    Ok(f(""))
-  })
+  event.on_input(f)
 }
 
-fn on_drag_start(msg: Msg) -> attr.Attribute(Msg) {
-  attr.on("dragstart", fn(_) { Ok(msg) })
+fn on_drag_start(_msg: Msg) -> attr.Attribute(Msg) {
+  // event.on("dragstart", fn(_) { Ok(msg) })
+  attr.class("drag-start")
 }
 
-fn on_drag_over(msg: Msg) -> attr.Attribute(Msg) {
-  attr.on("dragover", fn(_) { Ok(msg) })
+fn on_drag_over(_msg: Msg) -> attr.Attribute(Msg) {
+  // event.on("dragover", fn(_) { Ok(msg) })
+  attr.class("drag-over")
 }
 
-fn on_drop(msg: Msg) -> attr.Attribute(Msg) {
-  attr.on("drop", fn(_) { Ok(msg) })
+fn on_drop(_msg: Msg) -> attr.Attribute(Msg) {
+  // event.on("drop", fn(_) { Ok(msg) })
+  attr.class("drop")
 }
 
 // =============================================================================

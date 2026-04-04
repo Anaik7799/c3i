@@ -29,7 +29,7 @@
 # Mission: Eliminate ALL demo test concurrent scenario duplications (40+ test files)
 # Target: test_concurrent_scenario patterns across all demo tests
 # Expected Impact: 200+ violations elimination (PHASE F PRIORITY 1)
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase F Mass Demo Test Consolidation")
 IO.puts("=============================================================================")

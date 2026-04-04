@@ -34,13 +34,19 @@ import gleam/erlang/process
 import gleam/int
 import gleam/io
 import gleam/list
+import gleam/string
 
 @external(erlang, "cepaf_gleam_ffi", "get_uid")
 fn get_uid() -> String
 
+@external(erlang, "cepaf_gleam_ffi", "get_arguments")
+fn get_arguments() -> List(String)
+
 pub fn main() {
   io.println("🚀 CEPAF Gleam Orchestrator - Unified Swarm Execution")
   io.println("=====================================================")
+
+  let args = get_arguments()
 
   // 0. OTel Boot Span (SC-OTEL-002)
   case exporter.export_span("c3i.boot", 0.0, "ok", []) {
@@ -49,8 +55,13 @@ pub fn main() {
   }
 
   // 1. Planning Module Execution
-  io.println("\n📅 PLANNING & TASK STATUS:")
-  cli.run(["status"])
+  case args {
+    [] -> {
+      io.println("\n📅 PLANNING & TASK STATUS:")
+      cli.run(["status"])
+    }
+    _ -> cli.run(args)
+  }
 
   // 2. Podman & Swarm Verification
   let uid = get_uid()
@@ -106,13 +117,24 @@ pub fn main() {
   io.println("\n📡 ZENOH IPC INTEGRATION:")
   case zenoh.open("{\"mode\": \"client\"}") {
     Ok(session) -> {
-      let _ = zenoh.put(session, "indrajaal/cepaf/gleam/status", "online")
-      io.println("  ✅ Zenoh session active & status published.")
+      io.println("  [debug] Session: " <> string.inspect(session))
+      case zenoh.put(session, "indrajaal/cepaf/gleam/status", "online") {
+        Ok(_) -> io.println("  ✅ Zenoh session active & status published.")
+        Error(e) -> io.println("  ❌ Zenoh put failed: " <> e)
+      }
     }
-    Error(e) -> io.println("  ❌ Zenoh failed: " <> e)
+    Error(e) -> io.println("  ❌ Zenoh open failed: " <> e)
   }
 
   // 4. Runtime Suspension (replaces F# IHost.Run())
-  io.println("\n🛑 ENTERING SIL-6 DAEMON MODE. Sleeping forever...")
-  process.sleep_forever()
+  case list.contains(args, "--daemon") {
+    True -> {
+      io.println("\n🛑 ENTERING SIL-6 DAEMON MODE. Sleeping forever...")
+      process.sleep_forever()
+    }
+    False -> {
+      io.println("\n✅ Execution complete. Exiting...")
+      Nil
+    }
+  }
 }

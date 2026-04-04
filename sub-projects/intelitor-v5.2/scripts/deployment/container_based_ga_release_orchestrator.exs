@@ -571,7 +571,7 @@ defmodule ContainerBasedGAReleaseOrchestrator do
 
   defp container_environment_variables do
     [
-      {"ELIXIR_ERL_OPTIONS", "+S 16"},
+      {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"},
       {"MIX_ENV", "prod"},
       {"CONTAINER_MODE", "true"},
       {"PHICS_ENABLED", "true"},

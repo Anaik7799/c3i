@@ -239,7 +239,7 @@ defmodule SystematicErrorResolutionEngine do
 
     {_output, _exit_code} = System.cmd("mix", ["compile", "--force"],
                                      stderr_to_stdout: true,
-                                     env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}])
+                                     env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}])
 
     error_count = output
                   |> String.split("\n")

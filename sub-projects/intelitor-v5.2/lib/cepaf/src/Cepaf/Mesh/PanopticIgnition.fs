@@ -742,6 +742,27 @@ module PanopticIgnition =
         // Phase 0: Preflight — Materialize + Network + Port Scour
         // =================================================================
         state <- { state with CurrentPhase = BootPhase.Preflight }
+        logControl "L0" "Executing Genomic Check via GitIntelligence..."
+        logThinking "Validating codebase biomorphic integrity (Safe-State SOP)..."
+        
+        try
+            let psi = ProcessStartInfo()
+            psi.FileName <- "dotnet"
+            psi.Arguments <- "run --project lib/cepaf/src/Cepaf.GitIntelligence/Cepaf.GitIntelligence.fsproj -- biomorphic --json"
+            psi.UseShellExecute <- false
+            psi.RedirectStandardOutput <- true
+            psi.RedirectStandardError <- true
+            use proc = Process.Start(psi)
+            proc.WaitForExit()
+            if proc.ExitCode <> 0 then
+                logControl "L0" (sprintf "Genomic Check FAILED (Exit Code: %d). The Substrate is mathematically unstable." proc.ExitCode)
+                failwith "Biomorphic codebase validation failed. Aborting Panoptic Ignition."
+            else
+                logControl "L0" "Genomic Check PASSED. Substrate is stable."
+        with ex ->
+            logControl "L0" (sprintf "Genomic Check execution failed: %s" ex.Message)
+            failwith "Could not execute GitIntelligence. Aborting Panoptic Ignition."
+
         logControl "L4" "Enforcing Container Isolation (Podman Rootless)..."
 
         // Materialize compose file from embedded genome
@@ -848,6 +869,30 @@ module PanopticIgnition =
                 let nodeState = state.NodeStates |> Map.tryFind node |> Option.defaultValue "UNKNOWN"
                 logControl "L3" (sprintf "Holon %s: %s" node nodeState)
         updateProgress 65.0
+        printfn ""
+
+        // =================================================================
+        // Phase 3.5: BIST-001 — Power Sequencing Equivalent
+        // =================================================================
+        logThinking "Executing SC-BIST-001: Verifying 3σ stability on Zenoh telemetry backplane..."
+        let mutable latencies = []
+        for i in 1..10 do
+            let swPing = Stopwatch.StartNew()
+            ZenohPublish.publish (sprintf "BIST-PING-%d" i) "indrajaal/mesh/bist" "PING" "{\"status\": \"ping\"}"
+            System.Threading.Thread.Sleep(10)
+            swPing.Stop()
+            latencies <- float swPing.ElapsedMilliseconds :: latencies
+        
+        let avg = List.average latencies
+        let variance = latencies |> List.averageBy (fun x -> pown (x - avg) 2)
+        let stdDev = sqrt variance
+        let threeSigma = avg + (3.0 * stdDev)
+        
+        if threeSigma > 100.0 then
+            logControl "L1" (sprintf "SC-BIST-001 FAILED. 3σ Latency (%.2fms) exceeds 100ms threshold. 'Power Rails' unstable." threeSigma)
+            failwith "BIST-001 Stability Check Failed"
+        else
+            logControl "L1" (sprintf "SC-BIST-001 PASSED. 3σ Latency: %.2fms. Proceeding to High-Voltage (App) Initialization." threeSigma)
         printfn ""
 
         // =================================================================

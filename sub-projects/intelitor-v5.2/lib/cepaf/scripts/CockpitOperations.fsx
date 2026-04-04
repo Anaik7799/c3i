@@ -4,7 +4,7 @@
 // WHY: Single entry point for deploy, test, monitor, and operate workflows
 // CONSTRAINTS: Requires .NET SDK 8.0+, Podman 5.4.1+, OpenRouter API key
 // SOPv5.11 Compliance: SC-OODA-001, SC-CNT-009, SC-UX-001, SC-METRICS-003
-// ELIXIR_ERL_OPTIONS: "+S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
+// ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
 
 open System
 open System.IO
@@ -34,7 +34,7 @@ module Config =
 module Shell =
     // SC-METRICS-003: Mandatory parallelization environment variables
     let mandatoryEnvVars = [
-        ("ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16")
+        ("ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16")
         ("NO_TIMEOUT", "true")
         ("PATIENT_MODE", "enabled")
         ("INFINITE_PATIENCE", "true")

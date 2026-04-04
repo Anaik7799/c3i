@@ -29,7 +29,7 @@
 # Mission: Eliminate 100+ violations through error helpers consolidation
 # Target: lib/**/*_helpers.ex and controllers with duplicate log_structured_error
 # Expected Impact: 100+ violations elimination (PHASE D PRIORITY 3)
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase D.3 Error Helpers Consolidation")
 IO.puts("======================================================================")

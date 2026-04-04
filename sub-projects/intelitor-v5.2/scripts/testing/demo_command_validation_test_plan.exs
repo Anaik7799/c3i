@@ -295,7 +295,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
         %{
           name: "parallel_compilation",
           description: "Maximum parallelization compilation",
-          command: ["bash", "-c", "ELIXIR_ERL_OPTIONS='+S 16' mix compile --jobs 16 --warnings-as-errors"],
+          command: ["bash", "-c", "ELIXIR_ERL_OPTIONS='+fnu +S 16' mix compile --jobs 16 --warnings-as-errors"],
           success_indicators: ["compiled", "no warnings", "SUCCESS"],
           timeout: 600_000
         },

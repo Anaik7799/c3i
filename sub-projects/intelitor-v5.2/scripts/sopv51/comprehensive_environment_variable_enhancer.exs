@@ -419,7 +419,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       "development_optimization_variables" => %{
         description: "Development Optimization Variables",
         variables: [
-          "ELIXIR_ERL_OPTIONS=+S 16 +A 32",
+          "ELIXIR_ERL_OPTIONS=+fnu +S 16 +A 32",
           "COMPILE_TIMEOUT=1_200_000",
           "TEST_TIMEOUT=1_200_000",
           "MIX_ENV=dev"
@@ -728,7 +728,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       #══════════════════════════════════════════════════════════════════════════
 
       # Elixir/Erlang Optimization Settings
-      export ELIXIR_ERL_OPTIONS="+S 16 +A 32"
+      export ELIXIR_ERL_OPTIONS="+fnu +S 16 +A 32"
       export ERL_MAX_PORTS=65_536
       export ERL_MAX_ETS_TABLES=65_536
 

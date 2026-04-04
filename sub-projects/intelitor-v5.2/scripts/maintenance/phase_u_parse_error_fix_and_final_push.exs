@@ -30,7 +30,7 @@ Mix.install([{:jason, "~> 1.4"}])
 # Agent: Supervisor-1 (Strategic Oversight Agent)
 # Mission: Fix parse errors and eliminate remaining 1,833 violations
 # Target: 15 files with parse errors + all remaining duplications
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase U Parse Error Fix & Final Push")
 IO.puts("====================================================================")

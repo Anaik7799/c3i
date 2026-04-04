@@ -46,7 +46,7 @@ defmodule EnhancedParameterScopeErrorFixer do
       {:ok, content} -> content
       {:error, _} ->
         IO.puts "[#{timestamp()}] ⚠️ No compilation log found, running fresh compilation..."
-        {_output, __} = System.cmd("mix", ["compile"], stderr_to_stdout: true, env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}])
+        {_output, __} = System.cmd("mix", ["compile"], stderr_to_stdout: true, env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}])
         File.write!("3-enhanced-parameter-compile.log", output)
         output
     end
@@ -214,7 +214,7 @@ defmodule EnhancedParameterScopeErrorFixer do
   defp validate_post_fix_compilation do
     IO.puts "[#{timestamp()}] 🔍 Validation Agent: Running compilation test..."
 
-    {_output, _exit_code} = System.cmd("mix", ["compile"], stderr_to_stdout: true, env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}])
+    {_output, _exit_code} = System.cmd("mix", ["compile"], stderr_to_stdout: true, env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}])
 
     File.write!("4-post-parameter-fix-compile.log", output)
 

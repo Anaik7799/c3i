@@ -40,7 +40,7 @@ defmodule SystematicCompilationErrorFixer do
       export NO_TIMEOUT=true &&
       export PATIENT_MODE=enabled &&
       export INFINITE_PATIENCE=true &&
-      export ELIXIR_ERL_OPTIONS="+S 16" &&
+      export ELIXIR_ERL_OPTIONS="+fnu +S 16" &&
       MIX_ENV=test mix compile --jobs 16 --warnings-as-errors 2>&1
     """], stderr_to_stdout: true)
 
@@ -338,7 +338,7 @@ defmodule SystematicCompilationErrorFixer do
       export NO_TIMEOUT=true &&
       export PATIENT_MODE=enabled &&
       export INFINITE_PATIENCE=true &&
-      export ELIXIR_ERL_OPTIONS="+S 16" &&
+      export ELIXIR_ERL_OPTIONS="+fnu +S 16" &&
       MIX_ENV=test mix compile --jobs 16 2>&1
     """], stderr_to_stdout: true)
 

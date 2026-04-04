@@ -21,9 +21,11 @@ Rust NIFs → Gleam → Elixir → F# (if needed)
 | AOR-NIF-001 | Rust NIFs must have a clearly defined interface contract with Gleam, minimizing risk of runtime errors and unsafety. | Interface documentation, property testing |
 | AOR-POLYGLOT-001 | Language boundaries (Gleam-Rust, Gleam-Elixir, Gleam-F#) must be explicitly documented and tested for interoperability. | Architectural diagrams, integration tests |
 | AOR-BUILD-002 | The build order MUST be strictly followed to ensure correct compilation dependencies across all languages. | CI script validation |
+| AOR-TOOL-001 | Root-level tools (`sa-up`, `sa-gleam`, `sa-plan`) are the authoritative interfaces for mesh and task management. | Functional verification |
+| AOR-TOOL-002 | `sa-gleam` must maintain a 2-tier fallback (NIF -> CLI) for all critical data operations (SQLite, Podman). | Resilience testing |
 
 ## Canonical GEMINI.md Location
-Full spec: `intelitor-v5.2/GEMINI.md` (v21.5.0-GLM)
+Full spec: `dev/ver/c3i/GEMINI.md` (v21.5.0-GLM)
 
 ---
 

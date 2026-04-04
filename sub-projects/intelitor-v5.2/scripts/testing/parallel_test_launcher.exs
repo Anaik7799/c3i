@@ -301,7 +301,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       {"MIX_ENV", "test"},
       {"DATABASE_URL", "ecto://postgres:postgres@localhost:#{db_port}/indrajaal_t
       {"TEST_PARALLEL_ID", "#{env_id}"},
-      {"ELIXIR_ERL_OPTIONS", "+S 4"}
+      {"ELIXIR_ERL_OPTIONS", "+fnu +S 4"}
     ]
 
     IO.puts "  🔄 Environment #{env_id}: Executing tests #{inspect(test_categories

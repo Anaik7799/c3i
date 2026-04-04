@@ -29,7 +29,7 @@
 # Mission: Eliminate 200+ violations through __state management abstraction
 # Target: lib/indrajaal/deployment/environment_lifecycle.ex internal duplications
 # Expected Impact: 200-300 violations elimination (PHASE B PRIORITY)
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Environment Lifecycle Abstraction")
 IO.puts("=================================================================")
@@ -736,7 +736,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       elixir #{__ENV__.file} --analyze-lifecycle
 
       # Execute comprehensive Phase B.1 with __state machine abstraction
-      ELIXIR_ERL_OPTIONS="+S 16" elixir #{__ENV__.file} --comprehensive
+      ELIXIR_ERL_OPTIONS="+fnu +S 16" elixir #{__ENV__.file} --comprehensive
     """)
   end
 end

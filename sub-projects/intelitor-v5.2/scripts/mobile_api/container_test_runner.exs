@@ -159,7 +159,7 @@ defmodule MobileApi.ContainerTestRunner do
       "--memory", "8g",
       "--cpus", "6",  # 6 worker agents
       "--network", "host",  # For __database access
-      "-e", "ELIXIR_ERL_OPTIONS=+S 16",  # 16 schedulers
+      "-e", "ELIXIR_ERL_OPTIONS=+fnu +S 16",  # 16 schedulers
       "-e", "MIX_TEST_TIMEOUT=infinity",
       "-e", "CLAUDE_SESSION_ID=test_#{@timestamp}",
       "-e", "DATABASE_URL=ecto://postgres:postgres@localhost:5433/indrajaal_test",

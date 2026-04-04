@@ -274,7 +274,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     # Apply quick win optimizations
     System.put_env("MIX_ENV", "dev")
     System.put_env("ERL_AFLAGS", "+P 5_000_000 +Q 1_000_000 +K true +A 128")
-    System.put_env("ELIXIR_ERL_OPTIONS", "+P 5_000_000 +Q 65_536")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +P 5_000_000 +Q 65_536")
     System.put_env("ELIXIR_COMPILER_OPTS", "--warnings-as-errors=false")
     System.put_env("MIX_BUILD_EMBEDDED", "true")
 
@@ -351,7 +351,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     # Keep quick win optimizations
     System.put_env("MIX_ENV", "dev")
     System.put_env("ERL_AFLAGS", "+P 5_000_000 +Q 1_000_000 +K true +A 128 +sbt db")
-    System.put_env("ELIXIR_ERL_OPTIONS", "+P 5_000_000 +Q 65_536 +hmbs 46_422 +hms 8348")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +P 5_000_000 +Q 65_536 +hmbs 46_422 +hms 8348")
 
     create_optimized_config("structural")
 

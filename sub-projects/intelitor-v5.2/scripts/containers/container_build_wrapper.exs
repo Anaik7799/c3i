@@ -62,7 +62,7 @@ defmodule ContainerBuildWrapper do
       "-e",
       "NO_TIMEOUT=true",
       "-e",
-      "ELIXIR_ERL_OPTIONS=+S 16"
+      "ELIXIR_ERL_OPTIONS=+fnu +S 16"
     ]
 
     # Agent: Create PHICS marker

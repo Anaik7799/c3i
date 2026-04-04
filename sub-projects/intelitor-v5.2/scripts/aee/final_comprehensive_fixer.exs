@@ -223,7 +223,7 @@ defmodule FinalComprehensiveFixer do
     
     {_output, _exit_code} = System.cmd("mix", ["compile"], 
                                      stderr_to_stdout: true,
-                                     env: [{"ELIXIR_ERL_OPTIONS", "+S 16"},
+                                     env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"},
                                            {"NO_TIMEOUT", "true"},
                                            {"PATIENT_MODE", "enabled"}])
     

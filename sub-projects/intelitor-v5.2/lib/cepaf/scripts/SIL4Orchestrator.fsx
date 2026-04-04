@@ -3,7 +3,7 @@
 // WHAT: Deterministic Mesh Orchestrator with Digital Twin & TUI KPI Stream
 // GOAL: 10s Boot / 5s Shutdown / SIL-6 Compliance
 // Compliance: SC-SIL6-*, SC-CLU-002, SC-OODA-001, SC-TPS-001, SC-METRICS-003
-// ELIXIR_ERL_OPTIONS: "+S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
+// ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
 
 open System
 open System.IO
@@ -84,7 +84,7 @@ module Oracle =
 module Shell =
     // SC-METRICS-003: Mandatory parallelization environment variables
     let mandatoryEnvVars = [
-        ("ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16")
+        ("ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16")
         ("NO_TIMEOUT", "true")
         ("PATIENT_MODE", "enabled")
         ("INFINITE_PATIENCE", "true")

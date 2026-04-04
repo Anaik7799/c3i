@@ -109,7 +109,7 @@ __require Logger
         {_output, _exit} =
           System.cmd("elixir", [script_path],
             stderr_to_stdout: true,
-            env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}]
+            env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}]
           )
       end
     end)
@@ -435,7 +435,7 @@ __require Logger
 end
 
 # Execute with maximum parallelization
-System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 UltimateZeroDebtAchievement.main(System.argv())
 
 # SOPv5.1 ENHANCEMENT COMPLETE

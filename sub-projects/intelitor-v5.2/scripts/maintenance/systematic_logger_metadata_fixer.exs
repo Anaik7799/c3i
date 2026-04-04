@@ -278,7 +278,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     # Use credo output to get the exact keys causing warnings
     {credo_result, _} =
       System.cmd("mix", ["credo", "--strict"],
-        env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}],
+        env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}],
         stderr_to_stdout: true
       )
 
@@ -477,7 +477,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     # Test Logger configuration by compiling with credo
     {result, exit_code} =
       System.cmd("mix", ["credo", "--strict"],
-        env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}],
+        env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}],
         stderr_to_stdout: true
       )
 

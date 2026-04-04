@@ -93,7 +93,7 @@ defmodule FinalSyntaxCleanupFixer do
 
     IO.puts("Running FINAL Patient Mode validation after syntax cleanup...")
 
-    case System.cmd("bash", ["-c", "export NO_TIMEOUT=true && export PATIENT_MODE=enabled && export INFINITE_PATIENCE=true && export ELIXIR_ERL_OPTIONS='+S 16' && mix compile --jobs 16 --warnings-as-errors"], stderr_to_stdout: true) do
+    case System.cmd("bash", ["-c", "export NO_TIMEOUT=true && export PATIENT_MODE=enabled && export INFINITE_PATIENCE=true && export ELIXIR_ERL_OPTIONS='+fnu +S 16' && mix compile --jobs 16 --warnings-as-errors"], stderr_to_stdout: true) do
       {output, 0} ->
         File.write!(log_file, output)
         IO.puts("ZERO-ERROR VALIDATION CHECKPOINT ACHIEVED!")

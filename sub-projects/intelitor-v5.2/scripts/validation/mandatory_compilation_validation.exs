@@ -125,7 +125,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       {"NO_TIMEOUT", "true"},
       {"PATIENT_MODE", "enabled"},  
       {"INFINITE_PATIENCE", "true"},
-      {"ELIXIR_ERL_OPTIONS", "+S 16"}
+      {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}
     ]
     
     Logger.info("🔧 Environment: Patient Mode with 16 schedulers")
@@ -276,7 +276,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       NO_TIMEOUT=true
       PATIENT_MODE=enabled  
       INFINITE_PATIENCE=true
-      ELIXIR_ERL_OPTIONS=+S 16
+      ELIXIR_ERL_OPTIONS=+fnu +S 16
     
     Critical Rules:
       1. This script MUST be executed after every code change

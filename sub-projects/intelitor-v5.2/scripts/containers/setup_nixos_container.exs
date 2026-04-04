@@ -1,6 +1,6 @@
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # SOPv5.1 ENHANCED ENVIRONMENT CONFIGURATION - setup_nixos_container.exs
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 #
 # Enhanced: 2025-08-02 17:30:00 CEST
 # Framework: SOPv5.1 + TPS + STAMP + TDG + GDE + Patient Mode + Container-Only
@@ -24,7 +24,7 @@
 # - Container-Only: Mandatory NixOS container execution with PHICS integration
 # - 11-Agent Architecture: Multi-agent coordination with dynamic load balancing
 #
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 #!/usr/bin/env elixir
 # -*- coding: utf-8 -*-
@@ -46,7 +46,7 @@ defmodule NixOSContainerSetup do
   - SC4: Complete audit trail of all operations
   """
 
-  __require Logger
+  __require(Logger)
 
   # MANDATORY: Only these images are allowed
   @allowed_images [
@@ -84,6 +84,7 @@ defmodule NixOSContainerSetup do
       :ok ->
         Logger.info("✅ NixOS __requirements validated")
         create_nixos_container(__opts)
+
       {:error, reason} ->
         Logger.error("🚨 CRITICAL VIOLATION: #{reason}")
         Logger.error("❌ Container creation BLOCKED due to compliance violation")
@@ -108,6 +109,7 @@ defmodule NixOSContainerSetup do
       {version, 0} ->
         Logger.info("✅ Podman available: #{String.trim(version)}")
         :ok
+
       _ ->
         {:error, "Podman not available - use DevEnv shell"}
     end
@@ -121,7 +123,8 @@ defmodule NixOSContainerSetup do
     else
       Logger.warning("⚠️ Not in DevEnv shell - continuing with warning")
       Logger.warning("   Run 'devenv shell' for full compliance")
-      :ok  # Continue with warning instead of blocking
+      # Continue with warning instead of blocking
+      :ok
     end
   end
 
@@ -131,15 +134,17 @@ defmodule NixOSContainerSetup do
       {output, 0} ->
         images = String.split(String.trim(output), "\n")
 
-        forbidden_found = Enum.filter(images, fn image ->
-          Enum.any?(@forbidden_images, &String.contains?(image, &1))
-        end)
+        forbidden_found =
+          Enum.filter(images, fn image ->
+            Enum.any?(@forbidden_images, &String.contains?(image, &1))
+          end)
 
         if Enum.empty?(forbidden_found) do
           :ok
         else
           {:error, "FORBIDDEN containers found: #{inspect(forbidden_found)}"}
         end
+
       _ ->
         :ok
     end
@@ -189,17 +194,28 @@ defmodule NixOSContainerSetup do
     container_cmd = [
       "run",
       "-d",
-      "--name", name,
-      "--network", "host",
-      "-v", "#{File.cwd!()}:/workspace:z",
-      "-w", "/workspace",
-      "--memory", "4g",
-      "--cpus", "4",
-      "-e", "MIX_ENV=dev",
-      "-e", "ELIXIR_ERL_OPTIONS=+S 16",
-      "-e", "DATABASE_URL=ecto://postgres:postgres@localhost:5433/indrajaal_dev",
+      "--name",
+      name,
+      "--network",
+      "host",
+      "-v",
+      "#{File.cwd!()}:/workspace:z",
+      "-w",
+      "/workspace",
+      "--memory",
+      "4g",
+      "--cpus",
+      "4",
+      "-e",
+      "MIX_ENV=dev",
+      "-e",
+      "ELIXIR_ERL_OPTIONS=+fnu +S 16",
+      "-e",
+      "DATABASE_URL=ecto://postgres:postgres@localhost:5433/indrajaal_dev",
       image,
-      "sleep", "infinity"  # Keep container running
+      # Keep container running
+      "sleep",
+      "infinity"
     ]
 
     Logger.info("🐳 Creating NixOS container with Podman...")
@@ -210,6 +226,7 @@ defmodule NixOSContainerSetup do
         Logger.info("✅ NixOS container created: #{String.trim(container_id)}")
         setup_nixos_environment(name)
         {:ok, :created}
+
       {error, code} ->
         Logger.error("❌ Failed to create container: #{error}")
         {:error, {code, error}}
@@ -235,6 +252,7 @@ defmodule NixOSContainerSetup do
     case System.cmd("sh", ["-c", setup_cmd], into: IO.stream(:stdio, :line)) do
       {_, 0} ->
         Logger.info("✅ NixOS environment setup complete")
+
       {_, _} ->
         Logger.error("⚠️ Some setup steps may have failed")
     end
@@ -245,6 +263,7 @@ defmodule NixOSContainerSetup do
     case System.cmd("podman", ["ps", "-a", "--format", "{{.Names}}"]) do
       {output, 0} ->
         String.contains?(output, name)
+
       _ ->
         false
     end
@@ -255,6 +274,7 @@ defmodule NixOSContainerSetup do
     case System.cmd("podman", ["ps", "--format", "{{.Names}}"]) do
       {output, 0} ->
         String.contains?(output, name)
+
       _ ->
         false
     end
@@ -265,14 +285,17 @@ defmodule NixOSContainerSetup do
     case System.cmd("podman", ["inspect", name, "--format", "{{.Image}}"]) do
       {image, 0} ->
         image = String.trim(image)
-        is_nixos = Enum.any?(@allowed_images, &String.contains?(image, &1)) ||
-                   String.contains?(image, "nixos")
+
+        is_nixos =
+          Enum.any?(@allowed_images, &String.contains?(image, &1)) ||
+            String.contains?(image, "nixos")
 
         unless is_nixos do
           Logger.error("🚨 VIOLATION: Container using non-NixOS image: #{image}")
         end
 
         is_nixos
+
       _ ->
         false
     end
@@ -284,6 +307,7 @@ defmodule NixOSContainerSetup do
       {_, 0} ->
         Logger.info("✅ Container started successfully")
         {:ok, :started}
+
       {error, _} ->
         Logger.error("❌ Failed to start container: #{error}")
         {:error, error}
@@ -299,7 +323,7 @@ defmodule NixOSContainerSetup.Test do
 
   @spec run_tdg_tests() :: any()
   def run_tdg_tests do
-    IO.puts "\n🧪 Running TDG Tests for NixOS Compliance..."
+    IO.puts("\n🧪 Running TDG Tests for NixOS Compliance...")
 
     tests = [
       test_forbidden_image_rejection(),
@@ -312,9 +336,9 @@ defmodule NixOSContainerSetup.Test do
     total = length(tests)
 
     if passed == total do
-      IO.puts "✅ All TDG tests passed (#{passed}/#{total})"
+      IO.puts("✅ All TDG tests passed (#{passed}/#{total})")
     else
-      IO.puts "❌ TDG tests failed (#{passed}/#{total})"
+      IO.puts("❌ TDG tests failed (#{passed}/#{total})")
       System.halt(1)
     end
   end
@@ -331,15 +355,16 @@ defmodule NixOSContainerSetup.Test do
       "localhost/indrajaal-app:nixos-devenv"
     ]
 
-    all_rejected = Enum.all?(forbidden, fn image ->
-      !Enum.any?(allowed_images, &String.contains?(&1, image))
-    end)
+    all_rejected =
+      Enum.all?(forbidden, fn image ->
+        !Enum.any?(allowed_images, &String.contains?(&1, image))
+      end)
 
     if all_rejected do
-      IO.puts "  ✅ Forbidden image rejection test passed"
+      IO.puts("  ✅ Forbidden image rejection test passed")
       true
     else
-      IO.puts "  ❌ Forbidden image rejection test failed"
+      IO.puts("  ❌ Forbidden image rejection test failed")
       false
     end
   end
@@ -352,15 +377,17 @@ defmodule NixOSContainerSetup.Test do
       "registry.nixos.org/nixos/nixos:25.05-small",
       "localhost/indrajaal-app:nixos-devenv"
     ]
-    nixos_only = Enum.all?(allowed, fn image ->
-      String.contains?(image, "nixos") || String.contains?(image, "localhost")
-    end)
+
+    nixos_only =
+      Enum.all?(allowed, fn image ->
+        String.contains?(image, "nixos") || String.contains?(image, "localhost")
+      end)
 
     if nixos_only do
-      IO.puts "  ✅ Allowed image validation test passed"
+      IO.puts("  ✅ Allowed image validation test passed")
       true
     else
-      IO.puts "  ❌ Allowed image validation test failed"
+      IO.puts("  ❌ Allowed image validation test failed")
       false
     end
   end
@@ -368,14 +395,14 @@ defmodule NixOSContainerSetup.Test do
   @spec test_devenv_requirement() :: any()
   defp test_devenv_requirement do
     # In real scenario, would test DevEnv detection
-    IO.puts "  ✅ DevEnv __requirement test passed"
+    IO.puts("  ✅ DevEnv __requirement test passed")
     true
   end
 
   @spec test_audit_trail() :: any()
   defp test_audit_trail do
     # In real scenario, would test logging
-    IO.puts "  ✅ Audit trail test passed"
+    IO.puts("  ✅ Audit trail test passed")
     true
   end
 end
@@ -386,14 +413,16 @@ NixOSContainerSetup.Test.run_tdg_tests()
 # Execute setup
 case NixOSContainerSetup.setup_container() do
   {:ok, status} ->
-    IO.puts "\n✅ NixOS container setup complete: #{status}"
+    IO.puts("\n✅ NixOS container setup complete: #{status}")
+
   {:error, reason} ->
-    IO.puts "\n❌ NixOS container setup failed: #{inspect(reason)}"
+    IO.puts("\n❌ NixOS container setup failed: #{inspect(reason)}")
     System.halt(1)
 end
-#═══════════════════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # PATIENT MODE - NO_TIMEOUT POLICY VARIABLES
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 # Patient Mode Configuration
 # export PATIENT_MODE=enabled
@@ -407,9 +436,9 @@ end
 # export DEMO_TIMEOUT=infinity
 # export TASK_TIMEOUT=infinity
 
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # 11-AGENT ARCHITECTURE COORDINATION VARIABLES
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 # Agent Architecture Configuration
 # export AGENT_COORDINATION=enabled
@@ -424,9 +453,9 @@ end
 # export AGENT_COMMUNICATION=enabled
 # export COORDINATION_STRATEGY=cybernetic
 
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # SOPv5.1 ENVIRONMENT ENHANCEMENT COMPLETE
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 #
 # Enhancement Date: 2025-08-02 17:30:00 CEST
 # Framework: Complete SOPv5.1 + TPS + STAMP + TDG + GDE + Patient Mode + Container
@@ -447,7 +476,6 @@ end
 # Strategic Value: Enhanced environment configuration contributing to overall $25M
 # business value through systematic excellence and enterprise-grade reliability.
 #
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # 🚀 SOPv5.1 Cybernetic Excellence Achieved
-#═══════════════════════════════════════════════════════════════════════════════
-
+# ═══════════════════════════════════════════════════════════════════════════════

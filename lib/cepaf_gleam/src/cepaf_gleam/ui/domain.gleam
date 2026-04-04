@@ -21,6 +21,7 @@ pub type Page {
   Kms
   Telemetry
   Federation
+  HealthGrid
 }
 
 /// Health status shared across all interfaces.
@@ -29,6 +30,24 @@ pub type HealthStatus {
   Degraded(reason: String)
   Critical(reason: String)
   Unknown
+}
+
+/// Device status for the health grid.
+pub type DeviceStatus {
+  Online
+  Offline
+  Maintenance
+}
+
+/// Device health record for the grid.
+pub type DeviceHealth {
+  DeviceHealth(
+    id: String,
+    health_score: Float,
+    device_type: String,
+    status: DeviceStatus,
+    last_seen: Int,
+  )
 }
 
 /// Telemetry data point — sourced from Zenoh, rendered by all 3 interfaces.
@@ -72,6 +91,7 @@ pub fn page_to_path(page: Page) -> String {
     Kms -> "/kms"
     Telemetry -> "/telemetry"
     Federation -> "/federation"
+    HealthGrid -> "/health-grid"
   }
 }
 
@@ -92,6 +112,7 @@ pub fn page_to_label(page: Page) -> String {
     Kms -> "KMS Catalog"
     Telemetry -> "Telemetry"
     Federation -> "Federation (L7)"
+    HealthGrid -> "Device Health Grid"
   }
 }
 
@@ -112,6 +133,7 @@ pub fn page_fractal_layer(page: Page) -> FractalLayer {
     Kms -> L0Constitutional
     Telemetry -> L1AtomicDebug
     Federation -> L7Federation
+    HealthGrid -> L4System
   }
 }
 

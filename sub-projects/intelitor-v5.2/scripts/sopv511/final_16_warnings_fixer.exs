@@ -33,7 +33,7 @@ defmodule SOPv511.Final16WarningsFixer do
     IO.puts "\n🔍 Analyzing final 16 warnings..."
     {_output, __} = System.cmd("mix", ["compile", "--force"], 
       stderr_to_stdout: true,
-      env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}]
+      env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}]
     )
     
     warnings = parse_warnings(output)
@@ -53,7 +53,7 @@ defmodule SOPv511.Final16WarningsFixer do
     IO.puts "\n🧪 Validating fixes..."
     {_final_output, __} = System.cmd("mix", ["compile", "--force"], 
       stderr_to_stdout: true,
-      env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}]
+      env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}]
     )
     
     final_warning_count = length(Regex.scan(~r/warning:/, final_output))

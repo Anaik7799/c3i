@@ -87,6 +87,11 @@ pub fn set_status(task: Task, status: types.TaskStatus) -> Task {
   }
 }
 
+/// Change the task's priority.
+pub fn set_priority(task: Task, priority: types.Priority) -> Task {
+  update(task, fn(t) { Task(..t, priority: priority) })
+}
+
 /// Assign the task to a user.
 pub fn assign(task: Task, assignee: Option(ids.UserId)) -> Task {
   update(task, fn(t) { Task(..t, assignee_id: assignee) })

@@ -43,7 +43,8 @@ RUN touch /.phics-container && \
 ENV CONTAINER_ENFORCEMENT=false
 ENV PHICS_ENABLED=true
 ENV NO_TIMEOUT=true
-ENV ELIXIR_ERL_OPTIONS="+S 16"
+# SC-FIX-UTF8: Added +fnu to fix latin1 encoding warning in Elixir
+ENV ELIXIR_ERL_OPTIONS="+S 16 +fnu"
 ENV SOP_V51_MODE=enabled
 ENV TPS_METHODOLOGY=active
 ENV STAMP_INTEGRATION=enabled

@@ -166,6 +166,7 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 **Math Gates** (ALL must pass):
 - Shannon Entropy H ≥ 2.5 bits
 - Cyclomatic Complexity CCM ≥ 90%
+- Expected vs Actual Divergence D_EA ≤ 10%
 - Integrated Test Quality Score ITQS ≥ 0.85
 
 ---

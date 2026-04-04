@@ -76,6 +76,7 @@ type CLICommand =
     | Nuclear
     | SecurityAudit
     | Verify
+    | VerifyFractal
     | VerifyParity
     | VerifyRemote
     | GitSync of string
@@ -761,6 +762,7 @@ type SIL4MeshCLI() =
         printfn "  security        Swarm-wide security audit (Trivy)"
         printfn "  resurrect       One-command system recovery (SC-EMR-065)"
         printfn "  emergency       Emergency stop (<5s per SC-EMR-057)"
+        printfn "  verify-fractal  8x8 checkpointed fractal health suite (L0-L7)"
         printfn "  logs [svc]      Stream container logs"
         printfn "  help            Show this help"
         printfn ""
@@ -1070,6 +1072,7 @@ type SIL4MeshCLI() =
                 | "scour" -> Scour
                 | "dashboard" | "monitor" -> Dashboard
                 | "verify" -> Verify
+                | "verify-fractal" -> VerifyFractal
                 | "verify-parity" -> VerifyParity
                 | "verify-remote" -> VerifyRemote
                 | "git-sync" -> 
@@ -1125,6 +1128,12 @@ type SIL4MeshCLI() =
             printfn "Running tests in mode: %s" mode
             { Command = Test mode; Success = true; DurationMs = 0L; Message = "Tests started"; Effects = None }
         | Verify -> this.Verify()
+        | VerifyFractal ->
+            this.Log("FRACTAL", "VERIFY", "Running 8x8 checkpointed health suite")
+            let exitCode, stdout, _ = this.Exec("dotnet", "fsi scripts/verification/fractal_health_checks.fsx", 300000)
+            printfn "%s" stdout
+            let success = exitCode = 0
+            { Command = VerifyFractal; Success = success; DurationMs = 0L; Message = "Fractal verification complete"; Effects = None }
         | VerifyParity ->
             this.Log("REGEN", "RUN", "Verifying holographic code parity")
             let exitCode, stdout, _ = this.Exec("dotnet", "fsi lib/cepaf/scripts/RegenerationSwarmUpkeep.fsx", 60000)

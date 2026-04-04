@@ -33,7 +33,10 @@ defmodule Indrajaal.Supervisors.FoundationSupervisor do
       {Finch, name: Indrajaal.Finch},
 
       # MESH NETWORKING
-      {Indrajaal.Mesh.TailscaleMesh, []}
+      {Indrajaal.Mesh.TailscaleMesh, []},
+
+      # TIMESTAMP SYNCHRONIZATION (AOR-TIME-001, SC-TIME-002)
+      {Indrajaal.Core.TimestampDaemon, []}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

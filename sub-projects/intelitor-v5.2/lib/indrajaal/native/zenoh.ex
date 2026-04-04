@@ -2,6 +2,42 @@ defmodule Indrajaal.Native.Zenoh do
   @moduledoc """
   Elixir wrapper for Zenoh Rust NIF.
 
+  ## IMPORTANT: NIF Function Naming Convention
+
+  The Elixir function names MUST match the Rust NIF function names exactly.
+  This module wraps the Rust NIF library at `native/zenoh_nif/src/lib.rs`.
+
+  ## CRITICAL: Function Name Mapping
+
+  | Elixir Function Name         | Rust Function Name          | Purpose                    |
+  |------------------------------|---------------------------|----------------------------|
+  | zenoh_open_session           | zenoh_open_session         | Open Zenoh session         |
+  | zenoh_close_session         | close_session             | Close Zenoh session        |
+  | zenoh_verify_proof_token     | zenoh_verify_proof_token   | Verify ProofToken (HMAC)   |
+  | zenoh_verify_session_token   | zenoh_verify_session_token | Verify session token (cache)|
+  | zenoh_classify_tier         | zenoh_classify_tier       | Classify key tier          |
+
+  ## Common "Function not found" Errors
+
+  If you see errors like:
+  ```
+  {:error, {:bad_lib, ~c"Function not found 'Elixir.Indrajaal.Native.Zenoh':classify_tier_nif/1"}}
+  ```
+
+  This means the Rust function name does NOT match the Elixir wrapper name.
+
+  WRONG (Rust lib.rs):
+  ```rust
+  fn verify_proof_token_nif(...)  // WRONG - has _nif suffix
+  fn classify_tier_nif(...)        // WRONG - has _nif suffix
+  ```
+
+  CORRECT (Rust lib.rs):
+  ```rust
+  fn zenoh_verify_proof_token(...)  // CORRECT - matches Elixir wrapper
+  fn zenoh_classify_tier(...)       // CORRECT - matches Elixir wrapper
+  ```
+
   ## WHAT
   Low-level NIF bindings to Zenoh native protocol for <1ms latency
   pub/sub messaging between Indrajaal and CEPAF F# cockpit.
@@ -11,10 +47,18 @@ defmodule Indrajaal.Native.Zenoh do
   - Rust safety guarantees prevent memory errors
   - Async runtime handles concurrent connections
 
+  ## Build Requirements
+
+  1. Rust toolchain must be available (cargo)
+  2. Rustler version must match: {:rustler, "~> 0.37"}
+  3. Set SKIP_ZENOH_NIF=0 in environment (NOT 1)
+  4. Build command: `cargo build --release -p zenoh_nif`
+
   ## CONSTRAINTS
   - SC-NIF-001: NIF functions must not block scheduler
   - SC-NIF-002: Resource cleanup on process exit
   - SC-NIF-003: Error propagation to Elixir
+  - SC-NIF-004: Rustler version synchronized with mix.exs
   - SC-NIF-005: ProofToken enforcement at NIF boundary (control-plane gate)
   - SC-HASH-002: Constant-time signature comparison in Rust layer
 
@@ -41,6 +85,14 @@ defmodule Indrajaal.Native.Zenoh do
 
   # Close session
   :ok = Indrajaal.Native.Zenoh.close_session(session)
+
+  # Classify a key tier (NIF function)
+  tier = Indrajaal.Native.Zenoh.classify_tier("indrajaal/control/test")
+  # Returns: :bypass, :session, or :full
+
+  # Verify ProofToken (NIF function)
+  result = Indrajaal.Native.Zenoh.verify_proof_token(token_binary)
+  # Returns: {:ok, :valid} or {:error, reason}
   ```
   """
 

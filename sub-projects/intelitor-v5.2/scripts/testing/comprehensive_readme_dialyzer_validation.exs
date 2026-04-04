@@ -207,7 +207,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
         "podman exec indrajaal-app bash -c \"cd /workspace && mix ecto.migrate\"",
         "elixir scripts/pcis/validation_cli.exs --__database-compliance --migration-integrity --real-time-sync",
         "elixir scripts/pcis/validation_cli.exs --__database-integrity --migration-integrity --validate --backup --timestamp --comprehensive",
-        "podman exec indrajaal-app bash -c \"cd /workspace && ELIXIR_ERL_OPTIONS='+S 16' mix claude compilation --compile --strategy smart --supervisor 1 --helpers 4 --workers 6 --dynamic-tokens --no-timeout --container-native\"",
+        "podman exec indrajaal-app bash -c \"cd /workspace && ELIXIR_ERL_OPTIONS='+fnu +S 16' mix claude compilation --compile --strategy smart --supervisor 1 --helpers 4 --workers 6 --dynamic-tokens --no-timeout --container-native\"",
         "elixir scripts/pcis/validation_cli.exs --compilation-validation --real-time-monitoring --performance-optimization --real-time-sync --phics-compliance",
         "elixir scripts/pcis/validation_cli.exs --phics-compliance --real-time-sync --system-integrity --__database-integrity",
         "podman exec indrajaal-app bash -c \"cd /workspace && mix claude monitor --phics-integration --sync-performance --validation --real-time-sync\"",

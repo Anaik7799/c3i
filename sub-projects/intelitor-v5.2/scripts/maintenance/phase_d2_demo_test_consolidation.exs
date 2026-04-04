@@ -29,7 +29,7 @@
 # Mission: Eliminate 200+ violations through demo test concurrent scenario consolidation
 # Target: test/demo/*_demo_test.exs files
 # Expected Impact: 200+ violations elimination (PHASE D PRIORITY 2)
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase D.2 Demo Test Pattern Consolidation")
 IO.puts("===============================================================================")

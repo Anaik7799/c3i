@@ -407,7 +407,13 @@ defmodule Indrajaal.Cockpit.Prajna.SentinelBridge do
     )
 
     # Record Quarantine Count
-    quarantine_count = length(health.quarantined)
+    # SC-IMMUNE-004: quarantined is a map (%{pid => info}), not a list
+    quarantine_count =
+      case health.quarantined do
+        q when is_map(q) -> map_size(q)
+        q when is_list(q) -> length(q)
+        _ -> 0
+      end
 
     SmartMetrics.record(
       "system.quarantine_count",

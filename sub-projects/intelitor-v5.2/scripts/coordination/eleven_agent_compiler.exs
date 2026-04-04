@@ -87,7 +87,7 @@ defmodule ElevenAgentCompiler do
   Safety Constraints (STAMP):
   - SC1: All compilation MUST occur in containers
   - SC2: No timeout restrictions allowed
-  - SC3: Maximum parallelization __required (ELIXIR_ERL_OPTIONS="+S 16")-SC4: Git-based incremental validation
+  - SC3: Maximum parallelization __required (ELIXIR_ERL_OPTIONS="+fnu +S 16")-SC4: Git-based incremental validation
   """
 
   use GenServer

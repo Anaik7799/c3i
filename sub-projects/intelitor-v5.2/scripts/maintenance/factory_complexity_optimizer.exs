@@ -29,7 +29,7 @@
 # Mission: Eliminate 150+ violations through factory complexity optimization
 # Target: 31 high-ABC functions and factory pattern consolidation
 # Expected Impact: 150-200 violations elimination (PHASE C PRIORITY)
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Factory Complexity Optimization")
 IO.puts("==============================================================")
@@ -149,7 +149,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     IO.puts("📊 Total files to analyze: #{length(all_files)}")
 
     # Maximum parallelization analysis
-    System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 
     # Analyze complexity patterns
     _complexity_analysis = Enum.map(all_files, fn file ->
@@ -1212,7 +1212,7 @@ end
       elixir #{script_name} --analyze-complexity
 
       # Execute comprehensive Phase C with maximum parallelization
-      ELIXIR_ERL_OPTIONS="+S 16" elixir #{script_name} --comprehensive
+      ELIXIR_ERL_OPTIONS="+fnu +S 16" elixir #{script_name} --comprehensive
     """)
   end
 end

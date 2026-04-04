@@ -29,7 +29,7 @@
 # Mission: Eliminate 800+ violations through validate_bulk_stamp_constraints consolidation
 # Target: 20+ mobile config controllers with identical validation functions
 # Expected Impact: 800-1,000 violations elimination (CRITICAL PRIORITY)
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Mobile Controller Mass Consolidation")
 IO.puts("===================================================================")
@@ -143,7 +143,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     IO.puts("📊 Found #{length(controllers)} mobile config controllers")
 
     # Maximum parallelization analysis
-    System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 
     # Analyze validate_bulk_stamp_constraints duplications
     _validation_analysis =
@@ -864,7 +864,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       elixir #{__ENV__.file} --analyze-critical
 
       # Execute comprehensive Phase A with maximum parallelization
-      ELIXIR_ERL_OPTIONS="+S 16" elixir #{__ENV__.file} --comprehensive
+      ELIXIR_ERL_OPTIONS="+fnu +S 16" elixir #{__ENV__.file} --comprehensive
     """)
   end
 end

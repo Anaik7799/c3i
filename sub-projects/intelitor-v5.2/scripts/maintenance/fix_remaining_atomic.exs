@@ -302,7 +302,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     # Check both regular and test environment
     IO.puts("\n📋 Regular environment:")
     case System.cmd("mix", ["compile", "--warnings-as-errors"],
-                    env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}],
+                    env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}],
                     stderr_to_stdout: true) do
       {_, 0} ->
         IO.puts("✅ Regular compilation successful!")

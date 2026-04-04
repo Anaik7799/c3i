@@ -65,10 +65,10 @@ TaskOutput(block: false) # Check status
 ## Quality Gates (Mandatory)
 
 Before marking any task complete:
-1. `NO_TIMEOUT=true PATIENT_MODE=enabled SKIP_ZENOH_NIF=0 WALLABY_ENABLED=true ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" mix compile --jobs 16` - 0 errors, 0 warnings
+1. `NO_TIMEOUT=true PATIENT_MODE=enabled SKIP_ZENOH_NIF=0 WALLABY_ENABLED=true ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" mix compile --jobs 16` - 0 errors, 0 warnings
 2. `mix format --check-formatted` - pass
 3. `mix credo --strict` - 0 issues
-4. `SKIP_ZENOH_NIF=0 WALLABY_ENABLED=true NO_TIMEOUT=true PATIENT_MODE=enabled ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" MIX_ENV=test mix test` - 0 failures
+4. `SKIP_ZENOH_NIF=0 WALLABY_ENABLED=true NO_TIMEOUT=true PATIENT_MODE=enabled ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" MIX_ENV=test mix test` - 0 failures
 5. All STAMP constraints verified
 
 ## Haiku Model Preference

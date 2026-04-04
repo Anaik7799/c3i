@@ -228,7 +228,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     shell_config = """
     # SOPv5.11 Environment Configuration
     # Agent: Maximum parallelization for Elixir/Erlang
-    export ELIXIR_ERL_OPTIONS="+S 16 +A 32"
+    export ELIXIR_ERL_OPTIONS="+fnu +S 16 +A 32"
     export MAX_PARALLELIZATION=true
 
     # Agent: Container-only execution
@@ -350,7 +350,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     System.put_env("CONTAINER_ENFORCEMENT", "true")
     System.put_env("PHICS_ENABLED", "true")
     System.put_env("NO_TIMEOUT", "true")
-    System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 
     # Agent: Run container build test
     IO.puts("  🧪 Testing git-aware build system...")
@@ -426,7 +426,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     1. **Environment Variables**
        - Created `.env.sopv511` with all __required variables
        - Created `load_sopv511_env.sh` for easy loading
-       - Set ELIXIR_ERL_OPTIONS="+S 16 +A 32"
+       - Set ELIXIR_ERL_OPTIONS="+fnu +S 16 +A 32"
        - Enabled PHICS, no timeouts, max parallelization
 
     2. **PHICS Markers**

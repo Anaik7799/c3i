@@ -29,7 +29,7 @@
 # Mission: Eliminate 800+ violations through mobile controller validate_bulk_stamp_constraints consolidation
 # Target: lib/indrajaal_web/controllers/api/mobile/config/* files
 # Expected Impact: 800+ violations elimination (PHASE D PRIORITY 1)
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase D Ultimate Mobile Controller Consolidation")
 IO.puts("==================================================================================")
@@ -406,7 +406,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       elixir phase_d_mobile_controller_ultimate_consolidation.exs --analyze-duplications
 
       # Execute ultimate Phase D.1 with maximum parallelization
-      ELIXIR_ERL_OPTIONS="+S 16" elixir phase_d_mobile_controller_ultimate_consolidation.exs --ultimate-execution
+      ELIXIR_ERL_OPTIONS="+fnu +S 16" elixir phase_d_mobile_controller_ultimate_consolidation.exs --ultimate-execution
     """)
   end
 end

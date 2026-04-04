@@ -148,7 +148,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     "PHICS_ENABLED" => "true",
     "CONTAINER_OS" => "nixos",
     "MAX_PARALLELIZATION" => "true",
-    "ELIXIR_ERL_OPTIONS" => "+S 16 +A 32"
+    "ELIXIR_ERL_OPTIONS" => "+fnu +S 16 +A 32"
   }
 
   @spec main(any()) :: any()

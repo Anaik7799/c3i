@@ -98,7 +98,7 @@ defmodule SOPv511.FPPSIntelligentValidator do
     # Method 1: Direct compilation check
     {output1, _} = System.cmd("mix", ["compile", "--force"], 
       stderr_to_stdout: true,
-      env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}]
+      env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}]
     )
     method1_warnings = length(Regex.scan(~r/warning:/, output1))
     

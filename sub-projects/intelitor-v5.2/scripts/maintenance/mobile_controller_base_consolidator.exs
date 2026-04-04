@@ -29,7 +29,7 @@
 # Mission: Eliminate 400+ violations in mobile controller duplications
 # Target: indrajaal_web/controllers/api/mobile/config/*.ex files
 # Expected Impact: 400+ violations elimination through base class pattern
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Mobile Controller Base Consolidation")
 IO.puts("================================================================")
@@ -143,7 +143,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     IO.puts("📊 Found #{length(controllers)} mobile config controllers")
 
     # Maximum parallelization analysis
-    System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 
     _duplicate_patterns =
       Enum.map(controllers, fn controller ->
@@ -652,7 +652,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       elixir #{__ENV__.file} --analyze
 
       # Run complete consolidation with maximum parallelization
-      ELIXIR_ERL_OPTIONS="+S 16" elixir #{__ENV__.file} --comprehensive
+      ELIXIR_ERL_OPTIONS="+fnu +S 16" elixir #{__ENV__.file} --comprehensive
     """)
   end
 end

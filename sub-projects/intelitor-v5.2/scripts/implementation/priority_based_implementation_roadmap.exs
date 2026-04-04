@@ -407,7 +407,7 @@ defmodule PriorityBasedImplementationRoadmap do
     Logger.info("        🔍 Testing current compilation __state")
 
     {_compile_output, _compile_status} = System.cmd("mix", ["compile", "--warnings-as-errors"],
-      stderr_to_stdout: true, env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}])
+      stderr_to_stdout: true, env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}])
 
     warning_count = count_warnings(compile_output)
 

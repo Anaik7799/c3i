@@ -7,6 +7,25 @@
 
 ---
 
+## 🧬 I. Timestamp Synchronization (AOR-TIME-001)
+**MANDATORY**: Every agent session MUST run timestamp sync at startup.
+
+```bash
+scripts/timestamp/indrajaal-timestamp-sync.sh
+```
+
+**Rust Daemon** (recommended):
+```bash
+./target/release/timestamp_daemon  # Long-running background process
+```
+
+**Thresholds**:
+- MAX_DRIFT: 5 seconds (correction threshold)
+- WARNING: 2 seconds
+- CRITICAL: 10 seconds (NTP sync triggered)
+
+---
+
 ## 🧬 I. 8-Layer Fractal Architecture (Self-Description)
 
 ### L0: Physical Substrate (Infrastructure)

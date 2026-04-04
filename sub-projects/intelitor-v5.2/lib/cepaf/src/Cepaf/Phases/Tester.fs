@@ -24,7 +24,7 @@ module Tester =
     /// Mandatory environment variables for SC-METRICS-003 compliance
     /// Ensures maximum parallelization of Elixir test execution
     let mandatoryTestEnvVars : (string * string) list = [
-        ("ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16")  // 16 schedulers + 16 dirty I/O
+        ("ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16")  // 16 schedulers + 16 dirty I/O
         ("NO_TIMEOUT", "true")                        // Patient Mode: no timeout
         ("PATIENT_MODE", "enabled")                   // Patient Mode flag
         ("INFINITE_PATIENCE", "true")                 // Never interrupt compilation/tests

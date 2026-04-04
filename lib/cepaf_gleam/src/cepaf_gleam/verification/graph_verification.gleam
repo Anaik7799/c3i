@@ -5,7 +5,7 @@
 //// Graph verification: SCC analysis, cycle detection, connectivity checks.
 
 import cepaf_gleam/verification/prometheus.{
-  type VerificationDag, DagEdge, DagNode, VerificationDag,
+  type VerificationDag,
 }
 import gleam/int
 import gleam/list

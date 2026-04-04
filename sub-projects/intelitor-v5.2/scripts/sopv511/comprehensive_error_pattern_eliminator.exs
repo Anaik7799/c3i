@@ -204,7 +204,7 @@ defmodule ComprehensiveErrorPatternEliminator do
     export NO_TIMEOUT=true && \
     export PATIENT_MODE=enabled && \
     export INFINITE_PATIENCE=true && \
-    export ELIXIR_ERL_OPTIONS="+S 16" && \
+    export ELIXIR_ERL_OPTIONS="+fnu +S 16" && \
     mix compile --jobs 16 --verbose 2>&1
     """
 

@@ -77,7 +77,7 @@ let private ensureSession () : bool =
             false
 
 /// Publish a payload to a Zenoh topic. Returns true if published via Zenoh.
-let private zenohPublish (topic: string) (payload: string) : bool =
+let zenohPublish (topic: string) (payload: string) : bool =
     if ensureSession() then
         try
             let keyBytes = Encoding.UTF8.GetBytes(topic + "\x00")

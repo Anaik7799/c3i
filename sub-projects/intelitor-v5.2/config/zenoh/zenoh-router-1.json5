@@ -23,7 +23,15 @@
     // REST API Plugin (for health checks and debugging)
     rest: {
       http_port: 8000
-    }
+    },
+
+    // ProofToken Wire-Level Enforcement Plugin (SC-NIF-005, SC-SIL4-001)
+    // Task: 9c4452d5 P1-HARDENING
+    // Silently drops control-plane messages without valid HMAC-SHA256 ProofToken.
+    // Library: target/release/libzenoh_plugin_proof_token.so
+    // proof_token: {
+    //   __path__: "/opt/indrajaal/lib/libzenoh_plugin_proof_token.so"
+    // }
   },
 
   // Scouting for peer discovery

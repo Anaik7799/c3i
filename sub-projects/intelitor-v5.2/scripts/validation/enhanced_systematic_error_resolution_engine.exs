@@ -187,7 +187,7 @@ defmodule EnhancedSystematicErrorResolutionEngine do
     # Run compilation with timeout to avoid hanging
     {_output, _exit_code} = System.cmd("mix", ["compile", "--force"],
                                      stderr_to_stdout: true,
-                                     env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}])
+                                     env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}])
 
     # Analyze results
     error_lines = output |> String.split("\n") |> Enum.filter(&String.contains?(&1, "error:"))

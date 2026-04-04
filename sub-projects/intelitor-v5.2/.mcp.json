@@ -263,6 +263,14 @@
       "command": "npx",
       "args": ["-y", "chrome-devtools-mcp@latest"],
       "description": "Chrome DevTools MCP server for browser inspection and debugging"
+    },
+    "git-intelligence": {
+      "command": "dotnet",
+      "args": ["run", "--project", "lib/cepaf/src/Cepaf.GitIntelligence/Cepaf.GitIntelligence.fsproj", "--", "mcp-serve"],
+      "env": {
+        "ZENOH_USE_NATIVE": "true"
+      },
+      "description": "Git Intelligence MCP Server - Commit Analysis, Validation, Generation"
     }
   }
 }

@@ -20,12 +20,13 @@ RUN apk add --no-cache \
     openssl-dev
 
 # Set build environment
+# SC-FIX-UTF8: Added +fnu to fix latin1 encoding warning
 ENV MIX_ENV=prod \
     SKIP_ZENOH_NIF=0 \
     SKIP_LINEAGE_NIF=0 \
     RUSTLER_SKIP_COMPILE=false \
     MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 \
-    ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"
+    ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16 +fnu"
 
 # Create app directory
 WORKDIR /app
@@ -82,12 +83,14 @@ RUN addgroup -g 1000 indrajaal && \
     adduser -D -u 1000 -G indrajaal indrajaal
 
 # Set runtime environment
+# SC-FIX-UTF8: Added +fnu to fix latin1 encoding warning
 ENV MIX_ENV=prod \
     PHX_SERVER=true \
     SKIP_ZENOH_NIF=0 \
     SKIP_LINEAGE_NIF=0 \
     LANG=C.UTF-8 \
-    PORT=4000
+    PORT=4000 \
+    ELIXIR_ERL_OPTIONS="+fnu"
 
 # Create app directory
 WORKDIR /app

@@ -209,14 +209,14 @@ defmodule EnhancedFalsePositivePr__eventionSystem do
     System.put_env("NO_TIMEOUT", "true")
     System.put_env("PATIENT_MODE", "enabled")
     System.put_env("INFINITE_PATIENCE", "true")
-    System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 
     timestamp = DateTime.utc_now() |> Calendar.strftime("%Y%m%d-%H%M")
     log_file = "./__data/tmp/#{timestamp}-patient-mode-comprehensive.log"
 
     IO.puts("🔧 Executing Patient Mode Compilation with AEE SOPv5.11:")
     IO.puts("   Environment: NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true")
-    IO.puts("   Parallelization: ELIXIR_ERL_OPTIONS=+S 16")
+    IO.puts("   Parallelization: ELIXIR_ERL_OPTIONS=+fnu +S 16")
     IO.puts("   Log File: #{log_file}")
     IO.puts("   Expected Duration: 10-30 minutes with infinite patience")
 

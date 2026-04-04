@@ -28,7 +28,7 @@
 # Agent: Supervisor-1 (Strategic Oversight Agent)
 # Mission: Eliminate remaining demo test mass:131 and mass:65 duplications
 # Target: Lines 59 and 104 duplicated across 40+ demo test files
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase R Demo Test Deep Consolidation")
 IO.puts("===================================================================")

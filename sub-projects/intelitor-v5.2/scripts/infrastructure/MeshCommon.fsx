@@ -53,7 +53,7 @@ let projectRoot = detectProjectRoot ()
 
 /// Environment variables for parallel compilation (SC-METRICS-003)
 let mandatoryEnvVars = [
-    ("ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16")
+    ("ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16")
     ("NO_TIMEOUT", "true")
     ("PATIENT_MODE", "enabled")
     ("MIX_OS_DEPS_COMPILE_PARTITION_COUNT", "8")

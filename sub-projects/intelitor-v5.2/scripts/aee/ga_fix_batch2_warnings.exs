@@ -192,7 +192,7 @@ defmodule Batch2WarningFixer do
       env: [
         {"NO_TIMEOUT", "true"},
         {"PATIENT_MODE", "enabled"},
-        {"ELIXIR_ERL_OPTIONS", "+S 16"}
+        {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}
       ],
       stderr_to_stdout: true
     )

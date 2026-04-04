@@ -9,15 +9,26 @@ defmodule Indrajaal.Fractal.L3.NifSystemTest do
 
   @tag :nif
   @tag :system
-  test "zenoh resource declaration in system context" do
-    # Check if we can declare a resource path
-    path = "indrajaal/system/test/l3"
+  test "zenoh classify_tier in system context" do
+    # Test tier classification for various system paths
+    paths = [
+      "indrajaal/logs/system",
+      "indrajaal/control/system",
+      "indrajaal/inference/system",
+      "indrajaal/metrics/system"
+    ]
 
-    # This tests the binding's ability to allocate resources
-    # We expect either :ok or a specific error, but NOT a crash
-    case Zenoh.declare_publisher(path) do
-      {:ok, _ref} -> :ok
-      {:error, _} -> :ok
-    end
+    results = Enum.map(paths, &Zenoh.classify_tier/1)
+    assert length(results) == 4
+    assert :bypass in results
+    assert :session in results
+    assert :full in results
+  end
+
+  test "zenoh proof token verification in system context" do
+    # Test proof token verification with invalid data
+    invalid_token = Jason.encode!(%{"proof_token" => "invalid"}) |> IO.iodata_to_binary()
+    result = Zenoh.verify_proof_token(invalid_token)
+    assert is_tuple(result)
   end
 end

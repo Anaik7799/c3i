@@ -370,14 +370,19 @@ defmodule Indrajaal.Integration.CepafPort do
       File.exists?(@cli_path) ->
         {:executable, @cli_path}
 
-      # Check for dotnet project
-      File.exists?(Path.join(@dotnet_project_path, "Cepaf.Podman.fsproj")) ->
+      # Check for dotnet project (must have both .fsproj AND dotnet binary available)
+      File.exists?(Path.join(@dotnet_project_path, "Cepaf.Podman.fsproj")) &&
+          System.find_executable("dotnet") != nil ->
         {:dotnet_run, @dotnet_project_path}
 
       # Fallback to assuming podman CLI directly
       true ->
         {:podman_direct, "podman"}
     end
+  end
+
+  defp execute_command(%{cli_mode: :unavailable} = state, _args, _timeout, _from, _output_mode) do
+    {:reply, {:error, :cli_unavailable}, state}
   end
 
   defp execute_command(state, args, timeout, from, output_mode) do
@@ -424,13 +429,24 @@ defmodule Indrajaal.Integration.CepafPort do
       {:noreply, %{state | pending_requests: new_pending}}
     rescue
       error ->
-        Logger.error("CepafPort: Failed to execute command",
-          command: cmd,
-          args: cmd_args,
-          error: inspect(error)
-        )
+        case error do
+          %ErlangError{original: :enoent} ->
+            Logger.warning("CepafPort: CLI binary not found, disabling further attempts",
+              command: cmd,
+              mode: state.cli_mode
+            )
 
-        {:reply, {:error, {:execution_failed, error}}, state}
+            {:reply, {:error, {:execution_failed, error}}, %{state | cli_mode: :unavailable}}
+
+          _ ->
+            Logger.error("CepafPort: Failed to execute command",
+              command: cmd,
+              args: cmd_args,
+              error: inspect(error)
+            )
+
+            {:reply, {:error, {:execution_failed, error}}, state}
+        end
     end
   end
 

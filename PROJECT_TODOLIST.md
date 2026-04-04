@@ -26,3 +26,10 @@
 ## 7.1.7 - Generate MSTS Directives for L5 Cognitive Layer (P0) [COMPLETED]
 ## 7.1.8 - Generate MSTS Directives for L6 Ecosystem Layer (P0) [COMPLETED]
 ## 7.1.9 - Generate MSTS Directives for L7 Federation Layer (P0) [COMPLETED]
+
+## 8.0 - Robust Application Container Creation (Ignition Daemon Hardening) (P1)
+## 8.1 - Implement Async Stream Parsing for I/O Capture (Rank 3) (P1) [PENDING]
+## 8.2 - Implement Cryptographic Image Verification (SHA256) (Rank 4) (P1) [PENDING]
+## 8.3 - Implement DAG-based Dependency Resolution (Wave Gating) (Rank 7) (P2) [PENDING]
+## 8.4 - Implement Compensating Transactions (Rollback on Failure) (Rank 8) (P1) [PENDING]
+## 8.5 - Implement ProofToken Environment Injection (Ed25519) (Rank 9) (P0) [PENDING]

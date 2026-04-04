@@ -404,7 +404,7 @@ defmodule FixRemainingWarningsSOPv51 do
     ==============
 
     1. Compile with warnings as errors:
-       MIX_ENV=test ELIXIR_ERL_OPTIONS="+S 16" mix compile --jobs 16 --warnings-as-errors
+       MIX_ENV=test ELIXIR_ERL_OPTIONS="+fnu +S 16" mix compile --jobs 16 --warnings-as-errors
 
     2. If any warnings remain:
        - Check the specific warning message

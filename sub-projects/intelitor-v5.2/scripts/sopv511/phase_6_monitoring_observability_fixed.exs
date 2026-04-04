@@ -124,7 +124,7 @@ defmodule SOPv511Phase6MonitoringObservability do
             "NO_TIMEOUT=true",
             "PATIENT_MODE=enabled", 
             "INFINITE_PATIENCE=true",
-            "ELIXIR_ERL_OPTIONS=+S 16"
+            "ELIXIR_ERL_OPTIONS=+fnu +S 16"
           ]
         },
         parallel_mode: %{
@@ -225,7 +225,7 @@ defmodule SOPv511Phase6MonitoringObservability do
     export NO_TIMEOUT=true
     export PATIENT_MODE=enabled
     export INFINITE_PATIENCE=true
-    export ELIXIR_ERL_OPTIONS="+S 16"
+    export ELIXIR_ERL_OPTIONS="+fnu +S 16"
     
     # Validate environment
     if [ "$NO_TIMEOUT" != "true" ] || [ "$PATIENT_MODE" != "enabled" ] || [ "$INFINITE_PATIENCE" != "true" ]; then
@@ -237,7 +237,7 @@ defmodule SOPv511Phase6MonitoringObservability do
     echo "🔄 Starting patient compilation (NO timeout, INFINITE patience)..."
     
     # Execute patient compilation with complete logging
-    NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+S 16" \\
+    NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+fnu +S 16" \\
         mix compile --jobs 16 --warnings-as-errors --verbose 2>&1 | tee -a "./__data/compilation/logs/patient_compilation_$(date +%Y%m%d-%H%M).log"
     
     COMPILE_EXIT_CODE=$?
@@ -434,7 +434,7 @@ defmodule SOPv511Phase6MonitoringObservability do
         export NO_TIMEOUT=true &&
         export PATIENT_MODE=enabled &&
         export INFINITE_PATIENCE=true &&
-        export ELIXIR_ERL_OPTIONS='+S 16' &&
+        export ELIXIR_ERL_OPTIONS='+fnu +S 16' &&
         mix compile --jobs 16 --warnings-as-errors --verbose 2>&1 | tee compilation.log
     "
     
@@ -737,7 +737,7 @@ defmodule SOPv511Phase6MonitoringObservability do
     echo "⚡ Configuring parallel compilation environment..."
     
     # Set parallel compilation environment
-    export ELIXIR_ERL_OPTIONS="+S 16"
+    export ELIXIR_ERL_OPTIONS="+fnu +S 16"
     export MIX_ENV=dev
     export ERL_AFLAGS="-kernel shell_history enabled"
     
@@ -754,7 +754,7 @@ defmodule SOPv511Phase6MonitoringObservability do
     # Execute parallel patient compilation
     echo "🔄 Starting parallel patient mode compilation..."
     
-    NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+S 16" \\
+    NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+fnu +S 16" \\
         time mix compile --jobs 16 --warnings-as-errors --verbose --parallel \\
         2>&1 | tee "./__data/compilation/logs/parallel_compilation_$(date +%Y%m%d-%H%M).log"
     

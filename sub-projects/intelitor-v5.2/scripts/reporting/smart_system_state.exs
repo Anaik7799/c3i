@@ -83,7 +83,7 @@ defmodule SmartSystemState do
         env = [
           {"NO_TIMEOUT", "true"},
           {"PATIENT_MODE", "enabled"},
-          {"ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16"},
+          {"ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16"},
           {"MIX_OS_DEPS_COMPILE_PARTITION_COUNT", "8"}
         ]
         case System.cmd("mix", ["compile", "--warnings-as-errors", "--jobs", "16"], env: env, stderr_to_stdout: true) do

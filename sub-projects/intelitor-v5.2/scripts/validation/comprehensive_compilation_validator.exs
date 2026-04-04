@@ -256,7 +256,7 @@ defmodule Indrajaal.Validation.ComprehensiveCompilationValidator do
       {"NO_TIMEOUT", "true"},
       {"PATIENT_MODE", "enabled"},
       {"INFINITE_PATIENCE", "true"},
-      {"ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16"},
+      {"ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16"},
       {"MIX_OS_DEPS_COMPILE_PARTITION_COUNT", "8"},
       {"BASH_DEFAULT_TIMEOUT_MS", "7200000"},  # 2 hours
       {"BASH_MAX_TIMEOUT_MS", "7200000"},     # 2 hours

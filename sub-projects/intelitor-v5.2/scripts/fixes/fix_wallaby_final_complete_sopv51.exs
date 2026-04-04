@@ -279,7 +279,7 @@ defmodule FixWallabyFinalCompleteSOPv51 do
        ./scripts/setup_test_database.sh
 
     2. Compile with parallel execution:
-       MIX_ENV=test ELIXIR_ERL_OPTIONS="+S 16" mix compile --jobs 16 --warnings-as-errors
+       MIX_ENV=test ELIXIR_ERL_OPTIONS="+fnu +S 16" mix compile --jobs 16 --warnings-as-errors
 
     3. Run Wallaby tests:
        mix test --only wallaby

@@ -551,7 +551,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       "--memory", "8g",
       "--cpus", "4",
       "-e", "MIX_ENV=dev",
-      "-e", "ELIXIR_ERL_OPTIONS=+S 16",
+      "-e", "ELIXIR_ERL_OPTIONS=+fnu +S 16",
       "-e", "NO_TIMEOUT=true",
       "-e", "PATIENT_MODE=enabled",
       "registry.nixos.org/nixos/nixos:25.05-small",
@@ -653,7 +653,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     compile_cmd = """
     podman exec #{container_name} sh -c '
       cd /workspace &&
-      NO_TIMEOUT=true PATIENT_MODE=enabled ELIXIR_ERL_OPTIONS="+S 16" mix compile --jobs 16 --warnings-as-errors 2>&1
+      NO_TIMEOUT=true PATIENT_MODE=enabled ELIXIR_ERL_OPTIONS="+fnu +S 16" mix compile --jobs 16 --warnings-as-errors 2>&1
     '
     """
     

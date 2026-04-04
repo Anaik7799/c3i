@@ -152,7 +152,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
         {"NO_TIMEOUT", "true"}, 
         {"PATIENT_MODE", "enabled"}, 
         {"INFINITE_PATIENCE", "true"},
-        {"ELIXIR_ERL_OPTIONS", "+S 16"}
+        {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}
       ])
       |> elem(0)
       |> String.split("\\n")
@@ -169,7 +169,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
         {"NO_TIMEOUT", "true"}, 
         {"PATIENT_MODE", "enabled"}, 
         {"INFINITE_PATIENCE", "true"},
-        {"ELIXIR_ERL_OPTIONS", "+S 16"}
+        {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}
       ]
     )
     

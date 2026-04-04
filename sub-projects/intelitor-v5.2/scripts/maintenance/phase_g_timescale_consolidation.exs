@@ -32,7 +32,7 @@
 # Mission: Eliminate timescale query utilities internal duplications
 # Target: build_event_count_query and other internal duplications
 # Expected Impact: 50+ violations elimination (PHASE G PRIORITY 1)
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase G Timescale Query Consolidation")
 IO.puts("========================================================================")

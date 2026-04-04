@@ -243,7 +243,7 @@ defmodule UltimateAEESOPv511SystematicFixer do
                                    env: [{"NO_TIMEOUT", "true"},
                                          {"PATIENT_MODE", "enabled"},
                                          {"INFINITE_PATIENCE", "true"},
-                                         {"ELIXIR_ERL_OPTIONS", "+S 16"}])
+                                         {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}])
 
     File.write!("./__data/tmp/final_validation_#{timestamp()}.log", output)
 

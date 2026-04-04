@@ -141,7 +141,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     System.put_env("NO_TIMEOUT", "true")
     System.put_env("PATIENT_MODE", "enabled")
     System.put_env("INFINITE_PATIENCE", "true")
-    System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
     
     # Run compilation and capture output
     {_output, _exit_code} = System.cmd("mix", ["compile", "--warnings-as-errors"], 

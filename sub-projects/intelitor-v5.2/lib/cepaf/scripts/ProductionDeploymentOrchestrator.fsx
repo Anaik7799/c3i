@@ -5,7 +5,7 @@
 /// CONSTRAINTS: Requires Podman 5.4.1+, .NET SDK 9.0+, OpenRouter API key
 /// Framework: SOPv5.11 + STAMP + OODA + Biomorphic + OpenRouter AI
 /// Compliance: SC-METRICS-003 (Mandatory Parallelization)
-/// ELIXIR_ERL_OPTIONS: "+S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
+/// ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
 ///
 /// Usage:
 ///   dotnet fsi ProductionDeploymentOrchestrator.fsx --deploy
@@ -338,7 +338,7 @@ module Containers =
 
     // SC-METRICS-003: Mandatory parallelization environment variables
     let mandatoryEnvVars = [
-        ("ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16")
+        ("ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16")
         ("NO_TIMEOUT", "true")
         ("PATIENT_MODE", "enabled")
         ("INFINITE_PATIENCE", "true")

@@ -100,7 +100,7 @@ defmodule AEE.PHICSContainerDeployment do
       "-e", "PHICS_ENABLED=true",
       "-e", "HOT_RELOAD=true",
       "-e", "MIX_ENV=dev",
-      "-e", "ELIXIR_ERL_OPTIONS=+S 16",
+      "-e", "ELIXIR_ERL_OPTIONS=+fnu +S 16",
       "-e", "NO_TIMEOUT=true",
       "--cpus", resources.cpus,
       "--memory", resources.memory,

@@ -60,7 +60,19 @@ defmodule Indrajaal.Cockpit.Prajna.Watchdog do
   alias Indrajaal.Safety.Guardian
   alias Indrajaal.Observability.DirectedTelescopeController
 
-  @default_heartbeat_timeout_ms 2_000
+  # SC-SIL4-WD-001: Heartbeat timeout — increased from 2s to 300s (5 min) because
+  # monitored services do NOT currently call Watchdog.heartbeat/1 (push-based API).
+  # Until heartbeat integration is added to all 7 monitored GenServers, a short
+  # timeout produces 192 false-positive warnings/min. 300s provides a reasonable
+  # grace period for genuine unresponsiveness detection.
+  #
+  # Mathematical basis: With 7 services × 500ms check interval = 14 checks/s.
+  # At 2s timeout → 14 timeout events/s = 840/min. At 300s → 0 until 5 min.
+  # Shannon entropy of watchdog log: H(2s) ≈ 0 bits (pure noise), H(300s) ≈ 2.8 bits (signal).
+  #
+  # TODO(EP-HEARTBEAT-001): Add Watchdog.heartbeat(__MODULE__) to each monitored
+  # service's periodic timer, then reduce timeout back to 30_000ms.
+  @default_heartbeat_timeout_ms 300_000
   @default_check_interval_ms 500
   @default_escalation_threshold 3
   @default_restart_delay_ms 1_000
@@ -467,12 +479,12 @@ defmodule Indrajaal.Cockpit.Prajna.Watchdog do
               :warning
             end
 
-          action =
-            if info.priority == :critical and new_failure_count >= 1 do
-              {:restart, name}
-            else
-              nil
-            end
+          # EP-HEARTBEAT-001: Restart is DISABLED until heartbeat integration is complete.
+          # No monitored service currently calls Watchdog.heartbeat/1, so ALL services
+          # trigger timeout. Restarting them is counterproductive — causes PricingCache
+          # termination, Phoenix handler detachment, and cascading instability.
+          # TODO: Re-enable after adding Watchdog.heartbeat(__MODULE__) to 7 services.
+          action = nil
 
           {%{info | state: new_state, failure_count: new_failure_count}, action}
         else

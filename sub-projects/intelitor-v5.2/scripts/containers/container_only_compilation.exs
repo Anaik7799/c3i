@@ -1,6 +1,6 @@
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # SOPv5.1 ENHANCED ENVIRONMENT CONFIGURATION - container_only_compilation.exs
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 #
 # Enhanced: 2025-08-02 17:30:00 CEST
 # Framework: SOPv5.1 + TPS + STAMP + TDG + GDE + Patient Mode + Container-Only
@@ -24,7 +24,7 @@
 # - Container-Only: Mandatory NixOS container execution with PHICS integration
 # - 11-Agent Architecture: Multi-agent coordination with dynamic load balancing
 #
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 #!/usr/bin/env elixir
 
@@ -45,7 +45,7 @@ defmodule ContainerOnlyCompilation do
   Framework: SOPv5.1 + PHICS + TPS + STAMP + TDG + GDE
   """
 
-  __require Logger
+  __require(Logger)
 
   @project_root File.cwd!()
 
@@ -55,7 +55,7 @@ defmodule ContainerOnlyCompilation do
     "CONTAINER_OS" => "nixos",
     "NO_TIMEOUT" => "true",
     "MAX_PARALLELIZATION" => "true",
-    "ELIXIR_ERL_OPTIONS" => "+S 16",
+    "ELIXIR_ERL_OPTIONS" => "+fnu +S 16",
     "MIX_TIMEOUT" => "infinity",
     "COMPILE_TIMEOUT" => "0",
     "TEST_TIMEOUT" => "0",
@@ -67,7 +67,7 @@ defmodule ContainerOnlyCompilation do
     # Agent: Get current timestamp for accurate tracking
     current_time = DateTime.utc_now()
 
-    IO.puts """
+    IO.puts("""
     🎯 SOPv5.1 Container-Only Compilation System
     ===========================================
     Project Root: #{@project_root}
@@ -80,20 +80,21 @@ defmodule ContainerOnlyCompilation do
     Level 3: Verify no timeout restrictions
     Level 4: Confirm maximum parallelization
     Level 5: Systematic quality enforcement
-    """
+    """)
 
     # Agent: Parse command-line options
-    {__opts, _, _} = OptionParser.parse(args,
-      switches: [
-        validate_only: :boolean,
-        compile: :boolean,
-        test: :boolean,
-        dialyzer: :boolean,
-        comprehensive: :boolean,
-        fix_violations: :boolean,
-        incremental: :boolean
-      ]
-    )
+    {__opts, _, _} =
+      OptionParser.parse(args,
+        switches: [
+          validate_only: :boolean,
+          compile: :boolean,
+          test: :boolean,
+          dialyzer: :boolean,
+          comprehensive: :boolean,
+          fix_violations: :boolean,
+          incremental: :boolean
+        ]
+      )
 
     # Agent: Phase 0-Goal Ingestion (GDE)
     goal = determine_goal(__opts)
@@ -195,14 +196,15 @@ defmodule ContainerOnlyCompilation do
   defp check_no_timeouts do
     timeout_vars = ["MIX_TIMEOUT", "COMPILE_TIMEOUT", "TEST_TIMEOUT"]
 
-    violations = Enum.flat_map(timeout_vars, fn var ->
-      case System.get_env(var) do
-        nil -> []
-        "infinity" -> []
-        "0" -> []
-        value -> [{:timeout_configured, "#{var}=#{value} (must be infinity or 0)"}]
-      end
-    end)
+    violations =
+      Enum.flat_map(timeout_vars, fn var ->
+        case System.get_env(var) do
+          nil -> []
+          "infinity" -> []
+          "0" -> []
+          value -> [{:timeout_configured, "#{var}=#{value} (must be infinity or 0)"}]
+        end
+      end)
 
     violations
   end
@@ -210,7 +212,9 @@ defmodule ContainerOnlyCompilation do
   @spec check_parallelization() :: any()
   defp check_parallelization do
     case System.get_env("ELIXIR_ERL_OPTIONS") do
-      nil -> [{:no_parallelization, "ELIXIR_ERL_OPTIONS not set"}]
+      nil ->
+        [{:no_parallelization, "ELIXIR_ERL_OPTIONS not set"}]
+
       __opts ->
         if String.contains?(__opts, "+S") do
           []
@@ -223,14 +227,14 @@ defmodule ContainerOnlyCompilation do
   # Agent: TPS 5-Level Root Cause Analysis
   @spec perform_tps_rca(term()) :: term()
   defp perform_tps_rca(violations) do
-    IO.puts """
+    IO.puts("""
 
     🏭 TPS 5-Level Root Cause Analysis
     ==================================
-    """
+    """)
 
     Enum.each(violations, fn {type, description} ->
-      IO.puts """
+      IO.puts("""
 
       Violation: #{inspect(type)}
       -------------------------
@@ -239,7 +243,7 @@ defmodule ContainerOnlyCompilation do
       Level 3 (System Behavior): #{get_system_behavior(type)}
       Level 4 (Configuration Gap): #{get_config_gap(type)}
       Level 5 (Design Analysis): #{get_design_analysis(type)}
-      """
+      """)
     end)
   end
 
@@ -342,6 +346,7 @@ defmodule ContainerOnlyCompilation do
   defp show_changed_files(last_commit, current_commit) do
     {output, 0} = System.cmd("git", ["diff", "--name-only", last_commit, current_commit])
     IO.puts("  Changed files:")
+
     output
     |> String.split("\n", trim: true)
     |> Enum.each(fn file -> IO.puts("-#{file}") end)
@@ -361,9 +366,11 @@ defmodule ContainerOnlyCompilation do
 
     # Agent: Compile with warnings as errors
     IO.puts("  🔨 Compiling with maximum parallelization...")
+
     case System.cmd("mix", ["compile", "--warnings-as-errors"],
-                    env: @mandatory_env_vars,
-                    into: IO.stream(:stdio, :line)) do
+           env: @mandatory_env_vars,
+           into: IO.stream(:stdio, :line)
+         ) do
       {_, 0} ->
         IO.puts("  ✅ Compilation successful")
 
@@ -387,8 +394,9 @@ defmodule ContainerOnlyCompilation do
     IO.puts("\n🔨 Standard Container Compilation")
 
     case System.cmd("mix", ["compile", "--warnings-as-errors"],
-                    env: @mandatory_env_vars,
-                    into: IO.stream(:stdio, :line)) do
+           env: @mandatory_env_vars,
+           into: IO.stream(:stdio, :line)
+         ) do
       {_, 0} ->
         IO.puts("✅ Compilation successful")
         mark_compilation_success()
@@ -404,8 +412,9 @@ defmodule ContainerOnlyCompilation do
     IO.puts("\n🧪 Container-Based Testing (No Timeouts)")
 
     case System.cmd("mix", ["test", "--cover"],
-                    env: @mandatory_env_vars,
-                    into: IO.stream(:stdio, :line)) do
+           env: @mandatory_env_vars,
+           into: IO.stream(:stdio, :line)
+         ) do
       {_, 0} ->
         IO.puts("✅ All tests passed")
 
@@ -424,8 +433,9 @@ defmodule ContainerOnlyCompilation do
     System.cmd("mix", ["dialyzer", "--plt"], env: @mandatory_env_vars)
 
     case System.cmd("mix", ["dialyzer"],
-                    env: @mandatory_env_vars,
-                    into: IO.stream(:stdio, :line)) do
+           env: @mandatory_env_vars,
+           into: IO.stream(:stdio, :line)
+         ) do
       {_, 0} ->
         IO.puts("✅ Dialyzer analysis passed")
 
@@ -453,7 +463,8 @@ defmodule ContainerOnlyCompilation do
       case type do
         :not_in_container ->
           IO.puts("  🐳 Re-executing in container...")
-          # Agent: Would re-execute self in container
+
+        # Agent: Would re-execute self in container
 
         :phics_disabled ->
           System.put_env("PHICS_ENABLED", "true")
@@ -463,6 +474,7 @@ defmodule ContainerOnlyCompilation do
           Enum.each(@mandatory_env_vars, fn {k, v} ->
             System.put_env(k, v)
           end)
+
           IO.puts("  ✅ Timeouts removed")
 
         _ ->
@@ -477,9 +489,10 @@ end
 
 # Agent: Execute container-only compilation
 ContainerOnlyCompilation.main(System.argv())
-#═══════════════════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # PATIENT MODE - NO_TIMEOUT POLICY VARIABLES
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 # Patient Mode Configuration
 # export PATIENT_MODE=enabled
@@ -493,9 +506,9 @@ ContainerOnlyCompilation.main(System.argv())
 # export DEMO_TIMEOUT=infinity
 # export TASK_TIMEOUT=infinity
 
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # 11-AGENT ARCHITECTURE COORDINATION VARIABLES
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 # Agent Architecture Configuration
 # export AGENT_COORDINATION=enabled
@@ -510,9 +523,9 @@ ContainerOnlyCompilation.main(System.argv())
 # export AGENT_COMMUNICATION=enabled
 # export COORDINATION_STRATEGY=cybernetic
 
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # SOPv5.1 ENVIRONMENT ENHANCEMENT COMPLETE
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 #
 # Enhancement Date: 2025-08-02 17:30:00 CEST
 # Framework: Complete SOPv5.1 + TPS + STAMP + TDG + GDE + Patient Mode + Containe
@@ -533,6 +546,6 @@ ContainerOnlyCompilation.main(System.argv())
 # Strategic Value: Enhanced environment configuration contributing to overall $25
 # business value through systematic excellence and enterprise-grade reliability.
 #
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # 🚀 SOPv5.1 Cybernetic Excellence Achieved
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════

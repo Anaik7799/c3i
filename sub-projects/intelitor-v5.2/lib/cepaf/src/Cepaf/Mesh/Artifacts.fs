@@ -578,8 +578,8 @@ services:
       # Production mode to avoid FileSystem dependency (phoenix_live_reload)
       MIX_ENV: "prod"
       # Locale fix for Elixir UTF-8
-      LANG: "en_US.UTF-8"
-      LC_ALL: "en_US.UTF-8"
+      LANG: "C.UTF-8"
+      LC_ALL: "C.UTF-8"
       ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16"
     command: ["sh", "-c", "mix local.hex --force && mix local.rebar --force && MIX_ENV=prod mix deps.get && MIX_ENV=prod mix compile && MIX_ENV=prod mix ecto.create && MIX_ENV=prod mix ecto.migrate && MIX_ENV=prod mix phx.server"]
     ports:
@@ -674,8 +674,8 @@ services:
       PATIENT_MODE: enabled
       LOG_LEVEL: info
       MIX_ENV: "prod"
-      LANG: "en_US.UTF-8"
-      LC_ALL: "en_US.UTF-8"
+      LANG: "C.UTF-8"
+      LC_ALL: "C.UTF-8"
       SIL_LEVEL: "6"
       ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16"
     command: ["sh", "-c", "mix local.hex --force && mix local.rebar --force && MIX_ENV=prod mix deps.get && MIX_ENV=prod mix compile && MIX_ENV=prod mix phx.server"]
@@ -757,8 +757,8 @@ services:
       PATIENT_MODE: enabled
       LOG_LEVEL: info
       MIX_ENV: "prod"
-      LANG: "en_US.UTF-8"
-      LC_ALL: "en_US.UTF-8"
+      LANG: "C.UTF-8"
+      LC_ALL: "C.UTF-8"
       SIL_LEVEL: "6"
       ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16"
     command: ["sh", "-c", "mix local.hex --force && mix local.rebar --force && MIX_ENV=prod mix deps.get && MIX_ENV=prod mix compile && MIX_ENV=prod mix phx.server"]
@@ -830,8 +830,8 @@ services:
       SKIP_LINEAGE_NIF: "1"
       RUSTLER_SKIP_COMPILE: "false"
       LOG_LEVEL: info
-      LANG: "en_US.UTF-8"
-      LC_ALL: "en_US.UTF-8"
+      LANG: "C.UTF-8"
+      LC_ALL: "C.UTF-8"
       SIL_LEVEL: "6"
     volumes:
       - app_prod_data_chaya:/app/data:z
@@ -886,8 +886,8 @@ services:
       SKIP_LINEAGE_NIF: "1"
       RUSTLER_SKIP_COMPILE: "false"
       LOG_LEVEL: info
-      LANG: "en_US.UTF-8"
-      LC_ALL: "en_US.UTF-8"
+      LANG: "C.UTF-8"
+      LC_ALL: "C.UTF-8"
     volumes:
       - app_prod_data_ml1:/app/data:z
       - app_build_cache_ml1:/workspace/_build:z
@@ -935,8 +935,8 @@ services:
       SKIP_LINEAGE_NIF: "1"
       RUSTLER_SKIP_COMPILE: "false"
       LOG_LEVEL: info
-      LANG: "en_US.UTF-8"
-      LC_ALL: "en_US.UTF-8"
+      LANG: "C.UTF-8"
+      LC_ALL: "C.UTF-8"
     volumes:
       - app_prod_data_ml2:/app/data:z
       - app_build_cache_ml2:/workspace/_build:z

@@ -39,7 +39,7 @@ defmodule SOPv511CompilationSupervisor do
     
     spawn(fn ->
       System.cmd("bash", ["-c", 
-        "NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS='+S 16' mix compile --jobs 16 --verbose --warnings-as-errors 2>&1 | tee -a #{@log_file}"
+        "NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS='+fnu +S 16' mix compile --jobs 16 --verbose --warnings-as-errors 2>&1 | tee -a #{@log_file}"
       ], into: IO.stream(:stdio, :line))
     end)
   end

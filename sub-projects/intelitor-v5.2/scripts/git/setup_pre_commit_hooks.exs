@@ -176,7 +176,7 @@ defmodule SetupPreCommitHooks do
     echo "⚡ Validating parallelization..."
     if [ "${ELIXIR_ERL_OPTIONS:-}" != *"+S 16"* ]; then
       echo "⚠️  WARNING: Maximum parallelization not configured"
-      echo "   Set: export ELIXIR_ERL_OPTIONS='+S 16'"
+      echo "   Set: export ELIXIR_ERL_OPTIONS='+fnu +S 16'"
     fi
 
     # Agent: Run code quality checks

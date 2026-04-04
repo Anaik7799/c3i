@@ -541,7 +541,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     # Setup PHICS hot-reload
     ENV PHICS_ENABLED=true
     ENV MIX_ENV=test
-    ENV ELIXIR_ERL_OPTIONS="+S 16"
+    ENV ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
     # Create workspace
     WORKDIR /workspace

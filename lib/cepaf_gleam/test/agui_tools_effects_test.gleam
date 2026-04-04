@@ -8,12 +8,12 @@ import cepaf_gleam/agui/tools.{
 }
 import cepaf_gleam/ui/lustre/effects.{
   Approved, BatchEffects, Edited, Escalated, NoEffect, Rejected,
-  SendHitlDecision, SendToolResult, StartRun, SubscribeAgent, SubscribeZenoh,
+  SendHitlDecision, SendToolResult, StartRun, SubscribeAgent,
 }
 import gleam/dict
 import gleam/json
 import gleam/list
-import gleam/option.{None, Some}
+import gleam/option.{Some}
 import gleam/string
 import gleeunit/should
 
@@ -290,7 +290,7 @@ pub fn subscribe_agent_creates_subscribe_agent_effect_test() {
   case eff {
     SubscribeAgent(agent_id, topics) -> {
       agent_id |> should.equal("cortex")
-      { list.length(topics) > 0 } |> should.be_true
+      { topics != [] } |> should.be_true
     }
     _ -> should.fail()
   }

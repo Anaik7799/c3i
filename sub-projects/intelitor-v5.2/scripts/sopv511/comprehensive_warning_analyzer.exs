@@ -428,7 +428,7 @@ defmodule ComprehensiveWarningAnalyzer do
     validation_log = "./__data/tmp/batch_#{batch_num}_validation.log"
     
     {_output, exit_code} = System.cmd("bash", ["-c", """
-      export NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+S 16"
+      export NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+fnu +S 16"
       mix compile --jobs 16 --verbose 2>&1 | tee #{validation_log}
     """])
 

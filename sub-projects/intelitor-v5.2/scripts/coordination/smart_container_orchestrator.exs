@@ -306,7 +306,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       "-e", "CONTAINER_SPECIALIZATION=#{spec.specialization}",
       "-e", "COMPLEXITY_WEIGHT=#{spec.complexity_weight}",
       "-e", "RESOURCE_PROFILE=#{spec.resource_profile}",
-      "-e", "ELIXIR_ERL_OPTIONS=+S 16",
+      "-e", "ELIXIR_ERL_OPTIONS=+fnu +S 16",
       "-e", "COMPILATION_PRIORITY=#{spec.priority}",
       "--hostname", "#{container_name}-compiler",
       "localhost/indrajaal-app:nixos-devenv",

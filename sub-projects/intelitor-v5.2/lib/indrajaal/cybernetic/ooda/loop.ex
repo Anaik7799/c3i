@@ -24,7 +24,7 @@ defmodule Indrajaal.Cybernetic.OODA.Loop do
   # @latency_target_ms 1000 # Standard Loop
   @min_data_quality 80
   @min_decision_confidence 70
-  @cycle_delay_ms 50
+  @cycle_delay_ms 10_000
 
   # Observation timeout reduced from 5000ms to 500ms (SC-OODA-007)
   # Analysis showed 5000ms is too long - allows complete system state change without detection

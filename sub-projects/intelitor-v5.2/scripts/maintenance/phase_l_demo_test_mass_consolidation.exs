@@ -28,7 +28,7 @@
 # Agent: Supervisor-1 (Strategic Oversight Agent)
 # Mission: Eliminate MASSIVE demo test duplications (mass: 131)
 # Target: 40+ demo test files with identical code blocks
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase L Demo Test Mass Consolidation")
 IO.puts("=====================================================================")

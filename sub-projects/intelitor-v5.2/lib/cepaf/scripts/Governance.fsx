@@ -3,7 +3,7 @@
 // Capabilities: Quadplex Logging, Zenoh Telemetry, Metabolic Throttling, Real-time Streaming
 // Capabilities: Comprehensive Compilation Metrics, Full Parallelization
 // Compliance: SC-METRICS-003 (Mandatory Parallelization), SC-METRICS-004 (Compilation Metrics)
-// ELIXIR_ERL_OPTIONS: "+S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
+// ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
 
 namespace Cepaf.Scripts
 
@@ -21,7 +21,7 @@ module Governance =
 
     // --- SC-METRICS-003: MANDATORY PARALLELIZATION ENVIRONMENT VARIABLES ---
     let mandatoryEnvVars = [
-        ("ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16")
+        ("ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16")
         ("NO_TIMEOUT", "true")
         ("PATIENT_MODE", "enabled")
         ("INFINITE_PATIENCE", "true")

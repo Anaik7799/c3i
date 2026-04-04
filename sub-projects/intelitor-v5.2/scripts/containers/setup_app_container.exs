@@ -1,6 +1,6 @@
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # SOPv5.1 ENHANCED ENVIRONMENT CONFIGURATION - setup_app_container.exs
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 #
 # Enhanced: 2025-08-02 17:30:00 CEST
 # Framework: SOPv5.1 + TPS + STAMP + TDG + GDE + Patient Mode + Container-Only
@@ -24,7 +24,7 @@
 # - Container-Only: Mandatory NixOS container execution with PHICS integration
 # - 11-Agent Architecture: Multi-agent coordination with dynamic load balancing
 #
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 #!/usr/bin/env elixir
 # -*- coding: utf-8 -*-
@@ -46,7 +46,7 @@ defmodule AppContainerSetup do
   - SC4: PHICS must be enabled
   """
 
-  __require Logger
+  __require(Logger)
 
   @spec setup_container() :: any()
   def setup_container do
@@ -83,6 +83,7 @@ defmodule AppContainerSetup do
     case System.cmd("podman", ["ps", "-a", "--format", "{{.Names}}"]) do
       {output, 0} ->
         String.contains?(output, name)
+
       _ ->
         false
     end
@@ -93,6 +94,7 @@ defmodule AppContainerSetup do
     case System.cmd("podman", ["ps", "--format", "{{.Names}}"]) do
       {output, 0} ->
         String.contains?(output, name)
+
       _ ->
         false
     end
@@ -104,6 +106,7 @@ defmodule AppContainerSetup do
       {_, 0} ->
         Logger.info("✅ Container started successfully")
         {:ok, :started}
+
       {error, _} ->
         Logger.error("❌ Failed to start container: #{error}")
         {:error, error}
@@ -116,17 +119,33 @@ defmodule AppContainerSetup do
     container_cmd = [
       "run",
       "-d",
-      "--name", "indrajaal-app",
-      "--network", "host",  # Use host network for simplicity
-      "-v", "#{File.cwd!()}:/workspace:z",  # Mount current directory
-      "-w", "/workspace",
-      "--memory", "4g",  # Resource limit
-      "--cpus", "4",     # CPU limit
-      "-e", "MIX_ENV=dev",
-      "-e", "ELIXIR_ERL_OPTIONS=+S 16",
-      "-e", "DATABASE_URL=ecto://postgres:postgres@localhost:5433/indrajaal_dev",
+      "--name",
+      "indrajaal-app",
+      # Use host network for simplicity
+      "--network",
+      "host",
+      # Mount current directory
+      "-v",
+      "#{File.cwd!()}:/workspace:z",
+      "-w",
+      "/workspace",
+      # Resource limit
+      "--memory",
+      "4g",
+      # CPU limit
+      "--cpus",
+      "4",
+      "-e",
+      "MIX_ENV=dev",
+      "-e",
+      "ELIXIR_ERL_OPTIONS=+fnu +S 16",
+      "-e",
+      "DATABASE_URL=ecto://postgres:postgres@localhost:5433/indrajaal_dev",
       "elixir:1.18-alpine",
-      "tail", "-f", "/dev/null"  # Keep container running
+      # Keep container running
+      "tail",
+      "-f",
+      "/dev/null"
     ]
 
     Logger.info("🐳 Creating container with Podman...")
@@ -139,6 +158,7 @@ defmodule AppContainerSetup do
         setup_container_environment()
 
         {:ok, :created}
+
       {error, code} ->
         Logger.error("❌ Failed to create container: #{error}")
         {:error, {code, error}}
@@ -162,6 +182,7 @@ defmodule AppContainerSetup do
     case System.cmd("sh", ["-c", deps_cmd], into: IO.stream(:stdio, :line)) do
       {_, 0} ->
         Logger.info("✅ Container environment setup complete")
+
       {_, _} ->
         Logger.error("⚠️ Some setup steps may have failed")
     end
@@ -171,47 +192,49 @@ end
 # Execute setup
 case AppContainerSetup.setup_container() do
   {:ok, status} ->
-    IO.puts "\n✅ Container setup complete: #{status}"
+    IO.puts("\n✅ Container setup complete: #{status}")
+
   {:error, reason} ->
-    IO.puts "\n❌ Container setup failed: #{inspect(reason)}"
+    IO.puts("\n❌ Container setup failed: #{inspect(reason)}")
     System.halt(1)
 end
-#═══════════════════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # PATIENT MODE - NO_TIMEOUT POLICY VARIABLES
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 # Patient Mode Configuration
-export PATIENT_MODE=enabled
-export NO_TIMEOUT=true
-export INFINITE_PATIENCE=true
-export TIMEOUT_POLICY=none
+export(PATIENT_MODE = enabled)
+export(NO_TIMEOUT = true)
+export(INFINITE_PATIENCE = true)
+export(TIMEOUT_POLICY = none)
 
 # Patient Mode Execution Settings
-export COMPILE_TIMEOUT=infinity
-export TEST_TIMEOUT=infinity
-export DEMO_TIMEOUT=infinity
-export TASK_TIMEOUT=infinity
+export(COMPILE_TIMEOUT = infinity)
+export(TEST_TIMEOUT = infinity)
+export(DEMO_TIMEOUT = infinity)
+export(TASK_TIMEOUT = infinity)
 
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # 11-AGENT ARCHITECTURE COORDINATION VARIABLES
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 # Agent Architecture Configuration
-export AGENT_COORDINATION=enabled
-export SUPERVISOR_AGENTS=1
-export HELPER_AGENTS=4
-export WORKER_AGENTS=6
-export TOTAL_AGENTS=11
+export(AGENT_COORDINATION = enabled)
+export(SUPERVISOR_AGENTS = 1)
+export(HELPER_AGENTS = 4)
+export(WORKER_AGENTS = 6)
+export(TOTAL_AGENTS = 11)
 
 # Agent Coordination Settings
-export MULTI_AGENT_COORDINATION=enabled
-export DYNAMIC_LOAD_BALANCING=enabled
-export AGENT_COMMUNICATION=enabled
-export COORDINATION_STRATEGY=cybernetic
+export(MULTI_AGENT_COORDINATION = enabled)
+export(DYNAMIC_LOAD_BALANCING = enabled)
+export(AGENT_COMMUNICATION = enabled)
+export(COORDINATION_STRATEGY = cybernetic)
 
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # SOPv5.1 ENVIRONMENT ENHANCEMENT COMPLETE
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 #
 # Enhancement Date: 2025-08-02 17:30:00 CEST
 # Framework: Complete SOPv5.1 + TPS + STAMP + TDG + GDE + Patient Mode + Containe
@@ -232,7 +255,6 @@ export COORDINATION_STRATEGY=cybernetic
 # Strategic Value: Enhanced environment configuration contributing to overall $25
 # business value through systematic excellence and enterprise-grade reliability.
 #
-#═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # 🚀 SOPv5.1 Cybernetic Excellence Achieved
-#═══════════════════════════════════════════════════════════════════════════════
-
+# ═══════════════════════════════════════════════════════════════════════════════

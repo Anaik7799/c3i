@@ -28,7 +28,7 @@
 # Agent: Supervisor-1 (Strategic Oversight Agent)
 # Mission: Eliminate ALL analytics engine duplications across modules
 # Target: analytics_dashboard_engine, real_time_bi_collector, predictive_performance_monitor
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase J Analytics Engine Consolidation")
 IO.puts("=======================================================================")

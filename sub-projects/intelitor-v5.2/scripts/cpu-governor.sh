@@ -88,22 +88,22 @@ adaptive_env() {
     current=$(cpu_usage_fast)
 
     if [ "$current" -lt 60 ]; then
-        export ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"
+        export ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16"
         export MIX_JOBS=16
         export GOVERNOR_NICE=10
         echo "[CPU-GOV] CPU ${current}% → Full speed: +S 16:16, --jobs 16"
     elif [ "$current" -lt 70 ]; then
-        export ELIXIR_ERL_OPTIONS="+S 12:12 +SDio 12"
+        export ELIXIR_ERL_OPTIONS="+fnu +S 12:12 +SDio 12"
         export MIX_JOBS=12
         export GOVERNOR_NICE=10
         echo "[CPU-GOV] CPU ${current}% → Slight reduction: +S 12:12, --jobs 12"
     elif [ "$current" -lt 80 ]; then
-        export ELIXIR_ERL_OPTIONS="+S 10:10 +SDio 10"
+        export ELIXIR_ERL_OPTIONS="+fnu +S 10:10 +SDio 10"
         export MIX_JOBS=10
         export GOVERNOR_NICE=15
         echo "[CPU-GOV] CPU ${current}% → Moderate throttle: +S 10:10, --jobs 10"
     elif [ "$current" -le 85 ]; then
-        export ELIXIR_ERL_OPTIONS="+S 6:6 +SDio 6"
+        export ELIXIR_ERL_OPTIONS="+fnu +S 6:6 +SDio 6"
         export MIX_JOBS=6
         export GOVERNOR_NICE=19
         echo "[CPU-GOV] CPU ${current}% → Heavy throttle: +S 6:6, --jobs 6"

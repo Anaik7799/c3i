@@ -8,7 +8,7 @@ defmodule ComprehensiveUnusedVarFixer do
     IO.puts(String.duplicate("=", 60))
 
     # Get fresh compilation warnings
-    {output, _} = System.cmd("sh", ["-c", "export ELIXIR_ERL_OPTIONS='+S 16' && mix compile --jobs 16 --warnings-as-errors 2>&1"],
+    {output, _} = System.cmd("sh", ["-c", "export ELIXIR_ERL_OPTIONS='+fnu +S 16' && mix compile --jobs 16 --warnings-as-errors 2>&1"],
                              env: [{"MIX_ENV", "dev"}])
 
     warnings = extract_warnings(output)

@@ -69,9 +69,9 @@ where $\mathcal{S}_{functional} \equiv \{s \mid \text{Compiles}(s) \wedge \text{
 | **Prajna TUI** | Elixir / ANSI | Emergency Terminal |
 
 ### 2.2 Essential Commands (F# Kernel)
-- `./sa-up`: Boot mesh (Binary, 15 Containers).
+- `./sa-up`: Boot mesh (Binary, 16 Containers).
 - `./sa-down`: Graceful shutdown (Binary) + checkpoint.
-- `./sa-status`: Health matrix (Binary, 15 Nodes).
+- `./sa-status`: Health matrix (Binary, 16 Nodes).
 - `./sa-plan`: Task management (Binary).
 - `./sa-verify`: 2oo3 voting (Binary) verification.
 
@@ -85,16 +85,30 @@ where $\mathcal{S}_{functional} \equiv \{s \mid \text{Compiles}(s) \wedge \text{
 - **SC-COCKPIT-002**: WebUI MUST use F# Bolero.
 - **SC-SAFETY-001 (Arm & Fire)**: Destructive actions require multi-step commit.
 
-### SC-IGNITE: Panoptic Ignition & Re-Synthesis
+### SC-IGNITE: Panoptic Ignition & Re-Synthesis (v2.0 — 16-Container Genome)
 - **SC-IGNITE-001**: Genomic Re-Synthesis MUST perform step-by-step breakdown of container builds (L0-L1).
 - **SC-IGNITE-002**: Architectural control checks (L0-L7) MUST be enforced at every ignition stage.
 - **SC-IGNITE-003**: 7-Level Fractal RCA MUST be executed automatically on any boot failure.
 - **SC-IGNITE-004**: High-fidelity dashboard MUST show "Thinking" and real-time synthesis progress.
+- **SC-IGNITE-005**: BuildHistory MUST persist build timing to SQLite with WAL mode and EMA estimation (alpha=0.3).
+- **SC-IGNITE-006**: Multi-container tiers MUST boot in parallel via `Async.Parallel` (SC-SWARM-001).
+- **SC-IGNITE-007**: Image staleness detection MUST trigger rebuild when age > `maxImageAgeHours` (168h default).
+- **SC-IGNITE-008**: `sil6Genome` MUST cover all 16 containers across 3 `ImageCategory` variants (Built/Pulled/Shared).
 
 ### SC-SWARM: Multilayer Swarm Parallelization
 - **SC-SWARM-001**: The system MUST default to Full Parallelization Multilayer Swarm mode for ALL commands, operations, and executions.
 - **SC-SWARM-002**: All compilation, tests, and orchestrations MUST utilize maximum available hardware concurrency.
 - **SC-SWARM-003**: Agents MUST operate in FULL AUTONOMOUS MODE and FULL PERMISSIONS MODE until the goal is complete.
+
+### SC-SWARM-VERIFY: Deep Swarm Verification (7 Actions × 16 Containers × 8 Layers)
+- **SC-SWARM-VERIFY-001**: `swarm_verify` MCP tool MUST support all 7 verification actions.
+- **SC-SWARM-VERIFY-010**: ALL 16 SIL-6 genome containers MUST be included in every action.
+- **SC-SWARM-VERIFY-020**: Capability-based partitioning MUST route containers to full or baseline checks.
+- **SC-SWARM-VERIFY-030**: OODA compliance MUST verify 5-tier latency budgets (Agent 30ms, Intelligence 100ms, Knowledge 1ms, Cortex 50ms, Strategy 1000ms).
+- **SC-SWARM-VERIFY-040**: Fractal verification MUST cover all 8 layers (L0 Constitutional through L7 Federation).
+- **SC-SWARM-VERIFY-050**: Observability pipeline MUST verify OTEL→Prometheus→Grafana→Zenoh closed loop.
+- **SC-SWARM-VERIFY-060**: MCP dispatch MUST follow `string option` chain pattern with proper error handling.
+- Full constraints: `.claude/rules/swarm-verification.md` (SC-SWARM-VERIFY-001 to SC-SWARM-VERIFY-064, AOR-SWARM-VERIFY-001 to AOR-SWARM-VERIFY-015).
 
 ### SC-PARALLEL: Full Parallelization
 - **SC-PARALLEL-001**: Use `ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"`.
@@ -112,7 +126,7 @@ where $\mathcal{S}_{functional} \equiv \{s \mid \text{Compiles}(s) \wedge \text{
 - **SC-CPU-GOV-009**: CPU check interval: 2 seconds during wait-loop.
 - **SC-CPU-GOV-010**: Maximum wait time: 120 seconds before proceeding with minimum parallelism.
 - **SC-CPU-GOV-PRECEDENCE**: When CPU > 80%, SC-CPU-GOV OVERRIDES SC-PARALLEL fixed values.
-- **SC-CPU-GOV-HEALTH**: `HEALTH_PORT=4006` MUST be set in all governed test commands (port 4001 occupied).
+- **SC-CPU-GOV-HEALTH**: `HEALTH_PORT=4051` MUST be set in all governed test commands (ports 4000-4010 reserved for 16-container mesh).
 
 **CPU Governor Implementation (Triple-Redundant)**:
 | Layer | Module | Key |
@@ -156,12 +170,19 @@ where $\mathcal{S}_{functional} \equiv \{s \mid \text{Compiles}(s) \wedge \text{
 - **SC-COV-021**: Wallaby test @moduledoc MUST contain page spec (Design Intent, Expected Behavior, BDD, UX Flow, UI Elements Inventory, STAMP, FMEA).
 - **SC-COV-022**: Page spec in @moduledoc MUST be derived from actual LiveView source (source-first, AOR-COV-008).
 
+### SC-SAFE: Safe-State Design & Ignition
+- **SC-IGNITE-010**: All ignition sequences MUST begin with a `GitIntelligence` Safe-State validation gate (Preflight check).
+- **SC-LOG-004**: All holons MUST implement Quadruplex logging (Console, JSON, Zenoh, OTEL) for forensic survivability.
+- **SC-BIST-001**: Pre-Ignition Sequencing MUST confirm 3σ stability on the Zenoh telemetry backplane and core SQLite/DuckDB/Postgres connections for at least 100ms before initializing upper-layer Application/Cortex holons.
+- **SC-NIF-006**: Rustler NIF compilation MUST NEVER be bypassed (`SKIP_NIF_BUILD` is prohibited). Any missing NIF dependency (e.g., cargo), compilation error, or warning MUST immediately halt execution and trigger a TPS RCA (Total Panoptic System Root Cause Analysis) spanning all 8 fractal elements x all 8 fractal layers.
+
 ---
 
 ## 9.0 Agent Operating Rules (AOR)
 - **AOR-EXE-001**: Executive has supreme authority.
 - **AOR-SUPERVISOR-001**: Homeostasis MUST be maintained by the Panoptic Supervisor Agent.
 - **AOR-SAF-001**: Halt <1s on STAMP violation.
+- **AOR-SAF-002**: Agents MUST follow the 5-phase Safe-State SOP (Skill) for all architectural changes (Determinism, BIST, Telemetry, HMI, V&V).
 - **AOR-HOLON-009**: SQLite/DuckDB is the ONLY source of truth.
 - **AOR-PLAN-001**: Use F# Planning CLI for task management.
 - **AOR-PLAN-002**: **F# MANDATORY PLANNING**. Agents MUST use F#-based tools (`sa-plan` or `dotnet run --project lib/cepaf/src/Cepaf.Planning.CLI`) for ALL task and plan-related operations. Use of `mix todo` or Elixir planning scripts is STRICTLY PROHIBITED.

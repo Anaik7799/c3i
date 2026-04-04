@@ -102,7 +102,7 @@ defmodule Phase1UnusedVariableFixer do
     
     # Run patient mode compilation to validate fixes
     System.cmd("bash", ["-c", """
-      export NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+S 16"
+      export NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+fnu +S 16"
       echo "🔄 Running patient mode compilation validation..."
       mix compile --jobs 16 --verbose 2>&1 | tee -a validation-compile.log
     """])

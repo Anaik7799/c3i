@@ -432,7 +432,7 @@ end
 Code.ensure_loaded?(Jason) || IO.puts("Note: Jason not available, using fallback parsing")
 
 # Execute with maximum parallelization
-System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 UltimateZeroDebtAchievement.main(System.argv())
 
 # SOPv5.1 ENHANCEMENT COMPLETE

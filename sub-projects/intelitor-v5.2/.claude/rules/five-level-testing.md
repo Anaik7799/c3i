@@ -114,11 +114,11 @@ docs/
 ```bash
 # Level 1: TDG
 SKIP_ZENOH_NIF=0 WALLABY_ENABLED=true NO_TIMEOUT=true PATIENT_MODE=enabled \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" MIX_ENV=test mix test --cover
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" MIX_ENV=test mix test --cover
 
 # Level 2: FMEA
 SKIP_ZENOH_NIF=0 WALLABY_ENABLED=true NO_TIMEOUT=true PATIENT_MODE=enabled \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" MIX_ENV=test mix test --only fmea
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" MIX_ENV=test mix test --only fmea
 
 # Level 3: Formal
 agda --safe docs/formal_specs/*.agda
@@ -126,15 +126,15 @@ quint run docs/formal_specs/*.qnt
 
 # Level 4: Graph
 SKIP_ZENOH_NIF=0 WALLABY_ENABLED=true NO_TIMEOUT=true PATIENT_MODE=enabled \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" MIX_ENV=test mix coveralls.detail
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" MIX_ENV=test mix coveralls.detail
 
 # Level 5: BDD
 SKIP_ZENOH_NIF=0 WALLABY_ENABLED=true NO_TIMEOUT=true PATIENT_MODE=enabled \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" MIX_ENV=test mix test.features
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" MIX_ENV=test mix test.features
 
 # Level 6: E2E Browser (Wallaby + Chrome via NixOS)
 WALLABY_ENABLED=true SKIP_ZENOH_NIF=0 NO_TIMEOUT=true PATIENT_MODE=enabled \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" MIX_ENV=test mix test --only wallaby
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" MIX_ENV=test mix test --only wallaby
 # Or use devenv command:
 test-e2e
 

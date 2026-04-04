@@ -158,6 +158,11 @@ module Program =
             elif results.Contains(FullSystem_Verify) then
                 Cepaf.Cockpit.FullSystemVerification.run ()
                 0
+            // Run 8x8 Fractal Health Check Suite (L0-L7)
+            elif results.Contains(Fractal_Verify) then
+                let cli = Cepaf.Mesh.CLI.SIL4MeshCLI()
+                cli.Execute([|"verify-fractal"|]) |> ignore
+                0
             // Check for C3I Multi-Agent Dashboard with OODA/GDE/ACE
             elif results.Contains(C3I_Demo) then
                 printfn ""

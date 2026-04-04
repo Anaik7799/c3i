@@ -93,7 +93,8 @@ Agent MUST resolve dependencies before execution:
 @dependency_chains %{
   "app" => ["compile", "sa-db"],
   "test" => ["compile", "sa-db", "db-setup"],
-  "sa-test" => ["sa-up", "cepaf-build"],
+  "sa-test" => ["sa-up", "sa-gleam-build"],
+  "sa-up" => ["podman-socket", "env-check"],
   "quality-full" => ["compile", "quality"]
 }
 
@@ -154,10 +155,9 @@ def verify_cascade(cmd) do
       # 5th verified by integration tests
 
     "sa-up" ->
-      assert port_listening?(5433)                # 1st (DB)
-      assert port_listening?(4317)                # 2nd (OTEL)
-      assert port_listening?(9090)                # 2nd (Prometheus)
-      assert health_check_passes?()               # 3rd
+      assert port_listening?(7447)                # 1st (Zenoh)
+      assert port_listening?(4318)                # 2nd (OTEL/HTTP)
+      assert `./sa-gleam mesh-status` == :healthy # 3rd
       # 4th/5th verified by end-to-end tests
   end
 end
@@ -220,3 +220,17 @@ For GA Release v21.2.1-SIL6:
   3. Reify Holonic Memory (smriti.db).
   4. Binary Ignition (sa-up).
 - **Safety**: Mandatory 2oo3 Quorum verification via sa-verify.
+
+## Smart Command Inventory (v21.5.0-GLM)
+
+| Category | Command | Purpose |
+|----------|---------|---------|
+| Mesh | `./sa-up` | Unified SIL-6 Bootstrap |
+| Mesh | `./sa-gleam mesh-status` | Homeostasis verification |
+| Mesh | `./sa-gleam down` | Controlled mesh teardown |
+| Planning | `./sa-gleam status` | High-speed task inspection |
+| Planning | `./sa-plan status` | F# authoritative status |
+| Planning | `./sa-plan sync` | Git persistence for todolist |
+| Task | `./sa-gleam add "Title" PR` | New task entry |
+| Task | `./sa-gleam start ID` | Mark task in_progress |
+| Task | `./sa-gleam complete ID` | Mark task completed |

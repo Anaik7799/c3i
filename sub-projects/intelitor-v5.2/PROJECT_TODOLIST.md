@@ -112,12 +112,15 @@
 **Status**: completed | **Priority**: P2
 
 
+### 0c3cc819 - TUI-003: Implement Agent CoT Ticker Marquee (P2)
+**Status**: pending | **Priority**: P2
+
 ### 0c4ffebb - P1-CORE: Wire MCP analytics handler DuckDB pipeline — real-time metrics (P1)
 **Status**: completed | **Priority**: P1
 
 
 ### 0c9ed92b - 6.3 Implement asynchronous log streaming window within TUI (P3)
-**Status**: in_progress | **Priority**: P3
+**Status**: completed | **Priority**: P3
 
 ### 0d0d4a3f - P2-FEAT: Add Apoptosis 6-phase protocol integration test with checkpoint verify (L6) (P2)
 **Status**: completed | **Priority**: P2
@@ -238,7 +241,10 @@
 
 
 ### 1a142259 - 6.2 Implement dynamic phase tracking and Estimated Time of Completion (ETC) (P3)
-**Status**: in_progress | **Priority**: P3
+**Status**: completed | **Priority**: P3
+
+### 1a86dde3 - S52-W2-T008 [P1][FMEA:RPN108][Ideas:63-65] Prompt-driven dashboards and contextual guidance [AC: prompt-to-panel constrained by schema] (P3)
+**Status**: pending | **Priority**: P3
 
 ### 1aad50d5 - P1-CORE: Add MCP tool discovery endpoint — list all available tools (P1)
 **Status**: completed | **Priority**: P1
@@ -290,6 +296,9 @@
 ### 2085229f - 5.0 Substrate Maintenance & Metabolic Pruning (CLI/MCP/Zenoh Integration) (P3)
 **Status**: completed | **Priority**: P3
 
+### 20ac5464 - TEST-001: Setup Ratatui Closed-Loop Testing Harness (Layers 1-7) (P0)
+**Status**: pending | **Priority**: P0
+
 ### 20ae8239 - P2-FEAT: Add Graph Brandes betweenness centrality test on dependency graph (L3) (P2)
 **Status**: completed | **Priority**: P2
 
@@ -301,6 +310,9 @@
 ### 217c0dbe - P2-FEAT: Add CLI compile-xref dependency graph DOT output (L5) (P2)
 **Status**: completed | **Priority**: P2
 
+
+### 21bee300 - S52-W3-T004 [P2][FMEA:RPN150][Ideas:81-84] UX core set-A [AC: profile switcher, shortcuts, layout memory, notification center] (P3)
+**Status**: pending | **Priority**: P3
 
 ### 21db8704 - P2-FEAT: Implement GraphView.fs tooltip with zettel info for knowledge graph (L4) (P2)
 **Status**: completed | **Priority**: P2
@@ -365,6 +377,9 @@
 ### 280db6f8 - Morphogenic Evolution L4 Task 50 - Auto-generated for 80% saturation (P3)
 **Status**: completed | **Priority**: P3
 
+
+### 28d2a53c - W4-RUST: Expand TUI to 8 tabs (BUILD, NIF, DB, Recovery) — operator cognition for all lifecycle phases [RPN 140] (--priority)
+**Status**: completed | **Priority**: --priority
 
 ### 2966d7dd - S51-T5: Route module - implement route matching logic (P1)
 **Status**: completed | **Priority**: P1
@@ -436,6 +451,9 @@
 **Status**: completed | **Priority**: P2
 
 
+### 2fe9d49f - P1-HARDENING: Phase 3 — Cascading recovery orchestrator + self-healing watchdog (P3)
+**Status**: pending | **Priority**: P3
+
 ### 304a4ec5 - Morphogenic Evolution L5 Task 16 - Auto-generated for 80% saturation (P3)
 **Status**: completed | **Priority**: P3
 
@@ -455,6 +473,9 @@
 ### 30b8228e - P2-FEAT: Wire MCP identity domain handler — user profile + credentials (L3) (P2)
 **Status**: completed | **Priority**: P2
 
+
+### 31133f61 - S52-W1-T010 [P0][FMEA:RPN90][Ideas:32-34] Wave-1 closure gate [AC: E1-E8 x L0-L1 verified, tests green, audit artifacts attached] (P3)
+**Status**: pending | **Priority**: P3
 
 ### 3157a811 - P2-FEAT: Add immutable_state.ex production Ed25519 signing with real KMS keypair (L4) (P2)
 **Status**: completed | **Priority**: P2
@@ -487,6 +508,9 @@
 ### 3638a71d - P2-FEAT: Add federation constitution divergence detection test L7 (P2)
 **Status**: completed | **Priority**: P2
 
+
+### 36f27d4d - P0-HARDENING: Swarm Creation Robustness Masterplan — 100 ideas, 6 phases, TUI spec (P3)
+**Status**: pending | **Priority**: P3
 
 ### 37101e61 - P2-FEAT: Implement cortex/sensors/beam_sensor.ex read_sensor with real BEAM telemetry (L3) (P2)
 **Status**: completed | **Priority**: P2
@@ -527,6 +551,9 @@
 **Status**: completed | **Priority**: P2
 
 
+### 3c091f06 - S52-W1-T003 [P0][FMEA:RPN140][Ideas:8-10] Sub-agent composition and custom STAMP events [AC: backend tool output streams with dedupe/backpressure] (P3)
+**Status**: pending | **Priority**: P3
+
 ### 3cdc7bc8 - P2-FEAT: Implement cortex/homeostasis controller.ex PID control loop with real sensor data (L3) (P2)
 **Status**: completed | **Priority**: P2
 
@@ -542,6 +569,9 @@
 ### 3dd31c0c - [P1] Fix Metrics JSON extraction errors in ZenohFfiBridge (P1)
 **Status**: completed | **Priority**: P1
 
+
+### 3dd56bc0 - TUI-001b: Implement Real-Time Dependency DAG Visualization (P1)
+**Status**: pending | **Priority**: P1
 
 ### 3de08336 - Morphogenic Evolution L1 Task 6 - Auto-generated for 80% saturation (P3)
 **Status**: completed | **Priority**: P3
@@ -640,6 +670,9 @@
 ### 42404aec - P2-FEAT: Add Constitutional reconfiguration L1-L7 test L3 (P2)
 **Status**: completed | **Priority**: P2
 
+
+### 4284a6c0 - S52-W4-T010 [P2][FMEA:RPN200][Gate:L5] Wave-4 closure gate [AC: E1-E8 x L5 verified, predictive precision floor achieved] (P3)
+**Status**: pending | **Priority**: P3
 
 ### 43.1.0.0.0 - Phase 1: F# Validator Implementation (The 10x10 Plan)
 
@@ -887,6 +920,9 @@
 **Status**: completed | **Priority**: P2
 
 
+### 48279dfc - SPEC-001: Create 7-Level Golden Triangle TUI Blueprint (P0)
+**Status**: pending | **Priority**: P0
+
 ### 488c525e - S51-T4: Accounts.get_user_by_email - wire to Ash read action (P0)
 **Status**: completed | **Priority**: P0
 
@@ -910,6 +946,12 @@
 ### 49b58e30 - Morphogenic Evolution L3 Task 67 - Auto-generated for 80% saturation (P3)
 **Status**: completed | **Priority**: P3
 
+
+### 49bff140 - S52-W4-T009 [P2][FMEA:RPN150][Ideas:133-134] Bandwidth and live query diagnostics [AC: role-based access + rate limits] (P3)
+**Status**: pending | **Priority**: P3
+
+### 49c509bb - S52-W2-T001 [P1][FMEA:RPN160][Ideas:35-38] OTel core profiling set-A [AC: query profiler, queue view, dep audit, image flame graph operational] (P3)
+**Status**: pending | **Priority**: P3
 
 ### 49f825ee - P1-CORE: Implement alarm_correlation.ex 4 stubs — fetch, create_incident, link_alarms, update (L3) (P1)
 **Status**: completed | **Priority**: P1
@@ -1058,6 +1100,9 @@
 **Status**: completed | **Priority**: P2
 
 
+### 55c83800 - TEST-002: Execute 50-Cycle TUI Closed-Loop State Verification (P0)
+**Status**: pending | **Priority**: P0
+
 ### 56429995 - Phase 6: Add F# agent aggregation to ZenohTestOrchestrator (P2)
 **Status**: completed | **Priority**: P2
 
@@ -1093,6 +1138,9 @@
 ### 5939730b - P1-WIRE: Integrate 16 new test files into Cepaf.Tests.fsproj and verify compilation (P3)
 **Status**: completed | **Priority**: P3
 
+### 5959642d - DOC-001: Generate 50 BDD Use Cases for Golden Triangle TUI (7 Levels) (P0)
+**Status**: pending | **Priority**: P0
+
 ### 598288ec - P3-UI: Add LiveView alarm list real-time update — Phoenix.PubSub (L3) (P3)
 **Status**: completed | **Priority**: P3
 
@@ -1101,6 +1149,12 @@
 **Status**: completed | **Priority**: P2
 
 
+### 59aff154 - P0-HARDENING: Phase 1 — PodmanBackend trait extraction + 200 unit tests for ignition daemon (P3)
+**Status**: pending | **Priority**: P3
+
+### 59f1847b - W2-RUST: Implement build_oracle.rs + adaptive health timeouts — F# BuildHistory EMA bridge via rusqlite, fixed→adaptive timeout [RPN 196] (--priority)
+**Status**: completed | **Priority**: --priority
+
 ### 5a4c93c2 - S54-W3: Alarms+Core Domain — 40 test files (P1) (P3)
 **Status**: completed | **Priority**: P3
 
@@ -1108,6 +1162,9 @@
 ### 5a63cf25 - P1-CORE: Wire PlanningEnforcer.fs Zenoh telemetry — publish violations to indrajaal/planning (L4) (P1)
 **Status**: completed | **Priority**: P1
 
+
+### 5a7c945e - W5-RUST: Implement recovery.rs + integration testing — automated playbooks for top-5 failure modes + F#→SQLite→Rust→TUI pipeline test (--priority)
+**Status**: completed | **Priority**: --priority
 
 ### 5b4e1b28 - P1-SAT: Saturate integration/ stubs (8 files) — real enterprise gateway, external connectors (P1)
 **Status**: completed | **Priority**: P1
@@ -1152,6 +1209,9 @@
 **Status**: completed | **Priority**: P0
 
 
+### 5d4ae4a2 - S52-W1-T008 [P0][FMEA:RPN114][Ideas:25-27] Distributed trace, boot Gantt, error-rate sparkline [AC: trace continuity >95%] (P3)
+**Status**: pending | **Priority**: P3
+
 ### 5d8450a4 - Sprint 79: Reify Omega-Refactor autonomous refactoring reflex (SC-SING-003) (P1)
 **Status**: completed | **Priority**: P1
 
@@ -1165,7 +1225,7 @@
 
 
 ### 5e07f54a - 6.0 High-Fidelity TUI Presentation Layer (SC-HMI-010) (P3)
-**Status**: in_progress | **Priority**: P3
+**Status**: completed | **Priority**: P3
 
 ### 5e8381de - P0: Saturate PHICS controller stubs — wire Guardian approval, ImmutableRegister logging, Zenoh subscription (P0)
 **Status**: completed | **Priority**: P0
@@ -1174,6 +1234,9 @@
 ### 5ea8a2c9 - Sprint 63: Implement Shannon Entropy Auditor for Biomorphic State (SC-MATH-006) (P1)
 **Status**: completed | **Priority**: P1
 
+
+### 5f3c15e9 - S52-W3-T001 [P1][FMEA:RPN240][Ideas:69-72] Generative analysis set-A [AC: FMEA/postmortem/onboarding/test-plan outputs schema-validated and source-cited] (P3)
+**Status**: pending | **Priority**: P3
 
 ### 5f5f45ed - Phase 6: Register test anomaly patterns in PatternHunter (P2)
 **Status**: completed | **Priority**: P2
@@ -1186,6 +1249,9 @@
 ### 60260703 - P2-FEAT: Add SMRITI knowledge graph link resolution test L3 (P2)
 **Status**: completed | **Priority**: P2
 
+
+### 605ebe96 - W3-RUST: Implement health_orchestra.rs + expanded preflight PF-7..PF-25 — FPPS 5-method consensus replacing single TCP probe [RPN 168] (--priority)
+**Status**: completed | **Priority**: --priority
 
 ### 61bdafd7 - P2-FEAT: Add Reed-Solomon error correction test with burst errors (L2) (P2)
 **Status**: completed | **Priority**: P2
@@ -1242,6 +1308,15 @@
 ### 6612b039 - Morphogenic Evolution L3 Task 59 - Auto-generated for 80% saturation (P3)
 **Status**: completed | **Priority**: P3
 
+
+### 669a2eb9 - TUI-004: Implement Substrate Heatmap in Governor Tab (P2)
+**Status**: pending | **Priority**: P2
+
+### 66da3998 - S52-W2-T002 [P1][FMEA:RPN160][Ideas:39-42] OTel+AI diagnostics set-B [AC: DB growth monitor, trace export, NL query v1, failure predictor prototype] (P3)
+**Status**: pending | **Priority**: P3
+
+### 66da6b10 - S52-W3-T003 [P1][FMEA:RPN144][Ideas:77-80] API docs + data viz + schema viz + rollback generator [AC: rollback plans include reversible steps] (P3)
+**Status**: pending | **Priority**: P3
 
 ### 66e74f11 - P2-FEAT: Add Zenoh pub/sub integration test — 10 topics concurrent (L5) (P2)
 **Status**: completed | **Priority**: P2
@@ -1370,6 +1445,12 @@
 **Status**: completed | **Priority**: P2
 
 
+### 725426b2 - S52-W3-T010 [P1][FMEA:RPN144][Gate:L4] Wave-3 closure gate [AC: E1-E8 x L4 verified, generated actions non-autonomous] (P3)
+**Status**: pending | **Priority**: P3
+
+### 735a4468 - S52-W4-T005 [P2][FMEA:RPN160][Ideas:117-120] Threat timeline + veto audit + founder alignment panel [AC: constitutional references included] (P3)
+**Status**: pending | **Priority**: P3
+
 ### 7367ebdc - Phase 2: Integration test — start/run/stop lifecycle (P0)
 **Status**: completed | **Priority**: P0
 
@@ -1384,6 +1465,9 @@
 ### 748ef481 - P2-FEAT: Add Zenoh NIF pub/sub round-trip latency benchmark target 10ms (P2)
 **Status**: completed | **Priority**: P2
 
+
+### 7534d82c - P1-HARDENING: Phase 5 — Security hardening + F#-Rust cross-layer alignment (P3)
+**Status**: pending | **Priority**: P3
 
 ### 767caf66 - P2-FEAT: Add Prajna Copilot real AI recommendation engine via Cortex (L3) (P2)
 **Status**: completed | **Priority**: P2
@@ -1405,9 +1489,15 @@
 **Status**: completed | **Priority**: P0
 
 
+### 7793480b - S52-W3-T005 [P2][FMEA:RPN150][Ideas:85-88] UX core set-B [AC: breadcrumbs, command search, heartbeat pulse, split-screen] (P3)
+**Status**: pending | **Priority**: P3
+
 ### 788684dd - S54-T113: Holonic Test Runner (P1) (P1)
 **Status**: completed | **Priority**: P1
 
+
+### 799de37c - P0-HARDENING: Phase 2 — Wave-based transactional 16-container boot with rollback (P3)
+**Status**: pending | **Priority**: P3
 
 ### 79a140c9 - P2-FEAT: Wire MCP communication domain handler — notification + messaging (L3) (P2)
 **Status**: completed | **Priority**: P2
@@ -1461,6 +1551,9 @@
 **Status**: completed | **Priority**: P2
 
 
+### 7c720957 - 8.4 - Implement Compensating Transactions (Rollback on Failure) (Rank 8) (P1)
+**Status**: pending | **Priority**: P1
+
 ### 7c83ec50 - P2-FEAT: Add CEPAF F# Cockpit TUI health dashboard with ANSI rendering (L4) (P2)
 **Status**: completed | **Priority**: P2
 
@@ -1500,6 +1593,12 @@
 ### 7eb964c2 - Sprint 75: Nuclear purge of 90+ orphaned legacy scripts (SC-SING-007) (P2)
 **Status**: completed | **Priority**: P2
 
+
+### 7f1e9e34 - S52-W4-T004 [P2][FMEA:RPN168][Ideas:113-116] Cost/efficiency + quarantine execution visibility [AC: no orphan operations on timeout] (P3)
+**Status**: pending | **Priority**: P3
+
+### 7f230b35 - P1-FEAT: Phase 4 — TUI enhancement — 16 containers, live logs, real metrics, Gantt chart (P3)
+**Status**: pending | **Priority**: P3
 
 ### 7f351c63 - Morphogenic Evolution L6 Task 13 - Auto-generated for 80% saturation (P1)
 **Status**: completed | **Priority**: P1
@@ -1543,6 +1642,9 @@
 **Status**: completed | **Priority**: P3
 
 
+### 83dc03c6 - S52-W3-T008 [P2][FMEA:RPN100][Ideas:97-100] UX+incident closure set [AC: transitions, badges, incident timeline, widget marketplace guardrails] (P3)
+**Status**: pending | **Priority**: P3
+
 ### 84e00677 - FQDN Alignment: Implement Centralized Identity Registry and FQDN resolution (P0)
 **Status**: completed | **Priority**: P0
 
@@ -1574,6 +1676,9 @@
 **Status**: completed | **Priority**: P3
 
 
+### 88ad1a2e - S52-W2-T005 [P1][FMEA:RPN160][Ideas:51-54] Constitutional cognition set [AC: OODA replay, drift graph, tricameral viewer, immune memory map] (P3)
+**Status**: pending | **Priority**: P3
+
 ### 89323dc1 - T22.1.1 - P1-FEAT: Implement Cortex.Reasoning.ChainOfThought generator (RPN 120) (P3)
 **Status**: completed | **Priority**: P3
 
@@ -1589,6 +1694,9 @@
 ### 8a97217f - SafetyKernel: wire real audit trail check — replace hardcoded auditValid=true (P0)
 **Status**: completed | **Priority**: P0
 
+
+### 8ad829ce - S52-W3-T002 [P1][FMEA:RPN240][Ideas:73-76] Compliance/config/capacity/error explainability set [AC: human-approval for all mutating recommendations] (P3)
+**Status**: pending | **Priority**: P3
 
 ### 8b003641 - Phase 9: Implement Biomorphic Ark seed zero-dependency binary (SC-ARK-002) (P0)
 **Status**: completed | **Priority**: P0
@@ -1609,6 +1717,9 @@
 ### 8ca7578f - P2-FEAT: Add Cortex knowledge graph query via SMRITI federation (L3) (P2)
 **Status**: completed | **Priority**: P2
 
+
+### 8d625058 - S52-W1-T004 [P0][FMEA:RPN108][Ideas:11-14] Frontend tool calls, multimodal alerts, state-vector sync [AC: tool calls typed+authorized, alerts accessible] (P3)
+**Status**: pending | **Priority**: P3
 
 ### 8d8a5b1c - Morphogenic Evolution L0 Task 91 - Auto-generated for 80% saturation (P3)
 **Status**: completed | **Priority**: P3
@@ -1641,6 +1752,9 @@
 **Status**: completed | **Priority**: P1
 
 
+### 90534c1a - S52-W1-T009 [P0][FMEA:RPN112][Ideas:28-31] Memory waterfall + token-cost + CPU sparkline + GC pressure [AC: thresholds and alerts tunable] (P3)
+**Status**: pending | **Priority**: P3
+
 ### 90cb34cf - Morphogenic Evolution L4 Task 93 - Auto-generated for 80% saturation (P1)
 **Status**: completed | **Priority**: P1
 
@@ -1657,6 +1771,12 @@
 **Status**: completed | **Priority**: P2
 
 
+### 91bdd795 - S52-W1-T001 [P0][FMEA:RPN140][Ideas:1-4] AG-UI streaming+HITL+shared-state foundation [AC: CP-BOOT live stream, restart approval modal, two-key emergency, multi-session sync] (P3)
+**Status**: pending | **Priority**: P3
+
+### 925fbe03 - S52-W4-T006 [P2][FMEA:RPN160][Ideas:121-124] Constitutional simulator + bridge traffic analytics [AC: simulator remains non-mutating by default] (P3)
+**Status**: pending | **Priority**: P3
+
 ### 9269c96e - P3-DOC: Add Zenoh topic hierarchy reference document (L5) (P3)
 **Status**: completed | **Priority**: P3
 
@@ -1668,6 +1788,9 @@
 ### 93a697f0 - S54-T104: SHA3-256 Crypto Upgrade (P0) (P0)
 **Status**: completed | **Priority**: P0
 
+
+### 93eb06dc - TUI-002: Implement OTel Flame Graphs in Trace Tab (P2)
+**Status**: pending | **Priority**: P2
 
 ### 944508da - Phase 7: Implement Multi-Node Gossip in Zenoh Router Config (SC-ZENOH-CFG-002) (P2)
 **Status**: completed | **Priority**: P2
@@ -1717,6 +1840,9 @@
 **Status**: completed | **Priority**: P2
 
 
+### 96ab7007 - 8.3 - Implement DAG-based Dependency Resolution (Wave Gating) (Rank 7) (P2)
+**Status**: pending | **Priority**: P2
+
 ### 96b59cfd - P2-FEAT: Add Prajna compliance dashboard with audit log display (P2)
 **Status**: completed | **Priority**: P2
 
@@ -1753,6 +1879,9 @@
 **Status**: completed | **Priority**: P3
 
 
+### 98603718 - S52-W3-T007 [P2][FMEA:RPN100][Ideas:93-96] UX core set-D [AC: pins, status page, markdown preview, locale readiness] (P3)
+**Status**: pending | **Priority**: P3
+
 ### 993bb12e - P2-FEAT: Add F# MCP Cortex handler — AI inference request + result (L4) (P2)
 **Status**: completed | **Priority**: P2
 
@@ -1768,6 +1897,9 @@
 ### 9a6be9c5 - [P0] Implement Reed-Solomon RS(255,223) encoding in Indrajaal.Ark (P0)
 **Status**: completed | **Priority**: P0
 
+
+### 9aca550d - S52-W1-T005 [P0][FMEA:RPN140][Ideas:15-18] Guardian reasoning panel and adaptive incident layout [AC: constitutional rationale visible, migration gate enabled] (P3)
+**Status**: pending | **Priority**: P3
 
 ### 9b1d783d - Morphogenic Evolution L5 Task 94 - Auto-generated for 80% saturation (P3)
 **Status**: completed | **Priority**: P3
@@ -1792,6 +1924,9 @@
 ### 9d317b79 - P2-FEAT: Wire MCP policy domain handler — rule evaluation + enforcement (L3) (P2)
 **Status**: completed | **Priority**: P2
 
+
+### 9dc6a379 - S52-W4-T007 [P2][FMEA:RPN200][Ideas:125-128] Queue heatmap + OODA hypothesis/anomaly analytics [AC: false-positive controls and suppression windows] (P3)
+**Status**: pending | **Priority**: P3
 
 ### 9e0a59d4 - Phase 4: Buffer recent results in TestToolsState (P1)
 **Status**: completed | **Priority**: P1
@@ -1820,6 +1955,9 @@
 ### a0f6a13d - Sprint 69: TPS 5-Level RCA of Tree-sitter parse failure (SC-RCA-002) (P0)
 **Status**: completed | **Priority**: P0
 
+
+### a1e0b5a8 - S52-W4-T008 [P2][FMEA:RPN168][Ideas:129-132] Cascade + lifecycle FSM + boot DAG controls [AC: event causality trace IDs retained] (P3)
+**Status**: pending | **Priority**: P3
 
 ### a28d978d - P2-FEAT: Add Constitutional Psi0-Psi5 invariant verification test suite (P2)
 **Status**: completed | **Priority**: P2
@@ -1919,12 +2057,21 @@
 **Status**: completed | **Priority**: P2
 
 
+### aa7abfd6 - S52-W2-T004 [P1][FMEA:RPN120][Ideas:47-50] Immune+bridge visibility [AC: sentinel radar, CepafPort FSM, pattern feed, watchdog grid] (P3)
+**Status**: pending | **Priority**: P3
+
+### aac0cc78 - S52-W4-T003 [P2][FMEA:RPN168][Ideas:109-112] Rolling update + threshold tuner + rule builder + report generation [AC: dry-run preview for all mutating ops] (P3)
+**Status**: pending | **Priority**: P3
+
 ### ac46df08 - Agent Reification: System State & Session Persistence Artifacts (P0)
 **Status**: completed | **Priority**: P0
 
 
 ### ac490901 - P1-TEST: Write F# Expecto tests for 10 new Cockpit modules (TuiDashboard, HealthBars, Sparkline, EvolutionVectorView, MathIntegrityPane, HomeostasisControls, BiomorphicMatrix, GraphView, FSharpDAP, BicameralDashboard) — 60+ tests (P3)
 **Status**: completed | **Priority**: P3
+
+### acec9917 - S52-W2-T003 [P1][FMEA:RPN144][Ideas:43-46] DevUI governance core [AC: AI advisor prototype, OODA flame graph, supervision tree, guardian queue] (P3)
+**Status**: pending | **Priority**: P3
 
 ### ad2b5682 - Phase 10: Automated recursive improvement cycle GDE v2.0 (SC-SING-001) (SUPREME)
 **Status**: completed | **Priority**: SUPREME
@@ -1949,6 +2096,9 @@
 ### ae0ed0f2 - SafetyKernel: wire real hash chain integrity — replace hardcoded hashChainValid=true (P0)
 **Status**: completed | **Priority**: P0
 
+
+### aeb3ae53 - 8.6 - Integrate async TUI Logger for pure visual execution (P1)
+**Status**: pending | **Priority**: P1
 
 ### af662722 - P2-TEST: Add Zenoh key expression routing test — topic hierarchy (L2) (P2)
 **Status**: completed | **Priority**: P2
@@ -2038,6 +2188,9 @@
 **Status**: completed | **Priority**: P0
 
 
+### b6d26812 - TUI-003: Implement Agent CoT Ticker Marquee (P2)
+**Status**: pending | **Priority**: P2
+
 ### b7761b5c - P2-FEAT: Add Constitutional Ψ0-Ψ5 invariant verification test suite (L0) (P2)
 **Status**: completed | **Priority**: P2
 
@@ -2104,6 +2257,9 @@
 **Status**: completed | **Priority**: P2
 
 
+### bc3d00f1 - S52-W2-T007 [P1][FMEA:RPN120][Ideas:59-62] Cross-container cognition + GenUI incident set [AC: cross-OODA timeline + incident report/runbook draft] (P3)
+**Status**: pending | **Priority**: P3
+
 ### bc5ca90f - Sprint 63: Deprecate legacy Bash/Python scripts in favor of F# Cortex (SC-SING-004) (P2)
 **Status**: completed | **Priority**: P2
 
@@ -2123,6 +2279,9 @@
 ### bec12a4a - P2-FEAT: Add Oban job queue reliability test retry and dead letter L3 (P2)
 **Status**: completed | **Priority**: P2
 
+
+### bf1f91a2 - TUI-007: Implement Live stderr Stream Modal (Rank 3 Idea) (P2)
+**Status**: pending | **Priority**: P2
 
 ### bf29cb31 - P3-UI: Add CRM email notification service integration (L3) (P3)
 **Status**: completed | **Priority**: P3
@@ -2152,16 +2311,25 @@
 **Status**: completed | **Priority**: P1
 
 
+### c055d9a0 - TUI-008: Implement Interactive Agent UI Copilot Tab (DevUI) (P1)
+**Status**: pending | **Priority**: P1
+
 ### c062cbab - S54-T108: Cortex Coverage - 100% Expecto tests for 652 F# files in lib/cepaf/src (P0) (P3)
 **Status**: completed | **Priority**: P3
 
+
+### c097cec6 - 8.2 - Implement Cryptographic Image Verification (SHA256) (Rank 4) (P1)
+**Status**: pending | **Priority**: P1
 
 ### c0d3695e - P2-FEAT: Add Homeostasis PID controller real Ziegler-Nichols tuning test (L3) (P2)
 **Status**: completed | **Priority**: P2
 
 
+### c0e452f9 - TUI-005: Implement Log Anomaly Highlighting in Trace Tab (P2)
+**Status**: pending | **Priority**: P2
+
 ### c0fd8e44 - 6.1 Integrate Spectre.Console for rich TUI dashboarding (P3)
-**Status**: in_progress | **Priority**: P3
+**Status**: completed | **Priority**: P3
 
 ### c166569c - P2-FEAT: Add PROMETHEUS proof token generation DAG acyclicity test (P2)
 **Status**: completed | **Priority**: P2
@@ -2182,6 +2350,9 @@
 ### c1c90914 - P2-FEAT: Add Prajna alarm storm detection with auto-shelving (P2)
 **Status**: completed | **Priority**: P2
 
+
+### c1d10d66 - S52-W4-T001 [P2][FMEA:RPN200][Ideas:101-104] Biomorphic visualization set-A [AC: metrics traceable to telemetry sources] (P3)
+**Status**: pending | **Priority**: P3
 
 ### c1e2f243 - Morphogenic Evolution L7 Task 72 - Auto-generated for 80% saturation (P2)
 **Status**: completed | **Priority**: P2
@@ -2290,6 +2461,12 @@
 ### c8c6cc54 - P2-FEAT: Add Synapse model selection logic — cost/latency/quality ranking (L3) (P2)
 **Status**: completed | **Priority**: P2
 
+
+### c8dd8200 - TUI-006: Implement Consensus Quorum Ring in Checks Tab (Rank 5 Idea) (P1)
+**Status**: pending | **Priority**: P1
+
+### c9255691 - S52-W1-T006 [P0][FMEA:RPN120][Ideas:19-21] OODA frequency steering + boot checkpoint stream + scheduler heatmap [AC: no unsafe overrides] (P3)
+**Status**: pending | **Priority**: P3
 
 ### c9ad6272 - P1-CORE: Implement workflow.ex 5 action stubs — email, create_task, invoke_flow, webhook, outbound (L3) (P1)
 **Status**: completed | **Priority**: P1
@@ -2443,6 +2620,9 @@
 **Status**: completed | **Priority**: P2
 
 
+### d7757bef - TUI-001: Implement State Machine Transition Sparklines for Boot Sequence (P1)
+**Status**: pending | **Priority**: P1
+
 ### d9246898 - Morphogenic Evolution L0 Task 58 - Auto-generated for 80% saturation (P2)
 **Status**: completed | **Priority**: P2
 
@@ -2522,6 +2702,9 @@
 **Status**: completed | **Priority**: P2
 
 
+### df50f409 - S52-W3-T009 [P1][FMEA:RPN240][Gate:GenUI-Safety] Wave-3 generative safety gate [AC: prompt injection hardening + citation checks + policy sanitizer] (P3)
+**Status**: pending | **Priority**: P3
+
 ### df5d7681 - P3-UI: Add LiveView device health grid — color-coded matrix (L3) (P3)
 **Status**: completed | **Priority**: P3
 
@@ -2537,6 +2720,9 @@
 ### dfd896c0 - P1-CORE: Wire AccessControl.fs Zenoh + Immutable Register for violation audit trail (L4) (P1)
 **Status**: completed | **Priority**: P1
 
+
+### dfe8b6db - W1-RUST: Implement substrate_guard.rs + nif_validator.rs — Axiom 0.1 enforcement, ELF binary inspection, glibc/musl detection [RPN 252+225] (--priority)
+**Status**: completed | **Priority**: --priority
 
 ### e049e842 - Morphogenic Evolution L1 Task 5 - Auto-generated for 80% saturation (P2)
 **Status**: completed | **Priority**: P2
@@ -2593,6 +2779,9 @@
 ### e4bd838a - P2-FEAT: Add VSM S1-S5 subsystem interaction test — full viable system model (L3) (P2)
 **Status**: completed | **Priority**: P2
 
+
+### e53a82ef - S52-W2-T006 [P1][FMEA:RPN144][Ideas:55-58] Runtime internals inspector [AC: ETS explorer, GenServer inspector, restart storm detector, OODA budget] (P3)
+**Status**: pending | **Priority**: P3
 
 ### e541c80b - Morphogenic Evolution L1 Task 4 - Auto-generated for 80% saturation (P2)
 **Status**: completed | **Priority**: P2
@@ -2674,6 +2863,9 @@
 ### e9ec7571 - P2-FEAT: Add Cortex knowledge graph query via SMRITI federation (P2)
 **Status**: completed | **Priority**: P2
 
+
+### ea13add5 - S52-W3-T006 [P2][FMEA:RPN112][Ideas:89-92] UX core set-C [AC: annotations, time-travel safeguards, mobile+accessibility baseline] (P3)
+**Status**: pending | **Priority**: P3
 
 ### ea33cb7b - P2-SAT: Saturate safety/symbiotic_defense.ex — check_axiom_integrity, execute_level_actions, sqlite_fallback (3 stubs) (P2)
 **Status**: completed | **Priority**: P2
@@ -2757,6 +2949,9 @@
 **Status**: completed | **Priority**: P2
 
 
+### f355ac45 - TUI-008: Implement FMEA Threat Radar (Rank 7 Idea) (P3)
+**Status**: pending | **Priority**: P3
+
 ### f3d314b5 - P1-SAT: Saturate cybernetic/ stubs (6 files) — real OODA, framework orchestrator, VSM (P1)
 **Status**: completed | **Priority**: P1
 
@@ -2764,6 +2959,9 @@
 ### f44cb179 - P1-CORE: Implement lead_assignment.ex 4 DB query stubs — team_members, territory, skills, workload (L3) (P1)
 **Status**: completed | **Priority**: P1
 
+
+### f4e648be - S52-W4-T002 [P2][FMEA:RPN200][Ideas:105-108] Channel graphs + chaos gate [AC: chaos actions require explicit approval and rollback token] (P3)
+**Status**: pending | **Priority**: P3
 
 ### f505b106 - W1-MORPH: Fix F# MathMonitor 13/16 wrong elixirModulePaths (GAP-P3-007) (P0)
 **Status**: completed | **Priority**: P0
@@ -2781,6 +2979,9 @@
 **Status**: completed | **Priority**: P1
 
 
+### f5ec87cb - SPEC-002: Create 50 BDD Use Cases at 7 Levels of Detail (P0)
+**Status**: pending | **Priority**: P0
+
 ### f5f3a7e0 - P2-FEAT: Add FPPS 5-method consensus validation integration test (L3) (P2)
 **Status**: completed | **Priority**: P2
 
@@ -2788,6 +2989,9 @@
 ### f5fb5641 - P2-FEAT: Add SMRITI version vector federation sync test L3 (P2)
 **Status**: completed | **Priority**: P2
 
+
+### f6a37609 - S52-W2-T010 [P1][FMEA:RPN160][Gate:L2-L3] Wave-2 closure gate [AC: E1-E8 x L2-L3 verified, traces complete >95%] (P3)
+**Status**: pending | **Priority**: P3
 
 ### f730e133 - P2-FEAT: Add Guardian proposal validation pipeline — end-to-end from proposal to veto/approve (L3) (P2)
 **Status**: completed | **Priority**: P2
@@ -2800,6 +3004,12 @@
 ### f8c5b447 - P0-SAFETY: Implement safety/monitor.ex isolate_affected_tenant + enable_readonly_mode — SIL-4 false-positive fix (L2) (P0)
 **Status**: completed | **Priority**: P0
 
+
+### f925a860 - 8.1 - Implement Async Stream Parsing for I/O Capture (Rank 3) (P1)
+**Status**: pending | **Priority**: P1
+
+### f9cb3936 - 8.4 - Implement Compensating Transactions (Rollback on Failure) (Rank 8) (P1)
+**Status**: pending | **Priority**: P1
 
 ### fa59a252 - Morphogenic Evolution L7 Task 45 - Auto-generated for 80% saturation (P3)
 **Status**: completed | **Priority**: P3
@@ -2869,10 +3079,16 @@
 
 
 ### fe008bc9 - 6.4 Integrate Zenoh telemetry for real-time node state visualization (P3)
-**Status**: in_progress | **Priority**: P3
+**Status**: completed | **Priority**: P3
+
+### fe02bec9 - S52-W1-T007 [P0][FMEA:RPN120][Ideas:22-24] Request waterfall + container gauges + NIF crash detector [AC: crash signal classified with cooldown] (P3)
+**Status**: pending | **Priority**: P3
 
 ### fe040507 - P2-DOC: Write journal entry for evolution sprint — test generation + build fixes (P3)
 **Status**: completed | **Priority**: P3
+
+### fe25b681 - SPEC-003: Generate Comprehensive A-O TUI Architecture Spec for all 10 Screens (P0)
+**Status**: pending | **Priority**: P0
 
 ### fe52f5c8 - P2-FEAT: Add Immutable Register chain verification test with 1000 blocks (L3) (P2)
 **Status**: completed | **Priority**: P2
@@ -2886,8 +3102,17 @@
 **Status**: completed | **Priority**: P2
 
 
+### ff424c1d - 8.5 - Implement ProofToken Environment Injection (Ed25519) (Rank 9) (P0)
+**Status**: pending | **Priority**: P0
+
+### ff6ea23b - S52-W2-T009 [P1][FMEA:RPN144][Ideas:66-68] Generative alert/dashboard/diff explainability [AC: all outputs include source references] (P3)
+**Status**: pending | **Priority**: P3
+
 ### ff9a8fff - P2-FEAT: Add metric collection and aggregation test — OTEL pipeline (L3) (P2)
 **Status**: completed | **Priority**: P2
 
 
+
+### ffb0366c - S52-W1-T002 [P0][FMEA:RPN128][Ideas:5-7] Thinking-steps and operator steering baseline [AC: preflight reasoning timeline visible, steering controls bounded+audited] (P3)
+**Status**: pending | **Priority**: P3
 

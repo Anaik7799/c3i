@@ -27,7 +27,7 @@
 # SOPv5.1 Cybernetic Targeted Duplication Eliminator
 # Agent: Supervisor-1 (Strategic Oversight Agent)
 # Mission: Eliminate specific critical duplications from credo analysis
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Targeted Duplication Eliminator")
 IO.puts("==================================================================")

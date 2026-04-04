@@ -146,7 +146,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     # Enable PHICS
     ENV PHICS_ENABLED=true
     ENV MIX_ENV=test
-    ENV ELIXIR_ERL_OPTIONS="+S 16"
+    ENV ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
     # Install file watcher for hot-reload
     RUN apt-get update && apt-get install -y inotify-tools

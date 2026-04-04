@@ -5,7 +5,7 @@
 // ARCHITECTURE: 3-container (db, obs, app) with Cortex evolution tracking
 // CONSTRAINTS: Requires OpenRouter API, Podman 5.4.1+, .NET SDK 8.0+
 // SOPv5.11 Compliance: SC-OODA-001, SC-SWARM-001, SC-UX-001, SC-CNT-009, SC-METRICS-003
-// ELIXIR_ERL_OPTIONS: "+S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
+// ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
 
 #r "nuget: FSharp.Data, 6.3.0"
 #r "nuget: FSharp.SystemTextJson, 1.2.42"
@@ -287,7 +287,7 @@ module Http =
 module Shell =
     // SC-METRICS-003: Mandatory parallelization environment variables
     let mandatoryEnvVars = [
-        ("ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16")
+        ("ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16")
         ("NO_TIMEOUT", "true")
         ("PATIENT_MODE", "enabled")
         ("INFINITE_PATIENCE", "true")

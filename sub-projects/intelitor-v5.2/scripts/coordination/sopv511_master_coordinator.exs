@@ -229,7 +229,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
 
     # Extract compilation warnings
     {_compile_output, __} = System.cmd("mix", ["compile", "--force"],
-                                     env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}],
+                                     env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}],
                                      stderr_to_stdout: true)
 
     warnings = parse_warnings(compile_output)
@@ -527,7 +527,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
 
     # Run compilation with warnings as errors
     case System.cmd("mix", ["compile", "--warnings-as-errors", "--force"],
-                    env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}],
+                    env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}],
                     stderr_to_stdout: true) do
       {_output, 0} ->
         IO.puts "  ✅ Compilation successful with no warnings!"

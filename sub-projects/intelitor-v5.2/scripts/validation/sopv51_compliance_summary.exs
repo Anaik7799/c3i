@@ -681,7 +681,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
         "Remove all timeout environment variables"
 
       {"Maximum Parallelization", "ELIXIR_ERL_OPTIONS"} ->
-        "Set ELIXIR_ERL_OPTIONS='+S 16' in environment"
+        "Set ELIXIR_ERL_OPTIONS='+fnu +S 16' in environment"
 
       {"Git-Based Approach", "Pre-commit hooks"} ->
         "Run: elixir scripts/git/setup_pre_commit_hooks.exs --install"

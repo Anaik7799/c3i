@@ -1,36 +1,36 @@
 {
-  "cached_at": "2026-03-22 19:22:32",
+  "cached_at": "2026-04-02 12:02:35",
   "metrics": {
-    "sc_code": 2261, "sc_docs": 2299, "sc_ratio": 1.0,
-    "sc_code_families": 396, "sc_docs_families": 396,
-    "aor_code": 482, "aor_docs": 663, "aor_ratio": 0.7,
-    "aor_code_families": 145, "aor_docs_families": 148,
+    "sc_code": 2400, "sc_docs": 2454, "sc_ratio": 1.0,
+    "sc_code_families": 407, "sc_docs_families": 412,
+    "aor_code": 522, "aor_docs": 634, "aor_ratio": 0.8,
+    "aor_code_families": 147, "aor_docs_families": 154,
     "health": "HEALTHY"
   },
   "analysis": {
     "information_theory": {
-      "code_entropy": 8.3089, "docs_entropy": 8.3188,
-      "cross_entropy": 8.3160, "kl_divergence": 0.0071,
-      "mutual_information": 8.3117, "coverage_ratio": 1.0000,
-      "constraint_density": 0.76, "documentation_debt": 0
+      "code_entropy": 8.3256, "docs_entropy": 8.3604,
+      "cross_entropy": 8.3600, "kl_divergence": 0.0343,
+      "mutual_information": 8.3261, "coverage_ratio": 0.9982,
+      "constraint_density": 0.65, "documentation_debt": 4
     },
     "stamp": {
-      "control_actions": 2261, "feedback_loops": 482,
+      "control_actions": 2400, "feedback_loops": 522,
       "unsafe_control_actions": 0, "missing_feedback": 0,
-      "completeness": 1.0798,
+      "completeness": 1.0568,
       "safety_gap": {
       "P0-SAFETY": {"families": 0, "ids": 0},
       "P1-CORE": {"families": 0, "ids": 0},
-      "P2-DOMAIN": {"families": 0, "ids": 0},
+      "P2-DOMAIN": {"families": 1, "ids": 1},
       "P3-STYLE": {"families": 0, "ids": 0}
       }
     },
     "fmea": {
-      "mean_rpn": 0, "max_rpn": 0,
+      "mean_rpn": 50, "max_rpn": 50,
       "entries_above_200": 0, "entries_above_100": 0,
-      "total_entries": 0,
+      "total_entries": 1,
       "top_entries": [
-
+      {"family":"AOR-HMI","severity":5,"occurrence":2,"detection":5,"rpn":50,"priority":"P2-DOMAIN"}
       ]
     },
     "criticality": {

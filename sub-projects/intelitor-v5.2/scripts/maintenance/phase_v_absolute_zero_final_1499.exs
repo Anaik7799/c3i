@@ -30,7 +30,7 @@ Mix.install([{:jason, "~> 1.4"}])
 # Agent: Supervisor-1 (Strategic Oversight Agent)
 # Mission: Eliminate ALL remaining 1,499 violations for ABSOLUTE ZERO
 # Target: Complete elimination with no exceptions
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase V Absolute Zero Final Push")
 IO.puts("===================================================================")
@@ -669,7 +669,7 @@ __require Logger
 end
 
 # Execute Phase V with maximum parallelization
-System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 PhaseVAbsoluteZeroFinal.main(System.argv())
 
 # SOPv5.1 ENHANCEMENT COMPLETE

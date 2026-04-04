@@ -312,7 +312,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     IO.puts("\n🔍 Validating compilation...")
 
     case System.cmd("mix", ["compile", "--warnings-as-errors"],
-                    env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}]) do
+                    env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}]) do
       {_output, 0} ->
         IO.puts("✅ Compilation successful with no warnings!")
 

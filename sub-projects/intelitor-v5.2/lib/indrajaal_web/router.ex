@@ -114,6 +114,13 @@ defmodule IndrajaalWeb.Router do
       # Git Intelligence Dashboard (SC-BRIDGE-001, SC-BIO-EXT-001)
       live "/cockpit/git-intelligence", Prajna.GitIntelligenceLive, :index
 
+      # Sprint 52: Agentic UI — AG-UI Protocol Integration (28 ideas, Score 34-40)
+      live "/cockpit/agentic/ignition", Prajna.Agentic.IgnitionLive, :index
+      live "/cockpit/agentic/ai-copilot", Prajna.Agentic.AiCopilotLive, :index
+      live "/cockpit/agentic/mesh-control", Prajna.Agentic.MeshControlLive, :index
+      live "/cockpit/agentic/observability", Prajna.Agentic.ObservabilityLive, :index
+      live "/cockpit/agentic/safety", Prajna.Agentic.SafetyLive, :index
+
       # Sprint 30 P2: Domain Integration Dashboards (SC-OBS-069, SC-PRAJNA-004)
       live "/cockpit/access-control", Prajna.AccessControlLive, :index
       live "/cockpit/devices", Prajna.DevicesLive, :index

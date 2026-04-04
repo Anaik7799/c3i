@@ -2,7 +2,7 @@
 /// Imports from knowledge/domain.gleam — no type duplication (SC-GLM-UI-009).
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-002, SC-GLM-UI-009
 import cepaf_gleam/knowledge/domain.{
-  type HolonLevel, type KnowledgeLink, type KnowledgeNode, level_to_string,
+  type HolonLevel, type KnowledgeLink, type KnowledgeNode,
 }
 import gleam/list
 import gleam/option.{type Option, None, Some}

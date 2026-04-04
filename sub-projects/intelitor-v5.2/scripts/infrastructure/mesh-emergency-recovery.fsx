@@ -71,7 +71,7 @@ let meshNetworks = [
 
 // SC-METRICS-003: Mandatory parallelization
 let mandatoryEnvVars = [
-    ("ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16")
+    ("ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16")
     ("NO_TIMEOUT", "true")
     ("PATIENT_MODE", "enabled")
     ("INFINITE_PATIENCE", "true")

@@ -176,6 +176,7 @@ type CepaArgs =
     | Phase3_Verify
     | FullSystem_Verify
     | Phase5_Verify
+    | Fractal_Verify
     | Prune of metabolic: bool
     | Confirm_Prune of hash: string
 
@@ -209,5 +210,6 @@ type CepaArgs =
             | Phase3_Verify -> "Run Phase 3 Cognitive Expansion Verification (Synapse/KMS)"
             | Phase5_Verify -> "Run Phase 5 Cognitive Fabric Verification (Memory/RAG)"
             | FullSystem_Verify -> "Run Master 9x9 Full System Verification (Prajna/Chaya/Smriti)"
+            | Fractal_Verify -> "Run 8x8 Fractal Health Check Suite (L0-L7) with Quadruplex Logging"
             | Prune _ -> "Execute substrate pruning. Use --metabolic for high-assurance orphan cleanup."
             | Confirm_Prune _ -> "Confirm metabolic pruning with BLAKE3 hash from analysis report."

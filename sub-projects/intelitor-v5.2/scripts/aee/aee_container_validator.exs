@@ -211,7 +211,7 @@ defmodule AEE.ContainerValidator do
       value = System.get_env(var)
       status = case {var, value} do
         {_, nil} -> "🔴 Not Set"
-        {"ELIXIR_ERL_OPTIONS", "+S 16"} -> "🟢 Optimal"
+        {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"} -> "🟢 Optimal"
         {_, "true"} -> "🟢 Enabled"
         {_, "enabled"} -> "🟢 Enabled"
         {_, "infinity"} -> "🟢 Infinite"

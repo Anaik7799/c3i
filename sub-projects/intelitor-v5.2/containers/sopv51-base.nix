@@ -32,7 +32,7 @@ let
       export CONTAINER_OS=nixos
       export NO_TIMEOUT=true
       export MAX_PARALLELIZATION=true
-      export ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"
+      export ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16"
       export MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8
       export TMPDIR=/tmp
       export MIX_HOME=/workspace/.mix

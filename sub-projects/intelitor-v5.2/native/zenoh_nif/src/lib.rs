@@ -2,6 +2,32 @@
 //!
 //! Native Zenoh bindings for the Indrajaal safety-critical system.
 //!
+//! ## IMPORTANT: NIF Function Naming Convention
+//! 
+//! The Rust function names MUST match the Elixir wrapper function names exactly.
+//! Rustler exports functions by their Rust function name, and Elixir looks up
+//! functions by name. MISMATCHED NAMES CAUSE "Function not found" errors at runtime.
+//!
+//! ## Function Name Mapping (Rust -> Elixir)
+//!
+//! | Rust Function Name              | Elixir Function Name              | Status  |
+//! |--------------------------------|----------------------------------|---------|
+//! | zenoh_verify_proof_token       | zenoh_verify_proof_token         | CORRECT |
+//! | zenoh_verify_session_token      | zenoh_verify_session_token       | CORRECT |
+//! | zenoh_classify_tier            | zenoh_classify_tier             | CORRECT |
+//!
+//! ## Common Mistakes to Avoid
+//!
+//! WRONG: Using `_nif` suffix in function name
+//! ```rust
+//! fn verify_proof_token_nif(...)  // WRONG - Elixir expects zenoh_verify_proof_token
+//! ```
+//!
+//! CORRECT: Match Elixir wrapper name
+//! ```rust
+//! fn zenoh_verify_proof_token(...)  // CORRECT - matches Elixir wrapper
+//! ```
+//!
 //! ## STAMP Constraints
 //! - SC-NIF-001: NIF functions must not block BEAM scheduler
 //! - SC-NIF-002: Resource cleanup on process exit
@@ -97,7 +123,7 @@ fn publish_batch(env: rustler::Env, session: rustler::ResourceArc<ZenohSessionRe
 /// - `{:ok, :valid}` — Token is present and signature is correct
 /// - `{:error, reason}` — Token is absent, malformed, or signature is invalid
 #[rustler::nif]
-fn verify_proof_token_nif<'a>(env: rustler::Env<'a>, token_binary: rustler::Binary<'a>) -> rustler::NifResult<rustler::Term<'a>> {
+fn zenoh_verify_proof_token<'a>(env: rustler::Env<'a>, token_binary: rustler::Binary<'a>) -> rustler::NifResult<rustler::Term<'a>> {
     use rustler::Encoder;
     match proof_token::verify_from_payload(token_binary.as_slice()) {
         Ok(()) => {
@@ -129,7 +155,7 @@ fn verify_proof_token_nif<'a>(env: rustler::Env<'a>, token_binary: rustler::Bina
 /// - `{:ok, :valid}` — Token is present and signature is correct (possibly cached)
 /// - `{:error, reason}` — Token is absent, malformed, or signature is invalid
 #[rustler::nif]
-fn verify_session_token_nif<'a>(env: rustler::Env<'a>, token_binary: rustler::Binary<'a>) -> rustler::NifResult<rustler::Term<'a>> {
+fn zenoh_verify_session_token<'a>(env: rustler::Env<'a>, token_binary: rustler::Binary<'a>) -> rustler::NifResult<rustler::Term<'a>> {
     use rustler::Encoder;
     match proof_token::verify_session(token_binary.as_slice()) {
         Ok(()) => {
@@ -153,7 +179,7 @@ fn verify_session_token_nif<'a>(env: rustler::Env<'a>, token_binary: rustler::Bi
 /// Returns the tier as an atom: `:bypass`, `:session`, or `:full`.
 /// Useful for Elixir-side routing decisions without performing actual verification.
 #[rustler::nif]
-fn classify_tier_nif<'a>(env: rustler::Env<'a>, key_expr: String) -> rustler::NifResult<rustler::Term<'a>> {
+fn zenoh_classify_tier<'a>(env: rustler::Env<'a>, key_expr: String) -> rustler::NifResult<rustler::Term<'a>> {
     use rustler::Encoder;
     let tier = match proof_token::classify_tier(&key_expr) {
         proof_token::EnforcementTier::Bypass => "bypass",

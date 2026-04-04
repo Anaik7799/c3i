@@ -49,8 +49,29 @@ defmodule Indrajaal.Safety.Sentinel do
   @doc "Get current system health score (0.0 to 1.0)"
   def get_health_score, do: GenServer.call(__MODULE__, :get_health_score)
 
-  @doc "Alias for get_health_score to support existing callers"
-  def get_health, do: get_health_score()
+  @doc """
+  Get full health status map including score, threats, and quarantine state.
+
+  Returns `%{score: float, status: atom, threats: list, quarantined: map}`.
+
+  ## Fractal Position
+  - Layer: L3-Transaction (Sentinel immune system state query)
+  - Element: Safety / Health
+  - STAMP: SC-IMMUNE-001 (health scoring 0-100 scale)
+
+  ## Contract
+  - SentinelBridge.do_perform_sync/1 expects this map shape
+  - SmartMetrics.record/3 consumes the :score field
+  - score ∈ [0.0, 1.0], status ∈ {:healthy, :degraded, :critical}
+
+  ## 5-Order Effects
+  1st: Returns health map to caller
+  2nd: SentinelBridge updates SmartMetrics dashboard
+  3rd: Prajna Cockpit displays health score
+  4th: Watchdog uses health data for escalation decisions
+  5th: Swarm verification aggregates health across mesh
+  """
+  def get_health, do: GenServer.call(__MODULE__, :get_health)
 
   @doc "Report a threat signal to the Sentinel"
   def report_signal(signal), do: send(__MODULE__, {:threat_signal, signal})
@@ -93,6 +114,23 @@ defmodule Indrajaal.Safety.Sentinel do
   @impl true
   def handle_call(:get_health_score, _from, state) do
     {:reply, state.health_score, state}
+  end
+
+  @impl true
+  def handle_call(:get_health, _from, state) do
+    health_map = %{
+      score: state.health_score,
+      status:
+        cond do
+          state.health_score >= 0.7 -> :healthy
+          state.health_score >= 0.4 -> :degraded
+          true -> :critical
+        end,
+      threats: state.threats,
+      quarantined: state.quarantined
+    }
+
+    {:reply, health_map, state}
   end
 
   @impl true

@@ -129,7 +129,7 @@ defmodule SOPv511.PerformanceFrameworkWarningEliminator do
       export NO_TIMEOUT=true
       export PATIENT_MODE=enabled
       export INFINITE_PATIENCE=true
-      export ELIXIR_ERL_OPTIONS="+S 16"
+      export ELIXIR_ERL_OPTIONS="+fnu +S 16"
       System.cmd("mix", ["compile", "#{@target_file}", "--verbose"])
       """
     ])
@@ -382,7 +382,7 @@ defmodule SOPv511.PerformanceFrameworkWarningEliminator do
       export NO_TIMEOUT=true
       export PATIENT_MODE=enabled
       export INFINITE_PATIENCE=true
-      export ELIXIR_ERL_OPTIONS="+S 16"
+      export ELIXIR_ERL_OPTIONS="+fnu +S 16"
       cd /home/an/dev/indrajaal-demo
       mix compile --jobs 16 #{@target_file} --verbose 2>&1
       """

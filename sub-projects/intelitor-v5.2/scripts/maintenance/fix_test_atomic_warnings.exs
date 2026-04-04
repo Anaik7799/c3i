@@ -182,7 +182,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     {_output, __} = System.cmd("mix", ["compile", "--force"],
                             env: [
                               {"MIX_ENV", "test"},
-                              {"ELIXIR_ERL_OPTIONS", "+S 16"}
+                              {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}
                             ],
                             stderr_to_stdout: true)
 
@@ -411,7 +411,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     case System.cmd("mix", ["compile", "--warnings-as-errors"],
                     env: [
                       {"MIX_ENV", "test"},
-                      {"ELIXIR_ERL_OPTIONS", "+S 16"}
+                      {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}
                     ],
                     stderr_to_stdout: true) do
       {_output, 0} ->

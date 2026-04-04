@@ -117,7 +117,7 @@ defmodule SOPv511.UltimateFinal6ErrorsEliminatorFixed do
       {"NO_TIMEOUT", "true"},
       {"PATIENT_MODE", "enabled"},
       {"INFINITE_PATIENCE", "true"},
-      {"ELIXIR_ERL_OPTIONS", "+S 16"}
+      {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}
     ]
 
     {output, exit_code} = System.cmd("mix", ["compile", "--verbose"],

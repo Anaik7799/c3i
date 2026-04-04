@@ -224,7 +224,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
   defp setup_environment do
     envs = [
       {"MIX_ENV", "test"},
-      {"ELIXIR_ERL_OPTIONS", "+P 5_000_000 +Q 65_536 +K true +A 128"},
+      {"ELIXIR_ERL_OPTIONS", "+fnu +P 5_000_000 +Q 65_536 +K true +A 128"},
       {"ERL_MAX_PORTS", "8192"},
       {"ERL_MAX_ETS_TABLES", "8192"}
     ]

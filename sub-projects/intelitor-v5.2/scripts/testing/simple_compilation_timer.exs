@@ -244,7 +244,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
 
   # 1.0-Set optimizations
     System.put_env("ERL_AFLAGS", "+P 5_000_000 +Q 1_000_000 +K true +A 128")
-    System.put_env("ELIXIR_ERL_OPTIONS", "+P 5_000_000 +Q 65_536")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +P 5_000_000 +Q 65_536")
     System.put_env("ELIXIR_COMPILER_OPTS", "--warnings-as-errors=false")
 
   # 1.0-Create minimal config

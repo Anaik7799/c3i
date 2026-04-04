@@ -776,7 +776,7 @@ defmodule RobustContainerStartupOrchestratorSOPv51 do
         ["-e", "MIX_ENV=demo",
          "-e", "DATABASE_URL=postgres://postgres:postgres@#{@container_config.pos
          "-e", "REDIS_URL=redis://#{@container_config.redis.name}:6379",
-         "-e", "ELIXIR_ERL_OPTIONS=+S 16",
+         "-e", "ELIXIR_ERL_OPTIONS=+fnu +S 16",
          "-e", "CONTAINER_ENFORCEMENT=true"]
       :clickhouse ->
         ["-e", "CLICKHOUSE_DB=signoz",

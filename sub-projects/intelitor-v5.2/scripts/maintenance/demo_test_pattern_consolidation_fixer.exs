@@ -29,7 +29,7 @@
 # Mission: Fix the function clause error from previous consolidation attempt
 # Target: 47 demo test files with concurrent scenario duplications
 # Expected Impact: ~1,000+ violations elimination
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Demo Test Pattern Consolidation Recovery")
 IO.puts("==================================================================")
@@ -141,7 +141,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     IO.puts("📊 Found #{length(demo_files)} demo test files to fix")
 
     # Maximum parallelization with 16 schedulers
-    System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 
     _tasks = Enum.map(demo_files, fn file_path ->
       Task.async(fn ->
@@ -432,7 +432,7 @@ end
       elixir #{__ENV__.file} --fix-results-handling
 
       # Run complete consolidation with maximum parallelization
-      ELIXIR_ERL_OPTIONS="+S 16" elixir #{__ENV__.file} --comprehensive
+      ELIXIR_ERL_OPTIONS="+fnu +S 16" elixir #{__ENV__.file} --comprehensive
     """)
   end
 end

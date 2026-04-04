@@ -64,7 +64,7 @@ let
       # Development settings
       export MIX_ENV=dev
       export NODE_ENV=development
-      export ELIXIR_ERL_OPTIONS="+S 16"
+      export ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
       # Locale settings
       export LOCALE_ARCHIVE=${pkgs.glibcLocales}/lib/locale/locale-archive

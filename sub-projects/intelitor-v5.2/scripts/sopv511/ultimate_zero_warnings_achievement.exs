@@ -259,7 +259,7 @@ defmodule UltimateZeroWarningsAchievement do
     
     {_output, _exit_code} = System.cmd("mix", ["compile", "--warnings-as-errors"], 
       stderr_to_stdout: true,
-      env: [{"NO_TIMEOUT", "true"}, {"PATIENT_MODE", "enabled"}, {"INFINITE_PATIENCE", "true"}, {"ELIXIR_ERL_OPTIONS", "+S 16"}]
+      env: [{"NO_TIMEOUT", "true"}, {"PATIENT_MODE", "enabled"}, {"INFINITE_PATIENCE", "true"}, {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}]
     )
     
     warnings = output

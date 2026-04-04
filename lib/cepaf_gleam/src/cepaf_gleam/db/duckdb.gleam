@@ -14,26 +14,25 @@ import gleam/dynamic.{type Dynamic}
 // =============================================================================
 // FFI Definitions
 // =============================================================================
-// These functions are implemented in a native Erlang module (e.g., `duckdb_nif`).
+// These functions are implemented in cepaf_gleam_ffi.erl
 
 /// Executes a write query (INSERT, UPDATE, DELETE) against the DuckDB database.
 ///
 /// Returns the number of rows affected.
 ///
-@external(erlang, "duckdb_nif", "execute")
+@external(erlang, "cepaf_gleam_ffi", "duckdb_execute")
 pub fn execute(sql: String, params: List(Dynamic)) -> Result(Int, String)
 
 /// Executes a read query (SELECT) against the DuckDB database.
 ///
 /// Returns a list of rows, where each row is a list of dynamic values.
 ///
-@external(erlang, "duckdb_nif", "query")
+@external(erlang, "cepaf_gleam_ffi", "duckdb_query")
 pub fn query(
   sql: String,
   params: List(Dynamic),
 ) -> Result(List(List(Dynamic)), String)
 
 /// Ensures the database and its schema are initialized.
-/// This would typically be a NIF call that can run `CREATE TABLE IF NOT EXISTS`.
-@external(erlang, "duckdb_nif", "ensure_schema")
+@external(erlang, "cepaf_gleam_ffi", "duckdb_ensure_schema")
 pub fn ensure_schema(schema_sql: String) -> Result(Nil, String)

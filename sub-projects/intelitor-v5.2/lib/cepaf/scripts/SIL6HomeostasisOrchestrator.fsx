@@ -3,7 +3,7 @@
 // SIL6HomeostasisOrchestrator.fsx - v21.3.1 Biomorphic Fractal Holon Kernel
 // =============================================================================
 // Compliance: SC-METRICS-003 (Mandatory Parallelization)
-// ELIXIR_ERL_OPTIONS: "+S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
+// ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
 
 #r "nuget: System.Text.Json, 8.0.0"
 
@@ -171,7 +171,7 @@ module DigitalTwin =
 module Checkpoints =
     // SC-METRICS-003: Mandatory parallelization environment variables
     let mandatoryEnvVars = [
-        ("ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16")
+        ("ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16")
         ("NO_TIMEOUT", "true")
         ("PATIENT_MODE", "enabled")
         ("INFINITE_PATIENCE", "true")

@@ -150,7 +150,7 @@ defmodule QuickSetupEnterpriseDemo do
     ✅ Grafana: indrajaal-grafana-demo:3000 (dashboard visualization ready)
     ✅ Phoenix App: localhost:4000 (LiveDashboard at /dev/dashboard)
     ✅ PHICS: #{System.get_env("PHICS_ENABLED", "false")} (hot-reloading integration)
-    ✅ Parallel Compilation: ELIXIR_ERL_OPTIONS="+S 16" optimized
+    ✅ Parallel Compilation: ELIXIR_ERL_OPTIONS="+fnu +S 16" optimized
 
     🏭 SOPv5.1 Framework Active:
     • TPS (Toyota Production System): Jidoka quality control
@@ -310,7 +310,7 @@ defmodule QuickSetupEnterpriseDemo do
 
     # Set environment variables
     System.put_env("PHICS_ENABLED", "true")
-    System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
     System.put_env("CONTAINER_ENFORCEMENT", "true")
     IO.puts "  ✓ Environment variables configured"
 
@@ -363,7 +363,7 @@ defmodule QuickSetupEnterpriseDemo do
     elixir scripts/monitoring/real_time_pipeline_monitor.exs --production-health
 
     # Performance Optimization:
-    ELIXIR_ERL_OPTIONS="+S 16" mix compile --jobs 16 --warnings-as-errors
+    ELIXIR_ERL_OPTIONS="+fnu +S 16" mix compile --jobs 16 --warnings-as-errors
 
     📊 Enterprise Features: ✅ ALL OPERATIONAL
     """

@@ -51,7 +51,7 @@ defmodule SOPv511.CompilationErrorFixer do
     IO.puts("\n🔍 Validating compilation fixes...")
 
     {output, exit_code} = System.cmd("env",
-      ["ELIXIR_ERL_OPTIONS=+S 16", "mix", "compile", "--warnings-as-errors"],
+      ["ELIXIR_ERL_OPTIONS=+fnu +S 16", "mix", "compile", "--warnings-as-errors"],
       stderr_to_stdout: true)
 
     if exit_code == 0 do

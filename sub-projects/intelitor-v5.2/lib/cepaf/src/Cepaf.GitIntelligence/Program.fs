@@ -997,40 +997,61 @@ let private cmdMcpList (_args: string[]) : int =
 let main (argv: string[]) : int =
     let root = findProjectRoot()
 
+    // Initialize Quadruplex Logging (Console, JSON, Zenoh, OTEL)
+    QuadruplexLogger.configure {
+        MinLevel = LogLevel.Debug
+        ConsoleOutput = true
+        FileOutput = true
+        ZenohOutput = true
+        OtelOutput = true
+        LogFilePath = Some "data/logs/git-intelligence.log"
+        ServiceName = "indrajaal.git-intelligence"
+    }
+
+    QuadruplexLogger.info LogDomain.System "Git Intelligence Boot Sequence Initiated"
+
     if argv.Length = 0 || hasFlag "--help" argv || hasFlag "-h" argv then
         printUsage()
+        QuadruplexLogger.shutdown()
         0
     else
         let command = argv.[0].ToLowerInvariant()
         let exitCode =
-            match command with
-            | "analyze" | "health" ->
-                cmdAnalyze root argv
-            | "validate" ->
-                cmdValidate argv
-            | "classify" ->
-                cmdClassify argv
-            | "generate" ->
-                cmdGenerate argv
-            | "commit" ->
-                cmdCommit root argv
-            | "suggest" ->
-                cmdSuggest root argv
-            | "guardrails" | "workflows" ->
-                cmdGuardrails argv
-            // ── Advanced Commands (Phase 5.2) ──────────────────────────────
-            | "store-init" -> cmdStoreInit argv
-            | "trend" -> cmdTrend root argv
-            | "homeostasis" -> cmdHomeostasis root argv
-            | "constitutional" -> cmdConstitutional root argv
-            | "federation" -> cmdFederation root argv
-            | "multiverse" -> cmdMultiverse root argv
-            | "biomorphic" -> cmdBiomorphic root argv
-            | "mcp-list" -> cmdMcpList argv
-            | "mcp-serve" -> McpServer.serve ()
-            | unknown ->
-                eprintfn "ERROR: Unknown command '%s'. Run with --help for usage." unknown
+            try
+                QuadruplexLogger.time LogDomain.System (sprintf "Command: %s" command) (fun () ->
+                    match command with
+                    | "analyze" | "health" ->
+                        cmdAnalyze root argv
+                    | "validate" ->
+                        cmdValidate argv
+                    | "classify" ->
+                        cmdClassify argv
+                    | "generate" ->
+                        cmdGenerate argv
+                    | "commit" ->
+                        cmdCommit root argv
+                    | "suggest" ->
+                        cmdSuggest root argv
+                    | "guardrails" | "workflows" ->
+                        cmdGuardrails argv
+                    // ── Advanced Commands (Phase 5.2) ──────────────────────────────
+                    | "store-init" -> cmdStoreInit argv
+                    | "trend" -> cmdTrend root argv
+                    | "homeostasis" -> cmdHomeostasis root argv
+                    | "constitutional" -> cmdConstitutional root argv
+                    | "federation" -> cmdFederation root argv
+                    | "multiverse" -> cmdMultiverse root argv
+                    | "biomorphic" -> cmdBiomorphic root argv
+                    | "mcp-list" -> cmdMcpList argv
+                    | "mcp-serve" -> McpServer.serve ()
+                    | unknown ->
+                        eprintfn "ERROR: Unknown command '%s'. Run with --help for usage." unknown
+                        1
+                )
+            with ex ->
+                QuadruplexLogger.crit LogDomain.System "Unhandled exception in main execution" (ex.ToString())
                 1
-        // Close Zenoh session on exit (if opened by commit/suggest)
-        Notify.closeSession()
+        
+        // Ensure graceful shutdown of logs and Zenoh sessions
+        QuadruplexLogger.shutdown()
         exitCode

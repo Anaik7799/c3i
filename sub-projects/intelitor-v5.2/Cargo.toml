@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["lib/indrajaal_ark", "native/lineage_auth", "native/zenoh_nif", "native/zenoh_ffi", "native/math_engine"]
+members = ["lib/indrajaal_ark", "native/lineage_auth", "native/zenoh_nif", "native/zenoh_ffi", "native/math_engine", "native/timestamp_daemon", "native/ignition_daemon", "native/zenoh_router_plugin"]
 
 # Workspace-wide profile settings (moved from member crates per Cargo warning)
 [profile.release]

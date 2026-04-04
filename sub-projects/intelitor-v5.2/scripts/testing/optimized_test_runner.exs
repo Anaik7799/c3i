@@ -161,7 +161,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     System.put_env("MIX_ENV", "test")
     System.put_env("ERL_MAX_PORTS", "8192")
     System.put_env("ERL_MAX_ETS_TABLES", "8192")
-    System.put_env("ELIXIR_ERL_OPTIONS", "+P 5_000_000 +Q 1_000_000")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +P 5_000_000 +Q 1_000_000")
 
     # Configure test settings
     Application.put_env(:ex_unit, :timeout, @test_timeout)

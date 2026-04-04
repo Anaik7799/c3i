@@ -33,7 +33,7 @@ defmodule SOPv511.ComprehensiveUndefinedVariableFixer do
     IO.puts "\n🔍 Analyzing undefined variable patterns..."
     {_output, __} = System.cmd("mix", ["compile"],
       stderr_to_stdout: true,
-      env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}]
+      env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}]
     )
 
     errors = parse_undefined_variable_errors(output)
@@ -53,7 +53,7 @@ defmodule SOPv511.ComprehensiveUndefinedVariableFixer do
     IO.puts "\n🧪 Validating comprehensive fixes..."
     {_final_output, _exit_code} = System.cmd("mix", ["compile"],
       stderr_to_stdout: true,
-      env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}]
+      env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}]
     )
 
     final_errors = parse_undefined_variable_errors(final_output)

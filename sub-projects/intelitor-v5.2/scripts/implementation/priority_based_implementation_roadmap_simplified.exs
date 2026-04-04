@@ -158,7 +158,7 @@ defmodule SimplifiedImplementationRoadmap do
 
     {_compile_output, _compile_status} = System.cmd("mix", ["compile", "--warnings-as-errors"],
       stderr_to_stdout: true,
-      env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}],
+      env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}],
       timeout: 60_000)
 
     warning_count = count_warnings(compile_output)

@@ -102,7 +102,7 @@ defmodule CriticalParameterFixer do
   defp test_compilation do
     IO.puts "[#{timestamp()}] 🔍 Testing compilation after fixes..."
 
-    {_output, _exit_code} = System.cmd("mix", ["compile"], stderr_to_stdout: true, env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}])
+    {_output, _exit_code} = System.cmd("mix", ["compile"], stderr_to_stdout: true, env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}])
 
     File.write!("5-critical-parameter-fix-compile.log", output)
 

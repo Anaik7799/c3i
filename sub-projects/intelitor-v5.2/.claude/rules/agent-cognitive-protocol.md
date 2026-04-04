@@ -38,6 +38,11 @@ OBSERVE ──▶ ORIENT ──▶ DECIDE ──▶ ACT
 
 ### 1. OBSERVE - Current State Assessment
 
+**MANDATORY**: Run timestamp sync at start of every session (AOR-TIME-001):
+```bash
+scripts/timestamp/indrajaal-timestamp-sync.sh
+```
+
 Before any operation, agent MUST assess:
 
 ```elixir
@@ -57,7 +62,8 @@ Before any operation, agent MUST assess:
     elixir_version: "1.19.4",
     otp_version: "28",
     patient_mode: true
-  }
+  },
+  timestamp_sync: run_timestamp_sync()      # AOR-TIME-001: Sync timestamps
 }
 ```
 
@@ -202,6 +208,8 @@ Checkpoints:
 | Wrong order | 56 | Dependency failure | Chain validation |
 | No telemetry | 48 | Missing metrics | Telemetry wrapper |
 | No verify | 60 | Silent failures | Post-check hook |
+| Skip timestamp sync | 36 | Missing log entry | Mandatory hook |
+| Critical drift ignored | 64 | Alert not acted | Halt on >10s |
 
 ## Integration with GA Release
 

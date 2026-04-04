@@ -15,6 +15,8 @@
     <Compile Include="Analysis.fs" />
     <!-- L6: Zenoh dual-write (standalone FFI) -->
     <Compile Include="Notify.fs" />
+    <!-- L2: Quadruplex Logger (Console, JSON, Zenoh, OTEL) -->
+    <Compile Include="QuadruplexLogger.fs" />
     <!-- L3: Holon state persistence -->
     <Compile Include="Store.fs" />
     <Compile Include="History.fs" />
@@ -42,7 +44,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" />
-    <PackageReference Include="DuckDB.NET.Data.Full" Version="1.2.0" />
+    <PackageReference Include="DuckDB.NET.Data.Full" Version="1.4.3" />
+    <!-- OpenTelemetry SDK for distributed tracing (SC-OBS-071, SC-LOG-004) -->
+    <PackageReference Include="OpenTelemetry" Version="1.14.*" />
+    <PackageReference Include="OpenTelemetry.Api" Version="1.14.*" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.14.*" />
   </ItemGroup>
 
 </Project>

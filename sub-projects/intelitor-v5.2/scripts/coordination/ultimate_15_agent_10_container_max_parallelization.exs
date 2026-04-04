@@ -558,7 +558,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       export NO_TIMEOUT=true &&
       export PATIENT_MODE=enabled &&
       export INFINITE_PATIENCE=true &&
-      export ELIXIR_ERL_OPTIONS="+S 16" &&
+      export ELIXIR_ERL_OPTIONS="+fnu +S 16" &&
       export MAX_PARALLELIZATION=true &&
       export CONTAINER_OPTIMIZATION=true &&
       mix compile --jobs 16 --warnings-as-errors --parallel 2>&1
@@ -974,7 +974,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
       "--memory", container_config.memory_allocation,
       "--cpus", Float.to_string(container_config.cpu_allocation),
       "-e", "MIX_ENV=dev",
-      "-e", "ELIXIR_ERL_OPTIONS=+S 16",
+      "-e", "ELIXIR_ERL_OPTIONS=+fnu +S 16",
       "-e", "NO_TIMEOUT=true",
       "-e", "PATIENT_MODE=enabled",
       "-e", "MAX_PARALLELIZATION=true",

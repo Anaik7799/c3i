@@ -27,7 +27,7 @@
 # SOPv5.1 Cybernetic Phase D: Ultimate Mobile Controller Consolidation
 # Agent: Supervisor-1 (Strategic Oversight Agent)
 # Mission: Eliminate 800+ violations through mobile controller consolidation
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase D Ultimate Mobile Controller Consolidation")
 IO.puts("==================================================================================")

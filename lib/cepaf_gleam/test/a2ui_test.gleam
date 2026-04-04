@@ -152,7 +152,7 @@ pub fn catalog_is_registered_unknown_false_test() {
 pub fn catalog_components_for_layer_l0_returns_subset_test() {
   let cat = catalog.default_catalog()
   let l0_components = catalog.components_for_layer(cat, L0Constitutional)
-  { list.length(l0_components) > 0 } |> should.be_true
+  { l0_components != [] } |> should.be_true
   list.all(l0_components, fn(spec) { spec.layer == L0Constitutional })
   |> should.be_true
 }

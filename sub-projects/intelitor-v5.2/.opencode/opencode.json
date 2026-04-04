@@ -1,0 +1,36 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "CLAUDE.md",
+    ".claude/rules/*.md",
+    ".gemini/skills/journal-protocol/SKILL.md",
+    ".gemini/skills/multilayer-swarm/SKILL.md",
+    ".gemini/skills/system-engineering-sop/SKILL.md",
+    ".gemini/skills/mesh-resurrection/SKILL.md"
+  ],
+  "agent": {
+    "build": {
+      "mode": "primary",
+      "prompt": "{file:agents/build-supervisor.md}",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "skill": "allow"
+      }
+    },
+    "plan": {
+      "mode": "primary",
+      "prompt": "{file:agents/design-supervisor.md}",
+      "permission": {
+        "edit": "ask",
+        "bash": "ask",
+        "skill": "allow"
+      }
+    }
+  },
+  "permission": {
+    "skill": {
+      "*": "allow"
+    }
+  }
+}

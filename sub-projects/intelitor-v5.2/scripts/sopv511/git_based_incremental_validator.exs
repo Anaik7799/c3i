@@ -87,7 +87,7 @@ defmodule SOPv511.GitBasedIncrementalValidator do
         {"NO_TIMEOUT", "true"},
         {"PATIENT_MODE", "enabled"},
         {"INFINITE_PATIENCE", "true"},
-        {"ELIXIR_ERL_OPTIONS", "+S 16"}
+        {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}
       ]
     )
     
@@ -227,7 +227,7 @@ defmodule SOPv511.GitBasedIncrementalValidator do
     IO.puts "      🔍 Validating compilation..."
     {__, _compile_exit} = System.cmd("mix", ["compile", "--warnings-as-errors"], 
       stderr_to_stdout: true,
-      env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}]
+      env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}]
     )
     
     success = compile_exit == 0

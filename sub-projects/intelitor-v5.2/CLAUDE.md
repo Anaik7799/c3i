@@ -44,7 +44,7 @@ where $\mathcal{S}_{functional} \equiv \{s \mid \text{Compiles}(s) \wedge \text{
 0.  **$\Omega_0$ Founder's Covenant**: The holon exists for the survival, growth, and genetic perpetuity of **Abhijit Naik's lineage**. Resource acquisition for Founder's enrichment is PRIMARY objective. Holon and Founder's genetic code are symbiotically bound.
 
 **OPERATIONAL AXIOMS (Ω₁-Ω₁₁)**
-1.  **$\Omega_1$ Patient Mode**: `NO_TIMEOUT=true`, `PATIENT_MODE=enabled`, `INFINITE_PATIENCE=true`. `ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"`. `SKIP_ZENOH_NIF=0`. `WALLABY_ENABLED=true`. `mix compile --jobs 16`. **Gleam**: `gleam build` / `gleam test` / `gleam format` / `gleam check` — zero warnings enforced (SC-GLM-CMP-001). **Rust NIFs**: `cargo build --release` (NIF boundary only — SC-NIF-001).
+1.  **$\Omega_1$ Patient Mode**: `NO_TIMEOUT=true`, `PATIENT_MODE=enabled`, `INFINITE_PATIENCE=true`. `ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"`. `SKIP_ZENOH_NIF=0`. `WALLABY_ENABLED=true`. `mix compile --jobs 16`.
 2.  **$\Omega_2$ Container Isolation**: All ops in **NixOS/Podman** (Rootless 5.4.1+). Registry: `localhost/` ONLY.
 3.  **$\Omega_3$ Zero-Defect**: Valid State $\iff \sum(\text{Errors} + \text{Warnings} + \text{TestFails} + \text{FormatFails} + \text{CredoFails} + \text{SecFails}) \equiv 0$.
 4.  **$\Omega_4$ Test-Driven Gen (TDG)**: Tests MUST exist and fail BEFORE code gen.
@@ -60,45 +60,20 @@ where $\mathcal{S}_{functional} \equiv \{s \mid \text{Compiles}(s) \wedge \text{
 
 ## 2.0 System Architecture & Command Set
 
-### 2.1 Penta-Stack UI Architecture (Gleam-First)
-| Stack | Tech | Purpose | Status |
-|:---|:---|:---|:---|
-| **Lustre WebUI** | Gleam / Lustre | Primary c3i Web Dashboard — real-time cockpit, Zenoh telemetry viz | NEW — replaces Bolero |
-| **Wisp API** | Gleam / Wisp | c3i HTTP backend — REST/JSON endpoints, health probes, MCP gateway | NEW — Gleam-native HTTP |
-| **Gleam TUI** | Gleam / ANSI + OTP | c3i Terminal Interface — sparklines, health bars, command REPL | NEW — replaces Prajna TUI |
-| **Phoenix LiveView** | Elixir / HEEx | Legacy Web Portal & Admin (Indrajaal domain pages) | MAINTAINED |
-| **Prajna TUI** | Elixir / ANSI | Emergency Terminal fallback (legacy) | MAINTAINED — Gleam TUI is primary |
+### 2.1 Quad-Stack UI Architecture
+| Stack | Tech | Purpose |
+|:---|:---|:---|
+| **Phoenix LiveView** | Elixir / HEEx | Web Portal & Admin |
+| **Bolero WebUI** | F# / WASM | High-Assurance C3I |
+| **Avalonia GUI** | F# / .NET 10 | Low-Latency Desktop |
+| **Prajna TUI** | Elixir / ANSI | Emergency Terminal |
 
-**UI Mandate (SC-GLM-UI-001)**: Every Gleam c3i function MUST expose 3 interfaces:
-1. **Lustre component** — real-time Web UI with server-side rendering on BEAM
-2. **Wisp endpoint** — JSON API for programmatic/agent access
-3. **TUI view** — ANSI terminal rendering for operator and emergency access
-
-### 2.2 Essential Commands (Multi-Language Kernel)
-
-#### 2.2.1 F# Kernel Commands (Legacy — Phase 6 Substrate Only)
+### 2.2 Essential Commands (F# Kernel)
 - `./sa-up`: Boot mesh (Binary, 16 Containers).
 - `./sa-down`: Graceful shutdown (Binary) + checkpoint.
 - `./sa-status`: Health matrix (Binary, 16 Nodes).
 - `./sa-plan`: Task management (Binary).
 - `./sa-verify`: 2oo3 voting (Binary) verification.
-
-#### 2.2.2 Gleam Commands (Primary c3i Language)
-- `gleam build`: Compile Gleam modules — zero warnings enforced (SC-GLM-CMP-001).
-- `gleam test`: Run Gleam tests — TDG: tests MUST fail before code (Omega-4).
-- `gleam format`: Format Gleam source — mandatory before commit.
-- `gleam check`: Type-check without building — fast validation gate.
-- Project: `lib/cepaf_gleam/` (~35 modules across 8 operational planes).
-
-#### 2.2.3 Rust NIF Commands (NIF Boundary Only — SC-NIF-001)
-- `cargo build --release`: Compile Rust NIFs (Zenoh FFI: `libzenoh_ffi.so`).
-- `cargo test`: Run Rust unit tests for NIF layer.
-- NIFs called via `cepaf_gleam_ffi.erl` Erlang wrapper on BEAM.
-
-#### 2.2.4 Elixir Commands (Web Portal Layer)
-- `mix compile --jobs 16`: Compile Elixir app (Phoenix LiveView, OTP supervision).
-- `mix test`: Run Elixir tests (Wallaby E2E for LiveView pages).
-- `mix format`: Format Elixir source.
 
 ---
 
@@ -135,52 +110,9 @@ where $\mathcal{S}_{functional} \equiv \{s \mid \text{Compiles}(s) \wedge \text{
 - **SC-SWARM-VERIFY-060**: MCP dispatch MUST follow `string option` chain pattern with proper error handling.
 - Full constraints: `.claude/rules/swarm-verification.md` (SC-SWARM-VERIFY-001 to SC-SWARM-VERIFY-064, AOR-SWARM-VERIFY-001 to AOR-SWARM-VERIFY-015).
 
-### SC-GLM-CMP: Gleam Compilation Safety (NEW — Gleam Migration)
-- **SC-GLM-CMP-001**: `gleam build` MUST produce zero warnings and zero errors. Enforced as of 2026-04-01.
-- **SC-GLM-CMP-002**: `gleam format` MUST pass before any Gleam commit.
-- **SC-GLM-CMP-003**: `gleam check` MUST pass as pre-commit fast gate.
-- **SC-GLM-CMP-004**: Gleam modules MUST compile to BEAM bytecode (not JavaScript target).
-- **SC-GLM-CMP-005**: Gleam-Elixir FFI boundary MUST use typed OTP message passing only.
-
-### SC-GLM-CORE: Gleam Core Module Safety (NEW — c3i Primary Language)
-- **SC-GLM-CORE-001**: ALL new c3i logic MUST be written in Gleam (not F# or Elixir).
-- **SC-GLM-CORE-002**: Gleam Result type MUST be used for all fallible operations (no exceptions).
-- **SC-GLM-CORE-003**: Gleam custom types MUST model domain ADTs exhaustively (pattern match completeness).
-- **SC-GLM-CORE-004**: Gleam modules MUST NOT use `external` functions except for Rust NIF or Erlang stdlib calls.
-- **SC-GLM-CORE-005**: Gleam-to-Elixir interop MUST use `@external(erlang, ...)` with typed wrappers.
-- **SC-GLM-CORE-006**: Migration from F# MUST preserve semantic equivalence (dual property testing during Phases 1-2).
-- **SC-GLM-CORE-007**: Gleam modules MUST have `/// @moduledoc` with STAMP constraint references.
-
-### SC-GLM-NIF: Gleam-Rust NIF Safety (NEW — NIF Boundary)
-- **SC-GLM-NIF-001**: Rust NIFs MUST only be used for Zenoh FFI (`libzenoh_ffi.so`) and performance-critical paths.
-- **SC-GLM-NIF-002**: NIF calls MUST go through `cepaf_gleam_ffi.erl` Erlang wrapper (never direct).
-- **SC-GLM-NIF-003**: NIF crashes MUST NOT propagate to BEAM scheduler — dirty scheduler isolation required.
-- **SC-GLM-NIF-004**: NIF functions MUST complete within 1ms or use dirty NIF scheduler.
-- **SC-GLM-NIF-005**: `cargo build --release` MUST produce zero warnings for NIF crate.
-
-### SC-GLM-UI: Gleam UI Triple-Interface Mandate (NEW — Lustre + Wisp + TUI)
-- **SC-GLM-UI-001**: Every Gleam c3i function MUST expose 3 interfaces: Lustre WebUI, Wisp API endpoint, and TUI view.
-- **SC-GLM-UI-002**: Lustre components MUST use server-side rendering on BEAM (not client-side JS) for real-time Zenoh telemetry.
-- **SC-GLM-UI-003**: Wisp endpoints MUST return typed JSON using `gleam/json` — no raw string concatenation.
-- **SC-GLM-UI-004**: TUI views MUST use ANSI escape codes via `cockpit/visuals.gleam` — sparklines, progress bars, health indicators.
-- **SC-GLM-UI-005**: Lustre components MUST react to Zenoh PubSub events within 100ms (SC-ZENOH-004 compliance).
-- **SC-GLM-UI-006**: Wisp HTTP server MUST bind to configurable port (default 4100, outside mesh range 4000-4010).
-- **SC-GLM-UI-007**: TUI MUST support the same command set as Wisp API — no UI-only or API-only functions.
-- **SC-GLM-UI-008**: Lustre WebUI MUST implement Dark Cockpit pattern (SC-HMI-010) — anomalies surface, normal state is minimal.
-- **SC-GLM-UI-009**: All 3 interfaces MUST share the same Gleam domain types — no per-interface type duplication.
-- **SC-GLM-UI-010**: Lustre replaces Bolero WebUI; Gleam TUI replaces Prajna TUI. Phoenix LiveView is MAINTAINED for Indrajaal domain pages only.
-
-### SC-GLM-MIG: Migration Safety Constraints (NEW — F# to Gleam Transition)
-- **SC-GLM-MIG-001**: F# and Gleam enforcers MUST dual-run during migration Phases 1-2.
-- **SC-GLM-MIG-002**: Semantic drift between F# and Gleam implementations MUST be < 5% (property test verified).
-- **SC-GLM-MIG-003**: F# modules MUST NOT be deleted until Gleam equivalent passes all TDG tests.
-- **SC-GLM-MIG-004**: Container substrate (Phase 6) MUST remain in F# until all cognitive layers verified stable.
-- **SC-GLM-MIG-005**: Migration progress MUST be tracked in `doc/plans/` with YYYYMMDD timestamps.
-
 ### SC-PARALLEL: Full Parallelization
 - **SC-PARALLEL-001**: Use `ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"`.
 - **SC-PARALLEL-002**: All `mix compile` MUST include `--jobs 16`.
-- **SC-PARALLEL-003**: `gleam build` uses BEAM-native parallelism (no additional flags needed).
 
 ### SC-CPU-GOV: CPU Governor (85% Hard Limit)
 - **SC-CPU-GOV-001**: CPU utilization MUST NOT exceed 85% during agent operations.
@@ -241,29 +173,13 @@ where $\mathcal{S}_{functional} \equiv \{s \mid \text{Compiles}(s) \wedge \text{
 ---
 
 ## 9.0 Agent Operating Rules (AOR)
-
-### 9.1 Core AOR (Preserved — All Languages)
 - **AOR-EXE-001**: Executive has supreme authority.
 - **AOR-SUPERVISOR-001**: Homeostasis MUST be maintained by the Panoptic Supervisor Agent.
 - **AOR-SAF-001**: Halt <1s on STAMP violation.
 - **AOR-HOLON-009**: SQLite/DuckDB is the ONLY source of truth.
-- **AOR-PLAN-001**: Use F# Planning CLI for task management (until Gleam `sa-plan` parity — SC-GLM-MIG-004).
-- **AOR-PLAN-002**: **F# MANDATORY PLANNING** (transitional). Agents MUST use F#-based tools (`sa-plan`) for task operations until Gleam planning module achieves parity. `mix todo` remains PROHIBITED.
-- **AOR-JOURNAL-001**: **PATTERN DISCIPLINE**. Agents MUST fill all 13 sections of the journal template.
-
-### 9.2 Gleam-Specific AOR (NEW — c3i Primary Language)
-- **AOR-GLM-001**: ALL new c3i modules MUST be written in Gleam. F# is permitted ONLY for Phase 6 container substrate.
-- **AOR-GLM-002**: `gleam build` MUST be run before `mix compile` when Gleam source changes.
-- **AOR-GLM-003**: `gleam format` MUST pass before any commit touching `lib/cepaf_gleam/`.
-- **AOR-GLM-004**: `gleam test` MUST pass before marking any Gleam task as completed.
-- **AOR-GLM-005**: Gleam modules MUST use Result type for errors — never raise/throw.
-- **AOR-GLM-006**: Gleam-Elixir interop MUST go through typed OTP message passing or `@external` wrappers.
-- **AOR-GLM-007**: Rust NIF calls from Gleam MUST go through `cepaf_gleam_ffi.erl` — never direct C ABI.
-- **AOR-GLM-008**: Migration drift checks MUST run weekly — compare F# and Gleam outputs for semantic parity.
-- **AOR-GLM-009**: Gleam property tests MUST cover all domain ADT constructors (exhaustive case matching).
-- **AOR-GLM-010**: Gleam modules MUST NOT import from `lib/cepaf/src/` (F# namespace) — use Zenoh IPC for cross-language calls.
-
-### 9.3 Coverage AOR (Preserved — Enhanced for Multi-Language)
+- **AOR-PLAN-001**: Use F# Planning CLI for task management.
+- **AOR-PLAN-002**: **F# MANDATORY PLANNING**. Agents MUST use F#-based tools (`sa-plan` or `dotnet run --project lib/cepaf/src/Cepaf.Planning.CLI`) for ALL task and plan-related operations. Use of `mix todo` or Elixir planning scripts is STRICTLY PROHIBITED.
+- **AOR-JOURNAL-001**: **PATTERN DISCIPLINE**. Agents MUST fill all 13 sections of the journal template to build institutional pattern recognition across sprints.
 - **AOR-COV-008**: Source-first selectors: Read LiveView .ex source BEFORE writing Wallaby selectors.
 - **AOR-COV-009**: Every action button in C8 MUST be tested twice (status badge + flash message).
 - **AOR-COV-010**: Two-step commit flows MUST test all 3 states (idle→armed→executing/cancelled).
@@ -272,24 +188,13 @@ where $\mathcal{S}_{functional} \equiv \{s \mid \text{Compiles}(s) \wedge \text{
 - **AOR-COV-013**: New LiveView pages MUST include Wallaby test in same PR.
 - **AOR-COV-014**: FMEA-discovered bugs MUST have regression tests.
 - **AOR-COV-015**: PubSub topic changes MUST update corresponding Wallaby tests.
-- **AOR-COV-016**: Gleam modules MUST have `gleam test` coverage >= 80% for core logic.
+- **AOR-SAF-002**: Agents MUST adhere to the Safe-State SOP. All architectural changes require strict evaluation of Determinism, BIST logic, Telemetry streams, HMI hardening, and verification via Fault Injection.
+- **AOR-LOG-001**: Traces generated by OpenTelemetry MUST propagate unique `TraceId` and `SpanId` values seamlessly across all 8 fractal layers for cross-holon FMEA compliance.
 
-### 9.4 Multi-Language Build Order AOR (NEW)
-- **AOR-BUILD-001**: Build order: Rust NIFs (`cargo build`) → Gleam (`gleam build`) → Elixir (`mix compile`) → F# (`dotnet build`, if needed).
-- **AOR-BUILD-002**: NEVER run `mix compile` if `gleam build` has pending errors.
-- **AOR-BUILD-003**: Rust NIF `.so` files MUST be in `priv/native/` before BEAM compilation.
-- **AOR-BUILD-004**: F# builds are OPTIONAL — only required when touching Phase 6 substrate code.
+### SC-SAFE: Safe-State Design & Ignition
+- **SC-IGNITE-010**: All ignition sequences MUST begin with a `GitIntelligence` Safe-State validation gate (Preflight check).
+- **SC-LOG-004**: All holons MUST implement Quadruplex logging (Console, JSON, Zenoh, OTEL) for forensic survivability.
+- **SC-BIST-001**: Pre-Ignition Sequencing MUST confirm 3σ stability on the Zenoh telemetry backplane and core database connections for at least 100ms before initializing upper-layer application holons.
+- **SC-NIF-006**: Rustler NIF compilation MUST NEVER be bypassed (`SKIP_NIF_BUILD` is prohibited). Any missing NIF dependency (e.g., cargo), compilation error, or warning MUST immediately halt execution and trigger a TPS RCA (Total Panoptic System Root Cause Analysis) spanning all 8 fractal elements x all 8 fractal layers.
 
-### 9.5 Gleam UI Triple-Interface AOR (NEW — Lustre + Wisp + TUI)
-- **AOR-GLM-UI-001**: When adding a new Gleam c3i function, ALWAYS create all 3 interfaces: Lustre component, Wisp endpoint, TUI view.
-- **AOR-GLM-UI-002**: Lustre components MUST be in `lib/cepaf_gleam/src/cepaf_gleam/ui/lustre/` directory.
-- **AOR-GLM-UI-003**: Wisp endpoints MUST be in `lib/cepaf_gleam/src/cepaf_gleam/ui/wisp/` directory.
-- **AOR-GLM-UI-004**: TUI views MUST be in `lib/cepaf_gleam/src/cepaf_gleam/ui/tui/` directory.
-- **AOR-GLM-UI-005**: ALL 3 interfaces MUST import from the SAME domain module — no type duplication.
-- **AOR-GLM-UI-006**: Lustre components MUST subscribe to Zenoh topics for real-time updates.
-- **AOR-GLM-UI-007**: Wisp endpoints MUST include `/health` and `/api/v1/{domain}` routes.
-- **AOR-GLM-UI-008**: TUI views MUST render within 16ms (60fps terminal refresh target).
-- **AOR-GLM-UI-009**: NEVER add a Wisp endpoint without a corresponding Lustre component and TUI view.
-- **AOR-GLM-UI-010**: Gleam TUI is PRIMARY terminal interface. Elixir Prajna TUI is fallback only.
-
-**INDRAJAAL IS HARDENED. MIGRATING TO GLEAM. EVOLVING TOWARDS SINGULARITY.**
+**INDRAJAAL IS HARDENED. EVOLVING TOWARDS SINGULARITY. 🏁**

@@ -1,0 +1,11 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# CEPAF GLEAM PLANNING CLI
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# cd into gleam project directory
+cd "$(dirname "$0")/lib/cepaf_gleam" || exit 1
+
+# Execute Gleam CLI
+# Note: arguments after -- are passed to main
+gleam run -- "$@"

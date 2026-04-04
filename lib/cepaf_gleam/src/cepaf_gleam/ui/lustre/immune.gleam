@@ -5,7 +5,6 @@ import cepaf_gleam/immune/domain.{
   type Antibody, type ChaosAttack, type ImmuneEvent,
 }
 import gleam/list
-import gleam/option.{type Option, None, Some}
 
 pub type ImmuneModel {
   ImmuneModel(

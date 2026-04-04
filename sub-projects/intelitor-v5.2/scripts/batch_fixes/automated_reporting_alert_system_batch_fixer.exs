@@ -325,7 +325,7 @@ defmodule AutomatedReportingAlertSystemBatchFixer do
     - enrich_triggered_alert/1 -> enrich_triggered_alert/2 (arity fix)
 
     Next Steps:
-    1. Run compilation validation: env ELIXIR_ERL_OPTIONS="+S 16" mix compile --jobs 16 --warnings-as-errors
+    1. Run compilation validation: env ELIXIR_ERL_OPTIONS="+fnu +S 16" mix compile --jobs 16 --warnings-as-errors
     2. If successful, commit changes and proceed to warning elimination
     3. If failed, analyze errors and adjust fixes
     """

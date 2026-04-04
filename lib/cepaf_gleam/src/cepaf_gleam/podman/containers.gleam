@@ -3,15 +3,81 @@ import cepaf_gleam/podman/domain.{
 }
 import cepaf_gleam/podman/http_client.{type PodmanClient}
 import gleam/bit_array
+import gleam/dict
 import gleam/dynamic/decode
 import gleam/http
 import gleam/int
+import gleam/io
 import gleam/json
 import gleam/list
-import gleam/option.{type Option}
+import gleam/option
 import gleam/result
+import gleam/string
+
+@external(erlang, "cepaf_gleam_ffi", "os_cmd")
+fn erl_os_cmd(cmd: String) -> Result(BitArray, String)
 
 pub fn list_containers(
+  client: PodmanClient,
+  all: Bool,
+) -> Result(List(ContainerSummary), String) {
+  case list_containers_rest(client, all) {
+    Ok(containers) -> Ok(containers)
+    Error(_) -> list_containers_cli(all)
+  }
+}
+
+fn list_containers_cli(all: Bool) -> Result(List(ContainerSummary), String) {
+  let format = "{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.State}}|{{.Created}}"
+  let cmd = "podman ps --format \"" <> format <> "\"" <> case all {
+    True -> " --all"
+    False -> ""
+  }
+  case erl_os_cmd(cmd) {
+    Ok(output_binary) -> {
+      case bit_array.to_string(output_binary) {
+        Ok(output_str) -> {
+          let containers = parse_containers_pipe(output_str)
+          Ok(containers)
+        }
+        Error(_) -> Error("Failed to read podman output as UTF-8")
+      }
+    }
+    Error(e) -> Error("podman cmd failed: " <> e)
+  }
+}
+
+fn parse_containers_pipe(content: String) -> List(ContainerSummary) {
+  let lines = string.split(content, "\n")
+  list.filter_map(lines, fn(line) {
+    case string.split(line, "|") {
+      [id, names_str, image, status, state_str, created_str] -> {
+        let names = string.split(names_str, ",") |> list.map(string.trim)
+        let created = case int.parse(created_str) {
+          Ok(i) -> i
+          Error(_) -> 0
+        }
+        Ok(ContainerSummary(
+          id: id,
+          names: names,
+          image: image,
+          image_id: "",
+          command: "",
+          created: created,
+          state: domain.string_to_status(state_str),
+          status: status,
+          ports: [],
+          labels: dict.new(),
+          mounts: [],
+          networks: [],
+        ))
+      }
+      _ -> Error(Nil)
+    }
+  })
+}
+
+fn list_containers_rest(
   client: PodmanClient,
   all: Bool,
 ) -> Result(List(ContainerSummary), String) {
@@ -37,6 +103,13 @@ pub fn list_containers(
 }
 
 pub fn start(client: PodmanClient, name: String) -> Result(Nil, String) {
+  case start_rest(client, name) {
+    Ok(_) -> Ok(Nil)
+    Error(_) -> start_cli(name)
+  }
+}
+
+fn start_rest(client: PodmanClient, name: String) -> Result(Nil, String) {
   case http_client.post(client, "/containers/" <> name <> "/start", <<>>) {
     Ok(resp) if resp.status == 204 || resp.status == 304 -> Ok(Nil)
     Ok(resp) -> Error("Unexpected status code: " <> int.to_string(resp.status))
@@ -44,10 +117,29 @@ pub fn start(client: PodmanClient, name: String) -> Result(Nil, String) {
   }
 }
 
+fn start_cli(name: String) -> Result(Nil, String) {
+  let cmd = "podman start " <> name
+  case erl_os_cmd(cmd) {
+    Ok(_) -> Ok(Nil)
+    Error(e) -> Error("podman start failed: " <> e)
+  }
+}
+
 pub fn stop(
   client: PodmanClient,
   name: String,
-  timeout: Option(Int),
+  timeout: option.Option(Int),
+) -> Result(Nil, String) {
+  case stop_rest(client, name, timeout) {
+    Ok(_) -> Ok(Nil)
+    Error(_) -> stop_cli(name)
+  }
+}
+
+fn stop_rest(
+  client: PodmanClient,
+  name: String,
+  timeout: option.Option(Int),
 ) -> Result(Nil, String) {
   let query = case timeout {
     option.Some(t) -> "?t=" <> int.to_string(t)
@@ -62,11 +154,34 @@ pub fn stop(
   }
 }
 
+fn stop_cli(name: String) -> Result(Nil, String) {
+  let cmd = "podman stop " <> name
+  case erl_os_cmd(cmd) {
+    Ok(_) -> Ok(Nil)
+    Error(e) -> Error("podman stop failed: " <> e)
+  }
+}
+
 pub fn restart(client: PodmanClient, name: String) -> Result(Nil, String) {
+  case restart_rest(client, name) {
+    Ok(_) -> Ok(Nil)
+    Error(_) -> restart_cli(name)
+  }
+}
+
+fn restart_rest(client: PodmanClient, name: String) -> Result(Nil, String) {
   case http_client.post(client, "/containers/" <> name <> "/restart", <<>>) {
     Ok(resp) if resp.status == 204 -> Ok(Nil)
     Ok(resp) -> Error("Unexpected status code: " <> int.to_string(resp.status))
     Error(e) -> Error(e)
+  }
+}
+
+fn restart_cli(name: String) -> Result(Nil, String) {
+  let cmd = "podman restart " <> name
+  case erl_os_cmd(cmd) {
+    Ok(_) -> Ok(Nil)
+    Error(e) -> Error("podman restart failed: " <> e)
   }
 }
 
@@ -129,6 +244,38 @@ fn string_of_json_error(err: json.DecodeError) -> String {
     }
   }
 }
+
+fn decode_container_list_cli() -> decode.Decoder(List(ContainerSummary)) {
+  decode.list(decode_container_summary_cli())
+}
+
+fn decode_container_summary_cli() -> decode.Decoder(ContainerSummary) {
+  use id <- decode.field("Id", decode.string)
+  use names <- decode.field("Names", decode.list(decode.string))
+  use image <- decode.field("Image", decode.string)
+  use image_id <- decode.field("ImageID", decode.string)
+  use command <- decode.field("Command", decode.optional(decode.string))
+  use created <- decode.optional_field("Created", 0, decode.int)
+  use state_str <- decode.field("State", decode.string)
+  use status <- decode.field("Status", decode.string)
+
+  decode.success(ContainerSummary(
+    id: id,
+    names: names,
+    image: image,
+    image_id: image_id,
+    command: option.unwrap(command, ""),
+    created: created,
+    state: domain.string_to_status(state_str),
+    status: status,
+
+    ports: [], // Simplified for CLI
+    labels: dict.new(),
+    mounts: [],
+    networks: [],
+  ))
+}
+
 
 fn decode_container_list() -> decode.Decoder(List(ContainerSummary)) {
   decode.list(of: decode_container_summary())

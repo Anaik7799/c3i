@@ -8,12 +8,18 @@
 import cepaf_gleam/core/ids
 import cepaf_gleam/core/types
 import cepaf_gleam/db/duckdb
+import cepaf_gleam/db/sqlite
 import cepaf_gleam/planning/domain.{type Task, Task}
 import gleam/dynamic.{type Dynamic}
 import gleam/list
 import gleam/option.{None}
 import gleam/result
 import gleam/set
+
+pub type DbBackend {
+  DuckDBBackend
+  SQLiteBackend(sqlite.DbConnection)
+}
 
 // =============================================================================
 // FFI Wrappers
@@ -96,6 +102,20 @@ pub fn get_all_tasks() -> Result(List(Task), String) {
   let sql = "SELECT * FROM tasks"
   use rows <- result.try(duckdb.query(sql, []))
   list.try_map(rows, parse_row)
+}
+
+/// Retrieves all tasks from a specific SQLite connection.
+pub fn get_all_tasks_sqlite(conn: sqlite.DbConnection) -> Result(List(Task), String) {
+  let sql = "SELECT id, title, status, priority, parent_id, owner_id, created_at, updated_at, version FROM tasks"
+  use rows <- result.try(sqlite.query(conn, sql, []))
+  list.try_map(rows, parse_row)
+}
+
+/// Deletes a task by its ID.
+pub fn delete_task(id: ids.TaskId) -> Result(Int, String) {
+  let sql = "DELETE FROM tasks WHERE id = ?"
+  let params = [dynamic_from(ids.task_id_to_string(id))]
+  duckdb.execute(sql, params)
 }
 
 /// Attempt to list all tasks from SQLite. Returns Error if DB unavailable.

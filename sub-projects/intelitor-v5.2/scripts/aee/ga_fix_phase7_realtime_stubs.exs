@@ -42,7 +42,7 @@ defmodule Phase7RealtimeStubCommenter do
         {"NO_TIMEOUT", "true"},
         {"PATIENT_MODE", "enabled"},
         {"INFINITE_PATIENCE", "true"},
-        {"ELIXIR_ERL_OPTIONS", "+S 16"}
+        {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}
       ],
       stderr_to_stdout: true
     )

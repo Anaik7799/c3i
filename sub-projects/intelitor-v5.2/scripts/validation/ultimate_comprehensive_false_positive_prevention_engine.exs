@@ -353,7 +353,7 @@ defmodule UltimateComprehensiveFalsePositivePr__eventionEngine do
                                    env: [{"NO_TIMEOUT", "true"},
                                          {"PATIENT_MODE", "enabled"},
                                          {"INFINITE_PATIENCE", "true"},
-                                         {"ELIXIR_ERL_OPTIONS", "+S 16"}],
+                                         {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}],
                                    stderr_to_stdout: true)
 
     if exit_code == 0 do
@@ -617,7 +617,7 @@ defmodule UltimateComprehensiveFalsePositivePr__eventionEngine do
       "NO_TIMEOUT" => "true",
       "PATIENT_MODE" => "enabled",
       "INFINITE_PATIENCE" => "true",
-      "ELIXIR_ERL_OPTIONS" => "+S 16"
+      "ELIXIR_ERL_OPTIONS" => "+fnu +S 16"
     }
 
     # Validate current environment
@@ -647,7 +647,7 @@ defmodule UltimateComprehensiveFalsePositivePr__eventionEngine do
     export NO_TIMEOUT=true
     export PATIENT_MODE=enabled
     export INFINITE_PATIENCE=true
-    export ELIXIR_ERL_OPTIONS="+S 16"
+    export ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
     # Additional timeout configurations for maximum patience
     export BASH_DEFAULT_TIMEOUT_MS=7200000    # 2 hours
@@ -663,7 +663,7 @@ defmodule UltimateComprehensiveFalsePositivePr__eventionEngine do
     LOG_FILE="./__data/tmp/patient_mode_compilation_#{timestamp}.log"
 
     # Execute Patient Mode compilation with INFINITE patience
-    NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+S 16" \\
+    NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+fnu +S 16" \\
         mix compile --jobs 16 --verbose --warnings-as-errors 2>&1 | tee -a "$LOG_FILE"
 
     COMPILE_EXIT_CODE=$?

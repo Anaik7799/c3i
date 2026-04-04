@@ -1,7 +1,6 @@
 /// Lustre component for Planning plane (SC-GLM-UI-001).
 /// Imports from planning domain — no type duplication (SC-GLM-UI-009).
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-002, SC-GLM-UI-009
-import cepaf_gleam/core/types
 import gleam/list
 import gleam/option.{None, Some}
 

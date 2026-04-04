@@ -269,7 +269,7 @@ defmodule SOPv511.Phase5CompilationSetup do
       {"NO_TIMEOUT", "true"},
       {"PATIENT_MODE", "enabled"},
       {"INFINITE_PATIENCE", "true"},
-      {"ELIXIR_ERL_OPTIONS", "+S 16"}
+      {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}
     ]
 
     case System.cmd("mix", ["compile", "--verbose"],
@@ -299,7 +299,7 @@ defmodule SOPv511.Phase5CompilationSetup do
       {"NO_TIMEOUT", "true"},
       {"PATIENT_MODE", "enabled"},
       {"INFINITE_PATIENCE", "true"},
-      {"ELIXIR_ERL_OPTIONS", "+S 16"},
+      {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"},
       {"BASH_DEFAULT_TIMEOUT_MS", "7200000"}
     ]
 

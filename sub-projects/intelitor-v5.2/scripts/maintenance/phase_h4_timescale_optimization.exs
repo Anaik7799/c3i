@@ -31,7 +31,7 @@
 # Agent: Supervisor-1 (Strategic Oversight Agent)
 # Mission: Eliminate ALL build_event_count_query internal duplications
 # Target: timescale_query_utilities.ex internal duplications (275+ violations)
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase H.4 Timescale Query Optimization")
 IO.puts("======================================================================")

@@ -13,7 +13,7 @@
 
 ## 1.0 Full Parallelization
 - All compilations, tests, and orchestrations MUST utilize maximum available hardware concurrency.
-- `ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"` and `mix compile --jobs 16` are MANDATORY.
+- `ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16"` and `mix compile --jobs 16` are MANDATORY.
 - SC-CPU-GOV OVERRIDES fixed parallelism when CPU > 80%.
 
 ## 2.0 Panoptic Swarm Ignition v2.0

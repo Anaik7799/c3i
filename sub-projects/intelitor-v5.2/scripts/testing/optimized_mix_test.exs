@@ -112,7 +112,7 @@ defmodule OptimizedMixTest do
     envs = [
       {"MIX_ENV", "test"},
       {"MIX_QUIET", "1"},
-      {"ELIXIR_ERL_OPTIONS", "+S 16:16 +SDio 16 +P 5_000_000 +Q 65_536 +K true +A 128"},
+      {"ELIXIR_ERL_OPTIONS", "+fnu +S 16:16 +SDio 16 +P 5_000_000 +Q 65_536 +K true +A 128"},
       {"ERL_AFLAGS", "+S 16:16 +SDio 16 +P 5_000_000 +Q 65_536"},
       {"ERL_MAX_PORTS", "8192"},
       {"ERL_MAX_ETS_TABLES", "8192"},

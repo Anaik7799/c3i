@@ -171,11 +171,11 @@ defmodule SOPv511.AEEBatchProcessorSimplified do
     System.put_env("NO_TIMEOUT", "true")
     System.put_env("PATIENT_MODE", "enabled")
     System.put_env("INFINITE_PATIENCE", "true")
-    System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 
     IO.puts("  ✅ NO_TIMEOUT=true PATIENT_MODE=enabled")
     IO.puts("  ✅ INFINITE_PATIENCE=true")
-    IO.puts("  ✅ ELIXIR_ERL_OPTIONS='+S 16'")
+    IO.puts("  ✅ ELIXIR_ERL_OPTIONS='+fnu +S 16'")
   end
 
   defp setup_logging(timestamp) do
@@ -359,7 +359,7 @@ defmodule SOPv511.AEEBatchProcessorSimplified do
     # Simulate final compilation
     IO.puts("📊 Final Patient Mode Compilation...")
     IO.puts("  ⏳ NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true")
-    IO.puts("  ⏳ ELIXIR_ERL_OPTIONS='+S 16' mix compile --jobs 16 --warnings-as-errors")
+    IO.puts("  ⏳ ELIXIR_ERL_OPTIONS='+fnu +S 16' mix compile --jobs 16 --warnings-as-errors")
 
     Process.sleep(200)  # Simulate work
 

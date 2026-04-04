@@ -11,7 +11,7 @@ import gleam/int
 import gleam/json
 import gleam/list
 import gleam/result
-import gleam/set.{type Set}
+import gleam/set
 
 /// A node in the verification DAG.
 pub type DagNode {

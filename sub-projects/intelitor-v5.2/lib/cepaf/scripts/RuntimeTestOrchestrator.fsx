@@ -5,7 +5,7 @@
 /// CONSTRAINTS: Requires standalone environment running
 /// Framework: SOPv5.11 + STAMP + OODA + Biomorphic Swarm
 /// Compliance: SC-METRICS-003 (Mandatory Parallelization)
-/// ELIXIR_ERL_OPTIONS: "+S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
+/// ELIXIR_ERL_OPTIONS: "+fnu +S 16:16 +SDio 16" for 16 schedulers, 16 dirty I/O schedulers
 ///
 /// Usage:
 ///   dotnet fsi RuntimeTestOrchestrator.fsx --mode swarm

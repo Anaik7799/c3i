@@ -52,7 +52,7 @@ services:
       ZENOH_FRACTAL_ENABLED: 'true'
       ZENOH_TELEMETRY_ENABLED: 'true'
       ZENOH_KPI_ENABLED: 'true'
-      SKIP_NIF_BUILD: '1'
+      SKIP_NIF_BUILD: '0'
     image: localhost/indrajaal-app-unified:nixos-devenv
     networks:
       - indrajaal-network

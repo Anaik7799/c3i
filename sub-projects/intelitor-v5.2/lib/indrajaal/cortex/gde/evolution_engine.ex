@@ -29,7 +29,7 @@ defmodule Indrajaal.Cortex.GDE.EvolutionEngine do
   # ============================================================
 
   @default_entropy_threshold 0.2
-  @default_scan_interval 100
+  @default_scan_interval 60_000
 
   # ============================================================
   # CLIENT API

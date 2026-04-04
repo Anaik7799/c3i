@@ -9,7 +9,7 @@
     NO_TIMEOUT = "true";
     PATIENT_MODE = "enabled";
     INFINITE_PATIENCE = "true";
-    ELIXIR_ERL_OPTIONS = "+S 16:16 +SDio 16";
+    ELIXIR_ERL_OPTIONS = "+fnu +S 16:16 +SDio 16";
     MIX_OS_DEPS_COMPILE_PARTITION_COUNT = "8";
 
     # Container settings
@@ -676,7 +676,7 @@
     WALLABY_ENABLED=true \
     NO_TIMEOUT=true \
     PATIENT_MODE=enabled \
-    ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" \
+    ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" \
     MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 \
     POSTGRES_USER=postgres \
     POSTGRES_PASSWORD=postgres \

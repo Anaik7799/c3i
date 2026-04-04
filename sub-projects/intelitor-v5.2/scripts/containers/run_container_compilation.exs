@@ -56,7 +56,7 @@ defmodule RunContainerCompilation do
       "-v", "#{@project_root}:/workspace:z",
       "-w", "/workspace",
       # Agent: Environment variables
-      "-e", "ELIXIR_ERL_OPTIONS=+S 16:16 +SDio 16 +A 32",
+      "-e", "ELIXIR_ERL_OPTIONS=+fnu +S 16:16 +SDio 16 +A 32",
       "-e", "MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8",
       "-e", "NO_TIMEOUT=true",
       "-e", "PHICS_ENABLED=true",

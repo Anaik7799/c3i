@@ -199,7 +199,7 @@ defmodule UnderscoreVariableFixer do
 
     {_output, _exit_code} = System.cmd("mix", ["compile"],
                                      stderr_to_stdout: true,
-                                     env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}])
+                                     env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}])
 
     # Count warnings
     warning_count = output

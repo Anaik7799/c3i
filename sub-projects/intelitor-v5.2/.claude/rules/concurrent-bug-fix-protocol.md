@@ -100,9 +100,9 @@ Follow these quality rules:
 ```bash
 # Elixir changes:
 NO_TIMEOUT=true PATIENT_MODE=enabled SKIP_ZENOH_NIF=0 WALLABY_ENABLED=true \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" mix compile --jobs 16 2>&1 | tail -5
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" mix compile --jobs 16 2>&1 | tail -5
 SKIP_ZENOH_NIF=0 WALLABY_ENABLED=true NO_TIMEOUT=true PATIENT_MODE=enabled \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" MIX_ENV=test mix test --only <relevant_test_tag>
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" MIX_ENV=test mix test --only <relevant_test_tag>
 mix format --check-formatted
 
 # F# changes:

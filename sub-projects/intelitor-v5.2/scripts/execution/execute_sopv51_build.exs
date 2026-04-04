@@ -144,7 +144,7 @@ defmodule ExecuteSOPv511Build do
       "PHICS_ENABLED" => "true",
       "NO_TIMEOUT" => "true",
       "MAX_PARALLELIZATION" => "true",
-      "ELIXIR_ERL_OPTIONS" => "+S 16 +A 32",
+      "ELIXIR_ERL_OPTIONS" => "+fnu +S 16 +A 32",
       "CONTAINER_OS" => "nixos",
       "MIX_TIMEOUT" => "infinity",
       "COMPILE_TIMEOUT" => "0",

@@ -218,7 +218,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     {_output, _exit_code} = System.cmd("podman", ["exec", "-it", "indrajaal-app-demo",
       "bash", "-c", """
       cd /workspace && \
-      export ELIXIR_ERL_OPTIONS="+S 16" && \
+      export ELIXIR_ERL_OPTIONS="+fnu +S 16" && \
       export MIX_ENV=dev && \
       elixir scripts/coordination/sopv51_master_coordinator.exs
       """
@@ -241,7 +241,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     {_output, _exit_code} = System.cmd("podman", ["exec", "-it", "indrajaal-app-demo",
       "bash", "-c", """
       cd /workspace && \
-      export ELIXIR_ERL_OPTIONS="+S 16" && \
+      export ELIXIR_ERL_OPTIONS="+fnu +S 16" && \
       mix compile --jobs 16 --warnings-as-errors --force
       """
     ])
@@ -264,7 +264,7 @@ This script has been enhanced with comprehensive SOPv5.1 cybernetic execution fr
     {_output, _exit_code} = System.cmd("podman", ["exec", "-it", "indrajaal-app-demo",
       "bash", "-c", """
       cd /workspace && \
-      export ELIXIR_ERL_OPTIONS="+S 16" && \
+      export ELIXIR_ERL_OPTIONS="+fnu +S 16" && \
       mix test --max-failures 5
       """
     ])

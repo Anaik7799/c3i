@@ -41,7 +41,7 @@ defmodule FixAllAtomicWarningsComprehensive do
     IO.puts "📊 Collecting atomic warnings from compilation output..."
     {_output, __exit_code} = System.cmd("mix", ["compile", "--warnings-as-errors"],
       stderr_to_stdout: true,
-      env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}]
+      env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}]
     )
 
     # Parse warnings to extract file and action names

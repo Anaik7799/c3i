@@ -492,7 +492,7 @@ defmodule Indrajaal.Validation.ComprehensiveWarningClassificationEngine do
     ## Validation Protocol
 
     After each batch:
-    1. Run: `NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+S 16" mix compile --jobs 16 --verbose 2>&1 | tee -a batch-compile.log`
+    1. Run: `NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true ELIXIR_ERL_OPTIONS="+fnu +S 16" mix compile --jobs 16 --verbose 2>&1 | tee -a batch-compile.log`
     2. Validate with: `elixir scripts/validation/corrected_elixir_compilation_validator.exs --log batch-compile.log`
     3. Only proceed if compilation succeeds
     """

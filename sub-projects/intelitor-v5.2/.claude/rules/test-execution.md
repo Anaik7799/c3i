@@ -18,7 +18,7 @@ POSTGRES_PASSWORD=postgres \
 DATABASE_URL="ecto://postgres:postgres@localhost:5433/indrajaal_test" \
 NO_TIMEOUT=true \
 PATIENT_MODE=enabled \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" \
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" \
 MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 \
 MIX_ENV=test mix test [args]
 ```
@@ -26,7 +26,7 @@ MIX_ENV=test mix test [args]
 ### SC-METRICS-003: Parallelization MANDATORY
 
 All test commands MUST include:
-- `ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"` (16 schedulers, 16 dirty I/O)
+- `ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16"` (16 schedulers, 16 dirty I/O)
 - `MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8` (parallel dependency compilation)
 
 ### Why SKIP_ZENOH_NIF=0 (NIF Active)
@@ -61,7 +61,7 @@ E2E browser tests use Wallaby + Chrome/chromedriver via NixOS devenv.
 ```bash
 # Run Wallaby E2E tests (full mandatory env)
 WALLABY_ENABLED=true SKIP_ZENOH_NIF=0 NO_TIMEOUT=true PATIENT_MODE=enabled \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" MIX_ENV=test mix test --only wallaby
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" MIX_ENV=test mix test --only wallaby
 
 # Or use the devenv command (recommended)
 test-e2e

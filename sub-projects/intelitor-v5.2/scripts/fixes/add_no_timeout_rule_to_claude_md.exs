@@ -60,7 +60,7 @@ defmodule AddNoTimeoutRuleToClaude do
 ```bash
 # ✅ CORRECT: No timeout restrictions
 mix compile --jobs 16 --warnings-as-errors
-ELIXIR_ERL_OPTIONS="+S 16" mix compile --jobs 16 --warnings-as-errors
+ELIXIR_ERL_OPTIONS="+fnu +S 16" mix compile --jobs 16 --warnings-as-errors
 mix claude compilation --compile --strategy smart
 
 # ❌ FORBIDDEN: Timeout restrictions

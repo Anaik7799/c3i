@@ -80,10 +80,10 @@ defmodule SOPv511.UltimateAEEBatchExecutor do
     System.put_env("NO_TIMEOUT", "true")
     System.put_env("PATIENT_MODE", "enabled")
     System.put_env("INFINITE_PATIENCE", "true")
-    System.put_env("ELIXIR_ERL_OPTIONS", "+S 16")
+    System.put_env("ELIXIR_ERL_OPTIONS", "+fnu +S 16")
 
     IO.puts("  ✅ Patient Mode: NO_TIMEOUT=true PATIENT_MODE=enabled INFINITE_PATIENCE=true")
-    IO.puts("  ✅ Maximum Parallelization: ELIXIR_ERL_OPTIONS='+S 16'")
+    IO.puts("  ✅ Maximum Parallelization: ELIXIR_ERL_OPTIONS='+fnu +S 16'")
 
     # Initialize 15-agent architecture
     IO.puts("🤖 Initializing 50-Agent Cybernetic Architecture...")
@@ -386,7 +386,7 @@ defmodule SOPv511.UltimateAEEBatchExecutor do
     IO.puts("    🔍 Running compilation check...")
 
     {_output, exit_code} = System.cmd("mix", ["compile", "--warnings-as-errors"],
-      stderr_to_stdout: true, env: [{"ELIXIR_ERL_OPTIONS", "+S 16"}])
+      stderr_to_stdout: true, env: [{"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}])
 
     exit_code == 0
   end
@@ -474,7 +474,7 @@ defmodule SOPv511.UltimateAEEBatchExecutor do
         {"NO_TIMEOUT", "true"},
         {"PATIENT_MODE", "enabled"},
         {"INFINITE_PATIENCE", "true"},
-        {"ELIXIR_ERL_OPTIONS", "+S 16"}
+        {"ELIXIR_ERL_OPTIONS", "+fnu +S 16"}
       ])
 
     # Save final compilation output

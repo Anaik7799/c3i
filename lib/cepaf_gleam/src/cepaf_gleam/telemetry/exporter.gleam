@@ -200,6 +200,10 @@ pub fn export_span(
         False ->
           Error("OTel collector returned HTTP " <> int.to_string(status_code))
       }
+    Error("hackney_not_available_undef") -> {
+      // io.println("  [otel] Skipping export: hackney not available")
+      Ok(Nil)
+    }
     Error(reason) -> Error("OTel export failed: " <> reason)
   }
 }

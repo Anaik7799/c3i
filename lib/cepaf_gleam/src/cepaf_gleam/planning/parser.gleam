@@ -26,6 +26,8 @@
 import cepaf_gleam/core/ids
 import cepaf_gleam/core/types
 import cepaf_gleam/planning/domain.{type Task, Task}
+import gleam/int
+import gleam/io
 import gleam/list
 import gleam/option.{None, Some}
 import gleam/regexp
@@ -132,6 +134,49 @@ pub fn parse_todolist(content: String) -> List(Task) {
     Ok(tasks) -> tasks
     Error(_) -> []
   }
+}
+
+pub fn parse_todolist_sqlite_output(content: String) -> List(Task) {
+  let lines = string.split(content, "\n")
+  list.filter_map(lines, fn(line) {
+    case string.split(line, "|") {
+      [id, title, status, priority, created, parent_id, owner] -> {
+        Ok(Task(
+          id: ids.task_id_from_string(id),
+          title: case types.new_non_empty_string(title) {
+            Ok(t) -> t
+            Error(_) -> {
+              let assert Ok(t) = types.new_non_empty_string("Untitled")
+              t
+            }
+          },
+          description: None,
+          status: types.task_status_from_string(status),
+          priority: types.priority_from_string(priority),
+          created_at: created,
+          updated_at: created,
+          due_date: None,
+          completed_at: None,
+          assignee_id: case owner {
+            "" -> None
+            _ -> Some(ids.user_id_from_string(owner))
+          },
+          project_id: None,
+          sprint_id: None,
+          parent_task_id: case parent_id {
+            "" -> None
+            _ -> Some(ids.task_id_from_string(parent_id))
+          },
+          tags: set.new(),
+          dependencies: set.new(),
+          estimated_minutes: None,
+          actual_minutes: None,
+          version: 0,
+        ))
+      }
+      _ -> Error(Nil)
+    }
+  })
 }
 
 pub fn serialize_todolist(tasks: List(Task)) -> String {

@@ -228,7 +228,7 @@ defmodule FixContainerStartup do
       "-e", "NO_TIMEOUT=true",
       "-e", "CONTAINER_OS=nixos",
       "-e", "MAX_PARALLELIZATION=true",
-      "-e", "ELIXIR_ERL_OPTIONS=+S 16",
+      "-e", "ELIXIR_ERL_OPTIONS=+fnu +S 16",
       "-e", "CONTAINER_ENFORCEMENT=true",
       "--network", "podman",
       "localhost/indrajaal-app-demo:demo-ready",

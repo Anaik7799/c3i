@@ -28,6 +28,21 @@ Agent counts: 1 executive + 4 supervisors + 20 workers = 25 total (SC-BIO-001).
 
 ---
 
+## Planning & Orchestration (L3-L4)
+
+### Autoritative Tools
+The following root-level tools are the primary interfaces for system management:
+
+| Tool | Purpose | Primary Agent |
+|:---|:---|:---|
+| `./sa-up` | Unified Mesh Bootstrap (Gleam Auth) | `deploy-supervisor` |
+| `./sa-gleam` | High-Performance Gleam Planning & Mesh CLI | `code-evolution` |
+| `./sa-plan` | Authoritative F# Planning & Chaya CLI | `master-supervisor` |
+
+**Rule**: Use `./sa-gleam status` for high-speed task inspection and `./sa-plan sync` for Git persistence.
+
+---
+
 ## UI-Specialist Agents (Primary)
 
 ### fractal-architect

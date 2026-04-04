@@ -28,7 +28,7 @@
 # Agent: Supervisor-1 (Strategic Oversight Agent)
 # Mission: Eliminate ALL log_structured_error duplications through UnifiedErrorSystem integration
 # Target: 6+ functions duplicated across multiple files (168+ violations)
-# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+S 16"
+# Maximum Parallelization: ELIXIR_ERL_OPTIONS="+fnu +S 16"
 
 IO.puts("🎯 SOPv5.1 CYBERNETIC EXECUTION: Phase H.3 Error Helper Unification")
 IO.puts("====================================================================")
