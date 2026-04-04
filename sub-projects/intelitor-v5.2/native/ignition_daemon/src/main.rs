@@ -60,6 +60,11 @@ mod build_oracle;       // W2: F# BuildHistory.db reader, EMA-based adaptive tim
 mod health_orchestra;   // W3: FPPS 5-method consensus replacing single-probe health
 mod recovery;           // W5: Automated recovery playbooks for top-5 failure modes
 
+// ─── W6-W8: Robustness modules (Ideas #16, #21, #29, #30, #32, #34, #46) ───
+mod cascade;            // W6: Cascading failure containment, checkpointing, rollback
+mod connectivity;       // W7: Inter-container connectivity matrix, Zenoh mesh topology
+mod robust_launch;      // W8: Atomic tier commit, idempotent launch, emergency drain
+
 use clap::{Parser, Subcommand};
 use log::{error, info, warn};
 use std::path::Path;

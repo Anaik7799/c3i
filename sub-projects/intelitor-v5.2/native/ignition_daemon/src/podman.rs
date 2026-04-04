@@ -269,3 +269,89 @@ pub async fn podman_inspect_network(
     }
     Ok(stdout)
 }
+
+/// Get the image name of a container.
+pub async fn container_image(name: &str) -> Result<String, IgnitionError> {
+    podman_inspect(name, "{{.Config.Image}}").await
+}
+
+/// Get the ID of a container.
+pub async fn container_id(name: &str) -> Result<String, IgnitionError> {
+    podman_inspect(name, "{{.Id}}").await
+}
+
+/// Remove a container (must be stopped first).
+pub async fn remove_container(name: &str) -> Result<(), IgnitionError> {
+    let (_, _, code) = podman_cmd(
+        &["rm", name],
+        Duration::from_secs(10),
+    )
+    .await?;
+
+    if code != 0 {
+        return Err(IgnitionError::PodmanExec(
+            format!("Failed to remove container {}: exit code {}", name, code),
+        ));
+    }
+    Ok(())
+}
+
+/// Run a new container.
+pub async fn run_container(
+    name: &str,
+    image: &str,
+    args: &[&str],
+) -> Result<String, IgnitionError> {
+    let mut cmd_args = vec![
+        "run", "-d",
+        "--name", name,
+    ];
+    cmd_args.extend_from_slice(args);
+    cmd_args.push(image);
+
+    let (stdout, _, code) = podman_cmd(
+        &cmd_args,
+        Duration::from_secs(60),
+    )
+    .await?;
+
+    if code != 0 {
+        return Err(IgnitionError::PodmanExec(
+            format!("Failed to run container {}: exit code {}", name, code),
+        ));
+    }
+    Ok(stdout.trim().to_string())
+}
+
+/// List all podman networks.
+pub async fn list_networks() -> Result<Vec<String>, IgnitionError> {
+    let (stdout, _, code) = podman_cmd(
+        &["network", "ls", "--format", "{{.Name}}"],
+        Duration::from_secs(5),
+    )
+    .await?;
+
+    if code != 0 {
+        return Err(IgnitionError::PodmanExec(
+            format!("Failed to list networks: exit code {}", code),
+        ));
+    }
+
+    Ok(stdout.lines().map(|l| l.trim().to_string()).collect())
+}
+
+/// Remove a podman network.
+pub async fn remove_network(name: &str) -> Result<(), IgnitionError> {
+    let (_, _, code) = podman_cmd(
+        &["network", "rm", name],
+        Duration::from_secs(10),
+    )
+    .await?;
+
+    if code != 0 {
+        return Err(IgnitionError::PodmanExec(
+            format!("Failed to remove network {}: exit code {}", name, code),
+        ));
+    }
+    Ok(())
+}

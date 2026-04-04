@@ -21,10 +21,6 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use petgraph::graph::{DiGraph, NodeIndex};
-use petgraph::visit::Topo;
-use petgraph::algo::toposort;
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONSTANTS — Extracted from F# Core.fs, PanopticIgnition.fs, cpu-governor.sh
 // Source: docs/journal/20260402-2352-app-container-ignition-rust-replication-spec.md §15
@@ -294,74 +290,6 @@ pub struct ParallelismConfig {
     pub nice_level: i32,
 }
 
-/// DAG-based dependency resolver (Task 8.3)
-/// SC-IGNITE-010: Graph-based scheduler for optimized boot ordering
-pub struct DependencyGraph {
-    pub graph: DiGraph<String, ()>,
-    pub node_map: HashMap<String, NodeIndex>,
-}
-
-impl DependencyGraph {
-    pub fn new() -> Self {
-        Self {
-            graph: DiGraph::new(),
-            node_map: HashMap::new(),
-        }
-    }
-
-    pub fn add_container(&mut self, name: &str) -> NodeIndex {
-        if let Some(&idx) = self.node_map.get(name) {
-            idx
-        } else {
-            let idx = self.graph.add_node(name.to_string());
-            self.node_map.insert(name.to_string(), idx);
-            idx
-        }
-    }
-
-    pub fn add_dependency(&mut self, container: &str, depends_on: &str) {
-        let u = self.add_container(depends_on);
-        let v = self.add_container(container);
-        self.graph.add_edge(u, v, ());
-    }
-
-    /// Calculate waves of parallelizable containers
-    pub fn calculate_waves(&self) -> Vec<Vec<String>> {
-        let mut waves = Vec::new();
-        let mut remaining_graph = self.graph.clone();
-
-        while remaining_graph.node_count() > 0 {
-            // Find all nodes with no incoming edges (ready to start)
-            let current_wave: Vec<NodeIndex> = remaining_graph
-                .node_indices()
-                .filter(|&i| {
-                    remaining_graph
-                        .neighbors_directed(i, petgraph::Direction::Incoming)
-                        .count() == 0
-                })
-                .collect();
-
-            if current_wave.is_empty() {
-                // Potential cycle detected
-                break;
-            }
-
-            let mut wave_names = Vec::new();
-            for &node_idx in &current_wave {
-                wave_names.push(remaining_graph[node_idx].clone());
-            }
-            waves.push(wave_names);
-
-            // Remove these nodes from the graph
-            for node_idx in current_wave {
-                remaining_graph.remove_node(node_idx);
-            }
-        }
-
-        waves
-    }
-}
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // STRUCTS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -491,9 +419,9 @@ pub struct NifValidationResult {
     pub path: PathBuf,
     pub libc_flavor: LibcFlavor,
     pub is_valid: bool,
-    pub elf_class: String,        // ELF64 / ELF32
-    pub machine: String,          // x86_64 / aarch64
-    pub interpreter: String,      // /lib64/ld-linux-x86-64.so.2 etc.
+    pub elf_class: String,   // ELF64 / ELF32
+    pub machine: String,     // x86_64 / aarch64
+    pub interpreter: String, // /lib64/ld-linux-x86-64.so.2 etc.
     pub dynamic_libs: Vec<String>,
     pub errors: Vec<String>,
 }
@@ -648,3 +576,189 @@ pub const HEALTH_CONSENSUS_THRESHOLD: u32 = 3;
 
 /// Maximum recovery retries before escalation
 pub const MAX_RECOVERY_RETRIES: u8 = 3;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// W6-W8 ROBUSTNESS TYPES (Phase 1 — Ideas 16, 21, 22, 30, 46, 48, 51, 57)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// Maximum cascading failure containment depth (prevent infinite cascade)
+pub const MAX_CASCADE_DEPTH: u8 = 3;
+
+/// Emergency drain timeout per container (ms)
+pub const EMERGENCY_DRAIN_TIMEOUT_MS: u64 = 5000;
+
+/// Stabilization window after all containers running (ms)
+pub const STABILIZATION_WINDOW_MS: u64 = 30000;
+
+/// Maximum concurrent container launches (prevent I/O storms)
+pub const MAX_CONCURRENT_LAUNCHES: usize = 4;
+
+/// Cascading failure containment state (Idea #46)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CascadeState {
+    pub failed_containers: Vec<String>,
+    pub isolated_domains: Vec<Vec<String>>,
+    pub cascade_depth: u8,
+    pub containment_active: bool,
+    pub recovery_order: Vec<String>,
+}
+
+impl Default for CascadeState {
+    fn default() -> Self {
+        Self {
+            failed_containers: Vec::new(),
+            isolated_domains: Vec::new(),
+            cascade_depth: 0,
+            containment_active: false,
+            recovery_order: Vec::new(),
+        }
+    }
+}
+
+/// Network partition detection result (Idea #51)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PartitionResult {
+    pub detected: bool,
+    pub partition_a: Vec<String>,
+    pub partition_b: Vec<String>,
+    pub minority_partition: Vec<String>,
+    pub fence_required: bool,
+}
+
+/// Emergency drain result (Idea #30)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DrainResult {
+    pub success: bool,
+    pub containers_stopped: Vec<String>,
+    pub containers_failed: Vec<String>,
+    pub networks_cleaned: Vec<String>,
+    pub volumes_preserved: Vec<String>,
+    pub duration_ms: u64,
+    pub detail: String,
+}
+
+/// Ignition checkpoint for resume (Idea #23)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IgnitionCheckpoint {
+    pub phase: String,
+    pub tier: u8,
+    pub containers_started: Vec<String>,
+    pub timestamp: chrono::DateTime<chrono::Utc>,
+    pub preflight_passed: bool,
+}
+
+/// Last known good configuration for rollback (Idea #57)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KnownGoodConfig {
+    pub version: u64,
+    pub timestamp: chrono::DateTime<chrono::Utc>,
+    pub container_states: std::collections::HashMap<String, ContainerStateSnapshot>,
+    pub network_config: String,
+    pub volume_config: String,
+}
+
+/// Snapshot of a container's state for rollback
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContainerStateSnapshot {
+    pub image: String,
+    pub env_vars: std::collections::HashMap<String, String>,
+    pub ports: Vec<String>,
+    pub volumes: Vec<String>,
+    pub networks: Vec<String>,
+}
+
+/// Atomic tier commit result (Idea #16)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TierCommitResult {
+    pub tier: u8,
+    pub success: bool,
+    pub containers_started: Vec<String>,
+    pub containers_rolled_back: Vec<String>,
+    pub detail: String,
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DEPENDENCY GRAPH TYPE (for launch.rs DAG-based resolution)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// Directed acyclic graph for container boot ordering.
+/// Source: launch.rs — DAG-based dependency resolution
+#[derive(Debug, Clone)]
+pub struct DependencyGraph {
+    containers: Vec<String>,
+    dependencies: std::collections::HashMap<String, Vec<String>>,
+}
+
+impl DependencyGraph {
+    pub fn new() -> Self {
+        Self {
+            containers: Vec::new(),
+            dependencies: std::collections::HashMap::new(),
+        }
+    }
+
+    pub fn add_container(&mut self, name: &str) {
+        if !self.containers.contains(&name.to_string()) {
+            self.containers.push(name.to_string());
+        }
+    }
+
+    pub fn add_dependency(&mut self, container: &str, dependency: &str) {
+        self.add_container(container);
+        self.add_container(dependency);
+        self.dependencies
+            .entry(container.to_string())
+            .or_default()
+            .push(dependency.to_string());
+    }
+
+    /// Calculate boot waves using topological sort (Kahn's algorithm).
+    /// Returns vectors of container names that can boot in parallel.
+    pub fn calculate_waves(&self) -> Vec<Vec<String>> {
+        let mut in_degree: std::collections::HashMap<String, usize> =
+            std::collections::HashMap::new();
+        for c in &self.containers {
+            in_degree.entry(c.clone()).or_insert(0);
+        }
+        for deps in self.dependencies.values() {
+            for dep in deps {
+                *in_degree.entry(dep.clone()).or_insert(0);
+            }
+        }
+        for (container, deps) in &self.dependencies {
+            for dep in deps {
+                *in_degree.entry(container.clone()).or_insert(0) += 1;
+            }
+        }
+
+        let mut waves = Vec::new();
+        let mut remaining = in_degree.clone();
+
+        loop {
+            let wave: Vec<String> = remaining
+                .iter()
+                .filter(|(_, &deg)| deg == 0)
+                .map(|(name, _)| name.clone())
+                .collect();
+
+            if wave.is_empty() {
+                break;
+            }
+
+            for name in &wave {
+                remaining.remove(name);
+                for (container, deps) in &self.dependencies {
+                    if deps.contains(name) {
+                        if let Some(deg) = remaining.get_mut(container) {
+                            *deg -= 1;
+                        }
+                    }
+                }
+            }
+
+            waves.push(wave);
+        }
+
+        waves
+    }
+}

@@ -254,7 +254,7 @@ pub async fn verify_zenoh_mesh_topology() -> Result<ZenohMeshReport, IgnitionErr
             report.peer_visibility.push(ZenohPeerVisibility {
                 router: router.to_string(),
                 visible_peers: 0,
-                expected_peers: routers.len() - 1,
+                expected_peers: (routers.len() - 1) as u32,
                 healthy: false,
             });
             continue;

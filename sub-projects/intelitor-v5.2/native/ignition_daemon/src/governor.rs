@@ -123,3 +123,135 @@ pub async fn status() -> String {
         cpu, config.schedulers, config.mix_jobs, config.nice_level
     )
 }
+
+// =============================================================================
+// Unit Tests
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ─── adaptive_parallelism boundary tests (SC-CPU-GOV-006, SC-CPU-GOV-007) ───
+
+    #[test]
+    fn test_adaptive_parallelism_full_speed_at_0_pct() {
+        let config = adaptive_parallelism(0);
+        assert_eq!(config.schedulers, 16);
+        assert_eq!(config.dirty_io, 16);
+        assert_eq!(config.mix_jobs, 16);
+        assert_eq!(config.nice_level, 10);
+    }
+
+    #[test]
+    fn test_adaptive_parallelism_full_speed_at_59_pct() {
+        let config = adaptive_parallelism(59);
+        assert_eq!(config.schedulers, 16);
+        assert_eq!(config.mix_jobs, 16);
+    }
+
+    #[test]
+    fn test_adaptive_parallelism_slight_reduction_at_60_pct() {
+        let config = adaptive_parallelism(60);
+        assert_eq!(config.schedulers, 12);
+        assert_eq!(config.dirty_io, 12);
+        assert_eq!(config.mix_jobs, 12);
+        assert_eq!(config.nice_level, 10);
+    }
+
+    #[test]
+    fn test_adaptive_parallelism_slight_reduction_at_69_pct() {
+        let config = adaptive_parallelism(69);
+        assert_eq!(config.schedulers, 12);
+    }
+
+    #[test]
+    fn test_adaptive_parallelism_moderate_throttle_at_70_pct() {
+        let config = adaptive_parallelism(70);
+        assert_eq!(config.schedulers, 10);
+        assert_eq!(config.dirty_io, 10);
+        assert_eq!(config.mix_jobs, 10);
+        assert_eq!(config.nice_level, 15);
+    }
+
+    #[test]
+    fn test_adaptive_parallelism_moderate_throttle_at_79_pct() {
+        let config = adaptive_parallelism(79);
+        assert_eq!(config.schedulers, 10);
+        assert_eq!(config.nice_level, 15);
+    }
+
+    #[test]
+    fn test_adaptive_parallelism_heavy_throttle_at_80_pct() {
+        let config = adaptive_parallelism(80);
+        assert_eq!(config.schedulers, 6);
+        assert_eq!(config.dirty_io, 6);
+        assert_eq!(config.mix_jobs, 6);
+        assert_eq!(config.nice_level, 19);
+    }
+
+    #[test]
+    fn test_adaptive_parallelism_heavy_throttle_at_85_pct() {
+        let config = adaptive_parallelism(85);
+        assert_eq!(config.schedulers, 6);
+        assert_eq!(config.nice_level, 19);
+    }
+
+    #[test]
+    fn test_adaptive_parallelism_heavy_throttle_at_100_pct() {
+        let config = adaptive_parallelism(100);
+        assert_eq!(config.schedulers, 6);
+        assert_eq!(config.nice_level, 19);
+    }
+
+    #[test]
+    fn test_adaptive_parallelism_all_boundary_values() {
+        // Test every boundary: 0, 59, 60, 69, 70, 79, 80, 85, 100
+        let cases: Vec<(u8, u8)> = vec![
+            (0, 16), (30, 16), (59, 16),   // full speed
+            (60, 12), (65, 12), (69, 12),   // slight
+            (70, 10), (75, 10), (79, 10),   // moderate
+            (80, 6), (85, 6), (100, 6),     // heavy
+        ];
+        for (cpu, expected_schedulers) in cases {
+            let config = adaptive_parallelism(cpu);
+            assert_eq!(
+                config.schedulers, expected_schedulers,
+                "CPU {}% should give {} schedulers, got {}",
+                cpu, expected_schedulers, config.schedulers
+            );
+        }
+    }
+
+    #[test]
+    fn test_adaptive_parallelism_nice_levels() {
+        assert_eq!(adaptive_parallelism(50).nice_level, 10);
+        assert_eq!(adaptive_parallelism(65).nice_level, 10);
+        assert_eq!(adaptive_parallelism(75).nice_level, 15);
+        assert_eq!(adaptive_parallelism(82).nice_level, 19);
+    }
+
+    #[test]
+    fn test_adaptive_parallelism_dirty_io_equals_schedulers() {
+        for cpu in (0..=100).step_by(5) {
+            let config = adaptive_parallelism(cpu);
+            assert_eq!(
+                config.schedulers, config.dirty_io,
+                "CPU {}%: schedulers ({}) != dirty_io ({})",
+                cpu, config.schedulers, config.dirty_io
+            );
+        }
+    }
+
+    #[test]
+    fn test_adaptive_parallelism_jobs_equals_schedulers() {
+        for cpu in (0..=100).step_by(5) {
+            let config = adaptive_parallelism(cpu);
+            assert_eq!(
+                config.schedulers, config.mix_jobs,
+                "CPU {}%: schedulers ({}) != mix_jobs ({})",
+                cpu, config.schedulers, config.mix_jobs
+            );
+        }
+    }
+}

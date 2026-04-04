@@ -244,3 +244,183 @@ fn log_check(check: &CheckResult) {
         warn!("  ❌ {}: {}", check.name, check.message);
     }
 }
+
+// =============================================================================
+// Unit Tests — Pure Verification Logic
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ─── count_pattern ───
+
+    #[test]
+    fn test_count_pattern_empty_text() {
+        assert_eq!(count_pattern("", "BadMapError"), 0);
+    }
+
+    #[test]
+    fn test_count_pattern_no_match() {
+        assert_eq!(count_pattern("all is well", "BadMapError"), 0);
+    }
+
+    #[test]
+    fn test_count_pattern_single_match() {
+        assert_eq!(count_pattern("got BadMapError at line 42", "BadMapError"), 1);
+    }
+
+    #[test]
+    fn test_count_pattern_multiple_matches() {
+        let logs = "BadMapError on init\n[error] BadMapError again\nBadMapError third";
+        assert_eq!(count_pattern(logs, "BadMapError"), 3);
+    }
+
+    #[test]
+    fn test_count_pattern_error_rate_threshold() {
+        // V-9: error rate <= 10
+        let logs = (0..10).map(|i| format!("[error] test error {}", i)).collect::<Vec<_>>().join("\n");
+        assert_eq!(count_pattern(&logs, "[error]"), 10);
+        assert!(count_pattern(&logs, "[error]") <= 10); // passes threshold
+    }
+
+    #[test]
+    fn test_count_pattern_error_rate_exceeds_threshold() {
+        let logs = (0..11).map(|i| format!("[error] test error {}", i)).collect::<Vec<_>>().join("\n");
+        assert!(count_pattern(&logs, "[error]") > 10); // fails V-9
+    }
+
+    #[test]
+    fn test_count_pattern_ooda_checkpoints() {
+        // V-11: expect ~5 CP-OODA-01 at 10s interval in 45s
+        let logs = "CP-OODA-01 at 10s\nCP-OODA-01 at 20s\nCP-OODA-01 at 30s\nCP-OODA-01 at 40s\nCP-OODA-01 at 50s";
+        assert_eq!(count_pattern(logs, "CP-OODA-01"), 5);
+    }
+
+    #[test]
+    fn test_count_pattern_case_sensitive() {
+        // Patterns are case-sensitive — "badmaperror" shouldn't match "BadMapError"
+        assert_eq!(count_pattern("BadMapError", "badmaperror"), 0);
+    }
+
+    // ─── log_check ───
+
+    #[test]
+    fn test_check_result_passed() {
+        let check = CheckResult {
+            name: "V-1: Container running".into(),
+            passed: true,
+            message: "Up".into(),
+            duration_ms: 42,
+        };
+        assert!(check.passed);
+        assert_eq!(check.name, "V-1: Container running");
+    }
+
+    #[test]
+    fn test_check_result_failed() {
+        let check = CheckResult {
+            name: "V-2: Health endpoint".into(),
+            passed: false,
+            message: "Failed".into(),
+            duration_ms: 5000,
+        };
+        assert!(!check.passed);
+    }
+
+    // ─── state_vector construction logic ───
+
+    #[test]
+    fn test_state_vector_from_passing_checks() {
+        // Simulate V-1 passed (container running) and V-2 passed (health)
+        let sv = StateVector {
+            compile: true,
+            migrations: true,    // derived from V-1
+            containers: true,    // derived from V-1
+            zenoh: true,         // from preflight
+            health: true,        // derived from V-2
+            quorum: true,        // from preflight
+        };
+        assert!(sv.is_valid());
+    }
+
+    #[test]
+    fn test_state_vector_from_failed_health() {
+        let sv = StateVector {
+            compile: true,
+            migrations: true,
+            containers: true,
+            zenoh: true,
+            health: false,   // V-2 failed
+            quorum: true,
+        };
+        assert!(!sv.is_valid());
+    }
+
+    #[test]
+    fn test_state_vector_from_failed_container() {
+        let sv = StateVector {
+            compile: true,
+            migrations: false,   // V-1 failed
+            containers: false,   // V-1 failed
+            zenoh: true,
+            health: false,
+            quorum: true,
+        };
+        assert!(!sv.is_valid());
+        assert_eq!(sv.as_array(), [1, 0, 0, 1, 0, 1]);
+    }
+
+    // ─── verify report summary ───
+
+    #[test]
+    fn test_verify_report_all_pass() {
+        let checks: Vec<CheckResult> = (1..=14).map(|i| CheckResult {
+            name: format!("V-{}", i),
+            passed: true,
+            message: "OK".into(),
+            duration_ms: 0,
+        }).collect();
+
+        let passed_count = checks.iter().filter(|c| c.passed).count() as u32;
+        let total_count = checks.len() as u32;
+        assert_eq!(passed_count, 14);
+        assert_eq!(total_count, 14);
+        assert!(passed_count == total_count);
+    }
+
+    #[test]
+    fn test_verify_report_partial_pass() {
+        let mut checks: Vec<CheckResult> = (1..=14).map(|i| CheckResult {
+            name: format!("V-{}", i),
+            passed: true,
+            message: "OK".into(),
+            duration_ms: 0,
+        }).collect();
+        // Fail V-5 and V-12
+        checks[4].passed = false;
+        checks[11].passed = false;
+
+        let passed_count = checks.iter().filter(|c| c.passed).count() as u32;
+        assert_eq!(passed_count, 12);
+        assert!(passed_count < 14);
+    }
+
+    // ─── bitwise AND in V-7 ───
+
+    #[test]
+    fn test_v7_cepafport_logic() {
+        // V-7 uses bitwise AND (&) — both "CepafPort" AND "Failed" must appear
+        let logs_both = "CepafPort Failed to connect";
+        let cp = count_pattern(logs_both, "CepafPort") & count_pattern(logs_both, "Failed");
+        assert_eq!(cp, 1); // both present -> cp = 1 & 1 = 1
+
+        let logs_only_cepaf = "CepafPort connected OK";
+        let cp2 = count_pattern(logs_only_cepaf, "CepafPort") & count_pattern(logs_only_cepaf, "Failed");
+        assert_eq!(cp2, 0); // "Failed" absent -> 1 & 0 = 0
+
+        let logs_neither = "All good";
+        let cp3 = count_pattern(logs_neither, "CepafPort") & count_pattern(logs_neither, "Failed");
+        assert_eq!(cp3, 0); // neither -> 0 & 0 = 0
+    }
+}

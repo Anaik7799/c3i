@@ -2124,3 +2124,424 @@ fn draw_footer(f: &mut Frame, area: Rect, state: &DashboardState) {
     );
     f.render_widget(footer, area);
 }
+
+// =============================================================================
+// Unit Tests — Multi-Screen TUI Rendering with Real DashboardState
+// SC-TUI-TEST-001 to SC-TUI-TEST-010
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ratatui::backend::TestBackend;
+    use ratatui::Terminal;
+
+    /// Create a terminal for testing at the given viewport size.
+    fn test_terminal(w: u16, h: u16) -> Terminal<TestBackend> {
+        Terminal::new(TestBackend::new(w, h)).unwrap()
+    }
+
+    /// Build a realistic DashboardState with populated container data.
+    fn populated_state() -> DashboardState {
+        let mut state = DashboardState::default();
+        state.containers = vec![
+            ContainerRow {
+                name: "zenoh-router-1".into(),
+                status: "running".into(),
+                ip: "172.28.0.2".into(),
+                health: HealthStatus::Healthy,
+                memory_mb: Some(128),
+                cpu_pct: 5,
+                mem_pct: 8,
+            },
+            ContainerRow {
+                name: "indrajaal-db-prod".into(),
+                status: "running".into(),
+                ip: "172.28.0.5".into(),
+                health: HealthStatus::Healthy,
+                memory_mb: Some(512),
+                cpu_pct: 12,
+                mem_pct: 25,
+            },
+            ContainerRow {
+                name: "indrajaal-ex-app-1".into(),
+                status: "running".into(),
+                ip: "172.28.0.10".into(),
+                health: HealthStatus::Degraded,
+                memory_mb: Some(2048),
+                cpu_pct: 45,
+                mem_pct: 60,
+            },
+            ContainerRow {
+                name: "cepaf-bridge".into(),
+                status: "exited".into(),
+                ip: "".into(),
+                health: HealthStatus::Unhealthy,
+                memory_mb: None,
+                cpu_pct: 0,
+                mem_pct: 0,
+            },
+        ];
+        state.cpu_pct = 42;
+        state.cpu_history = vec![30, 35, 40, 42, 38, 45, 42, 39, 41, 43];
+        state.phase = IgnitionPhase::Complete;
+        state.uptime_secs = 3600;
+        state.last_refresh = "2026-04-04T02:00:00Z".into();
+        state.state_vector = StateVector {
+            compile: true,
+            migrations: true,
+            containers: true,
+            zenoh: true,
+            health: true,
+            quorum: true,
+        };
+        state.preflight_results = vec![
+            CheckResult { name: "PF-1: Infrastructure".into(), passed: true, message: "OK".into(), duration_ms: 150 },
+            CheckResult { name: "PF-2: Database".into(), passed: true, message: "pg_isready OK".into(), duration_ms: 230 },
+            CheckResult { name: "PF-3: Network".into(), passed: false, message: "Port 4000 conflict".into(), duration_ms: 50 },
+        ];
+        state.verify_results = vec![
+            CheckResult { name: "V-1: Container running".into(), passed: true, message: "Up".into(), duration_ms: 0 },
+            CheckResult { name: "V-2: Health endpoint".into(), passed: true, message: "200 OK".into(), duration_ms: 120 },
+        ];
+        state.trace_entries = vec![
+            TraceEntry {
+                timestamp: "02:00:01".into(),
+                phase: "PF-1".into(),
+                action: "podman ps --all".into(),
+                result: "6 containers found".into(),
+                decision: TraceDecision::Pass,
+                duration_ms: 150,
+                timeout_ms: 5000,
+            },
+            TraceEntry {
+                timestamp: "02:00:02".into(),
+                phase: "PF-2".into(),
+                action: "pg_isready -U postgres".into(),
+                result: "accepting connections".into(),
+                decision: TraceDecision::Pass,
+                duration_ms: 230,
+                timeout_ms: 60000,
+            },
+        ];
+        state.libc_flavor = "glibc".into();
+        state.build_db_healthy = true;
+        state
+    }
+
+    // ─── MULTISCREEN: Each draw function renders without panic ───
+
+    #[test]
+    fn test_draw_ui_default_state_no_panic() {
+        let mut term = test_terminal(120, 40);
+        let state = DashboardState::default();
+        term.draw(|f| draw_ui(f, &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_ui_populated_state_no_panic() {
+        let mut term = test_terminal(120, 40);
+        let state = populated_state();
+        term.draw(|f| draw_ui(f, &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_swarm_tab_default() {
+        let mut term = test_terminal(120, 40);
+        let state = DashboardState::default();
+        term.draw(|f| draw_swarm_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_swarm_tab_with_containers() {
+        let mut term = test_terminal(120, 40);
+        let state = populated_state();
+        term.draw(|f| draw_swarm_tab(f, f.area(), &state)).unwrap();
+        let buf = format!("{:?}", term.backend());
+        assert!(buf.contains("zenoh-router-1") || buf.contains("Swarm"),
+            "Swarm tab should display container names or tab title");
+    }
+
+    #[test]
+    fn test_draw_governor_tab_default() {
+        let mut term = test_terminal(120, 40);
+        let state = DashboardState::default();
+        term.draw(|f| draw_governor_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_governor_tab_with_cpu_data() {
+        let mut term = test_terminal(120, 40);
+        let mut state = populated_state();
+        state.cpu_pct = 82;
+        state.parallelism = ParallelismConfig { schedulers: 6, dirty_io: 6, mix_jobs: 6, nice_level: 19 };
+        term.draw(|f| draw_governor_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_checks_tab_default() {
+        let mut term = test_terminal(120, 40);
+        let state = DashboardState::default();
+        term.draw(|f| draw_checks_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_checks_tab_with_results() {
+        let mut term = test_terminal(120, 40);
+        let state = populated_state();
+        term.draw(|f| draw_checks_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_trace_tab_default() {
+        let mut term = test_terminal(120, 40);
+        let state = DashboardState::default();
+        term.draw(|f| draw_trace_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_trace_tab_with_entries() {
+        let mut term = test_terminal(120, 40);
+        let state = populated_state();
+        term.draw(|f| draw_trace_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_topology_tab_default() {
+        let mut term = test_terminal(120, 40);
+        let state = DashboardState::default();
+        term.draw(|f| draw_topology_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_build_tab_default() {
+        let mut term = test_terminal(120, 40);
+        let state = DashboardState::default();
+        term.draw(|f| draw_build_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_nif_tab_default() {
+        let mut term = test_terminal(120, 40);
+        let state = DashboardState::default();
+        term.draw(|f| draw_nif_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_recovery_tab_default() {
+        let mut term = test_terminal(120, 40);
+        let state = DashboardState::default();
+        term.draw(|f| draw_recovery_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_agentui_tab_default() {
+        let mut term = test_terminal(120, 40);
+        let state = DashboardState::default();
+        term.draw(|f| draw_agentui_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_header_default() {
+        let mut term = test_terminal(120, 3);
+        let state = DashboardState::default();
+        term.draw(|f| draw_header(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_tabs_default() {
+        let mut term = test_terminal(120, 3);
+        let state = DashboardState::default();
+        term.draw(|f| draw_tabs(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_draw_footer_default() {
+        let mut term = test_terminal(120, 3);
+        let state = DashboardState::default();
+        term.draw(|f| draw_footer(f, f.area(), &state)).unwrap();
+    }
+
+    // ─── RESPONSIVE: All tabs at compact viewport (80x24) ───
+
+    #[test]
+    fn test_all_tabs_render_at_compact_viewport() {
+        let state = populated_state();
+        let draw_fns: Vec<(&str, fn(&mut Frame, Rect, &DashboardState))> = vec![
+            ("swarm", draw_swarm_tab),
+            ("governor", draw_governor_tab),
+            ("checks", draw_checks_tab),
+            ("trace", draw_trace_tab),
+            ("topology", draw_topology_tab),
+            ("build", draw_build_tab),
+            ("nif", draw_nif_tab),
+            ("recovery", draw_recovery_tab),
+            ("agentui", draw_agentui_tab),
+        ];
+        for (name, draw_fn) in &draw_fns {
+            let mut term = test_terminal(80, 24);
+            term.draw(|f| draw_fn(f, f.area(), &state)).unwrap_or_else(|e| {
+                panic!("Tab '{}' panicked at 80x24: {}", name, e);
+            });
+        }
+    }
+
+    // ─── RESPONSIVE: All tabs at wide viewport (200x60) ───
+
+    #[test]
+    fn test_all_tabs_render_at_wide_viewport() {
+        let state = populated_state();
+        let draw_fns: Vec<(&str, fn(&mut Frame, Rect, &DashboardState))> = vec![
+            ("swarm", draw_swarm_tab),
+            ("governor", draw_governor_tab),
+            ("checks", draw_checks_tab),
+            ("trace", draw_trace_tab),
+            ("topology", draw_topology_tab),
+            ("build", draw_build_tab),
+            ("nif", draw_nif_tab),
+            ("recovery", draw_recovery_tab),
+            ("agentui", draw_agentui_tab),
+        ];
+        for (name, draw_fn) in &draw_fns {
+            let mut term = test_terminal(200, 60);
+            term.draw(|f| draw_fn(f, f.area(), &state)).unwrap_or_else(|e| {
+                panic!("Tab '{}' panicked at 200x60: {}", name, e);
+            });
+        }
+    }
+
+    // ─── STATE TRANSITIONS ───
+
+    #[test]
+    fn test_tab_cycling_all_indices() {
+        for i in 0..10 {
+            let mut state = DashboardState::default();
+            state.tab_index = i;
+            let mut term = test_terminal(120, 40);
+            term.draw(|f| draw_ui(f, &state)).unwrap_or_else(|e| {
+                panic!("draw_ui panicked at tab_index={}: {}", i, e);
+            });
+        }
+    }
+
+    #[test]
+    fn test_all_ignition_phases_render() {
+        let phases = [
+            IgnitionPhase::Idle,
+            IgnitionPhase::Preflight,
+            IgnitionPhase::Launching,
+            IgnitionPhase::Verifying,
+            IgnitionPhase::Complete,
+            IgnitionPhase::Failed,
+        ];
+        for phase in &phases {
+            let mut state = DashboardState::default();
+            state.phase = *phase;
+            let mut term = test_terminal(120, 40);
+            term.draw(|f| draw_ui(f, &state)).unwrap_or_else(|e| {
+                panic!("draw_ui panicked at phase={:?}: {}", phase, e);
+            });
+        }
+    }
+
+    #[test]
+    fn test_state_vector_display() {
+        let mut state = DashboardState::default();
+        state.state_vector = StateVector {
+            compile: true, migrations: true, containers: true,
+            zenoh: false, health: true, quorum: false,
+        };
+        let mut term = test_terminal(120, 40);
+        term.draw(|f| draw_header(f, f.area(), &state)).unwrap();
+    }
+
+    // ─── EDGE CASES ───
+
+    #[test]
+    fn test_empty_containers_swarm_no_panic() {
+        let state = DashboardState::default(); // containers: Vec::new()
+        let mut term = test_terminal(120, 40);
+        term.draw(|f| draw_swarm_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_selected_container_out_of_bounds() {
+        let mut state = DashboardState::default();
+        state.selected_container = 999; // out of bounds
+        let mut term = test_terminal(120, 40);
+        // Should not panic even with invalid selection index
+        term.draw(|f| draw_swarm_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_very_long_container_name() {
+        let mut state = DashboardState::default();
+        state.containers.push(ContainerRow {
+            name: "a".repeat(200),
+            status: "running".into(),
+            ip: "172.28.0.99".into(),
+            health: HealthStatus::Healthy,
+            memory_mb: Some(1024),
+            cpu_pct: 50,
+            mem_pct: 50,
+        });
+        let mut term = test_terminal(80, 24); // narrow terminal
+        term.draw(|f| draw_swarm_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_cpu_100_percent_governor() {
+        let mut state = DashboardState::default();
+        state.cpu_pct = 100;
+        state.cpu_history = vec![100; 60];
+        let mut term = test_terminal(120, 40);
+        term.draw(|f| draw_governor_tab(f, f.area(), &state)).unwrap();
+    }
+
+    #[test]
+    fn test_ignition_phase_display_format() {
+        assert_eq!(IgnitionPhase::Idle.to_string(), "IDLE");
+        assert_eq!(IgnitionPhase::Preflight.to_string(), "PRE-FLIGHT");
+        assert_eq!(IgnitionPhase::Complete.to_string(), "✅ COMPLETE");
+        assert_eq!(IgnitionPhase::Failed.to_string(), "❌ FAILED");
+    }
+
+    #[test]
+    fn test_dashboard_state_default_is_consistent() {
+        let state = DashboardState::default();
+        assert_eq!(state.tab_index, 0);
+        assert_eq!(state.cpu_pct, 0);
+        assert!(state.containers.is_empty());
+        assert!(state.preflight_results.is_empty());
+        assert!(state.verify_results.is_empty());
+        assert!(state.trace_entries.is_empty());
+        assert_eq!(state.phase, IgnitionPhase::Idle);
+        assert!(!state.state_vector.is_valid()); // all false by default
+        assert_eq!(state.libc_flavor, "unknown");
+        assert!(!state.substrate_contaminated);
+        assert!(!state.build_db_healthy);
+    }
+
+    // ─── FULL UI RENDER AT ALL VIEWPORTS ───
+
+    #[test]
+    fn test_full_ui_at_minimum_viable_terminal() {
+        let state = populated_state();
+        let mut term = test_terminal(80, 24);
+        term.draw(|f| draw_ui(f, &state)).unwrap();
+    }
+
+    #[test]
+    fn test_full_ui_at_standard_terminal() {
+        let state = populated_state();
+        let mut term = test_terminal(120, 40);
+        term.draw(|f| draw_ui(f, &state)).unwrap();
+    }
+
+    #[test]
+    fn test_full_ui_at_large_terminal() {
+        let state = populated_state();
+        let mut term = test_terminal(200, 60);
+        term.draw(|f| draw_ui(f, &state)).unwrap();
+    }
+}

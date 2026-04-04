@@ -421,3 +421,274 @@ fn get_current_uid() -> u32 {
         })
         .unwrap_or(1000)
 }
+
+// =============================================================================
+// Unit Tests — Pure Function Coverage
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ─── generate_secret_key ───
+
+    #[test]
+    fn test_secret_key_is_128_hex_chars() {
+        let key = generate_secret_key();
+        assert_eq!(key.len(), 128, "SECRET_KEY_BASE should be 64 bytes = 128 hex chars");
+    }
+
+    #[test]
+    fn test_secret_key_is_valid_hex() {
+        let key = generate_secret_key();
+        assert!(
+            key.chars().all(|c| c.is_ascii_hexdigit()),
+            "SECRET_KEY_BASE should be hex-only: {}", key
+        );
+    }
+
+    #[test]
+    fn test_secret_key_is_unique_per_call() {
+        let key1 = generate_secret_key();
+        let key2 = generate_secret_key();
+        assert_ne!(key1, key2, "Two generated keys should differ (entropy)");
+    }
+
+    // ─── generate_proof_token ───
+
+    #[test]
+    fn test_proof_token_format() {
+        let (token, pubkey) = generate_proof_token();
+        // Token format: "{timestamp}:{nonce}:{hex_signature}"
+        let parts: Vec<&str> = token.split(':').collect();
+        assert!(parts.len() >= 3, "Token should have at least 3 colon-separated parts");
+        // Pubkey is hex-encoded ed25519 public key (32 bytes = 64 hex chars)
+        assert_eq!(pubkey.len(), 64, "Ed25519 public key = 64 hex chars");
+    }
+
+    #[test]
+    fn test_proof_token_pubkey_is_hex() {
+        let (_token, pubkey) = generate_proof_token();
+        assert!(
+            pubkey.chars().all(|c| c.is_ascii_hexdigit()),
+            "Public key should be hex: {}", pubkey
+        );
+    }
+
+    // ─── build_app_cmd ───
+
+    #[test]
+    fn test_app_cmd_starts_redis() {
+        let cmd = build_app_cmd();
+        assert!(cmd.contains("redis-server"), "CMD should start Redis");
+        assert!(cmd.contains("LC_ALL=C"), "Redis needs LC_ALL=C (F11 fix)");
+    }
+
+    #[test]
+    fn test_app_cmd_runs_migrations() {
+        let cmd = build_app_cmd();
+        assert!(cmd.contains("ecto.migrate"), "CMD should run migrations");
+    }
+
+    #[test]
+    fn test_app_cmd_starts_phoenix_server() {
+        let cmd = build_app_cmd();
+        assert!(cmd.contains("mix phx.server"), "CMD should start Phoenix");
+    }
+
+    #[test]
+    fn test_app_cmd_creates_data_dirs() {
+        let cmd = build_app_cmd();
+        assert!(cmd.contains("mkdir -p data/tmp data/state"));
+    }
+
+    // ─── build_test_cmd ───
+
+    #[test]
+    fn test_test_cmd_runs_mix_test() {
+        let cmd = build_test_cmd("--only wallaby");
+        assert!(cmd.contains("mix test --only wallaby"));
+    }
+
+    #[test]
+    fn test_test_cmd_creates_database() {
+        let cmd = build_test_cmd("");
+        assert!(cmd.contains("ecto.create"), "Test CMD should create DB first");
+        assert!(cmd.contains("ecto.migrate"), "Test CMD should migrate");
+    }
+
+    #[test]
+    fn test_test_cmd_starts_redis() {
+        let cmd = build_test_cmd("");
+        assert!(cmd.contains("redis-server"));
+        assert!(cmd.contains("LC_ALL=C"));
+    }
+
+    #[test]
+    fn test_test_cmd_preserves_args() {
+        let cmd = build_test_cmd("test/specific_test.exs --trace");
+        assert!(cmd.contains("test/specific_test.exs --trace"));
+    }
+
+    // ─── app_env_vars ───
+
+    #[test]
+    fn test_app_env_vars_has_required_keys() {
+        let vars = app_env_vars("secret", "token", "pubkey");
+        let keys: Vec<&str> = vars.iter().map(|(k, _)| k.as_str()).collect();
+
+        let required = [
+            "MIX_ENV", "SKIP_ZENOH_NIF", "ELIXIR_ERL_OPTIONS", "PORT",
+            "DATABASE_URL", "POSTGRES_HOST", "POSTGRES_PORT", "POSTGRES_DB",
+            "SECRET_KEY_BASE", "ZENOH_ENABLED", "ZENOH_ROUTER_ENDPOINT",
+            "OTEL_EXPORTER_OTLP_ENDPOINT", "RELEASE_NODE", "RELEASE_COOKIE",
+            "C3I_PROOF_TOKEN", "C3I_PROOF_PUBKEY",
+        ];
+        for key in &required {
+            assert!(keys.contains(key), "Missing required env var: {}", key);
+        }
+    }
+
+    #[test]
+    fn test_app_env_vars_is_prod_mode() {
+        let vars = app_env_vars("secret", "token", "pubkey");
+        let mix_env = vars.iter().find(|(k, _)| k == "MIX_ENV").unwrap();
+        assert_eq!(mix_env.1, "prod");
+    }
+
+    #[test]
+    fn test_app_env_vars_zenoh_enabled() {
+        let vars = app_env_vars("secret", "token", "pubkey");
+        let zenoh = vars.iter().find(|(k, _)| k == "ZENOH_ENABLED").unwrap();
+        assert_eq!(zenoh.1, "true");
+    }
+
+    #[test]
+    fn test_app_env_vars_nif_not_skipped() {
+        let vars = app_env_vars("secret", "token", "pubkey");
+        let nif = vars.iter().find(|(k, _)| k == "SKIP_ZENOH_NIF").unwrap();
+        assert_eq!(nif.1, "0", "Zenoh NIF must NOT be skipped (SC-ZENOH-001)");
+    }
+
+    #[test]
+    fn test_app_env_vars_uses_correct_ports() {
+        let vars = app_env_vars("secret", "token", "pubkey");
+        let port = vars.iter().find(|(k, _)| k == "PORT").unwrap();
+        assert_eq!(port.1, "4000");
+        let pg_port = vars.iter().find(|(k, _)| k == "POSTGRES_PORT").unwrap();
+        assert_eq!(pg_port.1, "5432"); // internal port inside mesh
+    }
+
+    #[test]
+    fn test_app_env_vars_injects_proof_token() {
+        let vars = app_env_vars("secret", "my_token", "my_pubkey");
+        let token = vars.iter().find(|(k, _)| k == "C3I_PROOF_TOKEN").unwrap();
+        assert_eq!(token.1, "my_token");
+        let pubkey = vars.iter().find(|(k, _)| k == "C3I_PROOF_PUBKEY").unwrap();
+        assert_eq!(pubkey.1, "my_pubkey");
+    }
+
+    #[test]
+    fn test_app_env_vars_injects_secret_key() {
+        let vars = app_env_vars("my_secret_abc", "token", "pubkey");
+        let sk = vars.iter().find(|(k, _)| k == "SECRET_KEY_BASE").unwrap();
+        assert_eq!(sk.1, "my_secret_abc");
+    }
+
+    #[test]
+    fn test_app_env_vars_has_elixir_erl_options() {
+        let vars = app_env_vars("s", "t", "p");
+        let opts = vars.iter().find(|(k, _)| k == "ELIXIR_ERL_OPTIONS").unwrap();
+        assert!(opts.1.contains("+S 16:16"), "Must have +S 16:16 schedulers");
+        assert!(opts.1.contains("+SDio 16"), "Must have +SDio 16 dirty IO");
+    }
+
+    // ─── test_env_vars ───
+
+    #[test]
+    fn test_test_env_vars_overrides_mix_env() {
+        let vars = test_env_vars("secret", "token", "pubkey");
+        let mix_env = vars.iter().find(|(k, _)| k == "MIX_ENV").unwrap();
+        assert_eq!(mix_env.1, "test");
+    }
+
+    #[test]
+    fn test_test_env_vars_uses_test_database() {
+        let vars = test_env_vars("secret", "token", "pubkey");
+        let db = vars.iter().find(|(k, _)| k == "POSTGRES_DB").unwrap();
+        assert_eq!(db.1, TEST_DATABASE_NAME);
+    }
+
+    #[test]
+    fn test_test_env_vars_has_wallaby() {
+        let vars = test_env_vars("secret", "token", "pubkey");
+        let wallaby = vars.iter().find(|(k, _)| k == "WALLABY_ENABLED").unwrap();
+        assert_eq!(wallaby.1, "true");
+    }
+
+    #[test]
+    fn test_test_env_vars_database_url_uses_test_db() {
+        let vars = test_env_vars("secret", "token", "pubkey");
+        let url = vars.iter().find(|(k, _)| k == "DATABASE_URL").unwrap();
+        assert!(url.1.contains(TEST_DATABASE_NAME), "DATABASE_URL should use test DB");
+        assert!(!url.1.contains("indrajaal_prod"), "DATABASE_URL should NOT use prod DB");
+    }
+
+    // ─── build_dependency_graph ───
+
+    #[test]
+    fn test_dependency_graph_has_zenoh_roots() {
+        let dg = build_dependency_graph();
+        let waves = dg.calculate_waves();
+        // Wave 0 should contain the zenoh routers (no dependencies)
+        assert!(!waves.is_empty());
+        let wave0 = &waves[0];
+        assert!(
+            wave0.contains(&"zenoh-router-1".to_string()) ||
+            wave0.contains(&"zenoh-router-2".to_string()) ||
+            wave0.contains(&"zenoh-router-3".to_string()),
+            "Wave 0 should contain zenoh routers: {:?}", wave0
+        );
+    }
+
+    #[test]
+    fn test_dependency_graph_app_depends_on_db() {
+        let dg = build_dependency_graph();
+        let waves = dg.calculate_waves();
+        // Find wave containing app and wave containing db
+        let app_wave = waves.iter().position(|w| w.contains(&"indrajaal-ex-app-1".to_string()));
+        let db_wave = waves.iter().position(|w| w.contains(&"indrajaal-db-prod".to_string()));
+        assert!(app_wave.is_some() && db_wave.is_some());
+        assert!(
+            app_wave.unwrap() > db_wave.unwrap(),
+            "App must boot after DB: app in wave {:?}, db in wave {:?}",
+            app_wave, db_wave
+        );
+    }
+
+    #[test]
+    fn test_dependency_graph_bridge_depends_on_app() {
+        let dg = build_dependency_graph();
+        let waves = dg.calculate_waves();
+        let app_wave = waves.iter().position(|w| w.contains(&"indrajaal-ex-app-1".to_string()));
+        let bridge_wave = waves.iter().position(|w| w.contains(&"cepaf-bridge".to_string()));
+        assert!(bridge_wave.unwrap() > app_wave.unwrap(), "Bridge must boot after App");
+    }
+
+    #[test]
+    fn test_dependency_graph_waves_are_non_empty() {
+        let dg = build_dependency_graph();
+        let waves = dg.calculate_waves();
+        for (i, wave) in waves.iter().enumerate() {
+            assert!(!wave.is_empty(), "Wave {} should not be empty", i);
+        }
+    }
+
+    // ─── get_current_uid ───
+
+    #[test]
+    fn test_get_current_uid_returns_nonzero() {
+        let uid = get_current_uid();
+        assert!(uid > 0, "UID should be > 0 (not root in rootless podman)");
+    }
+}

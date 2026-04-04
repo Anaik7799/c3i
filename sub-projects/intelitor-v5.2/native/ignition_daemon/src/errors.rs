@@ -92,3 +92,123 @@ pub enum IgnitionError {
     #[error("Recovery failed for {container}: {reason}")]
     RecoveryFailed { container: String, reason: String },
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_display_podman_exec() {
+        let err = IgnitionError::PodmanExec("connection refused".into());
+        assert_eq!(err.to_string(), "Podman execution failed: connection refused");
+    }
+
+    #[test]
+    fn test_display_container_not_found() {
+        let err = IgnitionError::ContainerNotFound("indrajaal-db-prod".into());
+        assert_eq!(err.to_string(), "Container not found: indrajaal-db-prod");
+    }
+
+    #[test]
+    fn test_display_timeout() {
+        let err = IgnitionError::Timeout("podman inspect timed out after 5s".into());
+        assert!(err.to_string().contains("timed out"));
+    }
+
+    #[test]
+    fn test_display_quorum_not_achieved() {
+        let err = IgnitionError::QuorumNotAchieved {
+            healthy: 1,
+            total: 3,
+            required: 2,
+        };
+        assert_eq!(
+            err.to_string(),
+            "Quorum not achieved: 1/3 (need 2)"
+        );
+    }
+
+    #[test]
+    fn test_display_bist_failed() {
+        let err = IgnitionError::BistFailed {
+            three_sigma_ms: 150.5,
+            threshold_ms: 100.0,
+        };
+        let s = err.to_string();
+        assert!(s.contains("150.5"));
+        assert!(s.contains("100.0"));
+    }
+
+    #[test]
+    fn test_display_elf_mismatch() {
+        let err = IgnitionError::ElfMismatch {
+            expected: "musl".into(),
+            found: "glibc".into(),
+            path: "/app/_build/zenoh_nif.so".into(),
+        };
+        let s = err.to_string();
+        assert!(s.contains("musl"));
+        assert!(s.contains("glibc"));
+        assert!(s.contains("zenoh_nif.so"));
+    }
+
+    #[test]
+    fn test_display_consensus_not_reached() {
+        let err = IgnitionError::ConsensusNotReached {
+            agreed: 2,
+            total: 5,
+            required: 3,
+        };
+        assert_eq!(
+            err.to_string(),
+            "Health orchestra consensus failed: 2/5 methods agree (need 3)"
+        );
+    }
+
+    #[test]
+    fn test_display_recovery_failed() {
+        let err = IgnitionError::RecoveryFailed {
+            container: "cepaf-bridge".into(),
+            reason: "NIF compilation error".into(),
+        };
+        assert_eq!(
+            err.to_string(),
+            "Recovery failed for cepaf-bridge: NIF compilation error"
+        );
+    }
+
+    #[test]
+    fn test_io_error_conversion() {
+        let io_err = std::io::Error::new(std::io::ErrorKind::NotFound, "file missing");
+        let err: IgnitionError = io_err.into();
+        assert!(err.to_string().contains("file missing"));
+    }
+
+    #[test]
+    fn test_all_variants_are_debug_printable() {
+        // Verify Debug impl works for all variants (thiserror generates this)
+        let variants: Vec<IgnitionError> = vec![
+            IgnitionError::PodmanExec("test".into()),
+            IgnitionError::ContainerNotFound("test".into()),
+            IgnitionError::NetworkNotFound("test".into()),
+            IgnitionError::Timeout("test".into()),
+            IgnitionError::HealthCheckFailed("test".into()),
+            IgnitionError::PreflightFailed("test".into()),
+            IgnitionError::LaunchFailed("test".into()),
+            IgnitionError::BuildFailed("test".into()),
+            IgnitionError::DatabaseError("test".into()),
+            IgnitionError::ParseError("test".into()),
+            IgnitionError::SocketNotFound("test".into()),
+            IgnitionError::NifValidationFailed("test".into()),
+            IgnitionError::SubstrateContaminated("test".into()),
+            IgnitionError::BuildOracleError("test".into()),
+            IgnitionError::SqliteError("test".into()),
+        ];
+        for v in &variants {
+            let debug = format!("{:?}", v);
+            assert!(!debug.is_empty());
+            let display = format!("{}", v);
+            assert!(!display.is_empty());
+        }
+    }
+}
