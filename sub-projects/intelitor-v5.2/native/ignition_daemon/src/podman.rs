@@ -168,6 +168,22 @@ pub async fn force_remove(name: &str) -> Result<(), IgnitionError> {
     Ok(())
 }
 
+/// Start a container.
+pub async fn start_container(name: &str) -> Result<(), IgnitionError> {
+    let (_, stderr, code) = podman_cmd(
+        &["start", name],
+        Duration::from_secs(30),
+    )
+    .await?;
+
+    if code != 0 {
+        return Err(IgnitionError::PodmanExec(
+            format!("Failed to start container {}: {} (code {})", name, stderr, code),
+        ));
+    }
+    Ok(())
+}
+
 /// Stop a container with graceful timeout.
 /// Source: ContainerLifecycleManager.fs:555 (StopContainer)
 pub async fn stop_container(name: &str, timeout_secs: u32) -> Result<(), IgnitionError> {
@@ -206,6 +222,10 @@ pub struct ContainerStats {
     pub cpu_pct: String,
     #[serde(rename = "MemoryPercentage")]
     pub mem_pct: String,
+    #[serde(rename = "MemoryUsage")]
+    pub mem_usage: String,
+    #[serde(rename = "NetworkIO")]
+    pub net_io: String,
 }
 
 /// Get stats for all containers via `podman stats --no-stream --format json`.

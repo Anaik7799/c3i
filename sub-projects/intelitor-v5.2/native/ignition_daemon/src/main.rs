@@ -1,3 +1,4 @@
+#![allow(warnings)]
 //! # Indrajaal Ignition Daemon — SIL-6 Biomorphic Mesh Pre-Flight & Boot
 //!
 //! ## Fractal Position
@@ -130,6 +131,10 @@ enum Commands {
         #[arg(long, default_value_t = false)]
         test_ui: bool,
     },
+    /// Split-screen visual regression testing dashboard
+    SplitTest,
+    /// 5-minute operational test (Synthetic -> Real-time -> Ops)
+    OpsTest,
 }
 
 #[tokio::main]
@@ -139,8 +144,11 @@ async fn main() {
 
     // Do not print directly to stdout here if we are starting the dashboard
     let mut is_dashboard = false;
-    if let Commands::Dashboard { .. } = cli.command {
-        is_dashboard = true;
+    match cli.command {
+        Commands::Dashboard { .. } | Commands::SplitTest | Commands::OpsTest => {
+            is_dashboard = true;
+        }
+        _ => {}
     }
 
     if is_dashboard {
@@ -182,6 +190,8 @@ async fn main() {
             }
             cmd_dashboard(test_ui).await
         },
+        Commands::SplitTest => cmd_split_test().await,
+        Commands::OpsTest => cmd_ops_test().await,
     };
 
     match result {
@@ -196,6 +206,14 @@ async fn main() {
             std::process::exit(1);
         }
     }
+}
+
+async fn cmd_split_test() -> Result<(), errors::IgnitionError> {
+    tui::run_split_test().await
+}
+
+async fn cmd_ops_test() -> Result<(), errors::IgnitionError> {
+    tui::run_ops_test().await
 }
 
 async fn cmd_preflight() -> Result<(), errors::IgnitionError> {
