@@ -33,6 +33,7 @@ rusqlite = { version = "0.31", features = ["bundled"] }
 petgraph = "0.6"
 ed25519-dalek = { version = "2.1", features = ["rand_core"] }
 hex = "0.4"
+zenoh = "1.0.0-rc.5"
 
 [dev-dependencies]
 # substrate_guard tests use tempfile for isolated filesystem fixtures

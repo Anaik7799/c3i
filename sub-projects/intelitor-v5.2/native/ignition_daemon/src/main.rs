@@ -66,6 +66,7 @@ mod cascade;            // W6: Cascading failure containment, checkpointing, rol
 mod connectivity;       // W7: Inter-container connectivity matrix, Zenoh mesh topology
 mod robust_launch;      // W8: Atomic tier commit, idempotent launch, emergency drain
 mod partition;          // W9: Network partition detection, split-brain prevention, fencing
+mod zenoh_telemetry;
 use clap::{Parser, Subcommand};
 use log::{error, info, warn};
 use std::path::Path;
@@ -135,6 +136,8 @@ enum Commands {
     SplitTest,
     /// 5-minute operational test (Synthetic -> Real-time -> Ops)
     OpsTest,
+    /// Real-time Zenoh Telemetry Observer (for OODA Improvement)
+    Observer,
 }
 
 #[tokio::main]
@@ -145,7 +148,7 @@ async fn main() {
     // Do not print directly to stdout here if we are starting the dashboard
     let mut is_dashboard = false;
     match cli.command {
-        Commands::Dashboard { .. } | Commands::SplitTest | Commands::OpsTest => {
+        Commands::Dashboard { .. } | Commands::SplitTest | Commands::OpsTest | Commands::Observer => {
             is_dashboard = true;
         }
         _ => {}
@@ -192,6 +195,7 @@ async fn main() {
         },
         Commands::SplitTest => cmd_split_test().await,
         Commands::OpsTest => cmd_ops_test().await,
+        Commands::Observer => cmd_observer().await,
     };
 
     match result {
@@ -214,6 +218,10 @@ async fn cmd_split_test() -> Result<(), errors::IgnitionError> {
 
 async fn cmd_ops_test() -> Result<(), errors::IgnitionError> {
     tui::run_ops_test().await
+}
+
+async fn cmd_observer() -> Result<(), errors::IgnitionError> {
+    zenoh_telemetry::run_observer().await
 }
 
 async fn cmd_preflight() -> Result<(), errors::IgnitionError> {
