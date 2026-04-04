@@ -92,16 +92,6 @@ fn restart_node(name: String) {
   }
 }
 
-@external(erlang, "file", "get_cwd")
-fn erl_get_cwd() -> Result(List(Int), dynamic.Dynamic)
-
-@external(erlang, "erlang", "list_to_binary")
-fn erl_list_to_binary(l: List(Int)) -> String
-
-fn list_to_binary_string(l: List(Int)) -> String {
-  erl_list_to_binary(l)
-}
-
 fn show_status() {
   let db_paths = [
     "/home/an/dev/ver/c3i/sub-projects/intelitor-v5.2/data/smriti/planning.db",

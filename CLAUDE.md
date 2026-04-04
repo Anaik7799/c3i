@@ -1,4 +1,4 @@
-# C3I Gleam-First System — Claude Guidance (v21.6.0-GLM)
+# C3I Gleam-First System — Claude Guidance (v22.0.0-GLM)
 
 ## §1.0 System Identity & Mandate
 
@@ -35,7 +35,7 @@ Every UI capability MUST be simultaneously available across all 3 Gleam interfac
 
 ---
 
-## §2.5 Zenoh OTel Integration (NEW)
+## §2.5 Zenoh OTel Integration
 
 All 15 UI pages publish OpenTelemetry spans via `ui/zenoh_otel.gleam` for every state change.
 OTel spans are transported over Zenoh topics `indrajaal/otel/spans/**` for distributed tracing.
@@ -43,6 +43,23 @@ OTel spans are transported over Zenoh topics `indrajaal/otel/spans/**` for distr
 **Module**: `ui/zenoh_otel.gleam` — OTel span context propagation, span builder, Zenoh publisher
 **Test Observer**: `testing/zenoh_test_observer.gleam` — Zenoh message verification during tests
 **Topics**: `indrajaal/otel/spans/{page}/{operation}`, `indrajaal/test/zenoh/observe/**`
+
+---
+
+## §2.6 Zenoh-MCP-OTel Fractal Backplane (ZMOF) (NEW)
+
+**Mandate**: SC-ZMOF-001 — Zenoh is the SOLE transport for internal mesh communication, observability (OTel), and AI tool calls (MCP).
+
+**Fractal Namespace**:
+- L0 Constitutional: `indrajaal/l0/const/**`
+- L1 Atomic/NIF: `indrajaal/l1/atomic/**`
+- L2 Health/Quorum: `indrajaal/l2/health/**`
+- L4 System/Podman: `indrajaal/l4/system/**`
+- L5 Cog/OODA/Rules: `indrajaal/l5/cog/**`
+
+**Protocols**:
+- **OoZ (OTel-over-Zenoh)**: Publish spans to `indrajaal/otel/span/{layer}/{entity_id}`.
+- **MoZ (MCP-over-Zenoh)**: Layer JSON-RPC over Zenoh Pub/Sub for tool requests (`.../mcp/req/{tool}/{id}`) and responses (`.../mcp/res/{id}`).
 
 ---
 
@@ -59,9 +76,18 @@ Every new page, dashboard, or interactive component MUST be implemented THREE ti
 ✓ TUI view displays terminal output (ANSI codes OK)
 ✓ All three share types from ui/domain.gleam
 ✓ OTel spans published via zenoh_otel (SC-GLM-ZEN-001)
+✓ State changes published to fractal Zenoh namespace (SC-ZMOF-001)
+✓ Feature exposed as an MoZ tool if actionable (SC-ZMOF-005)
+✓ Code compiles with ZERO warnings and no dead code (SC-MUDA-001)
 ```
 
-**Consequences of omission**: Feature is 67% incomplete (only 1/3 interface).
+**Consequences of omission**: Feature is 67% incomplete (only 1/3 interface) and lacks ZMOF backplane integration.
+
+---
+
+## §3.5 Muda Waste Reduction Protocol (NEW)
+**Mandate**: SC-MUDA-001 — The system MUST be maintained with zero compilation warnings and active elimination of "Muda" (waste).
+See `.claude/rules/muda-waste-reduction.md` for the 7 Wastes of Software Engineering and the exact enforcement constraints.
 
 ---
 
@@ -252,6 +278,73 @@ Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(
 
 ---
 
-**Version**: 21.6.0-GLM
+## §11.0 Allium Behavioral Specification
+
+**Allium v3** captures system behavioral intent formally. Spec and code divergence = information.
+
+- **Spec**: `specs/allium/ignition.allium` (1,923 lines, 26 sections)
+- **Template**: `specs/allium/TEMPLATE.allium` (26-section standard)
+- **Checklist**: `specs/allium/CHECKLIST.md`
+- **Skill**: `.claude/commands/allium.md` + `.agents/skills/allium/` (official JUXT)
+- **Rule**: `.claude/rules/allium-behavioral-specs.md` (SC-ALLIUM-001..008)
+- **Guide**: `docs/allium-user-guide.md`
+
+| Allium Construct | Count | Coverage |
+|-----------------|-------|---------|
+| Entities | 14 | Container, Genome, BootSequence, OodaCycle, Observation, Orientation, etc. |
+| Rules | 16 | Boot (4), OODA (5), GRL (7), health (2), build (1), apoptosis (2), RCA (1) |
+| Contracts | 5 | PodmanOps, HealthOrchestra, RuleEngine, LLMAdvisor, GuardianGate |
+| Invariants | 5 | Quorum, OODA SLA, CPU limit, dying gasp, EMA |
+| Surfaces | 3 | OperatorDashboard, AiAdvisor, ZenohMeshBus |
+| Math structures | 33 | Shannon H, CCM, ITQS, PageRank, Kahn's, CPM, EMA, RETE-UL, etc. |
+| **GRL rule domains** | **13 implemented** | 52 rules across ALL domains — see rule engine table below |
+
+Commands: `/allium`, `/allium:tend`, `/allium:weed`, `/allium:distill`, `/allium:propagate`, `/allium:elicit`
+
+### RETE-UL Rule Engine (rust-rule-engine v1.20.1)
+
+**52 GRL rules** across **13 domains** in `rule_engine.rs` (961 lines). 41 unit tests. Generic `run_domain()` + 13 `OnceLock` caches.
+
+| API | Domain | Rules | Use |
+|-----|--------|-------|-----|
+| `evaluate_decision()` | OODA Decide | 7 | Emergency/Boot/Restart/Health/LLM/NoAction |
+| `evaluate_preflight()` | Preflight Gate | 4 | Block/Warn/Pass graduated checks |
+| `evaluate_recovery()` | Recovery Selection | 6 | RPN-prioritized playbook (NIF/Cascade/Glibc/Memory/Timeout) |
+| `evaluate_health_consensus()` | Health Consensus | 4 | Per-criticality 2/3/4 of 5 threshold |
+| `evaluate_cascade()` | Cascade Containment | 3 | Apoptosis/Isolate/Monitor by depth |
+| `evaluate_partition()` | Partition Fencing | 3 | FenceMinority/PreserveData/NoAction |
+| `evaluate_launch_tier()` | Launch Tier Gate | 3 | Halt/Continue/Proceed per criticality |
+| `evaluate_governor()` | CPU Governor | 3 | FullSpeed/HeavyThrottle/Wait |
+| `evaluate_verify()` | Verify Compliance | 3 | Compliant/Degraded/NonCompliant |
+| `evaluate_build()` | Build Staleness | 3 | Rebuild P0@72h / Standard@168h / Skip |
+| `evaluate_apoptosis()` | Apoptosis Grace | 4 | Immediate/Fast2s/Graceful10s/Default5s |
+| `evaluate_rca()` | RCA Escalation | 4 | L1 NIF/L4 Container/L6 Quorum/L7 LLM |
+| `evaluate_hysteresis()` | Hysteresis Config | 3 | Aggressive/Conservative/Default |
+
+Rust tests: **307 passed** (41 rule engine tests). Gleam tests: **1,721 passed**.
+
+---
+
+## §12.0 Task Management Authority (SC-TODO-001)
+
+**Status**: CRITICAL | **Tool**: `sa-plan` (F# Unified Task Management)
+
+All updates to `PROJECT_TODOLIST.md`, task status transitions (Pending -> Active -> Completed), and priority changes MUST be performed exclusively via the `sa-plan` tool.
+
+**Prohibitions**:
+- Direct manual edits to `PROJECT_TODOLIST.md` are STRICTLY FORBIDDEN.
+- Use of legacy Elixir `mix todo` or shell scripts is DEPRECATED and FORBIDDEN.
+
+**Data Integrity**:
+`PROJECT_TODOLIST.md` is a derived, read-only artifact. The authoritative state resides in the `Planning.db` SQLite/DuckDB store. Manual changes will be overwritten and lost upon next `sa-plan` sync.
+
+**Usage**:
+- List: `sa-plan status` or `chaya list`
+- Add: `sa-plan add "Description" P1`
+- Update: `sa-plan update <ID> <status>`
+
+---
+
+**Version**: 22.1.0-GLM
 **Last Updated**: 2026-04-04
-**Status**: Gleam-first platform operational (113+ modules, 22,000+ lines, 1,559 tests, 100% tab coverage)
+**Status**: Gleam-first platform operational (ZMOF active, Muda enforced, sa-plan authoritative)

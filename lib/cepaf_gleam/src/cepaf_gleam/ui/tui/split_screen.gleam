@@ -96,6 +96,61 @@ pub fn init_with_config(
 }
 
 // =============================================================================
+// Container Control Commands
+// =============================================================================
+
+pub type ContainerCmd {
+  CmdStart(name: String)
+  CmdStop(name: String)
+  CmdRestart(name: String)
+  CmdLogs(name: String, tail: Int)
+}
+
+// =============================================================================
+// Split-Screen Messages (for live update wiring)
+// =============================================================================
+
+pub type SplitScreenMsg {
+  DashboardUpdate(dashboard: DashboardModel)
+  TestUpdate(test_dashboard: TestDashboardModel)
+  Tick(now_ms: Int)
+  ContainerAction(cmd: ContainerCmd)
+  FlightCheckResult(passed: Bool, check_count: Int, failed_names: List(String))
+}
+
+// =============================================================================
+// Update function (wires live data into the split-screen model)
+// =============================================================================
+
+pub fn update(
+  model: SplitScreenModel,
+  msg: SplitScreenMsg,
+) -> SplitScreenModel {
+  case msg {
+    DashboardUpdate(dashboard) -> SplitScreenModel(..model, dashboard: dashboard)
+    TestUpdate(test_dash) ->
+      SplitScreenModel(..model, test_dashboard: test_dash)
+    Tick(now_ms) -> {
+      let elapsed = now_ms - model.test_dashboard.phase_start_ms
+      let updated_td =
+        test_dashboard.TestDashboardModel(
+          ..model.test_dashboard,
+          phase_elapsed_ms: elapsed,
+          total_duration_ms: model.test_dashboard.total_duration_ms + 1000,
+          last_update_ms: now_ms,
+        )
+      SplitScreenModel(..model, test_dashboard: updated_td)
+    }
+    ContainerAction(_cmd) ->
+      // Container actions are dispatched externally; model unchanged
+      model
+    FlightCheckResult(_passed, _count, _failed) ->
+      // Flight check results update test dashboard phase
+      model
+  }
+}
+
+// =============================================================================
 // Main render — full split-screen frame
 // =============================================================================
 

@@ -1,0 +1,316 @@
+-- allium: 3
+-- [SYSTEM NAME] — Behavioral Specification
+-- Covers: [list of major subsystems]
+-- STAMP: [SC-XXX-NNN references]
+-- Date: [YYYY-MM-DD]
+-- Author: [human/agent]
+
+-- =============================================================================
+-- §1. EXTERNAL ENTITIES (systems not defined here)
+-- =============================================================================
+
+external entity ExternalSystem1
+external entity ExternalSystem2
+
+-- =============================================================================
+-- §2. ENUMERATIONS (domain value sets)
+-- =============================================================================
+
+enum Status { pending | active | completed | failed }
+enum Priority { p0_critical | p1_high | p2_medium | p3_low }
+
+-- =============================================================================
+-- §3. VALUE TYPES (structured data without identity, immutable)
+-- =============================================================================
+
+value Metric {
+    name: String
+    value: Decimal
+    unit: String
+    timestamp: Timestamp
+}
+
+-- =============================================================================
+-- §4. CONFIG (parameterized thresholds, timeouts, limits)
+-- =============================================================================
+
+config {
+    -- Timing
+    operation_timeout_ms: Integer = 5_000
+    cycle_sla_ms: Integer = 100
+
+    -- Thresholds
+    health_threshold: Decimal = 0.7
+    max_retries: Integer = 3
+
+    -- Feature flags
+    enable_llm: Boolean = true
+}
+
+-- =============================================================================
+-- §5. ENTITIES (domain objects with identity and lifecycle)
+-- =============================================================================
+
+entity Resource {
+    name: String
+    status: Status
+    health: Decimal
+    owner: String?
+
+    -- Relationships
+    depends_on: Set<Resource>
+
+    -- Projections (filtered views)
+    active_dependencies: depends_on where status = active
+
+    -- Derived values (auto-computed)
+    is_healthy: this.health >= config.health_threshold
+    dependency_count: this.depends_on.count
+
+    -- State machine
+    transitions status {
+        pending -> active
+        active -> completed
+        active -> failed
+        failed -> pending
+        terminal: completed
+    }
+
+    -- Entity-level invariant
+    invariant HealthBounded {
+        this.health >= 0.0 and this.health <= 1.0
+    }
+}
+
+-- =============================================================================
+-- §6. CONTRACTS (module boundaries — demands/fulfils)
+-- =============================================================================
+
+contract ResourceManager {
+    create: (name: String) -> Resource
+    delete: (resource: Resource) -> Boolean
+    health_check: (resource: Resource) -> Decimal
+
+    @invariant IdempotentCreate
+        -- Creating same resource twice is a no-op.
+    @invariant HealthNonNegative
+        -- Health check always returns >= 0.0.
+    @guidance
+        -- Implementations should use connection pooling.
+}
+
+-- =============================================================================
+-- §7. ACTORS (parties at system boundaries)
+-- =============================================================================
+
+actor Operator {
+    identified_by: User where role = operator
+}
+
+actor AiAgent {
+    identified_by: User where role = agent
+}
+
+-- =============================================================================
+-- §8. RULES (event-driven behavior: when/requires/ensures)
+-- =============================================================================
+
+rule CreateResource {
+    when: ResourceRequested(name, owner)
+    requires: not exists Resource{name: name}
+    requires: length(name) > 0
+    ensures: Resource.created(name: name, status: pending, health: 1.0, owner: owner)
+    @guidance
+        -- Publish creation event to Zenoh after success.
+}
+
+rule ActivateResource {
+    when: resource: Resource.status transitions_to active
+    requires: resource.is_healthy
+    ensures: resource.status = active
+    @guidance
+        -- Check all dependencies are active before activation.
+}
+
+rule HandleFailure {
+    when: resource: Resource.health becomes 0.0
+    requires: resource.status = active
+    ensures: resource.status = failed
+    ensures: FailureDetected(resource_name: resource.name)
+    @guidance
+        -- Trigger RCA and recovery playbook.
+}
+
+-- =============================================================================
+-- §9. INVARIANTS (always-true, pure, no side effects)
+-- =============================================================================
+
+invariant AllResourcesTracked {
+    for r in Resources:
+        r.name != null and r.status != null
+}
+
+invariant NoOrphanDependencies {
+    for r in Resources:
+        for d in r.depends_on:
+            exists d
+}
+
+-- =============================================================================
+-- §10. SURFACES (actor-facing boundaries)
+-- =============================================================================
+
+surface Dashboard {
+    facing viewer: Operator
+    context resource: Resource where status != completed
+
+    exposes:
+        resource.name
+        resource.status
+        resource.health
+        resource.dependency_count
+
+    provides:
+        ResourceRequested(name: String, owner: viewer.name)
+            when resource.status = pending
+        EmergencyStop(reason: String)
+
+    contracts:
+        demands ResourceManager
+
+    timeout:
+        OperationTimeout when resource.created_at + config.operation_timeout_ms.milliseconds <= now
+
+    @guarantee OperatorCanAlwaysEmergencyStop
+    @guarantee AllOperationsIdempotent
+}
+
+-- =============================================================================
+-- §11. DEFAULTS (unconditional entity instances)
+-- =============================================================================
+
+default Resource system_health = {name: "system", status: active, health: 1.0}
+
+-- =============================================================================
+-- §12. DEFERRED SPECIFICATIONS (logic defined elsewhere)
+-- =============================================================================
+
+deferred RecoveryEngine.auto_recover
+deferred AnalyticsEngine.compute_trend
+
+-- =============================================================================
+-- §13. OPEN QUESTIONS (unresolved design decisions)
+-- =============================================================================
+
+open question "Should failed resources auto-retry or require operator intervention?"
+open question "What is the maximum dependency chain depth?"
+
+-- =============================================================================
+-- §14. FORMAL VERIFICATION (Agda / Quint / TLA+)
+-- =============================================================================
+--
+-- Agda (type-level proofs):
+--   1. Resource status monotonicity (pending → active → completed, no regression)
+--   2. Dependency acyclicity (no circular dependencies)
+--
+-- Quint (state machine bounded model checking):
+--   1. All resources eventually reach terminal state
+--   2. Health transitions are monotonic within a check cycle
+--
+-- TLA+ (temporal logic):
+--   1. Liveness: every pending resource eventually becomes active or failed
+--   2. Safety: no two resources with same name exist simultaneously
+
+-- =============================================================================
+-- §15. STAMP CONSTRAINTS (cross-reference to SC-* registry)
+-- =============================================================================
+--
+-- SC-XXX-001: [constraint description] → rule RuleName
+-- SC-XXX-002: [constraint description] → invariant InvariantName
+-- SC-XXX-003: [constraint description] → contract ContractName
+
+-- =============================================================================
+-- §16. AOR OPERATIONAL RULES (cross-reference to AOR-* registry)
+-- =============================================================================
+--
+-- AOR-XXX-001: ALWAYS [action] → rule RuleName @guidance
+-- AOR-XXX-002: NEVER [anti-pattern] → invariant / contract @invariant
+
+-- =============================================================================
+-- §17. FMEA (Failure Modes with RPN scoring)
+-- =============================================================================
+--
+-- | # | Failure Mode | S | O | D | RPN | Rule | Playbook |
+-- |---|-------------|---|---|---|-----|------|----------|
+-- | 1 | [mode]      | N | N | N | NNN | rule | recovery |
+
+-- =============================================================================
+-- §18. UI SPECIFICATION (screens, tabs, controls)
+-- =============================================================================
+--
+-- Tab registry, color palette, dark cockpit modes, keyboard controls
+
+-- =============================================================================
+-- §19. TESTING SPECIFICATION (coverage gates, BDD levels)
+-- =============================================================================
+--
+-- Math gates: Shannon H >= 2.5, CCM >= 0.90, ITQS >= 0.85
+-- 8-category gold standard (C1-C8)
+-- 7 BDD levels per element
+
+-- =============================================================================
+-- §20. MATHEMATICAL STRUCTURES (algorithms, formulas, metrics)
+-- =============================================================================
+--
+-- List all algorithms with: name, formula, file, STAMP reference
+
+-- =============================================================================
+-- §21. KNOWLEDGE MAP (document & code references)
+-- =============================================================================
+--
+-- Journal references, doc references, source code references, config files
+
+-- =============================================================================
+-- §22. UI TESTING SPECIFICATION (automated, multi-platform)
+-- =============================================================================
+--
+-- Rust TUI 7-layer pyramid (TestBackend, insta, PTY, viewport, accessibility, Gemini)
+-- Gleam 8-category gold standard (C1-C8 with weights)
+-- 100-cycle regression, long-duration monitoring, 4-phase split-screen runner
+-- Graph-theory navigation testing (PageRank, LTS, prime paths, Chinese Postman)
+-- Golden Triangle BDD (AG-UI + DevUI + OTel, 50 use cases, 7 structural levels)
+-- AG-UI 32-event protocol coverage, A2UI component testing, triple-interface mandate
+-- Tab coverage matrix (wiring status per tab)
+
+-- =============================================================================
+-- §23. IMPLEMENTATION NOTES (key algorithms, caching, known bugs)
+-- =============================================================================
+--
+-- Per-algorithm: name, file, complexity, caching strategy, known limitations
+-- Known bugs with line numbers and fix descriptions
+
+-- =============================================================================
+-- §24. DESIGN PRINCIPLES & PATTERNS
+-- =============================================================================
+--
+-- Principles: rule-first/LLM-escalation, fail-safe state, defense-in-depth,
+--   genotype/phenotype drift, triple-interface, mathematical rigor, OODA SLA, Jidoka
+-- Patterns: railway error handling, genetic resynthesis, checkpoint-before-change,
+--   publish-on-transition, hysteresis wrapping, adaptive parallelism, fractal separation
+
+-- =============================================================================
+-- §25. ANTI-PATTERNS (things to AVOID)
+-- =============================================================================
+--
+-- Dead code modules, hardcoded DAG, re-parsing on every cycle,
+-- stubbed safety gates, in-memory checkpoints, single-drift handling,
+-- unstructured LLM response, point-in-time health without trends
+
+-- =============================================================================
+-- §26. SESSION JOURNAL TEMPLATE (SC-JOURNAL, 13 mandatory sections)
+-- =============================================================================
+--
+-- 1. Scope & Trigger, 2. Pre-State, 3. Execution Detail, 4. RCA,
+-- 5. Fix Taxonomy, 6. Patterns/Anti-Patterns, 7. Verification Matrix,
+-- 8. Files Modified, 9. Architecture, 10. Remaining Gaps,
+-- 11. Metrics Summary, 12. STAMP Alignment, 13. Conclusion

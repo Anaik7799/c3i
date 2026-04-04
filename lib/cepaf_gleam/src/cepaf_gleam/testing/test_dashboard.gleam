@@ -728,3 +728,51 @@ pub fn summary_report(model: TestDashboardModel) -> String {
   }
   <> "\n"
 }
+
+// =============================================================================
+// Coverage-Driven KPI Update (Batch 5)
+// =============================================================================
+
+/// Update the overall KPI from file coverage data.
+pub fn update_kpis_from_coverages(
+  model: TestDashboardModel,
+  overall_ccm: Float,
+  overall_entropy: Float,
+  overall_d_ea: Float,
+  overall_fsi: Float,
+) -> TestDashboardModel {
+  let h_norm = case overall_entropy >=. 2.5 {
+    True -> 1.0
+    False -> overall_entropy /. 2.5
+  }
+  let d_norm = case overall_d_ea <=. 0.1 {
+    True -> 1.0
+    False -> 1.0 -. overall_d_ea
+  }
+  let itqs_val =
+    0.25 *. h_norm +. 0.35 *. overall_ccm +. 0.25 *. d_norm +. 0.15
+    *. overall_fsi
+  let grade = case itqs_val >=. 0.95 {
+    True -> GradeA
+    False ->
+      case itqs_val >=. 0.85 {
+        True -> GradeB
+        False ->
+          case itqs_val >=. 0.70 {
+            True -> GradeC
+            False -> GradeD
+          }
+      }
+  }
+  let updated_kpi =
+    ElementKpi(
+      element_name: "overall_suite",
+      entropy: overall_entropy,
+      ccm: overall_ccm,
+      d_ea: overall_d_ea,
+      itqs: itqs_val,
+      fsi: overall_fsi,
+      grade: grade,
+    )
+  TestDashboardModel(..model, overall_kpi: updated_kpi)
+}

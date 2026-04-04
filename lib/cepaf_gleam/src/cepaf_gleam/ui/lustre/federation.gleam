@@ -11,8 +11,7 @@
 
 import cepaf_gleam/fractal/l7_federation.{
   type FederationPeer, type FederationState, add_peer, all_attested,
-  connected_peers, increment_version, initial_federation, peer_count,
-  remove_peer,
+  connected_peers, increment_version, peer_count, remove_peer,
 }
 import gleam/option.{type Option, None, Some}
 

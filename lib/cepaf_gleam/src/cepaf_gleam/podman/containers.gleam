@@ -245,38 +245,6 @@ fn string_of_json_error(err: json.DecodeError) -> String {
   }
 }
 
-fn decode_container_list_cli() -> decode.Decoder(List(ContainerSummary)) {
-  decode.list(decode_container_summary_cli())
-}
-
-fn decode_container_summary_cli() -> decode.Decoder(ContainerSummary) {
-  use id <- decode.field("Id", decode.string)
-  use names <- decode.field("Names", decode.list(decode.string))
-  use image <- decode.field("Image", decode.string)
-  use image_id <- decode.field("ImageID", decode.string)
-  use command <- decode.field("Command", decode.optional(decode.string))
-  use created <- decode.optional_field("Created", 0, decode.int)
-  use state_str <- decode.field("State", decode.string)
-  use status <- decode.field("Status", decode.string)
-
-  decode.success(ContainerSummary(
-    id: id,
-    names: names,
-    image: image,
-    image_id: image_id,
-    command: option.unwrap(command, ""),
-    created: created,
-    state: domain.string_to_status(state_str),
-    status: status,
-
-    ports: [], // Simplified for CLI
-    labels: dict.new(),
-    mounts: [],
-    networks: [],
-  ))
-}
-
-
 fn decode_container_list() -> decode.Decoder(List(ContainerSummary)) {
   decode.list(of: decode_container_summary())
 }

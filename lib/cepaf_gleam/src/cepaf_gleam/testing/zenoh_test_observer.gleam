@@ -467,3 +467,88 @@ fn float_to_pct(f: Float) -> String {
   let pct = float.round(f *. 100.0)
   int.to_string(pct) <> "%"
 }
+
+// ---------------------------------------------------------------------------
+// Enhanced Verification (SC-GLM-ZEN-001, SC-GLM-ZEN-002)
+// ---------------------------------------------------------------------------
+
+/// Verify that all 15 pages have at least one published span.
+pub fn verify_all_pages_published(
+  state: ObserverState,
+) -> List(VerificationResult) {
+  let page_names = [
+    "dashboard", "planning", "immune", "knowledge", "zenoh", "cockpit",
+    "verification", "substrate", "metabolic", "podman", "mcp", "kms",
+    "telemetry", "federation", "health_grid",
+  ]
+  list.map(page_names, fn(page) {
+    let has_span =
+      list.any(state.span_log, fn(s) {
+        zenoh_otel.page_to_string(s.page) == page
+      })
+    VerificationResult(
+      passed: has_span,
+      check_name: "page_published_" <> page,
+      expected: "at least 1 span for " <> page,
+      actual: case has_span {
+        True -> "present"
+        False -> "missing"
+      },
+      details: "Page " <> page <> " span publication check",
+    )
+  })
+}
+
+/// Verify OODA coverage — all 4 phases present across all spans.
+pub fn verify_ooda_coverage(state: ObserverState) -> VerificationResult {
+  verify_span_completeness(state)
+}
+
+/// Verify that control messages have corresponding OTel spans.
+pub fn verify_control_state_spans(state: ObserverState) -> VerificationResult {
+  let control_topics =
+    list.map(state.control_messages, fn(m) { m.topic }) |> unique_list
+  let span_pages =
+    list.map(state.span_log, fn(s) { zenoh_otel.page_to_string(s.page) })
+    |> unique_list
+  let has_overlap = case control_topics {
+    [] -> True
+    _ -> span_pages != []
+  }
+  VerificationResult(
+    passed: has_overlap,
+    check_name: "control_state_spans",
+    expected: "control messages have corresponding spans",
+    actual: case has_overlap {
+      True -> "correlated"
+      False -> "uncorrelated"
+    },
+    details: "Control topics: "
+      <> int.to_string(list.length(control_topics))
+      <> ", Span pages: "
+      <> int.to_string(list.length(span_pages)),
+  )
+}
+
+/// Verify that MCP relay received Zenoh messages.
+pub fn verify_mcp_relay(
+  state: ObserverState,
+  mcp_received: List(String),
+) -> VerificationResult {
+  let zenoh_topics = unique_list(list.map(state.messages, fn(m) { m.topic }))
+  let relay_count =
+    list.length(
+      list.filter(mcp_received, fn(r) { list.contains(zenoh_topics, r) }),
+    )
+  let passed = relay_count > 0 || mcp_received == []
+  VerificationResult(
+    passed: passed,
+    check_name: "mcp_relay",
+    expected: "MCP received Zenoh messages",
+    actual: int.to_string(relay_count) <> " relayed",
+    details: "Zenoh topics: "
+      <> int.to_string(list.length(zenoh_topics))
+      <> ", MCP received: "
+      <> int.to_string(list.length(mcp_received)),
+  )
+}

@@ -80,6 +80,48 @@ fn render_images(model: PodmanModel) -> String {
   }
 }
 
+/// Render container controls (start/stop/restart/logs) for the selected container.
+pub fn render_container_controls(
+  selected_name: String,
+  selected_status: String,
+) -> String {
+  let actions = case selected_status {
+    "running" ->
+      visuals.with_color("[x]Stop", "red")
+      <> "  "
+      <> visuals.with_color("[r]Restart", "yellow")
+      <> "  "
+      <> visuals.with_color("[l]Logs", "cyan")
+    "exited" ->
+      visuals.with_color("[s]Start", "green")
+      <> "  "
+      <> visuals.with_color("[l]Logs", "cyan")
+    _ ->
+      visuals.with_color("[s]Start", "green")
+      <> "  "
+      <> visuals.with_color("[l]Logs", "cyan")
+  }
+
+  "  Selected: "
+  <> visuals.with_color(selected_name, "cyan")
+  <> "  "
+  <> actions
+}
+
+/// Render container log lines.
+pub fn render_container_logs(
+  log_lines: List(String),
+  max_lines: Int,
+) -> String {
+  let header = visuals.with_color("  CONTAINER LOGS", "cyan")
+  let lines =
+    log_lines
+    |> list.take(max_lines)
+    |> list.map(fn(line) { "    " <> line })
+    |> string.join("\n")
+  header <> "\n" <> lines
+}
+
 fn render_volumes_networks(model: PodmanModel) -> String {
   let vols =
     model.volumes

@@ -156,7 +156,10 @@ pub async fn check_database() -> Result<CheckResult, IgnitionError> {
     let (db_check, _, _) = podman::podman_exec(
         db,
         &[
-            "psql", "-U", "postgres", "-tAc",
+            "psql",
+            "-U",
+            "postgres",
+            "-tAc",
             "SELECT datname FROM pg_database WHERE datname = 'indrajaal_prod'",
         ],
         timeout,
@@ -165,11 +168,21 @@ pub async fn check_database() -> Result<CheckResult, IgnitionError> {
 
     if !db_check.trim().contains("indrajaal_prod") {
         info!("  ⚠️  indrajaal_prod not found — creating...");
-        let _ = podman::podman_exec(db, &["createdb", "-U", "postgres", "indrajaal_prod"], timeout).await;
+        let _ = podman::podman_exec(
+            db,
+            &["createdb", "-U", "postgres", "indrajaal_prod"],
+            timeout,
+        )
+        .await;
         let _ = podman::podman_exec(
             db,
             &[
-                "psql", "-U", "postgres", "-d", "indrajaal_prod", "-c",
+                "psql",
+                "-U",
+                "postgres",
+                "-d",
+                "indrajaal_prod",
+                "-c",
                 "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE",
             ],
             timeout,
@@ -195,7 +208,15 @@ pub async fn check_database() -> Result<CheckResult, IgnitionError> {
         info!("  ⚠️  ts_event_logs not found — creating hypertable...");
         let _ = podman::podman_exec(
             db,
-            &["psql", "-U", "postgres", "-d", "indrajaal_prod", "-c", TS_EVENT_LOGS_SQL],
+            &[
+                "psql",
+                "-U",
+                "postgres",
+                "-d",
+                "indrajaal_prod",
+                "-c",
+                TS_EVENT_LOGS_SQL,
+            ],
             Duration::from_secs(30),
         )
         .await;
@@ -207,7 +228,10 @@ pub async fn check_database() -> Result<CheckResult, IgnitionError> {
     Ok(CheckResult {
         name: "PF-2: Database".into(),
         passed: true,
-        message: format!("PostgreSQL ready, port {}, indrajaal_prod + ts_event_logs verified", port),
+        message: format!(
+            "PostgreSQL ready, port {}, indrajaal_prod + ts_event_logs verified",
+            port
+        ),
         duration_ms: start.elapsed().as_millis() as u64,
     })
 }
@@ -269,7 +293,9 @@ pub async fn check_network() -> Result<CheckResult, IgnitionError> {
     info!("  ✅ Network {} exists", MESH_NETWORK);
 
     // 4b: DNS enabled
-    let dns = podman::network_dns_enabled(MESH_NETWORK).await.unwrap_or(false);
+    let dns = podman::network_dns_enabled(MESH_NETWORK)
+        .await
+        .unwrap_or(false);
     if dns {
         info!("  ✅ DNS enabled");
     } else {
@@ -291,7 +317,10 @@ pub async fn check_network() -> Result<CheckResult, IgnitionError> {
     Ok(CheckResult {
         name: "PF-4: Network".into(),
         passed: true,
-        message: format!("Network {}, DNS={}, IP {} ready", MESH_NETWORK, dns, target_ip),
+        message: format!(
+            "Network {}, DNS={}, IP {} ready",
+            MESH_NETWORK, dns, target_ip
+        ),
         duration_ms: start.elapsed().as_millis() as u64,
     })
 }
@@ -329,7 +358,9 @@ pub async fn check_observability() -> Result<CheckResult, IgnitionError> {
     let start = Instant::now();
     info!("[PF-6] Checking observability stack...");
 
-    let running = health::check_running("indrajaal-obs-prod").await.unwrap_or(false);
+    let running = health::check_running("indrajaal-obs-prod")
+        .await
+        .unwrap_or(false);
     if running {
         info!("  ✅ indrajaal-obs-prod: running");
     } else {
@@ -360,13 +391,21 @@ pub async fn check_nif_binaries() -> Result<CheckResult, IgnitionError> {
     info!("[PF-7] Validating NIF binaries in {}...", container);
 
     // Check cargo availability first (SC-NIF-006)
-    let cargo_ok = nif_validator::check_cargo_available(container).await.unwrap_or(false);
+    let cargo_ok = nif_validator::check_cargo_available(container)
+        .await
+        .unwrap_or(false);
     if !cargo_ok {
-        warn!("  ❌ cargo not found in {} — SC-NIF-006 violation", container);
+        warn!(
+            "  ❌ cargo not found in {} — SC-NIF-006 violation",
+            container
+        );
         return Ok(CheckResult {
             name: "PF-7: NIF Binaries".into(),
             passed: false,
-            message: format!("cargo not found in {} — NIF compilation cannot proceed", container),
+            message: format!(
+                "cargo not found in {} — NIF compilation cannot proceed",
+                container
+            ),
             duration_ms: start.elapsed().as_millis() as u64,
         });
     }
@@ -406,7 +445,11 @@ pub async fn check_nif_binaries() -> Result<CheckResult, IgnitionError> {
             "{}/{} NIFs valid{}",
             valid,
             total,
-            if issues.is_empty() { String::new() } else { format!(", {} issue(s)", issues.len()) }
+            if issues.is_empty() {
+                String::new()
+            } else {
+                format!(", {} issue(s)", issues.len())
+            }
         ),
         duration_ms: start.elapsed().as_millis() as u64,
     })
@@ -428,7 +471,10 @@ pub async fn check_substrate_integrity() -> Result<CheckResult, IgnitionError> {
     let total = report.checks.len();
 
     if report.all_passed {
-        info!("  ✅ {}/{} substrate checks passed — substrate is clean", passed_count, total);
+        info!(
+            "  ✅ {}/{} substrate checks passed — substrate is clean",
+            passed_count, total
+        );
     } else {
         warn!("  ❌ {}/{} substrate checks passed", passed_count, total);
         if report.host_build_detected {
@@ -438,7 +484,10 @@ pub async fn check_substrate_integrity() -> Result<CheckResult, IgnitionError> {
             warn!("  ❌ Host deps contamination detected — Axiom 0.1 violation");
         }
         if !report.contamination_paths.is_empty() {
-            warn!("  ❌ {} contamination path(s) found", report.contamination_paths.len());
+            warn!(
+                "  ❌ {} contamination path(s) found",
+                report.contamination_paths.len()
+            );
         }
     }
 
@@ -446,7 +495,10 @@ pub async fn check_substrate_integrity() -> Result<CheckResult, IgnitionError> {
         format!("{}/{} checks passed — substrate clean", passed_count, total)
     } else {
         let contamination = if !report.contamination_paths.is_empty() {
-            format!(", {} contaminated path(s)", report.contamination_paths.len())
+            format!(
+                ", {} contaminated path(s)",
+                report.contamination_paths.len()
+            )
         } else {
             String::new()
         };
@@ -534,7 +586,9 @@ pub async fn check_health_consensus() -> Result<CheckResult, IgnitionError> {
         } else {
             warn!(
                 "  ❌ {}: {}/{} methods agreed (need {})",
-                consensus.container_name, consensus.agreed, consensus.total,
+                consensus.container_name,
+                consensus.agreed,
+                consensus.total,
                 HEALTH_CONSENSUS_THRESHOLD
             );
         }
@@ -600,8 +654,15 @@ pub async fn check_zenoh_telemetry() -> Result<CheckResult, IgnitionError> {
         passed,
         message: format!(
             "{}/{} routers reachable on port {} (quorum requires {}): {}",
-            reachable, total, ZENOH_PORT, required,
-            if passed { "BACKPLANE STABLE" } else { "BACKPLANE DEGRADED" }
+            reachable,
+            total,
+            ZENOH_PORT,
+            required,
+            if passed {
+                "BACKPLANE STABLE"
+            } else {
+                "BACKPLANE DEGRADED"
+            }
         ),
         duration_ms: start.elapsed().as_millis() as u64,
     })
@@ -615,7 +676,10 @@ pub async fn check_zenoh_telemetry() -> Result<CheckResult, IgnitionError> {
 #[allow(dead_code)]
 pub async fn check_image_freshness() -> Result<CheckResult, IgnitionError> {
     let start = Instant::now();
-    info!("[PF-12] Checking container image freshness (max age: {} h)...", MAX_IMAGE_AGE_HOURS);
+    info!(
+        "[PF-12] Checking container image freshness (max age: {} h)...",
+        MAX_IMAGE_AGE_HOURS
+    );
 
     /// Key images to check — BuiltFromDockerfile containers from sil6Genome.
     const KEY_IMAGES: &[&str] = &[
@@ -706,7 +770,12 @@ pub async fn check_migration_state() -> Result<CheckResult, IgnitionError> {
     let (stdout, _, code) = podman::podman_exec(
         db,
         &[
-            "psql", "-U", "postgres", "-d", "indrajaal_prod", "-tAc",
+            "psql",
+            "-U",
+            "postgres",
+            "-d",
+            "indrajaal_prod",
+            "-tAc",
             "SELECT EXISTS (SELECT FROM information_schema.tables \
              WHERE table_schema = 'public' AND table_name = 'schema_migrations')",
         ],
@@ -731,15 +800,25 @@ pub async fn check_migration_state() -> Result<CheckResult, IgnitionError> {
         // Count migrations applied
         let (count_out, _, _) = podman::podman_exec(
             db,
-            &["psql", "-U", "postgres", "-d", "indrajaal_prod", "-tAc",
-              "SELECT COUNT(*) FROM schema_migrations"],
+            &[
+                "psql",
+                "-U",
+                "postgres",
+                "-d",
+                "indrajaal_prod",
+                "-tAc",
+                "SELECT COUNT(*) FROM schema_migrations",
+            ],
             timeout,
         )
         .await
         .unwrap_or_else(|_| (String::new(), String::new(), -1));
 
         let count: i64 = count_out.trim().parse().unwrap_or(0);
-        info!("  ✅ schema_migrations exists with {} migration(s) applied", count);
+        info!(
+            "  ✅ schema_migrations exists with {} migration(s) applied",
+            count
+        );
         Ok(CheckResult {
             name: "PF-13: Migration State".into(),
             passed: true,
@@ -782,12 +861,9 @@ pub async fn check_port_availability() -> Result<CheckResult, IgnitionError> {
 
     for &(port, service, critical) in PORTS_TO_CHECK {
         // Use ss/netstat to check if the host port is in use
-        let (stdout, _, code) = podman::podman_cmd(
-            &["port", "--all"],
-            Duration::from_secs(5),
-        )
-        .await
-        .unwrap_or_else(|_| (String::new(), String::new(), -1));
+        let (stdout, _, code) = podman::podman_cmd(&["port", "--all"], Duration::from_secs(5))
+            .await
+            .unwrap_or_else(|_| (String::new(), String::new(), -1));
 
         // podman port --all lists port mappings for running containers.
         // A port reported here is "in use by a container" which is expected.
@@ -796,17 +872,18 @@ pub async fn check_port_availability() -> Result<CheckResult, IgnitionError> {
         let _ = (stdout, code); // suppress unused warning — result is best-effort
 
         // Try to connect to the port on localhost to see if something is listening
-        let in_use = tokio::net::TcpStream::connect(
-            std::net::SocketAddr::new(
-                std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST),
-                port,
-            )
-        )
+        let in_use = tokio::net::TcpStream::connect(std::net::SocketAddr::new(
+            std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST),
+            port,
+        ))
         .await
         .is_ok();
 
         if in_use {
-            info!("  ✅ Port {} ({}): in use (expected for running infra)", port, service);
+            info!(
+                "  ✅ Port {} ({}): in use (expected for running infra)",
+                port, service
+            );
         } else {
             info!("  ✅ Port {} ({}): free", port, service);
         }
@@ -826,8 +903,10 @@ pub async fn check_port_availability() -> Result<CheckResult, IgnitionError> {
         if let Some(container) = container_for_port {
             let container_running = health::check_running(container).await.unwrap_or(false);
             if in_use && !container_running {
-                warn!("  ❌ Port {} ({}): occupied but {} is NOT running — stale process?",
-                      port, service, container);
+                warn!(
+                    "  ❌ Port {} ({}): occupied but {} is NOT running — stale process?",
+                    port, service, container
+                );
                 blocked += 1;
                 if critical {
                     critical_blocked += 1;
@@ -842,7 +921,9 @@ pub async fn check_port_availability() -> Result<CheckResult, IgnitionError> {
         passed,
         message: format!(
             "Checked {} ports; {} blocked ({} critical)",
-            PORTS_TO_CHECK.len(), blocked, critical_blocked
+            PORTS_TO_CHECK.len(),
+            blocked,
+            critical_blocked
         ),
         duration_ms: start.elapsed().as_millis() as u64,
     })
@@ -873,9 +954,13 @@ pub async fn check_elixir_release() -> Result<CheckResult, IgnitionError> {
     let timeout = Duration::from_secs(10);
     let (stdout, _, code) = podman::podman_cmd(
         &[
-            "run", "--rm", "--entrypoint", "sh",
+            "run",
+            "--rm",
+            "--entrypoint",
+            "sh",
             image,
-            "-c", "test -f /app/bin/indrajaal && echo found || echo missing",
+            "-c",
+            "test -f /app/bin/indrajaal && echo found || echo missing",
         ],
         timeout,
     )
@@ -887,8 +972,11 @@ pub async fn check_elixir_release() -> Result<CheckResult, IgnitionError> {
     if found {
         info!("  ✅ /app/bin/indrajaal exists in image");
     } else {
-        warn!("  ❌ /app/bin/indrajaal not found in image (stdout='{}', code={})",
-              stdout.trim(), code);
+        warn!(
+            "  ❌ /app/bin/indrajaal not found in image (stdout='{}', code={})",
+            stdout.trim(),
+            code
+        );
     }
 
     Ok(CheckResult {
@@ -897,7 +985,11 @@ pub async fn check_elixir_release() -> Result<CheckResult, IgnitionError> {
         message: if found {
             "/app/bin/indrajaal present in image".into()
         } else {
-            format!("/app/bin/indrajaal absent (code={}, out='{}')", code, stdout.trim())
+            format!(
+                "/app/bin/indrajaal absent (code={}, out='{}')",
+                code,
+                stdout.trim()
+            )
         },
         duration_ms: start.elapsed().as_millis() as u64,
     })
@@ -912,19 +1004,18 @@ pub async fn check_elixir_release() -> Result<CheckResult, IgnitionError> {
 #[allow(dead_code)]
 pub async fn check_bist_stability() -> Result<CheckResult, IgnitionError> {
     let start = Instant::now();
-    info!("[PF-16] BIST stability check ({} pings to zenoh-router)...", BIST_PING_COUNT);
+    info!(
+        "[PF-16] BIST stability check ({} pings to zenoh-router)...",
+        BIST_PING_COUNT
+    );
 
     let mut latencies: Vec<f64> = Vec::with_capacity(BIST_PING_COUNT as usize);
 
     for i in 0..BIST_PING_COUNT {
         let ping_start = Instant::now();
-        let reachable = health::check_port(
-            "zenoh-router",
-            ZENOH_PORT,
-            Duration::from_millis(200),
-        )
-        .await
-        .unwrap_or(false);
+        let reachable = health::check_port("zenoh-router", ZENOH_PORT, Duration::from_millis(200))
+            .await
+            .unwrap_or(false);
         let latency_ms = ping_start.elapsed().as_secs_f64() * 1000.0;
 
         if reachable {
@@ -960,7 +1051,11 @@ pub async fn check_bist_stability() -> Result<CheckResult, IgnitionError> {
     if passed {
         info!(
             "  ✅ BIST: n={}, mean={:.1}ms, sigma={:.1}ms, 3σ={:.1}ms < {:.0}ms",
-            latencies.len(), mean, sigma, three_sigma, BIST_3SIGMA_THRESHOLD_MS
+            latencies.len(),
+            mean,
+            sigma,
+            three_sigma,
+            BIST_3SIGMA_THRESHOLD_MS
         );
     } else {
         warn!(
@@ -974,7 +1069,12 @@ pub async fn check_bist_stability() -> Result<CheckResult, IgnitionError> {
         passed,
         message: format!(
             "n={}/{}, mean={:.1}ms, sigma={:.1}ms, 3σ={:.1}ms (threshold={:.0}ms)",
-            latencies.len(), BIST_PING_COUNT, mean, sigma, three_sigma, BIST_3SIGMA_THRESHOLD_MS
+            latencies.len(),
+            BIST_PING_COUNT,
+            mean,
+            sigma,
+            three_sigma,
+            BIST_3SIGMA_THRESHOLD_MS
         ),
         duration_ms: start.elapsed().as_millis() as u64,
     })
@@ -1005,7 +1105,11 @@ pub async fn check_cortex_binary() -> Result<CheckResult, IgnitionError> {
     let timeout = Duration::from_secs(5);
     let (stdout, _, code) = podman::podman_exec(
         container,
-        &["sh", "-c", "test -f /app/Cepaf && echo found || echo missing"],
+        &[
+            "sh",
+            "-c",
+            "test -f /app/Cepaf && echo found || echo missing",
+        ],
         timeout,
     )
     .await
@@ -1016,8 +1120,12 @@ pub async fn check_cortex_binary() -> Result<CheckResult, IgnitionError> {
     if found {
         info!("  ✅ /app/Cepaf binary present in {}", container);
     } else {
-        warn!("  ❌ /app/Cepaf binary not found in {} (code={}, out='{}')",
-              container, code, stdout.trim());
+        warn!(
+            "  ❌ /app/Cepaf binary not found in {} (code={}, out='{}')",
+            container,
+            code,
+            stdout.trim()
+        );
     }
 
     Ok(CheckResult {
@@ -1026,7 +1134,12 @@ pub async fn check_cortex_binary() -> Result<CheckResult, IgnitionError> {
         message: if found {
             format!("/app/Cepaf present in {}", container)
         } else {
-            format!("/app/Cepaf absent in {} (code={}, out='{}')", container, code, stdout.trim())
+            format!(
+                "/app/Cepaf absent in {} (code={}, out='{}')",
+                container,
+                code,
+                stdout.trim()
+            )
         },
         duration_ms: start.elapsed().as_millis() as u64,
     })
@@ -1059,7 +1172,8 @@ pub async fn check_bridge_binary() -> Result<CheckResult, IgnitionError> {
     let (stdout, _, code) = podman::podman_exec(
         container,
         &[
-            "sh", "-c",
+            "sh",
+            "-c",
             "( test -f /app/Cepaf && echo found:Cepaf ) || \
              ( test -f /app/cepaf-bridge && echo found:cepaf-bridge ) || \
              echo missing",
@@ -1071,16 +1185,28 @@ pub async fn check_bridge_binary() -> Result<CheckResult, IgnitionError> {
 
     let found = code == 0 && stdout.trim().starts_with("found");
     let binary_name = if found {
-        stdout.trim().splitn(2, ':').nth(1).unwrap_or("unknown").to_string()
+        stdout
+            .trim()
+            .splitn(2, ':')
+            .nth(1)
+            .unwrap_or("unknown")
+            .to_string()
     } else {
         "none".to_string()
     };
 
     if found {
-        info!("  ✅ Bridge binary ({}) present in {}", binary_name, container);
+        info!(
+            "  ✅ Bridge binary ({}) present in {}",
+            binary_name, container
+        );
     } else {
-        warn!("  ❌ Bridge binary not found in {} (code={}, out='{}')",
-              container, code, stdout.trim());
+        warn!(
+            "  ❌ Bridge binary not found in {} (code={}, out='{}')",
+            container,
+            code,
+            stdout.trim()
+        );
     }
 
     Ok(CheckResult {
@@ -1089,7 +1215,12 @@ pub async fn check_bridge_binary() -> Result<CheckResult, IgnitionError> {
         message: if found {
             format!("Bridge binary ({}) present in {}", binary_name, container)
         } else {
-            format!("Bridge binary absent in {} (code={}, out='{}')", container, code, stdout.trim())
+            format!(
+                "Bridge binary absent in {} (code={}, out='{}')",
+                container,
+                code,
+                stdout.trim()
+            )
         },
         duration_ms: start.elapsed().as_millis() as u64,
     })
@@ -1138,7 +1269,10 @@ pub async fn check_disk_space() -> Result<CheckResult, IgnitionError> {
             if let Ok(use_pct) = use_pct_str.parse::<u8>() {
                 let free_pct = 100 - use_pct;
                 if free_pct < 15 {
-                    warn!("  ❌ CRITICAL: Host disk space dangerously low ({}% free) at {}", free_pct, graph_root);
+                    warn!(
+                        "  ❌ CRITICAL: Host disk space dangerously low ({}% free) at {}",
+                        free_pct, graph_root
+                    );
                     return Ok(CheckResult {
                         name: "PF-19: Disk Space".into(),
                         passed: false,
@@ -1146,7 +1280,10 @@ pub async fn check_disk_space() -> Result<CheckResult, IgnitionError> {
                         duration_ms: start.elapsed().as_millis() as u64,
                     });
                 } else {
-                    info!("  ✅ Disk space healthy: {}% free at {}", free_pct, graph_root);
+                    info!(
+                        "  ✅ Disk space healthy: {}% free at {}",
+                        free_pct, graph_root
+                    );
                     return Ok(CheckResult {
                         name: "PF-19: Disk Space".into(),
                         passed: true,
@@ -1173,7 +1310,8 @@ pub async fn check_podman_socket() -> Result<CheckResult, IgnitionError> {
     let start = Instant::now();
     info!("[PF-20] Checking podman socket responsiveness...");
 
-    let (stdout, _, code) = podman::podman_cmd(&["info"], Duration::from_secs(3)).await
+    let (stdout, _, code) = podman::podman_cmd(&["info"], Duration::from_secs(3))
+        .await
         .unwrap_or_else(|_| (String::new(), String::new(), -1));
 
     let passed = code == 0 && stdout.contains("host");
@@ -1186,7 +1324,11 @@ pub async fn check_podman_socket() -> Result<CheckResult, IgnitionError> {
     Ok(CheckResult {
         name: "PF-20: Podman Socket".into(),
         passed,
-        message: if passed { "Responsive".into() } else { "Unresponsive".into() },
+        message: if passed {
+            "Responsive".into()
+        } else {
+            "Unresponsive".into()
+        },
         duration_ms: start.elapsed().as_millis() as u64,
     })
 }
@@ -1200,14 +1342,17 @@ pub async fn check_substrate_entropy() -> Result<CheckResult, IgnitionError> {
 
     let entropy_avail = std::fs::read_to_string("/proc/sys/kernel/random/entropy_avail")
         .unwrap_or_else(|_| String::from("0"));
-    
+
     let entropy: u32 = entropy_avail.trim().parse().unwrap_or(0);
     let passed = entropy >= 256; // 256 is absolute minimum for secure boot
 
     if passed {
         info!("  ✅ Entropy pool healthy: {}", entropy);
     } else {
-        warn!("  ⚠️ Low entropy detected: {} (may cause slow crypto)", entropy);
+        warn!(
+            "  ⚠️ Low entropy detected: {} (may cause slow crypto)",
+            entropy
+        );
     }
 
     Ok(CheckResult {
@@ -1219,7 +1364,6 @@ pub async fn check_substrate_entropy() -> Result<CheckResult, IgnitionError> {
 }
 
 /// Run all 6 critical pre-flight checks plus PF-7 through PF-21 extended checks.
-
 
 ///
 /// Critical predicate: PreFlight = PF1 ∧ PF2 ∧ PF3 ∧ PF4 ∧ PF5 ∧ PF6
@@ -1260,7 +1404,10 @@ pub async fn run_all() -> Result<PreflightReport, IgnitionError> {
                     if result.passed {
                         info!("  [EXT] ✅ {}: {}", result.name, result.message);
                     } else {
-                        warn!("  [EXT] ⚠️  {}: {} (non-critical)", result.name, result.message);
+                        warn!(
+                            "  [EXT] ⚠️  {}: {} (non-critical)",
+                            result.name, result.message
+                        );
                     }
                     extended.push(result);
                 }
@@ -1297,8 +1444,8 @@ pub async fn run_all() -> Result<PreflightReport, IgnitionError> {
     let ext_total = extended.len();
 
     // ── Overall result — only critical checks gate the report.passed field ───
-    let all_critical_passed = pf1.passed && pf2.passed && pf3.passed
-        && pf4.passed && pf5.passed && pf6.passed;
+    let all_critical_passed =
+        pf1.passed && pf2.passed && pf3.passed && pf4.passed && pf5.passed && pf6.passed;
 
     let total_duration_ms = start.elapsed().as_millis() as u64;
 
@@ -1315,6 +1462,17 @@ pub async fn run_all() -> Result<PreflightReport, IgnitionError> {
             critical_failed, critical_total, ext_passed, ext_total, total_duration_ms
         );
     }
+
+    // ── Rule engine evaluation (SC-OODA-003 — auditable decision) ────────────
+    let substrate_check = extended.iter().find(|r| r.name.contains("PF-8")).map(|r| r.passed).unwrap_or(true);
+    let rule_result = crate::rule_engine::evaluate_preflight(&crate::rule_engine::PreflightFacts {
+        infra_healthy: pf1.passed,
+        zenoh_quorum: pf3.passed,
+        db_ready: pf2.passed,
+        substrate_clean: substrate_check,
+        image_exists: pf5.passed,
+    });
+    info!("Rule engine preflight decision: {} — {}", rule_result.decision, rule_result.reason);
 
     let report = PreflightReport {
         infrastructure: pf1,

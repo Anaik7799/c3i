@@ -33,11 +33,17 @@ pub async fn run_all() -> Result<VerifyReport, IgnitionError> {
 
     // V-1: Container running
     let v1 = {
-        let running = health::check_running("indrajaal-ex-app-1").await.unwrap_or(false);
+        let running = health::check_running("indrajaal-ex-app-1")
+            .await
+            .unwrap_or(false);
         CheckResult {
             name: "V-1: Container running".into(),
             passed: running,
-            message: if running { "Up".into() } else { "Not running".into() },
+            message: if running {
+                "Up".into()
+            } else {
+                "Not running".into()
+            },
             duration_ms: 0,
         }
     };
@@ -71,7 +77,11 @@ pub async fn run_all() -> Result<VerifyReport, IgnitionError> {
         CheckResult {
             name: "V-3: Web UI".into(),
             passed: ok,
-            message: if ok { "Renders HTML".into() } else { "No content".into() },
+            message: if ok {
+                "Renders HTML".into()
+            } else {
+                "No content".into()
+            },
             duration_ms: 0,
         }
     };
@@ -80,11 +90,17 @@ pub async fn run_all() -> Result<VerifyReport, IgnitionError> {
 
     // V-4: Redis
     let v4 = {
-        let ok = health::check_redis("indrajaal-ex-app-1").await.unwrap_or(false);
+        let ok = health::check_redis("indrajaal-ex-app-1")
+            .await
+            .unwrap_or(false);
         CheckResult {
             name: "V-4: Redis".into(),
             passed: ok,
-            message: if ok { "PONG".into() } else { "Not responding".into() },
+            message: if ok {
+                "PONG".into()
+            } else {
+                "Not responding".into()
+            },
             duration_ms: 0,
         }
     };
@@ -201,7 +217,11 @@ pub async fn run_all() -> Result<VerifyReport, IgnitionError> {
         CheckResult {
             name: "V-14: cepaf-bridge".into(),
             passed: ok,
-            message: if ok { "Running".into() } else { "Not running".into() },
+            message: if ok {
+                "Running".into()
+            } else {
+                "Not running".into()
+            },
             duration_ms: 0,
         }
     };
@@ -220,7 +240,10 @@ pub async fn run_all() -> Result<VerifyReport, IgnitionError> {
                     message: if all_ok {
                         format!("{}/{} reachable", matrix.successful, matrix.total_probes)
                     } else {
-                        format!("{}/{} reachable, {} failed", matrix.successful, matrix.total_probes, matrix.failed)
+                        format!(
+                            "{}/{} reachable, {} failed",
+                            matrix.successful, matrix.total_probes, matrix.failed
+                        )
                     },
                     duration_ms: start.elapsed().as_millis() as u64,
                 }
@@ -246,9 +269,17 @@ pub async fn run_all() -> Result<VerifyReport, IgnitionError> {
                     name: "V-16: Zenoh mesh topology".into(),
                     passed: ok,
                     message: if ok {
-                        format!("{}/{} sessions established", report.sessions_established, report.total_sessions_expected)
+                        format!(
+                            "{}/{} sessions established",
+                            report.sessions_established, report.total_sessions_expected
+                        )
                     } else {
-                        format!("{} routers checked, {}/{} sessions", report.routers_checked, report.sessions_established, report.total_sessions_expected)
+                        format!(
+                            "{} routers checked, {}/{} sessions",
+                            report.routers_checked,
+                            report.sessions_established,
+                            report.total_sessions_expected
+                        )
                     },
                     duration_ms: start.elapsed().as_millis() as u64,
                 }
@@ -276,7 +307,11 @@ pub async fn run_all() -> Result<VerifyReport, IgnitionError> {
                     message: if ok {
                         "No partitions detected".into()
                     } else {
-                        format!("PARTITION: {} + {} containers", result.partition_a.len(), result.partition_b.len())
+                        format!(
+                            "PARTITION: {} + {} containers",
+                            result.partition_a.len(),
+                            result.partition_b.len()
+                        )
                     },
                     duration_ms: start.elapsed().as_millis() as u64,
                 }
@@ -303,12 +338,15 @@ pub async fn run_all() -> Result<VerifyReport, IgnitionError> {
         zenoh: true, // verified in preflight
         health: checks[1].passed,
         quorum: true, // verified in preflight
+        quorum_count: if checks[1].passed { 5 } else { 0 },
     };
 
+    // Rule engine: graduated compliance assessment
+    let critical_failed = !checks[0].passed || !checks[1].passed; // container + health are critical
+    let verify_rule = crate::rule_engine::evaluate_verify(all_passed, critical_failed);
     info!(
-        "═══ VERIFICATION: {}/{} checks passed ({} ms) ═══",
-        passed_count,
-        total_count,
+        "═══ VERIFICATION: {}/{} checks passed, rule: {} — {} ({} ms) ═══",
+        passed_count, total_count, verify_rule.decision, verify_rule.reason,
         start.elapsed().as_millis()
     );
 
@@ -351,7 +389,10 @@ mod tests {
 
     #[test]
     fn test_count_pattern_single_match() {
-        assert_eq!(count_pattern("got BadMapError at line 42", "BadMapError"), 1);
+        assert_eq!(
+            count_pattern("got BadMapError at line 42", "BadMapError"),
+            1
+        );
     }
 
     #[test]
@@ -363,14 +404,20 @@ mod tests {
     #[test]
     fn test_count_pattern_error_rate_threshold() {
         // V-9: error rate <= 10
-        let logs = (0..10).map(|i| format!("[error] test error {}", i)).collect::<Vec<_>>().join("\n");
+        let logs = (0..10)
+            .map(|i| format!("[error] test error {}", i))
+            .collect::<Vec<_>>()
+            .join("\n");
         assert_eq!(count_pattern(&logs, "[error]"), 10);
         assert!(count_pattern(&logs, "[error]") <= 10); // passes threshold
     }
 
     #[test]
     fn test_count_pattern_error_rate_exceeds_threshold() {
-        let logs = (0..11).map(|i| format!("[error] test error {}", i)).collect::<Vec<_>>().join("\n");
+        let logs = (0..11)
+            .map(|i| format!("[error] test error {}", i))
+            .collect::<Vec<_>>()
+            .join("\n");
         assert!(count_pattern(&logs, "[error]") > 10); // fails V-9
     }
 
@@ -419,11 +466,11 @@ mod tests {
         // Simulate V-1 passed (container running) and V-2 passed (health)
         let sv = StateVector {
             compile: true,
-            migrations: true,    // derived from V-1
-            containers: true,    // derived from V-1
-            zenoh: true,         // from preflight
-            health: true,        // derived from V-2
-            quorum: true,        // from preflight
+            migrations: true, // derived from V-1
+            containers: true, // derived from V-1
+            zenoh: true,      // from preflight
+            health: true,     // derived from V-2
+            quorum: true,     // from preflight
         };
         assert!(sv.is_valid());
     }
@@ -435,7 +482,7 @@ mod tests {
             migrations: true,
             containers: true,
             zenoh: true,
-            health: false,   // V-2 failed
+            health: false, // V-2 failed
             quorum: true,
         };
         assert!(!sv.is_valid());
@@ -445,8 +492,8 @@ mod tests {
     fn test_state_vector_from_failed_container() {
         let sv = StateVector {
             compile: true,
-            migrations: false,   // V-1 failed
-            containers: false,   // V-1 failed
+            migrations: false, // V-1 failed
+            containers: false, // V-1 failed
             zenoh: true,
             health: false,
             quorum: true,
@@ -459,12 +506,14 @@ mod tests {
 
     #[test]
     fn test_verify_report_all_pass() {
-        let checks: Vec<CheckResult> = (1..=14).map(|i| CheckResult {
-            name: format!("V-{}", i),
-            passed: true,
-            message: "OK".into(),
-            duration_ms: 0,
-        }).collect();
+        let checks: Vec<CheckResult> = (1..=14)
+            .map(|i| CheckResult {
+                name: format!("V-{}", i),
+                passed: true,
+                message: "OK".into(),
+                duration_ms: 0,
+            })
+            .collect();
 
         let passed_count = checks.iter().filter(|c| c.passed).count() as u32;
         let total_count = checks.len() as u32;
@@ -475,12 +524,14 @@ mod tests {
 
     #[test]
     fn test_verify_report_partial_pass() {
-        let mut checks: Vec<CheckResult> = (1..=14).map(|i| CheckResult {
-            name: format!("V-{}", i),
-            passed: true,
-            message: "OK".into(),
-            duration_ms: 0,
-        }).collect();
+        let mut checks: Vec<CheckResult> = (1..=14)
+            .map(|i| CheckResult {
+                name: format!("V-{}", i),
+                passed: true,
+                message: "OK".into(),
+                duration_ms: 0,
+            })
+            .collect();
         // Fail V-5 and V-12
         checks[4].passed = false;
         checks[11].passed = false;
@@ -500,7 +551,8 @@ mod tests {
         assert_eq!(cp, 1); // both present -> cp = 1 & 1 = 1
 
         let logs_only_cepaf = "CepafPort connected OK";
-        let cp2 = count_pattern(logs_only_cepaf, "CepafPort") & count_pattern(logs_only_cepaf, "Failed");
+        let cp2 =
+            count_pattern(logs_only_cepaf, "CepafPort") & count_pattern(logs_only_cepaf, "Failed");
         assert_eq!(cp2, 0); // "Failed" absent -> 1 & 0 = 0
 
         let logs_neither = "All good";

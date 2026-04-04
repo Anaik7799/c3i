@@ -21,7 +21,6 @@ import cepaf_gleam/ui/domain.{
 }
 import cepaf_gleam/zenoh/client
 import gleam/json
-import gleam/string
 
 // ---------------------------------------------------------------------------
 // OODA Span Types
@@ -398,4 +397,114 @@ pub fn error_attrs(error_type: String, message: String) -> json.Json {
     #("error_message", json.string(message)),
     #("span_kind", json.string("error")),
   ])
+}
+
+// ---------------------------------------------------------------------------
+// Control & System Operation Spans (SC-GLM-ZEN-001)
+// ---------------------------------------------------------------------------
+
+/// Build attribute JSON for a control operation (container start/stop/restart).
+pub fn control_attrs(
+  action: String,
+  target: String,
+  result: String,
+) -> json.Json {
+  json.object([
+    #("action", json.string(action)),
+    #("target", json.string(target)),
+    #("result", json.string(result)),
+    #("span_kind", json.string("control")),
+  ])
+}
+
+/// Publish a control span for system operations.
+pub fn control_span(
+  session: client.Session,
+  action: String,
+  target: String,
+  phase: OodaPhase,
+) -> Result(Nil, String) {
+  let attrs = control_attrs(action, target, "initiated")
+  let span = new_span(Podman, "control_" <> action, phase, attrs)
+  publish_span(session, span)
+}
+
+// ---------------------------------------------------------------------------
+// Test Runner Observer Spans (SC-GLM-ZEN-002)
+// ---------------------------------------------------------------------------
+
+/// Build attribute JSON for test runner observation.
+pub fn test_runner_attrs(
+  test_name: String,
+  test_status: String,
+  duration_ms: Int,
+) -> json.Json {
+  json.object([
+    #("test_name", json.string(test_name)),
+    #("test_status", json.string(test_status)),
+    #("duration_ms", json.int(duration_ms)),
+    #("span_kind", json.string("test_runner")),
+  ])
+}
+
+/// Publish a test runner observation span.
+pub fn test_runner_span(
+  session: client.Session,
+  test_name: String,
+  phase: OodaPhase,
+  attrs: json.Json,
+) -> Result(Nil, String) {
+  let span = new_span(Verification, "test_" <> test_name, phase, attrs)
+  publish_span(session, span)
+}
+
+// ---------------------------------------------------------------------------
+// Agent Observation Spans (for Gemini/Claude via MCP+Zenoh)
+// ---------------------------------------------------------------------------
+
+/// Build attribute JSON for AI agent observation.
+pub fn agent_attrs(
+  agent_id: String,
+  action: String,
+  context: String,
+) -> json.Json {
+  json.object([
+    #("agent_id", json.string(agent_id)),
+    #("action", json.string(action)),
+    #("context", json.string(context)),
+    #("span_kind", json.string("agent")),
+  ])
+}
+
+/// Publish an agent observation span.
+pub fn agent_span(
+  session: client.Session,
+  agent_id: String,
+  action: String,
+  phase: OodaPhase,
+  attrs: json.Json,
+) -> Result(Nil, String) {
+  let span = new_span(Mcp, "agent_" <> agent_id <> "_" <> action, phase, attrs)
+  publish_span(session, span)
+}
+
+/// All 15 page topic prefixes (for observer subscription).
+pub fn all_page_topics() -> List(String) {
+  [
+    otel_prefix <> "dashboard",
+    otel_prefix <> "planning",
+    otel_prefix <> "immune",
+    otel_prefix <> "knowledge",
+    otel_prefix <> "zenoh",
+    otel_prefix <> "cockpit",
+    otel_prefix <> "verification",
+    otel_prefix <> "substrate",
+    otel_prefix <> "metabolic",
+    otel_prefix <> "podman",
+    otel_prefix <> "mcp",
+    otel_prefix <> "kms",
+    otel_prefix <> "telemetry",
+    otel_prefix <> "federation",
+    otel_prefix <> "health_grid",
+  ]
 }

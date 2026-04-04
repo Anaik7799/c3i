@@ -22,6 +22,7 @@ Rust NIFs → Gleam → Elixir → F# (if needed)
 | AOR-POLYGLOT-001 | Language boundaries (Gleam-Rust, Gleam-Elixir, Gleam-F#) must be explicitly documented and tested for interoperability. | Architectural diagrams, integration tests |
 | AOR-BUILD-002 | The build order MUST be strictly followed to ensure correct compilation dependencies across all languages. | CI script validation |
 | AOR-TOOL-001 | Root-level tools (`sa-up`, `sa-gleam`, `sa-plan`) are the authoritative interfaces for mesh and task management. | Functional verification |
+| AOR-TOOL-003 | ALL updates to task status and `PROJECT_TODOLIST.md` MUST be performed via `sa-plan`. Manual edits are FORBIDDEN. | Audit log check |
 | AOR-TOOL-002 | `sa-gleam` must maintain a 2-tier fallback (NIF -> CLI) for all critical data operations (SQLite, Podman). | Resilience testing |
 
 ## Canonical GEMINI.md Location
@@ -158,11 +159,50 @@ Full spec: `dev/ver/c3i/GEMINI.md` (v21.6.0-GLM)
 
 **All files use Gleam-first patterns**: type-safe message passing, immutable state, BEAM concurrency, no JavaScript.
 
-### Test Metrics (Current)
-| Metric | Value | Threshold | Status |
-|--------|-------|-----------|--------|
-| Total Tests | 1,559 passed, 0 failures | — | PASS |
-| Shannon Entropy H | 2.67 bits (weighted mean) | ≥ 2.5 bits | PASS |
-| CCM | 0.770 | ≥ 0.90 | IMPROVING |
-| ITQS | 0.736 | ≥ 0.85 | IMPROVING |
-| Tab Coverage | 100% (15/15) | 100% | PASS |
+### Category N: Zenoh-MCP-OTel Fractal Backplane (ZMOF) (NEW)
+**Mandate**: SC-ZMOF-001 — Zenoh is the SOLE transport for internal mesh communication, observability (OTel), and AI tool calls (MCP).
+
+| ID | Constraint | Verification |
+|----|-----------|--------------|
+| SC-ZMOF-001 | All L0-L7 communication MUST follow the `indrajaal/{layer}/{domain}/...` namespace | Zenoh key audit |
+| SC-ZMOF-002 | OTel Spans MUST be published as Zenoh messages to `indrajaal/otel/span/...` | Span audit log |
+| SC-ZMOF-003 | MCP Tool Calls MUST ride over Zenoh Pub/Sub (MoZ Protocol) | Tool execution trace |
+| SC-ZMOF-004 | Point-to-point HTTP/gRPC for internal control is PROHIBITED | Network traffic audit |
+| SC-ZMOF-005 | Every `sa-up` action MUST be exposed as an MCP tool via Zenoh | Agent tool discovery |
+| SC-ZMOF-006 | 2oo3 voting (L2) MUST be performed via Zenoh broadcast | Consensus audit |
+
+**Namespace Mapping**:
+- L0 Constitutional: `indrajaal/l0/const/**`
+- L1 Atomic/NIF: `indrajaal/l1/atomic/**`
+- L2 Health/Quorum: `indrajaal/l2/health/**`
+- L4 System/Podman: `indrajaal/l4/system/**`
+- L5 Cog/OODA/Rules: `indrajaal/l5/cog/**`
+
+## Allium Behavioral Specifications (NEW)
+
+**Allium v3** — behavioral specification language for capturing system intent formally.
+- **Spec**: `specs/allium/ignition.allium` — 16-container genome, OODA, rules, health, apoptosis
+- **Rule**: `.claude/rules/allium-behavioral-specs.md` — SC-ALLIUM-001..008
+- **Reference**: https://github.com/juxt/allium
+
+### Allium ↔ System Integration
+| Allium Construct | System Component | Coverage |
+|-----------------|------------------|----------|
+| 14 entities | Rust structs in types.rs + ooda_supervisor.rs | Container, Genome, OodaCycle, Observation, etc. |
+| 16 rules | Rust functions + GRL rules (rust-rule-engine v1.20.1) | Boot, OODA, health, build, apoptosis, RCA |
+| 5 contracts | Rust module APIs | PodmanOps, HealthOrchestra, RuleEngine, LLMAdvisor, Guardian |
+| 5 invariants | Testable assertions | Quorum, OODA SLA, CPU limit, dying gasp, EMA |
+| 3 surfaces | Operator TUI, AI agent, Zenoh mesh | Dashboard, OODA cycle, telemetry |
+| 20 config params | Rust constants in types.rs | Timing, thresholds, budgets |
+
+### Key Allium Patterns Used
+- **State machines**: Container health transitions, boot phase transitions, apoptosis phases
+- **Temporal triggers**: Boot timeout, invitation expiry, health check intervals
+- **Contract demands/fulfils**: Operator demands PodmanOps, AI fulfils HealthOrchestra
+- **Rule-first, LLM-escalation**: GRL rules (<1ms) → LLM only when anomaly_score > 0.7
+
+### RETE-UL Rule Engine (ALL 13 domains implemented)
+**52 GRL rules** across **13 domains** in `rule_engine.rs` (961 lines). 41 unit tests, 307 Rust tests total.
+- OODA(7), Preflight(4), Recovery(6), Health(4), Cascade(3), Partition(3), Launch(3), Governor(3), Verify(3), Build(3), Apoptosis(4), RCA(4), Hysteresis(3)
+- Generic `run_domain()` + 13 `OnceLock` caches (parse once, reuse every cycle)
+- Every decision auditable: `RuleResult { decision, reason }` logged per evaluation

@@ -20,8 +20,8 @@
 use crate::errors::IgnitionError;
 use crate::podman;
 use crate::types::{
-    CascadeState, ContainerStateSnapshot, Criticality, IgnitionCheckpoint,
-    KnownGoodConfig, MAX_CASCADE_DEPTH,
+    CascadeState, ContainerStateSnapshot, Criticality, IgnitionCheckpoint, KnownGoodConfig,
+    MAX_CASCADE_DEPTH,
 };
 use chrono::Utc;
 use log::{debug, info, warn};
@@ -44,33 +44,45 @@ fn dependency_graph() -> HashMap<&'static str, Vec<&'static str>> {
         ("indrajaal-obs-prod", vec!["zenoh-router"]),
         // T3: Cognitive
         ("cepaf-bridge", vec!["zenoh-router", "indrajaal-db-prod"]),
-        ("indrajaal-cortex", vec!["zenoh-router", "indrajaal-db-prod"]),
+        (
+            "indrajaal-cortex",
+            vec!["zenoh-router", "indrajaal-db-prod"],
+        ),
         // T4: App seed
-        ("indrajaal-ex-app-1", vec![
-            "zenoh-router", "indrajaal-db-prod", "indrajaal-obs-prod", "cepaf-bridge",
-        ]),
+        (
+            "indrajaal-ex-app-1",
+            vec![
+                "zenoh-router",
+                "indrajaal-db-prod",
+                "indrajaal-obs-prod",
+                "cepaf-bridge",
+            ],
+        ),
         // T5: HA apps
-        ("indrajaal-ex-app-2", vec![
-            "zenoh-router", "indrajaal-db-prod", "indrajaal-ex-app-1",
-        ]),
-        ("indrajaal-ex-app-3", vec![
-            "zenoh-router", "indrajaal-db-prod", "indrajaal-ex-app-1",
-        ]),
+        (
+            "indrajaal-ex-app-2",
+            vec!["zenoh-router", "indrajaal-db-prod", "indrajaal-ex-app-1"],
+        ),
+        (
+            "indrajaal-ex-app-3",
+            vec!["zenoh-router", "indrajaal-db-prod", "indrajaal-ex-app-1"],
+        ),
         // T6: Chaya + Ollama
-        ("indrajaal-chaya", vec![
-            "zenoh-router", "indrajaal-ex-app-1",
-        ]),
+        (
+            "indrajaal-chaya",
+            vec!["zenoh-router", "indrajaal-ex-app-1"],
+        ),
         ("indrajaal-ollama", vec!["zenoh-router"]),
         // T7: ML runners + Mojo
-        ("indrajaal-ml-runner-1", vec![
-            "zenoh-router", "indrajaal-ollama",
-        ]),
-        ("indrajaal-ml-runner-2", vec![
-            "zenoh-router", "indrajaal-ollama",
-        ]),
-        ("indrajaal-mojo", vec![
-            "zenoh-router", "indrajaal-ollama",
-        ]),
+        (
+            "indrajaal-ml-runner-1",
+            vec!["zenoh-router", "indrajaal-ollama"],
+        ),
+        (
+            "indrajaal-ml-runner-2",
+            vec!["zenoh-router", "indrajaal-ollama"],
+        ),
+        ("indrajaal-mojo", vec!["zenoh-router", "indrajaal-ollama"]),
     ])
 }
 
@@ -171,6 +183,10 @@ pub async fn detect_cascade(failed_containers: &[&str]) -> Option<CascadeState> 
 
     let cascade_depth = unique_tiers.len() as u8;
 
+    // Rule engine evaluation for graduated cascade response
+    let rule_result = crate::rule_engine::evaluate_cascade(cascade_depth, !p0_failures.is_empty());
+    info!("[cascade] Rule engine: {} — {}", rule_result.decision, rule_result.reason);
+
     if cascade_depth >= MAX_CASCADE_DEPTH {
         warn!(
             "[cascade] Cascade depth {} >= MAX ({}) — CONTAINMENT ACTIVATED",
@@ -179,10 +195,7 @@ pub async fn detect_cascade(failed_containers: &[&str]) -> Option<CascadeState> 
     }
 
     // Determine recovery order: lowest tier first (foundation before apps)
-    let mut recovery_order: Vec<String> = failed_containers
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
+    let mut recovery_order: Vec<String> = failed_containers.iter().map(|s| s.to_string()).collect();
     recovery_order.sort_by_key(|c| {
         // Sort by tier (lower = recover first)
         match c.as_str() {
@@ -211,10 +224,7 @@ pub async fn detect_cascade(failed_containers: &[&str]) -> Option<CascadeState> 
 
 /// Isolate failure domains by grouping containers that share dependencies.
 /// Containers with no shared dependencies are in separate domains.
-fn isolate_failure_domains(
-    failed: &[&str],
-    deps: &HashMap<&str, Vec<&str>>,
-) -> Vec<Vec<String>> {
+fn isolate_failure_domains(failed: &[&str], deps: &HashMap<&str, Vec<&str>>) -> Vec<Vec<String>> {
     let mut domains: Vec<Vec<String>> = Vec::new();
 
     for &container in failed {
@@ -253,7 +263,10 @@ fn isolate_failure_domains(
 ///
 /// SC-SIL4-001: Safety functions MUST fail to safe state
 pub async fn execute_containment(state: &CascadeState) -> Result<ContainmentReport, IgnitionError> {
-    info!("[cascade] Executing containment for {} domains", state.isolated_domains.len());
+    info!(
+        "[cascade] Executing containment for {} domains",
+        state.isolated_domains.len()
+    );
 
     let wall_start = Instant::now();
     let mut containers_stopped: Vec<String> = Vec::new();
@@ -287,7 +300,10 @@ pub async fn execute_containment(state: &CascadeState) -> Result<ContainmentRepo
                     }
                 }
                 Ok(status) => {
-                    debug!("[cascade] {} already {} — no action needed", container, status);
+                    debug!(
+                        "[cascade] {} already {} — no action needed",
+                        container, status
+                    );
                     containers_preserved.push(container.clone());
                 }
                 Err(e) => {
@@ -345,12 +361,22 @@ pub async fn save_known_good() -> Result<KnownGoodConfig, IgnitionError> {
     info!("[cascade] Saving known-good configuration");
 
     let containers = [
-        "zenoh-router", "zenoh-router-1", "zenoh-router-2", "zenoh-router-3",
-        "indrajaal-db-prod", "indrajaal-obs-prod", "indrajaal-cortex",
-        "cepaf-bridge", "indrajaal-ex-app-1", "indrajaal-ex-app-2",
-        "indrajaal-ex-app-3", "indrajaal-chaya",
-        "indrajaal-ollama", "indrajaal-mojo",
-        "indrajaal-ml-runner-1", "indrajaal-ml-runner-2",
+        "zenoh-router",
+        "zenoh-router-1",
+        "zenoh-router-2",
+        "zenoh-router-3",
+        "indrajaal-db-prod",
+        "indrajaal-obs-prod",
+        "indrajaal-cortex",
+        "cepaf-bridge",
+        "indrajaal-ex-app-1",
+        "indrajaal-ex-app-2",
+        "indrajaal-ex-app-3",
+        "indrajaal-chaya",
+        "indrajaal-ollama",
+        "indrajaal-mojo",
+        "indrajaal-ml-runner-1",
+        "indrajaal-ml-runner-2",
     ];
 
     let mut container_states = HashMap::new();
@@ -445,7 +471,11 @@ mod tests {
     #[test]
     fn test_dependency_graph_has_all_containers() {
         let deps = dependency_graph();
-        assert_eq!(deps.len(), 16, "All 16 containers must have dependency entries");
+        assert_eq!(
+            deps.len(),
+            16,
+            "All 16 containers must have dependency entries"
+        );
     }
 
     #[test]
@@ -482,7 +512,8 @@ mod tests {
     #[test]
     fn test_p0_containers_identified() {
         let crit = container_criticality();
-        let p0: Vec<&&str> = crit.iter()
+        let p0: Vec<&&str> = crit
+            .iter()
             .filter(|(_, c)| matches!(c, Criticality::P0Critical))
             .map(|(k, _)| k)
             .collect();

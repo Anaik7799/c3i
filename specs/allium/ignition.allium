@@ -1,0 +1,2241 @@
+-- allium: 3
+-- C3I SIL-6 Biomorphic Mesh Ignition Daemon — Behavioral Specification
+-- Covers: 16-container genome, 7-tier boot, OODA supervisor, rule engine, LLM advisor,
+--         formal verification (Agda/Quint/TLA+), STAMP constraints, AOR rules,
+--         FMEA failure modes, UI dashboard specification, testing collateral
+-- STAMP: SC-IGNITE-001..010, SC-OODA-001..009, SC-BOOT-001..010, SC-SIL4-001..029,
+--        SC-FMEA-001..008, SC-TPS-001..006, SC-HMI-001..080, SC-TUI-TEST-001..010,
+--        SC-GLM-TST-001..002, SC-MATH-COV-001..008
+
+contract PlanningAuthority {
+    -- Mandate: SC-TODO-001 — sa-plan is the unique authoritative gateway
+    
+    command add_task(title: String, criticality: Criticality)
+    command update_status(id: String, status: HealthStatus)
+    command sync_artifact()
+    
+    rule "Exclusive Authority" {
+        when call PlanningAuthority.update_status
+        ensure "Actor is sa-plan CLI"
+    }
+    
+    rule "Manual Prohibited" {
+        when call manual_edit("PROJECT_TODOLIST.md")
+        reject "SC-TODO-001: Manual edits forbidden"
+    }
+    
+    rule "Artifact Generation" {
+        when call PlanningAuthority.sync_artifact
+        then write_artifact("PROJECT_TODOLIST.md")
+    }
+}
+
+-- =============================================================================
+-- External Entities (not defined here, referenced from other domains)
+-- =============================================================================
+
+external entity PodmanDaemon
+external entity ZenohRouter
+external entity PostgresDatabase
+external entity OtelCollector
+external entity GuardianService
+external entity OpenRouterLLM
+
+-- =============================================================================
+-- Enumerations
+-- =============================================================================
+
+enum ImageCategory { built | pulled | shared }
+enum Criticality { p0_critical | p1_high | p2_medium | p3_low }
+enum BootPhase { preflight | foundation | mesh | cognitive | application | homeostasis | swarm }
+enum MeshMode { standalone | clustered | federated }
+
+enum HealthStatus { healthy | degraded | unhealthy | unreachable | unknown }
+
+enum OodaPhase { observe | orient | decide | act | verify }
+
+enum ApoptosisTrigger {
+    split_brain | quorum_lost | seed_nodes_down |
+    constitutional_violation | manual | cascade_failure | security_threat
+}
+
+enum ApoptosisPhase {
+    triggered | network_isolate | state_hash |
+    zenoh_gasp | lame_duck_drain | container_kill
+}
+
+enum Decision {
+    no_action | boot_mesh | shutdown_mesh | restart_container |
+    scale_up | scale_down | emergency_stop | health_check |
+    drain_container | escalate_to_llm
+}
+
+enum RcaLevel {
+    l1_symptom | l2_local | l3_logic | l4_module |
+    l5_system | l6_design | l7_architecture
+}
+
+enum FractalLayer {
+    l0_constitutional | l1_atomic_debug | l2_component | l3_transaction |
+    l4_system | l5_cognitive | l6_ecosystem | l7_federation
+}
+
+-- =============================================================================
+-- Value Types
+-- =============================================================================
+
+value HealthConsensus {
+    method_results: List<MethodResult>
+    agreed_count: Integer
+    total_methods: Integer
+    consensus_reached: Boolean
+    overall_status: HealthStatus
+}
+
+value MethodResult {
+    method_name: String
+    passed: Boolean
+    latency_ms: Integer
+    details: String
+}
+
+value TwinDrift {
+    container_name: String
+    image_drift: Boolean
+    port_drift: Boolean
+    env_drift: Boolean
+    is_aligned: Boolean
+}
+
+value BuildResult {
+    container_name: String
+    success: Boolean
+    duration_ms: Integer
+    cache_hits: Integer
+    step_count: Integer
+    image_id: String?
+}
+
+value CpmTask {
+    id: String
+    duration: Integer
+    earliest_start: Integer
+    earliest_finish: Integer
+    latest_start: Integer
+    latest_finish: Integer
+    total_float: Integer
+    on_critical_path: Boolean
+}
+
+value CheckpointMessage {
+    phase: String
+    progress: Integer
+    state_vector: Set<String>
+    details: String?
+}
+
+-- =============================================================================
+-- Config
+-- =============================================================================
+
+config {
+    -- Boot timing
+    boot_timeout_ms: Integer = 60_000
+    health_check_timeout_ms: Integer = 5_000
+    phase_timeout_ms: Integer = 30_000
+
+    -- OODA cycle
+    ooda_cycle_sla_ms: Integer = 100
+    ooda_observe_budget_ms: Integer = 30
+    ooda_orient_budget_ms: Integer = 20
+    ooda_decide_budget_ms: Integer = 20
+    ooda_act_budget_ms: Integer = 20
+
+    -- Health
+    fpps_consensus_threshold: Integer = 3
+    fpps_total_methods: Integer = 5
+    fpps_heartbeat_timeout_secs: Integer = 30
+
+    -- Hysteresis
+    hysteresis_consecutive_required: Integer = 3
+    hysteresis_check_interval_ms: Integer = 1_000
+    hysteresis_debounce_ms: Integer = 500
+
+    -- Build
+    max_image_age_hours: Integer = 168
+    ema_alpha: Decimal = 0.3
+    ema_timeout_multiplier: Decimal = 2.5
+
+    -- CPU Governor
+    cpu_hard_limit: Integer = 85
+    cpu_throttle_threshold: Integer = 80
+    cpu_resume_threshold: Integer = 75
+
+    -- Apoptosis
+    apoptosis_grace_period_ms: Integer = 10_000
+    apoptosis_drain_timeout_ms: Integer = 5_000
+
+    -- Rule engine
+    rule_escalation_anomaly_threshold: Decimal = 0.7
+
+    -- LLM
+    openrouter_model: String = "google/gemini-2.5-flash"
+    openrouter_timeout_secs: Integer = 30
+}
+
+-- =============================================================================
+-- Entities
+-- =============================================================================
+
+entity Container {
+    name: String
+    image: String
+    category: ImageCategory
+    tier: Integer
+    criticality: Criticality
+    health: HealthStatus
+    ip_address: String?
+    ports: Set<Integer>
+    env_vars: Set<String>
+    uptime_secs: Integer
+    cpu_percent: Decimal
+    memory_mb: Integer
+
+    -- Relationships
+    depends_on: Set<Container>
+    health_consensus: HealthConsensus?
+    hysteresis_state: HysteresisState?
+
+    -- Derived
+    is_running: this.health != unreachable and this.health != unknown
+    is_critical: this.criticality in {p0_critical, p1_high}
+    is_healthy: this.health = healthy
+
+    transitions health {
+        unknown -> healthy
+        unknown -> degraded
+        unknown -> unhealthy
+        unknown -> unreachable
+        healthy -> degraded
+        healthy -> unreachable
+        degraded -> healthy
+        degraded -> unhealthy
+        degraded -> unreachable
+        unhealthy -> healthy
+        unhealthy -> degraded
+        unhealthy -> unreachable
+        unreachable -> healthy
+        unreachable -> degraded
+        unreachable -> unhealthy
+        terminal: -- none; containers can always recover
+    }
+
+    invariant HealthConsistency {
+        this.is_running implies this.health != unreachable
+    }
+}
+
+entity Genome {
+    version: String
+    containers: Set<Container>
+    total_count: Integer
+
+    -- Derived
+    built_count: this.containers where category = built .count
+    pulled_count: this.containers where category = pulled .count
+    shared_count: this.containers where category = shared .count
+    healthy_count: this.containers where health = healthy .count
+
+    invariant SixteenContainers {
+        this.total_count = 16
+    }
+
+    invariant GenomeComplete {
+        this.built_count + this.pulled_count + this.shared_count = this.total_count
+    }
+}
+
+entity HysteresisState {
+    current_state: HealthStatus
+    consecutive_count: Integer
+    pending_state: HealthStatus?
+    total_healthy_checks: Integer
+    total_unhealthy_checks: Integer
+
+    -- Derived
+    health_percentage: (this.total_healthy_checks * 100) / (this.total_healthy_checks + this.total_unhealthy_checks)
+    is_stable_healthy: this.current_state = healthy and this.pending_state = null
+}
+
+entity BootSequence {
+    phase: BootPhase
+    genome: Genome
+    start_time: Timestamp
+    state_vector: Set<String>
+    tiers_completed: Integer
+    total_tiers: Integer
+
+    -- Derived
+    progress_percent: (this.tiers_completed * 100) / this.total_tiers
+    is_complete: this.phase = swarm and this.tiers_completed = this.total_tiers
+    quorum_achieved: this.genome.containers where name in {"zenoh-router-1", "zenoh-router-2", "zenoh-router-3"} .count >= 2
+
+    transitions phase {
+        preflight -> foundation
+        foundation -> mesh
+        mesh -> cognitive
+        cognitive -> application
+        application -> homeostasis
+        homeostasis -> swarm
+        terminal: swarm
+    }
+}
+
+entity OodaCycle {
+    cycle_number: Integer
+    start_time: Timestamp
+    duration_ms: Integer
+    observation: Observation
+    orientation: Orientation
+    decision: Decision
+    action_result: String?
+    sla_compliant: Boolean
+
+    -- Derived
+    is_within_sla: this.duration_ms <= config.ooda_cycle_sla_ms
+}
+
+entity Observation {
+    active_containers: Integer
+    mesh_healthy: Boolean
+    failed_nodes: Set<String>
+    cpu_average: Decimal
+    memory_pressure: Decimal
+    timestamp: Timestamp
+}
+
+entity Orientation {
+    drift_detected: Boolean
+    twin_drifts: Set<TwinDrift>
+    missing_critical_nodes: Boolean
+    overload: Boolean
+    health_score: Decimal
+    risk_level: Integer
+    anomaly_score: Decimal
+}
+
+entity GrlRule {
+    name: String
+    salience: Integer
+    condition: String
+    action: Decision
+    enabled: Boolean
+}
+
+entity RcaReport {
+    issue_id: String
+    issue_description: String
+    root_cause_level: RcaLevel
+    root_cause_summary: String
+    recommended_fix: String
+    prevention_strategy: String
+    llm_enhanced: Boolean
+}
+
+entity DyingGaspCheckpoint {
+    container_name: String
+    trigger: ApoptosisTrigger
+    state_hash: String
+    running_containers: Set<String>
+    timestamp: Timestamp
+
+    invariant HashIntegrity {
+        length(this.state_hash) = 64
+    }
+}
+
+entity BuildHistory {
+    container_name: String
+    action: String
+    success: Boolean
+    duration_ms: Integer
+    cache_hits: Integer
+    ema_duration_ms: Decimal
+    timestamp: Timestamp
+}
+
+-- =============================================================================
+-- Contracts
+-- =============================================================================
+
+contract PodmanOperations {
+    list_containers: () -> Set<Container>
+    start_container: (name: String) -> Boolean
+    stop_container: (name: String, timeout: Integer) -> Boolean
+    build_image: (name: String, dockerfile: String) -> BuildResult
+    pull_image: (name: String, registry: String) -> BuildResult
+
+    @invariant IdempotentStart
+        -- Starting an already-running container is a no-op.
+    @invariant GracefulStop
+        -- Stop sends SIGTERM first, SIGKILL after timeout.
+}
+
+contract HealthOrchestra {
+    check_consensus: (container: String, port: Integer) -> HealthConsensus
+
+    @invariant FiveMethodConsensus
+        -- Consensus requires >= 3 of 5 methods to agree.
+    @invariant NoFalseHealthy
+        -- A container with < 3/5 agreement is never reported as healthy.
+}
+
+contract RuleEngine {
+    evaluate: (observation: Observation, orientation: Orientation) -> Decision
+
+    @invariant Deterministic
+        -- Same inputs always produce the same decision.
+    @invariant SubMillisecond
+        -- Rule evaluation completes in < 1ms.
+}
+
+contract LLMAdvisor {
+    query: (prompt: String) -> String
+
+    @invariant TimeoutBound
+        -- Response within config.openrouter_timeout_secs.
+    @guidance
+        -- LLM is advisory only; never auto-executes P0 actions without Guardian.
+}
+
+contract GuardianGate {
+    validate_decision: (decision: Decision) -> Boolean
+
+    @invariant P0RequiresApproval
+        -- EmergencyStop and BootMesh always require Guardian validation.
+    @invariant FailClosed
+        -- If Guardian unreachable, decision is BLOCKED (not approved).
+}
+
+-- =============================================================================
+-- Actors
+-- =============================================================================
+
+actor Operator {
+    identified_by: User where role = operator
+}
+
+actor AiAgent {
+    identified_by: User where role in {claude, gemini}
+}
+
+actor Guardian {
+    identified_by: GuardianService
+}
+
+-- =============================================================================
+-- Rules: Boot Sequence
+-- =============================================================================
+
+rule PreflightCheck {
+    when: boot: BootSequence.created
+    requires: boot.phase = preflight
+    requires: exists PodmanDaemon
+    requires: exists ZenohRouter
+    ensures: boot.state_vector.add("PF_COMPLETE")
+    ensures: boot.phase = foundation
+    @guidance
+        -- Runs 18 checks (PF-1..18): substrate guard, NIF validation, port scouring.
+        -- SC-BOOT-001, SC-IGNITE-002
+}
+
+rule TierBoot {
+    when: boot: BootSequence.phase transitions_to foundation
+    let tier_containers = boot.genome.containers where tier = boot.tiers_completed + 1
+    requires: boot.tiers_completed < boot.total_tiers
+    ensures: for c in tier_containers: c.health = healthy
+    ensures: boot.tiers_completed = boot.tiers_completed + 1
+    ensures: CheckpointPublished(phase: boot.phase, progress: boot.progress_percent)
+    @guidance
+        -- Tiers 4-7 boot in parallel via tokio::spawn.
+        -- SC-IGNITE-006, SC-BOOT-009
+}
+
+rule QuorumVerification {
+    when: boot: BootSequence.tiers_completed = 4
+    requires: boot.quorum_achieved
+    ensures: boot.state_vector.add("QUORUM_2OO3")
+    @guidance
+        -- 2oo3 voting on zenoh-router-1, -2, -3. SC-SIL4-006, SC-SIL4-011
+}
+
+rule BootComplete {
+    when: boot: BootSequence.tiers_completed = boot.total_tiers
+    requires: boot.genome.healthy_count >= 14
+    ensures: boot.phase = swarm
+    ensures: boot.state_vector.add("BOOT_COMPLETE")
+    @guidance
+        -- SC-BOOT-006: All containers pass health check.
+}
+
+-- ─── BOOT RULES COMPLETION STATUS ────────────────────────────────────────────
+-- PreflightCheck:      COMPLETE (preflight.rs, 1,478 lines, 18 checks wired)
+-- TierBoot:            COMPLETE (launch.rs, 836 lines, DAG-based wave boot)
+-- QuorumVerification:  COMPLETE (health.rs, 2oo3 voting implemented)
+-- BootComplete:        COMPLETE (verify.rs, 559 lines, 14-point verification)
+
+-- =============================================================================
+-- Rules: OODA Supervisor
+-- =============================================================================
+
+rule OodaObserve {
+    when: OodaCycleStart(cycle_number)
+    let containers = PodmanOperations.list_containers()
+    ensures: Observation.created(
+        active_containers: containers.count,
+        mesh_healthy: containers where health = healthy .count > 0,
+        failed_nodes: containers where health = unhealthy -> name,
+        cpu_average: containers.any(c => c.cpu_percent).avg,
+        timestamp: now
+    )
+    @guidance
+        -- Budget: 30ms. SC-OODA-001.
+        -- Uses podman stats for real-time metrics.
+}
+
+rule OodaOrient {
+    when: obs: Observation.created
+    let genome = Genome{version: "sil6"}
+    let drifts = for c in genome.containers:
+        TwinDrift{container_name: c.name, is_aligned: c.is_running}
+    ensures: Orientation.created(
+        drift_detected: drifts.any(d => not d.is_aligned),
+        twin_drifts: drifts where not is_aligned,
+        missing_critical_nodes: genome.containers where is_critical and not is_running .count > 0,
+        health_score: obs.active_containers / genome.total_count,
+        anomaly_score: 1.0 - (obs.active_containers / genome.total_count)
+    )
+    @guidance
+        -- Budget: 20ms. SC-OODA-002.
+        -- Compares live phenotype against genome genotype.
+}
+
+rule OodaDecideViaRules {
+    when: orient: Orientation.created
+    let decision = RuleEngine.evaluate(orient.observation, orient)
+    requires: decision != escalate_to_llm
+    ensures: OodaCycle.created(
+        decision: decision,
+        sla_compliant: true
+    )
+    @guidance
+        -- Fast path: GRL rules evaluate in <1ms via RETE-UL.
+        -- rust-rule-engine v1.20.1. SC-OODA-003.
+        -- STATUS: PARTIAL — BUG at ooda_supervisor.rs:207 (self.observation undefined).
+        -- Only 3/15 GRL rules implemented. Rule engine works but input is broken.
+}
+
+rule OodaDecideViaLLM {
+    when: orient: Orientation.created
+    let rule_decision = RuleEngine.evaluate(orient.observation, orient)
+    requires: rule_decision = no_action
+    requires: orient.anomaly_score > config.rule_escalation_anomaly_threshold
+    let llm_advice = LLMAdvisor.query(
+        "Containers drifted: " + orient.twin_drifts.count +
+        ". Health score: " + orient.health_score +
+        ". Recommend action."
+    )
+    ensures: OodaCycle.created(
+        decision: escalate_to_llm,
+        action_result: llm_advice,
+        sla_compliant: false
+    )
+    @guidance
+        -- Slow path: LLM reasoning ~2s. Only when rules are uncertain.
+        -- OpenRouter Gemini 2.5 Flash. SC-OODA-003 (SLA violated by design).
+        -- STATUS: NOT WIRED — openrouter.rs has REAL code (99 lines) but ZERO call sites.
+        -- The decide phase never calls query_llm_advisor(). Must wire into OODA.
+}
+
+rule OodaAct {
+    when: cycle: OodaCycle.created
+    requires: cycle.decision != no_action
+    let approved = GuardianGate.validate_decision(cycle.decision)
+    requires: approved or cycle.decision not in {emergency_stop, boot_mesh}
+    ensures: ActionExecuted(decision: cycle.decision)
+    @guidance
+        -- Budget: 20ms. SC-OODA-004.
+        -- P0 decisions (EmergencyStop, BootMesh) require Guardian approval.
+}
+
+-- =============================================================================
+-- Rules: GRL Rule Engine (15 rules)
+-- =============================================================================
+
+rule GrlEmergencyStop {
+    when: orient: Orientation where missing_critical_nodes and mesh_running
+    ensures: OodaCycle.created(decision: emergency_stop)
+    @guidance -- Salience 100. SC-EMR-057.
+}
+
+rule GrlBootMesh {
+    when: orient: Orientation where missing_critical_nodes and not mesh_running
+    ensures: OodaCycle.created(decision: boot_mesh)
+    @guidance -- Salience 90.
+}
+
+rule GrlRestartOnDrift {
+    when: orient: Orientation where drift_detected and not missing_critical_nodes
+    let target = orient.twin_drifts.first
+    ensures: OodaCycle.created(decision: restart_container)
+    @guidance -- Salience 80.
+}
+
+rule GrlScaleDownOverload {
+    when: obs: Observation where cpu_average > 85.0
+    ensures: OodaCycle.created(decision: scale_down)
+    @guidance -- Salience 85. Reduce load when CPU > 85%.
+}
+
+rule GrlDrainMemoryLeak {
+    when: c: Container where memory_mb > 4096
+    ensures: OodaCycle.created(decision: drain_container)
+    @guidance -- Salience 95. FMEA #8: Memory leak detection.
+}
+
+rule GrlApoptosisCascade {
+    when: cascade_depth >= 3
+    ensures: OodaCycle.created(decision: emergency_stop)
+    @guidance -- Salience 100. FMEA #6: Cascading failure.
+}
+
+rule GrlLlmEscalation {
+    when: orient: Orientation where anomaly_score > config.rule_escalation_anomaly_threshold
+    requires: no other rule matched
+    ensures: OodaCycle.created(decision: escalate_to_llm)
+    @guidance -- Salience 40. Fallback to LLM when rules uncertain.
+}
+
+-- =============================================================================
+-- Rules: RETE-UL Expansion — 12 Additional Domains (52 new rules)
+-- =============================================================================
+-- Ref: docs/journal/20260404-rete-ul-rule-engine-expansion-plan.md
+-- Each domain gets its own fact namespace and GRL rule set.
+
+-- ─── Domain 2: Preflight Gate (preflight.rs) ────────────────────────────────
+
+rule PreflightBlockOnInfraFailure {
+    when: preflight: PreflightResult where infra_healthy = false
+    ensures: preflight.decision = "BlockBoot"
+    @guidance -- Salience 100. Infrastructure containers not running.
+}
+
+rule PreflightBlockOnNoQuorum {
+    when: preflight: PreflightResult where zenoh_quorum = false
+    ensures: preflight.decision = "BlockBoot"
+    @guidance -- Salience 95. Zenoh 2oo3 not achieved.
+}
+
+rule PreflightWarnOnNifMissing {
+    when: preflight: PreflightResult where nif_valid = false and infra_healthy = true
+    ensures: preflight.decision = "WarnAndProceed"
+    @guidance -- Salience 30. NIF missing but infra OK.
+}
+
+rule PreflightWarnOnSubstrate {
+    when: preflight: PreflightResult where substrate_clean = false and infra_healthy = true
+    ensures: preflight.decision = "WarnAndProceed"
+    @guidance -- Salience 40. Axiom 0.1 violation but infra OK.
+}
+
+rule PreflightPass {
+    when: preflight: PreflightResult where infra_healthy = true and zenoh_quorum = true
+    ensures: preflight.decision = "Pass"
+    @guidance -- Salience 10. All critical checks passed.
+}
+
+-- ─── Domain 3: Recovery Playbook Selection (recovery.rs) ────────────────────
+
+rule RecoveryNifFirst {
+    when: recovery: RecoveryContext where nif_failed = true
+    ensures: recovery.playbook = "NifCompilation"
+    @guidance -- Salience 252 (= RPN). Highest risk failure mode.
+}
+
+rule RecoveryCascade {
+    when: recovery: RecoveryContext where cascade_detected = true
+    ensures: recovery.playbook = "CascadeContainment"
+    @guidance -- Salience 230 (= RPN). Multi-tier failure.
+}
+
+rule RecoveryGlibc {
+    when: recovery: RecoveryContext where glibc_conflict = true and nif_failed = false
+    ensures: recovery.playbook = "GlibcMusl"
+    @guidance -- Salience 225 (= RPN). Substrate contamination.
+}
+
+rule RecoveryMemoryLeak {
+    when: recovery: RecoveryContext where memory_leak = true
+    ensures: recovery.playbook = "MemoryLeak"
+    @guidance -- Salience 198 (= RPN). RSS unbounded growth.
+}
+
+rule RecoveryHealthTimeout {
+    when: recovery: RecoveryContext where health_timeout = true
+    ensures: recovery.playbook = "HealthTimeout"
+    @guidance -- Salience 196 (= RPN). Patient Mode not propagated.
+}
+
+-- ─── Domain 4: Health Consensus (health_orchestra.rs) ───────────────────────
+
+rule HealthCriticalConsensus {
+    when: health: HealthCheck where container_criticality = p0_critical and agreed_methods >= 4
+    ensures: health.consensus = "Reached"
+    @guidance -- Salience 80. P0 containers need 4/5 agreement.
+}
+
+rule HealthStandardConsensus {
+    when: health: HealthCheck where container_criticality != p0_critical and agreed_methods >= 3
+    ensures: health.consensus = "Reached"
+    @guidance -- Salience 50. Standard 3/5 threshold.
+}
+
+rule HealthDegradedConsensus {
+    when: health: HealthCheck where agreed_methods = 2
+    ensures: health.consensus = "Degraded"
+    @guidance -- Salience 30. Low confidence.
+}
+
+rule HealthNoConsensus {
+    when: health: HealthCheck where agreed_methods < 2
+    ensures: health.consensus = "NotReached"
+    @guidance -- Salience 10. Insufficient agreement.
+}
+
+-- ─── Domain 5: Cascade Containment (cascade.rs) ────────────────────────────
+
+rule CascadeApoptosisDeep {
+    when: cascade: CascadeState where depth >= 3
+    ensures: cascade.action = "Apoptosis"
+    @guidance -- Salience 100. Depth exceeded MAX_CASCADE_DEPTH.
+}
+
+rule CascadeIsolateMedium {
+    when: cascade: CascadeState where depth >= 2 and p0_affected = true
+    ensures: cascade.action = "IsolateTier"
+    @guidance -- Salience 70. P0 containers in cascade.
+}
+
+rule CascadeMonitorShallow {
+    when: cascade: CascadeState where depth = 1
+    ensures: cascade.action = "Monitor"
+    @guidance -- Salience 40. Single-tier, watching.
+}
+
+-- ─── Domain 6: Partition Fencing (partition.rs) ─────────────────────────────
+
+rule PartitionFenceMinority {
+    when: part: PartitionState where detected = true and minority_size < majority_size
+    ensures: part.action = "FenceMinority"
+    @guidance -- Salience 100. Standard majority rule.
+}
+
+rule PartitionPreserveData {
+    when: part: PartitionState where detected = true and db_in_minority = true
+    ensures: part.action = "FenceMajority"
+    @guidance -- Salience 90. DB in minority — preserve data over quorum.
+}
+
+-- ─── Domain 7: Launch Tier Gating (launch.rs) ──────────────────────────────
+
+rule LaunchBlockOnCriticalFailure {
+    when: launch: TierResult where tier_failed = true and failed_criticality = p0_critical
+    ensures: launch.action = "HaltPipeline"
+    @guidance -- Salience 100. P0 failure blocks entire boot.
+}
+
+rule LaunchContinueOnNonCritical {
+    when: launch: TierResult where tier_failed = true and failed_criticality != p0_critical
+    ensures: launch.action = "ContinueWithWarning"
+    @guidance -- Salience 50. Non-critical failure — proceed with warning.
+}
+
+rule LaunchProceed {
+    when: launch: TierResult where tier_failed = false
+    ensures: launch.action = "ProceedToNextTier"
+    @guidance -- Salience 10. All healthy — proceed.
+}
+
+-- ─── Domain 8: CPU Governor (governor.rs) ───────────────────────────────────
+
+rule GovernorFullSpeed {
+    when: gov: GovernorState where cpu_percent < 60
+    ensures: gov.schedulers = 16
+    @guidance -- Salience 50. Full parallelism.
+}
+
+rule GovernorThrottle {
+    when: gov: GovernorState where cpu_percent >= 70 and cpu_percent < 80
+    ensures: gov.schedulers = 10
+    @guidance -- Salience 30. Moderate throttle.
+}
+
+rule GovernorEmergencyPause {
+    when: gov: GovernorState where cpu_percent > 85
+    ensures: gov.action = "Wait"
+    @guidance -- Salience 100. SC-CPU-GOV-001 hard limit.
+}
+
+-- ─── Domain 9: Verify Compliance (verify.rs) ───────────────────────────────
+
+rule VerifyFullCompliance {
+    when: verify: VerifyResult where passed_checks = total_checks
+    ensures: verify.status = "Compliant"
+    @guidance -- Salience 10. All 14 checks passed.
+}
+
+rule VerifyDegradedCompliance {
+    when: verify: VerifyResult where passed_checks >= 10 and critical_failed = 0
+    ensures: verify.status = "DegradedButOperational"
+    @guidance -- Salience 50. Enough checks passed, no critical failures.
+}
+
+rule VerifyNonCompliant {
+    when: verify: VerifyResult where critical_failed > 0
+    ensures: verify.status = "NonCompliant"
+    @guidance -- Salience 100. Critical check failed — block operations.
+}
+
+-- ─── Domain 10: Build Staleness (build.rs) ──────────────────────────────────
+
+rule BuildForceRebuildCritical {
+    when: build: BuildCheck where criticality = p0_critical and age_hours > 72
+    ensures: build.action = "Rebuild"
+    @guidance -- Salience 90. P0 containers rebuilt at 72h not 168h.
+}
+
+rule BuildStandardRebuild {
+    when: build: BuildCheck where age_hours > 168
+    ensures: build.action = "Rebuild"
+    @guidance -- Salience 50. Standard 7-day rebuild.
+}
+
+rule BuildSkipFresh {
+    when: build: BuildCheck where age_hours <= 72
+    ensures: build.action = "Skip"
+    @guidance -- Salience 10. Fresh image, skip.
+}
+
+-- ─── Domain 11: Apoptosis Grace (apoptosis.rs) ─────────────────────────────
+
+rule ApoptosisImmediateOnSplitBrain {
+    when: apo: ApoptosisContext where trigger = split_brain
+    ensures: apo.grace_period_ms = 0
+    @guidance -- Salience 100. No grace for split-brain.
+}
+
+rule ApoptosisGracefulOnManual {
+    when: apo: ApoptosisContext where trigger = manual
+    ensures: apo.grace_period_ms = 10000
+    @guidance -- Salience 50. 10s grace for operator-initiated.
+}
+
+rule ApoptosisFastOnCascade {
+    when: apo: ApoptosisContext where trigger = cascade_failure
+    ensures: apo.grace_period_ms = 2000
+    @guidance -- Salience 90. 2s grace for cascade.
+}
+
+-- ─── Domain 12: RCA Escalation (seven_level_rca.rs) ────────────────────────
+
+rule RcaL1NifPattern {
+    when: rca: RcaContext where error_contains_nif = true
+    ensures: rca.level = l1_symptom
+    @guidance -- Salience 80. NIF/glibc → L1 AtomicDebug.
+}
+
+rule RcaL6QuorumPattern {
+    when: rca: RcaContext where error_contains_quorum = true
+    ensures: rca.level = l6_design
+    @guidance -- Salience 80. Split-brain/quorum → L6 Ecosystem.
+}
+
+rule RcaUnknownToLlm {
+    when: rca: RcaContext where pattern_matched = false
+    ensures: rca.level = l7_architecture
+    ensures: rca.action = "EscalateToLLM"
+    @guidance -- Salience 10. Unknown → LLM for deep analysis.
+}
+
+-- ─── Domain 13: Hysteresis Config (hysteresis.rs) ──────────────────────────
+
+rule HysteresisTightenOnCascade {
+    when: hyst: HysteresisContext where cascade_active = true
+    ensures: hyst.consecutive_required = 2
+    ensures: hyst.debounce_ms = 100
+    @guidance -- Salience 80. Auto-tighten during cascades.
+}
+
+-- =============================================================================
+-- RETE-UL RULE ENGINE SUMMARY (UPDATED after implementation)
+-- =============================================================================
+-- ALL 13 DOMAINS IMPLEMENTED: 52 rules in rule_engine.rs (961 lines)
+--   Domain 1  OODA:       7 rules (evaluate_decision)             DONE + TESTED
+--   Domain 2  Preflight:  4 rules (evaluate_preflight)            DONE + 4 TESTS
+--   Domain 3  Recovery:   6 rules (evaluate_recovery)             DONE + 4 TESTS
+--   Domain 4  Health:     4 rules (evaluate_health_consensus)     DONE + 4 TESTS
+--   Domain 5  Cascade:    3 rules (evaluate_cascade)              DONE + 3 TESTS
+--   Domain 6  Partition:  3 rules (evaluate_partition)            DONE + 3 TESTS
+--   Domain 7  Launch:     3 rules (evaluate_launch_tier)          DONE + 3 TESTS
+--   Domain 8  Governor:   3 rules (evaluate_governor)             DONE + 3 TESTS
+--   Domain 9  Verify:     3 rules (evaluate_verify)               DONE + 3 TESTS
+--   Domain 10 Build:      3 rules (evaluate_build)                DONE + 3 TESTS
+--   Domain 11 Apoptosis:  4 rules (evaluate_apoptosis)            DONE + 4 TESTS
+--   Domain 12 RCA:        4 rules (evaluate_rca)                  DONE + 4 TESTS
+--   Domain 13 Hysteresis: 3 rules (evaluate_hysteresis)           DONE + 3 TESTS
+--
+-- Total: 52 GRL rules across 13 domains, ALL IMPLEMENTED AND TESTED
+-- Tests: 41 rule engine unit tests (307 Rust tests total, 0 failures)
+-- Engine: rust-rule-engine v1.20.1 (RETE-UL with Alpha/Beta Memory Indexing)
+-- Cache: 13 OnceLock<Vec<Rule>> instances (one per domain, parse once)
+-- Generic runner: run_domain(name, rules, facts) -> RuleResult { decision, reason }
+-- Ref: docs/journal/20260404-rete-ul-rule-engine-expansion-plan.md
+
+-- =============================================================================
+-- Rules: Health & Hysteresis
+-- =============================================================================
+
+rule HealthCheckFPPS {
+    when: c: Container.health transitions_to degraded
+    let consensus = HealthOrchestra.check_consensus(c.name, c.ports.first)
+    requires: consensus.consensus_reached
+    ensures: c.health = consensus.overall_status
+    @guidance
+        -- 5-method FPPS: Running + PortOpen + ServiceEndpoint + QuorumVote + DigitalTwin.
+        -- SC-SIL4-023. Threshold: 3/5 agree.
+}
+
+rule HysteresisDebounce {
+    when: c: Container.health transitions_to unhealthy
+    requires: c.hysteresis_state?.consecutive_count < config.hysteresis_consecutive_required
+    ensures: c.hysteresis_state.consecutive_count = c.hysteresis_state.consecutive_count + 1
+    @guidance
+        -- Prevent health flapping. N-consecutive checks required before state change.
+        -- SC-OPT-002.
+}
+
+-- =============================================================================
+-- Rules: Build & Image Management
+-- =============================================================================
+
+rule GeneticResynthesis {
+    when: SynthesisRequested(container_name)
+    let c = Container{name: container_name}
+    let is_stale = image_age(c.image) > config.max_image_age_hours
+    let exists = image_exists(c.image)
+    requires: not exists or is_stale
+    ensures: BuildResult.created(container_name: c.name, success: true)
+    ensures: BuildHistory.created(
+        container_name: c.name,
+        action: if c.category = built: "build" else if c.category = pulled: "pull" else: "shared",
+        success: true,
+        ema_duration_ms: config.ema_alpha * duration_ms + (1.0 - config.ema_alpha) * previous_ema
+    )
+    @guidance
+        -- 4-way staleness: EXISTS? -> INTEGRAL? -> FRESH? -> SKIP.
+        -- SC-IGNITE-001, SC-IGNITE-005. EMA alpha = 0.3.
+}
+
+-- =============================================================================
+-- Rules: Apoptosis & Safety
+-- =============================================================================
+
+rule ApoptosisInitiate {
+    when: trigger: ApoptosisTriggered(reason)
+    ensures: DyingGaspCheckpoint.created(
+        trigger: reason,
+        state_hash: sha256(running_containers),
+        running_containers: Genome.containers where is_running -> name,
+        timestamp: now
+    )
+    @guidance
+        -- 6-phase: Triggered -> NetworkIsolate -> StateHash -> ZenohGasp -> LameDuckDrain -> ContainerKill.
+        -- SC-SIL4-007 (dying gasp), SC-SIL4-015 (split-brain triggers apoptosis).
+}
+
+rule EmergencyStop {
+    when: EmergencyStopRequested(reason)
+    requires: exists GuardianService
+    ensures: for c in Genome.containers: c.health = unreachable
+    ensures: DyingGaspCheckpoint.created(trigger: manual, timestamp: now)
+    @guidance
+        -- < 5 seconds. SC-EMR-057. Bypasses normal shutdown phases.
+}
+
+-- =============================================================================
+-- Rules: Seven-Level RCA
+-- =============================================================================
+
+rule SevenLevelAnalysis {
+    when: failure: FailureDetected(container_name, error_message)
+    let pattern = find_known_issue(error_message)
+    ensures: if pattern != null:
+        RcaReport.created(
+            root_cause_level: pattern.root_level,
+            root_cause_summary: pattern.fix,
+            llm_enhanced: false
+        )
+    ensures: if pattern = null:
+        let llm_analysis = LLMAdvisor.query(
+            "7-level RCA for: " + error_message +
+            " in container " + container_name
+        )
+        RcaReport.created(
+            root_cause_level: l5_system,
+            root_cause_summary: llm_analysis,
+            llm_enhanced: true
+        )
+    @guidance
+        -- Known patterns: oban_peers (L7), port_conflict (L6), quorum (L5),
+        -- health_timeout (L4), zenoh_nif (L3). Unknown → LLM.
+        -- SC-RCA-001, SC-RCA-002.
+}
+
+-- =============================================================================
+-- Invariants
+-- =============================================================================
+
+invariant QuorumMaintained {
+    for boot in BootSequences where phase != preflight:
+        boot.genome.containers where name in {"zenoh-router-1", "zenoh-router-2", "zenoh-router-3"} and is_running .count >= 2
+}
+
+invariant OodaCycleSLA {
+    for cycle in OodaCycles:
+        cycle.duration_ms <= config.ooda_cycle_sla_ms or cycle.decision = escalate_to_llm
+}
+
+invariant CpuGovernorLimit {
+    for c in Containers:
+        c.cpu_percent <= config.cpu_hard_limit
+}
+
+invariant DyingGaspBeforeShutdown {
+    for c in Containers where health transitions_to unreachable:
+        exists DyingGaspCheckpoint{container_name: c.name}
+}
+
+invariant BuildHistoryEMA {
+    for bh in BuildHistories:
+        bh.ema_duration_ms >= 0
+}
+
+-- =============================================================================
+-- Surfaces
+-- =============================================================================
+
+surface OperatorDashboard {
+    facing viewer: Operator
+    context boot: BootSequence
+
+    exposes:
+        boot.phase
+        boot.progress_percent
+        boot.genome.healthy_count
+        boot.state_vector
+
+    provides:
+        PreflightCheck(viewer, boot) when boot.phase = preflight
+        EmergencyStopRequested(reason: "operator") when boot.phase != preflight
+        SynthesisRequested(container_name: String) when boot.phase = preflight
+
+    contracts:
+        demands PodmanOperations
+        demands HealthOrchestra
+        fulfils GuardianGate
+
+    timeout:
+        BootTimeout when boot.start_time + config.boot_timeout_ms.milliseconds <= now
+
+    @guarantee AllOperationsIdempotent
+    @guarantee OperatorCanAlwaysEmergencyStop
+}
+
+surface AiAdvisorInterface {
+    facing agent: AiAgent
+    context cycle: OodaCycle
+
+    exposes:
+        cycle.observation
+        cycle.orientation
+        cycle.decision
+
+    provides:
+        OodaCycleStart(cycle_number: Integer)
+
+    contracts:
+        demands RuleEngine
+        demands LLMAdvisor
+        fulfils HealthOrchestra
+
+    @guarantee RuleEngineSubMillisecond
+    @guarantee LLMOnlyOnEscalation
+}
+
+surface ZenohMeshBus {
+    facing mesh: ZenohRouter
+    context genome: Genome
+
+    exposes:
+        genome.containers where is_running -> name
+        genome.healthy_count
+
+    provides:
+        CheckpointPublished(phase: String, progress: Integer)
+        ApoptosisTriggered(reason: ApoptosisTrigger)
+
+    contracts:
+        fulfils PodmanOperations
+
+    @guarantee PublishLatencyUnder10ms
+    @guarantee CheckpointOnEveryPhaseTransition
+}
+
+-- =============================================================================
+-- Deferred Specifications
+-- =============================================================================
+
+deferred InterviewerMatching.suggest
+deferred CriticalPathMethod.optimize
+deferred MathematicalSystemMonitor.evaluate_disciplines
+
+-- =============================================================================
+-- Open Questions
+-- =============================================================================
+
+open question "Should the LLM be allowed to propose new GRL rules at runtime, or should rule changes require operator approval?"
+
+open question "Should the Digital Twin state be persisted to SQLite on every OODA cycle, or only on phase transitions?"
+
+open question "Should the OODA supervisor run continuously or only during boot and recovery?"
+
+open question "Should the 16-container genome be extensible via sil6-genome.toml, or remain hardcoded in artifacts.rs?"
+
+-- =============================================================================
+-- FORMAL VERIFICATION SPECIFICATIONS (Agda, Quint, TLA+)
+-- =============================================================================
+-- These sections define the formal properties that must be verified by
+-- external proof systems. Allium captures the behavioral intent; the formal
+-- tools verify the mathematical properties.
+
+-- ─── Agda (Dependent Types — Compile-Time Safety Proofs) ─────────────────────
+-- File: proofs/agda/BootSequence.agda
+--
+-- Agda verifies TYPE-LEVEL properties that Rust's type system cannot express:
+--
+-- 1. Boot Phase Monotonicity:
+--    ∀ (b : BootSequence) → phase(b, t+1) ≥ phase(b, t)
+--    "Boot phases never regress — preflight → foundation → ... → swarm"
+--
+-- 2. Quorum Preservation During Upgrade:
+--    ∀ (g : Genome) (t : Time) → upgrading(g, t) → quorum_count(g, t) ≥ ⌊N/2⌋ + 1
+--    "Quorum maintained throughout rolling upgrades (SC-SIL4-011)"
+--
+-- 3. Dying Gasp Totality:
+--    ∀ (c : Container) → terminates(c) → ∃ (cp : DyingGaspCheckpoint) → saved(cp, c)
+--    "Every container termination produces a checkpoint (SC-SIL4-007)"
+--
+-- 4. OODA Decision Exhaustiveness:
+--    ∀ (obs : Observation) (ori : Orientation) → ∃! (d : Decision) → decides(obs, ori, d)
+--    "Every observation/orientation pair produces exactly one decision"
+--
+-- 5. Genome Completeness:
+--    |genome.containers| = 16 ∧ |built| + |pulled| + |shared| = 16
+--    "Genome always has exactly 16 containers across 3 categories"
+--
+-- @guidance
+--   Agda proofs run at compile time. They verify properties BEFORE deployment.
+--   Use for: type-level invariants, totality proofs, termination proofs.
+--   Do NOT use for: runtime behavior, temporal properties, concurrent properties.
+
+-- ─── Quint (Executable Specification — State Machine Exploration) ─────────────
+-- File: specs/quint/ignition.qnt
+--
+-- Quint verifies STATE MACHINE properties via bounded model checking:
+--
+-- 1. Boot DAG Acyclicity:
+--    action boot_tier(tier) = { topo_sorted(dag) and not has_cycle(dag) }
+--    "DAG is acyclic before every tier boot (SC-BOOT-008)"
+--
+-- 2. Health Hysteresis Convergence:
+--    temporal always(flapping_detected implies eventually(stable_state))
+--    "Hysteresis controller always reaches stable state within N checks"
+--
+-- 3. OODA Cycle Termination:
+--    temporal always(cycle_started implies eventually(cycle_completed))
+--    "Every OODA cycle completes (no infinite loops in decide phase)"
+--
+-- 4. Cascade Containment Bound:
+--    invariant cascade_depth <= MAX_CASCADE_DEPTH (3)
+--    "Cascade depth never exceeds 3 before apoptosis triggers"
+--
+-- 5. Rule Engine Determinism:
+--    action eval_rules(facts) = { same_facts implies same_decision }
+--    "Identical facts always produce identical GRL rule evaluation"
+--
+-- 6. Container Health Reachability:
+--    temporal always(unreachable implies eventually(healthy or terminated))
+--    "Unreachable containers are either recovered or terminated"
+--
+-- @guidance
+--   Quint specs are executable — they can be simulated and model-checked.
+--   Use for: state machine exploration, property-based testing, trace generation.
+--   Integration: quint verify specs/quint/ignition.qnt --invariant all
+
+-- ─── TLA+ (Temporal Logic — Distributed System Correctness) ──────────────────
+-- File: specs/tlaplus/Ignition.tla
+--
+-- TLA+ verifies TEMPORAL LOGIC properties of the distributed 16-container mesh:
+--
+-- 1. Consensus Safety:
+--    [](\A i, j \in ZenohRouters : Decided(i) /\ Decided(j) => Decision(i) = Decision(j))
+--    "If two routers decide, they agree (SC-SIL4-006, 2oo3 voting)"
+--
+-- 2. Liveness — Boot Completion:
+--    WF_vars(TierBoot) => <>(boot_phase = "swarm")
+--    "Under weak fairness, boot eventually reaches swarm phase"
+--
+-- 3. Split-Brain Prevention:
+--    [](partition_detected => <>(fenced_minority \/ recovered))
+--    "Network partitions are always resolved by fencing or recovery"
+--
+-- 4. Apoptosis Progress:
+--    [](apoptosis_triggered => <>(phase = "container_kill"))
+--    "Apoptosis always progresses to completion (no stuck shutdown)"
+--
+-- 5. OODA Fairness:
+--    WF_vars(OodaCycle) => [](Len(pending_observations) > 0 => <>(processed))
+--    "All observations are eventually processed by the OODA loop"
+--
+-- 6. Zenoh Message Ordering:
+--    [](\A m1, m2 \in Messages : sent(m1) < sent(m2) => received(m1) <= received(m2))
+--    "Zenoh messages maintain causal ordering per topic"
+--
+-- @guidance
+--   TLA+ is checked by the TLC model checker. It explores ALL reachable states.
+--   Use for: distributed consensus, liveness, fairness, message ordering.
+--   Integration: tlc2 specs/tlaplus/Ignition.tla -config Ignition.cfg
+
+-- =============================================================================
+-- STAMP CONSTRAINTS (Full Registry)
+-- =============================================================================
+-- All SC-* constraints referenced by this specification, with Allium rule mapping.
+
+-- ─── SC-IGNITE (Ignition Pipeline) ──────────────────────────────────────────
+-- SC-IGNITE-001: Genomic Re-Synthesis step-by-step (L0-L1) → rule GeneticResynthesis
+-- SC-IGNITE-002: Architectural control checks (L0-L7) enforced → rule PreflightCheck
+-- SC-IGNITE-003: 7-Level Fractal RCA on boot failure → rule SevenLevelAnalysis
+-- SC-IGNITE-004: Dashboard shows "Thinking" + real-time progress → surface OperatorDashboard
+-- SC-IGNITE-005: BuildHistory persists to SQLite with WAL + EMA → entity BuildHistory
+-- SC-IGNITE-006: Multi-container tiers boot in parallel → rule TierBoot
+-- SC-IGNITE-007: Image staleness triggers rebuild at > maxImageAgeHours → rule GeneticResynthesis
+-- SC-IGNITE-008: sil6Genome covers all 16 containers → invariant GenomeComplete
+
+-- ─── SC-BOOT (Boot Sequence) ────────────────────────────────────────────────
+-- SC-BOOT-001: State vector verified before each stage → entity BootSequence.state_vector
+-- SC-BOOT-004: Boot transactional with rollback → contract PodmanOperations (idempotent)
+-- SC-BOOT-005: Boot time < 60s → deferred CriticalPathMethod.optimize
+-- SC-BOOT-006: All containers pass health check → invariant QuorumMaintained
+-- SC-BOOT-008: DAG acyclic (Kahn's algorithm) → Quint property boot_dag_acyclicity
+-- SC-BOOT-009: Waves boot in parallel → rule TierBoot (@guidance parallel)
+-- SC-BOOT-011: 7-level RCA on failure → rule SevenLevelAnalysis
+-- SC-BOOT-012: RCA report generated → entity RcaReport
+
+-- ─── SC-SIL4 (IEC 61508 Safety) ────────────────────────────────────────────
+-- SC-SIL4-001: Fail to safe state → rule ApoptosisInitiate
+-- SC-SIL4-006: 2oo3 voting mandatory → invariant QuorumMaintained, TLA+ consensus
+-- SC-SIL4-007: Dying gasp mandatory → entity DyingGaspCheckpoint, Agda totality proof
+-- SC-SIL4-011: Quorum maintained during upgrades → Agda quorum_preservation
+-- SC-SIL4-013: 6 shutdown phases → enum ApoptosisPhase (6 variants)
+-- SC-SIL4-015: Split-brain triggers apoptosis → rule GrlApoptosisCascade, TLA+ split_brain
+-- SC-SIL4-023: FPPS 3/5 consensus → contract HealthOrchestra
+
+-- ─── SC-OODA (OODA Loop) ────────────────────────────────────────────────────
+-- SC-OODA-001: Observe phase collects sensor data → rule OodaObserve (30ms budget)
+-- SC-OODA-002: Orient phase analyzes situation → rule OodaOrient (20ms budget)
+-- SC-OODA-003: Decide phase uses rules + LLM → rules OodaDecideViaRules/OodaDecideViaLLM
+-- SC-OODA-004: Act phase executes with Guardian gate → rule OodaAct
+-- SC-OODA-005: Hysteresis in decisions → entity HysteresisState, rule HysteresisDebounce
+-- SC-OODA-009: Cycle SLA < 100ms → invariant OodaCycleSLA
+
+-- ─── SC-EMR (Emergency Response) ────────────────────────────────────────────
+-- SC-EMR-057: Emergency stop < 5 seconds → rule EmergencyStop
+
+-- ─── SC-CPU-GOV (CPU Governance) ────────────────────────────────────────────
+-- SC-CPU-GOV-001: CPU ≤ 85% → invariant CpuGovernorLimit, config.cpu_hard_limit
+
+-- ─── SC-RCA (Root Cause Analysis) ───────────────────────────────────────────
+-- SC-RCA-001: 7-level methodology → entity RcaReport, enum RcaLevel (7 variants)
+-- SC-RCA-002: Known issue pattern database → rule SevenLevelAnalysis (5 patterns)
+
+-- ─── SC-TUI-TEST (TUI Testing) ─────────────────────────────────────────────
+-- SC-TUI-TEST-001: Every tab has >= 3 unit tests → testing section below
+-- SC-TUI-TEST-006: DashboardState::default() renderable → testing section below
+-- SC-TUI-TEST-007: No render panics on empty data → testing section below
+-- SC-TUI-TEST-010: Health colors match palette → testing section below
+
+-- ─── SC-GLM-TST (Gleam Testing) ────────────────────────────────────────────
+-- SC-GLM-TST-001: 100+ regression tests per release → testing section below
+-- SC-GLM-TST-002: Each tab monitored 30+ seconds → testing section below
+
+-- ─── SC-MATH-COV (Mathematical Coverage) ────────────────────────────────────
+-- SC-MATH-COV-001: Shannon H >= 2.5 bits → testing section below
+-- SC-MATH-COV-003: CCM >= 0.90 → testing section below
+-- SC-MATH-COV-006: ITQS >= 0.85 → testing section below
+
+-- =============================================================================
+-- AOR OPERATIONAL RULES (Full Registry)
+-- =============================================================================
+-- All AOR-* agent operation rules referenced by this specification.
+
+-- ─── AOR-IGNITE (Ignition Operations) ───────────────────────────────────────
+-- AOR-IGNITE-001: ALWAYS run geneticResynthesis before igniteMesh
+--   → rule GeneticResynthesis fires before TierBoot
+-- AOR-IGNITE-002: NEVER skip health checks
+--   → contract HealthOrchestra @invariant NoFalseHealthy
+-- AOR-IGNITE-003: ALWAYS call BuildHistory.ensureSchema() at start
+--   → rule PreflightCheck ensures schema exists
+-- AOR-IGNITE-004: ALWAYS record build results to BuildHistory
+--   → rule GeneticResynthesis ensures BuildHistory.created(...)
+-- AOR-IGNITE-005: Tier boot failures MUST halt pipeline
+--   → rule TierBoot requires previous tiers healthy
+
+-- ─── AOR-OODA (OODA Operations) ─────────────────────────────────────────────
+-- AOR-OODA-001: Observe budget ≤ 30ms → rule OodaObserve @guidance
+-- AOR-OODA-002: Orient budget ≤ 20ms → rule OodaOrient @guidance
+-- AOR-OODA-003: Decide budget ≤ 20ms → rule OodaDecideViaRules @guidance
+-- AOR-OODA-004: Act budget ≤ 20ms → rule OodaAct @guidance
+-- AOR-OODA-005: Total cycle ≤ 100ms → invariant OodaCycleSLA
+
+-- ─── AOR-FUNC (Functional Invariant) ────────────────────────────────────────
+-- AOR-FUNC-001: Verify compilation before commit → deferred (CI/CD)
+-- AOR-FUNC-002: Checkpoint git state before risky ops → apoptosis checkpoint analogy
+-- AOR-FUNC-005: Rollback on functional degradation → rule ApoptosisInitiate
+-- AOR-FUNC-008: Halt if functional invariant violated → Jidoka principle
+
+-- ─── AOR-TPS (Toyota Production System / Jidoka) ────────────────────────────
+-- AOR-TPS-001: Stop on defect detection → rule EmergencyStop, rule GrlApoptosisCascade
+-- AOR-TPS-002: Signal via Zenoh control plane → surface ZenohMeshBus.ApoptosisTriggered
+-- AOR-TPS-003: 5-level RCA → rule SevenLevelAnalysis (7 levels, exceeds TPS)
+
+-- ─── AOR-ZENOH (Zenoh Telemetry) ────────────────────────────────────────────
+-- AOR-ZENOH-001: NEVER set SKIP_ZENOH_NIF=1 → config invariant (external)
+-- AOR-ZENOH-007: Publish node health every 10s → surface ZenohMeshBus
+-- AOR-ZENOH-008: Subscribe to cluster coordination on startup → external entity ZenohRouter
+
+-- ─── AOR-DELETE (Deletion Safeguard) ────────────────────────────────────────
+-- AOR-DELETE-001: Backup before deletion → DyingGaspCheckpoint pattern (analogous)
+-- AOR-DELETE-002: Present deletion list before executing → surface OperatorDashboard exposes
+
+-- =============================================================================
+-- FMEA (Failure Mode and Effects Analysis)
+-- =============================================================================
+-- 15 failure modes with RPN scoring. Each maps to a GRL rule + recovery playbook.
+-- RPN = Severity × Occurrence × Detection (scale 1-10 each, max 1000)
+
+-- ─── FMEA Failure Mode Registry ─────────────────────────────────────────────
+--
+-- | # | Failure Mode                  | S | O | D | RPN | GRL Rule              | Recovery Playbook     |
+-- |---|-------------------------------|---|---|---|-----|-----------------------|-----------------------|
+-- | 1 | NIF Compilation Failure       | 9 | 4 | 7 | 252 | (preflight blocks)    | rebuild NIF deps      |
+-- | 2 | Glibc/Musl Conflict           | 9 | 5 | 5 | 225 | (substrate_guard)     | rm _build/deps        |
+-- | 3 | Fixed Health Timeouts         | 7 | 4 | 7 | 196 | GrlRestartOnDrift     | increase timeout      |
+-- | 4 | Boot Ordering Race            | 8 | 3 | 7 | 168 | (DAG enforces order)  | retry with backoff    |
+-- | 5 | Observability Gap             | 7 | 4 | 5 | 140 | (preflight PF-6)      | restart obs container |
+-- | 6 | Cascading Failure             | 9 | 3 | 8 | 216 | GrlApoptosisCascade   | tier isolation        |
+-- | 7 | Disk Exhaustion               | 8 | 3 | 7 | 168 | (external monitoring) | prune volumes/logs    |
+-- | 8 | Memory Leak                   | 7 | 4 | 7 | 196 | GrlDrainMemoryLeak    | drain + restart       |
+-- | 9 | Network Partition             | 9 | 2 | 7 | 126 | (partition.rs fences) | fence minority        |
+-- |10 | Image Corruption              | 7 | 2 | 8 | 112 | GrlRebuildCorruptImage| rebuild image         |
+-- |11 | Certificate Expiry            | 6 | 3 | 9 | 162 | GrlCertRotation       | rotate certs          |
+-- |12 | Clock Drift                   | 5 | 4 | 8 | 160 | GrlNtpSync            | NTP resync            |
+-- |13 | Zombie Process                | 5 | 4 | 7 | 140 | GrlZombieReap         | kill -9 + restart     |
+-- |14 | Registry Unavailable          | 6 | 3 | 8 | 144 | GrlRegistryFailover   | use cached image      |
+-- |15 | Configuration Drift           | 5 | 4 | 7 | 140 | GrlConfigReconcile    | config bridge sync    |
+--
+-- FMEA Invariants (SC-FMEA-001..008):
+-- SC-FMEA-001: FMEA runs on every --analysis invocation
+-- SC-FMEA-002: RPN = S × O × D formula
+-- SC-FMEA-003: Severity: P0=9, P1=7, P2=5, P3=3
+-- SC-FMEA-004: RPN >= 200 requires immediate action → GRL rules 1,2,6,8 address these
+-- SC-FMEA-005: Results cached for retrieval
+-- SC-FMEA-006: Top 15 entries persisted
+-- SC-FMEA-007: Mitigation plan for RPN >= 100 → all 15 have playbooks
+-- SC-FMEA-008: Trend tracked in sync history
+
+-- =============================================================================
+-- UI DASHBOARD SPECIFICATION (12-Tab Ratatui TUI)
+-- =============================================================================
+-- Maps to tui.rs (4,331 lines), surface OperatorDashboard, SC-HMI-001..080
+
+-- ─── Tab Registry ───────────────────────────────────────────────────────────
+--
+-- | Tab | Name         | Elements                    | Monitoring | Layer | STAMP            |
+-- |-----|--------------|-----------------------------|------------|-------|------------------|
+-- |  0  | Swarm        | Container matrix, logs, tbl | 60s        | L4    | SC-HMI-010       |
+-- |  1  | Governor     | CPU sparkline, heatmap      | 60s        | L4    | SC-CPU-GOV-001   |
+-- |  2  | Checks       | State vector display        | 15s        | L1    | SC-VER-074       |
+-- |  3  | Trace        | OTel flame bars             | 30s        | L1    | SC-ZTEST-001     |
+-- |  4  | Topology     | Tiered ANSI mesh map        | 15s        | L6    | SC-MESH-009      |
+-- |  5  | Build        | Oracle EMA prediction       | 30s        | L2    | SC-IGNITE-005    |
+-- |  6  | NIF          | Substrate guard results     | 10s        | L1    | SC-NIF-006       |
+-- |  7  | Recovery     | FMEA RPN matrix             | 20s        | L4    | SC-FMEA-004      |
+-- |  8  | Fractal      | L0-L7 health tree           | 45s        | L0-L7 | SC-VER-074      |
+-- |  9  | Security     | Axiom 0.1 enforcement       | 10s        | L0    | SC-IGNITE-002    |
+-- | 10  | Logs         | tui-logger buffer           | 60s        | L1    | SC-LOG-001       |
+-- | 11  | Agent UI     | CoT dialogue marquee        | 45s        | L5    | SC-AGUI-001      |
+--
+-- ─── INDRAJAAL Color Palette (SC-HMI-010) ───────────────────────────────────
+-- CYAN:    RGB(0, 212, 170)    — accent, healthy, active tab
+-- GREEN:   RGB(61, 214, 140)   — success, container running
+-- YELLOW:  RGB(245, 166, 35)   — warning, degraded
+-- RED:     RGB(224, 82, 82)    — error, critical, failed
+-- MAGENTA: RGB(176, 82, 224)   — recovery, special
+-- DIM:     RGB(78, 86, 104)    — muted, inactive
+--
+-- ─── Dark Cockpit 5-Mode (SC-HMI-010, prajna/dark_cockpit.gleam) ────────────
+-- Dark:      No alerts → minimal gray, monochrome
+-- Dim:       Warnings → subtle yellow, low-saturation
+-- Normal:    Errors → visible orange, standard contrast
+-- Bright:    Multiple errors → high-visibility, high-contrast
+-- Emergency: Critical → full illumination + flash, red dominant
+--
+-- ─── Split-Screen Layout (SC-GLM-ZEN-003) ───────────────────────────────────
+-- TOP  55%: Dashboard (sa-up dashboard, all 12 tabs)
+-- BOTTOM 45%: Test Execution KPI Dashboard
+-- Separator: "◄ TEST DASHBOARD ▼ ... ▲" (cyan)
+-- Keyboard: Tab/Shift+Tab navigation, q/Esc quit, s/x/r/l container control
+--
+-- ─── Gleam Penta-Stack UI (SC-GLM-UI-001) ───────────────────────────────────
+-- Every tab simultaneously exists as:
+--   1. Rust Ratatui TUI (operator-facing, 12 tabs, port: CLI)
+--   2. Gleam Lustre SSR Web UI (24 pages, port 4100)
+--   3. Gleam Wisp REST API (14 endpoints, port 4100)
+--   4. Gleam ANSI TUI (24 views, CLI)
+--   5. F# Prajna CLI (safety fallback)
+
+-- =============================================================================
+-- TESTING SPECIFICATION
+-- =============================================================================
+-- Captures ALL testing requirements: Rust unit, Gleam gleeunit, E2E, coverage math
+
+-- ─── Rust TUI Testing (SC-TUI-TEST-001..010) ────────────────────────────────
+-- 7-Layer Testing Pyramid:
+--   L1 Unit:        TestBackend + #[test] — all tabs × all states (<1s)
+--   L2 Snapshot:    insta golden files — 10 tabs × 3 viewports (<3s)
+--   L3 Style:       Buffer cell fg/bg assertions — all health colors (<1s)
+--   L4 Integration: PTY harness — keyboard nav + tab cycling (<30s)
+--   L5 Responsive:  Viewport matrix — 80×24 + 120×40 + 200×60 (<10s)
+--   L6 Accessibility: Focus order verification (<60s)
+--   L7 Visual:      Gemini closed-loop screenshot review (<45min)
+--
+-- Required per tab: >= 3 tests (default, loading, error states)
+-- DashboardState::default() MUST be renderable
+-- No render function may panic on empty/null data
+-- Container health colors: GREEN=healthy, YELLOW=degraded, RED=critical
+
+-- ─── Gleam gleeunit Testing (SC-GLM-TST-001..002) ──────────────────────────
+-- Current: 1,721 tests, 0 failures (target: 100+ per release)
+-- 8-Category Gold Standard (C1-C8):
+--   C1 Page Structure (weight 1.0): Element count >= 5
+--   C2 Status Badges  (weight 1.5): Healthy/Degraded/Critical visible
+--   C3 Data Grids     (weight 1.0): >= 3 rows × 3 columns
+--   C4 Timeline       (weight 0.8): Timestamp ordering
+--   C5 Interactive    (weight 1.2): Click → state change
+--   C6 Media/Rich     (weight 0.8): SVG/sparklines load
+--   C7 AI Advisory    (weight 1.5): AG-UI events flow
+--   C8 Action Button  (weight 3.0): Guardian + 2oo3 consensus
+--
+-- Per-tab monitoring: >= 30 seconds simulated via tick loops (SC-GLM-TST-002)
+-- Coverage per page: 15 pages × 8 categories × Zenoh + monitoring tests
+
+-- ─── Mathematical Coverage Gates (SC-MATH-COV-001..008) ─────────────────────
+-- Shannon Entropy:  H = -Σ(p_i × log₂(p_i)) across C1-C8 ≥ 2.5 bits
+-- CCM:              Σ(w_i × cov_i) / Σ(w_i) ≥ 0.90
+-- Divergence:       |expected \ tested| / |expected| ≤ 0.10
+-- FSI:              1 - (σ(H) / μ(H)) ≥ 0.85
+-- ITQS:             0.25·H_norm + 0.35·CCM + 0.25·(1-D_EA) + 0.15·FSI ≥ 0.85
+-- Grade:            A ≥ 0.90, B ≥ 0.85, C ≥ 0.75, D < 0.75
+-- Weights:          [1.0, 1.5, 2.0, 2.0, 1.5, 2.5, 2.5, 3.0] for C1-C8
+
+-- ─── BDD Levels (SC-BDD-001) ────────────────────────────────────────────────
+-- 7 BDD levels per element:
+--   BddUnit | BddIntegration | BddContract | BddComponent |
+--   BddSystem | BddAcceptance | BddVisual
+-- Coverage matrix: 15 pages × 12 elements × 7 levels = ~1,260 cells
+-- Monitoring plan: 30-45s per element based on fractal layer criticality
+
+-- ─── Fractal Matrix (testing/fractal_matrix.gleam) ──────────────────────────
+-- TabElementInventory: per-page element enumeration with BDD coverage
+-- ElementSpec: id, element_type, category (C1-C8), bdd_levels, monitoring_sec
+-- BddCell: page × layer × level → test_count, covered
+
+-- ─── Flight Check (testing/flight_check.gleam) ──────────────────────────────
+-- 8 preflight checks: gleam_build, zenoh, containers, database, guardian, test_framework, cognitive, federation
+-- Fractal RCA: 5-why chain mapped to L0-L7
+-- Jidoka halt: L0, L1, L6 failures → mandatory halt (SC-TPS-001)
+
+-- ─── Zenoh Test Observer (testing/zenoh_test_observer.gleam) ─────────────────
+-- Records all OTel spans during test execution
+-- Verifies: topics_received, message_ordering, span_completeness (4 OODA phases)
+-- Enhanced: verify_all_pages_published (15 pages), verify_mcp_relay
+
+-- ─── Gemini Pipeline Verification (testing/gemini_verification.gleam) ────────
+-- OTel → Zenoh → MCP → Gemini pipeline end-to-end check
+-- PipelineStage: OtelPublish, ZenohTransport, McpRelay, GeminiProcess
+-- delivery_rate >= 0.9 for pipeline_healthy = true
+
+-- ─── Graph-Theory Testing (SC-UIGT-001..015) ────────────────────────────────
+-- Navigation digraph: |V|=22 pages, |E|~462, SCC=1, density=1.0
+-- PageRank priority: Dashboard(0.055) > Cockpit(0.052) > Verification(0.050)
+-- Chinese Postman bound: CPP ≈ 462 (all edges traversed)
+-- Prime path coverage: >= 0.95 (Tier 1 pages), >= 0.80 (Tier 2)
+
+-- ─── Human Intent Protection (SC-HINT-001..008) ─────────────────────────────
+-- Alignment Score = |EXPECTED ∩ AS-IS| / |EXPECTED ∪ AS-IS|
+-- ≥ 0.9: ALIGNED (green), 0.7-0.9: DRIFT (yellow), < 0.7: MISALIGNED (red, P1 alert)
+-- Agent MUST NEVER modify Human-Specified Intent sections
+
+-- =============================================================================
+-- MATHEMATICAL STRUCTURES (Complete Inventory)
+-- =============================================================================
+-- All algorithms, formulas, metrics, and formal methods used across the system.
+-- Each structure maps to a Gleam/Rust/F# implementation and STAMP constraint.
+
+-- ─── INFORMATION THEORY ─────────────────────────────────────────────────────
+--
+-- 1. Shannon Entropy (H)
+--    Formula: H = -∑(p_i × log₂(p_i)) for i in C1..C8
+--    Range: [0.0, 3.0] bits (max = log₂(8) = 3.0 for 8 categories)
+--    Gate: H ≥ 2.5 bits (SC-MATH-COV-001)
+--    File: testing/coverage_math.gleam:91-119
+--
+-- 2. Normalized Shannon Entropy (H_norm)
+--    Formula: H_norm = H / 3.0
+--    Range: [0.0, 1.0]
+--    File: testing/coverage_math.gleam:121-127
+--    SC-MATH-COV-002
+--
+-- 3. Fleet Stability Index (FSI)
+--    Formula: FSI = 1 - (σ(H) / μ(H)) clamped [0, 1]
+--    σ = std deviation of entropy across suite, μ = mean entropy
+--    Perfect stability: FSI = 1.0 (uniform entropy)
+--    File: testing/coverage_math.gleam:187-204
+--    SC-MATH-COV-005
+
+-- ─── COVERAGE & QUALITY METRICS ─────────────────────────────────────────────
+--
+-- 4. Composite Coverage Metric (CCM)
+--    Formula: CCM = ∑(w_i × cov_i) / ∑(w_i)
+--    Weights W = [1.0, 1.5, 2.0, 2.0, 1.5, 2.5, 2.5, 3.0] for C1-C8
+--    Gate: CCM ≥ 0.90 (SC-MATH-COV-003)
+--    File: testing/coverage_math.gleam:129-163
+--
+-- 5. Element-Level Divergence (D_EA)
+--    Formula: D_EA = |expected \ tested| / |expected|
+--    Gate: D_EA ≤ 0.10 (SC-MATH-COV-004)
+--    File: testing/coverage_math.gleam:165-185
+--
+-- 6. Integrated Test Quality Score (ITQS)
+--    Formula: ITQS = 0.25×H_norm + 0.35×CCM + 0.25×(1-D_EA) + 0.15×FSI
+--    Gate: ITQS ≥ 0.85 (SC-MATH-COV-006)
+--    Grades: A≥0.90, B≥0.85, C≥0.75, D<0.75 (SC-MATH-COV-007)
+--    File: testing/coverage_math.gleam:206-246
+
+-- ─── SIMILARITY METRICS ─────────────────────────────────────────────────────
+--
+-- 7. Jaccard Similarity (Human Intent Alignment)
+--    Formula: J = |EXPECTED ∩ AS-IS| / |EXPECTED ∪ AS-IS|
+--    Thresholds: ≥0.9 ALIGNED, 0.7-0.9 DRIFT, <0.7 MISALIGNED
+--    File: testing/alignment.gleam:60-113
+--    SC-HINT-003, SC-HINT-005
+
+-- ─── GRAPH THEORY ───────────────────────────────────────────────────────────
+--
+-- 8. PageRank (Test Priority)
+--    Formula: rank(p) = (1-d)/N + d × ∑(rank(q)/|out(q)|)
+--    d = 0.85, N = 13 pages, 30 iterations
+--    File: testing/nav_graph.gleam:72-138
+--    SC-UIGT-001..014
+--
+-- 9. Graph Density
+--    Formula: density = |E| / (N × (N-1)) = 1.0 for complete digraph
+--    |E| = 156 edges for 13-page navigation graph
+--    File: testing/nav_graph.gleam:66-70
+--
+-- 10. Strongly Connected Components (SCC)
+--     Result: scc_count = 1 (all pages reachable)
+--     File: testing/nav_graph.gleam:145-148
+--     SC-UIGT-012
+--
+-- 11. Chinese Postman Bound
+--     Formula: CPP = |E| = 156 (minimum edges to traverse)
+--     File: testing/nav_graph.gleam:140-143
+--     SC-UIGT-013
+
+-- ─── DAG & TOPOLOGICAL ALGORITHMS ───────────────────────────────────────────
+--
+-- 12. Kahn's Algorithm (Topological Sort)
+--     Complexity: O(V + E)
+--     Acyclic iff processed_count = total_nodes
+--     Files: verification/prometheus.gleam:48-110, ignition/dag.rs:72-80
+--     SC-PROM-001, SC-BOOT-008
+--
+-- 13. DFS Cycle Detection (White/Gray/Black Coloring)
+--     Cycle detected when Gray node re-encountered
+--     File: ignition/dag.rs (via petgraph::algo::is_cyclic_directed)
+--
+-- 14. Wave Parallelization (Level-by-Level Partitioning)
+--     Group nodes by dependency depth for parallel execution
+--     File: ignition/dag.rs:82-125
+--     SC-BOOT-009
+--
+-- 15. Path Verification
+--     Check consecutive edge pairs exist in DAG
+--     File: verification/prometheus.gleam:113-132
+--     SC-PROM-001
+--
+-- 16. Set Exclusivity (Disjoint Path Constraint)
+--     path_a ∩ path_b = ∅
+--     File: verification/prometheus.gleam:134-144
+
+-- ─── CRITICAL PATH METHOD (CPM) ────────────────────────────────────────────
+--
+-- 17. Forward Pass
+--     ES_i = max(EF_j) for predecessors j; EF_i = ES_i + duration_i
+--     File: ignition/cpm.rs:30-54
+--     SC-CPM-001..010
+--
+-- 18. Backward Pass
+--     LF_i = min(LS_j) for successors j; LS_i = LF_i - duration_i
+--     File: ignition/cpm.rs:58-87
+--
+-- 19. Float & Critical Path
+--     float_i = LS_i - ES_i; critical iff float_i = 0
+--     File: ignition/cpm.rs:89-117
+--     SC-BOOT-005 (boot < 60s target)
+
+-- ─── STATE MACHINES & CONTROL ───────────────────────────────────────────────
+--
+-- 20. Hysteresis Controller (N-Consecutive Debounce)
+--     States: {Unknown, Healthy, Unhealthy}
+--     Transition: requires N consecutive same-checks before state change
+--     Presets: Aggressive(1,1), Default(3,2), Conservative(5,3)
+--     Health%: 100 × healthy_count / window_size
+--     File: ignition/hysteresis.rs:99-210
+--     SC-OPT-002
+--
+-- 21. PID Controller (Ziegler-Nichols Homeostasis)
+--     Formula: output = K_p×error + K_i×∫error + K_d×d(error)/dt
+--     Tuning: Ziegler-Nichols for critical damping
+--     Purpose: System homeostasis (resource allocation equilibrium)
+--     SC-MATH-003, SC-HOM-001..005
+
+-- ─── CONSENSUS & VOTING ─────────────────────────────────────────────────────
+--
+-- 22. FPPS 5-Method Consensus
+--     Methods: Running + PortOpen + ServiceEndpoint + QuorumVote + DigitalTwin
+--     Threshold: ≥ 3/5 agree for consensus_reached = true
+--     File: ignition/health_orchestra.rs
+--     SC-SIL4-023
+--
+-- 23. 2-out-of-3 Quorum Voting
+--     Formula: Q(N) = ⌊N/2⌋ + 1; for N=3: Q=2
+--     File: ignition/health.rs, verification/probes.gleam:verify_2oo3
+--     SC-SIL4-006, SC-QUORUM-001
+
+-- ─── TIME SERIES & PREDICTION ───────────────────────────────────────────────
+--
+-- 24. Exponential Moving Average (EMA)
+--     Formula: EMA_t = α × x_t + (1-α) × EMA_{t-1}
+--     α = 0.3 (smoothing factor)
+--     Timeout: EMA × 2.5 multiplier, clamped [15s, 600s]
+--     File: ignition/build_oracle.rs, F# BuildHistory.fs
+--     SC-IGNITE-005
+
+-- ─── CPU MEASUREMENT & GOVERNANCE ───────────────────────────────────────────
+--
+-- 25. CPU% Differential (/proc/stat)
+--     Formula: CPU% = (active_delta / total_delta) × 100
+--     active = user + nice + system + irq + softirq
+--     total = active + idle + iowait
+--     Window: 100ms (fast) or 1s (precise)
+--     File: ignition/governor.rs:14-57
+--     SC-CPU-GOV-009
+--
+-- 26. Adaptive Parallelism Function
+--     parallelism = f(cpu_pct):
+--       <60% → (16 schedulers, 16 jobs, nice 10)
+--       60-70% → (12, 12, 10)
+--       70-80% → (10, 10, 15)
+--       80-85% → (6, 6, 19)
+--       >85% → WAIT until <75%
+--     File: ignition/governor.rs:97-138
+--     SC-CPU-GOV-001..010
+
+-- ─── EXPERT SYSTEMS & RULE ENGINES ──────────────────────────────────────────
+--
+-- 27. RETE-UL Algorithm (rust-rule-engine v1.20.1)
+--     Forward + backward chaining with Alpha/Beta Memory Indexing
+--     Language: GRL (Grule Rule Language)
+--     Performance: 2-683x speedup via zero-copy optimization
+--     Facts → KnowledgeBase → RuleEvaluation → Decision
+--     File: ignition/rule_engine.rs
+--     SC-OODA-003
+
+-- ─── FMEA RISK SCORING ─────────────────────────────────────────────────────
+--
+-- 28. Risk Priority Number (RPN)
+--     Formula: RPN = Severity × Occurrence × Detection
+--     Scale: 1-10 per factor, max RPN = 1000
+--     Severity mapping: P0=9, P1=7, P2=5, P3=3
+--     Gate: RPN ≥ 200 requires immediate action
+--     SC-FMEA-001..008
+
+-- ─── CATEGORY THEORY (F# MSTS Morphisms) ───────────────────────────────────
+--
+-- 29. Transformation Morphisms (CLR → BEAM Migration)
+--     ≅ Isomorphic: 1:1 mapping, zero loss (F# Record → Gleam Custom Type)
+--     ↠ Surjective: Lossy mapping (F# try/with → Gleam Result)
+--     ↪ Injective: Embedded mapping (F# MailboxProcessor → Gleam OTP Actor)
+--     ∅ Prohibited: Illegal in SIL-6 (mutable globals, null, unbounded recursion)
+--     File: .claude/rules/c3i-gleam-msts-001.md
+
+-- ─── STATISTICS ─────────────────────────────────────────────────────────────
+--
+-- 30. Standard Deviation (σ)
+--     Formula: σ = √(∑(x_i - μ)² / n)
+--     File: testing/coverage_math.gleam:350-369
+--
+-- 31. Mean (μ)
+--     Formula: μ = ∑x_i / n
+--     File: testing/coverage_math.gleam:338-348
+--
+-- 32. SHA-256 Cryptographic Hash
+--     Used for: Dying gasp checkpoint integrity, constitution hash
+--     File: ignition/apoptosis.rs (sha2 crate)
+--     SC-SIL4-007
+--
+-- 33. Ed25519 Digital Signature
+--     Used for: Container attestation proof tokens
+--     File: ignition/launch.rs (ed25519-dalek crate)
+--     SC-FED-006
+
+-- ─── SUMMARY ────────────────────────────────────────────────────────────────
+-- Total mathematical structures: 33
+-- Categories: Information Theory (3), Coverage Metrics (3), Similarity (1),
+--   Graph Theory (4), DAG/Topo (5), CPM (3), State Machines (2),
+--   Consensus (2), Time Series (1), CPU Governance (2), Expert Systems (1),
+--   FMEA (1), Category Theory (1), Statistics (2), Cryptography (2)
+
+-- =============================================================================
+-- KNOWLEDGE MAP: Document & Code References
+-- =============================================================================
+-- Cross-references to journals, docs, and source files for ontology connectivity.
+
+-- ─── JOURNAL REFERENCES (38 entries, 2026-04-04) ────────────────────────────
+--
+-- Container Creation & Robustness:
+--   docs/journal/20260404-0015-robust-container-ranking.md
+--     → 6-dimensional ranking matrix, 100 robustness ideas
+--     → maps to: entity Container, config max_image_age_hours, rule GeneticResynthesis
+--   docs/journal/20260404-0100-bulletproof-container-creation-plan.md
+--     → Bash vs F# vs Rust comparison, railway-oriented error handling
+--     → maps to: contract PodmanOperations, rule PreflightCheck
+--   docs/journal/20260404-0115-definitive-container-specification.md
+--     → Rust as sole orchestrator, 19-point SIL-6 validation
+--     → maps to: entity Genome (16 containers), invariant GenomeComplete
+--
+-- Swarm Specification:
+--   docs/journal/20260404-0330-robust-swarm-analysis.md
+--     → 3-phase: Preflight → Wave Launch → FPPS Consensus
+--     → maps to: entity BootSequence, contract HealthOrchestra
+--   docs/journal/20260404-0400-full-swarm-specification.md
+--     → 8-tab TUI, health matrix, integrity gauge
+--     → maps to: surface OperatorDashboard, UI spec (12 tabs)
+--   docs/journal/20260404-0500-detailed-swarm-spec-l7.md
+--     → Golden Triangle (AG-UI + DevUI + OTel), L0-L7 hierarchy
+--     → maps to: all FractalLayer variants, testing section
+--
+-- BDD & Testing:
+--   docs/journal/20260404-0600-golden-triangle-bdd-50-usecases.md
+--     → 50 BDD scenarios across AG-UI, DevUI, OTel
+--     → maps to: testing section (7 BDD levels, 8 coverage categories)
+--   docs/journal/20260404-0800-50-bdd-7level-usecases.md
+--     → UC-01 Ghost Purging, LaunchManager state machine
+--     → maps to: entity Container transitions, rule PreflightCheck
+--   docs/journal/20260404-1200-comprehensive-swarm-tab-test-spec.md
+--     → L0-L7 fractal test scenarios, Quorum Safety invariant
+--     → maps to: invariant QuorumMaintained, testing section
+--
+-- TUI Blueprint:
+--   docs/journal/20260404-0700-tui-7level-blueprint.md
+--     → Application blueprint A1-A6, cross-page navigation
+--     → maps to: surface OperatorDashboard, UI spec tabs 0-11
+--   docs/journal/20260404-0900-comprehensive-tui-spec-A-O.md
+--     → All TUI screens specification
+--   docs/journal/20260404-1000-all-tui-screens-spec.md
+--     → Complete screen inventory
+--
+-- OODA & Zenoh Integration:
+--   docs/journal/20260404-1800-rust-ignition-daemon-upgrade-complete.md
+--     → FMEA-optimized 10-wave EVO plan, <100ms OODA, petgraph DAG/CPM
+--     → maps to: entity OodaCycle, rules OodaObserve..OodaAct, cpm types
+--   docs/journal/20260404-2100-sa-up-dashboard-zenoh-ooda-integration.md
+--     → Zenoh 1.0 networking, element-level state broadcasting
+--     → maps to: surface ZenohMeshBus, zenoh_telemetry types
+--   docs/journal/20260404-2130-gemini-mcp-zenoh-ooda-verification.md
+--     → Gemini AI Agent via MCP/Zenoh, OODA closure
+--     → maps to: contract LLMAdvisor, rule OodaDecideViaLLM
+--
+-- Fractal Analysis:
+--   docs/journal/20260404-fractal-layer-ignition-analysis.md
+--     → 33 modules × 8 layers, rule engine + LLM integration
+--     → maps to: ALL entities, rules, contracts in this spec
+--   docs/journal/20260404-1517-sa-up-observability-testing-procedures.md
+--     → 14 rule engine integration points, 15 GRL rules plan
+--     → maps to: entity GrlRule, rule GrlEmergencyStop..GrlLlmEscalation
+
+-- ─── DOCUMENTATION REFERENCES ───────────────────────────────────────────────
+--
+--   docs/DASHBOARD_VERIFICATION_USER_GUIDE.md
+--     → Interactive dashboard, keyboard controls, 16 containers
+--     → maps to: surface OperatorDashboard, UI spec
+--   docs/ROBUSTNESS_IDEAS_DASHBOARD.md
+--     → Top 20 robustness ideas with status tracking
+--     → maps to: FMEA section (15 failure modes)
+--   docs/TUI_IDEAS_DASHBOARD.md
+--     → Top 20 TUI ideas, OTel visualization
+--     → maps to: UI spec (12 tabs), surface OperatorDashboard
+--   docs/RUNBOOK_DEPLOYMENT.md
+--     → Authoritative bootstrap, 18 preflight, multi-wave ignition
+--     → maps to: rule PreflightCheck, entity BootSequence, config
+--   docs/GLEAM_UI_DEVELOPMENT_PROMPT.md
+--     → Penta-Stack, 15 pages, AG-UI 32-event, A2UI catalog
+--     → maps to: UI spec (Penta-Stack mandate)
+--   docs/allium-user-guide.md
+--     → This spec's user guide
+
+-- ─── SOURCE CODE REFERENCES (Rust Ignition Daemon) ─────────────────────────
+--
+-- native/ignition_daemon/src/
+--   main.rs (724 lines)          → CLI dispatch, module wiring
+--   types.rs (706)               → entity Container, Genome, config values
+--   errors.rs (218)              → 25 IgnitionError variants
+--   tui.rs (4,331)               → surface OperatorDashboard (12 tabs)
+--   podman.rs (472)              → contract PodmanOperations
+--   launch.rs (836)              → entity BootSequence, rule TierBoot
+--   preflight.rs (1,478)         → rule PreflightCheck (18 checks)
+--   verify.rs (559)              → 14-point verification
+--   health.rs (556)              → 2oo3 quorum, health checks
+--   health_orchestra.rs (961)    → contract HealthOrchestra (FPPS 5-method)
+--   hysteresis.rs (411)          → entity HysteresisState
+--   ooda_supervisor.rs (397)     → entity OodaCycle, Observation, Orientation
+--   rule_engine.rs (107)         → contract RuleEngine (GRL via rust-rule-engine)
+--   openrouter.rs (99)           → contract LLMAdvisor (Gemini 2.5 Flash)
+--   digital_twin.rs (62)         → TwinDrift comparison
+--   apoptosis.rs (148)           → entity DyingGaspCheckpoint, ApoptosisPhase
+--   zenoh_telemetry.rs (175)     → surface ZenohMeshBus, CheckpointMessage
+--   build.rs (96)                → rule GeneticResynthesis (scaffold)
+--   build_oracle.rs (1,197)      → entity BuildHistory, EMA
+--   build_stream.rs (27)         → build streaming (scaffold)
+--   artifacts.rs (24)            → entity Genome (scaffold)
+--   dag.rs (157)                 → topological sort, wave parallelization
+--   cpm.rs (124)                 → CpmTask (forward/backward pass)
+--   seven_level_rca.rs (80)      → entity RcaReport (scaffold)
+--   config_bridge.rs (31)        → Zenoh config sync (scaffold)
+--   recovery.rs (1,454)          → 15 FMEA playbooks
+--   cascade.rs (529)             → failure containment
+--   partition.rs (457)           → split-brain fencing
+--   robust_launch.rs (581)       → atomic tier commit
+--   nif_validator.rs (874)       → ELF inspection
+--   substrate_guard.rs (1,100)   → Axiom 0.1
+--   governor.rs (288)            → CPU governance
+--   connectivity.rs (445)        → mesh topology
+
+-- ─── SOURCE CODE REFERENCES (Gleam) ─────────────────────────────────────────
+--
+-- lib/cepaf_gleam/src/cepaf_gleam/
+--   testing/coverage_math.gleam      → Shannon H, CCM, ITQS, FSI, D_EA
+--   testing/alignment.gleam          → Jaccard similarity
+--   testing/nav_graph.gleam          → PageRank, SCC, Chinese Postman
+--   testing/fractal_matrix.gleam     → BDD matrix (15×12×7)
+--   testing/flight_check.gleam       → Fractal RCA, Jidoka halt
+--   testing/test_dashboard.gleam     → KPI tracking model
+--   testing/zenoh_test_observer.gleam → Zenoh message verification
+--   testing/gemini_verification.gleam → OTel→Zenoh→MCP→Gemini pipeline
+--   ui/domain.gleam                  → Page (15), FractalLayer (L0-L7), HealthStatus
+--   ui/zenoh_otel.gleam              → OTel span publishing
+--   ui/tui/split_screen.gleam        → Split-screen TUI
+--   verification/prometheus.gleam    → Kahn's algorithm, DAG proof
+--   verification/probes.gleam        → 2oo3 voting
+
+-- ─── SOURCE CODE REFERENCES (F# CEPAF Mesh) ────────────────────────────────
+--
+-- lib/cepaf/src/Cepaf/Mesh/
+--   PanopticIgnition.fs (1,014)      → 16-container genome, genetic synthesis
+--   BuildStreamMonitor.fs (462)      → Real-time STEP parsing, EMA
+--   BuildHistory.fs (317)            → SQLite EMA persistence
+--   Core.fs (926)                    → BootPhase, FractalLayer, MeshMode
+--   OodaSupervisor.fs (676)          → 5-phase OODA cycle
+--   Apoptosis.fs (606)              → 6-phase controlled shutdown
+--   HealthCoordinator.fs (602)       → SIL-4 quorum voting
+--   SevenLevelRCA.fs (354)           → L1-L7 root cause analysis
+--   ZenohCheckpoints.fs (326)        → Boot state vector
+--   DAG.fs (226)                     → Topological sort, cycle detection
+--   Hysteresis.fs (265)              → N-consecutive transitions
+--   CPM.fs (242)                     → Critical Path Method
+--   MathematicalSystemMonitor.fs (875) → 17 math disciplines, PID
+--   ConfigBridge.fs (192)            → Elixir↔F# sync via Zenoh
+--   DigitalTwin.fs (890)             → Genotype/phenotype model
+
+-- ─── CONFIGURATION FILES ────────────────────────────────────────────────────
+--
+--   Cargo.toml                       → rust-rule-engine = "1.20.1", zenoh, petgraph
+--   gleam.toml                       → lustre, wisp, gleam_json, esqlite
+--   .claude/rules/allium-behavioral-specs.md → SC-ALLIUM-001..008
+--   .claude/commands/allium.md       → /allium skill file
+--   .agents/skills/allium/SKILL.md   → Official Allium v3 skill (12K lines)
+
+-- =============================================================================
+-- UI TESTING SPECIFICATION (Automated, Multi-Platform)
+-- =============================================================================
+-- Comprehensive GUI/TUI testing across Rust Ratatui, Gleam Lustre, Gleam Wisp.
+-- Ref: .agents/skills/allium/references/test-generation.md (official Allium test gen)
+
+-- ─── Allium-Driven Test Obligations ─────────────────────────────────────────
+-- Generated from Allium spec constructs:
+--   Entity tests: field presence, types, navigation, null coalescing
+--   Enum tests: membership, comparability
+--   Derived value & projection tests
+--   Config tests: parameter overrides, cross-references
+--   Invariant tests: edge-case states, implication logic
+--   Rule tests: success path, failure path, edge case for each when/requires/ensures
+--   State transition tests: valid edges, terminal states, forbidden transitions
+--   Temporal tests: deadline before/at/after
+--   Surface tests: exposure, availability, actor identification, context scoping
+--   Contract tests: type signatures, @invariant verification
+--   Cross-rule interaction tests: duplicate creation guards
+--   Scenario tests: happy path, edge cases, decision points
+
+-- ─── Rust TUI 7-Layer Testing Pyramid (SC-TUI-TEST-001..010) ────────────────
+--
+-- | Layer | Tool                        | Speed   | CI Stage     | Target                          |
+-- |-------|-----------------------------|---------|-------------|--------------------------------|
+-- | L1    | TestBackend + #[test]        | <1s     | Every commit | All 12 tabs × all states         |
+-- | L2    | insta golden files           | <3s     | Every commit | 12 tabs × 3 viewports (80×24, 120×40, 200×60) |
+-- | L3    | Buffer cell fg/bg assertions | <1s     | Every commit | Health colors match palette      |
+-- | L4    | PTY harness                  | <30s    | PR merge     | Keyboard nav + tab cycling       |
+-- | L5    | Viewport matrix              | <10s    | PR merge     | 80×24 + 120×40 + 200×60          |
+-- | L6    | Focus order                  | <60s    | Nightly      | All focusable elements           |
+-- | L7    | Gemini closed-loop           | <45min  | Release      | 7-dimension screenshot review    |
+--
+-- Per tab: ≥3 unit tests (default state, loading state, error state)
+-- DashboardState::default() MUST be renderable (SC-TUI-TEST-006)
+-- No render function may panic on empty/null data (SC-TUI-TEST-007)
+-- Container health colors: GREEN=healthy, YELLOW=degraded, RED=critical (SC-TUI-TEST-010)
+
+-- ─── 100-Cycle High-Entropy Regression ──────────────────────────────────────
+-- Ref: docs/journal/20260404-1630-sa-up-dashboard-100-regression-tests.md
+-- Command: cargo run --bin ignition split-test
+-- Pattern: for i in 0..100 { width=40+(i*16)%160; height=10+(i*5)%50; tab=i%12; render }
+-- Assertion: 0.00% panic rate across all 12 tabs for W∈[40,200], H∈[10,60]
+-- Coverage: Layout safety proven via std::panic::catch_unwind wrapper
+
+-- ─── Long-Duration Monitoring (4000 renders, ~6m40s simulated) ──────────────
+-- Ref: docs/journal/20260404-1700-sa-up-dashboard-long-duration-monitoring.md
+-- Tab temporal budgets (at 10Hz simulation tick):
+--   Tab 0 Swarm=60s, Tab 1 Governor=60s, Tab 2 Checks=15s, Tab 3 Trace=30s,
+--   Tab 4 Topology=15s, Tab 5 Build=30s, Tab 6 NIF=10s, Tab 7 Recovery=20s,
+--   Tab 8 Fractal=45s, Tab 9 Security=10s, Tab 10 Logs=60s, Tab 11 Agent UI=45s
+-- Assertion: No memory leaks, vector buffer capped, string formatting robust
+
+-- ─── 10-Minute Split-Screen 4-Phase Runner ──────────────────────────────────
+-- Ref: scripts/run-split-screen-tests.sh
+-- Phase A (3min): Synthetic data — C1-C7 category tests
+-- Phase B (3min): Real-time system — fractal health, OODA latency, quorum, AG-UI, entropy
+-- Phase C (2min): System operations — startup waves, state sync, circuit breaker, safety
+-- Phase D (2min): Zenoh/OTel — connectivity, span export, mesh telemetry, subscription
+-- Display: TOP 55% sa-up dashboard | BOTTOM 45% test KPI dashboard
+
+-- ─── Gleam 8-Category Gold Standard (C1-C8) ────────────────────────────────
+-- Ref: .claude/rules/gleam-web-ui-development.md §9
+-- Current: 1,721 tests, 0 failures, 15/15 tab coverage
+--
+-- | Cat | Name            | Weight | Gate                        | Test Type           |
+-- |-----|-----------------|--------|-----------------------------|---------------------|
+-- | C1  | Page Structure   | 1.0    | Element count >= 5          | Structural          |
+-- | C2  | Status Badges    | 1.5    | Healthy/Degraded/Critical   | Health classify      |
+-- | C3  | Data Grids       | 1.0    | >= 3 rows × 3 cols          | Population          |
+-- | C4  | Timeline         | 0.8    | Timestamp ordering          | Temporal ordering   |
+-- | C5  | Interactive      | 1.2    | Click → state change        | Message dispatch    |
+-- | C6  | Media/Rich       | 0.8    | SVG/sparklines load         | Dark cockpit modes  |
+-- | C7  | AI Advisory      | 1.5    | AG-UI events flow           | Reasoning chain     |
+-- | C8  | Action Button    | 3.0    | Guardian + 2oo3 consensus   | Dual verification   |
+
+-- ─── Graph-Theory Testing (SC-UIGT-001..015) ────────────────────────────────
+-- Ref: .claude/rules/ui-graph-testing.md
+-- Navigation digraph: |V|=22 pages, |E|≈462, SCC=1, density=1.0
+-- Page LTS: LTS(p) = (States, Labels, Transitions, s0) per page
+--   States = Model field combinations, Labels = Msg ADT variants
+--   Transitions = update() branches, s0 = init() result
+-- Coverage: C_node>=1.0, C_edge>=0.95, C_path>=0.95(T1)/0.80(T2), C_data>=0.90
+-- Weighted total: 0.2×node + 0.3×edge + 0.3×path + 0.2×data >= 0.95
+-- PageRank priority: Dashboard(0.055) > Cockpit(0.052) > Verification(0.050)
+-- Chinese Postman: CPP ≈ 462 edges + per-page LTS = ~600-700 test cases min
+
+-- ─── Golden Triangle BDD (AG-UI + DevUI + OTel) ────────────────────────────
+-- Ref: docs/journal/20260404-0600-golden-triangle-bdd-50-usecases.md
+-- 50 BDD scenarios across 7 structural levels:
+--   L1: Paradigm (efficiency closed loop)
+--   L2: Architecture (three pillars)
+--   L3: Components (TUI widgets)
+--   L4: Interactions (data flow)
+--   L5: Implementation (Rust/Ratatui)
+--   L6: Element behaviors (keybindings, ticks)
+--   L7: Substrate metrics (CPU parsing, podman stats)
+-- UC-01: Ghost Container Purging → DevUI marquee "[Purging] Removed stale..."
+-- UC-02: Wave 0 Zenoh Quorum → Quorum Ring renders green "CONSENSUS REACHED"
+-- UC-03: OTel Flame Graph Adaptive Scaling → color gradient Red near timeout
+-- UC-04: Compensating Transaction Rollback → "Rollback to Safe State"
+
+-- ─── AG-UI 32-Event Protocol Testing (SC-AGUI-001..017) ────────────────────
+-- 32 types: Lifecycle(5) + Text(4) + Tool(5) + State(3) + Activity(2) +
+--           Reasoning(7) + Special(4)
+-- Gate: All 32 types MUST have >= 1 subscribing page (SC-UIGT-005)
+-- Test: event emission → Zenoh publish → Lustre dispatch → Msg fired
+
+-- ─── A2UI Declarative Component Testing (SC-A2UI-001..005) ──────────────────
+-- 11 component types: alert, modal (L0), badge, button, data_table (L2-L3),
+--   progress (L4), ooda_ring, reasoning (L5), topology (L6), form_input, slider
+-- Layer access: L0 agents access all; non-L0 CANNOT propose L0 components
+-- Test: JSON schema compliance, layer restrictions, renderer handles all props
+
+-- ─── Triple-Interface Testing (SC-GLM-UI-001) ──────────────────────────────
+-- Every feature = 1 Lustre page + 1 Wisp endpoint + 1 TUI view
+-- Lustre: gleeunit MVU LTS tests (init → update → view)
+-- Wisp: wisp/testing GET/POST (JSON typed response)
+-- TUI: Ratatui TestBackend (headless ANSI rendering)
+-- All share types from ui/domain.gleam ONLY
+
+-- ─── Source-First Protocol (AOR-COV-008) ────────────────────────────────────
+-- Read Model → Msg → update() → view() → Zenoh subscriptions BEFORE writing tests
+-- Understand state machine and event flow before generating test assertions
+
+-- ─── Tab Coverage Matrix (12 Rust TUI Tabs) ────────────────────────────────
+-- | Tab | Name     | Elements | Coverage | Wiring      |
+-- |-----|----------|----------|----------|-------------|
+-- | 0   | Swarm    | 6        | ~40%     | FULLY WIRED |
+-- | 1   | Governor | 5        | ~40%     | PARTIAL     |
+-- | 2   | Checks   | 4        | ~40%     | PARTIAL     |
+-- | 3   | Trace    | 2        | ~40%     | NOT WIRED   |
+-- | 4   | Topology | 3        | ~20%     | FULLY WIRED |
+-- | 5   | Build    | 2        | ~20%     | FULLY WIRED |
+-- | 6   | NIF      | 2        | ~20%     | PARTIAL     |
+-- | 7   | Recovery | 2        | ~20%     | PARTIAL     |
+-- | 8   | Fractal  | 1        | 0%       | WIRED (L5-7 empty) |
+-- | 9   | Security | 3        | 0%       | PARTIAL     |
+-- | 10  | Logs     | 1        | 0%       | NOT WIRED   |
+-- | 11  | Agent UI | 2        | ~20%     | NOT WIRED   |
+
+-- =============================================================================
+-- IMPLEMENTATION NOTES
+-- =============================================================================
+
+-- ─── Key Algorithms ─────────────────────────────────────────────────────────
+--
+-- 1. RETE-UL (rule_engine.rs):
+--    Forward + backward chaining with Alpha/Beta Memory Indexing.
+--    GRL rules parsed once → KnowledgeBase → execute against Facts.
+--    NOTE: Currently re-parses on every OODA cycle. SHOULD cache KnowledgeBase.
+--    Performance: 2-683x speedup in v1.20.0 via zero-copy optimization.
+--
+-- 2. Kahn's Topological Sort (dag.rs, prometheus.gleam):
+--    Iteratively removes zero-in-degree nodes. O(V+E).
+--    Proves DAG acyclicity (SC-BOOT-008).
+--    Rust uses petgraph crate; Gleam uses hand-rolled implementation.
+--
+-- 3. Critical Path Method (cpm.rs):
+--    Forward pass: ES_i = max(EF_predecessors), EF_i = ES_i + dur_i
+--    Backward pass: LF_i = min(LS_successors), LS_i = LF_i - dur_i
+--    Critical tasks: float = LS - ES = 0. These determine minimum boot time.
+--
+-- 4. Exponential Moving Average (build_oracle.rs):
+--    EMA_t = α×x_t + (1-α)×EMA_{t-1}, α=0.3
+--    SQL UPSERT: ema = 0.3 * @dur + 0.7 * ema (F# write, Rust read-only)
+--    Adaptive timeout: EMA × 2.5, clamped [15s, 600s]
+--
+-- 5. FPPS 5-Method Health Consensus (health_orchestra.rs):
+--    Methods: Running, PortOpen, ServiceEndpoint, QuorumVote, DigitalTwin
+--    Threshold: ≥3/5 agree. Each scored pass/fail independently.
+--    No method weighting (all equally voted). No soft majority.
+--
+-- 6. Hysteresis N-Consecutive Debounce (hysteresis.rs):
+--    State changes require N consecutive same-observations.
+--    Sliding window for health_percentage computation.
+--    Three presets: Aggressive(1,1), Default(3,2), Conservative(5,3).
+--
+-- 7. PageRank (nav_graph.gleam):
+--    Power iteration d=0.85, 30 iterations over 13-page complete digraph.
+--    Guides test execution priority (highest-ranked pages tested first).
+--
+-- 8. SHA-256 Dying Gasp (apoptosis.rs):
+--    Hashes running_containers state before shutdown.
+--    Checkpoint published to Zenoh for post-mortem verification.
+
+-- ─── Key Design Principles ──────────────────────────────────────────────────
+--
+-- 1. RULE-FIRST, LLM-ESCALATION:
+--    GRL rules handle fast deterministic decisions (<1ms).
+--    OpenRouter LLM handles novel/ambiguous situations (~2s).
+--    Rule 15 (salience 40): "if NoAction AND anomaly > 0.7 → EscalateToLLM"
+--
+-- 2. FAIL-SAFE STATE (SC-SIL4-001):
+--    Every failure mode drives toward a KNOWN SAFE state.
+--    Apoptosis is the last resort: isolate → hash → gasp → drain → kill.
+--    Emergency stop < 5s (SC-EMR-057).
+--
+-- 3. DEFENSE IN DEPTH (7-Tier Boot):
+--    Each tier must be healthy before next starts (AOR-IGNITE-005).
+--    Tiers 4-7 parallelize internally but serialize between tiers.
+--    DAG acyclicity proven before boot begins (SC-BOOT-008).
+--
+-- 4. GENOTYPE/PHENOTYPE DRIFT DETECTION:
+--    Digital twin holds expected state (genotype).
+--    OODA observe() captures actual state (phenotype).
+--    orient() computes TwinDrift for each container.
+--    Rules react to drift; LLM explains multi-container drift.
+--
+-- 5. TRIPLE-INTERFACE MANDATE (SC-GLM-UI-001):
+--    Every feature exists in 3 forms: Lustre SSR + Wisp JSON + TUI ANSI.
+--    All share types from ui/domain.gleam. Feature on 1 interface = 67% incomplete.
+--
+-- 6. MATHEMATICAL RIGOR IN TESTING:
+--    Shannon entropy ensures broad test distribution (H >= 2.5).
+--    CCM weighted coverage ensures important categories tested (>= 0.90).
+--    ITQS composite score gates releases (>= 0.85).
+--    Graph-theory ensures navigation completeness (PageRank + CPP).
+--
+-- 7. OODA < 100ms SLA (SC-OODA-009, SC-BIO-001):
+--    Observe: 30ms budget (podman stats polling)
+--    Orient: 20ms budget (twin drift comparison)
+--    Decide: 20ms budget (GRL rule evaluation)
+--    Act: 20ms budget (podman command execution)
+--    LLM escalation violates SLA by design (2s, logged as non-compliant).
+--
+-- 8. JIDOKA (SC-TPS-001):
+--    Stop on defect: L0/L1/L6 failures trigger mandatory halt.
+--    Signal via Zenoh: ApoptosisTriggered event published.
+--    Analyze via 7-level RCA: known patterns matched first, LLM for unknowns.
+
+-- ─── Design Patterns ────────────────────────────────────────────────────────
+--
+-- 1. RAILWAY-ORIENTED ERROR HANDLING (Rust Result<T, IgnitionError>):
+--    All functions return Result. Errors propagate to main via ? operator.
+--    25 IgnitionError variants cover all failure modes.
+--    No unwrap() in production paths; panic = SIL-6 violation.
+--
+-- 2. GENETIC RESYNTHESIS (4-Way Staleness):
+--    EXISTS? → INTEGRAL? → FRESH? → SKIP
+--    Each container evaluated independently against 168h max age.
+--    EMA predicts build duration for progress bar.
+--
+-- 3. CHECKPOINT-BEFORE-CHANGE:
+--    Dying gasp before apoptosis.
+--    State vector snapshot before tier boot.
+--    Git checkpoint before risky operations (AOR-FUNC-002).
+--
+-- 4. PUBLISH-ON-EVERY-TRANSITION:
+--    Every state change → Zenoh checkpoint message.
+--    Every health check → Zenoh health topic.
+--    Every OODA cycle → Zenoh OTel span.
+--    Observer pattern: test runner subscribes to all topics.
+--
+-- 5. HYSTERESIS WRAPPING:
+--    Raw health checks wrapped in hysteresis controller.
+--    Prevents flapping-induced restart cascades (FMEA RPN 192).
+--    Three presets selected based on environment (dev/staging/prod).
+--
+-- 6. ADAPTIVE PARALLELISM:
+--    CPU governor measures /proc/stat (not loadavg).
+--    Parallelism adjusted in 5 tiers (16→12→10→6→WAIT).
+--    Hard limit 85% (SC-CPU-GOV-001).
+--
+-- 7. FRACTAL LAYER SEPARATION:
+--    L0 = safety (can veto everything), L4 = operations (16 containers),
+--    L5 = intelligence (OODA + rules + LLM), L7 = diagnostics (RCA).
+--    Cross-layer coupling tracked (recovery.rs + tui.rs touch all 8 layers).
+
+-- ─── Anti-Patterns (AVOID) ──────────────────────────────────────────────────
+--
+-- 1. DEAD CODE MODULES:
+--    openrouter.rs exists but is NEVER CALLED from any module.
+--    Pattern: build → forget to wire. Fix: integration test that calls it.
+--
+-- 2. HARDCODED DAG:
+--    launch.rs:build_dependency_graph() is hardcoded topology.
+--    Adding/removing containers requires code change.
+--    Fix: config-driven genome via sil6-genome.toml.
+--
+-- 3. RE-PARSING GRL ON EVERY CYCLE:
+--    rule_engine.rs creates KnowledgeBase + parses GRL on EVERY call.
+--    For <1ms SLA this wastes time. Fix: cache KnowledgeBase as static.
+--
+-- 4. STUBBED GUARDIAN GATE:
+--    ooda_supervisor.rs:validate_with_guardian() always returns true.
+--    P0 decisions (EmergencyStop, BootMesh) bypass safety check.
+--    Fix: implement actual Guardian validation or fail-closed.
+--
+-- 5. BUG: self.observation REFERENCE:
+--    ooda_supervisor.rs:207 references self.observation (doesn't exist).
+--    Blocks rule engine integration. Fix: pass observation as parameter.
+--
+-- 6. IN-MEMORY CHECKPOINTS:
+--    cascade.rs checkpoints are in-memory (lost on daemon crash).
+--    Fix: persist to SQLite (build_history.db already available).
+--
+-- 7. SINGLE-DRIFT HANDLING:
+--    rule_engine.rs:90 restarts only FIRST drifted container.
+--    Multiple simultaneous drifts → only one addressed per cycle.
+--    Fix: sort drifts by criticality, restart highest-priority first.
+--
+-- 8. NO STRUCTURED LLM RESPONSE:
+--    openrouter.rs returns raw String from LLM.
+--    No JSON parsing, no structured action extraction.
+--    Fix: prompt for JSON response, parse into Decision enum.
+--
+-- 9. HEALTH CHECKS WITHOUT TREND:
+--    health.rs checks are point-in-time (pass/fail).
+--    No trend tracking (is health improving or degrading?).
+--    hysteresis.rs partially fixes this but only for transition gating.
+
+-- ─── Session Journal Template (SC-JOURNAL) ──────────────────────────────────
+-- Every implementation session MUST produce a 13-section journal entry:
+--
+-- 1. Scope & Trigger — Why this work started
+-- 2. Pre-State Assessment — Quantified system state before changes
+-- 3. Execution Detail — What was done (batches, waves, phases)
+-- 4. Root Cause Analysis — 5-Why for bugs found
+-- 5. Fix Taxonomy — Categorize fixes (new module, enhancement, bugfix, wiring)
+-- 6. Patterns & Anti-Patterns — What worked, what to avoid
+-- 7. Verification Matrix — Pass/fail checks with method
+-- 8. Files Modified — Table of file, action, lines, batch
+-- 9. Architectural Observations — System-level insights
+-- 10. Remaining Gaps — TODO items with priority
+-- 11. Metrics Summary — Before/after metrics table
+-- 12. STAMP & Constitutional Alignment — Constraint compliance
+-- 13. Conclusion — Summary with key decisions
+--
+-- Scaling: Trivial (1-3 files) = 1-2 lines/section
+--          Standard (4-15 files) = paragraphs
+--          Major (15+ files) = subsections + diagrams

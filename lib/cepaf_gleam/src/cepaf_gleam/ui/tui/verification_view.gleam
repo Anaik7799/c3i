@@ -42,9 +42,6 @@ fn render_report(report: SwarmReport) -> String {
     0 -> 0
     t -> report.healthy_containers * 100 / t
   }
-  let pct_float = case pct {
-    n -> n
-  }
   let bar = visuals.render_progress_bar(int_to_float(pct) /. 100.0, 30)
   let containers =
     "  Containers: "

@@ -282,6 +282,56 @@ pub fn p0_minimums() -> List(#(String, Int)) {
 }
 
 // =============================================================================
+// Enhanced Coverage Functions (Batch 5: CCM >= 0.90, ITQS >= 0.85)
+// =============================================================================
+
+/// Compute per-element KPI for a list of file coverages.
+/// Returns (file_name, ccm, itqs, d_ea, grade) tuples.
+pub fn per_element_kpi(
+  coverages: List(FileCoverage),
+) -> List(#(String, Float, Float, Float, Grade)) {
+  let suite_fsi = fsi(coverages)
+  list.map(coverages, fn(cov) {
+    let ccm_val = ccm(cov)
+    let itqs_val = itqs(cov, suite_fsi)
+    let d_ea = divergence(cov)
+    let grade = itqs_grade(itqs_val)
+    #(cov.file_name, ccm_val, itqs_val, d_ea, grade)
+  })
+}
+
+/// Identify which elements need category improvements to reach target CCM.
+/// Returns (file_name, category_name, gap) tuples.
+pub fn corrective_actions_for_ccm_gap(
+  coverages: List(FileCoverage),
+  target: Float,
+) -> List(#(String, String, Float)) {
+  list.flat_map(coverages, fn(cov) {
+    let current_ccm = ccm(cov)
+    case current_ccm <. target {
+      True -> {
+        let gap = target -. current_ccm
+        [#(cov.file_name, "C8_ErrorHandling", gap)]
+      }
+      False -> []
+    }
+  })
+}
+
+/// Compute weighted suite-level CCM across all file coverages.
+pub fn weighted_suite_ccm(coverages: List(FileCoverage)) -> Float {
+  case coverages {
+    [] -> 0.0
+    _ -> {
+      let ccms = list.map(coverages, ccm)
+      let total = list.fold(ccms, 0.0, float.add)
+      float.divide(total, int.to_float(list.length(ccms)))
+      |> result.unwrap(0.0)
+    }
+  }
+}
+
+// =============================================================================
 // Private helpers
 // =============================================================================
 
