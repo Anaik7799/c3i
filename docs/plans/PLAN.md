@@ -119,11 +119,31 @@ esult import error in `core/types.gleam`.
 - **Fix**: Standardized imports to `import gleam/result` and used built-in `Result`.
 - **Status**: RESOLVED.
 .
-.
-.
-.
-.
-.
-.
-.
+
+---
+
+## 4.0 - sa-up Dashboard 7-Level Verification & OODA Execution
+**Date:** 2026-04-04 | **Target:** `./sa-up dashboard` (Ratatui TUI) | **Context:** L5-Cognitive Operator Interface
+
+### 4.1 Dashboard Fractal Topography & 7-Level BDD Flows
+For every element across all tabs (Containers, Preflight, Trace, Verify, Build Oracle, NIF Validation, Recovery), apply a 7-Level BDD verification matrix:
+- **L0 (Render)**: Strict adherence to SC-CONSOL-003 color codes.
+- **L1 (State Binding)**: Widget reflection of internal state < 30ms.
+- **L2 (Interaction)**: Rust action fires on focus + key press.
+- **L3 (Telemetry Emit)**: OTel span emitted via Zenoh upon action.
+- **L4 (Mesh Reactivity)**: TUI updates correctly upon live Zenoh mesh events.
+- **L5 (Fault Tolerance)**: Transitions to Degraded (Yellow) state on timeouts without panic.
+- **L6 (Agentic Observation)**: State delta sent to Gemini Agent via MCP.
+
+### 4.2 10-Minute Continuous Execution Protocol
+UI multiplexed with the System Under Test (`sa-up dashboard`) on Top and the Test Runner/KPI Dashboard on Bottom.
+- **Phase A (0:00-2:00) Synthetic Flight**: Mock `DashboardState` injection to assert L0-L2 rendering limits.
+- **Phase B (2:00-5:00) Live Substrate**: Connect to live Zenoh router (`indrajaal/telemetry/**`) to monitor OODA latency (<50ms).
+- **Phase C (5:00-8:00) Chaos Recovery**: Inject `postgres` podman kill. Validate TUI alerts, initiates recovery playbook, logs restart.
+- **Phase D (8:00-10:00) OTel Omniscience**: Agent subscribes to `indrajaal/testing/otel/**` verifying complete OODA loop closure.
+
+### 4.3 Mathematical Coverage & Architecture
+- **State Space Matrix**: 100-pass regression uncovering Crossterm loop races. 10s monitoring per tab, 30s for deep elements (Sparklines, DevUI Trace).
+- **Zenoh Implementation**: Modify `zenoh_telemetry.rs` to broadcast UI state as OTel spans. Implement Jidoka flight check for Zenoh availability.
+
 .

@@ -28,25 +28,42 @@ fn tui_unit_state_defaults() {
 }
 
 #[test]
-fn tui_unit_golden_triangle_flame_graph() {
-    // Simulating OTel Flame Graph Logic
-    let duration_ms: u64 = 450;
-    let timeout_ms: u64 = 500;
+fn tui_unit_resource_parsing() {
+    // Verifying that our parsing logic for podman stats strings is robust
+    let cpu_str = "12.50%";
+    let mem_str = "45.00%";
     
-    let ratio = (duration_ms as f64 / timeout_ms as f64).min(1.0);
-    let bar_width = 15;
-    let filled = (ratio * bar_width as f64) as usize;
-    let empty_count = bar_width - filled;
+    let cpu_val = cpu_str.trim_end_matches('%').parse::<f64>().unwrap_or(0.0) as u8;
+    let mem_val = mem_str.trim_end_matches('%').parse::<f64>().unwrap_or(0.0) as u8;
     
-    let heat_char = if ratio > 0.8 { "🔥" } else if ratio > 0.5 { "🟧" } else { "🟩" };
-    
-    let flame = format!("{} {}{}",
-        heat_char,
-        "▰".repeat(filled),
-        "▱".repeat(empty_count)
-    );
+    assert_eq!(cpu_val, 12);
+    assert_eq!(mem_val, 45);
+}
 
-    // 450 / 500 = 0.9. Should be Red/Fire emoji
-    assert!(flame.contains("🔥"));
-    assert!(flame.contains("▰▰▰▰▰▰▰▰▰▰▰▰▰")); // 13 filled blocks out of 15
+#[test]
+fn tui_unit_trace_log_filtering() {
+    // Simulating the log filtering logic for the selected container
+    let selected_name = "indrajaal-db-prod";
+    let trace_phase = "PF-2 (indrajaal-db-prod)";
+    
+    let is_match = trace_phase.contains(selected_name);
+    assert!(is_match);
+    
+    let unrelated_phase = "V-5 (cortex)";
+    let is_unrelated = unrelated_phase.contains(selected_name);
+    assert!(!is_unrelated);
+}
+
+#[test]
+fn tui_unit_metadata_logic() {
+    // Verifying the dynamic metadata role assignment
+    let name = "zenoh-router-1";
+    let (role, crit) = if name.contains("db") || name.contains("zenoh") {
+        ("Substrate", "SIL-6")
+    } else {
+        ("Application", "SIL-2")
+    };
+    
+    assert_eq!(role, "Substrate");
+    assert_eq!(crit, "SIL-6");
 }

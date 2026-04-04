@@ -38,6 +38,7 @@ use crate::governor;
 use crate::podman;
 use crate::recovery;
 use crate::types::*;
+use crate::zenoh_telemetry::{self, ZenohTelemetry};
 use chrono::Local;
 use crossterm::{
     event::{self, Event, KeyCode, KeyEventKind},
@@ -2724,6 +2725,10 @@ pub struct OtelSpan {
 }
 
 pub async fn run_ops_test() -> Result<(), IgnitionError> {
+    // ─── E: Flight Check (Zenoh Data & Control Paths) ───
+    let zenoh = ZenohTelemetry::new().await?;
+    zenoh_telemetry::flight_check(&zenoh).await?;
+
     enable_raw_mode().map_err(|e| IgnitionError::IoError(e))?;
     stdout()
         .execute(EnterAlternateScreen)
@@ -2736,15 +2741,10 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
     let start = Instant::now();
     let total_duration = Duration::from_secs(600); // 10 minutes
     
-    // Phases
-    // A: Synthetic (0-120s)
-    // B: Real-time (120-360s)
-    // C: Operational (360-600s)
-
     let mut last_tick = Instant::now();
     let mut phase = "Phase A: Synthetic";
     let mut op_triggered = false;
-    let mut zenoh_telemetry: Vec<OtelSpan> = Vec::new();
+    let mut zenoh_log: Vec<OtelSpan> = Vec::new();
 
     loop {
         let elapsed = start.elapsed();
@@ -2757,14 +2757,16 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
         // Phase Transitions
         if elapsed.as_secs() < 120 {
             if phase != "Phase A: Synthetic" {
-                zenoh_telemetry.push(OtelSpan {
+                let span = OtelSpan {
                     trace_id: uuid::Uuid::new_v4().to_string(),
                     span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                     name: "PhaseTransition".into(),
                     ooda_phase: "Orient".into(),
                     attributes: vec![("phase".to_string(), "Synthetic".to_string())].into_iter().collect(),
                     timestamp: Local::now().to_rfc3339(),
-                });
+                };
+                let _ = zenoh.publish_span("indrajaal/otel/ops", &span).await;
+                zenoh_log.push(span);
             }
             phase = "Phase A: Synthetic";
             // Mock some data if empty
@@ -2783,41 +2785,45 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                 ];
             }
             state.tab_index = (elapsed.as_secs() as usize / 10) % 12;
-        } else if elapsed.as_secs() < 360 {
-            if phase != "Phase B: Real-time" {
-                zenoh_telemetry.push(OtelSpan {
+        } else if elapsed.as_secs() < 300 {
+            if phase != "Phase B: Live Substrate" {
+                let span = OtelSpan {
                     trace_id: uuid::Uuid::new_v4().to_string(),
                     span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                     name: "PhaseTransition".into(),
                     ooda_phase: "Orient".into(),
-                    attributes: vec![("phase".to_string(), "Real-time".to_string())].into_iter().collect(),
+                    attributes: vec![("phase".to_string(), "Live Substrate".to_string())].into_iter().collect(),
                     timestamp: Local::now().to_rfc3339(),
-                });
+                };
+                let _ = zenoh.publish_span("indrajaal/otel/ops", &span).await;
+                zenoh_log.push(span);
             }
-            phase = "Phase B: Real-time";
+            phase = "Phase B: Live Substrate";
             if last_tick.elapsed().as_secs() >= 2 {
                 refresh_state(&mut state).await;
                 last_tick = Instant::now();
             }
             state.tab_index = (elapsed.as_secs() as usize / 20) % 12;
-        } else {
-            if phase != "Phase C: Operational" {
-                zenoh_telemetry.push(OtelSpan {
+        } else if elapsed.as_secs() < 480 {
+            if phase != "Phase C: Chaos Recovery" {
+                let span = OtelSpan {
                     trace_id: uuid::Uuid::new_v4().to_string(),
                     span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                     name: "PhaseTransition".into(),
                     ooda_phase: "Orient".into(),
-                    attributes: vec![("phase".to_string(), "Operational".to_string())].into_iter().collect(),
+                    attributes: vec![("phase".to_string(), "Chaos Recovery".to_string())].into_iter().collect(),
                     timestamp: Local::now().to_rfc3339(),
-                });
+                };
+                let _ = zenoh.publish_span("indrajaal/otel/ops", &span).await;
+                zenoh_log.push(span);
             }
-            phase = "Phase C: Operational";
+            phase = "Phase C: Chaos Recovery";
             if last_tick.elapsed().as_secs() >= 2 {
                 refresh_state(&mut state).await;
                 last_tick = Instant::now();
                 
                 // Periodic Zenoh Observation telemetry
-                zenoh_telemetry.push(OtelSpan {
+                let span = OtelSpan {
                     trace_id: uuid::Uuid::new_v4().to_string(),
                     span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                     name: "SystemState_Poll".into(),
@@ -2827,23 +2833,26 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                         ("cpu_pressure".to_string(), state.cpu_pct.to_string()),
                     ].into_iter().collect(),
                     timestamp: Local::now().to_rfc3339(),
-                });
+                };
+                let _ = zenoh.publish_span("indrajaal/otel/state", &span).await;
+                zenoh_log.push(span);
             }
             
-            // Auto-op: if indrajaal-ex-app-1 is down, start it.
-            // Or just trigger a cycle of stop/start for demo.
-            if !op_triggered && elapsed.as_secs() > 380 {
-                let target = "indrajaal-ex-app-1";
+            if !op_triggered && elapsed.as_secs() > 320 {
+                let target = "indrajaal-db-prod";
                 if let Some(c) = state.containers.iter().find(|c| c.name == target) {
                     if c.status == "running" {
-                        zenoh_telemetry.push(OtelSpan {
+                        let span = OtelSpan {
                             trace_id: uuid::Uuid::new_v4().to_string(),
                             span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                             name: "Control_Stop".into(),
                             ooda_phase: "Act".into(),
                             attributes: vec![("target".to_string(), target.to_string())].into_iter().collect(),
                             timestamp: Local::now().to_rfc3339(),
-                        });
+                        };
+                        let _ = zenoh.publish_span("indrajaal/otel/control", &span).await;
+                        zenoh_log.push(span);
+
                         state.trace_entries.push(TraceEntry {
                             timestamp: Local::now().format("%H:%M:%S").to_string(),
                             phase: "OPS".into(),
@@ -2855,14 +2864,17 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                         });
                         let _ = podman::stop_container(target, 5).await;
                     } else {
-                        zenoh_telemetry.push(OtelSpan {
+                        let span = OtelSpan {
                             trace_id: uuid::Uuid::new_v4().to_string(),
                             span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                             name: "Control_Start".into(),
                             ooda_phase: "Act".into(),
                             attributes: vec![("target".to_string(), target.to_string())].into_iter().collect(),
                             timestamp: Local::now().to_rfc3339(),
-                        });
+                        };
+                        let _ = zenoh.publish_span("indrajaal/otel/control", &span).await;
+                        zenoh_log.push(span);
+
                         state.trace_entries.push(TraceEntry {
                             timestamp: Local::now().format("%H:%M:%S").to_string(),
                             phase: "OPS".into(),
@@ -2874,16 +2886,39 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                         });
                         let _ = podman::start_container(target).await;
                     }
-                    op_triggered = true; // reset every 60s?
+                    op_triggered = true;
                 }
             }
             if elapsed.as_secs() % 60 == 0 { op_triggered = false; }
-            state.tab_index = 0; // Keep on swarm tab to see ops
+            state.tab_index = 0; 
+        } else {
+            if phase != "Phase D: OTel Omniscience" {
+                let span = OtelSpan {
+                    trace_id: uuid::Uuid::new_v4().to_string(),
+                    span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
+                    name: "PhaseTransition".into(),
+                    ooda_phase: "Orient".into(),
+                    attributes: vec![("phase".to_string(), "OTel Omniscience".to_string())].into_iter().collect(),
+                    timestamp: Local::now().to_rfc3339(),
+                };
+                let _ = zenoh.publish_span("indrajaal/otel/ops", &span).await;
+                zenoh_log.push(span);
+            }
+            phase = "Phase D: OTel Omniscience";
+            if last_tick.elapsed().as_secs() >= 1 {
+                refresh_state(&mut state).await;
+                last_tick = Instant::now();
+            }
+            state.tab_index = 0;
         }
 
-        // Truncate OTel log to prevent memory bloat during 10 min test
-        if zenoh_telemetry.len() > 15 {
-            zenoh_telemetry.drain(0..10);
+
+        // Fractal Tree Element State Reporting (D)
+        let _ = zenoh.publish_element_state(state.tab_index, "frame", "RENDERED").await;
+        let _ = zenoh.publish_element_state(state.tab_index, "cpu_gauge", &state.cpu_pct.to_string()).await;
+
+        if zenoh_log.len() > 15 {
+            zenoh_log.drain(0..10);
         }
 
         terminal.draw(|f| {
@@ -2893,7 +2928,7 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                 .split(f.area());
 
             draw_ui_area(f, chunks[0], &state);
-            draw_ops_dashboard(f, chunks[1], phase, elapsed, total_duration, &state, &zenoh_telemetry);
+            draw_ops_dashboard(f, chunks[1], phase, elapsed, total_duration, &state, &zenoh_log);
         }).map_err(|e| IgnitionError::IoError(e))?;
 
         if event::poll(Duration::from_millis(200)).map_err(|e| IgnitionError::IoError(e))? {
@@ -2904,14 +2939,16 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                         KeyCode::Char('s') => {
                             if state.tab_index == 0 && !state.containers.is_empty() {
                                 let name = state.containers[state.selected_container].name.clone();
-                                zenoh_telemetry.push(OtelSpan {
+                                let span = OtelSpan {
                                     trace_id: uuid::Uuid::new_v4().to_string(),
                                     span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                                     name: "Manual_Control_Start".into(),
                                     ooda_phase: "Act".into(),
                                     attributes: vec![("target".to_string(), name.clone())].into_iter().collect(),
                                     timestamp: Local::now().to_rfc3339(),
-                                });
+                                };
+                                let _ = zenoh.publish_span("indrajaal/otel/control", &span).await;
+                                zenoh_log.push(span);
                                 let _ = podman::start_container(&name).await;
                                 refresh_state(&mut state).await;
                             }
@@ -2919,14 +2956,16 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                         KeyCode::Char('x') => {
                             if state.tab_index == 0 && !state.containers.is_empty() {
                                 let name = state.containers[state.selected_container].name.clone();
-                                zenoh_telemetry.push(OtelSpan {
+                                let span = OtelSpan {
                                     trace_id: uuid::Uuid::new_v4().to_string(),
                                     span_id: uuid::Uuid::new_v4().to_string()[..8].to_string(),
                                     name: "Manual_Control_Stop".into(),
                                     ooda_phase: "Act".into(),
                                     attributes: vec![("target".to_string(), name.clone())].into_iter().collect(),
                                     timestamp: Local::now().to_rfc3339(),
-                                });
+                                };
+                                let _ = zenoh.publish_span("indrajaal/otel/control", &span).await;
+                                zenoh_log.push(span);
                                 let _ = podman::stop_container(&name, 10).await;
                                 refresh_state(&mut state).await;
                             }
@@ -2936,13 +2975,6 @@ pub async fn run_ops_test() -> Result<(), IgnitionError> {
                 }
             }
         }
-    }
-
-    // Persist telemetry log for AI Agent validation
-    let log_file = std::fs::File::create("zenoh_otel_trace.jsonl").unwrap();
-    let mut writer = std::io::BufWriter::new(log_file);
-    for span in &zenoh_telemetry {
-        let _ = std::io::Write::write_fmt(&mut writer, format_args!("{}\n", serde_json::to_string(span).unwrap()));
     }
 
     disable_raw_mode().map_err(|e| IgnitionError::IoError(e))?;

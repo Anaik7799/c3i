@@ -241,11 +241,11 @@ pub async fn launch_generic(name: &str, proof_token: &str, proof_pubkey: &str) -
     }
 
     let image = match name {
-        n if n.starts_with("zenoh") => "zenoh/zenoh:latest",
-        "indrajaal-db-prod" => "postgres:15-alpine",
-        "indrajaal-obs-prod" => "prom/prometheus:latest", // Simplified for now
+        n if n.starts_with("zenoh") => "localhost/zenoh-router:latest",
+        "indrajaal-db-prod" => "localhost/indrajaal-db-prod:latest",
+        "indrajaal-obs-prod" => "localhost/indrajaal-obs-prod:latest",
         "indrajaal-cortex" => "localhost/indrajaal-cortex:latest",
-        _ => "alpine:latest",
+        _ => "docker.io/library/alpine:3.21",
     };
 
     let mut args = vec![
