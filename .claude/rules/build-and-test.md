@@ -23,8 +23,19 @@ MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 MIX_ENV=test mix test "$@"
 ```bash
 WALLABY_ENABLED=true SKIP_ZENOH_NIF=0 NO_TIMEOUT=true PATIENT_MODE=enabled \
 ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" HEALTH_PORT=4051 \
+POSTGRES_USER=postgres POSTGRES_PASSWORD=postgres \
+DATABASE_URL="ecto://postgres:postgres@localhost:5433/indrajaal_test" \
 MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 MIX_ENV=test mix test --only wallaby "$@"
 ```
+
+### Wallaby Config Requirements (config/wallaby.exs)
+| Setting | Value | Why |
+|---------|-------|-----|
+| base_url | `http://localhost:4050` | Chrome target |
+| server | true | Phoenix must serve HTTP |
+| http port | 4050 | Ports 4000-4010 reserved for mesh |
+| Oban plugins | false | Stager crashes without Ecto sandbox |
+| Oban queues | false | No background jobs during E2E |
 
 ### Gleam Build/Test
 ```bash
@@ -66,7 +77,10 @@ cpu_governor_status       # Dashboard
 | 4000-4010 | 16-container SIL-6 mesh (RESERVED) |
 | 4050 | Phoenix Wallaby test endpoint |
 | 4051 | FoundationSupervisor health plug (test) -- MUST set HEALTH_PORT=4051 |
+| 4052 | Dashboard monitoring port (test) |
 | 5433 | PostgreSQL |
 | 7447 | Zenoh router |
+
+**Authoritative source**: `devenv.nix` scripts section. All other files MUST mirror these patterns.
 
 **SC-CPU-GOV overrides SC-PARALLEL when CPU > 80%**. The 85% hard limit is non-negotiable.

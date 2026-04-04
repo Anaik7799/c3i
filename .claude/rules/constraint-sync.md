@@ -2,14 +2,30 @@
 
 **CLAUDE.md MUST be the authoritative superset of ALL constraints in code.** Code MUST NEVER contain undocumented constraints. NEVER remove constraints from docs because code doesn't reference them.
 
-## Key Constraints
+## STAMP Constraints
 | ID | Constraint | Severity |
 |----|------------|----------|
 | SC-SYNC-DOC-001 | CLAUDE.md SC-* set MUST be superset of code SC-* set | CRITICAL |
 | SC-SYNC-DOC-002 | CLAUDE.md AOR-* set MUST be superset of code AOR-* set | CRITICAL |
+| SC-SYNC-DOC-003 | Sync check MUST run on every Claude session start | CRITICAL |
+| SC-SYNC-DOC-004 | Gap metrics MUST be published to session context | HIGH |
+| SC-SYNC-DOC-005 | Weekly sync reconciliation MANDATORY (7-day gate) | HIGH |
+| SC-SYNC-DOC-006 | .claude/rules/ MUST be audited for staleness daily | MEDIUM |
+| SC-SYNC-DOC-007 | .claude/agents/ inventory MUST match agent definitions | MEDIUM |
+| SC-SYNC-DOC-008 | .claude/commands/ inventory MUST match skill definitions | MEDIUM |
 | SC-SYNC-DOC-009 | New code SC-*/AOR-* MUST be added to CLAUDE.md before commit | CRITICAL |
+| SC-SYNC-DOC-010 | Sync gap ratio MUST trend toward 1.0 (parity) | HIGH |
 | SC-SYNC-DOC-011 | Claude MUST use F# constraint sync engine for all sync ops | CRITICAL |
 | SC-SYNC-DOC-012 | Claude SHALL NOT use ad-hoc rg commands for constraint census | HIGH |
+| SC-SYNC-DOC-013 | F# script is the SOLE authoritative census engine | CRITICAL |
+| SC-SYNC-DOC-014 | Reconciliation MUST only run once per week (7-day gate) | HIGH |
+| SC-SYNC-DOC-015 | Analysis results auto-cached to .claude/constraint_sync_cache.json | HIGH |
+| SC-SYNC-DOC-016 | --cached mode reads from cache without re-scanning | HIGH |
+
+## Health Thresholds
+- **HEALTHY**: Gap ratio <= 1.5:1
+- **DEGRADED**: Gap ratio 1.5:1 to 5:1
+- **CRITICAL**: Gap ratio > 5:1
 
 ## F# Sync Engine (AUTHORITATIVE)
 

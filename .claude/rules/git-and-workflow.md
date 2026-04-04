@@ -27,6 +27,14 @@ Task: SNN-TNNN
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 ```
 
+**Examples** (em-dash context channel):
+```
+perf(sync): compile constraint engine to binary — cached 2.0s→57ms (35x)
+fix(sentinel): correct JsonDocument parsing — .NET 10 broke private record deserialization
+feat(test): add MathematicalSystemMonitor tests — 49 Expecto tests, 17 disciplines
+docs(sync): constraint reconciliation parity achieved — gap 8.4:1→1.0:1
+```
+
 **Forbidden**: EVOLUTION RUN N, emoji prefixes, free-text scopes, past tense.
 
 ## 2. Concurrent Bug Fix Protocol
@@ -50,7 +58,18 @@ git checkout -b multiverse/<agent-id>-<scope> main
 governed_compile   # 0 errors, 0 warnings
 mix format --check-formatted
 governed_test      # 0 failures
-# Commit with ICP v2.0 format
+# F# changes:
+dotnet build lib/cepaf/src/<Project>/<Project>.fsproj
+dotnet run --project lib/cepaf/test/Cepaf.Tests/Cepaf.Tests.fsproj -- \
+  --filter-test-list "<RelevantTestGroup>" --summary
+# Commit with ICP v2.0 format (heredoc):
+git commit -m "$(cat <<'EOF'
+fix(scope): description — context
+WHY: cause | WHAT: approach
+Layer: L1-CODE(N) | STAMP: SC-XXX-NNN | Task: SNN-TNNN
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+EOF
+)"
 ```
 
 ### Phase 4: Complete
@@ -77,7 +96,21 @@ governed_test      # 0 failures
 **Impact score** = sum of layer scores (0-4 per layer, weighted by layer). 0-10: standard review. 11-20: senior review. 21-30: architecture review. 31+: Guardian approval.
 
 ### 4-Layer Reversal
-L1: `git revert [sha]` | L2: + `mix compile --force` | L3: + `mix ecto.rollback` + `sa-down/up` | L4: `sa-checkpoint-restore --phase full`
+| Layer | Command | When |
+|-------|---------|------|
+| L1 (code only) | `git revert [sha]` | Typo, small fix |
+| L2 (+ domain) | `git revert [sha] && mix compile --force` | Logic change |
+| L3 (+ DB/config) | L2 + `mix ecto.rollback --step 1` + `sa-down && sa-up` | Schema/infra |
+| L4 (full system) | `sa-checkpoint-restore --phase full --checkpoint [id]` | System-wide |
+
+### Failure Recovery
+| Problem | Solution |
+|---------|----------|
+| Another agent claimed my task | Pick different `pending` task |
+| Fix breaks existing tests | Fix regression before marking complete |
+| Merge conflict with main | Rebase, re-verify, retry merge |
+| sa-plan returns error | Check `ls data/smriti/planning.db` |
+| Compilation fails after merge | `git revert HEAD` and investigate |
 
 ### Version Updates
 Update on release: mix.exs, CLAUDE.md, CHANGELOG.md, lib/indrajaal/version.ex. Use Keep a Changelog format.

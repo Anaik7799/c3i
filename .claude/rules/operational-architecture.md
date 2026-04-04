@@ -10,6 +10,8 @@
 
 **Quality Gates** (before task complete): 0 compile errors+warnings, format check, credo strict, all tests pass, STAMP verified.
 
+**Context Limits**: Max 10KB doc before chunking, max 5 files per compile batch, max 10 parallel reads, max 3 planning docs per domain.
+
 ## 2. Panoptic Swarm Ignition (SC-IGNITE)
 
 F# engine orchestrates 16-container SIL-6 Biomorphic Mesh.
@@ -34,6 +36,15 @@ F# engine orchestrates 16-container SIL-6 Biomorphic Mesh.
 
 **Image Staleness**: EXISTS? -> INTEGRAL? -> FRESH (<168h)? -> SKIP or REBUILD
 **BuildHistory**: SQLite WAL at lib/cepaf/artifacts/build-history.db, EMA alpha=0.3
+
+### AOR-IGNITE Rules
+| ID | Rule |
+|----|------|
+| AOR-IGNITE-001 | ALWAYS run `geneticResynthesis` before `igniteMesh` |
+| AOR-IGNITE-002 | NEVER skip health checks — every container MUST pass type-specific verification |
+| AOR-IGNITE-003 | ALWAYS call `BuildHistory.ensureSchema()` at start of geneticResynthesis |
+| AOR-IGNITE-004 | ALWAYS record build results to BuildHistory for EMA feedback |
+| AOR-IGNITE-005 | **Tier boot failures MUST halt the pipeline** — do NOT proceed to next tier |
 
 ### Zenoh Topics
 `indrajaal/ignition/progress` (JSON per step) | `indrajaal/ignition/thinking` (human-readable) | `indrajaal/build/history` (BuildRecord) | `indrajaal/health/{container}` (health check)
@@ -68,7 +79,33 @@ ALL 16 containers verified across 7 actions and 8 fractal layers (L0-L7).
 | SC-ZENOH-002 | Zenoh router MUST be reachable from ALL app nodes | CRITICAL |
 | SC-ZENOH-003 | ZenohTelemetrySubscriber MUST be connected | CRITICAL |
 | SC-ZENOH-007 | Zenoh health included in /health endpoint | CRITICAL |
+| SC-ZENOH-004 | Telemetry publishing latency < 100ms | HIGH |
+| SC-ZENOH-005 | Zenoh session reconnect on failure | HIGH |
+| SC-ZENOH-006 | All fractal layers (L1-L7) publish to Zenoh | HIGH |
+| SC-ZENOH-007 | Zenoh health included in /health endpoint | CRITICAL |
 | SC-ZENOH-008 | Container MUST NOT start if Zenoh unavailable | CRITICAL |
+
+### AOR-ZENOH Rules
+| ID | Rule |
+|----|------|
+| AOR-ZENOH-001 | NEVER set SKIP_ZENOH_NIF=1 in production or staging |
+| AOR-ZENOH-002 | ALWAYS verify Zenoh router running before app startup |
+| AOR-ZENOH-003 | ALWAYS include zenoh-router in compose dependencies |
+| AOR-ZENOH-004 | LOG all Zenoh connection state changes |
+| AOR-ZENOH-005 | ALERT on Zenoh disconnection > 30 seconds |
+| AOR-ZENOH-006 | RETRY Zenoh connection with exponential backoff |
+| AOR-ZENOH-007 | PUBLISH node health to Zenoh every 10 seconds |
+| AOR-ZENOH-008 | SUBSCRIBE to cluster coordination topics on startup |
+
+### Zenoh Environment Variables
+```yaml
+SKIP_ZENOH_NIF: "0"          # MANDATORY
+ZENOH_ENABLED: "true"
+ZENOH_ROUTER_ENDPOINT: "tcp/zenoh-router:7447"
+ZENOH_MODE: "client"
+QUADPLEX_ZENOH: "true"
+QUADPLEX_ZENOH_TOPIC: "indrajaal/logs/cluster/node-{N}"
+```
 
 **Startup**: zenoh-router(7447) -> health pass -> app starts -> NIF loads -> subscriber connects -> /health reports zenoh: connected -> joins cluster
 

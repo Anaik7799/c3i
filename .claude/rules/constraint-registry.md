@@ -21,6 +21,26 @@ Individual constraint details live in code; this registry tracks families and ra
 | SC-NIF | 001-006 | 6 | NIF layer: Rust FFI boundary safety, crash isolation |
 | SC-PRIME | 001-003 | 3 | Constitutional prime axioms, symbiotic defense |
 
+### P0 Key Individual Constraints (highest decision-criticality)
+| ID | Constraint |
+|----|------------|
+| SC-SIL4-001 | Safety functions MUST fail to safe state |
+| SC-SIL4-006 | 2oo3 voting MANDATORY for production actuations |
+| SC-SIL4-007 | Dying gasp checkpoint MANDATORY before shutdown |
+| SC-SIL4-010 | DAG validation before boot |
+| SC-SIL4-011 | Quorum floor(N/2)+1 maintained throughout upgrades |
+| SC-SIL4-015 | Split-brain detection triggers apoptosis |
+| SC-SAFETY-001 | Guardian pre-approval REQUIRED for planning mutations |
+| SC-SAFETY-009 | Psi-0 (Existence) validated for all operations |
+| SC-SAFETY-020 | Auto-halt at threat threshold |
+| SC-SAFETY-022 | Emergency stop < 5 seconds |
+| SC-ENFORCE-001 | Direct PROJECT_TODOLIST.md access MUST be blocked |
+| SC-ENFORCE-021 | Unknown agents MUST be denied by default |
+| SC-DMS-001 | Heartbeat interval MUST be 100ms |
+| SC-DMS-002 | Failsafe triggers within 50ms of timeout |
+| SC-GUARD-002 | Guardian integrates with DeadMansSwitch, fail closed |
+| SC-PRIME-001 | Constitutional prime axioms inviolable |
+
 **AOR-P0**: ENFORCE(15) SAFETY(15) SIL4(6) SIL6(4) SEC(3) GUARD(2) NEURO(2) NIF(1) PRIME(1)
 
 ## P1-CORE (HIGH)
