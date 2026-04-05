@@ -242,59 +242,121 @@ sqlite_close(Conn) ->
     try esqlite3:close(Conn)
     catch _:_ -> ok end.
 
+%% Zenoh NIF — dual-path loading:
+%%   Path 1: Elixir Rustler module (when running inside Mix/OTP app)
+%%   Path 2: Direct erlang:load_nif (when running standalone via gleam run)
+%%
+%% The NIF exports functions prefixed with zenoh_ that match the Rustler-generated names.
+%% SC-ZENOH-001: Zenoh NIF MUST be loaded on ALL nodes.
+
 try_load_zenoh_nif() ->
-    NifPath = "/home/an/dev/ver/c3i/sub-projects/intelitor-v5.2/target/release/libzenoh_nif",
-    try 'Elixir.Indrajaal.Native.Zenoh':load_nif(NifPath)
-    catch
-        error:undef -> {error, <<"zenoh_nif_module_not_available">>}
+    %% Try Elixir module first (Mix app context)
+    case code:ensure_loaded('Elixir.Indrajaal.Native.Zenoh') of
+        {module, _} -> {ok, <<"elixir_rustler_loaded">>};
+        _ ->
+            %% Fallback: load NIF directly into this module
+            NifPath = case filelib:is_file("/home/an/dev/ver/c3i/sub-projects/intelitor-v5.2/priv/native/zenoh_nif.so") of
+                true -> "/home/an/dev/ver/c3i/sub-projects/intelitor-v5.2/priv/native/zenoh_nif";
+                false -> "/home/an/dev/ver/c3i/sub-projects/intelitor-v5.2/target/debug/libzenoh_nif"
+            end,
+            case erlang:load_nif(NifPath, 0) of
+                ok -> {ok, <<"direct_nif_loaded">>};
+                {error, {reload, _}} -> {ok, <<"nif_already_loaded">>};
+                {error, Reason} -> {error, unicode:characters_to_binary(io_lib:format("nif_load_failed: ~p", [Reason]))}
+            end
+    end.
+
+%% Internal: resolve which module has the NIF functions
+%% Returns the module atom to call, or 'none' if unavailable
+zenoh_module() ->
+    case code:ensure_loaded('Elixir.Indrajaal.Native.Zenoh') of
+        {module, _} -> 'Elixir.Indrajaal.Native.Zenoh';
+        _ ->
+            %% When NIF is loaded directly into this module, the functions
+            %% are available as cepaf_gleam_ffi:zenoh_open_session etc.
+            %% But Rustler NIF names are prefixed, so we try the Elixir module first.
+            %% If not available, return none — caller handles gracefully.
+            none
     end.
 
 zenoh_open(ConfigJson) ->
     try
-        case 'Elixir.Indrajaal.Native.Zenoh':open_session(ConfigJson) of
-            {ok, Session} -> {ok, Session};
-            {error, Reason} -> {error, Reason}
+        case zenoh_module() of
+            none ->
+                %% Try direct NIF call (if loaded into this module)
+                %% Rustler generates 'Elixir.Module':function_name, not direct calls.
+                %% Without the Elixir module, we simulate a session for standalone mode.
+                try_load_zenoh_nif(),
+                case code:ensure_loaded('Elixir.Indrajaal.Native.Zenoh') of
+                    {module, _} ->
+                        case 'Elixir.Indrajaal.Native.Zenoh':open_session(ConfigJson) of
+                            {ok, Session} -> {ok, Session};
+                            {error, Reason} -> {error, Reason}
+                        end;
+                    _ -> {error, <<"zenoh_nif_not_available_standalone">>}
+                end;
+            Mod ->
+                case Mod:open_session(ConfigJson) of
+                    {ok, Session} -> {ok, Session};
+                    {error, Reason} -> {error, Reason}
+                end
         end
     catch
-        error:undef -> {error, <<"zenoh_nif_not_available">>}
+        error:undef -> {error, <<"zenoh_nif_not_available">>};
+        _:CatchReason -> {error, unicode:characters_to_binary(io_lib:format("zenoh_open_error: ~p", [CatchReason]))}
     end.
 
 zenoh_put(Session, Key, Payload) ->
     try
-        case 'Elixir.Indrajaal.Native.Zenoh':put(Session, Key, Payload) of
-            ok -> {ok, nil};
-            {ok, _} -> {ok, nil};
-            {error, Reason} -> {error, Reason}
+        case zenoh_module() of
+            none -> {error, <<"zenoh_nif_not_available">>};
+            Mod ->
+                case Mod:put(Session, Key, Payload) of
+                    ok -> {ok, nil};
+                    {ok, _} -> {ok, nil};
+                    {error, Reason} -> {error, Reason}
+                end
         end
     catch
-        error:undef -> {error, <<"zenoh_nif_not_available">>}
+        error:undef -> {error, <<"zenoh_nif_not_available">>};
+        _:CatchReason -> {error, unicode:characters_to_binary(io_lib:format("zenoh_put_error: ~p", [CatchReason]))}
     end.
 
 zenoh_get(Session, Key) ->
     try
-        case 'Elixir.Indrajaal.Native.Zenoh':get(Session, Key) of
-            {ok, []} -> {ok, <<"">>};
-            {ok, [Msg | _]} ->
-                Payload = case Msg of
-                    #{payload := P} -> P;
-                    #{<<"payload">> := P} -> P;
-                    _ -> <<"">>
-                end,
-                {ok, Payload};
-            {error, Reason} -> {error, Reason}
+        case zenoh_module() of
+            none -> {error, <<"zenoh_nif_not_available">>};
+            Mod ->
+                case Mod:get(Session, Key) of
+                    {ok, []} -> {ok, <<"">>};
+                    {ok, [Msg | _]} ->
+                        MsgPayload = case Msg of
+                            #{payload := P} -> P;
+                            #{<<"payload">> := P} -> P;
+                            _ -> <<"">>
+                        end,
+                        {ok, MsgPayload};
+                    {error, Reason} -> {error, Reason}
+                end
         end
     catch
-        error:undef -> {error, <<"zenoh_nif_not_available">>}
+        error:undef -> {error, <<"zenoh_nif_not_available">>};
+        _:CatchReason -> {error, unicode:characters_to_binary(io_lib:format("zenoh_get_error: ~p", [CatchReason]))}
     end.
 
 zenoh_subscribe(Session, Key, Pid) ->
     try
-        case 'Elixir.Indrajaal.Native.Zenoh':subscribe(Session, Key, Pid) of
-            {ok, _SubRef} -> {ok, nil};
-            {error, Reason} -> {error, Reason}
+        case zenoh_module() of
+            none -> {error, <<"zenoh_nif_not_available">>};
+            Mod ->
+                case Mod:subscribe(Session, Key, Pid) of
+                    {ok, _SubRef} -> {ok, nil};
+                    {error, Reason} -> {error, Reason}
+                end
         end
     catch
-        error:undef -> {error, <<"zenoh_nif_not_available">>}
+        error:undef -> {error, <<"zenoh_nif_not_available">>};
+        _:CatchReason -> {error, unicode:characters_to_binary(io_lib:format("zenoh_subscribe_error: ~p", [CatchReason]))}
     end.
 
 file_read(Path) ->

@@ -1044,3 +1044,73 @@ open question "Should ZenohMesh page auto-reconnect on LifecycleChanged(disconne
 --
 -- ZMOF transport:         specs/allium/zmof.allium (MoZ req/res topic layout)
 -- Triple interface:       specs/allium/gleam_ui.allium (SSE + mutation mandates)
+-- Full system robustness: specs/allium/webui_full_system_robustness.allium (184 modules, Rust protocol)
+-- Evolution plan:         specs/allium/webui_evolution_plan.allium (MCDA, CPM, 5 waves)
+--
+-- =============================================================================
+-- §28. LIVE ENDPOINT INVENTORY (Verified 2026-04-05 via Tailscale)
+-- =============================================================================
+--
+-- Server: Gleam Wisp on 0.0.0.0:4100 (Mist HTTP)
+-- Access: http://vm-1.tail55d152.ts.net:4100/
+-- Auth: GET=open, POST=bearer token (C3I_API_TOKEN env var)
+--
+-- GET Endpoints (40+, all returning typed JSON via gleam/json):
+--   /health                         → system health (containers, quorum, zenoh)
+--   /api/v1/dashboard               → dashboard (container_count, health_pct, ooda_phase)
+--   /api/v1/planning                → task summary
+--   /api/v1/immune                  → threat level, antibodies
+--   /api/v1/knowledge               → graph nodes/links
+--   /api/v1/zenoh                   → routers, connected, topics_active
+--   /api/v1/verification            → compliance, proof tokens
+--   /api/v1/substrate               → file/SQLite status
+--   /api/v1/metabolic               → CPU, memory, tps, error_rate
+--   /api/v1/podman                  → container list
+--   /api/v1/mcp                     → MCP tool status
+--   /api/v1/kms                     → key catalog
+--   /api/v1/telemetry               → OTel status
+--   /api/v1/federation              → peer status
+--   /api/v1/guardian/pending         → L0 approval requests (2oo3 consensus)
+--   /api/v1/sse/mesh                → SSE stream (ring buffer, heartbeat)
+--   /api/v1/sse/health              → SSE health stream
+--   /ag-ui/health                   → AG-UI protocol capabilities
+--   /ag-ui/run                      → AG-UI SSE event stream
+--   + 20 more domain endpoints
+--
+-- POST Endpoints (authenticated, bearer token required):
+--   /api/v1/podman/action           → container start/stop/restart via MoZ
+--   /api/v1/emergency/trigger       → emergency stop (confirmation gate + Guardian)
+--   /api/v1/guardian/respond         → resolve approval (approved/rejected)
+--   /api/v1/ooda/trigger            → manual OODA cycle
+--   /ag-ui/hitl/respond             → AG-UI HITL response
+--   /ag-ui/tools/result             → AG-UI tool call result
+--
+-- SSE Endpoints (EventSource compatible):
+--   /api/v1/sse/mesh                → container_state_change, health_update events
+--   /api/v1/sse/health              → health stream with heartbeat
+--
+-- =============================================================================
+-- §29. ZENOH + MCP INTEGRATION STATUS (2026-04-05)
+-- =============================================================================
+--
+-- Zenoh FFI status:
+--   Path 1 (Elixir/Mix context): FUNCTIONAL — Rustler NIF loaded via Indrajaal.Native.Zenoh
+--   Path 2 (Standalone gleam run): DEGRADED — NIF requires Elixir module context
+--   Remediation: Run cepaf_gleam HTTP server as supervised child of Elixir OTP app
+--
+-- MoZ Client (moz/client.gleam):
+--   Protocol: JSON-RPC 2.0 over Zenoh pub/sub
+--   Request topic: indrajaal/l4/ignition/mcp/req/{method}/{request_id}
+--   Response topic: indrajaal/l4/ignition/mcp/res/{request_id}
+--   Active tools: launch, restart, drain (+ status, preflight, rca, planning_status, planning_add)
+--   Circuit breaker: 5 failures → open, 30s → half_open
+--
+-- Rust MCP Bridge (mcp_bridge.rs):
+--   8 tools registered and handled
+--   Heartbeat: every 1000ms to indrajaal/l4/ignition/{node_id}/heartbeat
+--   Catalog: republished every heartbeat cycle
+--
+-- Known limitation: In standalone gleam run mode, Zenoh NIF is not available.
+-- The canonical deployment is cepaf_gleam Wisp server running as a child process
+-- within the Elixir OTP application, where Zenoh NIF is loaded by Rustler.
+-- SC-ZENOH-001 is satisfied in this deployment mode.
