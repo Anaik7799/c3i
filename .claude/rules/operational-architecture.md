@@ -14,9 +14,10 @@
 
 ## 2. Panoptic Swarm Ignition (SC-IGNITE)
 
-F# engine orchestrates 16-container SIL-6 Biomorphic Mesh.
+Rust ignition_daemon orchestrates 16-container SIL-6 Biomorphic Mesh (F# engine: legacy, replaced by Rust).
 
-**Files**: PanopticIgnition.fs (~830 lines) + BuildStreamMonitor.fs (~462) + BuildHistory.fs (~317)
+**Rust binary**: `sub-projects/intelitor-v5.2/native/ignition_daemon/src/main.rs` (entry point)
+**Legacy F# files (historical)**: PanopticIgnition.fs (~830 lines) + BuildStreamMonitor.fs (~462) + BuildHistory.fs (~317)
 
 ### 16-Container Genome (sil6Genome)
 | # | Container | Category | Source |
@@ -60,7 +61,7 @@ ALL 16 containers verified across 7 actions and 8 fractal layers (L0-L7).
 | ooda | 5-tier OODA: Agent(<30ms) Intelligence(<100ms) Knowledge(<1ms) Cortex(<50ms) Strategy(<1s) |
 | observability | Pipeline: OTEL(4317) -> Prometheus(9090) -> Grafana(3000) -> Zenoh(7447) -> Dashboard |
 | control | Command -> Zenoh -> container -> feedback round-trip per category |
-| agent_probe | Embedded F# agent health + Zenoh subscriptions |
+| agent_probe | Embedded Rust agent health + Zenoh subscriptions (legacy: F# agent probe) |
 | fractal | L0-L7 primary checks + baseline for all non-primary containers |
 | inject_trace | Synthetic trace propagation across all 16 containers |
 | full | Aggregate all above with compliance percentage |

@@ -244,24 +244,57 @@ sqlite_close(Conn) ->
 
 try_load_zenoh_nif() ->
     NifPath = "/home/an/dev/ver/c3i/sub-projects/intelitor-v5.2/target/release/libzenoh_nif",
-    indrajaal_native_zenoh:load_nif(NifPath).
+    try 'Elixir.Indrajaal.Native.Zenoh':load_nif(NifPath)
+    catch
+        error:undef -> {error, <<"zenoh_nif_module_not_available">>}
+    end.
 
-zenoh_open(_ConfigJson) ->
-    {ok, session_ref}.
+zenoh_open(ConfigJson) ->
+    try
+        case 'Elixir.Indrajaal.Native.Zenoh':open_session(ConfigJson) of
+            {ok, Session} -> {ok, Session};
+            {error, Reason} -> {error, Reason}
+        end
+    catch
+        error:undef -> {error, <<"zenoh_nif_not_available">>}
+    end.
 
-zenoh_put(_Session, _Key, _Payload) ->
-    {ok, nil}.
+zenoh_put(Session, Key, Payload) ->
+    try
+        case 'Elixir.Indrajaal.Native.Zenoh':put(Session, Key, Payload) of
+            ok -> {ok, nil};
+            {ok, _} -> {ok, nil};
+            {error, Reason} -> {error, Reason}
+        end
+    catch
+        error:undef -> {error, <<"zenoh_nif_not_available">>}
+    end.
 
 zenoh_get(Session, Key) ->
-    try indrajaal_native_zenoh:get(Session, Key)
+    try
+        case 'Elixir.Indrajaal.Native.Zenoh':get(Session, Key) of
+            {ok, []} -> {ok, <<"">>};
+            {ok, [Msg | _]} ->
+                Payload = case Msg of
+                    #{payload := P} -> P;
+                    #{<<"payload">> := P} -> P;
+                    _ -> <<"">>
+                end,
+                {ok, Payload};
+            {error, Reason} -> {error, Reason}
+        end
     catch
-        error:undef -> {error, <<"zenoh_not_available">>}
+        error:undef -> {error, <<"zenoh_nif_not_available">>}
     end.
 
 zenoh_subscribe(Session, Key, Pid) ->
-    try indrajaal_native_zenoh:subscribe(Session, Key, Pid)
+    try
+        case 'Elixir.Indrajaal.Native.Zenoh':subscribe(Session, Key, Pid) of
+            {ok, _SubRef} -> {ok, nil};
+            {error, Reason} -> {error, Reason}
+        end
     catch
-        error:undef -> {error, <<"zenoh_not_available">>}
+        error:undef -> {error, <<"zenoh_nif_not_available">>}
     end.
 
 file_read(Path) ->

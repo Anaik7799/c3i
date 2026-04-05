@@ -105,6 +105,9 @@
     nil                                # Nix LSP (modern, incremental)
     nixpkgs-fmt                        # Nix formatter
     nix-tree                           # Dependency tree visualization
+    # Google Cloud SDK (gcloud CLI)
+    google-cloud-sdk                   # gcloud, gsutil, bq
+    rclone                             # Google Drive FUSE mount
     # gRPC/Protobuf Support (SC-LSP-003)
     buf                                # Buf CLI for protobuf (includes LSP)
     protobuf                           # Protocol Buffers compiler
@@ -861,11 +864,11 @@
     dotnet run --project lib/cepaf/src/Cepaf.Planning.CLI -- status
   '';
 
-  # F# Planning System (Sprint 45)
+  # Rust Planning Daemon (sa-plan-daemon) — replaces F# Cepaf.Planning.CLI
   # SC-CACHE-001, AOR-CHG-001
   scripts.sa-plan.exec = ''
-    CMD="''${1:-status}"
-    dotnet run --project lib/cepaf/src/Cepaf.Planning.CLI -- "$CMD" "''${@:2}"
+    cd sub-projects/intelitor-v5.2
+    ./target/release/sa-plan-daemon "$@"
   '';
 
   # ============================================

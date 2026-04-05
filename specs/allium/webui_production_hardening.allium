@@ -1,0 +1,550 @@
+-- allium: 3
+-- WebUI Production Hardening — Source-Level Gap Analysis & Remediation Spec
+-- Covers: Router mutation endpoints, live data replacement, Zenoh FFI wiring,
+--         L0 Guardian HITL flow, SSE chunked streaming, operational workflows,
+--         error handling, rate limiting, authentication, audit trail
+-- STAMP: SC-GLM-UI-001..010, SC-AGUI-001..017, SC-API-001..010, SC-SEC-001..049,
+--        SC-ARCH-SPLIT-001, SC-ZMOF-001..006, SC-SIL4-006, SC-CNT-001..019,
+--        SC-EMR-057..066, SC-SAFETY-001..022, SC-LOG-001..010
+-- Date: 2026-04-05
+-- Author: Claude Opus 4.6 (operator-assisted)
+-- Companion to: webui_operational_control.allium (contracts & invariants)
+-- This spec: source-level gaps, operational workflows, concrete remediation
+
+-- =============================================================================
+-- S1. SOURCE CODE GAP ANALYSIS (AS-IS vs SHOULD-BE)
+-- =============================================================================
+
+-- GAP-001: Router is 100% GET — zero mutation endpoints
+-- File: ui/wisp/router.gleam (1,022 lines)
+-- AS-IS: 40+ routes, ALL pattern-matched on path string, ALL return static JSON
+-- SHOULD-BE: POST /api/v1/podman/action, POST /ag-ui/hitl/respond, DELETE /api/v1/podman/container/{name}
+
+gap RouterNoMutations {
+    file: "ui/wisp/router.gleam"
+    lines: 1022
+    severity: P0
+    description: "All 40+ endpoints return hardcoded JSON via string pattern match on GET paths.
+                  Zero POST/PUT/DELETE endpoints. Zero mutation capability."
+    evidence: "route(path: String) -> String — returns String, not Result.
+               No request body parsing. No HTTP method dispatch.
+               handle_request() at line 90+ only calls route() for path matching."
+    remediation: {
+        -- Phase 1: Add HTTP method dispatch to handle_request
+        -- Phase 2: Add POST /api/v1/podman/action with MoZ dispatch
+        -- Phase 3: Add POST /ag-ui/hitl/respond for Guardian HITL
+        -- Phase 4: Add POST /api/v1/emergency/stop for L0 emergency
+        step1: "Refactor handle_request to dispatch on (method, path) tuple"
+        step2: "Add MoZClient module for Zenoh req/res protocol"
+        step3: "Add request body JSON decoder using gleam/json"
+        step4: "Wire POST endpoints to MoZClient"
+    }
+    stamp: ["SC-GLM-UI-001", "SC-ARCH-SPLIT-001", "SC-ZMOF-001"]
+}
+
+-- GAP-002: All API data is hardcoded — no real system state
+-- File: ui/wisp/router.gleam (lines 90-900+)
+-- AS-IS: planning_json() returns static task list. immune_json() returns static threat_level.
+-- SHOULD-BE: Query real data from Zenoh subscriptions or FFI calls.
+
+gap HardcodedApiData {
+    file: "ui/wisp/router.gleam"
+    lines: 90-900
+    severity: P1
+    description: "Every API handler returns hardcoded JSON literals.
+                  planning_json() has hardcoded task IDs. immune_json() has hardcoded threat_level='nominal'.
+                  knowledge_json() has hardcoded node/link counts. None query real system state."
+    evidence: "fn planning_json() -> json.object([#('tasks', json.array([json.object([#('id', json.string('1.1.1')), ...])]))])
+               fn immune_json() -> json.object([#('threat_level', json.string('nominal'))])"
+    remediation: {
+        step1: "Create ui/state.gleam — shared mutable state via ETS or process dictionary"
+        step2: "Subscribe to Zenoh topics on server start to populate state"
+        step3: "Replace hardcoded json with state lookups"
+        step4: "Add cache invalidation with TTL (5s for health, 30s for config)"
+    }
+    stamp: ["SC-GLM-UI-005", "SC-GLM-ZEN-001"]
+}
+
+-- GAP-003: SSE is pre-generated string, not chunked streaming
+-- File: agui/sse.gleam (134 lines)
+-- AS-IS: create_sse_stream() returns full String concatenation of all events
+-- SHOULD-BE: Return Mist chunked iterator that streams events over time
+
+gap SSENotStreaming {
+    file: "agui/sse.gleam"
+    lines: 134
+    severity: P1
+    description: "create_sse_stream() builds the ENTIRE event sequence as one String
+                  and returns it. This defeats SSE purpose — browser receives all events
+                  at once, not streamed. No heartbeat, no reconnection, no ring buffer."
+    evidence: "pub fn create_sse_stream(...) -> String { string.concat([...]) }
+               Returns String, not Iterator or Stream."
+    remediation: {
+        step1: "Create agui/sse_stream.gleam with Mist chunked response support"
+        step2: "Implement ring buffer (last 100 events) for reconnection replay"
+        step3: "Add heartbeat every 5s via timer"
+        step4: "Add Last-Event-ID handling for missed event replay"
+        step5: "Wire to Zenoh subscriptions for real-time mesh events"
+    }
+    stamp: ["SC-GLM-UI-010", "SC-AGUI-002"]
+}
+
+-- GAP-004: Zenoh FFI is stubbed — put/subscribe do nothing
+-- File: cepaf_gleam_ffi.erl (lines 245-265)
+-- AS-IS: zenoh_put returns {ok, nil}. zenoh_open returns {ok, session_ref}.
+-- SHOULD-BE: Delegate to real zenoh_nif.so via indrajaal_native_zenoh module
+
+gap ZenohFFIStubbed {
+    file: "cepaf_gleam_ffi.erl"
+    lines: 245-265
+    severity: P0
+    description: "Zenoh FFI functions are stubs that silently succeed without doing anything.
+                  zenoh_put/3 returns {ok, nil} — messages never actually publish.
+                  zenoh_get/2 tries indrajaal_native_zenoh:get but falls back to error.
+                  This means ALL Zenoh-dependent features are non-functional."
+    evidence: "zenoh_put(_Session, _Key, _Payload) -> {ok, nil}.
+               zenoh_open(_ConfigJson) -> {ok, session_ref}."
+    remediation: {
+        step1: "Wire zenoh_open to indrajaal_native_zenoh:open (from zenoh_nif.so)"
+        step2: "Wire zenoh_put to indrajaal_native_zenoh:put"
+        step3: "Wire zenoh_subscribe to indrajaal_native_zenoh:subscribe"
+        step4: "Add error handling for NIF unavailable (graceful degradation)"
+        step5: "Add integration test: publish from Gleam, observe on Zenoh CLI"
+    }
+    stamp: ["SC-ZENOH-001", "SC-NIF-001", "SC-ZMOF-001"]
+    blocks: ["GAP-001", "GAP-002", "GAP-003"]
+    note: "This is the CRITICAL PATH blocker. Nothing works without real Zenoh."
+}
+
+-- GAP-005: L0 Constitutional types exist but aren't wired to any endpoint
+-- File: fractal/l0_constitutional.gleam (284 lines)
+-- AS-IS: ApprovalState, ConsensusState, EmergencyState types + pure functions.
+--         approval_to_json() serializes. cast_vote() evaluates 2oo3.
+--         But NO Wisp endpoint, NO Lustre page, NO TUI view renders them.
+-- SHOULD-BE: Full HITL workflow: POST /ag-ui/hitl/respond → resolve approval → SSE notification
+
+gap L0ConstitutionalNotWired {
+    file: "fractal/l0_constitutional.gleam"
+    lines: 284
+    severity: P0
+    description: "Complete L0 type system (ApprovalRequest, ConsensusState, EmergencyState,
+                  PsiCheck, 2oo3 voting) exists with pure functions, but:
+                  - No Wisp endpoint exposes pending approvals
+                  - No POST endpoint accepts approval/rejection
+                  - No SSE pushes Guardian alerts to browser
+                  - No Lustre page renders the approval modal
+                  - Emergency stop exists as type but can't be triggered from UI"
+    evidence: "pub fn cast_vote() — works. pub fn evaluate_consensus() — works.
+               pub fn trigger_emergency() — works. But nothing calls them from HTTP."
+    remediation: {
+        step1: "Add GET /api/v1/guardian/pending → list pending ApprovalRequests"
+        step2: "Add POST /api/v1/guardian/respond → resolve_request with decision"
+        step3: "Add POST /api/v1/emergency/trigger → trigger_emergency"
+        step4: "Wire to SSE: push guardian_alert event on new approval request"
+        step5: "Add Lustre modal component for HITL approval (A2UI modal type)"
+        step6: "Add TUI view for approval list with keyboard response"
+    }
+    stamp: ["SC-AGUI-004", "SC-SAFETY-001", "SC-SIL4-006", "SC-GUARD-001"]
+}
+
+-- GAP-006: podman_api.gleam is read-only serialization
+-- File: ui/wisp/podman_api.gleam (68 lines)
+-- AS-IS: containers_json() and system_info_json() — pure JSON encoders
+-- SHOULD-BE: Also container mutation request/response JSON, action endpoint
+
+gap PodmanApiReadOnly {
+    file: "ui/wisp/podman_api.gleam"
+    lines: 68
+    severity: P1
+    description: "Only two functions: containers_json() and system_info_json().
+                  Both are pure JSON encoders. No mutation request decoder.
+                  No action response encoder. No error response format."
+    remediation: {
+        step1: "Add mutation_request_decoder() — parse {verb, container, reason} from JSON body"
+        step2: "Add mutation_response_json() — encode MoZ response"
+        step3: "Add error_response_json() — standard error format with STAMP ref"
+        step4: "Add container_action_json() — encode start/stop/restart result"
+    }
+    stamp: ["SC-GLM-UI-003", "SC-CNT-001"]
+}
+
+-- =============================================================================
+-- S2. OPERATIONAL WORKFLOW SPECIFICATIONS
+-- =============================================================================
+
+-- Workflow 1: Operator starts a container from WebUI
+workflow ContainerStart {
+    actor: Operator (human, authenticated)
+    precondition: container.status = "stopped" or "exited" or "created"
+    postcondition: container.status = "running"
+
+    steps {
+        1: Operator clicks "Start" button on container card in L4 tab
+        2: Browser sends POST /api/v1/podman/action {verb: "start", container: "indrajaal-ex-app-1", reason: "manual start"}
+        3: Wisp router dispatches to podman action handler
+        4: Handler calls MoZClient.send_mutation(request)
+            4a: MoZClient checks circuit breaker state
+            4b: If circuit OPEN → return 503 Service Unavailable
+            4c: MoZClient publishes to indrajaal/l4/ignition/mcp/req/start/{request_id}
+        5: Rust mcp_bridge.rs receives request
+            5a: Validates proof token (if P0 action)
+            5b: Runs preflight check for target container
+            5c: Executes podman start {container}
+            5d: Publishes response to indrajaal/l4/ignition/mcp/res/{request_id}
+        6: MoZClient receives response (or timeout after 10s)
+            6a: On success → update circuit breaker (close if half_open)
+            6b: On failure → increment consecutive_failures
+        7: Wisp returns JSON response to browser
+        8: SSEBridge pushes container_state_change event to all subscribers
+        9: Browser EventSource receives update → DOM updates container card badge
+    }
+
+    error_paths {
+        timeout: "MoZ response not received within 10s → circuit breaker evaluates → return 504"
+        zenoh_partition: "Zenoh mesh unreachable → circuit opens → return 503 with last-known state"
+        podman_failure: "Container fails to start → Rust returns error → Wisp returns 422 with details"
+        concurrent: "Another mutation on same container → return 409 Conflict"
+    }
+
+    rollback: "Container remains in previous state. No side effects on failure."
+    audit: "OTel span: webui.container.start with correlation_id, latency, result"
+    sla: "< 10s end-to-end including preflight"
+}
+
+-- Workflow 2: Emergency stop from WebUI (P0, Guardian-gated)
+workflow EmergencyStop {
+    actor: Operator (human, authenticated, must be guardian-authorized)
+    precondition: system is operational
+    postcondition: all containers stopped within 5 seconds
+
+    steps {
+        1: Operator clicks "Emergency Stop" button in L0 tab
+        2: Browser shows HITL confirmation modal (A2UI modal component)
+            2a: Modal displays: "This will stop ALL 15 containers. Confirm?"
+            2b: Modal requires typed confirmation: "EMERGENCY STOP"
+        3: Operator types confirmation and clicks "Confirm"
+        4: Browser sends POST /api/v1/emergency/trigger {reason: "manual emergency stop", confirmation: "EMERGENCY STOP"}
+        5: Wisp creates ApprovalRequest with severity=Critical
+        6: Guardian evaluates: requires 3 guardian approvals (guardians_for_severity(Critical) = 3)
+            6a: In single-operator mode: operator IS the guardian
+            6b: In multi-operator mode: 2oo3 consensus required
+        7: After approval: MoZClient.send_mutation({verb: emergency_stop, ...})
+        8: Rust mcp_bridge.rs executes emergency stop (apoptosis.rs)
+            8a: Skip tier ordering — stop ALL immediately
+            8b: Complete within 5 seconds (SC-SAFETY-022)
+        9: SSEBridge pushes guardian_alert + container_state_change for each container
+        10: All container cards show "stopped" status
+    }
+
+    error_paths {
+        rejection: "Guardian rejects → return 403 with rejection reason"
+        timeout: "Guardian timeout (30s) → auto-reject → return 408"
+        partial_failure: "Some containers fail to stop → return 207 Multi-Status with per-container results"
+    }
+
+    sla: "< 5 seconds from approval to all containers stopped (SC-SAFETY-022)"
+    audit: "Immutable Register entry: emergency_stop with operator, timestamp, containers, durations"
+}
+
+-- Workflow 3: Real-time dashboard monitoring (passive, read-only)
+workflow DashboardMonitoring {
+    actor: Operator (human, may be unauthenticated for read-only)
+    precondition: Mist HTTP server running on port 4100
+    postcondition: continuous real-time updates until disconnect
+
+    steps {
+        1: Operator opens browser to http://localhost:4100/dashboard
+        2: Lustre SSR renders full static HTML page (works without JS)
+        3: Browser's minimal JS (~20 lines) opens EventSource to /api/v1/sse/mesh
+        4: SSEBridge GenServer subscribes to Zenoh topics:
+            - indrajaal/health/* (container health, every 10s)
+            - indrajaal/l4/system/** (container state changes)
+            - indrajaal/l5/cog/ooda/** (OODA cycle ticks)
+            - indrajaal/safety/sentinel/** (threat alerts)
+            - indrajaal/otel/spans/** (OTel spans)
+        5: On each Zenoh message:
+            5a: SSEBridge classifies event type
+            5b: Assigns sequential event ID
+            5c: Pushes to all connected EventSource clients
+        6: Browser JS updates DOM elements based on event type:
+            - container_state_change → update badge color
+            - health_update → update sparkline data
+            - ooda_cycle_tick → rotate OODA ring animation
+            - guardian_alert → flash L0 alert bar
+        7: Every 5s: SSEBridge sends heartbeat event (keepalive)
+        8: On disconnect: browser auto-reconnects with Last-Event-ID
+            8a: SSEBridge replays missed events from ring buffer
+    }
+
+    degradation {
+        js_disabled: "Static HTML page is fully readable. No real-time updates but all data visible."
+        sse_timeout: "Browser reconnects automatically. Max 3s gap."
+        zenoh_partition: "SSEBridge serves cached last-known-good data with 'stale' badge"
+    }
+}
+
+-- Workflow 4: OODA cycle visualization (L5 Cognitive tab)
+workflow OODAVisualization {
+    actor: Operator (passive observer)
+
+    steps {
+        1: Operator navigates to L5 Cognitive tab
+        2: Lustre renders OODA ring with current phase highlighted
+        3: SSE delivers ooda_cycle_tick events from Rust OODA supervisor:
+            3a: {phase: "observe", latency_ms: 12, data: {...}}
+            3b: {phase: "orient", latency_ms: 8, data: {...}}
+            3c: {phase: "decide", latency_ms: 3, rule: "evaluate_decision", result: "NoAction"}
+            3d: {phase: "act", latency_ms: 1, action: "no_op"}
+            3e: {phase: "verify", latency_ms: 5, verified: true}
+        4: Browser updates OODA ring animation:
+            - Current phase highlighted in CYAN
+            - Latency shown next to each phase
+            - Total cycle time displayed (< 100ms SLA)
+        5: Reasoning marquee shows last decision rationale
+    }
+}
+
+-- =============================================================================
+-- S3. PRODUCTION HARDENING RULES
+-- =============================================================================
+
+rule "Rate Limiting on Mutation Endpoints" {
+    -- SC-API-001: Rate limiting for API safety
+    when call POST /api/v1/podman/action
+    let rate = requests_per_minute(source_ip)
+    requires rate < 30
+    on violation return 429 Too Many Requests
+    @guidance Prevents operator accidentally hammering the mutation endpoint.
+              30 RPM is generous — normal ops is ~5 RPM max.
+}
+
+rule "Authentication for Mutation Endpoints" {
+    -- SC-SEC-001: Authentication required
+    when call POST /api/v1/**
+    requires "Authorization header present with valid bearer token"
+    on violation return 401 Unauthorized
+    @guidance Read-only GET endpoints may be unauthenticated for monitoring.
+              All mutation POST/PUT/DELETE endpoints MUST be authenticated.
+}
+
+rule "Request Body Size Limit" {
+    -- SC-API-003: Bounded input
+    when call POST /api/v1/**
+    requires request.body.size < 64_000  -- 64KB max
+    on violation return 413 Payload Too Large
+    @guidance Prevents DoS via large request bodies.
+}
+
+rule "Structured Error Responses" {
+    -- SC-GLM-UI-003: Typed JSON
+    when error in any endpoint
+    then return json.object([
+        #("error", json.string(error_message)),
+        #("code", json.string(error_code)),
+        #("stamp", json.string(stamp_reference)),
+        #("request_id", json.string(request_id)),
+        #("timestamp", json.string(iso8601_now()))
+    ])
+    ensure "Never return raw stack traces to client"
+    ensure "Always include STAMP reference for traceability"
+}
+
+rule "CORS for Development" {
+    when request.origin != "http://localhost:4100"
+    then add Access-Control-Allow-Origin header for known origins only
+    reject unknown origins
+    @guidance Production: strict origin list. Development: localhost:4100 only.
+}
+
+rule "Request Timeout" {
+    when call any endpoint
+    ensure response within 30_000 ms
+    on timeout return 504 Gateway Timeout
+    @guidance Prevents hung requests from consuming server resources.
+              MoZ mutations have their own 10s timeout inside this 30s envelope.
+}
+
+rule "Audit Trail for All Mutations" {
+    -- SC-LOG-001, SC-SAFETY-003
+    when call POST /api/v1/**
+    then log to OTel span: {
+        method, path, source_ip, user_agent,
+        request_body_hash, response_status, latency_ms,
+        stamp_refs, correlation_id
+    }
+    then publish to indrajaal/audit/webui/{method}/{path}
+    ensure "Every mutation is traceable end-to-end"
+}
+
+rule "Health Endpoint Always Available" {
+    -- SC-FUNC-002
+    when call GET /health
+    then return 200 OK with system health even if other services are degraded
+    ensure "Health endpoint never returns 5xx"
+    ensure "Health endpoint latency < 100ms"
+    @guidance This is the load balancer probe. Must always respond.
+}
+
+-- =============================================================================
+-- S4. IMPLEMENTATION DEPENDENCY GRAPH (Critical Path)
+-- =============================================================================
+
+-- The dependency graph for reaching production-grade WebUI:
+--
+-- GAP-004 (Zenoh FFI wiring) ──────────────────────────────┐
+--    │                                                       │
+--    ▼                                                       ▼
+-- GAP-002 (Live data from Zenoh)    GAP-001 (Router mutations)
+--    │                                   │
+--    ▼                                   ▼
+-- GAP-003 (SSE streaming)         GAP-006 (Podman API mutation codecs)
+--    │                                   │
+--    ▼                                   ▼
+-- Workflow 3 (Dashboard)          GAP-005 (L0 Guardian HITL wiring)
+--                                       │
+--                                       ▼
+--                                 Workflow 1 (Container Start)
+--                                       │
+--                                       ▼
+--                                 Workflow 2 (Emergency Stop)
+--
+-- Critical path: GAP-004 → GAP-001 → GAP-005 → Workflow 2
+-- Estimated: 7-10 days for full production-grade WebUI control
+
+-- =============================================================================
+-- S5. MCP TOOL CATALOG ALIGNMENT (Rust ↔ Gleam)
+-- =============================================================================
+
+-- The Rust mcp_bridge.rs exposes these tools. Gleam MoZ client must match.
+
+alignment McpToolCatalog {
+    -- From mcp_bridge.rs tool_catalog() (line 51-120)
+    rust_tools: [
+        "ignition_status",      -- GET mesh status (containers, CPU, health)
+        "ignition_preflight",   -- Run 18 preflight checks
+        "ignition_ooda",        -- Run OODA supervisor cycle (params: {cycles: int})
+        "ignition_rca",         -- Run 7-level RCA (params: {error: string})
+        -- Additional tools from main.rs subcommands:
+        "ignition_launch",      -- Boot SIL-6 mesh (params: {env: "prod"|"test"})
+        "ignition_down",        -- Graceful mesh shutdown
+        "ignition_emergency",   -- Apoptosis trigger
+        "ignition_stabilize"    -- Halt mutations
+    ]
+
+    -- Gleam MoZ client must be able to call each tool
+    gleam_client_methods: [
+        "get_status()",
+        "run_preflight()",
+        "run_ooda(cycles: Int)",
+        "run_rca(error: String)",
+        "launch_mesh(env: String)",
+        "shutdown_mesh()",
+        "emergency_stop()",
+        "stabilize()"
+    ]
+
+    -- Topic mapping
+    request_topic: "indrajaal/l4/ignition/mcp/req/{tool_name}/{request_id}"
+    response_topic: "indrajaal/l4/ignition/mcp/res/{request_id}"
+    heartbeat_topic: "indrajaal/l4/ignition/{node_id}/heartbeat"
+
+    -- JSON-RPC 2.0 format (from McpRequest struct)
+    request_format: {
+        jsonrpc: "2.0",
+        method: "{tool_name}",
+        params: {},
+        id: "{request_id}"
+    }
+    response_format: {
+        jsonrpc: "2.0",
+        result: {} | null,
+        error: {code: int, message: string, data: {} | null} | null,
+        id: "{request_id}"
+    }
+}
+
+-- =============================================================================
+-- S6. ADDITIONAL FMEA (Beyond webui_operational_control.allium)
+-- =============================================================================
+
+fmea "Hardcoded API data served as real" {
+    severity: 7        -- Operator makes decision on stale data
+    occurrence: 9      -- Happens every request right now
+    detection: 3       -- Not obvious — JSON looks valid
+    rpn: 189
+    mitigation: "Replace hardcoded JSON with Zenoh-sourced state (GAP-002)"
+    note: "RPN 189 is near P1 threshold. Operators may think threat_level='nominal' when it's 'critical'."
+}
+
+fmea "Zenoh FFI stub silently succeeds" {
+    severity: 9        -- All Zenoh features broken with no error
+    occurrence: 10     -- Every Zenoh call right now
+    detection: 8       -- Returns {ok, nil} — looks successful
+    rpn: 720
+    mitigation: "Wire FFI to real zenoh_nif.so (GAP-004). This is the #1 priority."
+    note: "RPN 720 is CRITICAL. SC-ZMOF-001 is violated by the stub. Every feature
+           that depends on Zenoh (SSE, mutations, real-time data) is non-functional."
+}
+
+fmea "No authentication on mutation endpoints" {
+    severity: 9        -- Unauthenticated container control
+    occurrence: 2      -- Mutation endpoints don't exist yet
+    detection: 1       -- Easy to add before deployment
+    rpn: 18
+    mitigation: "Add bearer token auth when implementing POST endpoints"
+}
+
+fmea "SSE string concatenation under load" {
+    severity: 5        -- Slow responses, memory spike
+    occurrence: 6      -- Every SSE request
+    detection: 4       -- Performance degradation visible
+    rpn: 120
+    mitigation: "Implement Mist chunked streaming (GAP-003)"
+}
+
+-- =============================================================================
+-- S7. OPEN QUESTIONS (Updated)
+-- =============================================================================
+
+open_question "ETS vs OTP Actor for UI State" {
+    -- How should the SSEBridge hold shared state?
+    -- Option A: ETS table (fast reads, manual cleanup)
+    -- Option B: OTP actor/GenServer (supervision, message passing)
+    -- Option C: Gleam process dictionary (simple, single-process)
+    status: proposed
+    impact: high (affects all real-time features)
+    recommendation: "OTP actor — Gleam's erlang/process.gleam supports this,
+                     and supervisor restart handles crash recovery"
+}
+
+open_question "Proof Token Generation for WebUI" {
+    -- The Rust MCP bridge validates Ed25519 proof tokens.
+    -- Who generates the token for WebUI mutations?
+    -- Option A: Server-side after HITL approval (Gleam generates)
+    -- Option B: Client-side with hardware key (browser WebAuthn)
+    -- Option C: Guardian service generates and signs
+    status: proposed
+    impact: high (security architecture for P0 mutations)
+    recommendation: "Option C — Guardian is already the trust authority.
+                     After HITL approval, Guardian signs the proof token,
+                     Gleam includes it in MoZ request, Rust validates."
+}
+
+open_question "Catalog Handler Mismatch" {
+    -- Rust publishes 6 tools in catalog, only handles 3 in dispatch
+    -- See webui_full_system_robustness.allium S2 for details
+    status: new
+    impact: medium
+}
+
+open_question "Database for WebUI Session State" {
+    -- Should WebUI sessions be tracked?
+    -- Option A: Stateless (every request self-contained)
+    -- Option B: SQLite session store
+    -- Option C: Erlang ETS (ephemeral, lost on restart)
+    status: proposed
+    impact: medium
+    recommendation: "Option A for MVP — stateless REST.
+                     Option C for SSE connection tracking.
+                     Option B only if persistent session history needed."
+}

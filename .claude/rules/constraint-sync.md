@@ -27,7 +27,10 @@
 - **DEGRADED**: Gap ratio 1.5:1 to 5:1
 - **CRITICAL**: Gap ratio > 5:1
 
-## F# Sync Engine (AUTHORITATIVE)
+## F# Sync Engine (AUTHORITATIVE — no Rust replacement)
+
+The constraint census engine remains F#. Unlike sa-plan (replaced by Rust `sa-plan-daemon`),
+`Cepaf.ConstraintSync` has no Rust equivalent. Use dotnet commands below.
 
 **Compiled binary (preferred, 5-35x faster)**:
 ```bash

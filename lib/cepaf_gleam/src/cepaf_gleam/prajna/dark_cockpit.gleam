@@ -4,6 +4,9 @@
 
 import gleam/list
 
+/// SC-MUDA-001: bound alert list to prevent unbounded growth.
+const max_alerts = 200
+
 pub type CockpitMode {
   Dark
   Dim
@@ -55,7 +58,7 @@ pub fn determine_mode(alerts: List(Alert)) -> CockpitMode {
 }
 
 pub fn add_alert(state: CockpitState, alert: Alert) -> CockpitState {
-  let new_alerts = [alert, ..state.alerts]
+  let new_alerts = [alert, ..state.alerts] |> list.take(max_alerts)
   let new_mode = determine_mode(new_alerts)
   CockpitState(..state, alerts: new_alerts, mode: new_mode)
 }
@@ -82,4 +85,28 @@ pub fn get_unacknowledged_by_severity(
 pub fn update(state: CockpitState, timestamp: String) -> CockpitState {
   let new_mode = determine_mode(state.alerts)
   CockpitState(..state, mode: new_mode, last_update: timestamp)
+}
+
+/// Inject a demo Warning-severity alert into the cockpit state.
+///
+/// This is the Zenoh-alert ingestion entry point — real alerts arrive via
+/// SharedMeshState subscribers and call add_alert/2 with the decoded Alert
+/// record.  This function provides a placeholder (SC-ZMOF-001 wiring pending)
+/// so that dark_cockpit CAN receive alerts and transition away from Dark mode.
+///
+/// Usage:
+///   let state = dark_cockpit.initial_state()
+///   let live_state = dark_cockpit.simulate_health_alerts(state)
+///   // live_state.mode == Dim (one Warning alert present)
+pub fn simulate_health_alerts(state: CockpitState) -> CockpitState {
+  let demo_alert =
+    Alert(
+      id: "demo-health-001",
+      severity: WarningSeverity,
+      message: "Container health degraded",
+      source: "SharedMeshState/zenoh",
+      timestamp: state.last_update,
+      acknowledged: False,
+    )
+  add_alert(state, demo_alert)
 }

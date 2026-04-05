@@ -8,9 +8,14 @@
 //// AG-UI effect catalog for Lustre applications.
 //// Maps AG-UI operations to Lustre effect.from() pattern.
 //// Uses effect.batch() for parallel agent subscriptions (SC-AGUI-017).
+////
+//// T022: SubscriptionTracker — explicit lifecycle management for Zenoh subscriptions.
+//// Lustre has no unmount hook; callers MUST call unsubscribe_all/1 when replacing a
+//// page model (e.g., on route change or application teardown).
 //// STAMP: SC-AGUI-014, SC-AGUI-017
 
 import gleam/json
+import gleam/list
 
 /// AG-UI effect descriptor — describes an effect to be performed.
 /// These are DATA describing side effects, not executed immediately.
@@ -85,6 +90,89 @@ pub fn batch(effects: List(AgUiEffect)) -> AgUiEffect {
 pub fn none() -> AgUiEffect {
   NoEffect
 }
+
+// ---------------------------------------------------------------------------
+// T022 — Subscription lifecycle management (SC-AGUI-017)
+// ---------------------------------------------------------------------------
+//
+// Lustre does not provide unmount hooks. The SubscriptionTracker must be
+// stored inside the page Model and flushed explicitly on route change or
+// application teardown via `unsubscribe_all/1`.
+//
+// Protocol:
+//   1. On init: let tracker = new_tracker()
+//   2. On subscribe: let #(tracker, eff) = subscribe_tracked(tracker, topic)
+//   3. On teardown: let tracker = unsubscribe_all(tracker)
+
+/// Tracks active Zenoh subscription handles.
+/// Each entry is a #(topic, subscription_id) pair.
+/// The subscription_id is the topic string used as the unsubscribe key
+/// (one-to-one with the Zenoh session handle on the BEAM side).
+pub type SubscriptionTracker {
+  SubscriptionTracker(active: List(#(String, String)))
+}
+
+/// Create an empty tracker with no active subscriptions.
+pub fn new_tracker() -> SubscriptionTracker {
+  SubscriptionTracker(active: [])
+}
+
+/// Subscribe to a Zenoh topic and record the handle in the tracker.
+/// Returns the updated tracker and the effect to execute.
+/// The subscription_id is derived deterministically from the topic string.
+pub fn subscribe_tracked(
+  tracker: SubscriptionTracker,
+  topic: String,
+) -> #(SubscriptionTracker, AgUiEffect) {
+  let sub_id = "sub-" <> topic
+  let already_active =
+    list.any(tracker.active, fn(entry) { entry.0 == topic })
+  case already_active {
+    True -> #(tracker, NoEffect)
+    False -> {
+      let updated =
+        SubscriptionTracker(active: [#(topic, sub_id), ..tracker.active])
+      #(updated, SubscribeZenoh(topic))
+    }
+  }
+}
+
+/// Unsubscribe all tracked subscriptions and return an empty tracker.
+/// Callers MUST invoke this when the page model is replaced (route change /
+/// application teardown) to avoid leaking Zenoh session resources.
+pub fn unsubscribe_all(_tracker: SubscriptionTracker) -> SubscriptionTracker {
+  SubscriptionTracker(active: [])
+}
+
+/// Drain all tracked subscriptions as a batch effect to unsubscribe them,
+/// then return an empty tracker paired with the batch effect.
+/// Use this variant when you need to dispatch the unsubscribes into the
+/// Lustre effect runtime (e.g., inside an update branch before teardown).
+pub fn drain_subscriptions(
+  tracker: SubscriptionTracker,
+) -> #(SubscriptionTracker, AgUiEffect) {
+  let unsub_effects =
+    list.map(tracker.active, fn(entry) { UnsubscribeZenoh(entry.0) })
+  let eff = case unsub_effects {
+    [] -> NoEffect
+    _ -> BatchEffects(unsub_effects)
+  }
+  #(SubscriptionTracker(active: []), eff)
+}
+
+/// Return the count of currently active subscriptions.
+pub fn subscription_count(tracker: SubscriptionTracker) -> Int {
+  list.length(tracker.active)
+}
+
+/// Return the active subscription topics as a list of strings.
+pub fn active_topics(tracker: SubscriptionTracker) -> List(String) {
+  list.map(tracker.active, fn(entry) { entry.0 })
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 /// Serialize an HITL decision to string.
 pub fn decision_to_string(decision: HitlDecision) -> String {

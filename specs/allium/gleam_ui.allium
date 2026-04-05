@@ -30,3 +30,55 @@ contract TripleInterfaceMandate {
         then "Publish OTel span via zenoh_otel.gleam"
     }
 }
+
+-- =============================================================================
+-- Real-Time Transport (added 2026-04-05, see webui_operational_control.allium)
+-- =============================================================================
+
+contract SSETransportMandate {
+    -- SC-GLM-UI-010: Real-time updates via SSE (not WebSocket)
+    -- Rationale: SSE auto-reconnects, no client JS, proxy-safe, Dark Cockpit compatible
+
+    command subscribe_sse(topic: String) -> Subscription
+    command push_sse_event(event_type: String, data: String)
+
+    rule "Zenoh to SSE Edge Adapter" {
+        when event ZenohMesh.message_received(topic, payload)
+        then push_sse_event(classify(topic), payload)
+        @guidance Zenoh is mesh-internal transport. SSE is browser-facing edge.
+                  BEAM GenServer subscribes to Zenoh, pushes to Mist chunked response.
+    }
+
+    rule "Static Fallback Mandatory" {
+        -- SC-GLM-UI-001: No client JS for basic rendering
+        when Browser.sse_unavailable
+        then "Lustre SSR renders complete static page"
+        ensure "All read-only data visible without SSE"
+    }
+}
+
+-- =============================================================================
+-- Container Mutation Path (added 2026-04-05)
+-- =============================================================================
+
+contract MutationInterfaceMandate {
+    -- SC-ARCH-SPLIT-001: Gleam publishes intent, Rust executes action
+    -- SC-ZMOF-001: Zenoh is sole transport
+
+    command request_mutation(container: String, verb: String, reason: String)
+
+    rule "Wisp POST to MoZ" {
+        when call MutationInterfaceMandate.request_mutation
+        then "Wisp POST /api/v1/podman/action serializes MoZRequest"
+        then "MoZClient publishes to indrajaal/l4/ignition/mcp/req/{verb}/{id}"
+        ensure "Rust ignition daemon receives and applies safety gates"
+    }
+
+    rule "Guardian Gate for P0" {
+        when call MutationInterfaceMandate.request_mutation
+        requires verb in ["emergency_stop", "stabilize", "scour"]
+        ensures "HITL modal shown, Guardian approval obtained, 2oo3 consensus verified"
+    }
+}
+
+-- Full operational control spec: specs/allium/webui_operational_control.allium

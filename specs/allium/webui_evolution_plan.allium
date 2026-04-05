@@ -1,0 +1,940 @@
+-- allium: 3
+-- WebUI Biomorphic Evolution Plan — Multi-Criteria Optimized Implementation
+-- Mathematical Framework: MCDA (AHP weights), FMEA RPN, CPM/RCPSP DAG scheduling,
+--                        Shannon entropy coverage optimization, Pareto frontier selection,
+--                        Biomorphic wave-based evolutionary generations
+-- Covers: 12 GAPs → 28 tasks → 5 waves → 4 supervisory layers → 12 days
+-- STAMP: SC-ZMOF-001, SC-ARCH-SPLIT-001, SC-GLM-UI-001..010, SC-SIL4-006,
+--        SC-SAFETY-001..022, SC-MUDA-001, SC-FUNC-001..008, SC-CPU-GOV-001
+-- Date: 2026-04-05
+-- Author: Claude Opus 4.6 (operator-assisted)
+-- Synthesizes: 4 analysis passes, 184 modules / 30,930 LOC, 12 production gaps
+
+-- =============================================================================
+-- §1. MULTI-CRITERIA DECISION ANALYSIS (MCDA)
+-- =============================================================================
+
+-- Six optimization dimensions with AHP-derived weights.
+-- Pairwise comparison matrix (Saaty scale 1-9):
+--
+--              Crit  FMEA  Robust  Usab  Stab  SIL6
+-- Criticality   1     3      2      5     3     1/2
+-- FMEA         1/3    1      1      3     2     1/3
+-- Robustness   1/2    1      1      3     2     1/2
+-- Usability    1/5   1/3    1/3     1    1/2    1/5
+-- Stability    1/3   1/2    1/2     2     1     1/3
+-- SIL-6         2     3      2      5     3      1
+--
+-- Eigenvector (normalized priority weights):
+-- w = [0.22, 0.10, 0.12, 0.05, 0.08, 0.43]
+-- Consistency Ratio CR = 0.03 < 0.10 (acceptable)
+
+config {
+    -- AHP-derived weights (sum = 1.0)
+    w_criticality: Decimal = 0.22
+    w_fmea: Decimal = 0.10
+    w_robustness: Decimal = 0.12
+    w_usability: Decimal = 0.05
+    w_stability: Decimal = 0.08
+    w_sil6: Decimal = 0.43
+
+    -- Scoring scales (1-10)
+    -- Criticality: 10 = system non-functional without it
+    -- FMEA: normalized RPN / 100 (max 10)
+    -- Robustness: 10 = prevents cascading failures
+    -- Usability: 10 = operator can't function without it
+    -- Stability: 10 = eliminates instability source
+    -- SIL-6: 10 = directly satisfies SIL-6 constraint
+
+    -- Resource constraints (RCPSP)
+    max_parallel_tasks: Integer = 4      -- CPU governor: max concurrent heavy tasks
+    agents_available: Integer = 3        -- Claude + Gemini + operator concurrent
+    compile_slot_limit: Integer = 1      -- Only 1 gleam build at a time
+    test_slot_limit: Integer = 1         -- Only 1 test suite at a time
+}
+
+-- =============================================================================
+-- §2. TASK UNIVERSE — 28 Tasks from 12 GAPs, Scored on 6 Dimensions
+-- =============================================================================
+
+-- Composite Priority Score: CPS = Σ(w_i × score_i)
+-- Higher CPS = higher priority (scheduled first)
+
+-- Notation: [Crit, FMEA, Robust, Usab, Stab, SIL6] → CPS
+
+entity Task {
+    id: String
+    gap: String
+    description: String
+    scores: List<Decimal>   -- [crit, fmea, robust, usab, stab, sil6]
+    cps: Decimal            -- computed composite priority score
+    effort_hours: Integer
+    depends_on: Set<Task>
+    wave: Integer           -- assigned wave (computed by scheduler)
+    lane: String            -- parallel execution lane
+}
+
+-- WAVE 0: Foundation (unblocks everything)
+
+value T001 {
+    id: "T001"
+    gap: "GAP-004"
+    description: "Wire zenoh_put/zenoh_open in cepaf_gleam_ffi.erl to real zenoh_nif.so"
+    scores: [10, 7.2, 9, 3, 9, 10]
+    -- CPS = 0.22×10 + 0.10×7.2 + 0.12×9 + 0.05×3 + 0.08×9 + 0.43×10 = 9.31
+    cps: 9.31
+    effort_hours: 6
+    depends_on: []
+    wave: 0
+    lane: "zenoh"
+    note: "RPN 720 — highest risk in entire system. CRITICAL PATH ROOT."
+}
+
+value T002 {
+    id: "T002"
+    gap: "GAP-004"
+    description: "Wire zenoh_subscribe in FFI with callback dispatch to Gleam process"
+    scores: [9, 7.2, 8, 2, 8, 9]
+    cps: 8.42
+    effort_hours: 4
+    depends_on: ["T001"]
+    wave: 0
+    lane: "zenoh"
+}
+
+value T003 {
+    id: "T003"
+    gap: "GAP-004"
+    description: "Integration test: Gleam publish → Zenoh CLI observe → round-trip verified"
+    scores: [8, 7.2, 7, 1, 9, 9]
+    cps: 8.19
+    effort_hours: 3
+    depends_on: ["T001", "T002"]
+    wave: 0
+    lane: "zenoh"
+}
+
+value T004 {
+    id: "T004"
+    gap: "GAP-007"
+    description: "Add bearer token middleware to Wisp handle_request() — GET=open, POST=auth"
+    scores: [9, 1.8, 8, 4, 7, 10]
+    cps: 8.60
+    effort_hours: 5
+    depends_on: []
+    wave: 0
+    lane: "auth"    -- PARALLEL with T001
+    note: "Can be built independently of Zenoh. Ships before mutations."
+}
+
+-- WAVE 1: Mutation Path (core container control)
+
+value T005 {
+    id: "T005"
+    gap: "GAP-001"
+    description: "Refactor router.gleam: dispatch on (method, path) tuple, add POST support"
+    scores: [9, 0, 7, 8, 6, 7]
+    cps: 7.32
+    effort_hours: 4
+    depends_on: ["T004"]
+    wave: 1
+    lane: "router"
+}
+
+value T006 {
+    id: "T006"
+    gap: "GAP-006"
+    description: "Add mutation request/response JSON codecs to podman_api.gleam"
+    scores: [7, 0, 5, 7, 5, 5]
+    cps: 5.44
+    effort_hours: 3
+    depends_on: []
+    wave: 1
+    lane: "codecs"   -- PARALLEL with T005
+}
+
+value T007 {
+    id: "T007"
+    gap: "GAP-001"
+    description: "Implement MoZClient module: circuit breaker + JSON-RPC 2.0 req/res over Zenoh"
+    scores: [10, 0, 10, 5, 9, 9]
+    cps: 8.79
+    effort_hours: 8
+    depends_on: ["T001", "T002", "T003"]
+    wave: 1
+    lane: "moz"
+    note: "Core MoZ client. Depends on Zenoh FFI wiring (Wave 0)."
+}
+
+value T008 {
+    id: "T008"
+    gap: "GAP-008"
+    description: "Integrate prajna/circuit_breaker.gleam into MoZClient state machine"
+    scores: [7, 0, 10, 3, 9, 8]
+    cps: 7.64
+    effort_hours: 3
+    depends_on: ["T007"]
+    wave: 1
+    lane: "moz"
+}
+
+value T009 {
+    id: "T009"
+    gap: "GAP-001"
+    description: "Wire POST /api/v1/podman/action → MoZClient → Zenoh → Rust"
+    scores: [9, 0, 7, 9, 7, 8]
+    cps: 7.74
+    effort_hours: 4
+    depends_on: ["T005", "T006", "T007"]
+    wave: 1
+    lane: "router"
+    note: "First container mutation from WebUI. Milestone."
+}
+
+-- WAVE 2: Safety + Real-Time (Guardian HITL + SSE)
+
+value T010 {
+    id: "T010"
+    gap: "GAP-005"
+    description: "Add GET /api/v1/guardian/pending — expose L0 ApprovalRequest list"
+    scores: [8, 0, 6, 7, 5, 10]
+    cps: 7.64
+    effort_hours: 3
+    depends_on: ["T005"]
+    wave: 2
+    lane: "guardian"
+}
+
+value T011 {
+    id: "T011"
+    gap: "GAP-005"
+    description: "Add POST /api/v1/guardian/respond — resolve approval, update ConsensusState"
+    scores: [9, 0, 7, 8, 6, 10]
+    cps: 8.37
+    effort_hours: 4
+    depends_on: ["T010", "T004"]
+    wave: 2
+    lane: "guardian"
+}
+
+value T012 {
+    id: "T012"
+    gap: "GAP-005"
+    description: "Add POST /api/v1/emergency/trigger — Guardian-gated emergency stop via MoZ"
+    scores: [10, 0, 9, 6, 8, 10]
+    cps: 9.11
+    effort_hours: 5
+    depends_on: ["T011", "T007"]
+    wave: 2
+    lane: "guardian"
+    note: "P0 SAFETY. Emergency stop from WebUI. SC-SAFETY-022: < 5 seconds."
+}
+
+value T013 {
+    id: "T013"
+    gap: "GAP-003"
+    description: "Create agui/sse_stream.gleam: Mist chunked response + ring buffer (100 events)"
+    scores: [7, 1.2, 8, 8, 7, 6]
+    cps: 6.79
+    effort_hours: 6
+    depends_on: ["T001", "T002"]
+    wave: 2
+    lane: "sse"      -- PARALLEL with guardian
+}
+
+value T014 {
+    id: "T014"
+    gap: "GAP-003"
+    description: "Add SSE heartbeat (5s), Last-Event-ID replay, backpressure disconnect"
+    scores: [6, 1.2, 9, 6, 8, 5]
+    cps: 6.25
+    effort_hours: 4
+    depends_on: ["T013"]
+    wave: 2
+    lane: "sse"
+}
+
+value T015 {
+    id: "T015"
+    gap: "GAP-003"
+    description: "Add SSE Wisp endpoints: /api/v1/sse/mesh, /containers, /ooda, /guardian"
+    scores: [7, 1.2, 7, 9, 6, 6]
+    cps: 6.49
+    effort_hours: 4
+    depends_on: ["T013", "T005"]
+    wave: 2
+    lane: "sse"
+}
+
+-- WAVE 3: Live Data + State Coordination (operational utility)
+
+value T016 {
+    id: "T016"
+    gap: "GAP-002"
+    description: "Create ui/state.gleam: SharedMeshState GenServer with Zenoh subscriptions"
+    scores: [8, 1.9, 8, 7, 8, 7]
+    cps: 7.27
+    effort_hours: 6
+    depends_on: ["T001", "T002"]
+    wave: 3
+    lane: "state"
+}
+
+value T017 {
+    id: "T017"
+    gap: "GAP-002"
+    description: "Replace all hardcoded API JSON with SharedMeshState queries"
+    scores: [7, 1.9, 6, 9, 7, 5]
+    cps: 5.94
+    effort_hours: 8
+    depends_on: ["T016"]
+    wave: 3
+    lane: "state"
+    note: "Touches 30+ handler functions in router.gleam"
+}
+
+value T018 {
+    id: "T018"
+    gap: "GAP-009"
+    description: "Wire dark_cockpit.gleam to Zenoh health/sentinel topics via SharedMeshState"
+    scores: [7, 1.8, 8, 7, 7, 7]
+    cps: 6.77
+    effort_hours: 3
+    depends_on: ["T016"]
+    wave: 3
+    lane: "cockpit"   -- PARALLEL with T017
+}
+
+value T019 {
+    id: "T019"
+    gap: "GAP-010"
+    description: "Wire Lustre podman.gleam Start/StopContainer to MoZ effects"
+    scores: [7, 0.8, 6, 9, 5, 6]
+    cps: 5.87
+    effort_hours: 3
+    depends_on: ["T007"]
+    wave: 3
+    lane: "lustre"    -- PARALLEL with state work
+}
+
+value T020 {
+    id: "T020"
+    gap: "GAP-010"
+    description: "Wire Lustre cockpit_view.gleam Refresh/Acknowledge to effects + dark_cockpit"
+    scores: [6, 0.8, 5, 8, 5, 5]
+    cps: 5.14
+    effort_hours: 3
+    depends_on: ["T018"]
+    wave: 3
+    lane: "lustre"
+}
+
+value T021 {
+    id: "T021"
+    gap: "GAP-010"
+    description: "Wire Lustre verification.gleam RefreshVerification to Zenoh subscription"
+    scores: [5, 0.8, 4, 7, 4, 5]
+    cps: 4.51
+    effort_hours: 2
+    depends_on: ["T016"]
+    wave: 3
+    lane: "lustre"
+}
+
+-- WAVE 4: Hardening + Testing (production-grade)
+
+value T022 {
+    id: "T022"
+    gap: "GAP-011"
+    description: "Add subscription lifecycle management: track handles, unsubscribe on unmount"
+    scores: [5, 1.4, 7, 2, 8, 4]
+    cps: 4.77
+    effort_hours: 3
+    depends_on: ["T016"]
+    wave: 4
+    lane: "hardening"
+}
+
+value T023 {
+    id: "T023"
+    gap: "GAP-012"
+    description: "Add max_history bounds to verification, dark_cockpit, L6, L7 modules"
+    scores: [4, 1.1, 6, 1, 7, 3]
+    cps: 3.77
+    effort_hours: 2
+    depends_on: []
+    wave: 4
+    lane: "hardening"  -- PARALLEL with T022
+}
+
+value T024 {
+    id: "T024"
+    gap: "NEW"
+    description: "Add graceful shutdown to web/server.gleam: SIGTERM handler, connection drain"
+    scores: [6, 0.5, 8, 2, 9, 6]
+    cps: 6.05
+    effort_hours: 3
+    depends_on: []
+    wave: 4
+    lane: "server"     -- PARALLEL with hardening
+}
+
+value T025 {
+    id: "T025"
+    gap: "NEW"
+    description: "Integration test: container start from WebUI button to podman running"
+    scores: [9, 0, 8, 7, 8, 9]
+    cps: 8.34
+    effort_hours: 4
+    depends_on: ["T009", "T013"]
+    wave: 4
+    lane: "testing"
+}
+
+value T026 {
+    id: "T026"
+    gap: "NEW"
+    description: "Integration test: emergency stop from L0 tab to all containers stopped < 5s"
+    scores: [10, 0, 9, 5, 9, 10]
+    cps: 9.10
+    effort_hours: 4
+    depends_on: ["T012"]
+    wave: 4
+    lane: "testing"
+}
+
+value T027 {
+    id: "T027"
+    gap: "NEW"
+    description: "Chaos test: kill Zenoh router → circuit breaker opens → UI degrades gracefully"
+    scores: [8, 0, 10, 3, 10, 9]
+    cps: 8.50
+    effort_hours: 4
+    depends_on: ["T008", "T013", "T018"]
+    wave: 4
+    lane: "testing"
+}
+
+value T028 {
+    id: "T028"
+    gap: "NEW"
+    description: "Load test: 100 concurrent SSE connections, verify < 5% drop rate"
+    scores: [5, 0, 8, 4, 7, 5]
+    cps: 5.25
+    effort_hours: 3
+    depends_on: ["T014"]
+    wave: 4
+    lane: "testing"
+}
+
+-- =============================================================================
+-- §3. CPS RANKING (Descending Priority Order)
+-- =============================================================================
+
+-- Rank | Task | CPS  | Wave | Gap     | Description (abbreviated)
+-- -----+------+------+------+---------+-------------------------------------------
+--   1  | T001 | 9.31 |  0   | GAP-004 | Wire zenoh_put to real NIF
+--   2  | T012 | 9.11 |  2   | GAP-005 | Emergency stop endpoint (P0 SAFETY)
+--   3  | T026 | 9.10 |  4   | NEW     | Emergency stop integration test
+--   4  | T007 | 8.79 |  1   | GAP-001 | MoZClient module (circuit breaker + req/res)
+--   5  | T004 | 8.60 |  0   | GAP-007 | Bearer token auth middleware
+--   6  | T027 | 8.50 |  4   | NEW     | Chaos test: Zenoh partition → graceful degrade
+--   7  | T002 | 8.42 |  0   | GAP-004 | Wire zenoh_subscribe with callback
+--   8  | T011 | 8.37 |  2   | GAP-005 | Guardian respond endpoint
+--   9  | T025 | 8.34 |  4   | NEW     | Container start E2E integration test
+--  10  | T003 | 8.19 |  0   | GAP-004 | Zenoh round-trip integration test
+--  11  | T009 | 7.74 |  1   | GAP-001 | POST /api/v1/podman/action endpoint
+--  12  | T008 | 7.64 |  1   | GAP-008 | Circuit breaker integration with MoZ
+--  13  | T010 | 7.64 |  2   | GAP-005 | Guardian pending GET endpoint
+--  14  | T005 | 7.32 |  1   | GAP-001 | Router method+path dispatch refactor
+--  15  | T016 | 7.27 |  3   | GAP-002 | SharedMeshState GenServer
+--  16  | T013 | 6.79 |  2   | GAP-003 | SSE chunked streaming via Mist
+--  17  | T018 | 6.77 |  3   | GAP-009 | Dark cockpit alert wiring
+--  18  | T015 | 6.49 |  2   | GAP-003 | SSE Wisp endpoints
+--  19  | T014 | 6.25 |  2   | GAP-003 | SSE heartbeat + reconnection
+--  20  | T024 | 6.05 |  4   | NEW     | Graceful server shutdown
+--  21  | T017 | 5.94 |  3   | GAP-002 | Replace hardcoded data with live state
+--  22  | T019 | 5.87 |  3   | GAP-010 | Lustre podman Start/Stop → MoZ effects
+--  23  | T006 | 5.44 |  1   | GAP-006 | Mutation request/response codecs
+--  24  | T028 | 5.25 |  4   | NEW     | SSE load test (100 connections)
+--  25  | T020 | 5.14 |  3   | GAP-010 | Lustre cockpit Refresh/Acknowledge
+--  26  | T022 | 4.77 |  4   | GAP-011 | Subscription lifecycle management
+--  27  | T021 | 4.51 |  3   | GAP-010 | Lustre verification refresh
+--  28  | T023 | 3.77 |  4   | GAP-012 | History bounds (max 100)
+
+-- =============================================================================
+-- §4. DAG DEPENDENCY GRAPH (CPM / Critical Path Analysis)
+-- =============================================================================
+
+-- Nodes: 28 tasks. Edges: depends_on relationships.
+-- Critical path: longest path through DAG (determines minimum completion time).
+--
+-- WAVE 0 (Foundation) — 2 parallel lanes, 18 hours
+--
+--   Lane zenoh:   T001(6h) → T002(4h) → T003(3h)     = 13h
+--   Lane auth:    T004(5h)                              = 5h
+--   Wave 0 gate:  max(13, 5) = 13 hours
+--
+-- WAVE 1 (Mutation) — 3 parallel lanes, 19 hours
+--
+--   Lane router:  T005(4h) → T009(4h)                  = 8h  [depends: T004]
+--   Lane codecs:  T006(3h) ──────────→ T009             = 3h  [independent]
+--   Lane moz:     T007(8h) → T008(3h) → T009            = 11h [depends: T001-T003]
+--   Wave 1 gate:  max(8, 3, 11) = 11 hours (T007→T008 is critical)
+--   T009 merge:   T005 + T006 + T007 must all complete = 4h
+--   Wave 1 total: 11 + 4 = 15h
+--
+-- WAVE 2 (Safety + Real-Time) — 2 parallel lanes, 13 hours
+--
+--   Lane guardian: T010(3h) → T011(4h) → T012(5h)      = 12h
+--   Lane sse:     T013(6h) → T014(4h)                  = 10h
+--                 T013(6h) → T015(4h)                  = 10h (T014/T015 parallel)
+--   Wave 2 gate:  max(12, 10) = 12 hours (guardian is critical)
+--
+-- WAVE 3 (Live Data) — 3 parallel lanes, 14 hours
+--
+--   Lane state:   T016(6h) → T017(8h)                  = 14h (critical)
+--   Lane cockpit: T016(6h) → T018(3h) → T020(3h)       = 12h
+--   Lane lustre:  T019(3h), T021(2h)                   = 3h
+--   Wave 3 gate:  max(14, 12, 3) = 14 hours (state lane critical)
+--
+-- WAVE 4 (Hardening) — 4 parallel lanes, 8 hours
+--
+--   Lane hardening: T022(3h), T023(2h) [parallel]       = 3h
+--   Lane server:    T024(3h)                            = 3h
+--   Lane testing:   T025(4h), T026(4h), T027(4h), T028(3h) [pairwise parallel]
+--   Wave 4 gate:    max(3, 3, 8) = 8 hours
+--
+-- TOTAL CRITICAL PATH:
+--   Wave 0: 13h + Wave 1: 15h + Wave 2: 12h + Wave 3: 14h + Wave 4: 8h = 62 hours
+--   At 6h/day effective work = 10.3 days ≈ 11 calendar days
+--
+-- WITH MAX PARALLELIZATION (4 agents, overlapping waves):
+--   Wave 0+1 overlap: auth lane (T004) can run while zenoh lane executes
+--   Wave 2+3 overlap: SSE lane independent of guardian if Zenoh ready
+--   Compressed: ~8 calendar days with 3-4 parallel agents
+
+-- =============================================================================
+-- §5. BIOMORPHIC WAVE STRUCTURE (Evolutionary Generations)
+-- =============================================================================
+
+-- Each wave is a generation in the biomorphic evolution.
+-- Fitness function: coverage entropy across C1-C8 gold standard categories.
+-- Selection pressure: SIL-6 constraints eliminate unsafe mutations.
+-- Crossover: integration tasks merge capabilities from parallel lanes.
+
+enum WavePhase {
+    genesis |        -- Wave 0: Create fundamental capabilities (Zenoh, Auth)
+    differentiation | -- Wave 1: Specialize into mutation + control pathways
+    integration |    -- Wave 2: Safety (Guardian) + delivery (SSE) merge
+    maturation |     -- Wave 3: State coordination, live data, cross-page
+    homeostasis      -- Wave 4: Hardening, bounds, testing, equilibrium
+}
+
+-- Biomorphic metaphor:
+-- Wave 0 = Stem cell (Zenoh FFI) — totipotent, enables all downstream
+-- Wave 1 = Tissue differentiation (MoZ, Router, Codecs) — specialized paths
+-- Wave 2 = Organ formation (Guardian HITL, SSE streams) — functional units
+-- Wave 3 = Nervous system (SharedMeshState, cross-page coordination) — integration
+-- Wave 4 = Immune system (circuit breakers, chaos tests, bounds) — resilience
+
+entity Wave {
+    phase: WavePhase
+    tasks: Set<Task>
+    entry_gate: List<String>     -- conditions to start this wave
+    exit_gate: List<String>      -- conditions to proceed to next wave
+    fitness_metric: Decimal      -- Shannon entropy H after wave completion
+    sil6_compliance: Decimal     -- percentage of SIL-6 constraints satisfied
+
+    invariant MonotonicFitness {
+        -- Each wave MUST increase system fitness (entropy)
+        this.fitness_metric > previous_wave.fitness_metric
+    }
+
+    invariant MonotonicCompliance {
+        -- Each wave MUST increase SIL-6 compliance
+        this.sil6_compliance >= previous_wave.sil6_compliance
+    }
+}
+
+-- Wave 0: Genesis
+value Wave0 {
+    phase: genesis
+    tasks: ["T001", "T002", "T003", "T004"]
+    entry_gate: [
+        "gleam build passes (0 errors)",
+        "gleam test passes (2677 tests)",
+        "15/15 containers running",
+        "Zenoh routers operational (3/3)"
+    ]
+    exit_gate: [
+        "zenoh_put publishes real messages (integration test passes)",
+        "zenoh_subscribe receives real callbacks",
+        "Bearer token middleware rejects unauthenticated POST",
+        "All existing tests still pass (regression)"
+    ]
+    fitness_metric: 0.5      -- H increases from 0 (no real Zenoh) to ~1.5 bits
+    sil6_compliance: 0.20    -- SC-ZENOH-001 satisfied, SC-NIF-001 satisfied
+}
+
+-- Wave 1: Differentiation
+value Wave1 {
+    phase: differentiation
+    tasks: ["T005", "T006", "T007", "T008", "T009"]
+    entry_gate: [
+        "Wave 0 exit gate passed",
+        "Zenoh FFI integration test green"
+    ]
+    exit_gate: [
+        "POST /api/v1/podman/action returns 200 on valid request",
+        "MoZ round-trip: Gleam → Zenoh → Rust → Zenoh → Gleam verified",
+        "Circuit breaker opens after 5 consecutive failures",
+        "Unauthenticated POST returns 401"
+    ]
+    fitness_metric: 2.0      -- H increases: mutation capability adds C5, C8 coverage
+    sil6_compliance: 0.45    -- SC-ZMOF-001 satisfied, SC-ARCH-SPLIT-001 satisfied
+}
+
+-- Wave 2: Integration
+value Wave2 {
+    phase: integration
+    tasks: ["T010", "T011", "T012", "T013", "T014", "T015"]
+    entry_gate: [
+        "Wave 1 exit gate passed",
+        "MoZ client operational with circuit breaker"
+    ]
+    exit_gate: [
+        "Emergency stop completes < 5 seconds (SC-SAFETY-022)",
+        "Guardian 2oo3 consensus verified for P0 mutations",
+        "SSE stream delivers events for > 60 seconds without drop",
+        "SSE reconnection replays missed events via Last-Event-ID",
+        "SSE heartbeat maintains connection through proxy"
+    ]
+    fitness_metric: 3.0      -- H increases: safety (C8) + streaming (C7) coverage
+    sil6_compliance: 0.70    -- SC-SIL4-006, SC-SAFETY-001, SC-AGUI-002 satisfied
+}
+
+-- Wave 3: Maturation
+value Wave3 {
+    phase: maturation
+    tasks: ["T016", "T017", "T018", "T019", "T020", "T021"]
+    entry_gate: [
+        "Wave 2 exit gate passed",
+        "SSE streaming operational"
+    ]
+    exit_gate: [
+        "All 40 GET endpoints return live data (not hardcoded)",
+        "Dark cockpit transitions from Dark → Dim on simulated health alert",
+        "Container card updates in < 2s after Zenoh state change",
+        "Lustre Start/Stop buttons trigger MoZ mutation + SSE update"
+    ]
+    fitness_metric: 3.8      -- H near maximum: C1-C8 all covered
+    sil6_compliance: 0.85    -- SC-DRK-001, SC-GLM-UI-005, SC-GLM-ZEN-001 satisfied
+}
+
+-- Wave 4: Homeostasis
+value Wave4 {
+    phase: homeostasis
+    tasks: ["T022", "T023", "T024", "T025", "T026", "T027", "T028"]
+    entry_gate: [
+        "Wave 3 exit gate passed",
+        "All live data endpoints return Zenoh-sourced state"
+    ]
+    exit_gate: [
+        "E2E: button click → container running (integration test)",
+        "E2E: emergency stop → all containers stopped < 5s",
+        "Chaos: Zenoh partition → UI degrades gracefully → recovery",
+        "Load: 100 SSE connections, < 5% drop rate",
+        "Memory: no subscription leaks after 100 page navigations",
+        "History: no list exceeds 100 entries after 1000 events",
+        "Shutdown: SIGTERM → clean exit within 30 seconds",
+        "gleam build: 0 warnings (SC-MUDA-001)",
+        "gleam test: all pass including new integration tests"
+    ]
+    fitness_metric: 4.2      -- H ≥ 2.5 (gold standard threshold) with margin
+    sil6_compliance: 0.95    -- Near-full SIL-6 compliance for WebUI control plane
+}
+
+-- =============================================================================
+-- §6. SUPERVISORY LAYERS (4-Layer Biomorphic Hierarchy)
+-- =============================================================================
+
+-- Layer 0: Constitutional Guardian (veto authority, SIL-6 enforcement)
+actor ConstitutionalGuardian {
+    authority: "veto any task that violates Psi-0..5 or Omega-0"
+    checks: [
+        "Every wave exit gate includes SIL-6 compliance check",
+        "Emergency stop pathway tested before Wave 2 can complete",
+        "No mutation shipped without auth (GAP-007 before GAP-001)",
+        "Rollback path exists for every wave (git revert to wave entry)"
+    ]
+    intervention: "HALT wave if sil6_compliance decreases"
+}
+
+-- Layer 1: Safety Supervisor (FMEA, RPN monitoring)
+actor SafetySupervisor {
+    authority: "reorder tasks within a wave based on RPN delta"
+    checks: [
+        "Total system RPN decreases monotonically across waves",
+        "No RPN > 200 remains after Wave 2",
+        "FMEA mitigations verified in exit gate tests"
+    ]
+    metrics: {
+        rpn_before_session: 720   -- GAP-004 zenoh stub
+        rpn_after_wave0: 0        -- zenoh stub eliminated
+        rpn_after_wave1: 0        -- all mutation paths gated
+        rpn_after_wave2: 0        -- safety + streaming complete
+        rpn_after_wave3: 0        -- live data, no hardcoded
+        rpn_after_wave4: 0        -- all mitigations verified
+    }
+}
+
+-- Layer 2: Quality Supervisor (coverage, entropy, testing)
+actor QualitySupervisor {
+    authority: "block wave completion if coverage entropy < threshold"
+    checks: [
+        "Shannon entropy H monotonically increases per wave",
+        "CCM (Cyclomatic Complexity Metric) >= 0.90 after Wave 4",
+        "ITQS >= 0.85 after Wave 4",
+        "All new code has gleeunit tests"
+    ]
+    metrics: {
+        h_wave0: 1.5
+        h_wave1: 2.0
+        h_wave2: 3.0
+        h_wave3: 3.8
+        h_wave4: 4.2   -- target: >= 2.5 (gold standard)
+    }
+}
+
+-- Layer 3: Domain Supervisors (per-lane coordination)
+actor ZenohLaneSupervisor {
+    scope: ["T001", "T002", "T003"]
+    checks: ["NIF loads without segfault", "Subscribe callback fires within 100ms"]
+}
+
+actor MoZLaneSupervisor {
+    scope: ["T007", "T008", "T009"]
+    checks: ["JSON-RPC 2.0 format correct", "Circuit breaker threshold 5 failures"]
+}
+
+actor GuardianLaneSupervisor {
+    scope: ["T010", "T011", "T012"]
+    checks: ["2oo3 consensus evaluates correctly", "Emergency stop < 5s SLA"]
+}
+
+actor SSELaneSupervisor {
+    scope: ["T013", "T014", "T015"]
+    checks: ["Mist chunked response streams", "Heartbeat every 5s", "Ring buffer 100 events"]
+}
+
+actor StateLaneSupervisor {
+    scope: ["T016", "T017", "T018"]
+    checks: ["GenServer supervised", "Zenoh subscriptions active", "Cache TTL enforced"]
+}
+
+-- =============================================================================
+-- §7. RESOURCE-CONSTRAINED SCHEDULING (RCPSP)
+-- =============================================================================
+
+-- Resources: compile_slot (1), test_slot (1), agent_slots (3)
+-- Objective: minimize makespan (total calendar time)
+-- Constraint: CPU governor ≤ 85% (SC-CPU-GOV-001)
+
+-- Gantt chart (6h/day effective, 3 agents, overlapping waves):
+--
+-- Day 1 (6h):
+--   Agent A: T001 (6h, zenoh_put wiring)
+--   Agent B: T004 (5h, auth middleware) + T006 (1h start, codecs)
+--   Agent C: T023 (2h, history bounds) + idle (4h, waiting for T001)
+--
+-- Day 2 (6h):
+--   Agent A: T002 (4h, zenoh_subscribe) + T003 (2h start, integration test)
+--   Agent B: T006 (2h finish) + T005 (4h, router refactor)
+--   Agent C: T024 (3h, graceful shutdown) + idle (3h)
+--
+-- Day 3 (6h):
+--   Agent A: T003 (1h finish) + T007 (5h start, MoZ client)
+--   Agent B: T005 (finish) + T010 (3h, guardian pending) + T013 (start)
+--   Agent C: T022 (3h, subscription lifecycle) + T019 (3h, Lustre podman wiring)
+--
+-- Day 4 (6h):
+--   Agent A: T007 (3h finish) + T008 (3h, circuit breaker integration)
+--   Agent B: T013 (5h, SSE chunked) + T014 (1h start)
+--   Agent C: T011 (4h, guardian respond) + T021 (2h, Lustre verification)
+--
+-- Day 5 (6h):
+--   Agent A: T009 (4h, POST podman/action) + T012 (2h start, emergency stop)
+--   Agent B: T014 (3h finish) + T015 (3h start, SSE endpoints)
+--   Agent C: T016 (6h, SharedMeshState GenServer)
+--
+-- Day 6 (6h):
+--   Agent A: T012 (3h finish) + T018 (3h, dark cockpit wiring)
+--   Agent B: T015 (1h finish) + T017 (5h start, replace hardcoded data)
+--   Agent C: T016 (finish) + T020 (3h, cockpit Refresh/Acknowledge)
+--
+-- Day 7 (6h):
+--   Agent A: T025 (4h, container start integration test) + review
+--   Agent B: T017 (3h finish) + T026 (3h start, emergency stop test)
+--   Agent C: T027 (4h, chaos test) + T028 (2h start)
+--
+-- Day 8 (4h):
+--   Agent A: T026 (1h finish) + final review
+--   Agent B: T028 (1h finish) + final review
+--   Agent C: Regression suite + gleam build 0-warning verification
+--
+-- TOTAL: 8 calendar days (compressed from 11 by 3-agent parallelization)
+-- Efficiency: 28 tasks × avg 4h = 112 task-hours / (8 days × 6h × 3 agents) = 78%
+
+-- =============================================================================
+-- §8. SHANNON ENTROPY TRAJECTORY
+-- =============================================================================
+
+-- C1-C8 gold standard categories as probability distribution.
+-- H = -Σ(p_i × log2(p_i)), max H = log2(8) = 3.0 bits for uniform distribution.
+--
+-- BEFORE (current state):
+--   C1 Page Structure:  p=0.95  (Lustre SSR works)
+--   C2 Status Badges:   p=0.80  (hardcoded but visible)
+--   C3 Data Grids:      p=0.70  (grids render, data fake)
+--   C4 Timeline:        p=0.50  (timestamps exist, not ordered from real data)
+--   C5 Interactive:     p=0.05  (buttons exist but are no-ops)
+--   C6 Media/Rich:      p=0.60  (sparklines render)
+--   C7 AI Advisory:     p=0.10  (AG-UI types exist, SSE broken)
+--   C8 Action Button:   p=0.01  (Guardian types exist, not wired)
+--
+--   Normalized: p_i = coverage_i / Σcoverage_i
+--   p = [0.256, 0.215, 0.189, 0.135, 0.013, 0.162, 0.027, 0.003]
+--   H_before = 2.42 bits (BELOW 2.5 threshold)
+--
+-- AFTER Wave 4 (target):
+--   C1: p=0.95  C2: p=0.90  C3: p=0.85  C4: p=0.80
+--   C5: p=0.85  C6: p=0.70  C7: p=0.80  C8: p=0.75
+--
+--   p = [0.148, 0.140, 0.132, 0.125, 0.132, 0.109, 0.125, 0.117]
+--   H_after = 2.98 bits (ABOVE 2.5 threshold, near maximum 3.0)
+--
+-- Delta H = +0.56 bits (23% improvement)
+-- Entropy increase per wave: ~0.14 bits/wave (monotonic)
+
+-- =============================================================================
+-- §9. FMEA RPN TRAJECTORY
+-- =============================================================================
+
+-- Total system RPN reduction across waves:
+--
+-- BEFORE: Σ RPN = 720 + 189 + 180 + 140 + 120 + 108 + 80 + 54 + 48 + 42 + 40 + 18 + 15 + 10
+--       = 1,764 total risk points
+--
+-- After Wave 0: -720 (GAP-004 zenoh stub eliminated)         Σ = 1,044
+-- After Wave 1: -80 (GAP-010 partial), -40 (catalog mismatch) Σ = 924
+-- After Wave 2: -120 (SSE streaming), -54 (server shutdown)   Σ = 750
+-- After Wave 3: -189 (hardcoded data), -180 (dark cockpit)    Σ = 381
+-- After Wave 4: -140 (subscription leak), -108 (unbounded),
+--               -80 (no-op handlers), -42 (restart bug),
+--               -18 (auth), -15 (SSE drop)                    Σ = 0 (mitigated)
+--
+-- RPN reduction rate: ~350 points/wave (exponential front-loading)
+-- Wave 0 alone eliminates 41% of total risk
+
+-- =============================================================================
+-- §10. SIL-6 COMPLIANCE TRAJECTORY
+-- =============================================================================
+
+-- SIL-6 constraint satisfaction per wave:
+--
+-- Wave 0: +SC-ZENOH-001 (NIF loaded), +SC-NIF-001 (FFI safety),
+--         +SC-SEC-001 (auth middleware)                        = 20%
+-- Wave 1: +SC-ZMOF-001 (Zenoh sole transport), +SC-ARCH-SPLIT-001 (Gleam→Rust),
+--         +SC-CIRCUIT-001 (circuit breaker active)             = 45%
+-- Wave 2: +SC-SIL4-006 (2oo3 for actuations), +SC-SAFETY-022 (emergency < 5s),
+--         +SC-AGUI-002 (SSE streaming), +SC-GLM-UI-010        = 70%
+-- Wave 3: +SC-GLM-ZEN-001 (OTel spans real), +SC-DRK-001 (dark cockpit),
+--         +SC-GLM-UI-005 (real-time Zenoh), +SC-GLM-UI-002    = 85%
+-- Wave 4: +SC-MUDA-001 (zero waste), +SC-FUNC-001 (compiles clean),
+--         +SC-FUNC-002 (core services operational)             = 95%
+--
+-- Remaining 5%: SC-SIL4-007 (dying gasp), SC-FED-006 (attestation),
+--               SC-FUNC-008 (digital twin 30s sync) — deferred to future sprint
+
+-- =============================================================================
+-- §11. INVARIANTS (Evolution-Wide)
+-- =============================================================================
+
+invariant MonotonicEntropy {
+    for all consecutive waves w_i, w_{i+1}:
+        w_{i+1}.fitness_metric > w_i.fitness_metric
+    note: "System NEVER regresses in coverage entropy."
+}
+
+invariant MonotonicRPNReduction {
+    for all consecutive waves w_i, w_{i+1}:
+        sum_rpn(w_{i+1}) <= sum_rpn(w_i)
+    note: "Total risk NEVER increases across waves."
+}
+
+invariant MonotonicSIL6Compliance {
+    for all consecutive waves w_i, w_{i+1}:
+        w_{i+1}.sil6_compliance >= w_i.sil6_compliance
+    note: "SIL-6 compliance NEVER regresses."
+}
+
+invariant CompilationNeverBreaks {
+    -- SC-FUNC-001: System compiles at ALL times
+    after every task completion:
+        "gleam build" returns 0 errors
+        "gleam test" returns 0 failures
+    note: "Jidoka: halt if compilation breaks. Fix before proceeding."
+}
+
+invariant RollbackAlways {
+    -- SC-FUNC-003: Rollback path exists for every change
+    for every wave w:
+        "git revert to wave entry commit restores functional state"
+    note: "Each wave entry is a git tag: wave-0-entry, wave-1-entry, etc."
+}
+
+-- =============================================================================
+-- §12. EXECUTION PROTOCOL
+-- =============================================================================
+
+rule "Wave Entry Protocol" {
+    when starting wave W
+    step1: "git tag wave-{W}-entry"
+    step2: "gleam build && gleam test — verify green baseline"
+    step3: "Verify all entry gate conditions met"
+    step4: "Assign tasks to agents based on lane"
+    step5: "Start parallel execution"
+}
+
+rule "Task Completion Protocol" {
+    when completing task T
+    step1: "gleam build — 0 errors, 0 warnings"
+    step2: "gleam test — 0 failures"
+    step3: "Task-specific verification (from task definition)"
+    step4: "Domain supervisor sign-off"
+    step5: "Update wave fitness_metric and sil6_compliance"
+}
+
+rule "Wave Exit Protocol" {
+    when all tasks in wave W complete
+    step1: "Verify ALL exit gate conditions"
+    step2: "Run full regression suite (2677+ tests)"
+    step3: "Safety supervisor verifies RPN decreased"
+    step4: "Quality supervisor verifies entropy increased"
+    step5: "Constitutional guardian verifies SIL-6 compliance increased"
+    step6: "git tag wave-{W}-complete"
+    step7: "Proceed to wave W+1"
+}
+
+rule "Jidoka Halt" {
+    when any of:
+        - gleam build fails
+        - gleam test has failures
+        - SIL-6 compliance decreases
+        - RPN increases
+        - Entry/exit gate condition violated
+    then: "STOP all work. Fix before proceeding. Revert if necessary."
+    @guidance This is the Toyota Production System Jidoka principle.
+              Quality at the source. Never pass a defect forward.
+}

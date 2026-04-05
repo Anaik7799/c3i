@@ -1,0 +1,761 @@
+-- allium: 3
+-- WebUI Operational Control — Production-Grade Behavioral Specification
+-- Covers: Zenoh MoZ Mutation Transport, SSE Real-Time Transport,
+--         Container Lifecycle Control, Guardian-Gated Actuations,
+--         F# Bridge Deprecation, Production Robustness Invariants
+-- STAMP: SC-ZMOF-001..006, SC-ARCH-SPLIT-001, SC-GLM-UI-001..010,
+--        SC-SIL4-006, SC-MUDA-001, SC-GLM-ZEN-001, SC-FUNC-001
+-- Date: 2026-04-05
+-- Author: Claude Opus 4.6 (operator-assisted)
+-- Predecessor: zmof.allium, gleam_ui.allium, gleam_webui_comprehensive.allium
+
+-- =============================================================================
+-- S1. EXTERNAL ENTITIES
+-- =============================================================================
+
+external entity RustIgnitionDaemon
+    -- native/ignition_daemon/src/main.rs (50+ modules)
+    -- Authoritative container lifecycle executor per SC-ARCH-SPLIT-001
+
+external entity ZenohMesh
+    -- 3 routers (zenoh-router-1/2/3), 2oo3 quorum
+    -- Sole internal transport per SC-ZMOF-001
+
+external entity GuardianService
+    -- Constitutional safety gate, Psi-0..5, Omega-0
+    -- Required for P0 container mutations
+
+external entity PodmanRuntime
+    -- Container engine, accessed ONLY by RustIgnitionDaemon
+    -- Gleam MUST NOT call Podman directly (SC-ARCH-SPLIT-001)
+
+external entity Browser
+    -- EventSource (SSE) client, minimal JS (~20 lines)
+    -- No full Lustre client runtime (SC-GLM-UI-001: no client JS)
+
+-- =============================================================================
+-- S2. ENUMERATIONS
+-- =============================================================================
+
+enum MutationVerb { start | stop | restart | rebuild | scour | emergency_stop | stabilize }
+
+enum MoZRequestStatus { pending | dispatched | acknowledged | executing | completed | failed | timeout }
+
+enum ContainerTier {
+    tier1_control_plane |    -- zenoh-router (30s timeout)
+    tier2_database |         -- db-prod (60s timeout)
+    tier3_observability |    -- obs-prod (45s timeout)
+    tier4_quorum_routers |   -- zenoh-router-1/2/3 (30s, parallel)
+    tier5_cognitive |        -- cortex + cepaf-bridge (60s, parallel)
+    tier6_seed |             -- ex-app-1 + chaya + ollama (60s, parallel)
+    tier7_ha_ml              -- ex-app-2/3 + ml-runners + mojo (60s, parallel)
+}
+
+enum SSEEventType {
+    container_state_change |
+    health_update |
+    ooda_cycle_tick |
+    zenoh_mesh_event |
+    guardian_alert |
+    otel_span |
+    heartbeat
+}
+
+enum DeprecationPhase {
+    phase0_stop_observe |     -- Stop container, observe 24h
+    phase1_remove_env |       -- Remove CEPAF_BRIDGE_URL from compose
+    phase2_remove_genome |    -- Remove from 16-container genome in types.rs
+    phase3_remove_elixir |    -- Remove CepafPort, CepafClient, bridge.ex
+    phase4_update_health |    -- Update Rust health orchestrator
+    phase5_archive            -- Archive F# Cepaf.Podman to backups/
+}
+
+enum CircuitState { closed | open | half_open }
+
+-- =============================================================================
+-- S3. VALUE TYPES
+-- =============================================================================
+
+value MoZRequest {
+    request_id: String
+    tool_name: String       -- "launch", "down", "emergency", "restart", etc.
+    payload: String         -- JSON-encoded parameters
+    timestamp: Timestamp
+    source: String          -- "webui", "tui", "agent", "operator"
+    correlation_id: String  -- OTel trace propagation
+}
+
+value MoZResponse {
+    request_id: String
+    status: MoZRequestStatus
+    result: String?
+    error: String?
+    latency_ms: Integer
+    safety_gates_passed: List<String>  -- ["preflight", "guardian", "2oo3"]
+}
+
+value SSEFrame {
+    event_type: SSEEventType
+    data: String            -- JSON payload
+    id: String?             -- Last-Event-ID for reconnection
+    retry: Integer?         -- Reconnect interval hint (ms)
+}
+
+value ContainerMutationRequest {
+    container_name: String
+    verb: MutationVerb
+    requester: String       -- "operator", "ooda", "guardian"
+    reason: String
+    proof_token: String?    -- Ed25519 signed token for P0 ops
+}
+
+value HealthProbe {
+    container_name: String
+    method: String          -- "tcp", "http", "exec", "zenoh"
+    target: String          -- "port:9876", "/health", "pgrep beam"
+    timeout_ms: Integer
+    retries: Integer
+}
+
+value RobustnessMetric {
+    name: String
+    value: Decimal
+    threshold: Decimal
+    unit: String
+    status: String          -- "pass", "warn", "fail"
+}
+
+-- =============================================================================
+-- S4. CONFIG
+-- =============================================================================
+
+config {
+    -- MoZ Transport
+    moz_request_topic: String = "indrajaal/l4/ignition/mcp/req"
+    moz_response_topic: String = "indrajaal/l4/ignition/mcp/res"
+    moz_timeout_ms: Integer = 10_000
+    moz_heartbeat_interval_ms: Integer = 1_000
+    moz_max_retries: Integer = 3
+
+    -- SSE Transport
+    sse_port: Integer = 4100
+    sse_heartbeat_interval_ms: Integer = 5_000
+    sse_reconnect_hint_ms: Integer = 3_000
+    sse_max_connections: Integer = 10_000
+    sse_buffer_size: Integer = 100   -- events buffered per topic
+
+    -- Container Mutation
+    mutation_approval_timeout_ms: Integer = 30_000
+    emergency_stop_max_ms: Integer = 5_000
+    container_start_timeout_ms: Integer = 60_000
+    container_stop_timeout_ms: Integer = 30_000
+    health_probe_interval_ms: Integer = 10_000
+    health_probe_timeout_ms: Integer = 5_000
+
+    -- Robustness
+    circuit_breaker_threshold: Integer = 5       -- failures before open
+    circuit_breaker_reset_ms: Integer = 30_000   -- time before half-open
+    backpressure_queue_limit: Integer = 1_000
+    max_concurrent_mutations: Integer = 3        -- prevent mutation storms
+
+    -- F# Bridge Deprecation
+    bridge_observation_hours: Integer = 24
+    bridge_container_name: String = "cepaf-bridge"
+    bridge_port: Integer = 9876
+}
+
+-- =============================================================================
+-- S5. ENTITIES
+-- =============================================================================
+
+-- MoZ Client: Gleam-side Zenoh MCP request/response handler
+entity MoZClient {
+    session: String         -- Zenoh session reference
+    pending_requests: Map<String, MoZRequest>
+    circuit: CircuitState
+    consecutive_failures: Integer
+    last_heartbeat: Timestamp?
+
+    derived is_healthy: this.circuit != open and this.consecutive_failures < config.circuit_breaker_threshold
+
+    transitions circuit {
+        closed -> open          -- consecutive_failures >= threshold
+        open -> half_open       -- after circuit_breaker_reset_ms
+        half_open -> closed     -- successful request
+        half_open -> open       -- failed request
+    }
+
+    invariant NoPendingOverflow {
+        this.pending_requests.count <= config.backpressure_queue_limit
+    }
+
+    invariant HeartbeatFresh {
+        -- Ignition daemon heartbeat must be received within 2x interval
+        this.last_heartbeat != null implies
+            (now - this.last_heartbeat) < 2 * config.moz_heartbeat_interval_ms
+    }
+}
+
+-- SSE Bridge: BEAM GenServer that subscribes to Zenoh and pushes SSE to browsers
+entity SSEBridge {
+    topic_subscriptions: Map<String, Integer>   -- topic -> subscriber_count
+    active_connections: Integer
+    events_delivered: Integer
+    events_dropped: Integer
+    circuit: CircuitState
+
+    derived drop_rate: this.events_dropped / (this.events_delivered + this.events_dropped)
+
+    invariant ConnectionLimit {
+        this.active_connections <= config.sse_max_connections
+    }
+
+    invariant AcceptableDropRate {
+        this.drop_rate < 0.05   -- < 5% event loss
+    }
+}
+
+-- Container Control Panel: WebUI state for the L4 container grid
+entity ContainerControlPanel {
+    containers: List<ContainerCard>
+    selected_container: String?
+    pending_mutations: List<ContainerMutationRequest>
+    mutation_lock: Boolean       -- prevent concurrent mutations on same container
+    last_refresh: Timestamp
+
+    invariant ConcurrentMutationLimit {
+        this.pending_mutations.count <= config.max_concurrent_mutations
+    }
+}
+
+entity ContainerCard {
+    name: String
+    status: String              -- "running", "stopped", "created", "exited"
+    tier: ContainerTier
+    ip_address: String?
+    cpu_percent: Decimal?
+    memory_mb: Integer?
+    uptime_seconds: Integer?
+    health_probes: List<HealthProbe>
+    last_mutation: Timestamp?
+
+    derived is_healthy: this.status = "running"
+    derived is_stale: (now - this.last_mutation) > 3600_000  -- 1 hour
+}
+
+-- F# Bridge Deprecation Tracker
+entity BridgeDeprecation {
+    current_phase: DeprecationPhase
+    observation_start: Timestamp?
+    cascade_failures_observed: Integer
+    functional_degradation_observed: Boolean
+    elixir_call_sites_remaining: Integer
+
+    derived safe_to_proceed: this.cascade_failures_observed = 0
+        and this.functional_degradation_observed = false
+
+    transitions current_phase {
+        phase0_stop_observe -> phase1_remove_env
+        phase1_remove_env -> phase2_remove_genome
+        phase2_remove_genome -> phase3_remove_elixir
+        phase3_remove_elixir -> phase4_update_health
+        phase4_update_health -> phase5_archive
+        terminal: phase5_archive
+    }
+}
+
+-- =============================================================================
+-- S6. CONTRACTS
+-- =============================================================================
+
+-- Zenoh MoZ Mutation Contract: How WebUI sends commands to Rust ignition
+contract MoZMutationTransport {
+    -- SC-ZMOF-001: Zenoh is SOLE transport
+    -- SC-ARCH-SPLIT-001: Gleam publishes intent, Rust executes action
+
+    command send_mutation(req: ContainerMutationRequest) -> MoZResponse
+    command await_response(request_id: String, timeout_ms: Integer) -> MoZResponse
+    command cancel_request(request_id: String) -> Boolean
+
+    rule "Publish to Zenoh Topic" {
+        when call MoZMutationTransport.send_mutation
+        then publish(
+            topic = config.moz_request_topic ++ "/" ++ req.verb ++ "/" ++ generate_id(),
+            payload = serialize_json(req)
+        )
+        ensure "OTel span created with correlation_id"
+    }
+
+    rule "Timeout with Circuit Breaker" {
+        when call MoZMutationTransport.await_response
+        on timeout after config.moz_timeout_ms
+        then increment MoZClient.consecutive_failures
+        ensure "Circuit breaker evaluated"
+    }
+
+    rule "Guardian Gate for P0 Mutations" salience 100 {
+        when call MoZMutationTransport.send_mutation
+        requires req.verb in [emergency_stop, stabilize, scour]
+        ensures "Guardian approval obtained before dispatch"
+        ensures "2oo3 consensus verified (SC-SIL4-006)"
+        @guidance P0 mutations MUST have proof_token signed by Guardian.
+                  Rust ignition validates the token before executing.
+    }
+
+    rule "Prevent Mutation Storm" {
+        when call MoZMutationTransport.send_mutation
+        requires MoZClient.pending_requests.count < config.max_concurrent_mutations
+        on violation reject "Too many concurrent mutations"
+    }
+
+    rule "No Direct Shell Exec" salience 200 {
+        -- SC-ARCH-SPLIT-001: Gleam MUST NOT call podman directly
+        when call os_cmd(pattern = "podman *")
+        reject "SC-ARCH-SPLIT-001: Container ops MUST go through Zenoh MoZ"
+    }
+
+    rule "No Direct HTTP to Internal Mesh" salience 200 {
+        -- SC-ZMOF-004: Point-to-point HTTP prohibited
+        when call http_post(target matches "172.28.0.*")
+        reject "SC-ZMOF-004: Use Zenoh MoZ, not direct HTTP"
+    }
+}
+
+-- SSE Real-Time Transport: How mesh events reach the browser
+contract SSERealTimeTransport {
+    -- SC-GLM-UI-001: No client JS for basic rendering
+    -- SC-GLM-UI-010: AG-UI streaming for real-time updates
+
+    command subscribe_topic(topic: String) -> Subscription
+    command push_event(connection_id: String, frame: SSEFrame)
+    command handle_reconnect(last_event_id: String) -> List<SSEFrame>
+
+    rule "Zenoh to SSE Bridge" {
+        when event ZenohMesh.message_received(topic, payload)
+        then push_event(
+            connection_id = "all_subscribers_of_topic",
+            frame = SSEFrame(
+                event_type = classify_event(topic),
+                data = payload,
+                id = generate_sequential_id(),
+                retry = config.sse_reconnect_hint_ms
+            )
+        )
+    }
+
+    rule "Heartbeat Keepalive" {
+        every config.sse_heartbeat_interval_ms
+        then push_event(
+            connection_id = "all",
+            frame = SSEFrame(event_type = heartbeat, data = "{}", id = null, retry = null)
+        )
+        @guidance Prevents proxy/CDN timeout. Browser EventSource auto-reconnects
+                  if no data received for ~45s (browser-dependent).
+    }
+
+    rule "Reconnection Replay" {
+        when call SSERealTimeTransport.handle_reconnect
+        then return "buffered events since last_event_id (up to sse_buffer_size)"
+        @guidance EventSource sends Last-Event-ID header on reconnect.
+                  Server replays missed events from ring buffer.
+    }
+
+    rule "Backpressure on Slow Clients" {
+        when SSEBridge.events_dropped > 0
+        let drop_rate = SSEBridge.drop_rate
+        requires drop_rate < 0.05
+        on violation "disconnect slow client, log warning"
+        @guidance A client that can't keep up gets disconnected rather than
+                  causing the server to buffer unboundedly. Client will auto-reconnect.
+    }
+
+    rule "Mist Chunked Response" {
+        -- Implementation: Mist 4.0+ mist.Chunked(iterator) response type
+        when call SSERealTimeTransport.subscribe_topic
+        then "Return Mist chunked response with SSE content-type headers"
+        ensure "content-type: text/event-stream"
+        ensure "cache-control: no-cache"
+        ensure "connection: keep-alive"
+    }
+
+    rule "Dark Cockpit Compatibility" {
+        -- Static HTML MUST be readable without SSE/JS
+        when Browser.javascript_disabled
+        then "Lustre SSR renders full page statically"
+        ensure "No functionality loss for read-only dashboards"
+        @guidance SSE enhances real-time but page works without it.
+                  Dark cockpit mode (SC-HMI-010) uses static rendering.
+    }
+}
+
+-- Container Lifecycle Control: WebUI container grid operations
+contract ContainerLifecycleControl {
+    -- SC-CNT-001: Container lifecycle management
+    -- SC-OODA-001: OODA-driven decisions
+
+    command list_containers() -> List<ContainerCard>
+    command request_action(name: String, verb: MutationVerb, reason: String)
+    command get_container_logs(name: String, tail: Integer) -> List<String>
+    command get_container_metrics(name: String) -> Map<String, Decimal>
+
+    rule "Read-Only via Wisp GET" {
+        when call ContainerLifecycleControl.list_containers
+        then "GET /api/v1/podman/containers returns typed JSON"
+        ensure "No mutation side effects"
+    }
+
+    rule "Mutation via Wisp POST + MoZ" {
+        when call ContainerLifecycleControl.request_action
+        then call MoZMutationTransport.send_mutation(
+            ContainerMutationRequest(
+                container_name = name,
+                verb = verb,
+                requester = "webui",
+                reason = reason,
+                proof_token = null  -- Guardian adds if P0
+            )
+        )
+        ensure "Response awaited with timeout"
+        ensure "UI updated via SSE on completion"
+    }
+
+    rule "Tier-Aware Mutation Ordering" {
+        when call ContainerLifecycleControl.request_action
+        requires verb = stop
+        ensures "Tier 7 containers stopped before Tier 1"
+        @guidance Reverse boot order for graceful shutdown.
+                  Never stop zenoh-router before app containers.
+    }
+
+    rule "Emergency Stop Bypass" salience 100 {
+        when call ContainerLifecycleControl.request_action
+        requires verb = emergency_stop
+        then "Skip tier ordering, stop ALL immediately"
+        ensures "Complete within config.emergency_stop_max_ms"
+        @guidance SC-SAFETY-022: Emergency stop < 5 seconds.
+    }
+}
+
+-- Production Health Dashboard
+contract ProductionHealthDashboard {
+    command get_mesh_health() -> Map<String, RobustnessMetric>
+    command get_zenoh_quorum() -> Map<String, Boolean>
+    command get_ooda_cycle_status() -> Map<String, Decimal>
+    command run_health_drill() -> List<HealthProbe>
+
+    rule "Robustness Metrics Published via SSE" {
+        every config.health_probe_interval_ms
+        then call get_mesh_health()
+        then push SSE event with metrics
+        ensure "Degraded metrics trigger alert badge in UI"
+    }
+
+    rule "Quorum Visibility" {
+        when call ProductionHealthDashboard.get_zenoh_quorum
+        then return "3 routers with 2oo3 voting status"
+        ensure "Quorum loss triggers L0 Guardian alert"
+    }
+}
+
+-- F# Bridge Deprecation Contract
+contract BridgeDeprecationContract {
+    command start_observation()
+    command check_observation_results() -> BridgeDeprecation
+    command advance_phase()
+
+    rule "Phase Gate" {
+        when call BridgeDeprecationContract.advance_phase
+        requires BridgeDeprecation.safe_to_proceed = true
+        on violation reject "Cannot advance: cascade failures or degradation observed"
+    }
+
+    rule "Phase 0: Stop and Observe" {
+        when call BridgeDeprecationContract.start_observation
+        then "podman stop cepaf-bridge"
+        then "Monitor for config.bridge_observation_hours"
+        ensure "Zero cascade failures"
+        ensure "Zero functional degradation"
+        ensure "All health probes unaffected"
+    }
+
+    rule "Rollback Available" {
+        -- SC-FUNC-003: Rollback path MUST exist
+        at any phase
+        ensure "podman start cepaf-bridge restores prior state"
+        @guidance Bridge container is stopped, not removed.
+                  Restart is instant if observation reveals problems.
+    }
+}
+
+-- =============================================================================
+-- S7. INVARIANTS (system-wide, always true)
+-- =============================================================================
+
+invariant ZenohIsOnlyTransport {
+    -- SC-ZMOF-001
+    for all mutations m in ContainerControlPanel.pending_mutations:
+        m is dispatched via ZenohMesh
+}
+
+invariant GleamNeverExecutes {
+    -- SC-ARCH-SPLIT-001
+    for all container_ops o:
+        o.executor = RustIgnitionDaemon
+        and o.requester in ["webui", "tui", "agent"]
+        and o.requester != o.executor
+}
+
+invariant SSEDegradesToStatic {
+    -- SC-GLM-UI-001 + SC-HMI-010
+    when SSEBridge.active_connections = 0:
+        all Lustre pages render valid HTML
+        and no functionality is lost for read-only operations
+}
+
+invariant MutationsSafetyGated {
+    -- SC-SIL4-006
+    for all p0_mutations m where m.verb in [emergency_stop, stabilize, scour]:
+        m.proof_token is valid Ed25519
+        and GuardianService.approved(m) = true
+        and consensus_2oo3(m) = true
+}
+
+invariant CircuitBreakerProtects {
+    when MoZClient.circuit = open:
+        no new mutations are dispatched
+        and UI shows "Control plane unavailable" status
+        and SSE continues delivering read-only health updates
+}
+
+invariant NoMutationStorm {
+    at all times:
+        ContainerControlPanel.pending_mutations.count <= config.max_concurrent_mutations
+}
+
+-- =============================================================================
+-- S8. SURFACES (user-facing interfaces)
+-- =============================================================================
+
+surface ContainerGridWebUI {
+    -- 16-card grid with real-time metrics, action buttons, health badges
+    renders ContainerControlPanel
+    transport SSERealTimeTransport
+    mutation_path MoZMutationTransport
+
+    interaction "Start Container" {
+        trigger: click button[action=start]
+        guardian_gate: false (non-P0)
+        flow: button -> Wisp POST /api/v1/podman/action -> MoZClient -> Zenoh -> Rust -> Podman
+        feedback: SSE container_state_change event -> UI badge update
+        timeout: config.container_start_timeout_ms
+        failure: show error toast, log to OTel
+    }
+
+    interaction "Emergency Stop" {
+        trigger: click button[action=emergency_stop]
+        guardian_gate: true (P0, requires HITL)
+        flow: button -> HITL modal -> Guardian approve -> Wisp POST -> MoZ -> Rust -> Podman
+        feedback: SSE guardian_alert + container_state_change
+        timeout: config.emergency_stop_max_ms
+        failure: escalate to L0 Constitutional alert
+    }
+
+    interaction "Wave Ignition" {
+        trigger: click button[action=wave_ignition]
+        guardian_gate: true (P0)
+        flow: button -> HITL modal -> Guardian 2oo3 -> Wisp POST -> MoZ(launch) -> Rust 7-tier boot
+        feedback: SSE per-tier progress events
+        timeout: 5 * 60_000  -- 5 minutes for full mesh boot
+        failure: Rust apoptosis on tier failure (AOR-IGNITE-005)
+    }
+}
+
+surface FractalDashboardWebUI {
+    -- 8 fractal tabs (L0-L7) with real-time data from Zenoh
+    transport SSERealTimeTransport
+
+    tab L0_Constitutional {
+        widgets: guardian_status, psi_invariants, emergency_stop_button
+        data_source: "indrajaal/l0/const/**"
+        hitl: mandatory
+    }
+    tab L1_Atomic {
+        widgets: otel_flame_graph, nif_health, zenoh_session_inspector
+        data_source: "indrajaal/l1/atomic/**"
+    }
+    tab L2_Component {
+        widgets: supervisor_tree, actor_status, form_builder
+        data_source: "indrajaal/l2/component/**"
+    }
+    tab L3_Transaction {
+        widgets: state_diff_viewer, planning_db_crud, oban_queue_panel
+        data_source: "indrajaal/l3/txn/**"
+    }
+    tab L4_System {
+        widgets: container_grid, cpu_governor, wave_ignition, apoptosis
+        data_source: "indrajaal/l4/system/**"
+        hitl: for P0 actions
+    }
+    tab L5_Cognitive {
+        widgets: ooda_ring_animation, reasoning_marquee, rule_engine_toggle
+        data_source: "indrajaal/l5/cog/**"
+    }
+    tab L6_Ecosystem {
+        widgets: mesh_topology_map, quorum_voting_status, partition_alerts
+        data_source: "indrajaal/l6/eco/**"
+    }
+    tab L7_Federation {
+        widgets: cross_peer_attestation, state_vector_dashboard, stabilize_button
+        data_source: "indrajaal/l7/fed/**"
+        hitl: for stabilize
+    }
+}
+
+surface OperatorTUI {
+    -- Terminal dashboard with same data sources
+    transport: Zenoh direct subscription (no SSE)
+    mutation_path: MoZMutationTransport (same as WebUI)
+    rendering: ANSI codes via ui/tui/*.gleam
+}
+
+-- =============================================================================
+-- S9. RULES — Production Robustness
+-- =============================================================================
+
+rule "Idempotent Container Actions" {
+    -- Starting an already-running container = no-op success
+    when call ContainerLifecycleControl.request_action
+    requires ContainerCard.status = "running" and verb = start
+    then return MoZResponse(status = completed, result = "already running")
+    @guidance Prevents accidental double-starts from UI button mashing.
+}
+
+rule "Graceful Degradation on Zenoh Partition" {
+    when ZenohMesh.partition_detected
+    then MoZClient.circuit transitions to open
+    then SSEBridge pushes guardian_alert("Zenoh partition detected")
+    then ContainerGridWebUI disables mutation buttons
+    ensure "Read-only data from last-known-good state remains visible"
+    @guidance UI never goes blank. Last-known container states are cached
+              and displayed with a "stale data" badge.
+}
+
+rule "Automatic SSE Reconnection" {
+    when Browser.EventSource.connection_lost
+    then Browser.EventSource.reconnect(after = config.sse_reconnect_hint_ms)
+    then send Last-Event-ID header
+    then SSEBridge.handle_reconnect replays missed events
+    @guidance Browser EventSource handles this natively. Server ring buffer
+              stores last sse_buffer_size events per topic for replay.
+}
+
+rule "Health Probe Escalation" {
+    when HealthProbe.result = timeout
+    let retry_count = HealthProbe.retries
+    requires retry_count < config.moz_max_retries
+    then retry with exponential backoff (1s, 2s, 4s)
+    on max_retries_exceeded
+    then ContainerCard.status transitions to "critical"
+    then SSEBridge pushes health_update with severity = "critical"
+    @guidance Exponential backoff prevents probe storms during outages.
+}
+
+rule "Mutation Audit Trail" {
+    when call MoZMutationTransport.send_mutation
+    then "Log to OTel span: requester, verb, container, timestamp, correlation_id"
+    then "Publish to indrajaal/audit/mutations/{verb}/{container}"
+    ensure "Every mutation is traceable end-to-end"
+    @guidance Satisfies SC-LOG-001 and IEC 61508 audit requirements.
+}
+
+-- =============================================================================
+-- S10. FMEA — Failure Mode & Effects Analysis
+-- =============================================================================
+
+-- RPN = Severity x Occurrence x Detection (1-10 each, max 1000)
+
+fmea "Zenoh Mesh Partition" {
+    severity: 9        -- Container control lost
+    occurrence: 3      -- Rare with 3 routers
+    detection: 2       -- Heartbeat detects within 2s
+    rpn: 54
+    mitigation: "Circuit breaker opens, UI degrades to read-only, auto-recovery on partition heal"
+}
+
+fmea "SSE Connection Drop" {
+    severity: 3        -- Dashboard goes stale
+    occurrence: 5      -- Common with proxies/mobile
+    detection: 1       -- EventSource auto-detects
+    rpn: 15
+    mitigation: "Browser auto-reconnects, server replays from ring buffer"
+}
+
+fmea "MoZ Request Timeout" {
+    severity: 6        -- Container action fails
+    occurrence: 4      -- Network jitter, Rust busy
+    detection: 2       -- 10s timeout + circuit breaker
+    rpn: 48
+    mitigation: "Retry with backoff, circuit breaker after 5 failures, UI shows error"
+}
+
+fmea "Mutation Storm (operator mashing buttons)" {
+    severity: 7        -- Cascade container restarts
+    occurrence: 3      -- Human error
+    detection: 1       -- max_concurrent_mutations gate
+    rpn: 21
+    mitigation: "3 concurrent mutation limit, idempotent actions, button debounce"
+}
+
+fmea "F# Bridge Removal Causes Cascade" {
+    severity: 5        -- Degraded Elixir features
+    occurrence: 2      -- Low (zero call sites found)
+    detection: 1       -- 24h observation in Phase 0
+    rpn: 10
+    mitigation: "Phase 0 is reversible (podman start cepaf-bridge)"
+}
+
+fmea "Stale IPAM Allocation (repeat of 20260405 incident)" {
+    severity: 6        -- Container can't start
+    occurrence: 4      -- Non-deterministic IPAM
+    detection: 3       -- Discovered only on start attempt
+    rpn: 72
+    mitigation: "Static IP assignment per genome, or podman rm + recreate"
+}
+
+-- =============================================================================
+-- S11. OPEN QUESTIONS
+-- =============================================================================
+
+open_question "Static IP Assignment" {
+    -- Should MeshConfig.fs static IPs be enforced at container creation?
+    -- Current: Dynamic IPAM caused ex-app-1 conflict (20260405 incident)
+    -- Proposal: Assign fixed IPs per genome entry in types.rs
+    status: proposed
+    impact: medium
+}
+
+open_question "SSE vs Lustre Server Components Long-Term" {
+    -- SSE selected for robustness now, but Lustre 5.6+ server components
+    -- would give VDOM diffing. Worth revisiting when Lustre matures?
+    status: deferred
+    impact: low (SSE is sufficient for dashboards)
+}
+
+open_question "Proof Token for WebUI Mutations" {
+    -- Should WebUI generate Ed25519 proof tokens for container mutations?
+    -- Or should Guardian generate them server-side after HITL approval?
+    status: proposed
+    impact: high (security architecture)
+    update: "Pass 4 finding: Rust mcp_bridge.rs has NO proof token validation.
+             Add to Rust side first, then Gleam client can include tokens."
+}
+
+-- =============================================================================
+-- CROSS-REFERENCES (added Pass 4)
+-- =============================================================================
+-- Companion specs (read in order):
+--   1. webui_operational_control.allium (this file) — contracts, invariants, FMEA
+--   2. webui_production_hardening.allium — 6 source gaps, 4 workflows, 7 rules
+--   3. webui_full_system_robustness.allium — full 184-module review, Rust protocol,
+--      cross-cutting gaps (GAP-007 to GAP-012), degradation matrix, API completeness
+-- Total: ~2,000 lines of production WebUI behavioral specification

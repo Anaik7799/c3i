@@ -327,24 +327,29 @@ Rust tests: **307 passed** (41 rule engine tests). Gleam tests: **1,721 passed**
 
 ## §12.0 Task Management Authority (SC-TODO-001)
 
-**Status**: CRITICAL | **Tool**: `sa-plan` (F# Unified Task Management)
+**Status**: CRITICAL | **Tool**: `sa-plan-daemon` (Rust Unified Task Management)
 
-All updates to `PROJECT_TODOLIST.md`, task status transitions (Pending -> Active -> Completed), and priority changes MUST be performed exclusively via the `sa-plan` tool.
+All updates to `PROJECT_TODOLIST.md`, task status transitions (Pending -> Active -> Completed), and priority changes MUST be performed exclusively via the `sa-plan-daemon` Rust binary. This binary replaces the legacy F# `Cepaf.Planning.CLI`.
+
+**Binary path**: `./sub-projects/intelitor-v5.2/target/release/sa-plan-daemon`
 
 **Prohibitions**:
 - Direct manual edits to `PROJECT_TODOLIST.md` are STRICTLY FORBIDDEN.
 - Use of legacy Elixir `mix todo` or shell scripts is DEPRECATED and FORBIDDEN.
+- Use of the legacy F# `Cepaf.Planning.CLI` is DEPRECATED and FORBIDDEN.
 
 **Data Integrity**:
-`PROJECT_TODOLIST.md` is a derived, read-only artifact. The authoritative state resides in the `Planning.db` SQLite/DuckDB store. Manual changes will be overwritten and lost upon next `sa-plan` sync.
+`PROJECT_TODOLIST.md` is a derived, read-only artifact. The authoritative state resides in the `Planning.db` SQLite/DuckDB store. Manual changes will be overwritten and lost upon next `sa-plan-daemon` sync.
+
+**MCP+Zenoh Integration**: `sa-plan-daemon` operations are also available as MCP tools via the Zenoh backplane (SC-ZMOF-001). Task mutations publish OTel spans to `indrajaal/plan/spans/**` for distributed audit.
 
 **Usage**:
-- List: `sa-plan status` or `chaya list`
-- Add: `sa-plan add "Description" P1`
-- Update: `sa-plan update <ID> <status>`
+- List: `sa-plan-daemon status`
+- Add: `sa-plan-daemon add "Description" P1`
+- Update: `sa-plan-daemon update <ID> <status>`
 
 ---
 
-**Version**: 22.1.0-GLM
-**Last Updated**: 2026-04-04
-**Status**: Gleam-first platform operational (ZMOF active, Muda enforced, sa-plan authoritative)
+**Version**: 22.2.0-GLM
+**Last Updated**: 2026-04-05
+**Status**: Gleam-first platform operational (ZMOF active, Muda enforced, sa-plan-daemon authoritative)

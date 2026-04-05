@@ -7,6 +7,9 @@
 import gleam/json
 import gleam/list
 
+/// SC-MUDA-001: bound peer list to prevent unbounded growth.
+const max_peers = 50
+
 /// Federation peer.
 pub type FederationPeer {
   FederationPeer(
@@ -45,7 +48,7 @@ pub fn initial_federation(local_id: String) -> FederationState {
 pub fn add_peer(state: FederationState, peer: FederationPeer) -> FederationState {
   let existing =
     list.filter(state.peers, fn(p) { p.peer_id != peer.peer_id })
-  FederationState(..state, peers: [peer, ..existing])
+  FederationState(..state, peers: [peer, ..existing] |> list.take(max_peers))
 }
 
 pub fn remove_peer(

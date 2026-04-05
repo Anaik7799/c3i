@@ -71,3 +71,25 @@ external entity ZenohRouterMesh
 external entity OTelCollector
 external entity CortexAgent
 external entity GeminiAgent
+external entity RustIgnitionDaemon
+external entity GleamWispServer
+
+-- =============================================================================
+-- MoZ Container Mutation Path (added 2026-04-05, see webui_operational_control.allium)
+-- =============================================================================
+
+-- MoZ is the SOLE path for WebUI container mutations:
+--   Gleam Wisp POST → MoZClient → Zenoh req topic → Rust mcp_bridge.rs → Podman
+--   Rust mcp_bridge.rs → Zenoh res topic → MoZClient → SSE → Browser
+--
+-- Topic layout (ignition daemon):
+--   Request:  indrajaal/l4/ignition/mcp/req/{tool}/{request_id}
+--   Response: indrajaal/l4/ignition/mcp/res/{request_id}
+--   Heartbeat: indrajaal/l4/ignition/{node_id}/heartbeat (every 1s)
+--
+-- Tools registered by Rust mcp_bridge.rs:
+--   launch, preflight, ignition_ooda, down, emergency, stabilize, status
+--
+-- SC-ARCH-SPLIT-001: Gleam publishes intent, Rust executes action.
+-- SC-ZMOF-004: No direct HTTP/gRPC between mesh containers.
+-- Full spec: specs/allium/webui_operational_control.allium

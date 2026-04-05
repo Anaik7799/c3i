@@ -7,6 +7,9 @@
 import gleam/json
 import gleam/list
 
+/// SC-MUDA-001: bound agent list to prevent unbounded growth.
+const max_agents = 50
+
 /// Agent node in the mesh.
 pub type AgentNode {
   AgentNode(
@@ -54,7 +57,7 @@ pub fn initial_mesh() -> MeshState {
 pub fn update_agent(state: MeshState, node: AgentNode) -> MeshState {
   let existing =
     list.filter(state.agents, fn(a) { a.agent_id != node.agent_id })
-  MeshState(..state, agents: [node, ..existing])
+  MeshState(..state, agents: [node, ..existing] |> list.take(max_agents))
 }
 
 pub fn remove_agent(state: MeshState, agent_id: String) -> MeshState {

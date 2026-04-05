@@ -33,6 +33,7 @@ When the mesh is unhealthy, execute a 5-layer audit:
 - **SC-RES-001**: NEVER skip the host `_build` purge; it is the primary cause of NIF failures.
 - **SC-RES-002**: Verification MUST be biological (Zenoh pulse), not just status-based.
 
-## Task & Planning (F#-ONLY MANDATE)
-- **AOR-RES-PLAN**: ALL tasks related to resurrection MUST be tracked via the F# Planning CLI (`sa-plan`).
-- **Forbidden**: NEVER use `mix todo` or manual markdown edits during a resurrection sequence. State MUST be preserved in the authoritative F# SQLite store.
+## Task & Planning (RUST sa-plan-daemon MANDATE)
+- **AOR-RES-PLAN**: ALL tasks related to resurrection MUST be tracked via `sa-plan`, which resolves to the Rust binary `./sub-projects/intelitor-v5.2/target/release/sa-plan-daemon`.
+- **Forbidden**: NEVER use `mix todo`, the F# Planning CLI, or manual markdown edits during a resurrection sequence. State MUST be preserved in the authoritative Rust SQLite/DuckDB store via sa-plan-daemon.
+- **MCP+Zenoh**: Resurrection actions (ignition, health checks, rule evaluation) are accessible as MCP tools over Zenoh (MoZ protocol) — see `indrajaal/l4/system/mcp/req/**` topics.

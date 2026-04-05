@@ -1,13 +1,13 @@
 # GEMINI.md — Indrajaal c3i Multi-Language System Spec (Root)
-**Version**: 21.6.0-GLM | **Status**: ACTIVE | **Primary Language**: Gleam (BEAM) | **Date**: 2026-04-04
+**Version**: 22.1.0-GLM | **Status**: ACTIVE | **Primary Language**: Gleam (BEAM) | **Date**: 2026-04-05
 
 ## Language Architecture
 | Language | Role | Build Command | Constraint |
 |:---|:---|:---|:---|
 | **Gleam** | Primary c3i language — all new logic | `gleam build` / `gleam test` / `gleam format` | SC-GLM-CMP-001 to SC-GLM-CMP-005 |
-| **Rust** | NIF boundary only (Zenoh FFI) | `cargo build --release` / `cargo test` | SC-NIF-001 to SC-NIF-006, SC-GLM-NIF-001 to SC-GLM-NIF-005 |
+| **Rust** | Ignition daemon (authoritative), NIF boundary (Zenoh FFI), sa-plan-daemon | `cargo build --release` / `cargo test` | SC-NIF-001 to SC-NIF-006, SC-GLM-NIF-001 to SC-GLM-NIF-005, SC-ARCH-SPLIT-001 |
 | **Elixir** | Web portal (Phoenix LiveView, OTP) | `mix compile --jobs 16` / `mix test` | SC-ENV-COMPILE-001 to SC-ENV-COMPILE-008 |
-| **F#** | Legacy bridge/cognitive (Phase 6 substrate) | `dotnet build` / `dotnet test` | SC-FSH-003 to SC-FSH-122 |
+| **F#** | Legacy bridge/cognitive only (cepaf-bridge is REDUNDANT — Rust ignition daemon is authoritative) | `dotnet build` / `dotnet test` | SC-FSH-003 to SC-FSH-122, SC-GLM-MIG-003 |
 
 ## Build Order (AOR-BUILD-001)
 ```
@@ -21,8 +21,8 @@ Rust NIFs → Gleam → Elixir → F# (if needed)
 | AOR-NIF-001 | Rust NIFs must have a clearly defined interface contract with Gleam, minimizing risk of runtime errors and unsafety. | Interface documentation, property testing |
 | AOR-POLYGLOT-001 | Language boundaries (Gleam-Rust, Gleam-Elixir, Gleam-F#) must be explicitly documented and tested for interoperability. | Architectural diagrams, integration tests |
 | AOR-BUILD-002 | The build order MUST be strictly followed to ensure correct compilation dependencies across all languages. | CI script validation |
-| AOR-TOOL-001 | Root-level tools (`sa-up`, `sa-gleam`, `sa-plan`) are the authoritative interfaces for mesh and task management. | Functional verification |
-| AOR-TOOL-003 | ALL updates to task status and `PROJECT_TODOLIST.md` MUST be performed via `sa-plan`. Manual edits are FORBIDDEN. | Audit log check |
+| AOR-TOOL-001 | Root-level tools (`sa-up`, `sa-gleam`, `sa-plan`) are the authoritative interfaces for mesh and task management. `sa-plan` resolves to the Rust binary: `./sub-projects/intelitor-v5.2/target/release/sa-plan-daemon`. | Functional verification |
+| AOR-TOOL-003 | ALL updates to task status and `PROJECT_TODOLIST.md` MUST be performed via `sa-plan` (Rust sa-plan-daemon). Manual edits are FORBIDDEN. | Audit log check |
 | AOR-TOOL-002 | `sa-gleam` must maintain a 2-tier fallback (NIF -> CLI) for all critical data operations (SQLite, Podman). | Resilience testing |
 
 ## Canonical GEMINI.md Location
@@ -95,7 +95,7 @@ Full spec: `dev/ver/c3i/GEMINI.md` (v21.6.0-GLM)
 | **REST API** | Gleam Wisp HTTP + JSON | 4100 | Agent API, JSON serialization, routing | SC-GLM-UI-002 |
 | **Terminal UI** | Gleam ANSI renderer + Split-Screen | CLI | Headless operations, dashboard + test results | SC-GLM-UI-003 |
 | **Legacy Web** | Elixir Phoenix LiveView | 4000 | Maintained for backward compatibility only | SC-GLM-UI-004 |
-| **Fallback CLI** | F# Prajna console | CLI | Failsafe command-and-control interface | SC-GLM-UI-005 |
+| **Fallback CLI** | F# Prajna console (legacy) | CLI | Failsafe command-and-control interface (superseded by Rust ignition daemon for ops) | SC-GLM-UI-005 |
 
 **Key**: Gleam Lustre IS the transport for AG-UI events; Wisp handles state endpoints; TUI mirrors capabilities via terminal rendering; Zenoh OTel publishes spans for all state changes.
 
@@ -177,6 +177,37 @@ Full spec: `dev/ver/c3i/GEMINI.md` (v21.6.0-GLM)
 - L2 Health/Quorum: `indrajaal/l2/health/**`
 - L4 System/Podman: `indrajaal/l4/system/**`
 - L5 Cog/OODA/Rules: `indrajaal/l5/cog/**`
+
+## Rust Operational Control (sa-plan-daemon & Ignition Daemon)
+
+**Authoritative binary**: `./sub-projects/intelitor-v5.2/target/release/sa-plan-daemon`
+
+The Rust ignition daemon (`native/ignition_daemon/`) is the SOLE authoritative runtime for:
+- Container lifecycle (start/stop/restart/build/pull) via Podman UDS
+- OODA supervisor loop (observe/orient/decide/act, <100ms cycle)
+- 52-rule RETE-UL rule engine across 13 domains
+- Health orchestration (FPPS 5-method, hysteresis, 2oo3 quorum)
+- Apoptosis, cascade containment, partition fencing
+- DAG boot sequencing (topological sort, wave-parallel tiers)
+- Zenoh telemetry checkpoints and state vector
+
+**F# cepaf-bridge status**: LEGACY / REDUNDANT — do not add new operational logic to F#. All orchestration responsibilities have migrated to the Rust ignition daemon. F# is retained only for cognitive substrate (Phase 6 gate per SC-GLM-MIG-004) until Gleam cognitive layers are verified.
+
+### MCP+Zenoh Operational Control (SC-ZMOF-005)
+
+All Rust operational components are accessible via MCP tools transported over Zenoh (MoZ protocol):
+
+| Component | MCP Tool | Zenoh Request Topic | Zenoh Response Topic |
+|:---|:---|:---|:---|
+| Ignition daemon | `ignition_*` | `indrajaal/l4/system/mcp/req/ignition/{id}` | `indrajaal/l4/system/mcp/res/{id}` |
+| sa-plan-daemon | `plan_*` | `indrajaal/l5/cog/mcp/req/plan/{id}` | `indrajaal/l5/cog/mcp/res/{id}` |
+| Rule engine | `rule_*` | `indrajaal/l5/cog/mcp/req/rule/{id}` | `indrajaal/l5/cog/mcp/res/{id}` |
+| Health consensus | `health_*` | `indrajaal/l2/health/mcp/req/health/{id}` | `indrajaal/l2/health/mcp/res/{id}` |
+| Guardian gate | `guardian_*` | `indrajaal/l0/const/mcp/req/guardian/{id}` | `indrajaal/l0/const/mcp/res/{id}` |
+
+All MCP tool calls MUST route over Zenoh (MoZ). Direct HTTP/gRPC to operational components is PROHIBITED (SC-ZMOF-004).
+
+---
 
 ## Allium Behavioral Specifications (NEW)
 

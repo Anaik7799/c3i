@@ -1,0 +1,631 @@
+-- allium: 3
+-- WebUI Full System Robustness — Definitive Production Spec (Pass 4)
+-- Covers: 184 Gleam modules / 30,930 LOC gap analysis, Rust MCP exact protocol,
+--         authentication, graceful degradation, circuit breaker integration,
+--         cross-page state coordination, operational workflows, FMEA
+-- STAMP: SC-ZMOF-001..006, SC-ARCH-SPLIT-001, SC-GLM-UI-001..010, SC-AGUI-001..017,
+--        SC-API-001..010, SC-SEC-001..049, SC-SIL4-006, SC-CNT-001..019, SC-EMR-057..066,
+--        SC-SAFETY-001..022, SC-LOG-001..010, SC-CIRCUIT-001..002, SC-DRK-001..004,
+--        SC-ZENOH-001..008, SC-NIF-001..006, SC-FUNC-001..008
+-- Date: 2026-04-05
+-- Author: Claude Opus 4.6 (operator-assisted)
+-- Companion to: webui_operational_control.allium (749 lines, contracts/invariants)
+--               webui_production_hardening.allium (543 lines, source gaps/workflows)
+-- This spec: full system review, cross-cutting concerns, protocol alignment
+
+-- =============================================================================
+-- S1. SYSTEM INVENTORY (184 modules, 30,930 LOC)
+-- =============================================================================
+
+-- Module distribution by subsystem:
+-- UI/Lustre pages:   24 modules, 5,438 lines (18% of codebase)
+-- TUI views:         23 modules, 3,046 lines (10%)
+-- Wisp APIs:         15 modules, 3,246 lines (10%)
+-- Fractal L0-L7:      8 modules, 1,083 lines (4%)
+-- AG-UI protocol:     5 modules, 1,313 lines (4%)
+-- A2UI catalog:       5 modules,   655 lines (2%)
+-- Planning:          15 modules, 5,318 lines (17%)
+-- Testing:            8 modules, 3,328 lines (11%)
+-- Prajna:             7 modules,   709 lines (2%)
+-- Other:             74 modules, 6,794 lines (22%)
+-- TOTAL:            184 modules, 30,930 lines
+
+-- =============================================================================
+-- S2. RUST MCP PROTOCOL ALIGNMENT (Exact Wire Format)
+-- =============================================================================
+
+-- The Gleam MoZ client MUST speak this exact protocol to Rust mcp_bridge.rs.
+
+contract RustMcpProtocol {
+    -- JSON-RPC 2.0 over Zenoh pub/sub
+
+    -- Request format (Gleam → Zenoh → Rust)
+    value McpWireRequest {
+        jsonrpc: String = "2.0"
+        method: String          -- "launch" | "restart" | "drain"
+        params: Json            -- tool-specific parameters
+        id: String              -- unique request ID (UUID), echoed in response
+    }
+
+    -- Response format (Rust → Zenoh → Gleam)
+    value McpWireResponse {
+        jsonrpc: String = "2.0"
+        result: Json?           -- present on success, null on error
+        error: McpWireError?    -- present on error, null on success
+        id: String              -- echo of request ID
+    }
+
+    value McpWireError {
+        code: Integer           -- -32601 (method not found), -32602 (invalid params), -32000 (server error)
+        message: String
+        data: Json?
+    }
+
+    -- Topic patterns
+    config {
+        request_topic_template: String = "indrajaal/l4/ignition/mcp/req/{method}/{request_id}"
+        response_topic_template: String = "indrajaal/l4/ignition/mcp/res/{request_id}"
+        heartbeat_topic_template: String = "indrajaal/l4/ignition/{node_id}/heartbeat"
+        catalog_topic_template: String = "indrajaal/l4/ignition/mcp/catalog/{node_id}"
+        heartbeat_interval_ms: Integer = 1000
+        heartbeat_payload: String = "ALIVE"
+    }
+
+    -- CRITICAL: Only 3 tools are actually handled by Rust (despite 6 in catalog)
+    rule "Active Tool Set" {
+        -- mcp_bridge.rs handle_request() match arms:
+        supported_tools: ["launch", "restart", "drain"]
+        -- The catalog publishes 6 tools but only these 3 have handlers
+        -- Gleam client MUST only call these 3 until Rust adds more handlers
+    }
+
+    -- Tool: launch
+    rule "Launch Mesh" {
+        method: "launch"
+        params: { mode: String = "prod" | "test" }
+        success_result: { status: "success", mode: String }
+        error_code: -32000
+        calls: launch::launch_mesh()
+    }
+
+    -- Tool: restart (NOTE: only STOPS, does not restart)
+    rule "Restart Container" {
+        method: "restart"
+        params: { container: String }  -- REQUIRED, error -32602 if missing
+        success_result: { status: "stopped", container: String }
+        error_code: -32000
+        note: "Current Rust impl only calls podman::stop_container(). Restart not implemented."
+    }
+
+    -- Tool: drain (emergency stop)
+    rule "Emergency Drain" {
+        method: "drain"
+        params: {}  -- none required
+        success_result: Json  -- robust_launch::emergency_drain() result
+        error_code: -32000
+        calls: robust_launch::emergency_drain()
+    }
+
+    -- Node discovery: Gleam must subscribe to heartbeat topic to find active node_id
+    rule "Node Discovery" {
+        when Gleam MoZ client initializes
+        then subscribe to "indrajaal/l4/ignition/*/heartbeat"
+        then extract node_id from topic path segment
+        then subscribe to "indrajaal/l4/ignition/mcp/catalog/{node_id}" for tool catalog
+        @guidance Node ID is a random UUID generated on each Rust bridge startup.
+                  Gleam cannot hardcode it — must discover via heartbeat.
+    }
+}
+
+-- =============================================================================
+-- S3. CROSS-CUTTING PRODUCTION GAPS (0/5 checklists)
+-- =============================================================================
+
+-- Authentication: 0/5 — NO session tokens, NO principal identity, NO RBAC
+-- Error handling: 1/5 — Only planning/access_control uses Result
+-- Graceful degradation: 0/5 — Circuit breaker exists but never invoked
+-- Rate limiting: 0/5 — No middleware
+-- Real-time subscriptions: 1/5 — Effects subscribe but never unsubscribe
+
+-- GAP-007: Authentication completely missing
+gap AuthenticationMissing {
+    severity: P0
+    description: "Port 4100 Wisp API has ZERO authentication. Any caller can invoke
+                  any endpoint. When mutation endpoints are added (GAP-001), this becomes
+                  a container control vulnerability."
+    files_affected: ["ui/wisp/router.gleam", "web/server.gleam"]
+    remediation: {
+        step1: "Add bearer token middleware to handle_request()"
+        step2: "Read-only GET: allow unauthenticated (monitoring)"
+        step3: "Mutation POST: require valid bearer token"
+        step4: "L0 P0 actions: require proof token (Guardian-signed)"
+    }
+    stamp: ["SC-SEC-001", "SC-SEC-002"]
+}
+
+-- GAP-008: Circuit breaker implemented but never used
+gap CircuitBreakerOrphaned {
+    severity: P1
+    description: "prajna/circuit_breaker.gleam (93 lines) implements a correct circuit
+                  breaker pattern (Closed→Open→HalfOpen) with thresholds. But it is
+                  NEVER instantiated or invoked anywhere in the 184-module codebase."
+    files_affected: ["prajna/circuit_breaker.gleam"]
+    remediation: {
+        step1: "Integrate with MoZClient — open circuit on consecutive Zenoh failures"
+        step2: "Integrate with SSEBridge — open circuit on Zenoh subscription loss"
+        step3: "Integrate with web/server.gleam — report circuit state in /health"
+        step4: "Integrate with dark_cockpit — circuit open → Emergency mode"
+    }
+    stamp: ["SC-CIRCUIT-001", "SC-CIRCUIT-002"]
+}
+
+-- GAP-009: Dark cockpit not connected to real alert sources
+gap DarkCockpitOrphaned {
+    severity: P1
+    description: "prajna/dark_cockpit.gleam (85 lines) has correct 5-mode state machine
+                  (Dark/Dim/Normal/Bright/Emergency) and alert filtering. But alert list
+                  is never populated from real sources (Zenoh health, container status,
+                  Guardian alerts). Cockpit is always Dark because no alerts arrive."
+    files_affected: ["prajna/dark_cockpit.gleam", "ui/lustre/cockpit_view.gleam"]
+    remediation: {
+        step1: "Subscribe to indrajaal/safety/sentinel/** for threat alerts"
+        step2: "Subscribe to indrajaal/health/* for container health changes"
+        step3: "Map health degradations to DarkCockpitAlert with appropriate severity"
+        step4: "Wire mode changes to Lustre cockpit_view rendering"
+    }
+    stamp: ["SC-DRK-001", "SC-HMI-010"]
+}
+
+-- GAP-010: Lustre pages have no-op update handlers
+gap LustreUpdateNoOps {
+    severity: P1
+    description: "Multiple Lustre pages have Msg variants that do nothing in update():
+                  - podman.gleam: StartContainer/StopContainer → model (no-op)
+                  - cockpit_view.gleam: AcknowledgeAlarm/RefreshCockpit → model
+                  - verification.gleam: RefreshVerification → model
+                  - prajna.gleam: All *Updated handlers just reassign, no validation
+                  These create buttons that appear clickable but do nothing."
+    files_affected: [
+        "ui/lustre/podman.gleam",
+        "ui/lustre/cockpit_view.gleam",
+        "ui/lustre/verification.gleam",
+        "ui/lustre/prajna.gleam"
+    ]
+    remediation: {
+        step1: "Wire StartContainer/StopContainer to MoZ mutation via effects"
+        step2: "Wire RefreshCockpit/RefreshVerification to Zenoh subscription refresh"
+        step3: "Wire AcknowledgeAlarm to dark_cockpit state + SSE notification"
+        step4: "Add validation to Prajna *Updated handlers (bounds checking)"
+    }
+    stamp: ["SC-GLM-UI-002", "SC-AGUI-014"]
+}
+
+-- GAP-011: Subscription lifecycle leak
+gap SubscriptionLeaks {
+    severity: P2
+    description: "ui/lustre/effects.gleam (155 lines) subscribes to Zenoh topics
+                  but has NO unsubscribe on unmount. If user navigates between pages,
+                  subscriptions accumulate. Over time this leaks memory and Zenoh handles."
+    files_affected: ["ui/lustre/effects.gleam"]
+    remediation: {
+        step1: "Track subscription handles in page model"
+        step2: "Unsubscribe on page unmount (if Lustre supports cleanup effects)"
+        step3: "If Lustre has no cleanup: use reference counting in BEAM process"
+        step4: "Set max subscriptions per session (circuit breaker)"
+    }
+    stamp: ["SC-ZENOH-005"]
+}
+
+-- GAP-012: Unbounded history growth in multiple modules
+gap UnboundedHistory {
+    severity: P2
+    description: "Several modules accumulate history without bounds:
+                  - verification.gleam: proof_history grows via prepend (no limit)
+                  - dark_cockpit.gleam: alert list never evicted
+                  - l6_ecosystem.gleam: message queue has max but agent list doesn't
+                  - l7_federation.gleam: peer list never pruned"
+    files_affected: [
+        "ui/lustre/verification.gleam",
+        "prajna/dark_cockpit.gleam",
+        "fractal/l6_ecosystem.gleam",
+        "fractal/l7_federation.gleam"
+    ]
+    remediation: {
+        step1: "Add max_history parameter (default 100) to all history lists"
+        step2: "Use list.take(max) after every prepend"
+        step3: "Add TTL-based eviction for stale entries (alerts, peers)"
+    }
+    stamp: ["SC-MUDA-001"]
+}
+
+-- =============================================================================
+-- S4. CROSS-PAGE STATE COORDINATION
+-- =============================================================================
+
+-- Currently each Lustre page has an independent model. No state flows between pages.
+-- This means: cockpit_view doesn't know about prajna threat level.
+-- podman doesn't know about verification compliance. federation doesn't know about mesh health.
+
+contract CrossPageStateCoordination {
+    -- All pages MUST share state via Zenoh subscriptions, not direct coupling.
+    -- Pattern: Zenoh topic → BEAM GenServer (shared state holder) → Lustre page query
+
+    rule "No Direct Page Coupling" {
+        when PageA.model needs data from PageB.model
+        reject "Direct import between page models"
+        then "Both subscribe to same Zenoh topic independently"
+        @guidance This prevents import cycles and keeps pages independently testable.
+    }
+
+    rule "Shared State via GenServer" {
+        -- A single BEAM GenServer subscribes to Zenoh topics and holds latest state.
+        -- Each Lustre page queries the GenServer on render, not its own subscription.
+        entity SharedMeshState {
+            container_statuses: Map<String, ContainerStatus>
+            health_summary: Map<String, HealthStatus>
+            threat_level: String
+            ooda_phase: String
+            dark_cockpit_mode: String
+            quorum_status: Boolean
+            last_updated: Timestamp
+        }
+
+        rule "GenServer Subscribes Once" {
+            on server start
+            then subscribe to ["indrajaal/health/*", "indrajaal/l4/system/**",
+                              "indrajaal/l5/cog/ooda/**", "indrajaal/safety/sentinel/**"]
+            then update SharedMeshState on each message
+        }
+
+        rule "Pages Query on Render" {
+            when any Lustre page renders
+            then call SharedMeshState.get(field)
+            ensure "No page holds stale state"
+        }
+    }
+}
+
+-- =============================================================================
+-- S5. GRACEFUL DEGRADATION MATRIX
+-- =============================================================================
+
+-- What happens when each subsystem fails?
+
+contract GracefulDegradation {
+
+    rule "Zenoh Mesh Down" {
+        affected: ["SSE real-time", "MoZ mutations", "OTel spans", "AG-UI events"]
+        degradation: {
+            sse: "Heartbeat stops → browser auto-reconnects → gets cached last-known state"
+            mutations: "Circuit breaker opens → mutation buttons disabled → show 'offline' badge"
+            otel: "Spans drop silently (fire-and-forget) → no data loss, just gap"
+            agui: "Events not delivered → agents work independently"
+        }
+        recovery: "Circuit breaker half-open after 30s → retry → close on success"
+        ui_indicator: "Red banner: 'Zenoh mesh disconnected. Read-only mode.'"
+    }
+
+    rule "Database Down (indrajaal-db-prod)" {
+        affected: ["Planning queries", "Oban jobs", "Session state"]
+        degradation: {
+            planning: "Return cached task list with 'stale' badge"
+            oban: "Jobs queued in memory, flush when DB recovers"
+            sessions: "Stateless REST unaffected; SSE connections maintained"
+        }
+        recovery: "Postgrex reconnection pool with exponential backoff"
+        ui_indicator: "Yellow banner: 'Database connection degraded.'"
+    }
+
+    rule "Rust Ignition Daemon Down" {
+        affected: ["MoZ mutations", "Container control", "OODA visualization"]
+        degradation: {
+            mutations: "No heartbeat → stale detection after 2s → circuit opens → buttons disabled"
+            containers: "Last-known container state displayed with timestamp"
+            ooda: "OODA ring stops animating → shows 'OODA offline'"
+        }
+        recovery: "Heartbeat resumes → circuit half-open → test request → close"
+        ui_indicator: "Orange banner: 'Ignition daemon unreachable. Container control paused.'"
+    }
+
+    rule "Browser JavaScript Disabled" {
+        affected: ["SSE real-time", "OODA animation", "Container action buttons"]
+        degradation: {
+            sse: "No EventSource → page is static HTML snapshot"
+            animation: "No CSS animation → static diagram"
+            buttons: "Form buttons work via POST (traditional HTML form submit)"
+        }
+        recovery: "Enable JavaScript → page auto-enhances"
+        ui_indicator: "None needed — static HTML is complete and readable (SC-GLM-UI-001)"
+    }
+
+    rule "OTel Collector Down (obs-prod)" {
+        affected: ["Telemetry page", "Span visualization"]
+        degradation: {
+            telemetry: "Empty span list with 'collector offline' message"
+            spans: "Zenoh OTel publishing continues (buffered) → no data loss"
+        }
+        recovery: "Collector restart → buffered spans flushed"
+        ui_indicator: "Yellow badge on Telemetry tab"
+    }
+}
+
+-- =============================================================================
+-- S6. EXPANDED FMEA (Full System)
+-- =============================================================================
+
+-- Previous specs covered 10 FMEA entries. Adding system-wide failure modes.
+
+fmea "Authentication bypass on mutation endpoint" {
+    severity: 10       -- Unauthorized container control
+    occurrence: 1      -- Mutation endpoints don't exist yet
+    detection: 1       -- Add auth BEFORE adding mutations
+    rpn: 10
+    mitigation: "GAP-007: Add bearer token auth as prerequisite for GAP-001"
+    note: "RPN is low NOW but becomes 10x9x2=180 if mutations ship without auth"
+}
+
+fmea "Subscription memory leak on page navigation" {
+    severity: 4        -- Gradual memory growth
+    occurrence: 7      -- Every page navigation
+    detection: 5       -- Not visible until hours of use
+    rpn: 140
+    mitigation: "GAP-011: Track and cleanup Zenoh subscriptions on page unmount"
+}
+
+fmea "Dark cockpit always Dark (no real alerts)" {
+    severity: 6        -- Operator misses critical alerts
+    occurrence: 10     -- Always (no alert sources wired)
+    detection: 3       -- Easy to test once noticed
+    rpn: 180
+    mitigation: "GAP-009: Wire Zenoh health/sentinel topics to dark_cockpit alert list"
+}
+
+fmea "Lustre button clicks do nothing (no-op handlers)" {
+    severity: 5        -- Operator frustration, loss of trust
+    occurrence: 8      -- Every interaction with affected pages
+    detection: 2       -- Immediately visible
+    rpn: 80
+    mitigation: "GAP-010: Wire Msg handlers to effects (MoZ, Zenoh refresh)"
+}
+
+fmea "Proof history grows unbounded in verification page" {
+    severity: 3        -- Memory growth over weeks
+    occurrence: 6      -- Each verification run
+    detection: 6       -- Only visible with profiling
+    rpn: 108
+    mitigation: "GAP-012: Add max_history=100, list.take() after prepend"
+}
+
+fmea "Rust MCP 'restart' only stops, doesn't restart" {
+    severity: 7        -- Operator expects restart, gets stop
+    occurrence: 3      -- When restart is called
+    detection: 2       -- Container status shows 'stopped' not 'running'
+    rpn: 42
+    mitigation: "Gleam client should call stop + start sequentially, not rely on 'restart' tool"
+}
+
+fmea "Catalog/handler mismatch: 6 tools published, 3 handled" {
+    severity: 5        -- Client calls unhandled tool → -32601 error
+    occurrence: 4      -- If client uses catalog as source of truth
+    detection: 2       -- Error response is clear
+    rpn: 40
+    mitigation: "Gleam client MUST hardcode supported tools: launch, restart, drain"
+}
+
+fmea "web/server.gleam has no graceful shutdown" {
+    severity: 6        -- Active connections dropped on restart
+    occurrence: 3      -- Each deployment
+    detection: 3       -- SSE clients notice disconnect
+    rpn: 54
+    mitigation: "Add SIGTERM handler with connection drain (30s timeout)"
+}
+
+-- =============================================================================
+-- S7. WISP API COMPLETENESS MATRIX
+-- =============================================================================
+
+-- Current: 15 modules, 3,246 lines, ALL read-only GET endpoints
+-- Required for production: mutation endpoints, streaming, error handling
+
+alignment WispApiCompleteness {
+    -- Read-only (DONE, working):
+    done: [
+        "GET /api/v1/dashboard",
+        "GET /api/v1/planning",
+        "GET /api/v1/immune",
+        "GET /api/v1/knowledge",
+        "GET /api/v1/zenoh",
+        "GET /api/v1/verification",
+        "GET /api/v1/substrate",
+        "GET /api/v1/metabolic",
+        "GET /api/v1/podman",
+        "GET /api/v1/mcp",
+        "GET /api/v1/kms",
+        "GET /api/v1/telemetry",
+        "GET /api/v1/federation",
+        "GET /api/v1/prajna",
+        "GET /api/v1/agents",
+        "GET /api/v1/holon",
+        "GET /api/v1/config",
+        "GET /api/v1/git",
+        "GET /api/v1/db",
+        "GET /api/v1/bridge",
+        "GET /api/v1/smriti",
+        "GET /api/v1/health_grid",
+        "GET /api/v1/planning_dashboard",
+        "GET /api/v1/safety",
+        "GET /api/v1/enforcer",
+        "GET /api/v1/ooda",
+        "GET /api/v1/orchestration",
+        "GET /api/v1/graph",
+        "GET /api/v1/access",
+        "GET /api/v1/chaya",
+        "GET /api/v1/math",
+        "GET /api/v1/integrity",
+        "GET /api/v1/evolution",
+        "GET /api/v1/biomorphic",
+        "GET /api/v1/homeostasis",
+        "GET /api/v1/bicameral",
+        "GET /api/v1/singularity",
+        "GET /health",
+        "GET /ag-ui/health",
+        "GET /ag-ui/run"
+    ]
+
+    -- Mutation (MISSING, required for production control):
+    missing_mutations: [
+        "POST /api/v1/podman/action          -- container start/stop/restart via MoZ",
+        "POST /api/v1/emergency/trigger       -- emergency stop via Guardian + MoZ",
+        "POST /api/v1/guardian/respond         -- HITL approval/rejection",
+        "POST /ag-ui/hitl/respond             -- AG-UI HITL response",
+        "POST /ag-ui/tools/result             -- AG-UI tool call result",
+        "PUT  /api/v1/homeostasis/threshold   -- adjust homeostasis set points",
+        "POST /api/v1/ooda/trigger            -- manual OODA cycle trigger"
+    ]
+
+    -- Streaming (MISSING, required for real-time):
+    missing_streaming: [
+        "GET /api/v1/sse/mesh          -- SSE stream of mesh events",
+        "GET /api/v1/sse/containers    -- SSE stream of container state changes",
+        "GET /api/v1/sse/ooda          -- SSE stream of OODA cycle ticks",
+        "GET /api/v1/sse/guardian      -- SSE stream of Guardian alerts"
+    ]
+
+    -- Error handling (MISSING everywhere):
+    missing_error_handling: [
+        "All endpoints return String not Result — no error variants",
+        "No 404 for unknown resources",
+        "No 500 with structured error JSON",
+        "No request validation (body parsing)",
+        "No timeout handling"
+    ]
+}
+
+-- =============================================================================
+-- S8. TESTING INFRASTRUCTURE ALIGNMENT
+-- =============================================================================
+
+-- The testing/ directory has 8 modules (3,328 lines) but tests don't cover production gaps.
+
+alignment TestingGaps {
+    covered: [
+        "Shannon entropy H >= 2.5 bits (coverage_math.gleam)",
+        "CCM >= 90% (coverage_math.gleam)",
+        "ITQS >= 0.85 (coverage_math.gleam)",
+        "Human Intent Jaccard >= 0.70 (alignment.gleam)",
+        "22-page navigation digraph (nav_graph.gleam)",
+        "8 fractal layers x 15 tabs (fractal_matrix.gleam)",
+        "Zenoh message verification (zenoh_test_observer.gleam)",
+        "Split-screen test runner (test_dashboard.gleam)"
+    ]
+
+    not_covered: [
+        "Integration test: Gleam → Zenoh → Rust MoZ round-trip",
+        "Integration test: SSE streaming with real Mist chunked response",
+        "Integration test: Circuit breaker state transitions under load",
+        "Integration test: Dark cockpit mode changes from real alerts",
+        "Load test: 100+ concurrent SSE connections",
+        "Chaos test: Zenoh partition → graceful degradation",
+        "Security test: Unauthenticated mutation rejection",
+        "E2E test: Container start from WebUI button to podman running"
+    ]
+}
+
+-- =============================================================================
+-- S9. IMPLEMENTATION ROADMAP (Updated with Full System View)
+-- =============================================================================
+
+-- Phase 0 (Day 0): Prerequisite — fix the foundation
+-- GAP-004: Wire Zenoh FFI to real zenoh_nif.so
+-- GAP-007: Add bearer token auth middleware
+
+-- Phase 1 (Days 1-3): Core mutation path
+-- GAP-001: Add POST endpoints to router (method + path dispatch)
+-- GAP-006: Add mutation request/response JSON codecs
+-- GAP-008: Integrate circuit_breaker.gleam with MoZ client
+-- GAP-005: Wire L0 Guardian HITL endpoints
+
+-- Phase 2 (Days 4-6): Real-time delivery
+-- GAP-003: SSE chunked streaming via Mist
+-- GAP-009: Wire dark_cockpit to real alert sources
+-- GAP-010: Wire Lustre no-op handlers to effects
+
+-- Phase 3 (Days 7-9): State coordination + hardening
+-- CrossPageStateCoordination: SharedMeshState GenServer
+-- GAP-002: Replace hardcoded API data with live Zenoh state
+-- GAP-011: Fix subscription lifecycle leaks
+-- GAP-012: Add bounds to all history lists
+
+-- Phase 4 (Days 10-12): Polish + testing
+-- Integration tests: Gleam → Zenoh → Rust round-trip
+-- Load test: 100 concurrent SSE connections
+-- Chaos test: Zenoh partition → degradation → recovery
+-- Security test: Auth enforcement on mutations
+
+-- =============================================================================
+-- S10. OPEN QUESTIONS (Consolidated from all passes)
+-- =============================================================================
+
+open_question "Static IP Assignment for Container Genome" {
+    status: proposed
+    impact: medium
+    from_pass: 1
+}
+
+open_question "SSE vs Lustre Server Components Long-Term" {
+    status: deferred
+    impact: low
+    from_pass: 1
+}
+
+open_question "Proof Token Generation for WebUI Mutations" {
+    status: proposed
+    impact: high
+    from_pass: 1
+    update: "Rust mcp_bridge.rs has NO proof token validation. Add to Rust first."
+}
+
+open_question "ETS vs OTP Actor for SharedMeshState" {
+    status: proposed
+    impact: high
+    from_pass: 2
+    recommendation: "OTP actor — supervised, crash recovery, message passing"
+}
+
+open_question "Database for WebUI Session State" {
+    status: proposed
+    impact: medium
+    from_pass: 2
+}
+
+open_question "Catalog/Handler Mismatch in Rust MCP" {
+    status: new
+    impact: medium
+    from_pass: 4
+    description: "tool_catalog() publishes 6 tools but handle_request() only matches 3.
+                  Should Gleam use catalog discovery or hardcode the 3 active tools?"
+    recommendation: "Hardcode for now. Update when Rust adds remaining handlers."
+}
+
+open_question "restart Tool Only Stops" {
+    status: new
+    impact: high
+    from_pass: 4
+    description: "Rust 'restart' handler calls podman::stop_container() but never starts.
+                  Gleam client must implement stop+start as two sequential MoZ calls."
+}
+
+-- =============================================================================
+-- CROSS-REFERENCE: Implementation Plan
+-- =============================================================================
+-- webui_evolution_plan.allium (Pass 5) contains:
+--   - MCDA scoring: 6 dimensions, AHP weights (CR=0.03)
+--   - 28 tasks with CPS scores, ranked by composite priority
+--   - CPM critical path: 62h → 8 days with 3-agent parallelization
+--   - 5 biomorphic waves: genesis → differentiation → integration → maturation → homeostasis
+--   - 4 supervisory layers: Constitutional Guardian, Safety, Quality, Domain
+--   - RCPSP 8-day Gantt chart with 3 parallel agents
+--   - Shannon entropy trajectory: 2.42 → 2.98 bits (+23%)
+--   - FMEA RPN trajectory: 1,764 → 0 total risk points
+--   - SIL-6 compliance trajectory: 0% → 95%
+--   - 5 monotonic invariants: entropy, RPN, SIL-6, compilation, rollback

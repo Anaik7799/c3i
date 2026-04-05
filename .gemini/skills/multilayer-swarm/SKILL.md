@@ -10,9 +10,9 @@ This skill enforces the Multilayer Swarm paradigm, ensuring that all system exec
 ## Core Mandates
 1. **Full Parallelization**: All compilation, tests, and orchestrations MUST utilize maximum available hardware concurrency.
    - Example: `ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16"` and `mix compile --jobs 16`.
-2. **Panoptic Ignition**: The 15-container swarm MUST be bootstrapped using the wave-based DAG via the F# `cepaf` engine.
-3. **Supervisor Agent**: A supervisor agent MUST monitor the swarm's homeostasis via MCP and Zenoh telemetry (`indrajaal/ignition/progress`).
-4. **F#-Only Planning**: ALL task planning and status tracking MUST use `sa-plan` (the F# Planning CLI). Elixir `mix todo` is strictly FORBIDDEN.
+2. **Panoptic Ignition**: The 15-container swarm MUST be bootstrapped using the wave-based DAG via the Rust ignition daemon (`./sub-projects/intelitor-v5.2/target/release/sa-plan-daemon` / `native/ignition_daemon/`). The F# cepaf engine is LEGACY and REDUNDANT for this function.
+3. **Supervisor Agent**: A supervisor agent MUST monitor the swarm's homeostasis via MCP tools over Zenoh (MoZ protocol) and Zenoh telemetry (`indrajaal/ignition/progress`). All Rust operational components are accessible as MCP tools via `indrajaal/l4/system/mcp/req/**`.
+4. **Rust sa-plan-daemon Planning**: ALL task planning and status tracking MUST use `sa-plan` (Rust binary: `./sub-projects/intelitor-v5.2/target/release/sa-plan-daemon`). The F# Planning CLI is DEPRECATED. Elixir `mix todo` is strictly FORBIDDEN.
 
 ## OODA Loop Integration
 - **Observe**: Query Swarm Health via MCP and Zenoh (`indrajaal/health/*`).

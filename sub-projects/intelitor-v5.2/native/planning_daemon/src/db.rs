@@ -14,7 +14,11 @@ pub struct Task {
 }
 
 pub fn open_db() -> Result<Connection, IgnitionError> {
-    let path = std::env::var("PLANNING_DB_PATH").unwrap_or_else(|_| "data/smriti/planning.db".to_string());
+    #[cfg(not(test))]
+    let path = "data/smriti/Smriti.db".to_string();
+    #[cfg(test)]
+    let path = std::env::var("PLANNING_DB_PATH").unwrap_or_else(|_| "data/smriti/Smriti.db".to_string());
+
     let conn = Connection::open(&path).map_err(|e| IgnitionError::SqliteError(e.to_string()))?;
     // Enable WAL mode for better concurrency
     conn.execute("PRAGMA journal_mode=WAL", []).ok();

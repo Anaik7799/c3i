@@ -6,6 +6,10 @@ import cepaf_gleam/cockpit/domain.{
   type Alarm, type AlarmLevel, type MeshNode, type ViewMode, Advisory, Caution,
   Connected, Critical, Normal, Warning,
 }
+import cepaf_gleam/ui/lustre/widgets/biomorphic_matrix.{type BiomorphicData}
+import cepaf_gleam/ui/lustre/widgets/homeostasis_control.{
+  type HomeostasisMsg, SetThreshold, TriggerEquilibrium,
+}
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/order.{Eq, Gt, Lt}
@@ -17,6 +21,9 @@ pub type CockpitModel {
     view_mode: ViewMode,
     dark_cockpit: Bool,
     selected_node: Option(String),
+    biomorphic_data: Option(BiomorphicData),
+    cpu_threshold: Float,
+    mem_threshold: Float,
   )
 }
 
@@ -28,6 +35,8 @@ pub type CockpitMsg {
   AcknowledgeAlarm(String)
   ToggleDarkCockpit
   RefreshCockpit
+  BiomorphicUpdated(BiomorphicData)
+  HomeostasisEvent(HomeostasisMsg)
 }
 
 pub fn init() -> CockpitModel {
@@ -37,6 +46,9 @@ pub fn init() -> CockpitModel {
     view_mode: domain.Overview,
     dark_cockpit: True,
     selected_node: None,
+    biomorphic_data: None,
+    cpu_threshold: 0.85,
+    mem_threshold: 0.75,
   )
 }
 
@@ -46,10 +58,34 @@ pub fn update(model: CockpitModel, msg: CockpitMsg) -> CockpitModel {
     AlarmsUpdated(alarms) -> CockpitModel(..model, alarms: alarms)
     SetViewMode(mode) -> CockpitModel(..model, view_mode: mode)
     SelectNode(id) -> CockpitModel(..model, selected_node: Some(id))
-    AcknowledgeAlarm(_id) -> model
+    // Mark the target alarm as acknowledged by setting acknowledged_at.
+    // Uses timestamp 0 as a placeholder — real value arrives via Zenoh SSE.
+    // With an empty alarms list this is a structural no-op (model unchanged).
+    AcknowledgeAlarm(id) ->
+      CockpitModel(
+        ..model,
+        alarms: list.map(model.alarms, fn(a) {
+          case a.id == id {
+            True -> domain.Alarm(..a, acknowledged_at: Some(0))
+            False -> a
+          }
+        }),
+      )
     ToggleDarkCockpit ->
       CockpitModel(..model, dark_cockpit: !model.dark_cockpit)
+    // RefreshCockpit triggers a Zenoh query to reload mesh state; the response
+    // arrives as NodesUpdated/AlarmsUpdated msgs.  Model is unchanged here so
+    // the pure update() function stays side-effect-free (SC-GLM-UI-002).
     RefreshCockpit -> model
+    BiomorphicUpdated(data) ->
+      CockpitModel(..model, biomorphic_data: Some(data))
+    HomeostasisEvent(homeo_msg) ->
+      case homeo_msg {
+        SetThreshold("cpu", val) -> CockpitModel(..model, cpu_threshold: val)
+        SetThreshold("mem", val) -> CockpitModel(..model, mem_threshold: val)
+        SetThreshold(_, _) -> model
+        TriggerEquilibrium -> model
+      }
   }
 }
 

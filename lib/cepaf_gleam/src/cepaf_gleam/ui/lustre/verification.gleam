@@ -1,11 +1,18 @@
 /// Lustre component for Verification plane (SC-GLM-UI-001).
 /// Imports from verification/swarm.gleam — no type duplication (SC-GLM-UI-009).
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-002, SC-GLM-UI-009, SC-PROM-001..007, SC-GVF-001..008
+/// SC-MUDA-001: max_history bounds prevent unbounded list growth.
+const max_proof_history = 100
+
+const max_run_history = 100
+
 import cepaf_gleam/verification/graph_verification.{type GraphCheck}
 import cepaf_gleam/verification/prometheus.{
   type ProofToken, type VerificationResult, Inconclusive, Rejected, Verified,
 }
 import cepaf_gleam/verification/swarm.{type SwarmReport}
+import cepaf_gleam/ui/lustre/widgets/evolution_vector.{type EvolutionVectorData}
+import cepaf_gleam/ui/lustre/widgets/hs_ds_pane.{type HsDsData}
 import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
@@ -20,6 +27,8 @@ pub type VerificationModel {
     dag_node_count: Int,
     dag_edge_count: Int,
     proof_history: List(ProofToken),
+    hs_ds_data: Option(HsDsData),
+    evolution_vector: Option(EvolutionVectorData),
   )
 }
 
@@ -30,10 +39,20 @@ pub type VerificationRun {
 pub type VerificationMsg {
   StartVerification
   ReportReceived(SwarmReport)
+  // RefreshVerification triggers an async Zenoh query to the Rust daemon.
+  // The pure update() sets running=True via StartVerification; the effect
+  // layer dispatches the Zenoh request and delivers the result as
+  // RefreshComplete(report) when the response arrives (SC-ZMOF-005).
   RefreshVerification
+  // RefreshComplete carries the async result of a RefreshVerification query.
+  // Handled identically to ReportReceived so the history and running flag
+  // are updated in one transition.
+  RefreshComplete(SwarmReport)
   ProofGenerated(ProofToken)
   GraphChecksCompleted(List(GraphCheck))
   DagUpdated(node_count: Int, edge_count: Int)
+  HsDsUpdated(HsDsData)
+  EvolutionVectorUpdated(EvolutionVectorData)
 }
 
 pub fn init() -> VerificationModel {
@@ -46,6 +65,8 @@ pub fn init() -> VerificationModel {
     dag_node_count: 0,
     dag_edge_count: 0,
     proof_history: [],
+    hs_ds_data: None,
+    evolution_vector: None,
   )
 }
 
@@ -67,20 +88,43 @@ pub fn update(
         ..model,
         last_report: Some(report),
         running: False,
-        history: [run, ..model.history],
+        history: [run, ..model.history] |> list.take(max_run_history),
       )
     }
+    // RefreshVerification is a pure no-op — the effect layer dispatches the
+    // Zenoh query and delivers the result as RefreshComplete(report).
     RefreshVerification -> model
+    // RefreshComplete is the async result of RefreshVerification.
+    // Processed identically to ReportReceived: record the run, stop spinner.
+    RefreshComplete(report) -> {
+      let run =
+        VerificationRun(
+          timestamp: 0,
+          healthy: report.healthy_containers,
+          total: report.total_containers,
+          compliant: report.ooda_metrics.compliance,
+        )
+      VerificationModel(
+        ..model,
+        last_report: Some(report),
+        running: False,
+        history: [run, ..model.history] |> list.take(max_run_history),
+      )
+    }
     ProofGenerated(proof) ->
       VerificationModel(
         ..model,
         latest_proof: Some(proof),
-        proof_history: [proof, ..model.proof_history],
+        proof_history: [proof, ..model.proof_history]
+          |> list.take(max_proof_history),
       )
     GraphChecksCompleted(checks) ->
       VerificationModel(..model, graph_checks: checks)
     DagUpdated(nc, ec) ->
       VerificationModel(..model, dag_node_count: nc, dag_edge_count: ec)
+    HsDsUpdated(data) -> VerificationModel(..model, hs_ds_data: Some(data))
+    EvolutionVectorUpdated(data) ->
+      VerificationModel(..model, evolution_vector: Some(data))
   }
 }
 

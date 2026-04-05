@@ -1,0 +1,1046 @@
+-- allium: 3
+-- Gleam Lustre Web UI — Comprehensive Behavioral Specification
+-- Covers: All 26 cepaf_gleam Lustre pages, MVU rules, invariants, FMEA, testing
+-- STAMP: SC-GLM-UI-001..010, SC-AGUI-001..010, SC-GLM-ZEN-001..003,
+--        SC-GLM-TST-001..002, SC-MATH-COV-001..008, SC-MUDA-001
+-- Date: 2026-04-05
+
+-- =============================================================================
+-- §1. EXTERNAL ENTITIES
+-- =============================================================================
+
+external entity ZenohRouter
+external entity WispApiServer
+external entity PlanningDb
+external entity IgnitionDaemon
+external entity GuardianService
+
+-- =============================================================================
+-- §2. ENUMERATIONS
+-- =============================================================================
+
+enum Page {
+    app | agents | bridge | cockpit_view | config | database | federation |
+    git | health_grid | holon | immune | kms | knowledge | mcp | metabolic |
+    planning | planning_dashboard | podman | prajna | smriti | substrate |
+    telemetry | verification | zenoh_mesh
+}
+
+enum HealthStatus { healthy | degraded | critical | unknown }
+enum ViewMode { list | grid | graph | dark_cockpit }
+enum FilterState { all | active | failed | pending }
+enum OodaPhase { observe | orient | decide | act }
+enum CircuitState { closed | open | half_open }
+enum LogLevel { debug | info | warn | error }
+enum HitlOutcome { approved | rejected | timeout }
+enum AgUiEvent {
+    run_started | run_finished | step_started | step_finished |
+    text_message_start | text_message_content | text_message_end |
+    tool_call_start | tool_call_end | state_snapshot | state_delta |
+    reasoning_start | reasoning_end | heartbeat
+}
+
+-- =============================================================================
+-- §3. VALUE TYPES
+-- =============================================================================
+
+value OtelSpan {
+    page: Page
+    operation: String
+    trace_id: String
+    timestamp: Timestamp
+    topic: String       -- "indrajaal/otel/spans/{page}/{operation}"
+}
+
+value TaskCard {
+    id: String
+    title: String
+    status: FilterState
+    priority: String
+    ooda_phase: OodaPhase
+}
+
+value SafetyCheck {
+    name: String
+    passed: Boolean
+    required_for_approval: Boolean
+}
+
+value ChatMessage {
+    role: String
+    content: String
+    timestamp: Timestamp
+}
+
+-- =============================================================================
+-- §4. CONFIG
+-- =============================================================================
+
+config {
+    web_port: Integer = 4100
+    otel_topic_prefix: String = "indrajaal/otel/spans"
+    state_topic_prefix: String = "indrajaal/ui/state"
+    tick_interval_ms: Integer = 5_000
+    min_lustre_elements: Integer = 5
+    min_grid_rows: Integer = 3
+    min_grid_cols: Integer = 3
+    shannon_entropy_min: Decimal = 2.5
+    ccm_min: Decimal = 0.90
+    itqs_min: Decimal = 0.85
+    dea_max: Decimal = 0.10
+}
+
+-- =============================================================================
+-- §5. ENTITIES — one per Lustre page (Model fields + transitions)
+-- =============================================================================
+
+-- 1. App (root router)
+entity AppModel {
+    context: String
+    dark_cockpit: Boolean
+    selected_page: Page
+    telemetry_history: List<OtelSpan>
+
+    derived is_dark: this.dark_cockpit = true
+    derived span_count: this.telemetry_history.count
+}
+
+-- 2. Agents
+entity AgentsModel {
+    total_agents: Integer
+    executives: Integer
+    supervisors: Integer
+    workers: Integer
+    efficiency: Decimal
+    deadlock_detected: Boolean
+
+    invariant HealthyHierarchy {
+        this.executives <= this.supervisors and this.supervisors <= this.workers
+    }
+    invariant EfficiencyBounded {
+        this.efficiency >= 0.0 and this.efficiency <= 1.0
+    }
+}
+
+-- 3. Bridge
+entity BridgeModel {
+    jsonrpc_methods: List<String>
+    commands_total: Integer
+    commands_implemented: Integer
+    commands_stub: Integer
+
+    derived coverage: this.commands_implemented / this.commands_total
+}
+
+-- 4. Cockpit View
+entity CockpitViewModel {
+    nodes: List<String>
+    alarms: List<String>
+    view_mode: ViewMode
+    selected_node: String?
+    dark_cockpit: Boolean
+
+    transitions view_mode {
+        list -> grid
+        grid -> graph
+        graph -> dark_cockpit
+        dark_cockpit -> list
+    }
+}
+
+-- 5. Config
+entity ConfigModel {
+    containers: List<String>
+    networks: List<String>
+    quorum_size: Integer
+    is_valid: Boolean
+    total_cpu: Decimal
+    total_memory: Decimal
+
+    invariant QuorumFloor {
+        this.quorum_size >= 2
+    }
+}
+
+-- 6. Database
+entity DatabaseModel {
+    supported_types: List<String>
+    active_connections: Integer
+    total_queries: Integer
+    failed_queries: Integer
+    avg_latency: Decimal
+
+    derived error_rate: this.failed_queries / this.total_queries
+}
+
+-- 7. Federation
+entity FederationModel {
+    state: String
+    loading: Boolean
+    error: String?
+
+    transitions state {
+        connecting -> syncing
+        syncing -> synchronized
+        synchronized -> degraded
+        degraded -> syncing
+        terminal: none
+    }
+}
+
+-- 8. Git
+entity GitModel {
+    commit_types: List<String>
+    health_score: Decimal
+    total_commits: Integer
+    icp_compliance: Decimal
+
+    invariant ScoresBounded {
+        this.health_score >= 0.0 and this.health_score <= 1.0 and
+        this.icp_compliance >= 0.0 and this.icp_compliance <= 1.0
+    }
+}
+
+-- 9. HealthGrid
+entity HealthGridModel {
+    devices: List<String>
+    selected_id: String?
+    filter: FilterState
+}
+
+-- 10. Holon
+entity HolonModel {
+    runtimes: List<String>
+    layers: List<String>
+    domains: List<String>
+    holon_types: List<String>
+    active_uhis: Integer
+}
+
+-- 11. Immune
+entity ImmuneModel {
+    antibodies: List<String>
+    events: List<String>
+    active_attacks: Integer
+    mara_enabled: Boolean
+    sentinel_mode: Boolean
+
+    invariant NoSilentAttacks {
+        this.active_attacks >= 0
+    }
+}
+
+-- 12. Kms
+entity KmsModel {
+    checkpoints: List<String>
+    total_keys: Integer
+    active_keys: Integer
+
+    invariant ActiveLeTotal {
+        this.active_keys <= this.total_keys
+    }
+}
+
+-- 13. Knowledge
+entity KnowledgeModel {
+    nodes: List<String>
+    links: List<String>
+    selected_node: String?
+    level_filter: Integer?
+    search_query: String
+}
+
+-- 14. Mcp
+entity McpModel {
+    status: HealthStatus
+    tools: List<String>
+    sessions: List<String>
+}
+
+-- 15. Metabolic
+entity MetabolicModel {
+    set_point: Decimal
+    energy: Decimal
+    cpu_load: Decimal
+    health: HealthStatus
+
+    invariant SetPointPositive { this.set_point > 0.0 }
+    invariant EnergyBounded { this.energy >= 0.0 and this.energy <= 1.0 }
+}
+
+-- 16. Planning
+entity PlanningModel {
+    tasks: List<TaskCard>
+    filter: FilterState
+    selected_task: TaskCard?
+}
+
+-- 17. PlanningDashboard (most complex page)
+entity PlanningDashboardModel {
+    panels: List<String>
+    active_panel: String
+    mode: String
+    task_cards: List<TaskCard>
+    ooda_phase: OodaPhase
+    safety_checks: List<SafetyCheck>
+    chat_messages: List<ChatMessage>
+    cockpit_mode: Boolean
+
+    derived all_safety_passed: forall c in this.safety_checks: c.passed = true
+    derived pending_hitl: exists c in this.safety_checks:
+        c.required_for_approval = true and c.passed = false
+}
+
+-- 18. Podman
+entity PodmanModel {
+    containers: List<String>
+    images: List<String>
+    volumes: List<String>
+    networks: List<String>
+}
+
+-- 19. Prajna
+entity PrajnaModel {
+    holon_count: Integer
+    threat_level: Integer
+    cockpit_mode: Boolean
+    circuit_state: CircuitState
+    messages_routed: Integer
+    integrity: Decimal
+    vectors: List<String>
+    matrix: List<String>
+    homeostasis: Decimal
+    release: String
+    singularity: Boolean
+
+    transitions circuit_state {
+        closed -> open
+        open -> half_open
+        half_open -> closed
+        half_open -> open
+    }
+
+    invariant IntegrityBounded {
+        this.integrity >= 0.0 and this.integrity <= 1.0
+    }
+}
+
+-- 20. Smriti
+entity SmritiModel {
+    catalog_entries: Integer
+    embeddings_stored: Integer
+    search_queries: Integer
+    avg_similarity: Decimal
+
+    invariant SimilarityBounded {
+        this.avg_similarity >= 0.0 and this.avg_similarity <= 1.0
+    }
+}
+
+-- 21. Substrate
+entity SubstrateModel {
+    governor_actions: List<String>
+    db_connections: Integer
+    file_ops: Integer
+}
+
+-- 22. Telemetry
+entity TelemetryModel {
+    spans: List<OtelSpan>
+    metrics: List<String>
+    log_level: LogLevel
+}
+
+-- 23. Verification
+entity VerificationModel {
+    latest_run: String?
+    reports: List<String>
+    proof_token: String?
+    graph_checks: List<String>
+}
+
+-- 24. ZenohMesh
+entity ZenohMeshModel {
+    health: HealthStatus
+    lifecycle: String
+    messages: List<String>
+    subscriptions: List<String>
+
+    transitions lifecycle {
+        connecting -> connected
+        connected -> degraded
+        degraded -> reconnecting
+        reconnecting -> connected
+        connected -> disconnected
+        terminal: disconnected
+    }
+}
+
+-- =============================================================================
+-- §6. CONTRACTS (module boundaries)
+-- =============================================================================
+
+contract LustrePageContract {
+    -- Every page MUST satisfy this interface
+    init: () -> Model
+    update: (Model, Msg) -> #(Model, Effect)
+    view: (Model) -> Element
+
+    @invariant InitNeverPanics   -- init always returns a valid initial Model
+    @invariant UpdateExhaustive  -- update handles ALL Msg variants (no wildcard gaps)
+    @invariant ViewPure          -- view has no side effects
+    @guidance
+        -- Publish OTel span on every update call (SC-GLM-ZEN-001).
+        -- Use ui/domain.gleam types exclusively; no per-page type duplication.
+}
+
+contract TripleInterface {
+    -- SC-GLM-UI-001: Every feature = Lustre + Wisp + TUI
+    lustre_render: (Page) -> Element
+    wisp_endpoint: (Page) -> Response
+    tui_view: (Page) -> String
+
+    @invariant ZeroDeadCode      -- SC-MUDA-001: no unused imports or variables
+    @invariant ZeroWarnings      -- SC-CMP-025: compile with 0 warnings
+}
+
+contract OtelPublisher {
+    -- SC-GLM-ZEN-001
+    publish_span: (OtelSpan) -> Result
+
+    @invariant TopicWellFormed
+        -- topic always matches "indrajaal/otel/spans/{page}/{operation}"
+}
+
+-- =============================================================================
+-- §7. ACTORS
+-- =============================================================================
+
+actor Operator {
+    identified_by: User where role = operator
+}
+
+actor AiAgent {
+    identified_by: User where role = agent
+}
+
+actor GuardianGate {
+    identified_by: System where name = "Guardian"
+}
+
+-- =============================================================================
+-- §8. RULES — MVU update rules for every page's Msg variants
+-- =============================================================================
+
+-- App
+rule NavigateTo {
+    when: msg = NavigateTo(page)
+    ensures: AppModel.selected_page = page
+    ensures: OtelSpan.published(page: page, operation: "navigate")
+}
+rule TelemetryReceived {
+    when: msg = TelemetryReceived(span)
+    ensures: span in AppModel.telemetry_history
+}
+rule HealthUpdated {
+    when: msg = HealthUpdated(status)
+    ensures: AppModel.context updated with status
+}
+rule Tick {
+    when: msg = Tick
+    ensures: OtelSpan.published(operation: "tick")
+}
+
+-- Agents
+rule HierarchyLoaded {
+    when: msg = HierarchyLoaded(data)
+    ensures: AgentsModel updated with data
+}
+rule EfficiencyUpdated {
+    when: msg = EfficiencyUpdated(e)
+    requires: e >= 0.0 and e <= 1.0
+    ensures: AgentsModel.efficiency = e
+}
+rule DeadlockDetected {
+    when: msg = DeadlockDetected
+    ensures: AgentsModel.deadlock_detected = true
+    ensures: OtelSpan.published(operation: "deadlock_detected")
+    @guidance -- Trigger P0 alert via Zenoh control plane.
+}
+
+-- Bridge
+rule CommandExecuted {
+    when: msg = CommandExecuted(cmd)
+    ensures: BridgeModel.commands_implemented incremented
+}
+rule MethodCalled {
+    when: msg = MethodCalled(method)
+    ensures: method in BridgeModel.jsonrpc_methods
+}
+
+-- CockpitView
+rule NodesUpdated {
+    when: msg = NodesUpdated(nodes)
+    ensures: CockpitViewModel.nodes = nodes
+}
+rule AlarmsUpdated {
+    when: msg = AlarmsUpdated(alarms)
+    ensures: CockpitViewModel.alarms = alarms
+}
+rule SetViewMode {
+    when: msg = SetViewMode(mode)
+    ensures: CockpitViewModel.view_mode = mode
+}
+rule SelectNode {
+    when: msg = SelectNode(id)
+    ensures: CockpitViewModel.selected_node = id
+}
+rule AcknowledgeAlarm {
+    when: msg = AcknowledgeAlarm(alarm_id)
+    ensures: alarm_id not in CockpitViewModel.alarms
+}
+rule ToggleDarkCockpit {
+    when: msg = ToggleDarkCockpit
+    ensures: CockpitViewModel.dark_cockpit = not CockpitViewModel.dark_cockpit
+}
+
+-- Federation
+rule StateReceived {
+    when: msg = StateReceived(s)
+    ensures: FederationModel.state = s
+    ensures: FederationModel.loading = false
+}
+rule PeerAdded {
+    when: msg = PeerAdded(peer)
+    ensures: peer in FederationModel.state
+}
+rule ErrorReceived {
+    when: msg = ErrorReceived(err)
+    ensures: FederationModel.error = err
+}
+
+-- HealthGrid
+rule DevicesLoaded {
+    when: msg = DevicesLoaded(devices)
+    ensures: HealthGridModel.devices = devices
+}
+rule SelectDevice {
+    when: msg = SelectDevice(id)
+    ensures: HealthGridModel.selected_id = id
+}
+rule SetFilter {
+    when: msg = SetFilter(f)
+    ensures: HealthGridModel.filter = f
+}
+
+-- Immune
+rule AttackDetected {
+    when: msg = AttackDetected(attack)
+    ensures: ImmuneModel.active_attacks incremented
+    ensures: OtelSpan.published(operation: "attack_detected")
+    @guidance -- Publish to indrajaal/l0/const/immune/attack for Guardian review.
+}
+rule AttackResolved {
+    when: msg = AttackResolved(attack)
+    ensures: ImmuneModel.active_attacks decremented
+    requires: ImmuneModel.active_attacks > 0
+}
+rule ToggleMara {
+    when: msg = ToggleMara
+    ensures: ImmuneModel.mara_enabled = not ImmuneModel.mara_enabled
+}
+
+-- Prajna
+rule CircuitChanged {
+    when: msg = CircuitChanged(state)
+    ensures: PrajnaModel.circuit_state = state
+    ensures: OtelSpan.published(operation: "circuit_changed")
+}
+rule ThreatChanged {
+    when: msg = ThreatChanged(level)
+    requires: level >= 0
+    ensures: PrajnaModel.threat_level = level
+}
+rule IntegrityUpdated {
+    when: msg = IntegrityUpdated(v)
+    requires: v >= 0.0 and v <= 1.0
+    ensures: PrajnaModel.integrity = v
+}
+rule SingularityUpdated {
+    when: msg = SingularityUpdated(flag)
+    ensures: PrajnaModel.singularity = flag
+    @guidance -- Singularity = true requires Guardian approval (SC-SAFETY-001).
+}
+
+-- PlanningDashboard (AG-UI and HITL rules)
+rule AgUiEventReceived {
+    when: msg = AgUiEvent(event)
+    ensures: PlanningDashboardModel.chat_messages updated
+    ensures: OtelSpan.published(operation: "agui_" ++ event.type)
+}
+rule HitlApproval {
+    when: msg = HitlApproval(check_name, outcome)
+    requires: outcome in [approved, rejected, timeout]
+    ensures: SafetyCheck{name: check_name}.passed = (outcome = approved)
+}
+rule SetActivePanel {
+    when: msg = SetActivePanel(panel)
+    ensures: PlanningDashboardModel.active_panel = panel
+}
+rule PlanningTick {
+    when: msg = Tick
+    ensures: PlanningDashboardModel.ooda_phase advances by one step
+    ensures: OtelSpan.published(operation: "tick")
+}
+
+-- Podman
+rule StartContainer {
+    when: msg = StartContainer(id)
+    requires: id in PodmanModel.containers
+    ensures: OtelSpan.published(operation: "start_container")
+    @guidance -- Delegate to IgnitionDaemon via sa-up CLI, never orchestrate directly.
+}
+rule StopContainer {
+    when: msg = StopContainer(id)
+    requires: id in PodmanModel.containers
+    ensures: OtelSpan.published(operation: "stop_container")
+    @guidance -- Delegate to IgnitionDaemon; Gleam MUST NOT implement orchestration (SC-ARCH-SPLIT-001).
+}
+
+-- Verification
+rule StartVerification {
+    when: msg = StartVerification
+    ensures: VerificationModel.latest_run = new_run_id
+    ensures: OtelSpan.published(operation: "verification_started")
+}
+rule ProofGenerated {
+    when: msg = ProofGenerated(token)
+    ensures: VerificationModel.proof_token = token
+}
+
+-- ZenohMesh
+rule ZenohHealthUpdated {
+    when: msg = HealthUpdated(status)
+    ensures: ZenohMeshModel.health = status
+    ensures: OtelSpan.published(operation: "health_updated")
+}
+rule LifecycleChanged {
+    when: msg = LifecycleChanged(state)
+    ensures: ZenohMeshModel.lifecycle = state
+}
+rule MessageReceived {
+    when: msg = MessageReceived(m)
+    ensures: m in ZenohMeshModel.messages
+}
+rule SubscriptionAdded {
+    when: msg = SubscriptionAdded(topic)
+    ensures: topic in ZenohMeshModel.subscriptions
+}
+
+-- Universal Refresh rule (all pages)
+rule Refresh {
+    when: msg = Refresh
+    ensures: model.loading = true
+    ensures: Effect.http_request dispatched
+    ensures: OtelSpan.published(operation: "refresh")
+}
+
+-- =============================================================================
+-- §9. INVARIANTS
+-- =============================================================================
+
+invariant AllPagesReachable {
+    -- Every Page variant must be navigable from AppModel
+    for p in Page:
+        exists route in Routes: route.page = p
+}
+
+invariant InitNeverPanics {
+    -- init() for every page returns a defined non-error Model
+    for page in Page:
+        LustrePageContract.init(page) is_ok
+}
+
+invariant UpdateExhaustive {
+    -- update() handles every Msg variant without wildcard fallthrough
+    for page in Page:
+        for msg in page.msgs:
+            LustrePageContract.update(page.model, msg) is_defined
+}
+
+invariant OtelSpanOnEveryUpdate {
+    -- SC-GLM-ZEN-001
+    for page in Page:
+        for msg in page.msgs:
+            update(page.model, msg) implies OtelSpan.published
+}
+
+invariant ZeroCompileWarnings {
+    -- SC-MUDA-001, SC-CMP-025
+    for m in GleamModules:
+        m.warnings.count = 0
+}
+
+invariant TripleInterfaceCoverage {
+    -- SC-GLM-UI-001
+    for page in Page:
+        exists LustrePage{page: page} and
+        exists WispEndpoint{page: page} and
+        exists TuiView{page: page}
+}
+
+invariant SharedDomainTypes {
+    -- No per-page type duplication
+    for page in Page:
+        page.model_fields subset_of DomainGleam.types
+}
+
+-- =============================================================================
+-- §10. SURFACES
+-- =============================================================================
+
+surface WebCockpit {
+    facing viewer: Operator
+    context model: AppModel
+
+    exposes:
+        model.selected_page
+        model.dark_cockpit
+        model.telemetry_history.count
+
+    provides:
+        NavigateTo(page: Page)
+        ToggleDarkCockpit
+
+    contracts:
+        demands TripleInterface
+        demands OtelPublisher
+
+    @guarantee OperatorCanAlwaysNavigate
+    @guarantee DarkCockpitToggleAlwaysAvailable
+}
+
+surface AgentAdvisor {
+    facing viewer: AiAgent
+    context dashboard: PlanningDashboardModel
+
+    provides:
+        AgUiEvent(event: AgUiEvent)
+
+    @guarantee AgUiEventsAlwaysPublished
+    @guarantee HitlOutcomeRecorded
+}
+
+-- =============================================================================
+-- §11. DEFAULTS
+-- =============================================================================
+
+default AppModel initial = {
+    context: "c3i",
+    dark_cockpit: false,
+    selected_page: prajna,
+    telemetry_history: []
+}
+
+default ZenohMeshModel initial = {
+    health: unknown,
+    lifecycle: "connecting",
+    messages: [],
+    subscriptions: []
+}
+
+-- =============================================================================
+-- §12. DEFERRED SPECIFICATIONS
+-- =============================================================================
+
+deferred IgnitionDaemon.start_container
+deferred IgnitionDaemon.stop_container
+deferred GuardianService.approve
+deferred PlanningDb.query_tasks
+
+-- =============================================================================
+-- §13. OPEN QUESTIONS
+-- =============================================================================
+
+open question "Should PlanningDashboard HITL timeout auto-reject or suspend?"
+open question "Should dark_cockpit state be persisted across page navigation?"
+open question "Maximum telemetry_history length before ring-buffer eviction?"
+open question "Should ZenohMesh page auto-reconnect on LifecycleChanged(disconnected)?"
+
+-- =============================================================================
+-- §14. FORMAL VERIFICATION
+-- =============================================================================
+--
+-- Agda:
+--   1. Page navigation is total — NavigateTo never leaves AppModel.selected_page undefined
+--   2. Safety check monotonicity — once a SafetyCheck.passed = true it is not reverted
+--      without explicit operator HitlApproval(rejected)
+--
+-- Quint:
+--   1. ZenohMesh lifecycle state machine is acyclic toward disconnected terminal
+--   2. PrajnaModel.circuit_state half_open always transitions within 1 tick
+--
+-- TLA+:
+--   1. Liveness: every Refresh msg eventually produces a non-loading model
+--   2. Safety: ImmuneModel.active_attacks >= 0 is always maintained
+
+-- =============================================================================
+-- §15. STAMP CONSTRAINTS
+-- =============================================================================
+--
+-- SC-GLM-UI-001: Triple-interface mandate         → invariant TripleInterfaceCoverage
+-- SC-GLM-UI-002: Domain types from ui/domain.gleam → invariant SharedDomainTypes
+-- SC-GLM-UI-003: No client JavaScript             → surface WebCockpit @guarantee
+-- SC-GLM-UI-004: Typed JSON (no string concat)    → contract LustrePageContract
+-- SC-GLM-UI-005: Real-time telemetry via Zenoh    → contract OtelPublisher
+-- SC-GLM-UI-006: All pages share routing          → invariant AllPagesReachable
+-- SC-GLM-UI-007: Guardian pre-approval for P0 actions → rule SingularityUpdated
+-- SC-GLM-UI-008: No orchestration logic in Gleam  → rule StartContainer @guidance
+-- SC-GLM-UI-009: Fractal layer awareness (L0-L7)  → entity PrajnaModel (L5), ImmuneModel (L2)
+-- SC-GLM-UI-010: Feature complete = 3/3 interfaces → invariant TripleInterfaceCoverage
+--
+-- SC-AGUI-001: 32-event protocol complete         → enum AgUiEvent (14 shown, 32 total)
+-- SC-AGUI-002: RunStarted publishes OTel span     → rule AgUiEventReceived
+-- SC-AGUI-003: StateDelta uses RFC 6902 JSON Patch → contract LustrePageContract
+-- SC-AGUI-004: Heartbeat published every tick     → rule Tick
+-- SC-AGUI-005: ToolCallEnd recorded to TrainingGym → deferred
+-- SC-AGUI-006: ReasoningStart shown in PlanningDashboard → entity PlanningDashboardModel
+-- SC-AGUI-007: MessagesSnapshot on session start  → rule AgUiEventReceived
+-- SC-AGUI-008: HITL approval recorded as HitlOutcome → rule HitlApproval
+-- SC-AGUI-009: AgUiEvent transport = Lustre+Wisp+Zenoh → surface AgentAdvisor
+-- SC-AGUI-010: Zero dead AG-UI events             → invariant ZeroCompileWarnings
+--
+-- SC-GLM-ZEN-001: OTel span on every state change → invariant OtelSpanOnEveryUpdate
+-- SC-GLM-ZEN-002: Test runner observes Zenoh msgs  → §19 testing spec
+-- SC-GLM-ZEN-003: Split-screen TUI simultaneously  → surface WebCockpit (TUI branch)
+--
+-- SC-MUDA-001: Zero compile warnings, no dead code → invariant ZeroCompileWarnings
+-- SC-ARCH-SPLIT-001: No orchestration in Gleam    → rule StartContainer @guidance
+
+-- =============================================================================
+-- §16. AOR OPERATIONAL RULES
+-- =============================================================================
+--
+-- AOR-GLM-001: ALWAYS publish OTel span before returning from update()
+--              → invariant OtelSpanOnEveryUpdate
+-- AOR-GLM-002: NEVER implement container lifecycle in Gleam
+--              → rule StartContainer/StopContainer @guidance
+-- AOR-GLM-003: ALWAYS share types via ui/domain.gleam, never duplicate
+--              → invariant SharedDomainTypes
+-- AOR-GLM-004: NEVER use client-side JavaScript in Lustre pages
+--              → surface WebCockpit @guarantee
+-- AOR-GLM-005: ALWAYS route Guardian-required actions through GuardianGate
+--              → rule SingularityUpdated, rule HitlApproval
+-- AOR-GLM-006: ALWAYS handle all Msg variants exhaustively
+--              → invariant UpdateExhaustive
+-- AOR-GLM-007: NEVER mark a feature done with fewer than 3/3 interfaces
+--              → invariant TripleInterfaceCoverage
+-- AOR-GLM-008: ALWAYS remove unused imports before commit (Muda)
+--              → invariant ZeroCompileWarnings
+
+-- =============================================================================
+-- §17. FMEA — Web UI Failure Modes (S=Severity O=Occurrence D=Detection RPN=S×O×D)
+-- =============================================================================
+--
+-- | # | Failure Mode                      | S | O | D | RPN | Rule              | Playbook           |
+-- |---|-----------------------------------|---|---|---|-----|-------------------|--------------------|
+-- | 1 | Msg variant not handled (wildcard)| 8 | 3 | 2 |  48 | UpdateExhaustive  | Add case, recompile|
+-- | 2 | OTel span not published on update | 7 | 4 | 3 |  84 | OtelSpanOnEvery.. | Add publish call   |
+-- | 3 | Page missing Wisp endpoint        | 6 | 3 | 2 |  36 | TripleInterface.. | Add endpoint       |
+-- | 4 | Page missing TUI view             | 6 | 3 | 2 |  36 | TripleInterface.. | Add tui view       |
+-- | 5 | compile warning left in file      | 5 | 5 | 1 |  25 | ZeroCompileWarn.. | Remove dead code   |
+-- | 6 | type duplicated outside domain.gl | 5 | 4 | 2 |  40 | SharedDomainTypes | Move to domain.gl  |
+-- | 7 | AttackDetected not forwarded L0   | 9 | 2 | 3 |  54 | AttackDetected    | Add Zenoh publish  |
+-- | 8 | SingularityUpdated skips Guardian | 9 | 1 | 2 |  18 | SingularityUpdate | Guardian gate      |
+-- | 9 | PlanningDashboard HITL timeout    | 7 | 3 | 3 |  63 | HitlApproval      | Auto-reject policy |
+-- |10 | ZenohMesh stuck in connecting     | 6 | 4 | 3 |  72 | LifecycleChanged  | Reconnect effect   |
+-- |11 | dark_cockpit lost on navigation   | 4 | 5 | 2 |  40 | NavigateTo        | Persist in AppMod  |
+-- |12 | Refresh never resolves loading    | 6 | 3 | 3 |  54 | Refresh           | Effect timeout     |
+-- |13 | AgUiEvent not routed to OTel      | 7 | 3 | 3 |  63 | AgUiEventReceived | Add span publish   |
+-- |14 | circuit_state stuck open          | 8 | 2 | 2 |  32 | CircuitChanged    | Half-open timer    |
+-- |15 | ImmuneModel.active_attacks < 0    | 7 | 2 | 1 |  14 | AttackResolved    | requires guard     |
+
+-- =============================================================================
+-- §18. UI SPECIFICATION
+-- =============================================================================
+--
+-- Port: 4100 (Lustre SSR + Wisp REST, shared)
+--
+-- Route Registry (26 pages):
+--   GET /                  → App (router, redirects to /prajna)
+--   GET /agents            → AgentsModel
+--   GET /bridge            → BridgeModel
+--   GET /cockpit           → CockpitViewModel
+--   GET /config            → ConfigModel
+--   GET /database          → DatabaseModel
+--   GET /federation        → FederationModel
+--   GET /git               → GitModel
+--   GET /health            → HealthGridModel
+--   GET /holon             → HolonModel
+--   GET /immune            → ImmuneModel
+--   GET /kms               → KmsModel
+--   GET /knowledge         → KnowledgeModel
+--   GET /mcp               → McpModel
+--   GET /metabolic         → MetabolicModel
+--   GET /planning          → PlanningModel
+--   GET /planning/dashboard → PlanningDashboardModel
+--   GET /podman            → PodmanModel
+--   GET /prajna            → PrajnaModel  (default landing)
+--   GET /smriti            → SmritiModel
+--   GET /substrate         → SubstrateModel
+--   GET /telemetry         → TelemetryModel
+--   GET /verification      → VerificationModel
+--   GET /zenoh             → ZenohMeshModel
+--
+-- Wisp REST counterpart: GET /api/{page} → JSON response
+-- TUI counterpart: gleam run -m cepaf_gleam/tui/{page}_view
+--
+-- Theme: dark_cockpit=false → light | dark_cockpit=true → dark amber
+-- ANSI: sparklines, health bars, status badges (healthy=green degraded=yellow critical=red)
+
+-- =============================================================================
+-- §19. TESTING SPECIFICATION (C1-C8 Gold Standard)
+-- =============================================================================
+--
+-- Math gates (ALL must pass):
+--   Shannon Entropy H >= 2.5 bits  (config.shannon_entropy_min)
+--   CCM >= 0.90                     (config.ccm_min)
+--   ITQS >= 0.85                    (config.itqs_min)
+--   D_EA <= 10%                     (config.dea_max)
+--
+-- C1 Page Structure (weight 1.0):
+--   Each page renders without error; element count >= 5 (config.min_lustre_elements)
+--
+-- C2 Status Badges (weight 1.5):
+--   healthy / degraded / critical all rendered per page that exposes HealthStatus
+--
+-- C3 Data Grids (weight 1.0):
+--   Rows >= 3, columns >= 3 (config.min_grid_rows / config.min_grid_cols)
+--   Pages: health_grid, agents, podman, federation, kms, smriti
+--
+-- C4 Timeline (weight 0.8):
+--   Events in ascending timestamp order; validation: telemetry, verification, immune
+--
+-- C5 Interactive (weight 1.2):
+--   Button click → model state change verified in test
+--   Pages: cockpit_view (alarm ack), podman (start/stop), immune (toggle_mara)
+--
+-- C6 Media/Rich (weight 0.8):
+--   SVG topology renders (zenoh_mesh, holon, knowledge graph)
+--
+-- C7 AI Advisory (weight 1.5):
+--   AG-UI events flow end-to-end: planning_dashboard AgUiEvent → Zenoh span observed
+--   zenoh_test_observer.gleam verifies message received on indrajaal/otel/spans/**
+--
+-- C8 Action Button (weight 3.0):
+--   Safety gates pass before actuation; Guardian approval obtained
+--   Verified: SingularityUpdated, StartContainer, AttackDetected escalation
+--   2oo3 consensus required (SC-SIL4-006)
+--
+-- Regression suite: test/comprehensive_ui_regression_test.gleam
+--   381 tests, 24 pages x 8 fractal layers, 30s monitoring per page (SC-GLM-TST-002)
+--   Zenoh message verification active for every test run (SC-GLM-ZEN-002)
+
+-- =============================================================================
+-- §20. MATHEMATICAL STRUCTURES
+-- =============================================================================
+--
+-- Shannon Entropy: H = -Σ p_i log2(p_i)  file: testing/coverage_math.gleam
+-- CCM (Cyclomatic): M = E - N + 2P      file: testing/coverage_math.gleam
+-- ITQS: weighted mean of C1-C8 scores   file: testing/coverage_math.gleam  threshold: 0.85
+-- D_EA: |EXPECTED △ AS_IS| / |EXPECTED ∪ AS_IS|  file: testing/alignment.gleam
+
+-- =============================================================================
+-- §21. KNOWLEDGE MAP
+-- =============================================================================
+--
+-- Source: lib/cepaf_gleam/src/cepaf_gleam/ui/lustre/*.gleam  (24 pages)
+-- Types:  lib/cepaf_gleam/src/cepaf_gleam/ui/domain.gleam
+-- Tests:  lib/cepaf_gleam/test/comprehensive_ui_regression_test.gleam
+-- OTel:   lib/cepaf_gleam/src/cepaf_gleam/ui/zenoh_otel.gleam
+-- Rules:  .claude/rules/muda-waste-reduction.md, rust-gleam-split.md
+-- Journal: docs/journal/20260403-2000-ui-system-artifacts-update-*.md
+
+-- =============================================================================
+-- §22. UI TESTING SPECIFICATION
+-- =============================================================================
+--
+-- Triple-interface wiring verified per page:
+--   [page] Lustre: PASS | Wisp: PASS | TUI: PASS
+--
+-- AG-UI 32-event coverage: agui/events.gleam (582 lines)
+-- A2UI 16 component types: a2ui/catalog.gleam (230 lines)
+-- Nav graph: 24 nodes, all reachable from App root (invariant AllPagesReachable)
+-- Split-screen runner: scripts/run-split-screen-tests.sh (10 min, 4 phases)
+
+-- =============================================================================
+-- §23. IMPLEMENTATION NOTES
+-- =============================================================================
+--
+-- PlanningDashboard: most complex page — 8 model fields, 15+ Msg variants.
+--   HITL timeout policy is an open question (see §13).
+-- Prajna: circuit_state machine must be kept in sync with Rust health_orchestra.rs.
+-- ZenohMesh: lifecycle transitions MUST mirror Rust zenoh_telemetry.rs state machine.
+-- Podman: StartContainer/StopContainer MUST delegate to IgnitionDaemon (SC-ARCH-SPLIT-001).
+--   Gleam page is display-only; no subprocess or CLI invocation from Lustre update().
+
+-- =============================================================================
+-- §24. DESIGN PRINCIPLES & PATTERNS
+-- =============================================================================
+--
+-- MVU purity: update() is a pure function — all effects returned as Effect values.
+-- Fail-visible: error states are always rendered, never silently swallowed.
+-- Triple mandate: feature = Lustre + Wisp + TUI; 2/3 = incomplete.
+-- Muda: unused imports and dead functions removed before commit (SC-MUDA-001).
+-- Fractal separation: Gleam = UI/types/testing, Rust = orchestration (SC-ARCH-SPLIT).
+-- OTel-first: every state transition emits a span; observability is not optional.
+
+-- =============================================================================
+-- §25. ANTI-PATTERNS
+-- =============================================================================
+--
+-- Client JS in Lustre pages (Lustre is SSR — no JS bundles).
+-- Orchestration logic (container start/stop) inside Gleam update().
+-- Per-page type definitions duplicating ui/domain.gleam.
+-- Wildcard catch-all in update() suppressing unhandled Msg variants.
+-- Suppressed compile warnings treated as acceptable (each is a MUDA violation).
+-- HTTP polling from TUI instead of Zenoh subscription (ZMOF mandate violated).
+-- Guardian-required actions auto-approved without HITL check.
+
+-- =============================================================================
+-- §26. SESSION JOURNAL TEMPLATE (SC-JOURNAL, 13 sections)
+-- =============================================================================
+--
+-- 1. Scope & Trigger    — which pages/rules changed and why
+-- 2. Pre-State          — compile status, test count, warning count before
+-- 3. Execution Detail   — exact files edited, Msg variants added/removed
+-- 4. RCA                — root cause if bug fix (5-Why)
+-- 5. Fix Taxonomy       — category: new-page | new-msg | invariant-fix | muda
+-- 6. Patterns/Anti-Patterns — what worked, what to avoid
+-- 7. Verification Matrix — gleam build clean? gleam test pass? triple-interface?
+-- 8. Files Modified     — absolute paths
+-- 9. Architecture       — fractal layer impact, Rust bridge changes if any
+-- 10. Remaining Gaps    — open questions still unresolved, missing TUI views
+-- 11. Metrics           — test count delta, ITQS score, warning count
+-- 12. STAMP Alignment   — which SC-*/AOR-* satisfied by this session
+-- 13. Conclusion        — ready for merge? Guardian approval needed?
+
+-- =============================================================================
+-- §27. PRODUCTION READINESS CROSS-REFERENCES (added 2026-04-05)
+-- =============================================================================
+--
+-- Operational control:    specs/allium/webui_operational_control.allium (749 lines)
+--   - Contracts: MoZMutationTransport, SSERealTimeTransport, ContainerLifecycleControl
+--   - Invariants: ZenohIsOnlyTransport, GleamNeverExecutes, SSEDegradesToStatic
+--   - FMEA: 6 failure modes with mitigations
+--
+-- Production hardening:   specs/allium/webui_production_hardening.allium
+--   - 6 source-level gaps: GAP-001 to GAP-006 (router mutations, live data,
+--     SSE streaming, Zenoh FFI, L0 wiring, podman API)
+--   - 4 operational workflows: ContainerStart, EmergencyStop, DashboardMonitoring, OODA
+--   - 7 production rules: rate limiting, auth, body size, errors, CORS, timeout, audit
+--   - MCP tool catalog alignment: 8 Rust tools ↔ 8 Gleam client methods
+--   - Critical path: GAP-004 → GAP-001 → GAP-005 → Workflow 2 (7-10 days)
+--
+-- ZMOF transport:         specs/allium/zmof.allium (MoZ req/res topic layout)
+-- Triple interface:       specs/allium/gleam_ui.allium (SSE + mutation mandates)

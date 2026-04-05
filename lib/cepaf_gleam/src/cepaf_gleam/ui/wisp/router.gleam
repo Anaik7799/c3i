@@ -3,22 +3,46 @@
 /// Binds to port 4100 (SC-GLM-UI-006) — outside mesh range 4000-4010.
 /// Every Wisp endpoint has a corresponding Lustre component and TUI view (SC-GLM-UI-007).
 ///
-/// STAMP: SC-GLM-UI-001, SC-GLM-UI-003, SC-GLM-UI-006, SC-GLM-UI-007
+/// T010: GET /api/v1/guardian/pending — L0 ApprovalRequest list (SC-SAFETY-001)
+/// T011: POST /api/v1/guardian/respond — resolve approval with ConsensusState (SC-SIL4-006)
+/// T012: POST /api/v1/emergency/trigger — Guardian-gated emergency stop via MoZ (SC-SAFETY-022)
+///
+/// STAMP: SC-GLM-UI-001, SC-GLM-UI-003, SC-GLM-UI-006, SC-GLM-UI-007,
+///        SC-SAFETY-001, SC-SAFETY-022, SC-SIL4-006
 import cepaf_gleam/agui/sse as agui_sse
+import cepaf_gleam/agui/sse_stream
 import cepaf_gleam/agui/state as agui_state
 import cepaf_gleam/agui/tools as agui_tools
+import cepaf_gleam/fractal/l0_constitutional.{
+  type ApprovalRequest, ApprovalRequest, Approved, Critical as ApprovalCritical,
+  High as ApprovalHigh, Low as ApprovalLow, Medium as ApprovalMedium, Rejected,
+  approval_to_json, initial_approval_state, initial_emergency_state,
+  resolve_request, trigger_emergency,
+}
+import cepaf_gleam/moz/client as moz_client
 import cepaf_gleam/ui/domain.{
-  type HealthStatus, type Page, Cockpit, Critical, Dashboard, Degraded, Healthy,
-  Immune, Kms, Knowledge, Mcp, Metabolic, Planning, Podman, Substrate, Telemetry,
+  type HealthStatus, Cockpit,
+  Critical, Dashboard, Degraded, Healthy,
+  Immune, Kms, Knowledge, Mcp,
+  Metabolic, Planning, Podman, Substrate, Telemetry,
   Unknown, Verification, Zenoh, page_to_label, page_to_path,
 }
+import cepaf_gleam/ui/state as mesh_state
+import cepaf_gleam/ui/wisp/auth
 import cepaf_gleam/ui/wisp/federation_api
+import cepaf_gleam/ui/wisp/podman_api
 import gleam/crypto
+import gleam/dynamic/decode
 import gleam/http.{Get, Post}
 import gleam/http/request.{type Request as HttpRequest}
 import gleam/http/response.{type Response as HttpResponse}
 import gleam/int
 import gleam/json
+import gleam/list
+import gleam/string
+
+@external(erlang, "cepaf_gleam_ffi", "system_time_nanos")
+fn router_system_time_nanos() -> Int
 
 /// Wisp default port — MUST be outside mesh range 4000-4010.
 pub const default_port = 4100
@@ -29,7 +53,7 @@ pub fn route(path: String) -> String {
     // Primary API routes
     "/health" | "/api/health" -> health_json()
     "/api/v1/pages" | "/api/pages" -> pages_json()
-    "/api/v1/dashboard" | "/api/dashboard" -> page_json(Dashboard)
+    "/api/v1/dashboard" | "/api/dashboard" -> dashboard_json()
     "/api/v1/planning" | "/api/planning/tasks" -> planning_json()
     "/api/v1/immune" | "/api/immune/status" -> immune_json()
     "/api/v1/knowledge" | "/api/knowledge/graph" -> knowledge_json()
@@ -43,6 +67,13 @@ pub fn route(path: String) -> String {
     "/api/mcp/status" | "/api/v1/mcp" -> mcp_json()
     "/api/kms/catalog" | "/api/v1/kms" -> kms_json()
     "/api/telemetry/status" | "/api/v1/telemetry" -> telemetry_json()
+    // New feature endpoints for Layer 2 Supervisor tasks
+    "/api/v1/integrity" -> integrity_json()
+    "/api/v1/evolution" -> evolution_json()
+    "/api/v1/biomorphic" -> biomorphic_json()
+    "/api/v1/homeostasis" -> homeostasis_json()
+    "/api/v1/bicameral" -> bicameral_json()
+    "/api/v1/singularity" -> singularity_json()
     // Safety and Enforcer (Planning Panels 3 & 4)
     "/api/safety/status" | "/api/v1/safety" -> safety_json()
     "/api/enforcer/status" | "/api/v1/enforcer" -> enforcer_json()
@@ -63,9 +94,16 @@ pub fn route(path: String) -> String {
     "/api/db/status" | "/api/v1/db" -> db_status_json()
     "/api/bridge/status" | "/api/v1/bridge" -> bridge_status_json()
     "/api/smriti/catalog" | "/api/v1/smriti" -> smriti_catalog_json()
+    // Health Grid + Planning Dashboard (SC-GLM-UI-007 parity)
+    "/api/health-grid/status" | "/api/v1/health_grid" ->
+      health_grid_status_json()
+    "/api/planning-dashboard/status" | "/api/v1/planning_dashboard" ->
+      planning_dashboard_status_json()
     // L7 Federation routes
     "/api/federation/status" | "/api/v1/federation" ->
       federation_status_json()
+    // Guardian lane routes (T010) — L0 Constitutional (SC-SAFETY-001)
+    "/api/v1/guardian/pending" -> guardian_pending_json()
     // AG-UI protocol routes (SSE event streams)
     "/ag-ui/run" | "/ag-ui/events" -> agui_run_json(path)
     "/ag-ui/health" -> agui_sse.health_json()
@@ -143,17 +181,10 @@ fn planning_json() -> String {
   |> json.to_string()
 }
 
-/// Immune system endpoint
+/// Immune system endpoint.
+/// JSON structure sourced from mesh_state.to_immune_json (SC-GLM-UI-003).
 fn immune_json() -> String {
-  json.object([
-    #("page", json.string("Immune System")),
-    #("status", json.string("active")),
-    #("threat_level", json.string("nominal")),
-    #("antibodies_deployed", json.int(0)),
-    #("chaos_attacks_blocked", json.int(0)),
-    #("last_scan", json.string("2026-04-02T22:00:00Z")),
-  ])
-  |> json.to_string()
+  mesh_state.to_immune_json(mesh_state.default_state())
 }
 
 /// Knowledge graph endpoint
@@ -176,28 +207,10 @@ fn knowledge_json() -> String {
   |> json.to_string()
 }
 
-/// Zenoh mesh health endpoint
+/// Zenoh mesh health endpoint.
+/// JSON structure sourced from mesh_state.to_zenoh_json (SC-GLM-UI-003).
 fn zenoh_json() -> String {
-  json.object([
-    #("page", json.string("Zenoh Mesh")),
-    #("status", json.string("active")),
-    #("routers", json.int(3)),
-    #("connected", json.bool(True)),
-    #("topics_active", json.int(12)),
-    #("messages_per_sec", json.int(0)),
-    #(
-      "router_endpoints",
-      json.array(
-        [
-          json.string("tcp/localhost:7447"),
-          json.string("tcp/localhost:7448"),
-          json.string("tcp/localhost:7449"),
-        ],
-        fn(s) { s },
-      ),
-    ),
-  ])
-  |> json.to_string()
+  mesh_state.to_zenoh_json(mesh_state.default_state())
 }
 
 /// Verification status endpoint
@@ -272,14 +285,9 @@ fn cockpit_json() -> String {
 }
 
 /// Health endpoint — required by SC-GLM-UI-007.
+/// JSON structure sourced from mesh_state.to_health_json (SC-GLM-UI-003).
 fn health_json() -> String {
-  json.object([
-    #("status", json.string("ok")),
-    #("interface", json.string("wisp")),
-    #("port", json.int(default_port)),
-    #("version", json.string("1.0.0")),
-  ])
-  |> json.to_string()
+  mesh_state.to_health_json(mesh_state.default_state())
 }
 
 /// List all available pages with their paths and labels.
@@ -302,14 +310,10 @@ fn pages_json() -> String {
   |> json.to_string()
 }
 
-/// Single page detail endpoint.
-fn page_json(page: Page) -> String {
-  json.object([
-    #("page", json.string(page_to_label(page))),
-    #("path", json.string(page_to_path(page))),
-    #("status", json.string("active")),
-  ])
-  |> json.to_string()
+/// Dashboard summary endpoint.
+/// JSON structure sourced from mesh_state.to_dashboard_json (SC-GLM-UI-003).
+fn dashboard_json() -> String {
+  mesh_state.to_dashboard_json(mesh_state.default_state())
 }
 
 /// 404 handler.
@@ -322,196 +326,140 @@ fn not_found_json(path: String) -> String {
   |> json.to_string()
 }
 
-/// Substrate status endpoint — cpu_governor action, db_type, file_system status.
+/// Substrate status endpoint
 fn substrate_json() -> String {
   json.object([
     #("page", json.string("Substrate")),
-    #("status", json.string("active")),
     #("governor_action", json.string("Maintain")),
-    #(
-      "resource_metrics",
-      json.object([
-        #("cpu_usage_pct", json.float(32.5)),
-        #("memory_usage_mb", json.int(8192)),
-        #("container_count", json.int(15)),
-      ]),
-    ),
     #("db_type", json.string("SQLite")),
-    #("file_system_status", json.string("nominal")),
-    #("wal_mode", json.bool(True)),
+    #("fs_status", json.string("nominal")),
+    #("cpu_usage", json.float(32.5)),
+    #("memory_mb", json.int(8192)),
   ])
   |> json.to_string()
 }
 
-/// Metabolic status endpoint — set_point, energy, cpu_load, health_status.
+/// Metabolic status endpoint
 fn metabolic_json() -> String {
   json.object([
     #("page", json.string("Metabolic")),
-    #("status", json.string("active")),
     #("set_point", json.float(80.0)),
-    #("energy", json.float(100.0)),
+    #("energy", json.float(1250.0)),
     #("cpu_load", json.float(32.5)),
-    #("memory_usage_bytes", json.int(8_589_934_592)),
-    #("network_latency_ms", json.float(1.2)),
-    #("tps", json.float(1250.0)),
-    #("error_rate", json.float(0.001)),
-    #("health_status", json.string("Healthy")),
+    #("health_status", json.string("Optimal")),
   ])
   |> json.to_string()
 }
 
-/// Podman containers endpoint — containers list, system info, disk_usage.
+/// Podman containers endpoint
 fn podman_json() -> String {
   json.object([
     #("page", json.string("Podman")),
-    #("status", json.string("active")),
-    #(
-      "containers",
-      json.array(
-        [
-          json.object([
-            #("name", json.string("zenoh-router-1")),
-            #("status", json.string("running")),
-            #("image", json.string("eclipse/zenoh:1.2.0")),
-            #("ports", json.string("7447:7447/tcp")),
-          ]),
-          json.object([
-            #("name", json.string("zenoh-router-2")),
-            #("status", json.string("running")),
-            #("image", json.string("eclipse/zenoh:1.2.0")),
-            #("ports", json.string("7448:7448/tcp")),
-          ]),
-          json.object([
-            #("name", json.string("zenoh-router-3")),
-            #("status", json.string("running")),
-            #("image", json.string("eclipse/zenoh:1.2.0")),
-            #("ports", json.string("7449:7449/tcp")),
-          ]),
-          json.object([
-            #("name", json.string("indrajaal-db-prod")),
-            #("status", json.string("running")),
-            #("image", json.string("indrajaal/db:21.3.2")),
-            #("ports", json.string("5432:5432/tcp")),
-          ]),
-          json.object([
-            #("name", json.string("indrajaal-obs-prod")),
-            #("status", json.string("running")),
-            #("image", json.string("indrajaal/obs:21.3.2")),
-            #("ports", json.string("4317:4317/tcp")),
-          ]),
-        ],
-        fn(c) { c },
-      ),
-    ),
-    #(
-      "system_info",
-      json.object([
-        #("api_version", json.string("5.7.0")),
-        #("rootless", json.bool(True)),
-      ]),
-    ),
-    #("disk_usage_mb", json.int(12_480)),
+    #("containers", json.array([], fn(x) { x })),
+    #("total", json.int(0)),
   ])
   |> json.to_string()
 }
 
-/// MCP server status endpoint — server status, tools list, active_sessions.
+/// MCP server status endpoint
 fn mcp_json() -> String {
   json.object([
     #("page", json.string("MCP Server")),
-    #("status", json.string("active")),
-    #("server_status", json.string("running")),
-    #("active_sessions", json.int(2)),
-    #(
-      "tools",
-      json.array(
-        [
-          json.object([
-            #("name", json.string("planning_query")),
-            #("description", json.string("Query project planning tasks")),
-          ]),
-          json.object([
-            #("name", json.string("knowledge_search")),
-            #("description", json.string("Search knowledge graph triples")),
-          ]),
-          json.object([
-            #("name", json.string("verification_run")),
-            #("description", json.string("Execute SIL-6 verification suite")),
-          ]),
-          json.object([
-            #("name", json.string("read_file")),
-            #("description", json.string("Read content from a file")),
-          ]),
-          json.object([
-            #("name", json.string("todo_status")),
-            #("description", json.string("Get status of project tasks")),
-          ]),
-        ],
-        fn(t) { t },
-      ),
-    ),
-    #("tool_count", json.int(5)),
+    #("status", json.string("running")),
+    #("tools", json.array([], fn(x) { x })),
+    #("active_sessions", json.int(0)),
   ])
   |> json.to_string()
 }
 
-/// KMS catalog endpoint — checkpoints, total_keys, active_keys.
+/// KMS catalog endpoint
 fn kms_json() -> String {
   json.object([
-    #("page", json.string("KMS Catalog")),
-    #("status", json.string("active")),
+    #("page", json.string("KMS")),
     #("total_keys", json.int(12)),
     #("active_keys", json.int(10)),
-    #(
-      "checkpoints",
-      json.array(
-        [
-          json.object([
-            #("key", json.string("mesh-root-key-001")),
-            #("status", json.string("active")),
-            #("rotation_policy", json.string("90d")),
-          ]),
-          json.object([
-            #("key", json.string("zenoh-session-key-002")),
-            #("status", json.string("active")),
-            #("rotation_policy", json.string("30d")),
-          ]),
-          json.object([
-            #("key", json.string("db-encryption-key-003")),
-            #("status", json.string("active")),
-            #("rotation_policy", json.string("180d")),
-          ]),
-          json.object([
-            #("key", json.string("holon-signing-key-004")),
-            #("status", json.string("rotated")),
-            #("rotation_policy", json.string("30d")),
-          ]),
-        ],
-        fn(k) { k },
-      ),
-    ),
+    #("checkpoints", json.array([], fn(x) { x })),
   ])
   |> json.to_string()
 }
 
-/// Telemetry status endpoint — otel spans, active_traces, metrics, log_level.
+/// Telemetry status endpoint
 fn telemetry_json() -> String {
   json.object([
     #("page", json.string("Telemetry")),
-    #("status", json.string("active")),
-    #("active_traces", json.int(8)),
-    #("total_spans", json.int(1247)),
-    #(
-      "metrics",
-      json.object([
-        #("cpu_percent", json.float(32.5)),
-        #("memory_mb", json.int(8192)),
-        #("network_bytes_sec", json.int(524_288)),
-      ]),
-    ),
+    #("active_spans", json.int(8)),
+    #("total_traces", json.int(1247)),
     #("log_level", json.string("info")),
-    #("otel_collector", json.string("localhost:4317")),
-    #("export_format", json.string("otlp")),
+  ])
+  |> json.to_string()
+}
+
+/// Mathematical Integrity endpoint
+fn integrity_json() -> String {
+  json.object([
+    #("page", json.string("Mathematical Integrity")),
+    #("convergence_score", json.float(0.85)),
+    #("drift_rate", json.float(0.001)),
+    #("error_margin", json.float(0.12)),
+  ])
+  |> json.to_string()
+}
+
+/// Evolution Vector endpoint
+fn evolution_json() -> String {
+  json.object([
+    #("page", json.string("Evolution Vectors")),
+    #("adaptability", json.float(0.9)),
+    #("resilience", json.float(0.8)),
+    #("efficiency", json.float(0.7)),
+    #("coherence", json.float(0.6)),
+  ])
+  |> json.to_string()
+}
+
+/// Biomorphic Matrix endpoint
+fn biomorphic_json() -> String {
+  json.object([
+    #("page", json.string("Biomorphic Matrix")),
+    #("layers", json.int(8)),
+    #("healthy_count", json.int(7)),
+    #("degraded_count", json.int(1)),
+  ])
+  |> json.to_string()
+}
+
+/// Homeostasis Controls endpoint
+fn homeostasis_json() -> String {
+  json.object([
+    #("page", json.string("Homeostasis Controls")),
+    #("kp", json.float(1.0)),
+    #("ki", json.float(0.1)),
+    #("kd", json.float(0.05)),
+    #("set_point", json.float(80.0)),
+    #("current_value", json.float(78.5)),
+    #("error", json.float(1.5)),
+  ])
+  |> json.to_string()
+}
+
+/// Bicameral Sign-off endpoint
+fn bicameral_json() -> String {
+  json.object([
+    #("page", json.string("Bicameral Sign-Off")),
+    #("guardian_approved", json.bool(True)),
+    #("constitutional_approved", json.bool(False)),
+    #("override_reason", json.null()),
+  ])
+  |> json.to_string()
+}
+
+/// Singularity Estimation endpoint
+fn singularity_json() -> String {
+  json.object([
+    #("page", json.string("Singularity Estimation")),
+    #("time_to_singularity_ms", json.int(3_600_000)),
+    #("confidence", json.float(0.95)),
+    #("reached", json.bool(False)),
   ])
   |> json.to_string()
 }
@@ -893,7 +841,38 @@ fn smriti_catalog_json() -> String {
   |> json.to_string()
 }
 
-/// Encode health status to JSON value.
+/// Health Grid status endpoint (SC-GLM-UI-007 parity)
+fn health_grid_status_json() -> String {
+  json.object([
+    #("page", json.string("Health Grid")),
+    #("device_count", json.int(0)),
+    #("devices", json.array([], fn(x) { x })),
+    #("filter", json.string("all")),
+    #("selected_id", json.null()),
+  ])
+  |> json.to_string()
+}
+
+/// Planning Dashboard status endpoint (SC-GLM-UI-007 parity)
+fn planning_dashboard_status_json() -> String {
+  json.object([
+    #("page", json.string("Planning Dashboard")),
+    #("active_panel", json.string("tasks")),
+    #("task_count", json.int(0)),
+    #("ooda_phase", json.string("observe")),
+    #("cockpit_mode", json.string("dark")),
+    #("chat_messages", json.int(0)),
+    #(
+      "panels",
+      json.array(
+        ["tasks", "ooda", "chat", "safety", "enforcer", "timeline", "graph", "a2ui"],
+        json.string,
+      ),
+    ),
+  ])
+  |> json.to_string()
+}
+
 // Safety Kernel status (Panel 3)
 fn safety_json() -> String {
   json.object([
@@ -978,7 +957,7 @@ pub fn handle_request(req: HttpRequest(String)) -> HttpResponse(String) {
   let method = req.method
   case method {
     Get -> handle_get(path)
-    Post -> handle_post(path)
+    Post -> handle_post(req, path)
     _ -> method_not_allowed_response()
   }
 }
@@ -996,20 +975,462 @@ fn handle_get(path: String) -> HttpResponse(String) {
         |> json.to_string()
       json_response(payload, 200)
     }
+    // SSE mesh and health streams (T015)
+    "/api/v1/sse/mesh" -> sse_response(sse_mesh_stream())
+    "/api/v1/sse/health" -> sse_response(sse_health_stream())
+    // Guardian lane — L0 pending approval list (T010, SC-SAFETY-001)
+    "/api/v1/guardian/pending" ->
+      json_response(guardian_pending_json(), 200)
     _ -> json_response(route(path), 200)
   }
 }
 
-fn handle_post(path: String) -> HttpResponse(String) {
-  case path {
-    "/ag-ui/run" -> {
-      let run_id = "run-" <> int.to_string(8_675_309)
-      json_response(agui_sse.create_run_response("default", "thread-001", run_id), 200)
+/// Handle POST requests.
+/// All mutation endpoints require a valid Bearer token (SC-SEC-001).
+/// GET endpoints remain open for operator monitoring dashboards.
+fn handle_post(
+  req: HttpRequest(String),
+  path: String,
+) -> HttpResponse(String) {
+  case auth.require_auth(req) {
+    Error(reason) -> unauthorized_response(reason)
+    Ok(_principal) -> {
+      let body = req.body
+      case path {
+        "/ag-ui/run" -> {
+          let run_id = "run-" <> int.to_string(8_675_309)
+          json_response(
+            agui_sse.create_run_response("default", "thread-001", run_id),
+            200,
+          )
+        }
+        "/ag-ui/hitl/respond" -> json_response(accepted_json(), 200)
+        "/ag-ui/tools/result" -> json_response(received_json(), 200)
+        _ -> post_route(path, body)
+      }
     }
-    "/ag-ui/hitl/respond" -> json_response("{\"status\":\"accepted\"}", 200)
-    "/ag-ui/tools/result" -> json_response("{\"status\":\"received\"}", 200)
+  }
+}
+
+/// Dispatch POST requests to mutation handlers.
+/// Called only after Bearer-token auth has already passed.
+/// STAMP: SC-GLM-UI-003 — all responses via typed JSON functions.
+fn post_route(path: String, body: String) -> HttpResponse(String) {
+  case path {
+    "/api/v1/podman/action" -> json_response(podman_action_json(body), 200)
+    "/api/v1/emergency/trigger" -> emergency_trigger_response(body)
+    "/api/v1/guardian/respond" -> guardian_respond_response(body)
+    "/api/v1/ooda/trigger" -> json_response(ooda_trigger_json(body), 200)
     _ -> json_response(not_found_json(path), 404)
   }
+}
+
+/// GET /api/v1/guardian/pending — returns pending L0 Guardian approval requests.
+///
+/// Returns the demo list of pending ApprovalRequests using l0_constitutional
+/// types and approval_to_json for canonical encoding (SC-SAFETY-001).
+///
+/// Response shape:
+///   {
+///     "pending": [ApprovalRequest...],
+///     "count": <int>,
+///     "stamp": "SC-SAFETY-001"
+///   }
+///
+/// STAMP: SC-SAFETY-001, SC-GLM-UI-003, SC-SIL4-006
+fn guardian_pending_json() -> String {
+  let demo_requests: List(ApprovalRequest) = [
+    ApprovalRequest(
+      request_id: "req-001",
+      operation: "container.restart",
+      description: "Restart ex-app-1 after OOM signal — operator-initiated",
+      severity: ApprovalCritical,
+      requester_agent: "ignition-daemon",
+      timestamp: 1_743_897_600,
+    ),
+    ApprovalRequest(
+      request_id: "req-002",
+      operation: "genome.mutate",
+      description: "Apply rolling update to zenoh-router tier",
+      severity: ApprovalHigh,
+      requester_agent: "evolution-agent",
+      timestamp: 1_743_897_900,
+    ),
+    ApprovalRequest(
+      request_id: "req-003",
+      operation: "config.mesh.update",
+      description: "Increase quorum threshold from 2oo3 to 3oo5",
+      severity: ApprovalMedium,
+      requester_agent: "orchestrator",
+      timestamp: 1_743_898_200,
+    ),
+    ApprovalRequest(
+      request_id: "req-004",
+      operation: "kms.key.rotate",
+      description: "Rotate Zenoh session key — scheduled 168h rotation",
+      severity: ApprovalLow,
+      requester_agent: "kms-daemon",
+      timestamp: 1_743_898_500,
+    ),
+  ]
+  json.object([
+    #("pending", json.array(demo_requests, approval_to_json)),
+    #("count", json.int(list.length(demo_requests))),
+    #("stamp", json.string("SC-SAFETY-001")),
+  ])
+  |> json.to_string()
+}
+
+/// POST /api/v1/podman/action — dispatch a container mutation via MoZ (Zenoh).
+///
+/// Flow:
+///   1. Decode body → MutationRequest (verb, container, reason)
+///   2. Check circuit breaker state (SC-ZMOF-001)
+///   3. Build JSON-RPC params and fire via moz_client.send_request/3
+///   4. Return 202 Accepted + request_id (caller polls SSE for result)
+///      or 400/503 on decode/circuit error
+///
+/// This is fire-and-forget: the Zenoh message is published and the function
+/// returns immediately. The Rust ignition daemon processes the command and
+/// publishes the result to indrajaal/l4/ignition/mcp/res/{request_id}.
+/// The caller uses the returned request_id to subscribe via SSE.
+///
+/// STAMP: SC-ZMOF-001, SC-ZMOF-005, SC-GLM-UI-003
+fn podman_action_json(body: String) -> String {
+  case podman_api.mutation_request_decode(body) {
+    Error(reason) ->
+      podman_api.error_response_json(reason, "decode_error", "SC-GLM-UI-003")
+    Ok(req) -> {
+      let state = moz_client.new()
+      case moz_client.circuit_status(state) {
+        "open" ->
+          podman_api.error_response_json(
+            "MoZ circuit breaker open — Zenoh bridge unavailable",
+            "circuit_open",
+            "SC-ZMOF-001",
+          )
+        _ -> {
+          let params =
+            json.object([
+              #("verb", json.string(req.verb)),
+              #("container", json.string(req.container)),
+              #("reason", json.string(req.reason)),
+            ])
+          case moz_client.send_request(state, req.verb, params) {
+            #(_new_state, Error(reason)) ->
+              podman_api.error_response_json(
+                reason,
+                "moz_dispatch_error",
+                "SC-ZMOF-001",
+              )
+            #(_new_state, Ok(request_id)) ->
+              podman_api.mutation_response_json(
+                "accepted",
+                req.container,
+                "request_id=" <> request_id,
+              )
+          }
+        }
+      }
+    }
+  }
+}
+
+/// POST /api/v1/emergency/trigger — Guardian-gated emergency stop via MoZ.
+///
+/// SC-SAFETY-022: emergency stop MUST complete in < 5 seconds.
+/// The endpoint is synchronous on the Zenoh publish path; the Rust daemon
+/// processes the drain command and shuts the mesh within the SLA window.
+///
+/// Request body (JSON):
+///   {"reason": "<human-readable cause>", "confirmation": "EMERGENCY STOP"}
+///
+/// The "EMERGENCY STOP" literal match is a deliberate confirmation gate —
+/// it prevents accidental trigger from automated scripts that omit the field.
+///
+/// Flow:
+///   1. Decode body → reason + confirmation
+///   2. Validate confirmation == "EMERGENCY STOP" (literal; SC-SAFETY-022)
+///   3. Publish drain command via MoZ (SC-ZMOF-001, SC-ZMOF-005)
+///   4. Apply trigger_emergency to in-memory state
+///   5. Return 200 with timestamp + MoZ request_id
+///      or 400 if body is invalid / confirmation missing
+///
+/// STAMP: SC-SAFETY-022, SC-ZMOF-001, SC-ZMOF-005, SC-GLM-UI-003, SC-SIL4-006
+fn emergency_trigger_response(body: String) -> HttpResponse(String) {
+  let decoder = {
+    use reason <- decode.field("reason", decode.string)
+    use confirmation <- decode.field("confirmation", decode.string)
+    decode.success(#(reason, confirmation))
+  }
+  case json.parse(body, decoder) {
+    Error(_) ->
+      json_response(
+        json.object([
+          #("status", json.string("error")),
+          #("code", json.string("invalid_body")),
+          #(
+            "detail",
+            json.string(
+              "Expected {reason: string, confirmation: \"EMERGENCY STOP\"}",
+            ),
+          ),
+          #("stamp", json.string("SC-SAFETY-022")),
+        ])
+          |> json.to_string(),
+        400,
+      )
+    Ok(#(_, confirmation)) if confirmation != "EMERGENCY STOP" ->
+      json_response(
+        json.object([
+          #("status", json.string("error")),
+          #("code", json.string("confirmation_required")),
+          #(
+            "detail",
+            json.string("Confirmation text required: send \"EMERGENCY STOP\""),
+          ),
+          #("stamp", json.string("SC-SAFETY-022")),
+        ])
+          |> json.to_string(),
+        400,
+      )
+    Ok(#(reason, _)) -> {
+      let timestamp_ms = router_system_time_nanos() / 1_000_000
+      let moz_state = moz_client.new()
+      let drain_params = json.object([#("reason", json.string(reason))])
+      let #(_new_moz, dispatch_result) =
+        moz_client.send_request(moz_state, "drain", drain_params)
+      let _emergency_state =
+        trigger_emergency(initial_emergency_state(), reason, timestamp_ms)
+      let moz_info = case dispatch_result {
+        Ok(request_id) ->
+          json.object([
+            #("dispatched", json.bool(True)),
+            #("request_id", json.string(request_id)),
+            #(
+              "response_topic",
+              json.string(moz_client.build_response_topic(request_id)),
+            ),
+          ])
+        Error(reason_str) ->
+          json.object([
+            #("dispatched", json.bool(False)),
+            #("moz_error", json.string(reason_str)),
+          ])
+      }
+      json_response(
+        json.object([
+          #("status", json.string("triggered")),
+          #("reason", json.string(reason)),
+          #("timestamp_ms", json.int(timestamp_ms)),
+          #("moz", moz_info),
+          #("stamp", json.string("SC-SAFETY-022")),
+        ])
+          |> json.to_string(),
+        200,
+      )
+    }
+  }
+}
+
+/// POST /api/v1/guardian/respond — resolve an approval request.
+///
+/// Implements 2oo3 consensus semantics from l0_constitutional (SC-SIL4-006).
+/// Resolves one pending approval by request_id with an "approved" or "rejected"
+/// decision. The in-memory ApprovalState is constructed fresh per request
+/// (stateless demo: persistence wired at the orchestrator layer).
+///
+/// Request body (JSON):
+///   {"request_id": "<id>", "decision": "approved" | "rejected"}
+///
+/// Flow:
+///   1. Decode body → request_id + decision string
+///   2. Map decision string to ApprovalDecision (Approved | Rejected)
+///   3. Call resolve_request on a demo ApprovalState
+///   4. Return 200 with resolved outcome JSON
+///      or 400 if body is invalid / decision unrecognised
+///
+/// STAMP: SC-SIL4-006, SC-SAFETY-001, SC-GLM-UI-003
+fn guardian_respond_response(body: String) -> HttpResponse(String) {
+  let decoder = {
+    use request_id <- decode.field("request_id", decode.string)
+    use decision_str <- decode.field("decision", decode.string)
+    decode.success(#(request_id, decision_str))
+  }
+  case json.parse(body, decoder) {
+    Error(_) ->
+      json_response(
+        json.object([
+          #("status", json.string("error")),
+          #("code", json.string("invalid_body")),
+          #(
+            "detail",
+            json.string(
+              "Expected {request_id: string, decision: \"approved\"|\"rejected\"}",
+            ),
+          ),
+          #("stamp", json.string("SC-SIL4-006")),
+        ])
+          |> json.to_string(),
+        400,
+      )
+    Ok(#(request_id, decision_str)) -> {
+      let decision = case decision_str {
+        "approved" -> Ok(Approved)
+        "rejected" -> Ok(Rejected)
+        _ -> Error("unknown_decision")
+      }
+      case decision {
+        Error(_) ->
+          json_response(
+            json.object([
+              #("status", json.string("error")),
+              #("code", json.string("invalid_decision")),
+              #(
+                "detail",
+                json.string("decision must be \"approved\" or \"rejected\""),
+              ),
+              #("stamp", json.string("SC-SIL4-006")),
+            ])
+              |> json.to_string(),
+            400,
+          )
+        Ok(resolved_decision) -> {
+          let demo_state = initial_approval_state()
+          let _updated_state =
+            resolve_request(demo_state, request_id, resolved_decision)
+          json_response(
+            json.object([
+              #("status", json.string("resolved")),
+              #("request_id", json.string(request_id)),
+              #("decision", json.string(decision_str)),
+              #("stamp", json.string("SC-SIL4-006")),
+            ])
+              |> json.to_string(),
+            200,
+          )
+        }
+      }
+    }
+  }
+}
+
+/// POST /api/v1/ooda/trigger — stub: accepts OODA cycle trigger payload.
+fn ooda_trigger_json(_body: String) -> String {
+  json.object([
+    #("status", json.string("accepted")),
+    #("action", json.string("ooda_trigger")),
+    #("stamp", json.string("SC-GLM-UI-003")),
+  ])
+  |> json.to_string()
+}
+
+/// Shared accepted-status JSON for HITL respond endpoint.
+fn accepted_json() -> String {
+  json.object([#("status", json.string("accepted"))])
+  |> json.to_string()
+}
+
+/// Shared received-status JSON for tools/result endpoint.
+fn received_json() -> String {
+  json.object([#("status", json.string("received"))])
+  |> json.to_string()
+}
+
+// ---------------------------------------------------------------------------
+// SSE stream handlers (T015 — SC-AGUI-002, SC-GLM-UI-010)
+// ---------------------------------------------------------------------------
+
+/// GET /api/v1/sse/mesh — pre-built SSE stream for mesh topology events.
+///
+/// Returns a complete SSE payload using the ring buffer formatters:
+///   1. retry hint  — client reconnect delay
+///   2. state_snapshot — initial mesh state
+///   3. three container health events — zenoh-router-1/2/3
+///   4. heartbeat comment frame
+///
+/// True chunked streaming requires async Mist; this returns the full body.
+/// STAMP: SC-AGUI-002, SC-GLM-UI-010
+fn sse_mesh_stream() -> String {
+  let buf = sse_stream.new_buffer(16)
+
+  let buf =
+    sse_stream.push_event(
+      buf,
+      "state_snapshot",
+      "{\"mesh\":\"indrajaal-c3i\",\"routers\":3,\"status\":\"connected\"}",
+    )
+  let buf =
+    sse_stream.push_event(
+      buf,
+      "container_health",
+      "{\"name\":\"zenoh-router-1\",\"status\":\"healthy\",\"cpu\":12.3}",
+    )
+  let buf =
+    sse_stream.push_event(
+      buf,
+      "container_health",
+      "{\"name\":\"zenoh-router-2\",\"status\":\"healthy\",\"cpu\":8.7}",
+    )
+  let buf =
+    sse_stream.push_event(
+      buf,
+      "container_health",
+      "{\"name\":\"zenoh-router-3\",\"status\":\"healthy\",\"cpu\":10.1}",
+    )
+
+  let frames =
+    sse_stream.events_since(buf, -1)
+    |> list.map(sse_stream.format_sse_event)
+
+  string.concat([
+    sse_stream.format_retry_hint(),
+    string.concat(frames),
+    sse_stream.format_heartbeat(),
+  ])
+}
+
+/// GET /api/v1/sse/health — pre-built SSE stream for system health events.
+///
+/// Returns a complete SSE payload using the ring buffer formatters:
+///   1. retry hint  — client reconnect delay
+///   2. health_ok   — overall system health snapshot
+///   3. sil_status  — SIL-6 compliance status
+///   4. ooda_cycle  — latest OODA cycle metrics
+///   5. heartbeat comment frame
+///
+/// STAMP: SC-AGUI-002, SC-GLM-UI-010
+fn sse_health_stream() -> String {
+  let buf = sse_stream.new_buffer(16)
+
+  let buf =
+    sse_stream.push_event(
+      buf,
+      "health_ok",
+      "{\"status\":\"ok\",\"sil\":\"SIL-6\",\"interface\":\"wisp\",\"port\":4100}",
+    )
+  let buf =
+    sse_stream.push_event(
+      buf,
+      "sil_status",
+      "{\"level\":\"SIL-6\",\"compliant\":true,\"tests_passed\":1721}",
+    )
+  let buf =
+    sse_stream.push_event(
+      buf,
+      "ooda_cycle",
+      "{\"phase\":\"observe\",\"cycle_ms\":28,\"target_ms\":100,\"within_sla\":true}",
+    )
+
+  let frames =
+    sse_stream.events_since(buf, -1)
+    |> list.map(sse_stream.format_sse_event)
+
+  string.concat([
+    sse_stream.format_retry_hint(),
+    string.concat(frames),
+    sse_stream.format_heartbeat(),
+  ])
 }
 
 fn sse_response(body: String) -> HttpResponse(String) {
@@ -1030,4 +1451,13 @@ fn method_not_allowed_response() -> HttpResponse(String) {
   response.new(405)
   |> response.set_body("{\"error\":\"method_not_allowed\"}")
   |> response.set_header("content-type", "application/json")
+}
+
+/// Return a 401 Unauthorized response.
+/// Body is structured JSON produced by auth.auth_error_json (SC-GLM-UI-003, SC-SEC-001).
+fn unauthorized_response(reason: String) -> HttpResponse(String) {
+  response.new(401)
+  |> response.set_body(auth.auth_error_json(reason))
+  |> response.set_header("content-type", "application/json")
+  |> response.set_header("www-authenticate", "Bearer realm=\"c3i\"")
 }

@@ -41,15 +41,15 @@ docs(sync): constraint reconciliation parity achieved — gap 8.4:1→1.0:1
 
 ### Phase 0: Bootstrap
 ```bash
-Read AGENT_BOOTSTRAP.md && sa-plan list pending
+Read AGENT_BOOTSTRAP.md && ./sa-plan list pending
 ```
-**NEVER** read/write PROJECT_TODOLIST.md directly. **ALWAYS** use sa-plan CLI.
+**NEVER** read/write PROJECT_TODOLIST.md directly. **ALWAYS** use Rust `sa-plan-daemon` CLI (via `./sa-plan` wrapper).
 
 ### Phase 1: Discover
-`sa-plan list pending` -> `sa-plan list in_progress` (avoid claimed tasks) -> Work P0 first.
+`./sa-plan list pending` -> `./sa-plan list in_progress` (avoid claimed tasks) -> Work P0 first.
 
 ### Phase 2: Claim
-`sa-plan update <task-id> in_progress`
+`./sa-plan update <task-id> in_progress`
 
 ### Phase 3: Fix
 ```bash
@@ -73,7 +73,7 @@ EOF
 ```
 
 ### Phase 4: Complete
-`sa-plan update <task-id> completed` -- Only when: compiles clean, tests pass, formatted, committed on multiverse/ branch.
+`./sa-plan update <task-id> completed` -- Only when: compiles clean, tests pass, formatted, committed on multiverse/ branch.
 
 ### Phase 5: Merge (requires Guardian approval per SC-GIT-006)
 `git checkout main && git merge multiverse/<branch> --ff-only` -- If fails: rebase, re-verify, retry.
@@ -109,7 +109,7 @@ EOF
 | Another agent claimed my task | Pick different `pending` task |
 | Fix breaks existing tests | Fix regression before marking complete |
 | Merge conflict with main | Rebase, re-verify, retry merge |
-| sa-plan returns error | Check `ls data/smriti/planning.db` |
+| ./sa-plan returns error | Check `ls data/smriti/planning.db` and verify Rust binary: `./target/release/sa-plan-daemon status` |
 | Compilation fails after merge | `git revert HEAD` and investigate |
 
 ### Version Updates
