@@ -1,0 +1,62 @@
+-- allium: 3
+-- C3I Intelligent Planning & Cortex Coordination
+-- Covers: Neuromorphic Coordination, Zenoh Messaging, and Autonomous Swarm Intent
+-- Date: 2026-04-06
+
+-- ---------------------------------------------------------------------------
+-- 1. Neuromorphic Intent Routing (SC-COG-001)
+-- ---------------------------------------------------------------------------
+-- The Planning Daemon is not a static database. It acts as the pre-frontal
+-- cortex of the swarm. It uses Zenoh for all control and data messaging,
+-- actively prioritizing task intent across the mesh.
+
+value TaskIntent {
+    id: String
+    dynamic_priority: Float
+    semantic_embedding: String
+}
+
+entity CognitivePlanner {
+    zenoh_topic: String
+    active_intents: Set<TaskIntent>
+    neuromorphic_feedback_active: Boolean
+}
+
+rule AnalyzeIntentNeuromorphically {
+    when: planner: CognitivePlanner.active_intents.count becomes > 0
+    ensures:
+        -- The planner constantly subscribes to "indrajaal/l5/cog/intent/**"
+        -- over Zenoh. As intents arrive, it feeds them into the SLM/RETE-UL
+        -- hybrid engine to re-calculate global priorities based on real-time
+        -- neuromorphic swarm stress levels.
+        planner.neuromorphic_feedback_active = true
+        
+    @guarantee AutonomousPrioritization
+        -- Eliminates the need for manual P0/P1 tagging. The swarm cortex
+        -- independently discovers the critical path and enforces it across
+        -- the DAG.
+}
+
+-- ---------------------------------------------------------------------------
+-- 2. Zenoh-Driven OODA Orchestration (SC-COG-002)
+-- ---------------------------------------------------------------------------
+-- The OODA loop does not rely on HTTP or RPC. It is a continuous wavefront
+-- of Zenoh pub/sub events driving the Cognitive Planner.
+
+entity CortexNode {
+    zid: String
+    ooda_frequency_hz: Float
+}
+
+rule ZenohControlMessaging {
+    when: cortex: CortexNode.ooda_frequency_hz
+    ensures:
+        -- All control actions and state broadcasts execute purely via Zenoh
+        -- over the MoZ (Messaging over Zenoh) protocol.
+        -- This guarantees Zero-IP routing and immediate Byzantine fault tolerance
+        -- via cryptographic payloads.
+        cortex.ooda_frequency_hz >= 10.0
+        
+    @guarantee SubstrateIndependence
+        -- Control plane execution is decoupled from the underlying Podman/OS network.
+}
