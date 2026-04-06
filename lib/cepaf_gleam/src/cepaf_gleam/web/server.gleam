@@ -15,13 +15,17 @@
 // `record_connection/2` and `release_connection/1`.  Call `health_check/1`
 // from the /health endpoint or a monitoring loop to surface live metrics.
 
+import cepaf_gleam/planning/safety_kernel
 import cepaf_gleam/ui/wisp/router
 import gleam/bytes_tree
 import gleam/erlang/process
+import gleam/http
 import gleam/http/request
 import gleam/http/response
 import gleam/int
 import gleam/io
+import gleam/list
+import gleam/result
 import mist
 
 // ---------------------------------------------------------------------------
@@ -84,18 +88,70 @@ pub fn shutdown(state: ServerState) -> Nil {
 // ---------------------------------------------------------------------------
 
 pub fn start(port: Int) -> Result(Nil, String) {
-  io.println(
-    "  Gleam HTTP on 0.0.0.0:" <> int.to_string(port),
-  )
+  io.println("  Gleam HTTP on 0.0.0.0:" <> int.to_string(port))
 
-  let handler = fn(req) {
-    let wisp_response = router.handle_request(request.set_body(req, ""))
+  let handler = fn(req: request.Request(mist.Connection)) {
+    // Phase 2: Bearer Token RBAC Middleware for L5_Operator (GAP-007 / SC-UI-C2-001)
+    let is_authorized = case req.method {
+      http.Post | http.Put | http.Delete | http.Patch -> {
+        let auth_ok = case request.get_header(req, "authorization") {
+          Ok("Bearer " <> _token) -> True
+          _ -> False
+        }
 
-    response.new(wisp_response.status)
-    |> response.set_body(mist.Bytes(bytes_tree.from_string(wisp_response.body)))
-    |> response.set_header("content-type", "application/json")
-    |> response.set_header("access-control-allow-origin", "*")
-    |> response.set_header("access-control-allow-methods", "GET, POST, OPTIONS")
+        // Phase 4: L0 Guardian ProofToken validation for mutations
+        let proof_ok = case request.get_header(req, "x-proof-token") {
+          Ok(token) ->
+            safety_kernel.validate_proof_token(
+              token,
+              "mutation",
+              "L5_Operator",
+              "",
+              1000,
+            )
+            |> result.is_ok()
+          _ -> False
+        }
+
+        auth_ok && proof_ok
+      }
+      _ -> True
+      // GET/OPTIONS are read-only L1-L4 telemetry
+    }
+
+    case is_authorized {
+      False ->
+        response.new(401)
+        |> response.set_body(
+          mist.Bytes(bytes_tree.from_string(
+            "{\"error\": \"Unauthorized: Missing or invalid token for L5_Operator mutation\"}",
+          )),
+        )
+        |> response.set_header("content-type", "application/json")
+        |> response.set_header("access-control-allow-origin", "*")
+        |> response.set_header(
+          "access-control-allow-methods",
+          "GET, POST, OPTIONS",
+        )
+      True -> {
+        let wisp_response = router.handle_request(request.set_body(req, ""))
+
+        let base_resp =
+          response.new(wisp_response.status)
+          |> response.set_body(
+            mist.Bytes(bytes_tree.from_string(wisp_response.body)),
+          )
+          |> response.set_header("access-control-allow-origin", "*")
+          |> response.set_header(
+            "access-control-allow-methods",
+            "GET, POST, OPTIONS",
+          )
+
+        list.fold(wisp_response.headers, base_resp, fn(acc, header) {
+          response.set_header(acc, header.0, header.1)
+        })
+      }
+    }
   }
 
   case
@@ -109,10 +165,6 @@ pub fn start(port: Int) -> Result(Nil, String) {
         "  HTTP server running on http://0.0.0.0:" <> int.to_string(port),
       )
       // Park this process while Mist acceptors run under their own supervisor.
-      // SIGTERM is handled at the OTP level: the BEAM runtime calls
-      // Application.stop/1 -> supervision tree teardown -> Mist drain.
-      // To trigger a controlled shutdown from Gleam code call:
-      //   erlang.halt(0)  or  init:stop() via FFI.
       process.sleep_forever()
       Ok(Nil)
     }
