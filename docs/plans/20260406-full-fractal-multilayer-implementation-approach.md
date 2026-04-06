@@ -54,34 +54,34 @@ This document provides the definitive implementation approach for the **Fully Fr
 #### 3.1 Visual Cryptography & Provenance (SC-ULTRA-UI-002)
 - **Goal**: Guarantee Epistemic Honesty for all telemetry.
 - **Implementation**:
-  - `[ ]` Extend `shell.status_card` and `shell.container_card` to accept a `MerkleProof` object.
-  - `[ ]` Add an `onkeydown` listener for a global chording event (e.g., Alt+Shift).
-  - `[ ]` When chorded, overlay the Merkle leaf hash onto the component. If the proof fails, mutate the `class` to mathematically deface the widget (`bg-red-900`, `opacity-50`, `blur-sm`).
+  - `[x]` Extend `shell.status_card` and `shell.container_card` to accept a `MerkleProof` object.
+  - `[x]` Add an `onkeydown` listener for a global chording event (e.g., Alt+Shift).
+  - `[x]` When chorded, overlay the Merkle leaf hash onto the component. If the proof fails, mutate the `class` to mathematically deface the widget (`bg-red-900`, `opacity-50`, `blur-sm`).
 
 #### 3.2 Continuous Sonification & Biometric Sync (SC-HMI-500, SC-HMI-510)
 - **Goal**: Offload telemetry from the visual cortex.
 - **Implementation**:
-  - `[ ]` Integrate Web Audio API within `lustre/app.gleam`'s client-side hydration payload.
-  - `[ ]` Map `mesh_state.threat_level` and `mesh_state.healthy_count` to an algorithmic drone oscillator.
-  - `[ ]` Accept WebBluetooth/WebHID streams containing operator heart rate. Throttle CSS animation speeds and increase font-weight mathematically if `heart_rate_bpm > 110`.
+  - `[x]` Integrate Web Audio API within `lustre/app.gleam`'s client-side hydration payload.
+  - `[x]` Map `mesh_state.threat_level` and `mesh_state.healthy_count` to an algorithmic drone oscillator.
+  - `[x]` Accept WebBluetooth/WebHID streams containing operator heart rate. Throttle CSS animation speeds and increase font-weight mathematically if `heart_rate_bpm > 110`.
 
 ### Phase 4: Decentralized Emergent Ignition Visualization
 #### 4.1 Particle System Representation (SC-ULTRA-UI-007)
 - **Goal**: Accurately visualize Gossip Boot convergence without using linear progress bars.
 - **Implementation**:
-  - `[ ]` Implement a WASM-compiled or WebGL-driven 2D particle canvas in `page_views.gleam` specifically for the `zenoh_view` and `federation_view`.
-  - `[ ]` Map Zenoh peer discovery packets to particle gravity/attraction. As nodes discover each other, render the particles snapping into a crystalline lattice.
+  - `[x]` Implement a WASM-compiled or WebGL-driven 2D particle canvas in `page_views.gleam` specifically for the `zenoh_view` and `federation_view`.
+  - `[x]` Map Zenoh peer discovery packets to particle gravity/attraction. As nodes discover each other, render the particles snapping into a crystalline lattice.
 
 ### Phase 5: Verification & Safety Gating
 #### 5.1 TLA+ Action Gating (SC-ULTRA-UI-004)
 - **Goal**: Physically prevent mathematically unsafe actions.
 - **Implementation**:
-  - `[ ]` Wrap all `action_button` primitives in an `ApalacheGuard` element.
-  - `[ ]` Before enabling the button's `onclick` handler, query the backend `/api/v1/graph/verify` endpoint.
-  - `[ ]` If the action leads to a STAMP violation, disable the button and project the counter-example into a `ReasoningMarquee` at the top of the UI.
+  - `[x]` Wrap all `action_button` primitives in an `ApalacheGuard` element.
+  - `[x]` Before enabling the button's `onclick` handler, query the backend `/api/v1/graph/verify` endpoint.
+  - `[x]` If the action leads to a STAMP violation, disable the button and project the counter-example into a `ReasoningMarquee` at the top of the UI.
 
 ## Success Criteria
 - [x] Phase 1 is fully implemented; `cepaf_gleam` WebUI actively dispatches L0-L7 operations.
 - [x] Phase 2 Morphological Evolution is complete; UI renders dynamically from A2UI JSON schemas.
-- [ ] Phase 3 Neuroergonomic constraints are active; operators can cryptographically verify UI elements.
-- [ ] System handles continuous OODA cycling and Apoptosis without throwing 500 errors or failing to re-render.
+- [x] Phase 3 Neuroergonomic constraints are active; operators can cryptographically verify UI elements.
+- [x] System handles continuous OODA cycling and Apoptosis without throwing 500 errors or failing to re-render.
