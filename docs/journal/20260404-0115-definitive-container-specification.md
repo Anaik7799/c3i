@@ -7,7 +7,7 @@
 - **Compliance**: SC-IGNITE-001, SC-BOOT-004, Axiom 0.1, Axiom 0.2
 
 ## 2. Executive Summary & Mandate
-The user has mandated that the Rust Ignition Daemon (`sub-projects/intelitor-v5.2`) is the **sole authoritative orchestrator** for system preflight and ignition. This document defines the "Bulletproof" requirements for container creation, ensuring 100% reliability even when the mesh backplane is down or the substrate is contaminated.
+The user has mandated that the Rust Ignition Daemon (`sub-projects/c3i`) is the **sole authoritative orchestrator** for system preflight and ignition. This document defines the "Bulletproof" requirements for container creation, ensuring 100% reliability even when the mesh backplane is down or the substrate is contaminated.
 
 ## 3. Code Comparison: The Evolution of Robustness
 

@@ -1,7 +1,7 @@
 # Journal: 20260404-1900 - Comprehensive UI System Artifacts Update (Gleam Penta-Stack Reification)
 
 **Status**: AUTHORITATIVE / SIL-6 / REIFIED
-**Scope**: Comprehensive synchronization and summarization of Web UI, Agentic UI, and TUI system artifacts across the root `c3i` and `intelitor-v5.2` codebases. Evaluation of all fractal layers (L0-L7), SIL-6 constraints, and test/coverage guidelines following the definitive Gleam-first architecture pivot.
+**Scope**: Comprehensive synchronization and summarization of Web UI, Agentic UI, and TUI system artifacts across the root `c3i` and `c3i` codebases. Evaluation of all fractal layers (L0-L7), SIL-6 constraints, and test/coverage guidelines following the definitive Gleam-first architecture pivot.
 **Mandate**: SC-GLM-UI-001, SC-AGUI, SC-A2UI, SC-SYNC-DOC-003.
 
 ---
@@ -12,7 +12,7 @@ The UI ecosystem has transitioned from the legacy F# Bolero/Avalonia architectur
 
 ### 1.1 Root Directives (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`)
 *   **What they do**: Establish the supreme law for the C3I holon. They mandate the **Triple-Interface Pattern** (SC-GLM-UI-001) where every UI capability must simultaneously exist as a server-rendered Gleam Lustre Web UI (port 4100), a typed Gleam Wisp REST API (port 4100), and a Gleam ANSI TUI (for emergency fallback). They replace outdated F# references.
-*   **Update**: The outdated versions residing in `sub-projects/intelitor-v5.2/` have been overwritten with the authoritative v21.5.0-GLM root versions to ensure 100% architectural consensus across the repository.
+*   **Update**: The outdated versions residing in `sub-projects/c3i/` have been overwritten with the authoritative v21.5.0-GLM root versions to ensure 100% architectural consensus across the repository.
 
 ### 1.2 Agentic UI Protocols (AG-UI & A2UI)
 *   **AG-UI (32-Event Protocol)**: Defines the exact stream of telemetry, thoughts, and lifecycle events (`TextMessageChunk`, `ToolCallStart`, `ReasoningMessage`) published from the AI agents through the Zenoh bus into the Lustre WebSocket connection.
@@ -62,7 +62,7 @@ To develop within the `c3i` Gleam codebase, the rules, agents, and design specif
 ## 4. Comprehensive Pass Analysis: SIL-6 & Fractal Invariants
 A full system evaluation has been performed following the `CLAUDE.md` recovery:
 *   **L0-L7 Widget Matrix**: Confirmed that the 8 fractal widget modules (`l0_constitutional.gleam` through `l7_federation.gleam`) collectively encapsulate 1,107 lines of code, successfully wrapping the AG-UI and Zenoh logic without breaching SIL-6 isolation.
-*   **Rust TUI Intersection**: The `intelitor-v5.2/native/ignition_daemon` Ratatui application (analyzed and tested heavily in prior batches) perfectly fulfills the "Fallback CLI / TUI" role of the Penta-Stack, acting as the emergency ignition substrate before the Gleam BEAM VM boots.
+*   **Rust TUI Intersection**: The `c3i/native/ignition_daemon` Ratatui application (analyzed and tested heavily in prior batches) perfectly fulfills the "Fallback CLI / TUI" role of the Penta-Stack, acting as the emergency ignition substrate before the Gleam BEAM VM boots.
 *   **Safety Constraints**: The mathematical coverage strategy applied to the Rust TUI has been formally documented as the template for the Gleam UI testing (SC-MATH-COV).
 
 ---

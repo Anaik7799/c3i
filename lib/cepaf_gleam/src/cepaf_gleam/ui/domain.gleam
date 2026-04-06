@@ -259,3 +259,49 @@ pub fn layer_level(layer: FractalLayer) -> Int {
     L7Federation -> 7
   }
 }
+
+/// Mathematical Integrity metrics (SC-GLM-UI-001).
+/// Hs: Shannon Entropy, epsilon: Stability, Ds: Structural Divergence.
+pub type MathematicalIntegrity {
+  MathematicalIntegrity(hs: Float, epsilon: Float, ds: Float)
+}
+
+/// Evolution Vectors (V1-V4) for tracking code evolution.
+pub type EvolutionVectors {
+  EvolutionVectors(v1: Float, v2: Float, v3: Float, v4: Float)
+}
+
+/// NASA-STD-3000 Biomorphic Matrix state.
+pub type BiomorphicMatrix {
+  BiomorphicMatrix(levels: List(#(FractalLayer, HealthStatus)))
+}
+
+/// Homeostasis PID controls and thresholds.
+pub type HomeostasisControls {
+  HomeostasisControls(
+    kp: Float,
+    ki: Float,
+    kd: Float,
+    set_point: Float,
+    current_value: Float,
+    error: Float,
+  )
+}
+
+/// Bicameral Two-Key Release Protocol sign-off state.
+pub type BicameralSignOff {
+  BicameralSignOff(
+    key1_signed: Bool,
+    key2_signed: Bool,
+    authorized_by: Option(String),
+  )
+}
+
+/// Time-to-Singularity estimation and confidence.
+pub type SingularityEstimation {
+  SingularityEstimation(
+    time_to_singularity_ms: Int,
+    confidence_interval: Float,
+    critical_threshold_reached: Bool,
+  )
+}

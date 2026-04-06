@@ -46,7 +46,7 @@ Rendered as a dynamically updating side-pane alongside the execution table:
 ## 4. Run Instructions
 To execute the split-screen visual test harness:
 ```bash
-cd sub-projects/intelitor-v5.2/native/ignition_daemon
+cd sub-projects/c3i/native/ignition_daemon
 cargo run --bin ignition splittest
 ```
 *(This opens the interactive split-screen dashboard and executes the 12-tab stress cycle visually before gracefully exiting).*

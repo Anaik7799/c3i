@@ -9,8 +9,8 @@
 ///        SC-GLM-UI-007, SC-UIGT-003, SC-UIGT-007, SC-UIGT-009
 import cepaf_gleam/ui/lustre/verification.{
   DagUpdated, GraphChecksCompleted, ProofGenerated, ReportReceived,
-  StartVerification, all_checks_passed, init,
-  latest_proof_verified, proof_result_string, update,
+  StartVerification, all_checks_passed, init, latest_proof_verified,
+  proof_result_string, update,
 }
 import cepaf_gleam/ui/tui/verification_view
 import cepaf_gleam/ui/wisp/verification_api

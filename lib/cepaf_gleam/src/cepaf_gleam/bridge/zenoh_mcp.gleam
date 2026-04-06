@@ -32,6 +32,7 @@ pub type Message {
 // ---------------------------------------------------------------------------
 
 const request_prefix = "indrajaal/mcp/request/"
+
 const response_prefix = "indrajaal/mcp/response/"
 
 // ---------------------------------------------------------------------------
@@ -50,11 +51,7 @@ pub fn start(
     let subject = started.data
     // Subscribe to all MCP requests for this node or broadcast
     let assert Ok(pid) = process.subject_owner(subject)
-    let _ = zenoh.subscribe(
-      session,
-      request_prefix <> "**",
-      pid,
-    )
+    let _ = zenoh.subscribe(session, request_prefix <> "**", pid)
     subject
   })
 }

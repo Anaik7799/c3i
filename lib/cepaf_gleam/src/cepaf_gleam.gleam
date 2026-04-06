@@ -29,6 +29,7 @@ import cepaf_gleam/podman/domain.{PodmanClientConfig, Rootless}
 import cepaf_gleam/podman/http_client
 import cepaf_gleam/telemetry/exporter
 import cepaf_gleam/verification/swarm
+import cepaf_gleam/web/server as web_server
 import cepaf_gleam/zenoh/client as zenoh
 import gleam/erlang/process
 import gleam/int
@@ -126,15 +127,25 @@ pub fn main() {
     Error(e) -> io.println("  ❌ Zenoh open failed: " <> e)
   }
 
-  // 4. Runtime Suspension (replaces F# IHost.Run())
-  case list.contains(args, "--daemon") {
+  // 4. Runtime Mode Selection
+  case list.contains(args, "--serve") {
     True -> {
-      io.println("\n🛑 ENTERING SIL-6 DAEMON MODE. Sleeping forever...")
-      process.sleep_forever()
+      io.println("\n🌐 STARTING HTTP SERVER MODE (port 4100)...")
+      case web_server.start(4100) {
+        Ok(_) -> Nil
+        Error(e) -> io.println("❌ Server failed: " <> e)
+      }
     }
-    False -> {
-      io.println("\n✅ Execution complete. Exiting...")
-      Nil
-    }
+    False ->
+      case list.contains(args, "--daemon") {
+        True -> {
+          io.println("\n🛑 ENTERING SIL-6 DAEMON MODE. Sleeping forever...")
+          process.sleep_forever()
+        }
+        False -> {
+          io.println("\n✅ Execution complete. Exiting...")
+          Nil
+        }
+      }
   }
 }

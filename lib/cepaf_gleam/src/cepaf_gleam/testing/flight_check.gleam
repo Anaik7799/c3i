@@ -203,12 +203,10 @@ pub fn run_preflight() -> FlightResult {
   let decision = case all_passed {
     True -> GoForLaunch
     False -> {
-      let any_jidoka =
-        list.any(rca_reports, fn(r) { r.jidoka_halt })
+      let any_jidoka = list.any(rca_reports, fn(r) { r.jidoka_halt })
       case any_jidoka {
         True -> {
-          let first_halt =
-            list.find(rca_reports, fn(r) { r.jidoka_halt })
+          let first_halt = list.find(rca_reports, fn(r) { r.jidoka_halt })
           case first_halt {
             Ok(r) -> AbortWithJidoka(r)
             Error(_) -> GoForLaunch
@@ -254,7 +252,11 @@ pub fn fractal_rca(check: FlightCheck) -> RcaReport {
         "WHY: Safety kernel not responding",
         "WHY: System not in safe state",
       ],
-      ["Restart Guardian service", "Verify Psi invariants", "Check safety kernel logs"],
+      [
+        "Restart Guardian service",
+        "Verify Psi invariants",
+        "Check safety kernel logs",
+      ],
       True,
     )
     L1AtomicDebug -> #(
@@ -313,7 +315,11 @@ pub fn fractal_rca(check: FlightCheck) -> RcaReport {
         "WHY: Resource constraint (memory/GPU)",
         "WHY: Service configuration error",
       ],
-      ["Check cortex container", "Verify model availability", "Check resource limits"],
+      [
+        "Check cortex container",
+        "Verify model availability",
+        "Check resource limits",
+      ],
       False,
     )
     L6Ecosystem -> #(
@@ -335,7 +341,11 @@ pub fn fractal_rca(check: FlightCheck) -> RcaReport {
         "WHY: Attestation expired",
         "WHY: Network partition between nodes",
       ],
-      ["Check peer connectivity", "Refresh attestation", "Verify version vectors"],
+      [
+        "Check peer connectivity",
+        "Refresh attestation",
+        "Verify version vectors",
+      ],
       False,
     )
   }
@@ -398,7 +408,13 @@ pub fn format_flight_result(result: FlightResult) -> String {
         CheckFailed(_) -> "[FAIL]"
         CheckSkipped(_) -> "[SKIP]"
       }
-      "  " <> icon <> " " <> c.name <> " (" <> int.to_string(c.duration_ms) <> "ms)"
+      "  "
+      <> icon
+      <> " "
+      <> c.name
+      <> " ("
+      <> int.to_string(c.duration_ms)
+      <> "ms)"
     })
 
   let rca_lines = case result.rca {

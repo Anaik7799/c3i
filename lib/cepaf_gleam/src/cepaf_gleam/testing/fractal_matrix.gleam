@@ -21,7 +21,7 @@ import cepaf_gleam/ui/domain.{
   type FractalLayer, type Page, Cockpit, Dashboard, Federation, HealthGrid,
   Immune, Kms, Knowledge, L0Constitutional, L1AtomicDebug, L2Component,
   L3Transaction, L4System, L5Cognitive, L6Ecosystem, L7Federation, Mcp,
-  Metabolic, Podman, Planning, Substrate, Telemetry, Verification, Zenoh,
+  Metabolic, Planning, Podman, Substrate, Telemetry, Verification, Zenoh,
   page_fractal_layer, page_to_label,
 }
 import gleam/int
@@ -55,8 +55,8 @@ pub fn bdd_level_to_string(level: BddLevel) -> String {
 
 pub fn all_bdd_levels() -> List(BddLevel) {
   [
-    BddUnit, BddIntegration, BddContract, BddComponent, BddSystem,
-    BddAcceptance, BddVisual,
+    BddUnit, BddIntegration, BddContract, BddComponent, BddSystem, BddAcceptance,
+    BddVisual,
   ]
 }
 
@@ -112,12 +112,7 @@ pub type BddCell {
 // =============================================================================
 
 pub type RustTab {
-  RustTab(
-    index: Int,
-    name: String,
-    elements: String,
-    monitoring_sec: Int,
-  )
+  RustTab(index: Int, name: String, elements: String, monitoring_sec: Int)
 }
 
 /// All 12 Rust TUI tabs from run_split_test() in tui.rs:2561-2574
@@ -280,9 +275,7 @@ pub fn enumerate_all_tab_elements() -> List(TabElementInventory) {
   |> list.map(fn(page) {
     let elements = standard_elements(page)
     let total_levels =
-      list.fold(elements, 0, fn(acc, el) {
-        acc + list.length(el.bdd_levels)
-      })
+      list.fold(elements, 0, fn(acc, el) { acc + list.length(el.bdd_levels) })
     let max_levels = list.length(elements) * bdd_level_count()
     let coverage = case max_levels {
       0 -> 0.0
@@ -307,9 +300,7 @@ pub fn total_element_count() -> Int {
 pub fn total_bdd_cells() -> Int {
   let inventories = enumerate_all_tab_elements()
   list.fold(inventories, 0, fn(acc, inv) {
-    list.fold(inv.elements, acc, fn(a, el) {
-      a + list.length(el.bdd_levels)
-    })
+    list.fold(inv.elements, acc, fn(a, el) { a + list.length(el.bdd_levels) })
   })
 }
 

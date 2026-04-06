@@ -125,8 +125,7 @@ pub fn subscribe_tracked(
   topic: String,
 ) -> #(SubscriptionTracker, AgUiEffect) {
   let sub_id = "sub-" <> topic
-  let already_active =
-    list.any(tracker.active, fn(entry) { entry.0 == topic })
+  let already_active = list.any(tracker.active, fn(entry) { entry.0 == topic })
   case already_active {
     True -> #(tracker, NoEffect)
     False -> {

@@ -4,7 +4,7 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # Route to the authoritative Rust Ignition binary
-BINARY="./sub-projects/intelitor-v5.2/target/release/ignition"
+BINARY="./sub-projects/c3i/target/release/ignition"
 
 if [ "$#" -eq 0 ]; then
     # Default to interactive visual dashboard with automated ignition

@@ -100,7 +100,7 @@
 ## PART O — UNIFIED CLOSED-LOOP TESTING
 
 ### O1. Convergence Contract
-- **Harness**: `sub-projects/intelitor-v5.2/target/release/ignition dashboard --test-ui`.
+- **Harness**: `sub-projects/c3i/target/release/ignition dashboard --test-ui`.
 - **Cycles**: 50 full cycles.
 - **Asserter**: Gemini Control loop verifies 0-panic exit code.
 - **Logs**: All internal logs must be captured by `tui-logger` (no stdout leakage).

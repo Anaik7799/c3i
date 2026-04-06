@@ -4,7 +4,6 @@
 /// and invariants per SC-SWARM-VERIFY-040..047 and SC-VER-074.
 ///
 /// STAMP: SC-SWARM-VERIFY-001, SC-VER-074, SC-GLM-CMP-001
-
 import cepaf_gleam/fractal/l0_constitutional
 import cepaf_gleam/fractal/l1_atomic_debug
 import cepaf_gleam/fractal/l2_component
@@ -108,19 +107,22 @@ pub fn l0_arm_emergency_sets_armed_true_test() {
 
 pub fn l0_trigger_emergency_sets_triggered_true_test() {
   let state = l0_constitutional.initial_emergency_state()
-  let triggered = l0_constitutional.trigger_emergency(state, "power failure", 5_000_000)
+  let triggered =
+    l0_constitutional.trigger_emergency(state, "power failure", 5_000_000)
   triggered.triggered |> should.be_true()
 }
 
 pub fn l0_trigger_emergency_sets_reason_test() {
   let state = l0_constitutional.initial_emergency_state()
-  let triggered = l0_constitutional.trigger_emergency(state, "overheat", 5_000_001)
+  let triggered =
+    l0_constitutional.trigger_emergency(state, "overheat", 5_000_001)
   triggered.trigger_reason |> should.equal(Some("overheat"))
 }
 
 pub fn l0_trigger_emergency_sets_last_triggered_test() {
   let state = l0_constitutional.initial_emergency_state()
-  let triggered = l0_constitutional.trigger_emergency(state, "network split", 9_999_999)
+  let triggered =
+    l0_constitutional.trigger_emergency(state, "network split", 9_999_999)
   triggered.last_triggered |> should.equal(Some(9_999_999))
 }
 
@@ -285,7 +287,9 @@ pub fn l1_event_count_returns_correct_number_test() {
 // =============================================================================
 
 pub fn l2_initial_grid_creates_empty_grid_test() {
-  let cols = [l2_component.Column(key: "id", label: "ID", sortable: True, width: None)]
+  let cols = [
+    l2_component.Column(key: "id", label: "ID", sortable: True, width: None),
+  ]
   let state = l2_component.initial_grid(cols)
   list.length(state.rows) |> should.equal(0)
 }
@@ -325,7 +329,8 @@ pub fn l2_sort_by_same_column_toggles_ascending_test() {
 }
 
 pub fn l2_severity_to_string_healthy_test() {
-  l2_component.severity_to_string(l2_component.Healthy) |> should.equal("healthy")
+  l2_component.severity_to_string(l2_component.Healthy)
+  |> should.equal("healthy")
 }
 
 pub fn l2_severity_to_string_critical_test() {
@@ -334,17 +339,28 @@ pub fn l2_severity_to_string_critical_test() {
 }
 
 pub fn l2_severity_to_string_unknown_test() {
-  l2_component.severity_to_string(l2_component.Unknown) |> should.equal("unknown")
+  l2_component.severity_to_string(l2_component.Unknown)
+  |> should.equal("unknown")
 }
 
 pub fn l2_badge_to_json_contains_label_test() {
-  let badge = l2_component.Badge(label: "SIL-6", severity: l2_component.Healthy, tooltip: None)
+  let badge =
+    l2_component.Badge(
+      label: "SIL-6",
+      severity: l2_component.Healthy,
+      tooltip: None,
+    )
   let s = json.to_string(l2_component.badge_to_json(badge))
   string.contains(s, "SIL-6") |> should.be_true()
 }
 
 pub fn l2_badge_to_json_contains_severity_test() {
-  let badge = l2_component.Badge(label: "DB", severity: l2_component.Degraded, tooltip: None)
+  let badge =
+    l2_component.Badge(
+      label: "DB",
+      severity: l2_component.Degraded,
+      tooltip: None,
+    )
   let s = json.to_string(l2_component.badge_to_json(badge))
   string.contains(s, "degraded") |> should.be_true()
 }
@@ -405,8 +421,13 @@ pub fn l3_update_tool_status_changes_status_test() {
     )
   let with_call = l3_transaction.add_tool_call(state, call)
   let updated =
-    l3_transaction.update_tool_status(with_call, "tc-2", l3_transaction.ToolExecuting)
-  let found = list.find(updated.tool_calls, fn(tc) { tc.tool_call_id == "tc-2" })
+    l3_transaction.update_tool_status(
+      with_call,
+      "tc-2",
+      l3_transaction.ToolExecuting,
+    )
+  let found =
+    list.find(updated.tool_calls, fn(tc) { tc.tool_call_id == "tc-2" })
   case found {
     Ok(tc) -> tc.status |> should.equal(l3_transaction.ToolExecuting)
     Error(_) -> should.fail()
@@ -425,8 +446,10 @@ pub fn l3_set_tool_result_sets_completed_test() {
       duration_ms: None,
     )
   let with_call = l3_transaction.add_tool_call(state, call)
-  let updated = l3_transaction.set_tool_result(with_call, "tc-3", "file.txt", 42)
-  let found = list.find(updated.tool_calls, fn(tc) { tc.tool_call_id == "tc-3" })
+  let updated =
+    l3_transaction.set_tool_result(with_call, "tc-3", "file.txt", 42)
+  let found =
+    list.find(updated.tool_calls, fn(tc) { tc.tool_call_id == "tc-3" })
   case found {
     Ok(tc) -> {
       tc.status |> should.equal(l3_transaction.ToolCompleted)
@@ -653,11 +676,7 @@ pub fn l6_update_agent_replaces_existing_test() {
       last_heartbeat: 1000,
     )
   let updated =
-    l6_ecosystem.AgentNode(
-      ..node,
-      health: 0.5,
-      status: l6_ecosystem.Degraded,
-    )
+    l6_ecosystem.AgentNode(..node, health: 0.5, status: l6_ecosystem.Degraded)
   let s1 = l6_ecosystem.update_agent(state, node)
   let s2 = l6_ecosystem.update_agent(s1, updated)
   l6_ecosystem.agent_count(s2) |> should.equal(1)

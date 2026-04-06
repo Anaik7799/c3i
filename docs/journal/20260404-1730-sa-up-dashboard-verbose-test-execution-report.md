@@ -115,7 +115,7 @@
 ---
 
 ## Global Verification Summary
-The `sub-projects/intelitor-v5.2/native/ignition_daemon/tests/tui_unit.rs` harness was utilized to simulate **~6 minutes and 40 seconds (4000 ticks)** of operational telemetry across all 12 viewports.
+The `sub-projects/c3i/native/ignition_daemon/tests/tui_unit.rs` harness was utilized to simulate **~6 minutes and 40 seconds (4000 ticks)** of operational telemetry across all 12 viewports.
 
 *   **Entropy Variation**: Terminal constraints were aggressively modulated ($W \in [40, 200]$, $H \in [10, 60]$).
 *   **Substrate Load**: Artificially loaded up to 100 discrete containers.

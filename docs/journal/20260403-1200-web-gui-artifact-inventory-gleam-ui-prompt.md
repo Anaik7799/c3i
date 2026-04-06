@@ -9,13 +9,13 @@
 ## 1. Scope & Trigger
 
 **Trigger**: User requested a comprehensive inventory of ALL Web GUI related artifacts across
-the c3i and intelitor-v5.2 codebases — rules, skills, agents, CLAUDE.md, GEMINI.md, AGENTS.md
+the c3i and c3i codebases — rules, skills, agents, CLAUDE.md, GEMINI.md, AGENTS.md
 sections — covering design, coding, implementation, testing, verification, and coverage guidelines.
 The goal was to collate them and produce a reusable prompt for Gleam-based Web UI development
 and testing in the c3isystem.
 
 **Scope**:
-- Full audit of `.claude/rules/*.md` (41 files in c3i, 42 files in intelitor-v5.2)
+- Full audit of `.claude/rules/*.md` (41 files in c3i, 42 files in c3i)
 - Full audit of `.claude/agents/*.md` (27 agent definitions)
 - STAMP constraint family census for UI-relevant families
 - Gleam source code inventory (`lib/cepaf_gleam/`, `lib/indrajaal_gleam_web/`)
@@ -30,7 +30,7 @@ Before this audit:
 - Web GUI knowledge was scattered across 10+ rule files, 3 agent definitions, 200+ STAMP constraints, and 67+ Gleam source files
 - No single consolidated reference existed for Gleam-based Web UI development
 - The relationship between Elixir/Phoenix LiveView artifacts (Wallaby, HMI, coverage) and the new Gleam/Lustre codebase was not formally documented
-- intelitor-v5.2's location (inside c3i, not separate) was not explicitly documented
+- c3i's location (inside c3i, not separate) was not explicitly documented
 
 ---
 
@@ -200,9 +200,9 @@ Searched both codebases in parallel using Glob, Grep, and Read tools:
 |----------|------|---------|
 | **PLANNING_WEBUI_DESIGN.md** | `docs/PLANNING_WEBUI_DESIGN.md` | C3I Planning WebUI — SIL-6 Aligned Design. 8-Panel Dashboard: (1) Task Board (Kanban, drag-drop, AG-UI STATE_DELTA), (2) OODA Cycle Monitor (4-phase ring, <100ms target, sparkline), (3) Safety Kernel (10 constitutional check indicators, threat gauge), (4) Enforcer Shield (5-layer defense rings, violation feed), (5) Graph Verify (interactive SVG, 4-check verification), (6) Orchestration Mesh (7-service mesh, container DFA 14 states), (7) Chaya Twin (5-phase sync, bidirectional status), (8) Startup Optimizer (Gantt chart, CPM metrics, DFA state machine). Fractal Layer Coverage Matrix (L0-L7). FMEA Risk Analysis per panel (RPN 108-210). Design principles: SIL-6 Dark Cockpit + AG-UI Event Streaming + Generative UI (Google A2UI). |
 
-### 3.6 intelitor-v5.2 Assessment
+### 3.6 c3i Assessment
 
-**Location**: `/home/an/dev/ver/c3i/intelitor-v5.2/` (subdirectory INSIDE c3i, not separate repo)
+**Location**: `/home/an/dev/ver/c3i/c3i/` (subdirectory INSIDE c3i, not separate repo)
 
 - Has its own `.claude/rules/` directory with 42 rule files — mirrors of c3i rules (identical content: ui-graph-testing.md, fractal-coverage-gold-standard.md, fractal-coverage-mathematical-framework.md, prajna-biomorphic.md, five-level-testing.md, human-intent-protection.md, etc.)
 - Has `CLAUDE.md` at root
@@ -244,7 +244,7 @@ Searched both codebases in parallel using Glob, Grep, and Read tools:
 ### Anti-Patterns (Risks)
 1. **Scattered Guidelines**: Before this audit, a developer would need to read 10+ rule files to understand Web UI requirements
 2. **Framework Gap**: Mathematical coverage framework (Shannon entropy, ITQS) was formalized for Wallaby/Elixir but had no explicit Gleam adaptation document
-3. **intelitor Mirror**: 42 rule files duplicated between c3i and intelitor-v5.2 creates maintenance burden if they diverge
+3. **intelitor Mirror**: 42 rule files duplicated between c3i and c3i creates maintenance burden if they diverge
 
 ---
 
@@ -259,7 +259,7 @@ Searched both codebases in parallel using Glob, Grep, and Read tools:
 | Dark Cockpit implementation verified | PASS | prajna/dark_cockpit.gleam read — 5 modes, alert-driven |
 | Shared types canonical source verified | PASS | ui/domain.gleam has 12 Page variants, all types documented |
 | Design document found | PASS | docs/PLANNING_WEBUI_DESIGN.md — 8-panel design |
-| intelitor-v5.2 located | PASS | Inside c3i at intelitor-v5.2/, 42 mirrored rules |
+| c3i located | PASS | Inside c3i at c3i/, 42 mirrored rules |
 | Consolidated rule created | PASS | .claude/rules/gleam-web-ui-development.md written |
 | Memory saved | PASS | memory/gleam-web-ui-inventory.md written |
 | STAMP constraint census | PASS | 230+ UI-relevant constraints across 25+ families |
@@ -297,8 +297,8 @@ The mathematical coverage framework (Shannon entropy, CCM, ITQS) is framework-ag
 ### 9.3 AG-UI as Fourth Interface
 The `agui/` module (SSE, events, zenoh_bus) effectively constitutes a fourth interface: real-time event streaming. It's not a rendering interface but a data-push channel that feeds all three rendering interfaces.
 
-### 9.4 intelitor-v5.2 Dependency
-intelitor-v5.2 lives inside c3i and shares the same Gleam libraries. Its 42 mirrored `.claude/rules/` files suggest it was forked from c3i's rule set. Future rule changes should propagate to both locations or the mirroring should be automated.
+### 9.4 c3i Dependency
+c3i lives inside c3i and shares the same Gleam libraries. Its 42 mirrored `.claude/rules/` files suggest it was forked from c3i's rule set. Future rule changes should propagate to both locations or the mirroring should be automated.
 
 ---
 
@@ -309,7 +309,7 @@ intelitor-v5.2 lives inside c3i and shares the same Gleam libraries. Its 42 mirr
 | 1 | No Gleam-specific E2E browser test framework (Wallaby is Elixir-only) | P1 | Use Wallaby via Elixir test harness calling Gleam Wisp endpoints, or adopt Playwright via external process |
 | 2 | SC-GLM-UI constraints not yet in CLAUDE.md STAMP section (only in code) | P2 | Add SC-GLM-UI-001..010 to CLAUDE.md per SC-SYNC-DOC-009 |
 | 3 | No ITQS audit task for Gleam tests (only `lib/mix/tasks/wallaby_coverage_audit.ex` exists) | P2 | Create `gleam_coverage_audit` task or extend existing |
-| 4 | intelitor-v5.2 rule file duplication creates drift risk | P3 | Automate sync or use symlinks |
+| 4 | c3i rule file duplication creates drift risk | P3 | Automate sync or use symlinks |
 | 5 | `docs/PLANNING_WEBUI_DESIGN.md` panel specs only cover Planning — other cockpit domains not yet designed | P2 | Extend design doc to cover all 12 Page variants |
 | 6 | GEMINI.md and AGENTS.md were not found to have UI-specific sections distinct from CLAUDE.md | P3 | Verify and document if needed |
 
@@ -320,7 +320,7 @@ intelitor-v5.2 lives inside c3i and shares the same Gleam libraries. Its 42 mirr
 | Metric | Value |
 |--------|-------|
 | Rule files scanned (c3i) | 41 |
-| Rule files scanned (intelitor-v5.2) | 42 |
+| Rule files scanned (c3i) | 42 |
 | UI-relevant rules identified | 10 |
 | Agent definitions scanned | 27 |
 | UI-relevant agents identified | 3 |
@@ -355,7 +355,7 @@ intelitor-v5.2 lives inside c3i and shares the same Gleam libraries. Its 42 mirr
 
 ## 13. Conclusion
 
-A comprehensive audit of Web GUI artifacts across c3i and intelitor-v5.2 was completed,
+A comprehensive audit of Web GUI artifacts across c3i and c3i was completed,
 identifying 10 relevant rules, 3 agents, 230+ STAMP constraints, and 67+ Gleam source files
 implementing a triple-interface architecture (Lustre Web SSR + Wisp JSON API + TUI Terminal).
 

@@ -88,8 +88,7 @@ pub fn msg_container_action_passthrough_test() {
   let dashboard = planning_dashboard.init()
   let td = test_dashboard.init()
   let model = split_screen.init_split_screen(dashboard, td)
-  let updated =
-    split_screen.update(model, ContainerAction(CmdStart("app-1")))
+  let updated = split_screen.update(model, ContainerAction(CmdStart("app-1")))
   updated.top_lines |> should.equal(model.top_lines)
 }
 

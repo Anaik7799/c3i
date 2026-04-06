@@ -2,7 +2,7 @@
 
 ## 1. Summary of UI-Related System Artifacts
 
-Based on the analysis of the `c3i` and `intelitor-v5.2` codebase, here is the summary of the key UI-related artifacts and what they do:
+Based on the analysis of the `c3i` and `c3i` codebase, here is the summary of the key UI-related artifacts and what they do:
 
 ### Rules (`.claude/rules/`)
 *   **`gleam-web-ui-development.md`**: Defines the "Fractal Agentic UI" approach (AG-UI protocol). It enforces a Triple-Interface Mandate (Lustre Web SSR, Wisp REST API, TUI ANSI) for every UI capability. It strictly prohibits direct side effects in UI updates, dictates the 8-Panel Dashboard pattern, and defines human-in-the-loop (HITL) and mathematical coverage standards (ITQS, Shannon Entropy).

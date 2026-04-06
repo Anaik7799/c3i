@@ -1,6 +1,5 @@
 /// Planning page wiring tests — verifies all 6 wiring connections.
 /// STAMP: SC-GLM-UI-001, SC-AGUI-011, SC-A2UI-002
-
 import cepaf_gleam/a2ui/catalog
 import cepaf_gleam/a2ui/schema.{ComponentProposal}
 import cepaf_gleam/a2ui/validator
@@ -196,8 +195,7 @@ pub fn a2ui_unknown_component_rejected_test() {
     )
   case validator.validate_proposal(cat, proposal) {
     validator.Valid -> should.fail()
-    validator.Invalid(reasons) ->
-      { reasons != [] } |> should.be_true()
+    validator.Invalid(reasons) -> { reasons != [] } |> should.be_true()
   }
 }
 
@@ -250,10 +248,7 @@ pub fn health_score_nominal_is_high_test() {
 pub fn health_score_degraded_triggers_mode_change_test() {
   let model = planning_dashboard.init()
   let model =
-    planning_dashboard.update(
-      model,
-      planning_dashboard.ThreatLevelChanged(0.8),
-    )
+    planning_dashboard.update(model, planning_dashboard.ThreatLevelChanged(0.8))
   let mode = planning_dashboard.determine_cockpit_mode(model)
   // High threat should not be Dark mode
   case mode {

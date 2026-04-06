@@ -331,7 +331,7 @@ Rust tests: **307 passed** (41 rule engine tests). Gleam tests: **1,721 passed**
 
 All updates to `PROJECT_TODOLIST.md`, task status transitions (Pending -> Active -> Completed), and priority changes MUST be performed exclusively via the `sa-plan-daemon` Rust binary. This binary replaces the legacy F# `Cepaf.Planning.CLI`.
 
-**Binary path**: `./sub-projects/intelitor-v5.2/target/release/sa-plan-daemon`
+**Binary path**: `./sub-projects/c3i/target/release/sa-plan-daemon`
 
 **Prohibitions**:
 - Direct manual edits to `PROJECT_TODOLIST.md` are STRICTLY FORBIDDEN.

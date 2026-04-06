@@ -1,9 +1,7 @@
 /// TUI view for Device Health Grid (SC-GLM-UI-001, SC-GLM-UI-004, SC-GLM-UI-007).
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-004, SC-GLM-UI-007
 import cepaf_gleam/cockpit/visuals
-import cepaf_gleam/ui/domain.{
-  type DeviceHealth, Maintenance, Offline, Online,
-}
+import cepaf_gleam/ui/domain.{type DeviceHealth, Maintenance, Offline, Online}
 import cepaf_gleam/ui/lustre/health_grid.{type HealthGridModel}
 import gleam/float
 import gleam/int
@@ -21,7 +19,9 @@ fn render_summary(devices: List(DeviceHealth)) -> String {
   let total = list.length(devices)
   let healthy = list.count(devices, fn(d) { d.health_score >. 0.8 })
   let degraded =
-    list.count(devices, fn(d) { d.health_score <=. 0.8 && d.health_score >. 0.5 })
+    list.count(devices, fn(d) {
+      d.health_score <=. 0.8 && d.health_score >. 0.5
+    })
   let critical = list.count(devices, fn(d) { d.health_score <=. 0.5 })
 
   "  "

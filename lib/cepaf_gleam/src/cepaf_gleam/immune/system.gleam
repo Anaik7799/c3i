@@ -1,6 +1,4 @@
-import cepaf_gleam/immune/domain.{
-  type Antibody, Antibody,
-}
+import cepaf_gleam/immune/domain.{type Antibody, Antibody}
 import cepaf_gleam/immune/patterns.{type FailurePattern}
 import gleam/erlang/process.{type Subject}
 import gleam/io

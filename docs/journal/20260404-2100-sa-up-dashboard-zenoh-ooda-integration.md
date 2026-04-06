@@ -50,10 +50,10 @@ Standard dashboards are "black boxes" to external agents. By broadcasting elemen
 - **OTel Fidelity**: Spans contain TraceID, SpanId, and OODA-tagged phases.
 
 ## 8. Files
-- `sub-projects/intelitor-v5.2/native/ignition_daemon/src/zenoh_telemetry.rs` (New)
-- `sub-projects/intelitor-v5.2/native/ignition_daemon/src/tui.rs` (Updated)
-- `sub-projects/intelitor-v5.2/native/ignition_daemon/src/main.rs` (Updated)
-- `sub-projects/intelitor-v5.2/native/ignition_daemon/Cargo.toml` (Updated)
+- `sub-projects/c3i/native/ignition_daemon/src/zenoh_telemetry.rs` (New)
+- `sub-projects/c3i/native/ignition_daemon/src/tui.rs` (Updated)
+- `sub-projects/c3i/native/ignition_daemon/src/main.rs` (Updated)
+- `sub-projects/c3i/native/ignition_daemon/Cargo.toml` (Updated)
 
 ---
 **Authoritative Audit**: SC-ZENOH-001 Compliant.

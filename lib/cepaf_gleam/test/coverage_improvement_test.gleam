@@ -4,8 +4,7 @@
 
 import cepaf_gleam/cockpit/visuals
 import cepaf_gleam/testing/coverage_math.{
-  type FileCoverage, FileCoverage, GradeA, GradeB, GradeD,
-  P2,
+  type FileCoverage, FileCoverage, GradeA, GradeB, GradeD, P2,
 }
 import cepaf_gleam/testing/test_dashboard
 import cepaf_gleam/ui/domain
@@ -32,7 +31,8 @@ import gleeunit/should
 
 pub fn c8_dashboard_invalid_telemetry_handled_test() {
   let model = app.init()
-  let point = domain.TelemetryPoint(key: "", value: -1.0, timestamp: 0, unit: "")
+  let point =
+    domain.TelemetryPoint(key: "", value: -1.0, timestamp: 0, unit: "")
   let updated = app.update(model, app.TelemetryReceived(point))
   { updated.context.telemetry != [] } |> should.equal(True)
 }
@@ -131,19 +131,34 @@ pub fn c8_coverage_math_divergence_zero_expected_test() {
 
 pub fn c7_agui_span_dashboard_test() {
   let span =
-    zenoh_otel.new_span(domain.Dashboard, "agui_event", zenoh_otel.Observe, json.null())
+    zenoh_otel.new_span(
+      domain.Dashboard,
+      "agui_event",
+      zenoh_otel.Observe,
+      json.null(),
+    )
   zenoh_otel.page_to_string(span.page) |> should.equal("dashboard")
 }
 
 pub fn c7_agui_span_planning_test() {
   let span =
-    zenoh_otel.new_span(domain.Planning, "agui_event", zenoh_otel.Orient, json.null())
+    zenoh_otel.new_span(
+      domain.Planning,
+      "agui_event",
+      zenoh_otel.Orient,
+      json.null(),
+    )
   zenoh_otel.page_to_string(span.page) |> should.equal("planning")
 }
 
 pub fn c7_agui_span_immune_test() {
   let span =
-    zenoh_otel.new_span(domain.Immune, "agui_event", zenoh_otel.Decide, json.null())
+    zenoh_otel.new_span(
+      domain.Immune,
+      "agui_event",
+      zenoh_otel.Decide,
+      json.null(),
+    )
   zenoh_otel.page_to_string(span.page) |> should.equal("immune")
 }
 
@@ -166,37 +181,67 @@ pub fn c7_agui_span_verification_test() {
 
 pub fn c7_agui_span_podman_test() {
   let span =
-    zenoh_otel.new_span(domain.Podman, "agui_event", zenoh_otel.Act, json.null())
+    zenoh_otel.new_span(
+      domain.Podman,
+      "agui_event",
+      zenoh_otel.Act,
+      json.null(),
+    )
   zenoh_otel.page_to_string(span.page) |> should.equal("podman")
 }
 
 pub fn c7_agui_span_mcp_test() {
   let span =
-    zenoh_otel.new_span(domain.Mcp, "agui_event", zenoh_otel.Observe, json.null())
+    zenoh_otel.new_span(
+      domain.Mcp,
+      "agui_event",
+      zenoh_otel.Observe,
+      json.null(),
+    )
   zenoh_otel.page_to_string(span.page) |> should.equal("mcp")
 }
 
 pub fn c7_agui_span_kms_test() {
   let span =
-    zenoh_otel.new_span(domain.Kms, "agui_event", zenoh_otel.Decide, json.null())
+    zenoh_otel.new_span(
+      domain.Kms,
+      "agui_event",
+      zenoh_otel.Decide,
+      json.null(),
+    )
   zenoh_otel.page_to_string(span.page) |> should.equal("kms")
 }
 
 pub fn c7_agui_span_telemetry_test() {
   let span =
-    zenoh_otel.new_span(domain.Telemetry, "agui_event", zenoh_otel.Orient, json.null())
+    zenoh_otel.new_span(
+      domain.Telemetry,
+      "agui_event",
+      zenoh_otel.Orient,
+      json.null(),
+    )
   zenoh_otel.page_to_string(span.page) |> should.equal("telemetry")
 }
 
 pub fn c7_agui_span_federation_test() {
   let span =
-    zenoh_otel.new_span(domain.Federation, "agui_event", zenoh_otel.Act, json.null())
+    zenoh_otel.new_span(
+      domain.Federation,
+      "agui_event",
+      zenoh_otel.Act,
+      json.null(),
+    )
   zenoh_otel.page_to_string(span.page) |> should.equal("federation")
 }
 
 pub fn c7_agui_span_health_grid_test() {
   let span =
-    zenoh_otel.new_span(domain.HealthGrid, "agui_event", zenoh_otel.Observe, json.null())
+    zenoh_otel.new_span(
+      domain.HealthGrid,
+      "agui_event",
+      zenoh_otel.Observe,
+      json.null(),
+    )
   zenoh_otel.page_to_string(span.page) |> should.equal("health_grid")
 }
 
@@ -303,7 +348,7 @@ pub fn per_element_kpi_grade_for_gold_test() {
 
 pub fn corrective_actions_identifies_gaps_test() {
   let cov = [make_coverage("low", 1, 1, 1, 1, 1, 1, 1, 1)]
-  let actions = coverage_math.corrective_actions_for_ccm_gap(cov, 0.90)
+  let actions = coverage_math.corrective_actions_for_ccm_gap(cov, 0.9)
   { actions != [] } |> should.equal(True)
 }
 
@@ -324,7 +369,7 @@ pub fn weighted_suite_ccm_empty_test() {
 pub fn update_kpis_sets_overall_test() {
   let model = test_dashboard.init()
   let updated =
-    test_dashboard.update_kpis_from_coverages(model, 0.90, 2.7, 0.05, 0.85)
+    test_dashboard.update_kpis_from_coverages(model, 0.9, 2.7, 0.05, 0.85)
   { updated.overall_kpi.ccm >=. 0.0 } |> should.equal(True)
 }
 
@@ -375,9 +420,7 @@ fn make_coverage(
     c6: c6,
     c7: c7,
     c8: c8,
-    applicable_categories: [
-      "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8",
-    ],
+    applicable_categories: ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"],
     expected_elements: c1 + c2 + c3 + c4 + c5 + c6 + c7 + c8,
     implemented_elements: c1 + c2 + c3 + c4 + c5 + c6 + c7 + c8,
   )

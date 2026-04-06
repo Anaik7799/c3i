@@ -17,7 +17,7 @@ for the 2026-04-03 session, documenting the complete operational runbook and clo
 
 No consolidated run instructions existed. Operational knowledge was spread across:
 - `devenv.nix` (57 script definitions)
-- `sa-*` binaries in `intelitor-v5.2/` (38 files)
+- `sa-*` binaries in `c3i/` (38 files)
 - Various journal entries and CLAUDE.md sections
 - Tribal knowledge about port assignments and boot order
 

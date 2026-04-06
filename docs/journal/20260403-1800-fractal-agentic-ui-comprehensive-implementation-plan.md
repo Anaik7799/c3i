@@ -421,7 +421,7 @@ L0: MASTER SUPERVISOR (1 agent — Opus)
 | Lustre API researched | COMPLETE | 5 constructors, 3 transports, effect system |
 | Wisp role clarified | CORRECTED | REST only, not WebSocket/SSE |
 | Testing framework designed | COMPLETE | 7 modules, 7 metrics |
-| PROMETHEUS location found | VERIFIED | intelitor-v5.2/docs/journal/20251227* |
+| PROMETHEUS location found | VERIFIED | c3i/docs/journal/20251227* |
 | Rust code location found | VERIFIED | src/rust/ (2 existing crates) |
 | Operator cognition ranking | COMPLETE | 20 features ranked by Score |
 | Swarm architecture designed | COMPLETE | L0-L1-L2, 25 agents |

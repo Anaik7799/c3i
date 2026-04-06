@@ -18,11 +18,7 @@ import gleam/string
 
 /// A resolved binding — state value extracted and ready to apply.
 pub type ResolvedBinding {
-  ResolvedBinding(
-    component_id: String,
-    prop_name: String,
-    value: String,
-  )
+  ResolvedBinding(component_id: String, prop_name: String, value: String)
 }
 
 /// Extract all bindings from a proposal tree (recursive).
@@ -31,8 +27,7 @@ pub fn extract_bindings(proposal: ComponentProposal) -> List(DataBinding) {
     Some(b) -> [b]
     None -> []
   }
-  let child_bindings =
-    list.flat_map(proposal.children, extract_bindings)
+  let child_bindings = list.flat_map(proposal.children, extract_bindings)
   list.append(own, child_bindings)
 }
 
@@ -46,8 +41,7 @@ pub fn binding_count(proposal: ComponentProposal) -> Int {
 pub fn validate_path(path: String) -> Result(String, String) {
   case string.starts_with(path, "/") {
     True -> Ok(path)
-    False ->
-      Error("State path must start with '/' (RFC 6901): " <> path)
+    False -> Error("State path must start with '/' (RFC 6901): " <> path)
   }
 }
 
@@ -71,13 +65,11 @@ pub fn new_binding_with_transform(
 ) -> Result(DataBinding, String) {
   case validate_path(state_path) {
     Ok(p) ->
-      Ok(
-        DataBinding(
-          state_path: p,
-          prop_name: prop_name,
-          transform: Some(transform),
-        ),
-      )
+      Ok(DataBinding(
+        state_path: p,
+        prop_name: prop_name,
+        transform: Some(transform),
+      ))
     Error(e) -> Error(e)
   }
 }

@@ -27,7 +27,7 @@ Execute P0 tasks for Knowledge & Memory (Smriti) and Governance & Planning plane
 
 ## 4. RCA (Root Cause Analysis)
 - **Problem**: `sa-plan` reporting stale task counts.
-- **Root Cause**: The F# tool uses an authoritative database at `/home/an/dev/ver/intelitor-v5.2/data/smriti/planning.db`, which is outside the `c3i` workspace.
+- **Root Cause**: The F# tool uses an authoritative database at `/home/an/dev/ver/c3i/data/smriti/planning.db`, which is outside the `c3i` workspace.
 - **Mitigation**: Future planning operations must account for this shared infrastructure or explicit path overrides.
 
 ## 5. Taxonomy

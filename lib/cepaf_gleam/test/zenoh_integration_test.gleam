@@ -318,4 +318,3 @@ fn span_to_json_for_test(span: OtelSpan) -> json.Json {
     #("attributes", span.attributes),
   ])
 }
-

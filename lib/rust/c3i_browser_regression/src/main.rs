@@ -7,7 +7,11 @@
 // STAMP: SC-COV-001, SC-UIGT-001, SC-GLM-UI-001, SC-AGUI-001
 // =============================================================================
 
+#![deny(warnings, unused_imports, dead_code)]
+
+use c3i_common::telemetry;
 use chrono::Local;
+use clap::Parser;
 use crossterm::{
     event::{self, Event, KeyCode},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
@@ -15,16 +19,51 @@ use crossterm::{
 };
 use ratatui::{
     backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Cell, Gauge, Paragraph, Row, Table},
     Terminal,
 };
 use reqwest::blocking::Client;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::io::{self, stdout};
+use std::path::PathBuf;
 use std::time::{Duration, Instant};
+
+// =============================================================================
+// CLI Definition
+// =============================================================================
+
+#[derive(Parser)]
+#[command(name = "c3i_browser_regression")]
+#[command(about = "SIL-6 browser regression suite with live Ratatui TUI")]
+struct Cli {
+    /// Run without TUI; print results to stdout
+    #[arg(long)]
+    headless: bool,
+
+    /// Base URL of the C3I server
+    #[arg(long, env = "C3I_URL", default_value = "http://localhost:4100")]
+    url: String,
+
+    /// Publish results to Zenoh mesh (Phase 4)
+    #[arg(long)]
+    publish_zenoh: bool,
+
+    /// Write test results as JSON to this file
+    #[arg(long)]
+    json_output: Option<PathBuf>,
+
+    /// Enable verbose tracing output
+    #[arg(short, long)]
+    verbose: bool,
+
+    /// Run only tests in this category
+    #[arg(long, value_parser = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "AG-UI", "A2UI"])]
+    category: Option<String>,
+}
 
 // =============================================================================
 // Test Definition
@@ -40,9 +79,14 @@ struct TestCase {
 }
 
 #[derive(Clone, Copy)]
-enum Method { Get, Post }
+enum Method {
+    Get,
+    #[allow(dead_code)]
+    Post,
+}
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 enum Category {
     C1PageStructure,
     C2StatusBadge,
@@ -64,10 +108,11 @@ enum Assertion {
     HasJsonField(&'static str),
     ResponseTimeMs(u64),
     ContentTypeHtml,
+    #[allow(dead_code)]
     ContentTypeJson,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 struct TestResult {
     name: String,
     path: String,
@@ -80,8 +125,16 @@ struct TestResult {
     error: Option<String>,
 }
 
-#[derive(Clone, Copy, PartialEq)]
-enum TestStatus { Pass, Fail, Running, Pending }
+#[derive(Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum TestStatus {
+    Pass,
+    Fail,
+    #[allow(dead_code)]
+    Running,
+    #[allow(dead_code)]
+    Pending,
+}
 
 // =============================================================================
 // Test Suite Definition — All c3i Pages & Endpoints
@@ -665,14 +718,21 @@ fn build_test_suite() -> Vec<TestCase> {
 // =============================================================================
 
 fn run_test(client: &Client, base_url: &str, test: &TestCase) -> TestResult {
+    // Dispatch on method — currently only GET is used, but Post is wired for future tests.
     let url = format!("{}{}", base_url, test.path);
     let start = Instant::now();
 
-    match client.get(&url).timeout(Duration::from_secs(10)).send() {
+    let send_result = match test.method {
+        Method::Get => client.get(&url).timeout(Duration::from_secs(10)).send(),
+        Method::Post => client.post(&url).timeout(Duration::from_secs(10)).send(),
+    };
+
+    match send_result {
         Ok(resp) => {
             let elapsed = start.elapsed().as_millis() as u64;
             let status_code = resp.status().as_u16();
-            let content_type = resp.headers()
+            let content_type = resp
+                .headers()
                 .get("content-type")
                 .and_then(|v| v.to_str().ok())
                 .unwrap_or("")
@@ -687,23 +747,27 @@ fn run_test(client: &Client, base_url: &str, test: &TestCase) -> TestResult {
                     Assertion::StatusCode(expected) => status_code == *expected,
                     Assertion::ContainsText(text) => body.contains(text),
                     Assertion::IsValidJson => serde_json::from_str::<Value>(&body).is_ok(),
-                    Assertion::HasJsonField(field) => {
-                        serde_json::from_str::<Value>(&body)
-                            .map(|v| v.get(field).is_some())
-                            .unwrap_or(false)
-                    }
+                    Assertion::HasJsonField(field) => serde_json::from_str::<Value>(&body)
+                        .map(|v| v.get(field).is_some())
+                        .unwrap_or(false),
                     Assertion::ResponseTimeMs(max) => elapsed <= *max,
                     Assertion::ContentTypeHtml => content_type.contains("text/html"),
                     Assertion::ContentTypeJson => content_type.contains("application/json"),
                 };
-                if ok { passed += 1; }
+                if ok {
+                    passed += 1;
+                }
             }
 
             TestResult {
                 name: test.name.to_string(),
                 path: test.path.to_string(),
                 category: test.category,
-                status: if passed == total { TestStatus::Pass } else { TestStatus::Fail },
+                status: if passed == total {
+                    TestStatus::Pass
+                } else {
+                    TestStatus::Fail
+                },
                 response_time_ms: elapsed,
                 status_code,
                 assertions_passed: passed,
@@ -760,6 +824,26 @@ fn category_color(cat: Category) -> Color {
 }
 
 // =============================================================================
+// Category Filter
+// =============================================================================
+
+fn category_from_str(s: &str) -> Option<Category> {
+    match s {
+        "C1" => Some(Category::C1PageStructure),
+        "C2" => Some(Category::C2StatusBadge),
+        "C3" => Some(Category::C3DataGrid),
+        "C4" => Some(Category::C4Timeline),
+        "C5" => Some(Category::C5Interactive),
+        "C6" => Some(Category::C6MediaRich),
+        "C7" => Some(Category::C7AiAdvisory),
+        "C8" => Some(Category::C8ActionButton),
+        "AG-UI" => Some(Category::AgUi),
+        "A2UI" => Some(Category::A2Ui),
+        _ => None,
+    }
+}
+
+// =============================================================================
 // TUI Rendering
 // =============================================================================
 
@@ -774,26 +858,39 @@ fn render_ui(
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(3),  // Header
-                Constraint::Length(3),  // Progress
-                Constraint::Length(5),  // Summary
+                Constraint::Length(3), // Header
+                Constraint::Length(3), // Progress
+                Constraint::Length(5), // Summary
                 Constraint::Min(10),   // Results table
-                Constraint::Length(3),  // Footer
+                Constraint::Length(3), // Footer
             ])
             .split(frame.area());
 
         // Header
         let elapsed = start_time.elapsed().as_secs_f64();
         let header = Paragraph::new(Line::from(vec![
-            Span::styled(" C3I BROWSER REGRESSION ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                " C3I BROWSER REGRESSION ",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::raw(" | "),
-            Span::styled(format!("{} tests", total), Style::default().fg(Color::White)),
+            Span::styled(
+                format!("{} tests", total),
+                Style::default().fg(Color::White),
+            ),
             Span::raw(" | "),
-            Span::styled(format!("{:.1}s elapsed", elapsed), Style::default().fg(Color::Cyan)),
+            Span::styled(
+                format!("{:.1}s elapsed", elapsed),
+                Style::default().fg(Color::Cyan),
+            ),
             Span::raw(" | "),
             Span::styled(
                 if running { "RUNNING..." } else { "COMPLETE" },
-                Style::default().fg(if running { Color::Yellow } else { Color::Green }).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(if running { Color::Yellow } else { Color::Green })
+                    .add_modifier(Modifier::BOLD),
             ),
         ]))
         .block(Block::default().borders(Borders::ALL).title(" SIL-6 Regression "));
@@ -801,34 +898,67 @@ fn render_ui(
 
         // Progress bar
         let done = results.len();
-        let ratio = if total > 0 { done as f64 / total as f64 } else { 0.0 };
-        let passed = results.iter().filter(|r| r.status == TestStatus::Pass).count();
-        let failed = results.iter().filter(|r| r.status == TestStatus::Fail).count();
+        let ratio = if total > 0 {
+            done as f64 / total as f64
+        } else {
+            0.0
+        };
+        let passed = results
+            .iter()
+            .filter(|r| r.status == TestStatus::Pass)
+            .count();
+        let failed = results
+            .iter()
+            .filter(|r| r.status == TestStatus::Fail)
+            .count();
         let gauge = Gauge::default()
             .block(Block::default().borders(Borders::ALL).title(" Progress "))
-            .gauge_style(Style::default().fg(if failed > 0 { Color::Red } else { Color::Green }))
+            .gauge_style(
+                Style::default().fg(if failed > 0 { Color::Red } else { Color::Green }),
+            )
             .ratio(ratio)
-            .label(format!("{}/{} done | {} pass | {} fail", done, total, passed, failed));
+            .label(format!(
+                "{}/{} done | {} pass | {} fail",
+                done, total, passed, failed
+            ));
         frame.render_widget(gauge, chunks[1]);
 
         // Category summary
         let categories = [
-            Category::C1PageStructure, Category::C2StatusBadge, Category::C3DataGrid,
-            Category::C4Timeline, Category::C5Interactive, Category::C6MediaRich,
-            Category::C7AiAdvisory, Category::C8ActionButton, Category::AgUi, Category::A2Ui,
+            Category::C1PageStructure,
+            Category::C2StatusBadge,
+            Category::C3DataGrid,
+            Category::C4Timeline,
+            Category::C5Interactive,
+            Category::C6MediaRich,
+            Category::C7AiAdvisory,
+            Category::C8ActionButton,
+            Category::AgUi,
+            Category::A2Ui,
         ];
-        let cat_spans: Vec<Span> = categories.iter().map(|cat| {
-            let cat_results: Vec<&TestResult> = results.iter().filter(|r| r.category == *cat).collect();
-            let cat_pass = cat_results.iter().filter(|r| r.status == TestStatus::Pass).count();
-            let cat_total = cat_results.len();
-            let color = if cat_total == 0 { Color::DarkGray }
-                else if cat_pass == cat_total { Color::Green }
-                else { Color::Red };
-            Span::styled(
-                format!(" {}:{}/{} ", category_name(*cat), cat_pass, cat_total),
-                Style::default().fg(color),
-            )
-        }).collect();
+        let cat_spans: Vec<Span> = categories
+            .iter()
+            .map(|cat| {
+                let cat_results: Vec<&TestResult> =
+                    results.iter().filter(|r| r.category == *cat).collect();
+                let cat_pass = cat_results
+                    .iter()
+                    .filter(|r| r.status == TestStatus::Pass)
+                    .count();
+                let cat_total = cat_results.len();
+                let color = if cat_total == 0 {
+                    Color::DarkGray
+                } else if cat_pass == cat_total {
+                    Color::Green
+                } else {
+                    Color::Red
+                };
+                Span::styled(
+                    format!(" {}:{}/{} ", category_name(*cat), cat_pass, cat_total),
+                    Style::default().fg(color),
+                )
+            })
+            .collect();
         let summary = Paragraph::new(vec![
             Line::from(cat_spans[..5].to_vec()),
             Line::from(cat_spans[5..].to_vec()),
@@ -839,33 +969,44 @@ fn render_ui(
         // Results table
         let header_cells = ["#", "Status", "Cat", "Test", "Path", "Code", "Time", "Assert"]
             .iter()
-            .map(|h| Cell::from(*h).style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)));
+            .map(|h| {
+                Cell::from(*h).style(
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                )
+            });
         let header_row = Row::new(header_cells).height(1);
 
-        let rows: Vec<Row> = results.iter().enumerate().map(|(i, r)| {
-            let status_style = match r.status {
-                TestStatus::Pass => Style::default().fg(Color::Green),
-                TestStatus::Fail => Style::default().fg(Color::Red),
-                TestStatus::Running => Style::default().fg(Color::Yellow),
-                TestStatus::Pending => Style::default().fg(Color::DarkGray),
-            };
-            let status_text = match r.status {
-                TestStatus::Pass => "PASS",
-                TestStatus::Fail => "FAIL",
-                TestStatus::Running => "RUN",
-                TestStatus::Pending => "...",
-            };
-            Row::new(vec![
-                Cell::from(format!("{:>2}", i + 1)),
-                Cell::from(status_text).style(status_style),
-                Cell::from(category_name(r.category)).style(Style::default().fg(category_color(r.category))),
-                Cell::from(r.name.clone()),
-                Cell::from(r.path.clone()),
-                Cell::from(format!("{}", r.status_code)),
-                Cell::from(format!("{}ms", r.response_time_ms)),
-                Cell::from(format!("{}/{}", r.assertions_passed, r.assertions_total)),
-            ])
-        }).collect();
+        let rows: Vec<Row> = results
+            .iter()
+            .enumerate()
+            .map(|(i, r)| {
+                let status_style = match r.status {
+                    TestStatus::Pass => Style::default().fg(Color::Green),
+                    TestStatus::Fail => Style::default().fg(Color::Red),
+                    TestStatus::Running => Style::default().fg(Color::Yellow),
+                    TestStatus::Pending => Style::default().fg(Color::DarkGray),
+                };
+                let status_text = match r.status {
+                    TestStatus::Pass => "PASS",
+                    TestStatus::Fail => "FAIL",
+                    TestStatus::Running => "RUN",
+                    TestStatus::Pending => "...",
+                };
+                Row::new(vec![
+                    Cell::from(format!("{:>2}", i + 1)),
+                    Cell::from(status_text).style(status_style),
+                    Cell::from(category_name(r.category))
+                        .style(Style::default().fg(category_color(r.category))),
+                    Cell::from(r.name.clone()),
+                    Cell::from(r.path.clone()),
+                    Cell::from(format!("{}", r.status_code)),
+                    Cell::from(format!("{}ms", r.response_time_ms)),
+                    Cell::from(format!("{}/{}", r.assertions_passed, r.assertions_total)),
+                ])
+            })
+            .collect();
 
         let table = Table::new(
             rows,
@@ -905,19 +1046,51 @@ fn render_ui(
 }
 
 // =============================================================================
+// JSON Output
+// =============================================================================
+
+fn write_json_output(path: &PathBuf, results: &[TestResult]) -> Result<(), Box<dyn std::error::Error>> {
+    let json = serde_json::to_string_pretty(results)?;
+    std::fs::write(path, json)?;
+    Ok(())
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let base_url = std::env::var("C3I_URL").unwrap_or_else(|_| "http://localhost:4100".to_string());
-    let tests = build_test_suite();
+    let cli = Cli::parse();
+
+    telemetry::init_tracing(cli.verbose);
+
+    if cli.publish_zenoh {
+        // Phase 4 stub — Zenoh publishing will be wired in a future iteration.
+        println!("[zenoh] publish_zenoh flag set — Zenoh publishing not yet implemented (Phase 4)");
+    }
+
+    let all_tests = build_test_suite();
+
+    // Apply category filter if requested.
+    let tests: Vec<TestCase> = if let Some(ref cat_str) = cli.category {
+        let filter_cat = category_from_str(cat_str)
+            .unwrap_or_else(|| panic!("Unknown category: {}", cat_str));
+        all_tests
+            .into_iter()
+            .filter(|t| t.category == filter_cat)
+            .collect()
+    } else {
+        all_tests
+    };
+
     let total = tests.len();
 
-    // Check if --headless flag is passed (no TUI, just print results)
-    let headless = std::env::args().any(|a| a == "--headless");
-
-    if headless {
-        return run_headless(&base_url, &tests);
+    if cli.headless {
+        let results = run_headless(&cli.url, &tests)?;
+        if let Some(ref path) = cli.json_output {
+            write_json_output(path, &results)?;
+        }
+        return Ok(());
     }
 
     // TUI mode
@@ -938,11 +1111,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Check for quit
         if event::poll(Duration::from_millis(10))? {
             if let Event::Key(key) = event::read()? {
-                if key.code == KeyCode::Char('q') { break; }
+                if key.code == KeyCode::Char('q') {
+                    break;
+                }
             }
         }
 
-        let result = run_test(&client, &base_url, test);
+        let result = run_test(&client, &cli.url, test);
         results.push(result);
         render_ui(&mut terminal, &results, total, true, start_time)?;
     }
@@ -957,14 +1132,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 KeyCode::Char('q') => break,
                 KeyCode::Char('r') => {
                     results.clear();
-                    let start_time = Instant::now();
-                    render_ui(&mut terminal, &results, total, true, start_time)?;
+                    let rerun_start = Instant::now();
+                    render_ui(&mut terminal, &results, total, true, rerun_start)?;
                     for test in &tests {
-                        let result = run_test(&client, &base_url, test);
+                        let result = run_test(&client, &cli.url, test);
                         results.push(result);
-                        render_ui(&mut terminal, &results, total, true, start_time)?;
+                        render_ui(&mut terminal, &results, total, true, rerun_start)?;
                     }
-                    render_ui(&mut terminal, &results, total, false, start_time)?;
+                    render_ui(&mut terminal, &results, total, false, rerun_start)?;
                 }
                 _ => {}
             }
@@ -977,44 +1152,81 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Print summary
     let passed = results.iter().filter(|r| r.status == TestStatus::Pass).count();
     let failed = results.iter().filter(|r| r.status == TestStatus::Fail).count();
-    println!("\n{} passed, {} failed out of {} tests", passed, failed, results.len());
+    println!(
+        "\n{} passed, {} failed out of {} tests",
+        passed,
+        failed,
+        results.len()
+    );
     if failed > 0 {
         println!("\nFailed tests:");
         for r in results.iter().filter(|r| r.status == TestStatus::Fail) {
-            println!("  FAIL {} — {} ({})", r.path, r.name, r.error.as_deref().unwrap_or("unknown"));
+            println!(
+                "  FAIL {} — {} ({})",
+                r.path,
+                r.name,
+                r.error.as_deref().unwrap_or("unknown")
+            );
         }
+    }
+
+    if let Some(ref path) = cli.json_output {
+        write_json_output(path, &results)?;
+    }
+
+    if failed > 0 {
         std::process::exit(1);
     }
 
     Ok(())
 }
 
-fn run_headless(base_url: &str, tests: &[TestCase]) -> Result<(), Box<dyn std::error::Error>> {
+fn run_headless(
+    base_url: &str,
+    tests: &[TestCase],
+) -> Result<Vec<TestResult>, Box<dyn std::error::Error>> {
     let client = Client::new();
     let start = Instant::now();
     let mut passed = 0;
     let mut failed = 0;
     let total = tests.len();
+    let mut results = Vec::with_capacity(total);
 
-    println!("C3I Browser Regression — {} tests against {}", total, base_url);
+    println!(
+        "C3I Browser Regression — {} tests against {}",
+        total, base_url
+    );
     println!("{}", "=".repeat(80));
 
     for (i, test) in tests.iter().enumerate() {
         let result = run_test(&client, base_url, test);
         let status = match result.status {
-            TestStatus::Pass => { passed += 1; "\x1b[32mPASS\x1b[0m" }
-            TestStatus::Fail => { failed += 1; "\x1b[31mFAIL\x1b[0m" }
+            TestStatus::Pass => {
+                passed += 1;
+                "\x1b[32mPASS\x1b[0m"
+            }
+            TestStatus::Fail => {
+                failed += 1;
+                "\x1b[31mFAIL\x1b[0m"
+            }
             _ => "???",
         };
         println!(
             "[{:>2}/{}] {} {:13} {:30} {:35} {}ms {}/{}",
-            i + 1, total, status,
-            category_name(result.category), result.name, result.path,
-            result.response_time_ms, result.assertions_passed, result.assertions_total,
+            i + 1,
+            total,
+            status,
+            category_name(result.category),
+            result.name,
+            result.path,
+            result.response_time_ms,
+            result.assertions_passed,
+            result.assertions_total,
         );
         if let Some(ref err) = result.error {
             println!("        └─ {}", err);
         }
+        results.push(result);
     }
 
     let elapsed = start.elapsed().as_secs_f64();
@@ -1027,5 +1239,119 @@ fn run_headless(base_url: &str, tests: &[TestCase]) -> Result<(), Box<dyn std::e
     if failed > 0 {
         std::process::exit(1);
     }
-    Ok(())
+    Ok(results)
+}
+
+// =============================================================================
+// Unit Tests
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_suite_has_minimum_tests() {
+        let suite = build_test_suite();
+        assert!(
+            suite.len() >= 40,
+            "expected >= 40 tests, got {}",
+            suite.len()
+        );
+    }
+
+    #[test]
+    fn test_categories_all_represented() {
+        let suite = build_test_suite();
+        let all_categories = [
+            Category::C1PageStructure,
+            Category::C2StatusBadge,
+            Category::C3DataGrid,
+            Category::C4Timeline,
+            Category::C5Interactive,
+            Category::C6MediaRich,
+            Category::C7AiAdvisory,
+            Category::C8ActionButton,
+            Category::AgUi,
+            Category::A2Ui,
+        ];
+        for cat in &all_categories {
+            let count = suite.iter().filter(|t| t.category == *cat).count();
+            assert!(
+                count >= 1,
+                "category {:?} has no tests in suite",
+                category_name(*cat)
+            );
+        }
+    }
+
+    #[test]
+    fn test_category_name_exhaustive() {
+        // Verify every Category variant maps to a non-empty string.
+        let cases = [
+            (Category::C1PageStructure, "C1:Structure"),
+            (Category::C2StatusBadge, "C2:Status"),
+            (Category::C3DataGrid, "C3:DataGrid"),
+            (Category::C4Timeline, "C4:Timeline"),
+            (Category::C5Interactive, "C5:Interactive"),
+            (Category::C6MediaRich, "C6:Media"),
+            (Category::C7AiAdvisory, "C7:AI"),
+            (Category::C8ActionButton, "C8:Action"),
+            (Category::AgUi, "AG-UI"),
+            (Category::A2Ui, "A2UI/API"),
+        ];
+        for (cat, expected) in &cases {
+            assert_eq!(category_name(*cat), *expected);
+        }
+    }
+
+    #[test]
+    fn test_category_color_exhaustive() {
+        // Verify every Category variant returns a Color without panicking.
+        let variants = [
+            Category::C1PageStructure,
+            Category::C2StatusBadge,
+            Category::C3DataGrid,
+            Category::C4Timeline,
+            Category::C5Interactive,
+            Category::C6MediaRich,
+            Category::C7AiAdvisory,
+            Category::C8ActionButton,
+            Category::AgUi,
+            Category::A2Ui,
+        ];
+        for cat in &variants {
+            // category_color must not panic for any variant.
+            let _ = category_color(*cat);
+        }
+    }
+
+    #[test]
+    fn test_result_serialization() {
+        let result = TestResult {
+            name: "Test serialization".to_string(),
+            path: "/api/health".to_string(),
+            category: Category::C2StatusBadge,
+            status: TestStatus::Pass,
+            response_time_ms: 42,
+            status_code: 200,
+            assertions_passed: 3,
+            assertions_total: 3,
+            error: None,
+        };
+
+        // Serialize to JSON string.
+        let json = serde_json::to_string(&result).expect("serialization must not fail");
+        assert!(json.contains("Test serialization"));
+        assert!(json.contains("pass"));
+        assert!(json.contains("c2_status_badge"));
+
+        // Round-trip: deserialize back.
+        let restored: TestResult =
+            serde_json::from_str(&json).expect("deserialization must not fail");
+        assert_eq!(restored.name, result.name);
+        assert_eq!(restored.status_code, 200);
+        assert_eq!(restored.assertions_passed, 3);
+        assert!(restored.error.is_none());
+    }
 }

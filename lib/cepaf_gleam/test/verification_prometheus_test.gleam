@@ -131,7 +131,8 @@ pub fn prometheus_check_exclusivity_disjoint_paths_test() {
 // =============================================================================
 
 pub fn prometheus_generate_proof_valid_path_test() {
-  let token = prometheus.generate_proof(simple_acyclic_dag(), ["A", "B", "C"], 0)
+  let token =
+    prometheus.generate_proof(simple_acyclic_dag(), ["A", "B", "C"], 0)
   token.result |> should.equal(Verified)
 }
 
@@ -147,8 +148,7 @@ pub fn prometheus_generate_proof_invalid_path_test() {
 pub fn prometheus_generate_proof_has_dag_hash_test() {
   let token = prometheus.generate_proof(simple_acyclic_dag(), ["A", "B"], 42)
   // Hash must start with "sha256:"
-  let starts_with_sha =
-    token.dag_hash |> string_starts_with("sha256:")
+  let starts_with_sha = token.dag_hash |> string_starts_with("sha256:")
   starts_with_sha |> should.be_true()
 }
 

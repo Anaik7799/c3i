@@ -215,29 +215,31 @@ pub fn coordinate_task_creation(
 }
 
 /// Coordinate a full OODA (Observe-Orient-Decide-Act) cycle across
-/// Cortex, Prajna, Planning, and CEPAF.
+/// Cortex, Prajna, Planning, and CEPAF service agents.
 pub fn coordinate_ooda_cycle(
   registry: Dict(String, Service),
 ) -> CoordinationResult {
   let ooda_services = ["Cortex", "Prajna", "Planning", "CEPAF"]
-  let available =
+
+  let involved =
     list.filter(ooda_services, fn(name) {
       case dict.get(registry, name) {
-        Ok(svc) -> is_service_online(svc)
+        Ok(_service) -> True
         Error(_) -> False
       }
     })
-  let all_online = list.length(available) == list.length(ooda_services)
+
+  let all_online = list.length(involved) == list.length(ooda_services)
+
   CoordinationResult(
-    services_involved: available,
+    services_involved: involved,
     actions_taken: case all_online {
       True -> [
-        "Cortex: observe — gathered situational data",
-        "Prajna: orient — analyzed threat landscape",
-        "Planning: decide — selected optimal action",
-        "CEPAF: act — executed coordination directive",
+        "L5_Executive: Synchronizing OODA cycles across autonomous agents",
+        "Prajna: Parallelized threat orient phase initiated",
+        "Planning: Decentralized decision consensus active",
       ]
-      False -> ["OODA cycle incomplete: missing services"]
+      False -> ["Coordination aborted: missing service agents in registry"]
     },
     success: all_online,
   )

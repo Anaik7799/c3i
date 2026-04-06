@@ -27,11 +27,16 @@ pub fn list_containers(
 }
 
 fn list_containers_cli(all: Bool) -> Result(List(ContainerSummary), String) {
-  let format = "{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.State}}|{{.Created}}"
-  let cmd = "podman ps --format \"" <> format <> "\"" <> case all {
-    True -> " --all"
-    False -> ""
-  }
+  let format =
+    "{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.State}}|{{.Created}}"
+  let cmd =
+    "podman ps --format \""
+    <> format
+    <> "\""
+    <> case all {
+      True -> " --all"
+      False -> ""
+    }
   case erl_os_cmd(cmd) {
     Ok(output_binary) -> {
       case bit_array.to_string(output_binary) {
@@ -56,20 +61,22 @@ fn parse_containers_pipe(content: String) -> List(ContainerSummary) {
           Ok(i) -> i
           Error(_) -> 0
         }
-        Ok(ContainerSummary(
-          id: id,
-          names: names,
-          image: image,
-          image_id: "",
-          command: "",
-          created: created,
-          state: domain.string_to_status(state_str),
-          status: status,
-          ports: [],
-          labels: dict.new(),
-          mounts: [],
-          networks: [],
-        ))
+        Ok(
+          ContainerSummary(
+            id: id,
+            names: names,
+            image: image,
+            image_id: "",
+            command: "",
+            created: created,
+            state: domain.string_to_status(state_str),
+            status: status,
+            ports: [],
+            labels: dict.new(),
+            mounts: [],
+            networks: [],
+          ),
+        )
       }
       _ -> Error(Nil)
     }

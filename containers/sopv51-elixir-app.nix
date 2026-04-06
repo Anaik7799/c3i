@@ -1,6 +1,6 @@
 # ACE v3.6.0 - THE HIGH-PERFORMANCE STACK
 # Stack: Erlang 28.3, Elixir 1.19.4, Rebar 3.25.1
-{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz") {} }:
+{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-25.11.tar.gz") {} }:
 let
   releaseSrc = builtins.path {
     name = "indrajaal-release-src";

@@ -11,11 +11,10 @@
 //   16:   all_psi_pass with all-pass and mixed-status inputs
 
 import cepaf_gleam/fractal/l0_constitutional.{
-  Approved, ConsensusApproved, ConsensusIncomplete, ConsensusRejected,
-  Critical, Escalated, Fail, High, Low, Medium, Pass,
-  PsiCheck, Psi0Existence, Psi1Regeneration, Psi2History, Psi3Verification,
-  Psi4HumanAlignment, Psi5Truthfulness, Rejected, VoteApprove, VoteReject,
-  Warning,
+  Approved, ConsensusApproved, ConsensusIncomplete, ConsensusRejected, Critical,
+  Escalated, Fail, High, Low, Medium, Pass, Psi0Existence, Psi1Regeneration,
+  Psi2History, Psi3Verification, Psi4HumanAlignment, Psi5Truthfulness, PsiCheck,
+  Rejected, VoteApprove, VoteReject, Warning,
 }
 import gleam/option.{None, Some}
 import gleeunit/should
@@ -27,11 +26,9 @@ import gleeunit/should
 pub fn intg_add_request_increases_pending_count_test() {
   let state = l0_constitutional.initial_approval_state()
   l0_constitutional.pending_count(state) |> should.equal(0)
-  let state =
-    l0_constitutional.add_request(state, make_req("req-a", Critical))
+  let state = l0_constitutional.add_request(state, make_req("req-a", Critical))
   l0_constitutional.pending_count(state) |> should.equal(1)
-  let state =
-    l0_constitutional.add_request(state, make_req("req-b", High))
+  let state = l0_constitutional.add_request(state, make_req("req-b", High))
   l0_constitutional.pending_count(state) |> should.equal(2)
 }
 
@@ -42,8 +39,7 @@ pub fn intg_add_request_increases_pending_count_test() {
 pub fn intg_resolve_request_removes_from_pending_test() {
   let state = l0_constitutional.initial_approval_state()
   let state = l0_constitutional.add_request(state, make_req("req-1", Critical))
-  let state =
-    l0_constitutional.resolve_request(state, "req-1", Approved)
+  let state = l0_constitutional.resolve_request(state, "req-1", Approved)
   l0_constitutional.pending_count(state) |> should.equal(0)
   state.history |> should.equal([#("req-1", Approved)])
 }
@@ -52,8 +48,7 @@ pub fn intg_resolve_partial_leaves_remainder_test() {
   let state = l0_constitutional.initial_approval_state()
   let state = l0_constitutional.add_request(state, make_req("req-x", High))
   let state = l0_constitutional.add_request(state, make_req("req-y", Medium))
-  let state =
-    l0_constitutional.resolve_request(state, "req-x", Rejected)
+  let state = l0_constitutional.resolve_request(state, "req-x", Rejected)
   l0_constitutional.pending_count(state) |> should.equal(1)
   state.history |> should.equal([#("req-x", Rejected)])
 }

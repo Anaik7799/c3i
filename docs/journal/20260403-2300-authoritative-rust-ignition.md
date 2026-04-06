@@ -9,7 +9,7 @@
 - **Compliance**: SC-IGNITE-001, SC-BIO-001
 
 ## 2. Context & Objectives
-- **Context**: The user mandated that ONLY the Rust application in `intelitor-v5.2` must be used for preflight and ignition.
+- **Context**: The user mandated that ONLY the Rust application in `c3i` must be used for preflight and ignition.
 - **Objective**: Transition the `sa-up` script from Gleam-auth to Rust-auth and ensure 100% reliability.
 
 ## 3. Pattern Recognition
@@ -25,7 +25,7 @@
 ## 5. Technical Implementation
 - **Rust**: Modified `launch.rs` to include a pre-creation name check and stale container removal.
 - **Rust**: Improved `podman.rs` with hardened existence checks.
-- **Bash**: Refactored `sa-up` to execute `./sub-projects/intelitor-v5.2/target/release/ignition full`.
+- **Bash**: Refactored `sa-up` to execute `./sub-projects/c3i/target/release/ignition full`.
 - **Gleam**: Deprecated `start_mesh` in `podman/manager.gleam` with a redirection warning.
 
 ## 6. Verification Results

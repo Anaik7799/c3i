@@ -102,17 +102,11 @@ pub fn render_container_controls(
       <> visuals.with_color("[l]Logs", "cyan")
   }
 
-  "  Selected: "
-  <> visuals.with_color(selected_name, "cyan")
-  <> "  "
-  <> actions
+  "  Selected: " <> visuals.with_color(selected_name, "cyan") <> "  " <> actions
 }
 
 /// Render container log lines.
-pub fn render_container_logs(
-  log_lines: List(String),
-  max_lines: Int,
-) -> String {
+pub fn render_container_logs(log_lines: List(String), max_lines: Int) -> String {
   let header = visuals.with_color("  CONTAINER LOGS", "cyan")
   let lines =
     log_lines

@@ -1,7 +1,6 @@
 /// AG-UI state management tests — RFC 6902 JSON Patch operations and SharedState.
 ///
 /// STAMP: SC-AGUI-003, SC-GLM-CMP-001, SC-GLM-CORE-002
-
 import cepaf_gleam/agui/state
 import gleam/json
 import gleam/option.{None, Some}
@@ -154,7 +153,8 @@ pub fn initial_state_has_version_zero_test() {
 
 pub fn apply_snapshot_increments_version_test() {
   let s = state.initial_state()
-  let new = state.apply_snapshot(s, json.object([#("health", json.string("ok"))]))
+  let new =
+    state.apply_snapshot(s, json.object([#("health", json.string("ok"))]))
   new.version |> should.equal(1)
 }
 

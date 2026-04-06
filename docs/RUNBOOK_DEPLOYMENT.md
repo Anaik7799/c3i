@@ -45,7 +45,7 @@ The Planning system operates independently of the mesh state to ensure managemen
 
 ### 2.2 Shared State
 Both tools read from the same source of truth:
-`sub-projects/intelitor-v5.2/data/smriti/planning.db`
+`sub-projects/c3i/data/smriti/planning.db`
 
 ---
 

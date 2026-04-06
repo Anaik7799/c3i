@@ -1,7 +1,8 @@
 /// Wisp API for Device Health Grid (SC-GLM-UI-001, SC-GLM-UI-003).
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-003, SC-GLM-UI-007
 import cepaf_gleam/ui/domain.{
-  type DeviceHealth, type DeviceStatus, DeviceHealth, Maintenance, Offline, Online,
+  type DeviceHealth, type DeviceStatus, DeviceHealth, Maintenance, Offline,
+  Online,
 }
 import gleam/json
 import gleam/list

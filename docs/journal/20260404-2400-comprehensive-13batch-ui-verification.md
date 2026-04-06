@@ -71,7 +71,7 @@
 
 #### Batch 1: Codebase Exploration
 - Mapped 26 Lustre pages, 14 Wisp APIs, 14 TUI views, 26 test files
-- Identified `sa-up` routes to Rust ignition binary (`sub-projects/intelitor-v5.2/target/release/ignition`)
+- Identified `sa-up` routes to Rust ignition binary (`sub-projects/c3i/target/release/ignition`)
 - Documented all 15 TABs with fractal layer assignments from `domain.gleam:page_fractal_layer/1`
 - Fractal layer distribution: L0(3), L1(2), L2(2), L3(4), L4(5), L5(6), L6(3), L7(1)
 

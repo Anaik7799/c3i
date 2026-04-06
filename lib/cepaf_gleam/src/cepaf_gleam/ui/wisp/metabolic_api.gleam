@@ -5,6 +5,7 @@ import cepaf_gleam/metabolic/domain.{
   type HealthStatus, type MetabolicState, Critical, Dead, Degraded, Optimal,
   Stable,
 }
+import cepaf_gleam/ui/domain as ui_domain
 import gleam/json
 
 /// Encode metabolic HealthStatus to string.
@@ -48,6 +49,23 @@ pub fn health_summary_json(
     #("set_point", json.float(set_point)),
     #("cpu_load", json.float(cpu_load)),
     #("health_status", json.string(health_status_to_string(health))),
+  ])
+  |> json.to_string()
+}
+
+/// JSON encoder for Interactive Threshold Controls (167fff39).
+pub fn homeostasis_controls_json(
+  controls: ui_domain.HomeostasisControls,
+) -> String {
+  json.object([
+    #("plane", json.string("metabolic")),
+    #("type", json.string("homeostasis_controls")),
+    #("kp", json.float(controls.kp)),
+    #("ki", json.float(controls.ki)),
+    #("kd", json.float(controls.kd)),
+    #("set_point", json.float(controls.set_point)),
+    #("current_value", json.float(controls.current_value)),
+    #("error", json.float(controls.error)),
   ])
   |> json.to_string()
 }

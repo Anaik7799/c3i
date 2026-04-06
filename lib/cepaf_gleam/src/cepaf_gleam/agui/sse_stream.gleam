@@ -51,12 +51,7 @@ import gleam/string
 ///   data       — `data:` field (the payload)
 ///   retry_ms   — optional `retry:` directive overriding client reconnect delay
 pub type SSEEvent {
-  SSEEvent(
-    id: String,
-    event_type: String,
-    data: String,
-    retry_ms: Option(Int),
-  )
+  SSEEvent(id: String, event_type: String, data: String, retry_ms: Option(Int))
 }
 
 /// Bounded ring buffer for SSEEvents.
@@ -137,7 +132,11 @@ pub fn push_event(
       }
     False -> updated
   }
-  RingBuffer(events: bounded, max_size: buffer.max_size, next_id: buffer.next_id + 1)
+  RingBuffer(
+    events: bounded,
+    max_size: buffer.max_size,
+    next_id: buffer.next_id + 1,
+  )
 }
 
 /// Return all events whose numeric ID is strictly greater than last_id.

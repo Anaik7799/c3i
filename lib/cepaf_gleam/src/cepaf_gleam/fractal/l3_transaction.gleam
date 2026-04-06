@@ -118,27 +118,23 @@ pub fn is_active_status(status: ToolDisplayStatus) -> Bool {
 }
 
 pub fn active_tool_count(state: TransactionPanelState) -> Int {
-  list.length(list.filter(state.tool_calls, fn(tc) { is_active_status(tc.status) }))
+  list.length(
+    list.filter(state.tool_calls, fn(tc) { is_active_status(tc.status) }),
+  )
 }
 
 pub fn diff_to_json(diff: StateDiffEntry) -> json.Json {
   json.object([
     #("op", json.string(diff.operation)),
     #("path", json.string(diff.path)),
-    #(
-      "old_value",
-      case diff.old_value {
-        Some(v) -> json.string(v)
-        None -> json.null()
-      },
-    ),
-    #(
-      "new_value",
-      case diff.new_value {
-        Some(v) -> json.string(v)
-        None -> json.null()
-      },
-    ),
+    #("old_value", case diff.old_value {
+      Some(v) -> json.string(v)
+      None -> json.null()
+    }),
+    #("new_value", case diff.new_value {
+      Some(v) -> json.string(v)
+      None -> json.null()
+    }),
     #("timestamp", json.int(diff.timestamp)),
   ])
 }

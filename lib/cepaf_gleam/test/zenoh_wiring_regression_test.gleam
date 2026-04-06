@@ -199,12 +199,18 @@ pub fn verify_all_pages_published_missing_pages_fail_test() {
   // Only Dashboard and Planning published — remaining 13 must fail.
   let state =
     zenoh_test_observer.init([])
-    |> zenoh_test_observer.record_span(
-      new_span(Dashboard, "el", Observe, json.null()),
-    )
-    |> zenoh_test_observer.record_span(
-      new_span(Planning, "el", Observe, json.null()),
-    )
+    |> zenoh_test_observer.record_span(new_span(
+      Dashboard,
+      "el",
+      Observe,
+      json.null(),
+    ))
+    |> zenoh_test_observer.record_span(new_span(
+      Planning,
+      "el",
+      Observe,
+      json.null(),
+    ))
   let results = zenoh_test_observer.verify_all_pages_published(state)
   let failed = list.filter(results, fn(r) { !r.passed })
   list.length(failed) |> should.equal(13)
@@ -214,18 +220,30 @@ pub fn verify_ooda_coverage_all_phases_pass_test() {
   // All four OODA phases present across spans — must pass.
   let state =
     zenoh_test_observer.init([])
-    |> zenoh_test_observer.record_span(
-      new_span(Dashboard, "e1", Observe, json.null()),
-    )
-    |> zenoh_test_observer.record_span(
-      new_span(Planning, "e2", Orient, json.null()),
-    )
-    |> zenoh_test_observer.record_span(
-      new_span(Immune, "e3", Decide, json.null()),
-    )
-    |> zenoh_test_observer.record_span(
-      new_span(Knowledge, "e4", Act, json.null()),
-    )
+    |> zenoh_test_observer.record_span(new_span(
+      Dashboard,
+      "e1",
+      Observe,
+      json.null(),
+    ))
+    |> zenoh_test_observer.record_span(new_span(
+      Planning,
+      "e2",
+      Orient,
+      json.null(),
+    ))
+    |> zenoh_test_observer.record_span(new_span(
+      Immune,
+      "e3",
+      Decide,
+      json.null(),
+    ))
+    |> zenoh_test_observer.record_span(new_span(
+      Knowledge,
+      "e4",
+      Act,
+      json.null(),
+    ))
   let result = zenoh_test_observer.verify_ooda_coverage(state)
   result.passed |> should.be_true()
   result.check_name |> should.equal("span_completeness")
@@ -235,12 +253,18 @@ pub fn verify_ooda_coverage_missing_phases_fail_test() {
   // Only Observe and Orient — Decide and Act absent.
   let state =
     zenoh_test_observer.init([])
-    |> zenoh_test_observer.record_span(
-      new_span(Dashboard, "e1", Observe, json.null()),
-    )
-    |> zenoh_test_observer.record_span(
-      new_span(Planning, "e2", Orient, json.null()),
-    )
+    |> zenoh_test_observer.record_span(new_span(
+      Dashboard,
+      "e1",
+      Observe,
+      json.null(),
+    ))
+    |> zenoh_test_observer.record_span(new_span(
+      Planning,
+      "e2",
+      Orient,
+      json.null(),
+    ))
   let result = zenoh_test_observer.verify_ooda_coverage(state)
   result.passed |> should.be_false()
 }
@@ -253,9 +277,12 @@ pub fn verify_control_state_spans_correlated_test() {
       "indrajaal/control/container",
       "start",
     )
-    |> zenoh_test_observer.record_span(
-      new_span(Podman, "control_start", Decide, json.null()),
-    )
+    |> zenoh_test_observer.record_span(new_span(
+      Podman,
+      "control_start",
+      Decide,
+      json.null(),
+    ))
   let result = zenoh_test_observer.verify_control_state_spans(state)
   result.passed |> should.be_true()
   result.check_name |> should.equal("control_state_spans")

@@ -73,10 +73,11 @@ pub fn new_test(path: String, value: json.Json) -> PatchOp {
 pub fn patch_op_to_json(op: PatchOp) -> json.Json {
   case op {
     Add(path: p, value: v) ->
-      json.object([#("op", json.string("add")), #("path", json.string(p)), #(
-        "value",
-        v,
-      )])
+      json.object([
+        #("op", json.string("add")),
+        #("path", json.string(p)),
+        #("value", v),
+      ])
 
     Replace(path: p, value: v) ->
       json.object([

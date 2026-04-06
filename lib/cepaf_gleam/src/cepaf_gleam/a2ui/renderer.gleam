@@ -44,27 +44,13 @@ fn render_html(proposal: ComponentProposal) -> String {
   let id_attr = " data-a2ui-id=\"" <> proposal.id <> "\""
   case proposal.component_type {
     "badge" ->
-      "<span class=\"badge\""
-      <> id_attr
-      <> ">"
-      <> children_html
-      <> "</span>"
-    "button" ->
-      "<button" <> id_attr <> ">" <> children_html <> "</button>"
+      "<span class=\"badge\"" <> id_attr <> ">" <> children_html <> "</span>"
+    "button" -> "<button" <> id_attr <> ">" <> children_html <> "</button>"
     "alert" ->
-      "<div role=\"alert\""
-      <> id_attr
-      <> ">"
-      <> children_html
-      <> "</div>"
+      "<div role=\"alert\"" <> id_attr <> ">" <> children_html <> "</div>"
     "progress" ->
-      "<div class=\"progress\""
-      <> id_attr
-      <> ">"
-      <> children_html
-      <> "</div>"
-    "modal" ->
-      "<dialog" <> id_attr <> ">" <> children_html <> "</dialog>"
+      "<div class=\"progress\"" <> id_attr <> ">" <> children_html <> "</div>"
+    "modal" -> "<dialog" <> id_attr <> ">" <> children_html <> "</dialog>"
     _ ->
       "<div data-a2ui-type=\""
       <> proposal.component_type
@@ -87,10 +73,10 @@ fn render_ansi(proposal: ComponentProposal) -> String {
     list.map(proposal.children, render_ansi) |> string.join("\n")
   let component_text = case proposal.component_type {
     "badge" -> "[" <> proposal.component_type <> ":" <> proposal.id <> "]"
-    "alert" ->
-      "\u{001b}[31m! ALERT [" <> proposal.id <> "]\u{001b}[0m"
+    "alert" -> "\u{001b}[31m! ALERT [" <> proposal.id <> "]\u{001b}[0m"
     "progress" -> "[====    ] " <> proposal.id
-    "sparkline" -> "\u{25b2}\u{25b3}\u{25b4}\u{25b5}\u{25b6}\u{25b7}\u{25b8} " <> proposal.id
+    "sparkline" ->
+      "\u{25b2}\u{25b3}\u{25b4}\u{25b5}\u{25b6}\u{25b7}\u{25b8} " <> proposal.id
     _ -> "[" <> proposal.component_type <> "] " <> proposal.id
   }
   case children_ansi {

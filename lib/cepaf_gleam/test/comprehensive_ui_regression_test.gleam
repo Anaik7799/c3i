@@ -1339,6 +1339,9 @@ pub fn cockpit_c2_health_class_mapping_test() {
       view_mode: cockpit_domain.Overview,
       dark_cockpit: True,
       selected_node: None,
+      biomorphic_data: None,
+      cpu_threshold: 0.85,
+      mem_threshold: 0.75,
     )
   let visible = cockpit_view.visible_nodes(model)
   list.length(visible) |> should.equal(1)
@@ -1357,6 +1360,9 @@ pub fn cockpit_c2_severity_indicators_correct_test() {
       view_mode: cockpit_domain.Overview,
       dark_cockpit: True,
       selected_node: None,
+      biomorphic_data: None,
+      cpu_threshold: 0.85,
+      mem_threshold: 0.75,
     )
   let active = cockpit_view.active_alarms(model)
   list.length(active) |> should.equal(3)
@@ -1469,6 +1475,9 @@ pub fn cockpit_c7_performance_under_load_test() {
       view_mode: cockpit_view.init().view_mode,
       dark_cockpit: True,
       selected_node: None,
+      biomorphic_data: None,
+      cpu_threshold: 0.85,
+      mem_threshold: 0.75,
     )
   cockpit_view.visible_nodes(model) |> list.length |> should.equal(100)
 }

@@ -14,8 +14,7 @@ import cepaf_gleam/podman/domain as podman_domain
 import cepaf_gleam/podman/http_client
 import cepaf_gleam/substrate/governor
 import cepaf_gleam/ui/domain.{
-  Critical, Dashboard, Degraded, Healthy, RenderContext,
-  TelemetryPoint, Unknown,
+  Critical, Dashboard, Degraded, Healthy, RenderContext, TelemetryPoint, Unknown,
 }
 import cepaf_gleam/ui/tui/renderer
 import cepaf_gleam/ui/wisp/router

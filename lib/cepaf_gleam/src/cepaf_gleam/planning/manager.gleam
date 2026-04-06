@@ -86,7 +86,8 @@ pub fn list_tasks_sqlite(path: String) -> Result(List(Task), String) {
 fn erl_os_cmd(cmd: String) -> Result(BitArray, String)
 
 fn list_tasks_sqlite_cli(path: String) -> Result(List(Task), String) {
-  let sql = "SELECT Id, Title, Status, Priority, Created, ParentId, Owner FROM Tasks"
+  let sql =
+    "SELECT Id, Title, Status, Priority, Created, ParentId, Owner FROM Tasks"
   // Use default pipe separator, no header
   let cmd = "sqlite3 " <> path <> " \"" <> sql <> "\""
   case erl_os_cmd(cmd) {
@@ -114,7 +115,10 @@ pub fn delete_task(id: String) -> Result(Int, String) {
 }
 
 /// Creates a new task with the given title and priority.
-pub fn create_task(title: String, priority: types.Priority) -> Result(Task, String) {
+pub fn create_task(
+  title: String,
+  priority: types.Priority,
+) -> Result(Task, String) {
   let input =
     domain.CreateTaskInput(
       title: title,

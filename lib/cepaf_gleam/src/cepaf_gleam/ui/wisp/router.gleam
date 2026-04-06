@@ -1,7 +1,13 @@
-/// Wisp HTTP router for c3i API endpoints (SC-GLM-UI-001, SC-GLM-UI-003).
+/// Wisp HTTP router for c3i API endpoints and HTML page serving (SC-GLM-UI-001, SC-GLM-UI-003).
 /// Returns typed JSON via gleam/json — no raw string concatenation (SC-GLM-UI-003).
+/// Returns full HTML pages for browser requests — detected by path prefix heuristic.
 /// Binds to port 4100 (SC-GLM-UI-006) — outside mesh range 4000-4010.
 /// Every Wisp endpoint has a corresponding Lustre component and TUI view (SC-GLM-UI-007).
+///
+/// HTML routing rule:
+///   Paths NOT starting with /api/ or /ag-ui/ → serve full HTML page (browser)
+///   Paths starting with /api/ or /ag-ui/     → serve JSON (API clients / curl)
+///   /health endpoint is always JSON (monitoring probes)
 ///
 /// T010: GET /api/v1/guardian/pending — L0 ApprovalRequest list (SC-SAFETY-001)
 /// T011: POST /api/v1/guardian/respond — resolve approval with ConsensusState (SC-SIL4-006)
@@ -21,13 +27,13 @@ import cepaf_gleam/fractal/l0_constitutional.{
 }
 import cepaf_gleam/moz/client as moz_client
 import cepaf_gleam/ui/domain.{
-  type HealthStatus, Cockpit,
-  Critical, Dashboard, Degraded, Healthy,
-  Immune, Kms, Knowledge, Mcp,
-  Metabolic, Planning, Podman, Substrate, Telemetry,
+  type HealthStatus, Cockpit, Critical, Dashboard, Degraded, Healthy, Immune,
+  Kms, Knowledge, Mcp, Metabolic, Planning, Podman, Substrate, Telemetry,
   Unknown, Verification, Zenoh, page_to_label, page_to_path,
 }
 import cepaf_gleam/ui/state as mesh_state
+import cepaf_gleam/ui/web/page_views
+import cepaf_gleam/ui/web/shell
 import cepaf_gleam/ui/wisp/auth
 import cepaf_gleam/ui/wisp/federation_api
 import cepaf_gleam/ui/wisp/podman_api
@@ -100,8 +106,7 @@ pub fn route(path: String) -> String {
     "/api/planning-dashboard/status" | "/api/v1/planning_dashboard" ->
       planning_dashboard_status_json()
     // L7 Federation routes
-    "/api/federation/status" | "/api/v1/federation" ->
-      federation_status_json()
+    "/api/federation/status" | "/api/v1/federation" -> federation_status_json()
     // Guardian lane routes (T010) — L0 Constitutional (SC-SAFETY-001)
     "/api/v1/guardian/pending" -> guardian_pending_json()
     // AG-UI protocol routes (SSE event streams)
@@ -865,7 +870,16 @@ fn planning_dashboard_status_json() -> String {
     #(
       "panels",
       json.array(
-        ["tasks", "ooda", "chat", "safety", "enforcer", "timeline", "graph", "a2ui"],
+        [
+          "tasks",
+          "ooda",
+          "chat",
+          "safety",
+          "enforcer",
+          "timeline",
+          "graph",
+          "a2ui",
+        ],
         json.string,
       ),
     ),
@@ -880,23 +894,26 @@ fn safety_json() -> String {
     #("status", json.string("active")),
     #("guardian_healthy", json.bool(True)),
     #("threat_level", json.float(0.0)),
-    #("checks", json.array(
-      [
-        #("ExistenceInvariant", True),
-        #("RegenerationCapability", True),
-        #("HistoryPreservation", True),
-        #("VerificationIntegrity", True),
-        #("HumanAlignment", True),
-        #("Truthfulness", True),
-      ],
-      fn(c) {
-        let #(name, passed) = c
-        json.object([
-          #("name", json.string(name)),
-          #("passed", json.bool(passed)),
-        ])
-      },
-    )),
+    #(
+      "checks",
+      json.array(
+        [
+          #("ExistenceInvariant", True),
+          #("RegenerationCapability", True),
+          #("HistoryPreservation", True),
+          #("VerificationIntegrity", True),
+          #("HumanAlignment", True),
+          #("Truthfulness", True),
+        ],
+        fn(c) {
+          let #(name, passed) = c
+          json.object([
+            #("name", json.string(name)),
+            #("passed", json.bool(passed)),
+          ])
+        },
+      ),
+    ),
     #("quarantined_agents", json.array([], json.string)),
   ])
   |> json.to_string()
@@ -909,12 +926,15 @@ fn enforcer_json() -> String {
     #("status", json.string("active")),
     #("total_violations", json.int(0)),
     #("open_circuits", json.array([], json.string)),
-    #("statistics", json.object([
-      #("total_checks", json.int(156)),
-      #("blocked", json.int(0)),
-      #("allowed", json.int(156)),
-      #("circuit_breaker_opens", json.int(0)),
-    ])),
+    #(
+      "statistics",
+      json.object([
+        #("total_checks", json.int(156)),
+        #("blocked", json.int(0)),
+        #("allowed", json.int(156)),
+        #("circuit_breaker_opens", json.int(0)),
+      ]),
+    ),
     #("recent_violations", json.array([], json.string)),
   ])
   |> json.to_string()
@@ -964,10 +984,18 @@ pub fn handle_request(req: HttpRequest(String)) -> HttpResponse(String) {
 
 fn handle_get(path: String) -> HttpResponse(String) {
   case path {
-    "/ag-ui/events" -> sse_response(agui_sse.create_sse_stream_for_agent("default", "thread-001", "run-001"))
+    "/ag-ui/events" ->
+      sse_response(agui_sse.create_sse_stream_for_agent(
+        "default",
+        "thread-001",
+        "run-001",
+      ))
     "/ag-ui/health" -> json_response(agui_sse.health_json(), 200)
     "/ag-ui/hitl/pending" ->
-      json_response(agui_tools.pending_calls_to_json(agui_tools.initial_registry()), 200)
+      json_response(
+        agui_tools.pending_calls_to_json(agui_tools.initial_registry()),
+        200,
+      )
     "/ag-ui/state" -> {
       let state = agui_state.initial_state()
       let payload =
@@ -979,19 +1007,152 @@ fn handle_get(path: String) -> HttpResponse(String) {
     "/api/v1/sse/mesh" -> sse_response(sse_mesh_stream())
     "/api/v1/sse/health" -> sse_response(sse_health_stream())
     // Guardian lane — L0 pending approval list (T010, SC-SAFETY-001)
-    "/api/v1/guardian/pending" ->
-      json_response(guardian_pending_json(), 200)
-    _ -> json_response(route(path), 200)
+    "/api/v1/guardian/pending" -> json_response(guardian_pending_json(), 200)
+    // Health endpoint stays JSON — consumed by monitoring probes, not browsers.
+    "/health" | "/api/health" -> json_response(health_json(), 200)
+    // All other paths: HTML for browser requests, JSON for /api/* paths.
+    _ ->
+      case is_api_path(path) {
+        True -> json_response(route(path), 200)
+        False -> html_response(route_html(path))
+      }
+  }
+}
+
+/// True when path starts with /api/ or /ag-ui/ — these are JSON API endpoints.
+/// Browser page paths (/, /dashboard, /planning, …) do NOT start with those prefixes.
+fn is_api_path(path: String) -> Bool {
+  string.starts_with(path, "/api/") || string.starts_with(path, "/ag-ui/")
+}
+
+/// Build a full HTML response with content-type text/html.
+fn html_response(body: String) -> HttpResponse(String) {
+  response.new(200)
+  |> response.set_body(body)
+  |> response.set_header("content-type", "text/html; charset=utf-8")
+}
+
+/// Map a URL path to a complete HTML page via shell + page_views.
+///
+/// All 24 browser-facing pages are enumerated here. Unknown paths render a
+/// 404 page (still HTTP 200 in the HTML case — callers needing 404 status
+/// should use the /api/* JSON routes instead).
+///
+/// STAMP: SC-GLM-UI-001 (Triple-Interface: browser = Lustre HTML layer)
+fn route_html(path: String) -> String {
+  let state = mesh_state.default_state()
+  case path {
+    "/" | "/dashboard" ->
+      shell.render_page(
+        "Dashboard",
+        "dashboard",
+        page_views.dashboard_view(state),
+      )
+    "/planning" ->
+      shell.render_page("Planning", "planning", page_views.planning_view(state))
+    "/immune" ->
+      shell.render_page(
+        "Immune System",
+        "immune",
+        page_views.immune_view(state),
+      )
+    "/knowledge" ->
+      shell.render_page(
+        "Knowledge Graph",
+        "knowledge",
+        page_views.knowledge_view(state),
+      )
+    "/zenoh" ->
+      shell.render_page("Zenoh Mesh", "zenoh", page_views.zenoh_view(state))
+    "/cockpit" ->
+      shell.render_page("Cockpit", "cockpit", page_views.cockpit_view(state))
+    "/verification" ->
+      shell.render_page(
+        "Verification",
+        "verification",
+        page_views.verification_view(state),
+      )
+    "/substrate" ->
+      shell.render_page(
+        "Substrate",
+        "substrate",
+        page_views.substrate_view(state),
+      )
+    "/metabolic" ->
+      shell.render_page(
+        "Metabolic",
+        "metabolic",
+        page_views.metabolic_view(state),
+      )
+    "/podman" ->
+      shell.render_page("Podman", "podman", page_views.podman_view(state))
+    "/mcp" -> shell.render_page("MCP Server", "mcp", page_views.mcp_view(state))
+    "/kms" ->
+      shell.render_page("KMS Catalog", "kms", page_views.kms_view(state))
+    "/telemetry" ->
+      shell.render_page(
+        "Telemetry",
+        "telemetry",
+        page_views.telemetry_view(state),
+      )
+    "/federation" ->
+      shell.render_page(
+        "Federation (L7)",
+        "federation",
+        page_views.federation_view(state),
+      )
+    "/health-grid" ->
+      shell.render_page(
+        "Device Health Grid",
+        "health-grid",
+        page_views.health_grid_view(state),
+      )
+    "/prajna" ->
+      shell.render_page(
+        "Prajna Biomorphic",
+        "prajna",
+        page_views.prajna_view(state),
+      )
+    "/agents" ->
+      shell.render_page(
+        "Cybernetic Agents",
+        "agents",
+        page_views.agents_view(state),
+      )
+    "/holon" ->
+      shell.render_page("Holon Identity", "holon", page_views.holon_view(state))
+    "/config" ->
+      shell.render_page(
+        "Mesh Configuration",
+        "config",
+        page_views.config_view(state),
+      )
+    "/git" ->
+      shell.render_page("Git Intelligence", "git", page_views.git_view(state))
+    "/database" ->
+      shell.render_page("Database", "database", page_views.database_view(state))
+    "/bridge" ->
+      shell.render_page("Bridge", "bridge", page_views.bridge_view(state))
+    "/smriti" ->
+      shell.render_page(
+        "Smriti Knowledge",
+        "smriti",
+        page_views.smriti_view(state),
+      )
+    "/planning-dashboard" ->
+      shell.render_page(
+        "Planning Dashboard",
+        "planning-dashboard",
+        page_views.planning_dashboard_view(state),
+      )
+    _ -> shell.render_page("Not Found", "", page_views.not_found_view(path))
   }
 }
 
 /// Handle POST requests.
 /// All mutation endpoints require a valid Bearer token (SC-SEC-001).
 /// GET endpoints remain open for operator monitoring dashboards.
-fn handle_post(
-  req: HttpRequest(String),
-  path: String,
-) -> HttpResponse(String) {
+fn handle_post(req: HttpRequest(String), path: String) -> HttpResponse(String) {
   case auth.require_auth(req) {
     Error(reason) -> unauthorized_response(reason)
     Ok(_principal) -> {

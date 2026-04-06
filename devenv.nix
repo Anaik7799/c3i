@@ -867,7 +867,7 @@
   # Rust Planning Daemon (sa-plan-daemon) — replaces F# Cepaf.Planning.CLI
   # SC-CACHE-001, AOR-CHG-001
   scripts.sa-plan.exec = ''
-    cd sub-projects/intelitor-v5.2
+    cd sub-projects/c3i
     ./target/release/sa-plan-daemon "$@"
   '';
 

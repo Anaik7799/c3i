@@ -217,9 +217,9 @@ No source files were modified in this session. This was a pure analysis/decision
 | `lib/cepaf_gleam/src/cepaf_gleam/agui/zenoh_bus.gleam` | 59 | Zenoh AG-UI event publisher |
 | `lib/cepaf_gleam/src/cepaf_gleam/web/server.gleam` | — | Mist HTTP server (no WS) |
 | `lib/cepaf_gleam/gleam.toml` | — | Lustre >= 5.2.0, Mist >= 4.0.0 |
-| `sub-projects/intelitor-v5.2/lib/indrajaal/integration/cepaf_port.ex` | 679 | Erlang Port to F# CLI (legacy) |
-| `sub-projects/intelitor-v5.2/lib/indrajaal/integration/cepaf_client.ex` | 857 | F# bridge client (zero HTTP calls to 9876) |
-| `sub-projects/intelitor-v5.2/lib/indrajaal/cepaf/bridge.ex` | 503 | GenServer for JSON-RPC over Port |
+| `sub-projects/c3i/lib/indrajaal/integration/cepaf_port.ex` | 679 | Erlang Port to F# CLI (legacy) |
+| `sub-projects/c3i/lib/indrajaal/integration/cepaf_client.ex` | 857 | F# bridge client (zero HTTP calls to 9876) |
+| `sub-projects/c3i/lib/indrajaal/cepaf/bridge.ex` | 503 | GenServer for JSON-RPC over Port |
 
 ---
 

@@ -15,7 +15,7 @@ Exhaustive inventory of F# functionality within the CEPAF framework (lib/cepaf/s
 - Requirement to maintain SIL-6 homeostasis during transition.
 
 ## 3. Execution
-1.  **Discovery**: Recursive search of `intelitor-v5.2/lib/cepaf/src/` identified ~500 F# files totaling ~268k lines.
+1.  **Discovery**: Recursive search of `c3i/lib/cepaf/src/` identified ~500 F# files totaling ~268k lines.
 2.  **Analysis**: Functional areas mapped to 6 Operational Planes: Knowledge, Governance, IPC, Immune, Interaction, Substrate.
 3.  **Criticality Mapping**: Assigned P0-P3 priorities based on system survival and dependency requirements.
 4.  **OODA Loop Implementation**: Defined OODA cycle for migration (Observe F# logic -> Orient to BEAM -> Decide Pattern -> Act Migration -> Verify Fractal).
@@ -55,7 +55,7 @@ The transition to a biomorphic Gleam/BEAM architecture requires a high-fidelity 
 - `lib/cepaf/src/Cepaf.Planning/`
 - `lib/cepaf/src/Cepaf.Zenoh/`
 - `lib/cepaf/src/Cepaf.Immune/`
-- `intelitor-v5.2/sa-mesh.fsx` (and other sa-* scripts)
+- `c3i/sa-mesh.fsx` (and other sa-* scripts)
 
 ## 9. Architecture
 The architecture is partitioned into 6 Planes:

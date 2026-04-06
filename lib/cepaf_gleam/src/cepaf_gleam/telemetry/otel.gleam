@@ -10,7 +10,6 @@ import gleam/dict.{type Dict}
 import gleam/dynamic.{type Dynamic}
 import gleam/list
 
-
 // ============================================================================
 // Semantic Conventions
 // ============================================================================

@@ -13,7 +13,7 @@ imports:
 # Additional inputs for specialized packages
 inputs:
   nixpkgs:
-    url: github:NixOS/nixpkgs/nixos-unstable
+    url: github:NixOS/nixpkgs/nixos-25.11
   systems:
     url: github:nix-systems/default
   browser-previews:

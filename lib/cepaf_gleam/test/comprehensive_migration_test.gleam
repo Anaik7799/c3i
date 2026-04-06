@@ -1,7 +1,9 @@
 import cepaf_gleam/core/ids
 import cepaf_gleam/core/types
 import cepaf_gleam/planning/parser
-import cepaf_gleam/zenoh/safety.{ChannelA, ChannelB, ChannelC, Disagreement, Majority, Unanimous}
+import cepaf_gleam/zenoh/safety.{
+  ChannelA, ChannelB, ChannelC, Disagreement, Majority, Unanimous,
+}
 import gleam/dict
 import gleam/list
 import gleeunit/should
@@ -93,7 +95,8 @@ pub fn task_id_from_string_roundtrip_test() {
 // =============================================================================
 
 pub fn parser_parses_completed_tasks_test() {
-  let content = "# PROJECT TODOLIST\n\n## 1.1.1 - Test task (P0) [COMPLETED]\n## 1.1.2 - Another task (P1) [PENDING]\n"
+  let content =
+    "# PROJECT TODOLIST\n\n## 1.1.1 - Test task (P0) [COMPLETED]\n## 1.1.2 - Another task (P1) [PENDING]\n"
   let tasks = parser.parse_todolist(content)
   list.length(tasks)
   |> should.equal(2)
@@ -117,11 +120,12 @@ pub fn parser_skips_header_lines_test() {
 // =============================================================================
 
 pub fn tmr_unanimous_test() {
-  let results = dict.from_list([
-    #(ChannelA, 42),
-    #(ChannelB, 42),
-    #(ChannelC, 42),
-  ])
+  let results =
+    dict.from_list([
+      #(ChannelA, 42),
+      #(ChannelB, 42),
+      #(ChannelC, 42),
+    ])
   case safety.vote(results) {
     Unanimous(value) -> should.equal(value, 42)
     _ -> should.fail()
@@ -129,11 +133,12 @@ pub fn tmr_unanimous_test() {
 }
 
 pub fn tmr_majority_test() {
-  let results = dict.from_list([
-    #(ChannelA, 42),
-    #(ChannelB, 42),
-    #(ChannelC, 99),
-  ])
+  let results =
+    dict.from_list([
+      #(ChannelA, 42),
+      #(ChannelB, 42),
+      #(ChannelC, 99),
+    ])
   case safety.vote(results) {
     Majority(value, _dissenter) -> should.equal(value, 42)
     _ -> should.fail()
@@ -141,11 +146,12 @@ pub fn tmr_majority_test() {
 }
 
 pub fn tmr_disagreement_test() {
-  let results = dict.from_list([
-    #(ChannelA, 1),
-    #(ChannelB, 2),
-    #(ChannelC, 3),
-  ])
+  let results =
+    dict.from_list([
+      #(ChannelA, 1),
+      #(ChannelB, 2),
+      #(ChannelC, 3),
+    ])
   case safety.vote(results) {
     Disagreement(_) -> should.be_true(True)
     _ -> should.fail()

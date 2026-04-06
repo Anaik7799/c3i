@@ -11,18 +11,17 @@
 // =============================================================================
 
 import cepaf_gleam/testing/flight_check.{
-  CheckFailed, CheckPassed, CheckSkipped,
-  FlightCheck, GoForLaunch,
+  CheckFailed, CheckPassed, CheckSkipped, FlightCheck, GoForLaunch,
 }
 import cepaf_gleam/testing/test_dashboard
 import cepaf_gleam/ui/domain.{
-  L0Constitutional, L1AtomicDebug, L3Transaction, L4System,
-  L6Ecosystem, L7Federation,
+  L0Constitutional, L1AtomicDebug, L3Transaction, L4System, L6Ecosystem,
+  L7Federation,
 }
 import cepaf_gleam/ui/lustre/planning_dashboard
 import cepaf_gleam/ui/tui/split_screen.{
-  CmdStart, CmdStop, ContainerAction,
-  DashboardUpdate, FlightCheckResult, SplitConfig, TestUpdate, Tick,
+  CmdStart, CmdStop, ContainerAction, DashboardUpdate, FlightCheckResult,
+  SplitConfig, TestUpdate, Tick,
 }
 import gleam/list
 import gleam/string
@@ -90,10 +89,7 @@ pub fn split_screen_update_dashboard_update_test() {
   let td = test_dashboard.init()
   let model = split_screen.init_split_screen(dashboard, td)
   let new_dashboard =
-    planning_dashboard.update(
-      dashboard,
-      planning_dashboard.QuorumChanged(True),
-    )
+    planning_dashboard.update(dashboard, planning_dashboard.QuorumChanged(True))
   let updated = split_screen.update(model, DashboardUpdate(new_dashboard))
   updated.dashboard.quorum |> should.be_true()
 }
@@ -138,7 +134,8 @@ pub fn split_screen_update_container_action_start_unchanged_test() {
   let dashboard = planning_dashboard.init()
   let td = test_dashboard.init()
   let model = split_screen.init_split_screen(dashboard, td)
-  let updated = split_screen.update(model, ContainerAction(CmdStart("ex-app-1")))
+  let updated =
+    split_screen.update(model, ContainerAction(CmdStart("ex-app-1")))
   // ContainerAction is dispatched externally; model is unchanged
   updated.top_lines |> should.equal(model.top_lines)
 }
@@ -155,11 +152,7 @@ pub fn split_screen_update_flight_check_result_model_unchanged_test() {
   let dashboard = planning_dashboard.init()
   let td = test_dashboard.init()
   let model = split_screen.init_split_screen(dashboard, td)
-  let updated =
-    split_screen.update(
-      model,
-      FlightCheckResult(True, 8, []),
-    )
+  let updated = split_screen.update(model, FlightCheckResult(True, 8, []))
   updated.top_lines |> should.equal(model.top_lines)
   updated.bottom_lines |> should.equal(model.bottom_lines)
 }

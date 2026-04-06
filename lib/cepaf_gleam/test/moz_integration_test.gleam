@@ -345,8 +345,7 @@ pub fn router_get_guardian_pending_is_valid_json_test() {
 
 /// POST /api/v1/emergency/trigger without body returns 400.
 pub fn router_post_emergency_trigger_empty_body_returns_400_test() {
-  let resp =
-    post_with_token("/api/v1/emergency/trigger", "", "c3i-dev-token")
+  let resp = post_with_token("/api/v1/emergency/trigger", "", "c3i-dev-token")
 
   resp.status |> should.equal(400)
 }
@@ -354,8 +353,7 @@ pub fn router_post_emergency_trigger_empty_body_returns_400_test() {
 /// POST /api/v1/emergency/trigger without confirmation literal returns 400.
 pub fn router_post_emergency_trigger_missing_confirmation_returns_400_test() {
   let body = "{\"reason\":\"test trigger\",\"confirmation\":\"wrong text\"}"
-  let resp =
-    post_with_token("/api/v1/emergency/trigger", body, "c3i-dev-token")
+  let resp = post_with_token("/api/v1/emergency/trigger", body, "c3i-dev-token")
 
   resp.status |> should.equal(400)
   {
@@ -369,8 +367,7 @@ pub fn router_post_emergency_trigger_missing_confirmation_returns_400_test() {
 pub fn router_post_emergency_trigger_correct_confirmation_returns_200_test() {
   let body =
     "{\"reason\":\"integration test\",\"confirmation\":\"EMERGENCY STOP\"}"
-  let resp =
-    post_with_token("/api/v1/emergency/trigger", body, "c3i-dev-token")
+  let resp = post_with_token("/api/v1/emergency/trigger", body, "c3i-dev-token")
 
   resp.status |> should.equal(200)
 }
@@ -378,8 +375,7 @@ pub fn router_post_emergency_trigger_correct_confirmation_returns_200_test() {
 /// POST /api/v1/emergency/trigger response contains STAMP reference on error.
 pub fn router_post_emergency_trigger_error_contains_stamp_test() {
   let body = "{\"reason\":\"test\",\"confirmation\":\"WRONG\"}"
-  let resp =
-    post_with_token("/api/v1/emergency/trigger", body, "c3i-dev-token")
+  let resp = post_with_token("/api/v1/emergency/trigger", body, "c3i-dev-token")
 
   resp.status |> should.equal(400)
   string.contains(resp.body, "SC-SAFETY-022") |> should.be_true()

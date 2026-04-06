@@ -10,7 +10,7 @@
 All commands MUST be executed from the Rust Ignition Daemon project directory to ensure correct dependency resolution and binary pathing.
 
 ```bash
-cd sub-projects/intelitor-v5.2/native/ignition_daemon
+cd sub-projects/c3i/native/ignition_daemon
 ```
 
 ---

@@ -48,22 +48,19 @@ pub fn update(model: FederationModel, msg: FederationMsg) -> FederationModel {
     PeerAdded(peer) ->
       case model.state {
         None -> model
-        Some(s) ->
-          FederationModel(..model, state: Some(add_peer(s, peer)))
+        Some(s) -> FederationModel(..model, state: Some(add_peer(s, peer)))
       }
 
     PeerRemoved(id) ->
       case model.state {
         None -> model
-        Some(s) ->
-          FederationModel(..model, state: Some(remove_peer(s, id)))
+        Some(s) -> FederationModel(..model, state: Some(remove_peer(s, id)))
       }
 
     VersionIncremented ->
       case model.state {
         None -> model
-        Some(s) ->
-          FederationModel(..model, state: Some(increment_version(s)))
+        Some(s) -> FederationModel(..model, state: Some(increment_version(s)))
       }
 
     RefreshFederation -> FederationModel(..model, loading: True)

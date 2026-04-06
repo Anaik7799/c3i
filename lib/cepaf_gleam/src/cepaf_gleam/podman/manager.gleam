@@ -37,24 +37,25 @@ pub fn start_mesh(client: PodmanClient) -> Result(Nil, String) {
   io.println("⚠️  WARNING: Gleam mesh-boot is DEPRECATED.")
   io.println("⚠️  Redirecting to Authoritative Rust Ignition Daemon...")
   io.println("⚠️  Run: ./sa-up")
-  
+
   let waves = math.optimize_startup()
   io.println("🚀 STARTING C3I MESH (Optimized Wave-based Boot)")
-  
+
   list.try_each(waves, fn(wave) {
     io.println("\n🌊 WAVE " <> int.to_string(wave.wave_number) <> ":")
-    
+
     // Start all containers in this wave in parallel (via spawned processes)
-    let results = 
+    let results =
       wave.containers
       |> list.map(fn(name) {
         io.println("  [start] " <> name)
         containers.start(client, name)
       })
-    
+
     // Check if any failed in this wave
     case list.find(results, result.is_error) {
-      Ok(Error(e)) -> Error("Wave " <> int.to_string(wave.wave_number) <> " failed: " <> e)
+      Ok(Error(e)) ->
+        Error("Wave " <> int.to_string(wave.wave_number) <> " failed: " <> e)
       _ -> {
         // Wait for containers to stabilize (simulated or via health check)
         process.sleep(1000)
@@ -68,17 +69,20 @@ pub fn start_mesh(client: PodmanClient) -> Result(Nil, String) {
 pub fn stop_mesh(client: PodmanClient) -> Result(Nil, String) {
   let containers_defs = math.default_containers()
   io.println("🛑 STOPPING C3I MESH")
-  
+
   list.each(containers_defs, fn(c) {
     io.println("  [stop] " <> c.name)
     let _ = containers.stop(client, c.name, None)
   })
-  
+
   Ok(Nil)
 }
 
 /// Restart a specific container by name.
-pub fn restart_container(client: PodmanClient, name: String) -> Result(Nil, String) {
+pub fn restart_container(
+  client: PodmanClient,
+  name: String,
+) -> Result(Nil, String) {
   io.println("🔄 RESTARTING: " <> name)
   containers.restart(client, name)
 }
@@ -87,12 +91,12 @@ pub fn restart_container(client: PodmanClient, name: String) -> Result(Nil, Stri
 pub fn purge_mesh(client: PodmanClient) -> Result(Nil, String) {
   let containers_defs = math.default_containers()
   io.println("🧹 PURGING C3I MESH")
-  
+
   list.each(containers_defs, fn(c) {
     io.println("  [remove] " <> c.name)
     let _ = containers.remove(client, c.name, True)
   })
-  
+
   Ok(Nil)
 }
 
@@ -103,19 +107,22 @@ pub fn purge_mesh(client: PodmanClient) -> Result(Nil, String) {
 /// Check the current status of all core containers.
 pub fn check_mesh_status(client: PodmanClient) -> Result(Nil, String) {
   let containers_defs = math.default_containers()
-  
+
   use containers_list <- result.try(containers.list_containers(client, True))
-  
+
   io.println("📊 MESH HEALTH REPORT:")
   list.each(containers_defs, fn(def) {
-    let status = case list.find(containers_list, fn(c) { 
-      list.contains(c.names, def.name) || list.contains(c.names, "/" <> def.name)
-    }) {
+    let status = case
+      list.find(containers_list, fn(c) {
+        list.contains(c.names, def.name)
+        || list.contains(c.names, "/" <> def.name)
+      })
+    {
       Ok(c) -> c.status
       Error(_) -> "Not Found"
     }
     io.println("  - " <> def.name <> ": [" <> status <> "]")
   })
-  
+
   Ok(Nil)
 }

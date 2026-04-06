@@ -4,9 +4,7 @@
 ////
 //// Graph verification: SCC analysis, cycle detection, connectivity checks.
 
-import cepaf_gleam/verification/prometheus.{
-  type VerificationDag,
-}
+import cepaf_gleam/verification/prometheus.{type VerificationDag}
 import gleam/int
 import gleam/list
 import gleam/set
@@ -29,14 +27,10 @@ pub fn verify_all(dag: VerificationDag) -> List(GraphCheck) {
 /// Check DAG is acyclic (SC-BOOT-008).
 pub fn check_acyclicity(dag: VerificationDag) -> GraphCheck {
   let acyclic = prometheus.is_acyclic(dag)
-  GraphCheck(
-    name: "acyclicity",
-    passed: acyclic,
-    details: case acyclic {
-      True -> "DAG is acyclic (Kahn's algorithm verified)"
-      False -> "CYCLE DETECTED — DAG validation failed"
-    },
-  )
+  GraphCheck(name: "acyclicity", passed: acyclic, details: case acyclic {
+    True -> "DAG is acyclic (Kahn's algorithm verified)"
+    False -> "CYCLE DETECTED — DAG validation failed"
+  })
 }
 
 /// Check all nodes are reachable from at least one root.
@@ -47,15 +41,10 @@ pub fn check_connectivity(dag: VerificationDag) -> GraphCheck {
     set.difference(node_ids, target_ids)
     |> set.to_list()
   let has_roots = !list.is_empty(roots)
-  GraphCheck(
-    name: "connectivity",
-    passed: has_roots,
-    details: case has_roots {
-      True ->
-        "Found " <> int.to_string(list.length(roots)) <> " root node(s)"
-      False -> "No root nodes found — possible cycle"
-    },
-  )
+  GraphCheck(name: "connectivity", passed: has_roots, details: case has_roots {
+    True -> "Found " <> int.to_string(list.length(roots)) <> " root node(s)"
+    False -> "No root nodes found — possible cycle"
+  })
 }
 
 /// Check node count is reasonable.

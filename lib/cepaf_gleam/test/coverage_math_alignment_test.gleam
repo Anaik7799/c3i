@@ -1,7 +1,6 @@
 /// Coverage math and Human Intent alignment tests.
 ///
 /// STAMP: SC-MATH-COV-001..008, SC-HINT-003..005, SC-GLM-CMP-001
-
 import cepaf_gleam/testing/alignment
 import cepaf_gleam/testing/coverage_math
 import gleam/list
@@ -328,7 +327,7 @@ pub fn itqs_grade_a_for_high_score_test() {
 }
 
 pub fn itqs_grade_a_at_exact_threshold_test() {
-  coverage_math.itqs_grade(0.90) |> should.equal(coverage_math.GradeA)
+  coverage_math.itqs_grade(0.9) |> should.equal(coverage_math.GradeA)
 }
 
 pub fn itqs_grade_b_for_good_score_test() {
@@ -340,7 +339,7 @@ pub fn itqs_grade_b_at_exact_threshold_test() {
 }
 
 pub fn itqs_grade_c_for_passing_score_test() {
-  coverage_math.itqs_grade(0.80) |> should.equal(coverage_math.GradeC)
+  coverage_math.itqs_grade(0.8) |> should.equal(coverage_math.GradeC)
 }
 
 pub fn itqs_grade_c_at_exact_threshold_test() {
@@ -453,7 +452,7 @@ pub fn itqs_all_perfect_returns_high_score_test() {
   // so ITQS = 0.25*H_norm(1.0) + 0.35*CCM(0.125) + 0.25*(1-D_EA(0.0)) + 0.15*FSI(1.0)
   //         ≈ 0.25 + 0.044 + 0.25 + 0.15 = ~0.694
   let score = coverage_math.itqs(cov, 1.0)
-  { score >. 0.60 } |> should.be_true()
+  { score >. 0.6 } |> should.be_true()
 }
 
 // =============================================================================
@@ -473,11 +472,10 @@ pub fn perfect_alignment_score_is_one_test() {
 
 pub fn zero_alignment_when_no_overlap_test() {
   let result =
-    alignment.compute_alignment(
-      "page",
-      ["feature A", "feature B"],
-      ["feature C", "feature D"],
-    )
+    alignment.compute_alignment("page", ["feature A", "feature B"], [
+      "feature C",
+      "feature D",
+    ])
   { result.score <. 0.01 } |> should.be_true()
   result.status |> should.equal(alignment.Misaligned)
 }
@@ -491,19 +489,14 @@ pub fn empty_sets_are_trivially_aligned_test() {
 pub fn partial_overlap_jaccard_score_test() {
   // Intersection={A,B}=2, Union={A,B,C,D}=4, score=0.5 -> Misaligned
   let result =
-    alignment.compute_alignment(
-      "page",
-      ["A", "B", "C", "D"],
-      ["A", "B"],
-    )
+    alignment.compute_alignment("page", ["A", "B", "C", "D"], ["A", "B"])
   { result.score >. 0.49 } |> should.be_true()
   { result.score <. 0.51 } |> should.be_true()
 }
 
 pub fn high_overlap_is_aligned_test() {
   let behaviors = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
-  let result =
-    alignment.compute_alignment("page", behaviors, behaviors)
+  let result = alignment.compute_alignment("page", behaviors, behaviors)
   result.status |> should.equal(alignment.Aligned)
   alignment.is_compliant(result) |> should.be_true()
 }
@@ -512,46 +505,38 @@ pub fn drift_zone_returns_drift_status_test() {
   // Need score in [0.7, 0.9)
   // 7 items shared out of 8 union = 7/8 = 0.875 -> Drift
   let result =
-    alignment.compute_alignment(
-      "page",
-      ["A", "B", "C", "D", "E", "F", "G"],
-      ["A", "B", "C", "D", "E", "F", "H"],
-    )
+    alignment.compute_alignment("page", ["A", "B", "C", "D", "E", "F", "G"], [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "H",
+    ])
   // Intersection={A,B,C,D,E,F}=6, Union={A,B,C,D,E,F,G,H}=8, score=0.75 -> Drift
   result.status |> should.equal(alignment.Drift)
 }
 
 pub fn missing_elements_listed_test() {
-  let result =
-    alignment.compute_alignment(
-      "page",
-      ["A", "B", "C"],
-      ["A"],
-    )
+  let result = alignment.compute_alignment("page", ["A", "B", "C"], ["A"])
   // Missing: B and C (in expected but not implemented)
   { list.length(result.missing) == 2 } |> should.be_true()
 }
 
 pub fn undeclared_elements_listed_test() {
-  let result =
-    alignment.compute_alignment(
-      "page",
-      ["A"],
-      ["A", "B", "C"],
-    )
+  let result = alignment.compute_alignment("page", ["A"], ["A", "B", "C"])
   // Undeclared: B and C (in implemented but not expected)
   { list.length(result.undeclared) == 2 } |> should.be_true()
 }
 
 pub fn no_missing_when_perfect_match_test() {
-  let result =
-    alignment.compute_alignment("page", ["A", "B"], ["A", "B"])
+  let result = alignment.compute_alignment("page", ["A", "B"], ["A", "B"])
   { result.missing == [] } |> should.be_true()
 }
 
 pub fn no_undeclared_when_perfect_match_test() {
-  let result =
-    alignment.compute_alignment("page", ["A", "B"], ["A", "B"])
+  let result = alignment.compute_alignment("page", ["A", "B"], ["A", "B"])
   { result.undeclared == [] } |> should.be_true()
 }
 
@@ -565,11 +550,15 @@ pub fn is_compliant_true_at_exact_threshold_test() {
   // Use: expected=[A,B,C,D,E,F,G], implemented=[A,B,C,D,E,F,G] => score=1.0
   // For 0.7 exactly: inter=7, union=10 => add 3 to expected only
   let result =
-    alignment.compute_alignment(
-      "page",
-      ["A", "B", "C", "D", "E", "F", "G"],
-      ["A", "B", "C", "D", "E", "F", "G"],
-    )
+    alignment.compute_alignment("page", ["A", "B", "C", "D", "E", "F", "G"], [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+    ])
   // score=1.0 -> compliant
   alignment.is_compliant(result) |> should.be_true()
 }
@@ -577,11 +566,7 @@ pub fn is_compliant_true_at_exact_threshold_test() {
 pub fn is_compliant_false_below_threshold_test() {
   // score < 0.7 -> not compliant
   let result =
-    alignment.compute_alignment(
-      "page",
-      ["A", "B", "C"],
-      ["D", "E", "F"],
-    )
+    alignment.compute_alignment("page", ["A", "B", "C"], ["D", "E", "F"])
   alignment.is_compliant(result) |> should.be_false()
 }
 

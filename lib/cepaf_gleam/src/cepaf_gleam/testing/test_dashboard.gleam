@@ -750,7 +750,13 @@ pub fn update_kpis_from_coverages(
     False -> 1.0 -. overall_d_ea
   }
   let itqs_val =
-    0.25 *. h_norm +. 0.35 *. overall_ccm +. 0.25 *. d_norm +. 0.15
+    0.25
+    *. h_norm
+    +. 0.35
+    *. overall_ccm
+    +. 0.25
+    *. d_norm
+    +. 0.15
     *. overall_fsi
   let grade = case itqs_val >=. 0.95 {
     True -> GradeA
@@ -758,7 +764,7 @@ pub fn update_kpis_from_coverages(
       case itqs_val >=. 0.85 {
         True -> GradeB
         False ->
-          case itqs_val >=. 0.70 {
+          case itqs_val >=. 0.7 {
             True -> GradeC
             False -> GradeD
           }

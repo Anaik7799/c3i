@@ -128,8 +128,7 @@ pub fn auth_error_json(reason: String) -> String {
 /// Validate a raw Authorization header value against the configured token.
 fn validate_header(header_value: String) -> AuthResult {
   case string.starts_with(header_value, bearer_prefix) {
-    False ->
-      InvalidToken("authorization header must use Bearer scheme")
+    False -> InvalidToken("authorization header must use Bearer scheme")
     True -> {
       // Drop "Bearer " (7 chars) to obtain the raw token.
       let submitted_token = string.drop_start(header_value, 7)

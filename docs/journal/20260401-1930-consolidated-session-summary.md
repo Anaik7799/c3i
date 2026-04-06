@@ -163,8 +163,8 @@
 
 | File | Action |
 |------|--------|
-| `intelitor-v5.2/GEMINI.md` | MODIFIED (Omega-1, 2.1, 2.2, SC-GLM-*, AOR, FMEA, Migration) |
-| `intelitor-v5.2/CLAUDE.md` | MODIFIED (synced to GEMINI.md) |
+| `c3i/GEMINI.md` | MODIFIED (Omega-1, 2.1, 2.2, SC-GLM-*, AOR, FMEA, Migration) |
+| `c3i/CLAUDE.md` | MODIFIED (synced to GEMINI.md) |
 | `GEMINI.md` (root) | MODIFIED (expanded stub) |
 | `lib/cepaf_gleam/gleam.toml` | MODIFIED (+lustre, +wisp, +mist) |
 | `.gemini/skills/gleam-expert/SKILL.md` | MODIFIED (STAMP, AOR, UI tables) |

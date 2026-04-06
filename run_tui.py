@@ -4,7 +4,7 @@ import time
 
 pid, fd = pty.fork()
 if pid == 0:
-    os.chdir("sub-projects/intelitor-v5.2/native/ignition_daemon")
+    os.chdir("sub-projects/c3i/native/ignition_daemon")
     os.execvp("./target/debug/ignition", ["ignition", "ops-test"])
 else:
     time.sleep(5) # Wait for startup and phase A

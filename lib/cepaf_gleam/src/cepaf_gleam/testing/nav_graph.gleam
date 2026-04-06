@@ -41,9 +41,7 @@ pub fn page_count() -> Int {
 
 /// Build a list of integers from start to stop inclusive.
 fn indices(start: Int, stop: Int) -> List(Int) {
-  int.range(from: start, to: stop + 1, with: [], run: fn(acc, i) {
-    [i, ..acc]
-  })
+  int.range(from: start, to: stop + 1, with: [], run: fn(acc, i) { [i, ..acc] })
   |> list.reverse()
 }
 

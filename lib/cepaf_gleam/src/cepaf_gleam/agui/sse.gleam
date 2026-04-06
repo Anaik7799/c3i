@@ -78,8 +78,7 @@ pub fn create_sse_stream_for_agent(
     ])
     |> json.to_string()
   let meta_frame = "event: Custom\ndata: " <> meta_payload <> "\n\n"
-  let stream =
-    create_sse_stream(thread_id, run_id, "/ag-ui/run", meta_payload)
+  let stream = create_sse_stream(thread_id, run_id, "/ag-ui/run", meta_payload)
   meta_frame <> stream
 }
 

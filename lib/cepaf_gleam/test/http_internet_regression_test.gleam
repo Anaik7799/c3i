@@ -4,9 +4,9 @@
 // STAMP: SC-GLM-UI-006, SC-GLM-UI-003, SC-GLM-UI-001, SC-AGUI-002, SC-SEC-001
 
 import cepaf_gleam/ui/wisp/router
+import gleam/http
 import gleam/http/request
 import gleam/http/response
-import gleam/http
 import gleam/string
 import gleeunit/should
 
@@ -280,15 +280,14 @@ pub fn http_all_responses_are_valid_json_test() {
     "/api/v1/podman", "/api/v1/mcp", "/api/v1/kms", "/api/v1/telemetry",
     "/api/v1/prajna", "/api/v1/agents", "/api/v1/holon", "/api/v1/config",
     "/api/v1/git", "/api/v1/db", "/api/v1/bridge", "/api/v1/smriti",
-    "/api/v1/health_grid", "/api/v1/planning_dashboard",
-    "/api/v1/federation", "/ag-ui/health",
+    "/api/v1/health_grid", "/api/v1/planning_dashboard", "/api/v1/federation",
+    "/ag-ui/health",
   ]
   list.each(paths, fn(path) {
     let resp = get(path)
     // All JSON responses must start with { or [
     let starts_json =
-      string.starts_with(resp.body, "{")
-      || string.starts_with(resp.body, "[")
+      string.starts_with(resp.body, "{") || string.starts_with(resp.body, "[")
     starts_json |> should.be_true()
   })
 }
@@ -301,8 +300,8 @@ pub fn http_all_get_endpoints_return_200_test() {
     "/api/v1/podman", "/api/v1/mcp", "/api/v1/kms", "/api/v1/telemetry",
     "/api/v1/prajna", "/api/v1/agents", "/api/v1/holon", "/api/v1/config",
     "/api/v1/git", "/api/v1/db", "/api/v1/bridge", "/api/v1/smriti",
-    "/api/v1/health_grid", "/api/v1/planning_dashboard",
-    "/api/v1/federation", "/ag-ui/health",
+    "/api/v1/health_grid", "/api/v1/planning_dashboard", "/api/v1/federation",
+    "/ag-ui/health",
   ]
   list.each(paths, fn(path) {
     let resp = get(path)

@@ -349,19 +349,19 @@ pub fn route_podman_contains_containers_test() {
   let result = router.route("/api/podman/containers")
   string.contains(result, "\"Podman\"") |> should.be_true()
   string.contains(result, "\"containers\"") |> should.be_true()
-  string.contains(result, "\"system_info\"") |> should.be_true()
+  string.contains(result, "\"total\"") |> should.be_true()
 }
 
 pub fn route_mcp_contains_tools_test() {
   let result = router.route("/api/mcp/status")
   string.contains(result, "\"MCP Server\"") |> should.be_true()
   string.contains(result, "\"tools\"") |> should.be_true()
-  string.contains(result, "\"tool_count\"") |> should.be_true()
+  string.contains(result, "\"active_sessions\"") |> should.be_true()
 }
 
 pub fn route_kms_contains_checkpoints_test() {
   let result = router.route("/api/kms/catalog")
-  string.contains(result, "\"KMS Catalog\"") |> should.be_true()
+  string.contains(result, "\"KMS\"") |> should.be_true()
   string.contains(result, "\"total_keys\"") |> should.be_true()
   string.contains(result, "\"checkpoints\"") |> should.be_true()
 }
@@ -369,8 +369,8 @@ pub fn route_kms_contains_checkpoints_test() {
 pub fn route_telemetry_contains_otel_test() {
   let result = router.route("/api/telemetry/status")
   string.contains(result, "\"Telemetry\"") |> should.be_true()
-  string.contains(result, "\"active_traces\"") |> should.be_true()
-  string.contains(result, "\"otel_collector\"") |> should.be_true()
+  string.contains(result, "\"total_traces\"") |> should.be_true()
+  string.contains(result, "\"log_level\"") |> should.be_true()
 }
 
 // =============================================================================

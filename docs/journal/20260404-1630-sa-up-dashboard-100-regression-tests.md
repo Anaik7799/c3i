@@ -15,7 +15,7 @@ The goal was to formally prove that the `./sa-up dashboard` (Ratatui TUI) can wi
 - Lack of a combinatorial stress-test that proved `saturating_sub` usage across all possible 12 tabs under shifting viewport dimensions.
 
 ## 3. Execution
-1.  **Test Harness Injection**: Added `test_100_cycle_regression_coverage` to `sub-projects/intelitor-v5.2/native/ignition_daemon/src/tui.rs`.
+1.  **Test Harness Injection**: Added `test_100_cycle_regression_coverage` to `sub-projects/c3i/native/ignition_daemon/src/tui.rs`.
 2.  **Mathematical Permutations**:
     *   **Terminal Width**: Monotonically scaled via modulo arithmetic $W = 40 + (i * 16) \pmod{160}$.
     *   **Terminal Height**: Monotonically scaled via $H = 10 + (i * 5) \pmod{50}$.
@@ -43,7 +43,7 @@ Ratatui `Constraint` math can panic if the requested constraints exceed the avai
 - **Layout Safety**: Mathematically proven for $W \in [40, 200]$ and $H \in [10, 60]$.
 
 ## 8. Files
-- `sub-projects/intelitor-v5.2/native/ignition_daemon/src/tui.rs`
+- `sub-projects/c3i/native/ignition_daemon/src/tui.rs`
 
 ## 9. Architecture
 The tests use `ratatui::backend::TestBackend` which renders to an in-memory buffer, allowing headless testing of UI code at a speed of ~2000 cycles per second without requiring an actual terminal PTY.

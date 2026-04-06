@@ -9,7 +9,7 @@
 ## 1. Scope & Trigger
 
 **Trigger**: Update ALL Web UI, Agentic UI, and TUI related artifacts across the c3i and
-intelitor-v5.2 codebases. Consolidate rules, skills, agents, CLAUDE.md references, design
+c3i codebases. Consolidate rules, skills, agents, CLAUDE.md references, design
 documents, and testing guidelines. Create a definitive development prompt for Gleam-based
 UI work. This is the final entry for the 2026-04-03 session, summarizing all work performed.
 
@@ -17,7 +17,7 @@ UI work. This is the final entry for the 2026-04-03 session, summarizing all wor
 - Audit and update all `.claude/rules/*.md` files related to UI
 - Update all `.claude/agents/*.md` files related to UI
 - Create definitive `docs/GLEAM_UI_DEVELOPMENT_PROMPT.md`
-- Sync updated artifacts to intelitor-v5.2
+- Sync updated artifacts to c3i
 - Summarize ALL features, use cases, and implementations from this session
 - Complete 13-section journal per SC-JOURNAL mandate
 
@@ -126,7 +126,7 @@ UI work. This is the final entry for the 2026-04-03 session, summarizing all wor
 | Planning Wiring journal | Live DB, Lustre HTML, WebSocket, Zenoh, A2UI, drag-drop | `docs/journal/20260403-1900-*.md` |
 | This journal | Final session summary + artifact update | `docs/journal/20260403-2000-*.md` |
 
-### 3.6 intelitor-v5.2 Sync
+### 3.6 c3i Sync
 
 | File | Action |
 |------|--------|
@@ -145,7 +145,7 @@ UI work. This is the final entry for the 2026-04-03 session, summarizing all wor
 5. **AG-UI protocol incomplete**: Only 47% of event types implemented
 6. **No A2UI catalog**: Agents couldn't propose dynamic UI components
 7. **No fractal layer widgets**: L0-L7 conceptual model had no code backing
-8. **intelitor-v5.2 out of sync**: Rules not propagated to the legacy codebase
+8. **c3i out of sync**: Rules not propagated to the legacy codebase
 
 ---
 
@@ -259,7 +259,7 @@ UI work. This is the final entry for the 2026-04-03 session, summarizing all wor
 | Rule file updated | PASS | 19 sections, AG-UI + A2UI + fractal + PROMETHEUS |
 | Agents updated | PASS | 3 agents now reference Gleam Agentic UI |
 | Development prompt created | PASS | docs/GLEAM_UI_DEVELOPMENT_PROMPT.md |
-| intelitor-v5.2 synced | PASS | Rule file copied |
+| c3i synced | PASS | Rule file copied |
 | Human Intent sections | PASS | Present in planning_view.gleam, planning_dashboard.gleam |
 
 ---
@@ -287,7 +287,7 @@ UI work. This is the final entry for the 2026-04-03 session, summarizing all wor
 | `.claude/agents/wallaby-coverage-engineer.md` | Description: Gleam support |
 | `.claude/agents/coverage-audit-agent.md` | Description: Gleam coverage_math |
 | `.claude/agents/prajna-operator.md` | Description: Fractal Agentic UI |
-| `intelitor-v5.2/.claude/rules/gleam-web-ui-development.md` | Synced from c3i |
+| `c3i/.claude/rules/gleam-web-ui-development.md` | Synced from c3i |
 | `~/.claude/projects/.../memory/MEMORY.md` | Updated with session references |
 
 ---
@@ -380,7 +380,7 @@ All formulas are tested with known-value assertions (uniform distribution → H 
 | Agents updated | 3 |
 | Journals written | 7 (13-section format) |
 | Documents created | 1 (development prompt) |
-| intelitor-v5.2 files synced | 1 |
+| c3i files synced | 1 |
 | Memory entries updated | 3 |
 | Total new lines (estimated) | ~5,000-6,000 |
 | Research sources consumed | 14 URLs |

@@ -75,8 +75,7 @@ pub fn verify_gemini_pipeline(
   }
   let rate = case list.length(published_topics) {
     0 -> 1.0
-    n ->
-      int.to_float(list.length(mcp_matched)) /. int.to_float(n)
+    n -> int.to_float(list.length(mcp_matched)) /. int.to_float(n)
   }
 
   GeminiVerification(
@@ -143,10 +142,7 @@ pub fn format_gemini_report(verification: GeminiVerification) -> String {
     False -> "DEGRADED"
   }
   let delivery =
-    int.to_string(
-      { verification.delivery_rate *. 100.0 } |> float_round,
-    )
-    <> "%"
+    int.to_string({ verification.delivery_rate *. 100.0 } |> float_round) <> "%"
 
   string.join(
     [
@@ -159,9 +155,9 @@ pub fn format_gemini_report(verification: GeminiVerification) -> String {
       "Delivery rate: " <> delivery,
       "All received: "
         <> case verification.all_received {
-          True -> "YES"
-          False -> "NO"
-        },
+        True -> "YES"
+        False -> "NO"
+      },
     ],
     "\n",
   )

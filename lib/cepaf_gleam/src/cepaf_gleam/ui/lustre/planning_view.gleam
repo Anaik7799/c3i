@@ -15,8 +15,8 @@
 
 import cepaf_gleam/ui/lustre/planning_dashboard.{
   type CockpitMode, type DashboardModel, type DashboardMsg, type PanelId,
-  type SafetyCheckResult, type ServiceNode, type TaskCard, Bright, CheckFail,
-  CheckNotRun, CheckPass, CheckWarn, ChayaTwin, Dark, Dim, EmergencyMode,
+  type SafetyCheckResult, type ServiceNode, type TaskCard, Bright, ChayaTwin,
+  CheckFail, CheckNotRun, CheckPass, CheckWarn, Dark, Dim, EmergencyMode,
   EnforcerShield, GraphVerify, Normal, OodaCycle, OrchMesh, SafetyKernel,
   SelectTask, SetActivePanel, SetTaskFilter, StartupOptim, TaskBoard,
 }
@@ -33,7 +33,11 @@ import lustre/event
 /// Main view function — renders the complete 8-panel dashboard.
 pub fn view(model: DashboardModel) -> Element(DashboardMsg) {
   html.div(
-    [attribute.class("c3i-dashboard " <> cockpit_mode_class(model.cockpit_mode))],
+    [
+      attribute.class(
+        "c3i-dashboard " <> cockpit_mode_class(model.cockpit_mode),
+      ),
+    ],
     [
       render_header(model),
       html.div([attribute.class("panels-grid")], [
@@ -312,9 +316,7 @@ fn render_enforcer_panel(model: DashboardModel) -> Element(DashboardMsg) {
     [
       html.h2([], [element.text("Enforcer Shield")]),
       html.p([], [
-        element.text(
-          "Violations: " <> int.to_string(model.total_violations),
-        ),
+        element.text("Violations: " <> int.to_string(model.total_violations)),
       ]),
       html.p(
         [

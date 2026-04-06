@@ -9,7 +9,7 @@
 - **Compliance**: SC-IGNITE-001, SC-BOOT-004
 
 ## 2. Context & Objectives
-- **Context**: The user mandated that the Rust application in `intelitor-v5.2` must be the sole orchestrator for preflight and ignition. However, the existing Rust container creation logic (`launch_app`) was brittle compared to the legacy F# `podman-compose` implementation and Bash scripts.
+- **Context**: The user mandated that the Rust application in `c3i` must be the sole orchestrator for preflight and ignition. However, the existing Rust container creation logic (`launch_app`) was brittle compared to the legacy F# `podman-compose` implementation and Bash scripts.
 - **Objective**: Implement robust application container creation capabilities within the Rust daemon and document the deep system implications.
 
 ## 3. Pattern Recognition

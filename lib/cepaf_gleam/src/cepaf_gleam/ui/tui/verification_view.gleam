@@ -22,7 +22,10 @@ pub fn render(model: VerificationModel) -> String {
   let proof = render_proof(model)
   let checks = render_graph_checks(model)
   let dag = render_dag_stats(model)
-  string.join([header, status, "", report, "", proof, "", checks, "", dag], "\n")
+  string.join(
+    [header, status, "", report, "", proof, "", checks, "", dag],
+    "\n",
+  )
 }
 
 fn render_run_status(model: VerificationModel) -> String {
@@ -97,7 +100,8 @@ fn render_proof(model: VerificationModel) -> String {
           verification.proof_result_string(proof.result),
           result_color,
         )
-      let constraint_count = int.to_string(list.length(proof.constraints_checked))
+      let constraint_count =
+        int.to_string(list.length(proof.constraints_checked))
       string.join(
         [
           label,

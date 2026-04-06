@@ -55,7 +55,7 @@ Standard unit tests only verify static snapshots of a UI. In a SIL-6 environment
 - **Total System Tests**: The `ignition_daemon` test suite stands at **253 tests** (including 2 massive high-entropy regression suites).
 
 ## 8. Files
-- `sub-projects/intelitor-v5.2/native/ignition_daemon/src/tui.rs` (Updated with dynamic `test_long_duration_monitoring_coverage`).
+- `sub-projects/c3i/native/ignition_daemon/src/tui.rs` (Updated with dynamic `test_long_duration_monitoring_coverage`).
 
 ## 9. Architecture
 The architecture proves the **Reactive Model-View-Update** pattern is robust. Because the state transitions are mathematically bounded (e.g., truncation, modulo arithmetic), the rendering function (`draw_ui`) is guaranteed never to panic over time, regardless of the operational window.

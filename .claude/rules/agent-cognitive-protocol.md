@@ -6,6 +6,11 @@ paths:
   - lib/cepaf/src/Cepaf/Orchestrator/**/*.fs
 ---
 
+# The Ultrathink Evolutionary Mandate (SC-ULTRA-001) MUST BE ADHERED TO AT ALL TIMES.
+> **WARNING: RIGID EVOLUTIONARY GOAL ENFORCEMENT ACTIVE.**
+> See `docs/plans/20260406-ultrathink-architectural-improvements.md`.
+> All cognitive operations MUST trace back to the 8 Ultrathink pillars. Divergent tasks are FORBIDDEN.
+
 # Agent Cognitive Protocol (ACP)
 
 ## STAMP Constraints (Cognitive)

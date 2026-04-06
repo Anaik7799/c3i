@@ -41,9 +41,9 @@ The "Mock for now" logs were a result of the rapid initial prototyping phase whe
 - **HMI Probe**: Visual verification of "SIL-6" red highlight on substrate nodes (db, zenoh).
 
 ## 8. Files
-- `sub-projects/intelitor-v5.2/native/ignition_daemon/src/tui.rs` (Refactored)
-- `sub-projects/intelitor-v5.2/native/ignition_daemon/src/podman.rs` (Refactored)
-- `sub-projects/intelitor-v5.2/native/ignition_daemon/tests/tui_unit.rs` (Extended)
+- `sub-projects/c3i/native/ignition_daemon/src/tui.rs` (Refactored)
+- `sub-projects/c3i/native/ignition_daemon/src/podman.rs` (Refactored)
+- `sub-projects/c3i/native/ignition_daemon/tests/tui_unit.rs` (Extended)
 
 ## 9. Architecture
 The architecture follows a **Reactive Model-View-Update** pattern. The `podman` thread pushes stats to the `RwLock<DashboardState>`, which the `tui` thread renders at 60fps. This ensures the UI remains responsive even during heavy I/O or container crashes.

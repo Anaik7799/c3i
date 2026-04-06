@@ -1,5 +1,8 @@
 /// Wisp API for Verification plane (SC-GLM-UI-001, SC-GLM-UI-003).
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-003, SC-GLM-UI-007, SC-PROM-001..007, SC-GRAPH-001..010
+import cepaf_gleam/ui/domain.{
+  type BicameralSignOff, type BiomorphicMatrix, type MathematicalIntegrity,
+}
 import cepaf_gleam/verification/graph_verification.{type GraphCheck}
 import cepaf_gleam/verification/prometheus.{
   type ProofToken, type VerificationResult, Inconclusive, Rejected, Verified,
@@ -10,6 +13,61 @@ import cepaf_gleam/verification/swarm.{
 import gleam/int
 import gleam/json
 import gleam/list
+import gleam/option
+
+pub fn mathematical_integrity_json(mi: MathematicalIntegrity) -> String {
+  json.object([
+    #("plane", json.string("verification")),
+    #("type", json.string("mathematical_integrity")),
+    #("hs", json.float(mi.hs)),
+    #("epsilon", json.float(mi.epsilon)),
+    #("ds", json.float(mi.ds)),
+  ])
+  |> json.to_string()
+}
+
+/// JSON encoder for Bicameral Two-Key Release Protocol (813a7a93).
+pub fn bicameral_sign_off_json(sign_off: BicameralSignOff) -> String {
+  json.object([
+    #("plane", json.string("verification")),
+    #("type", json.string("bicameral_sign_off")),
+    #("key1_signed", json.bool(sign_off.key1_signed)),
+    #("key2_signed", json.bool(sign_off.key2_signed)),
+    #(
+      "authorized_by",
+      json.string(option.unwrap(sign_off.authorized_by, "none")),
+    ),
+  ])
+  |> json.to_string()
+}
+
+/// JSON encoder for NASA-STD-3000 Biomorphic Matrix (aa1ce076).
+pub fn biomorphic_matrix_json(matrix: BiomorphicMatrix) -> String {
+  json.object([
+    #("plane", json.string("verification")),
+    #("type", json.string("biomorphic_matrix")),
+    #(
+      "levels",
+      json.array(matrix.levels, fn(l) {
+        let #(layer, status) = l
+        json.object([
+          #("layer", json.string(domain.layer_to_string(layer))),
+          #("status", json.string(status_to_string(status))),
+        ])
+      }),
+    ),
+  ])
+  |> json.to_string()
+}
+
+fn status_to_string(status: domain.HealthStatus) -> String {
+  case status {
+    domain.Healthy -> "healthy"
+    domain.Degraded(r) -> "degraded: " <> r
+    domain.Critical(r) -> "critical: " <> r
+    domain.Unknown -> "unknown"
+  }
+}
 
 pub fn swarm_report_json(report: SwarmReport) -> String {
   json.object([

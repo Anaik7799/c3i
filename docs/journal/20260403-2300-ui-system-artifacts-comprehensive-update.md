@@ -3,7 +3,7 @@
 **Date**: 2026-04-03 23:00 CEST
 **Author**: Claude Opus 4.6
 **Version**: v21.5.0-GLM (from v21.4.0-GLM)
-**Scope**: All UI-related system artifacts across C3I and intelitor-v5.2
+**Scope**: All UI-related system artifacts across C3I and c3i
 
 ---
 
@@ -12,7 +12,7 @@
 **Trigger**: User requested comprehensive update of all UI-related system artifacts including rules, skills, agents, CLAUDE.md, GEMINI.md, AGENTS.md, design/implementation guidelines, and testing/verification/coverage guidelines.
 
 **Scope**:
-- Both codebases: C3I (Gleam-first) and intelitor-v5.2 (Elixir/F# legacy)
+- Both codebases: C3I (Gleam-first) and c3i (Elixir/F# legacy)
 - All artifact types: rules, agents, documentation, prompts
 - Full fractal analysis: L0-L7 x all UI functionality x SIL-6 constraints
 - Deliverables: updated artifacts, development prompt, journal, git commit
@@ -34,7 +34,7 @@
 - **Total test files**: 23 files, 10,106 lines (unreported)
 
 ### Intelitor-v5.2 Codebase
-- **Location**: `/home/an/dev/ver/intelitor-v5.2/`
+- **Location**: `/home/an/dev/ver/c3i/`
 - **UI Architecture**: Quad-Stack (Phoenix LiveView + Bolero WASM + Avalonia Desktop + TUI)
 - **Key conflict**: SC-COCKPIT-002 mandates F# Bolero for WebUI — conflicts with C3I Gleam-first approach
 - **Relevant artifacts**: 43 rules, 27 agents, 36 commands, CLAUDE.md, GEMINI.md, AGENTS.md
@@ -46,7 +46,7 @@
 ### Phase 1: Discovery (Parallel)
 Three exploration agents ran simultaneously:
 1. **UI Rules & Skills Inventory**: Found 2 direct UI rules + 39 with UI mentions, 4 UI-specialist agents + 9 supporting, all 10 CLAUDE.md sections are UI-related
-2. **Intelitor-v5.2 Inventory**: Confirmed existence at `/home/an/dev/ver/intelitor-v5.2/`, cataloged Quad-Stack UI architecture, identified SC-COCKPIT-002 conflict
+2. **Intelitor-v5.2 Inventory**: Confirmed existence at `/home/an/dev/ver/c3i/`, cataloged Quad-Stack UI architecture, identified SC-COCKPIT-002 conflict
 3. **Gleam Source Inventory**: Counted 109 modules (21,666 lines) across 9 subsystems + 23 test files (10,106 lines)
 
 ### Phase 2: Artifact Creation/Update (Parallel)
@@ -73,7 +73,7 @@ Two analysis agents:
 1. **AG-UI event count drift**: CLAUDE.md was written when AG-UI had 29 events; `Heartbeat` was added to `events.gleam` bringing it to 32, but docs weren't updated
 2. **Wisp version drift**: Wisp 2.2.2 was installed via gleam.toml but CLAUDE.md still referenced 1.0.0
 3. **A2UI component expansion**: Original 12 components grew to 16 (form_input, select, textarea, checkbox, radio, slider) without doc update
-4. **No AGENTS.md**: C3I was created as a fork/evolution of intelitor-v5.2 but AGENTS.md wasn't carried over
+4. **No AGENTS.md**: C3I was created as a fork/evolution of c3i but AGENTS.md wasn't carried over
 5. **Phoenix-centric test framework**: ui-graph-testing.md still referenced 30 Phoenix LiveView pages despite migration to 22 Gleam pages
 
 ---

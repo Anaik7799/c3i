@@ -255,9 +255,9 @@ try_load_zenoh_nif() ->
         {module, _} -> {ok, <<"elixir_rustler_loaded">>};
         _ ->
             %% Fallback: load NIF directly into this module
-            NifPath = case filelib:is_file("/home/an/dev/ver/c3i/sub-projects/intelitor-v5.2/priv/native/zenoh_nif.so") of
-                true -> "/home/an/dev/ver/c3i/sub-projects/intelitor-v5.2/priv/native/zenoh_nif";
-                false -> "/home/an/dev/ver/c3i/sub-projects/intelitor-v5.2/target/debug/libzenoh_nif"
+            NifPath = case filelib:is_file("/home/an/dev/ver/c3i/sub-projects/c3i/priv/native/zenoh_nif.so") of
+                true -> "/home/an/dev/ver/c3i/sub-projects/c3i/priv/native/zenoh_nif";
+                false -> "/home/an/dev/ver/c3i/sub-projects/c3i/target/debug/libzenoh_nif"
             end,
             case erlang:load_nif(NifPath, 0) of
                 ok -> {ok, <<"direct_nif_loaded">>};

@@ -94,10 +94,7 @@ pub type MoZError {
 
 /// A parsed MoZ JSON-RPC 2.0 response.
 pub type MoZResponse {
-  MoZResponse(
-    result: Result(json.Json, MoZError),
-    request_id: String,
-  )
+  MoZResponse(result: Result(json.Json, MoZError), request_id: String)
 }
 
 /// Client state holding the circuit breaker and in-flight requests.
@@ -131,7 +128,12 @@ pub type MoZClientState {
 ///   reset_timeout_ms   = 30_000 (30 s — matches SC-ZENOH-005 reconnect window)
 pub fn new() -> MoZClientState {
   MoZClientState(
-    circuit: circuit_breaker.create("moz_client", max_consecutive_failures, 2, 30_000),
+    circuit: circuit_breaker.create(
+      "moz_client",
+      max_consecutive_failures,
+      2,
+      30_000,
+    ),
     pending: [],
     consecutive_failures: 0,
   )
@@ -212,7 +214,8 @@ pub fn send_request(
       let request_id = generate_id()
       let topic = build_request_topic(method, request_id)
       let payload = build_request_json(method, params, request_id)
-      let request = MoZRequest(method: method, params: params, request_id: request_id)
+      let request =
+        MoZRequest(method: method, params: params, request_id: request_id)
 
       case zenoh.open("{}") {
         Error(reason) -> {

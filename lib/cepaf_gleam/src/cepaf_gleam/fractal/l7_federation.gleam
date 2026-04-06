@@ -38,23 +38,15 @@ pub type FederationState {
 }
 
 pub fn initial_federation(local_id: String) -> FederationState {
-  FederationState(
-    local_id: local_id,
-    peers: [],
-    local_version: [#(local_id, 0)],
-  )
+  FederationState(local_id: local_id, peers: [], local_version: [#(local_id, 0)])
 }
 
 pub fn add_peer(state: FederationState, peer: FederationPeer) -> FederationState {
-  let existing =
-    list.filter(state.peers, fn(p) { p.peer_id != peer.peer_id })
+  let existing = list.filter(state.peers, fn(p) { p.peer_id != peer.peer_id })
   FederationState(..state, peers: [peer, ..existing] |> list.take(max_peers))
 }
 
-pub fn remove_peer(
-  state: FederationState,
-  peer_id: String,
-) -> FederationState {
+pub fn remove_peer(state: FederationState, peer_id: String) -> FederationState {
   FederationState(
     ..state,
     peers: list.filter(state.peers, fn(p) { p.peer_id != peer_id }),
@@ -101,4 +93,3 @@ pub fn peer_to_json(peer: FederationPeer) -> json.Json {
     #("last_seen", json.int(peer.last_seen)),
   ])
 }
-

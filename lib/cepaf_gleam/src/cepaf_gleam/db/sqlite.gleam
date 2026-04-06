@@ -23,7 +23,10 @@ pub fn query(
 pub fn close(conn: DbConnection) -> Nil
 
 /// Ensures the database and its schema are initialized.
-pub fn ensure_schema(conn: DbConnection, schema_sql: String) -> Result(Nil, String) {
+pub fn ensure_schema(
+  conn: DbConnection,
+  schema_sql: String,
+) -> Result(Nil, String) {
   case execute(conn, schema_sql) {
     Ok(_) -> Ok(Nil)
     Error(e) -> Error(e)

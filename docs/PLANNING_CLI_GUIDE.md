@@ -5,7 +5,7 @@
 **Status**: ACTIVE
 
 ## Overview
-Indrajaal uses a **Dual-Bridge Planning System**. You can manage tasks using either the stable F# system (`sa-plan`) or the new high-performance Gleam system (`sa-gleam`). Both systems share the same source of truth: `sub-projects/intelitor-v5.2/data/smriti/planning.db`.
+Indrajaal uses a **Dual-Bridge Planning System**. You can manage tasks using either the stable F# system (`sa-plan`) or the new high-performance Gleam system (`sa-gleam`). Both systems share the same source of truth: `sub-projects/c3i/data/smriti/planning.db`.
 
 ---
 

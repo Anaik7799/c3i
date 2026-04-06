@@ -1,0 +1,1 @@
+{"inputs":{"browser-previews":{"url":"github:nix-community/browser-previews"},"nixpkgs":{"url":"github:NixOS/nixpkgs/nixos-25.11"},"systems":{"url":"github:nix-systems/default"}},"allowUnfree":true,"imports":["./devenv.nix"]}

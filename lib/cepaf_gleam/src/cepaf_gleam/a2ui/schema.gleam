@@ -37,11 +37,7 @@ pub type ComponentSpec {
 
 /// A property specification.
 pub type PropSpec {
-  PropSpec(
-    name: String,
-    prop_type: PropType,
-    description: String,
-  )
+  PropSpec(name: String, prop_type: PropType, description: String)
 }
 
 /// Property types that A2UI supports.
@@ -68,11 +64,7 @@ pub type ComponentProposal {
 
 /// Data binding from shared state path to component prop.
 pub type DataBinding {
-  DataBinding(
-    state_path: String,
-    prop_name: String,
-    transform: Option(String),
-  )
+  DataBinding(state_path: String, prop_name: String, transform: Option(String))
 }
 
 /// Convert a FractalLayer to string.
@@ -96,23 +88,17 @@ pub fn proposal_to_json(proposal: ComponentProposal) -> json.Json {
     #("type", json.string(proposal.component_type)),
     #("props", proposal.props),
     #("children", json.array(proposal.children, proposal_to_json)),
-    #(
-      "binding",
-      case proposal.binding {
-        Some(b) ->
-          json.object([
-            #("state_path", json.string(b.state_path)),
-            #("prop_name", json.string(b.prop_name)),
-            #(
-              "transform",
-              case b.transform {
-                Some(t) -> json.string(t)
-                None -> json.null()
-              },
-            ),
-          ])
-        None -> json.null()
-      },
-    ),
+    #("binding", case proposal.binding {
+      Some(b) ->
+        json.object([
+          #("state_path", json.string(b.state_path)),
+          #("prop_name", json.string(b.prop_name)),
+          #("transform", case b.transform {
+            Some(t) -> json.string(t)
+            None -> json.null()
+          }),
+        ])
+      None -> json.null()
+    }),
   ])
 }

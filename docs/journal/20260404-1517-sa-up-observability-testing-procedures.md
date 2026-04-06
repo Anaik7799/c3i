@@ -13,7 +13,7 @@
 ## 3. Execution Detail
 **Phase 1: Discovery & Analysis**
 - Analyzed `sa-up` shell script (routes to `ignition` binary).
-- Audited `sub-projects/intelitor-v5.2/native/ignition_daemon/src/` (main.rs, zenoh_telemetry.rs, preflight.rs).
+- Audited `sub-projects/c3i/native/ignition_daemon/src/` (main.rs, zenoh_telemetry.rs, preflight.rs).
 - Verified `scripts/run-split-screen-tests.sh` phases.
 
 **Phase 2: Procedure Synthesis**

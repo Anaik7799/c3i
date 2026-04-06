@@ -91,9 +91,9 @@ fn restart_node(name: String) {
 
 fn show_status() {
   let db_paths = [
-    "/home/an/dev/ver/c3i/sub-projects/intelitor-v5.2/data/smriti/planning.db",
-    "../../sub-projects/intelitor-v5.2/data/smriti/planning.db",
-    "sub-projects/intelitor-v5.2/data/smriti/planning.db",
+    "/home/an/dev/ver/c3i/sub-projects/c3i/data/smriti/planning.db",
+    "../../sub-projects/c3i/data/smriti/planning.db",
+    "sub-projects/c3i/data/smriti/planning.db",
     "data/smriti/planning.db",
   ]
 

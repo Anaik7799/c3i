@@ -105,4 +105,3 @@ pub fn agent_to_json(node: AgentNode) -> json.Json {
     #("topics", json.array(node.zenoh_topics, json.string)),
   ])
 }
-

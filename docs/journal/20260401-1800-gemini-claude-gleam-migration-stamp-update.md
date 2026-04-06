@@ -17,8 +17,8 @@
 ## 2. Pre-State Assessment
 
 ### Before This Session
-- `intelitor-v5.2/GEMINI.md`: v21.3.2-SIL6, F#-centric commands, no Gleam references, single-language kernel (F# only)
-- `intelitor-v5.2/CLAUDE.md`: Identical structure to GEMINI.md, no Gleam references
+- `c3i/GEMINI.md`: v21.3.2-SIL6, F#-centric commands, no Gleam references, single-language kernel (F# only)
+- `c3i/CLAUDE.md`: Identical structure to GEMINI.md, no Gleam references
 - Root `GEMINI.md`: 14-line stub with SC-CMP-025 to SC-CMP-035 table, partially updated for Gleam
 - `.gemini/skills/gleam-expert/SKILL.md`: Core patterns only, no STAMP/AOR references, no migration status
 - No GEMINI.md edits had been successfully made across multiple prior sessions (Edit tool per-session Read requirement was the blocker)
@@ -40,7 +40,7 @@
 - **old**: `... mix compile --jobs 16.`
 - **new**: `... mix compile --jobs 16. **Gleam**: gleam build / gleam test / gleam format / gleam check — zero warnings enforced (SC-GLM-CMP-001). **Rust NIFs**: cargo build --release (NIF boundary only — SC-NIF-001).`
 - **Impact**: Omega-1 now declares all 4 language toolchains as mandatory Patient Mode commands
-- **Files**: `intelitor-v5.2/GEMINI.md`, `intelitor-v5.2/CLAUDE.md`
+- **Files**: `c3i/GEMINI.md`, `c3i/CLAUDE.md`
 
 **Edit 2 — Section 2.2 (lines 71-77 in both files)**:
 - **old**: `### 2.2 Essential Commands (F# Kernel)` — 5 F# commands only
@@ -50,7 +50,7 @@
   - 2.2.3 Rust NIF Commands (NIF Boundary Only — SC-NIF-001) — `cargo build --release`, `cargo test`
   - 2.2.4 Elixir Commands (Web Portal Layer) — `mix compile --jobs 16`, `mix test`, `mix format`
 - **Impact**: Section expanded from 6 lines to 18 lines; clear language role separation
-- **Files**: `intelitor-v5.2/GEMINI.md`, `intelitor-v5.2/CLAUDE.md`
+- **Files**: `c3i/GEMINI.md`, `c3i/CLAUDE.md`
 
 ### Batch 2: New SC-GLM-* STAMP Constraint Families + SC-PARALLEL Update
 
@@ -97,7 +97,7 @@
 **SC-PARALLEL update**: Added SC-PARALLEL-003 (Gleam BEAM-native parallelism)
 
 - **Total new constraints**: 22
-- **Files**: `intelitor-v5.2/GEMINI.md`, `intelitor-v5.2/CLAUDE.md`
+- **Files**: `c3i/GEMINI.md`, `c3i/CLAUDE.md`
 
 ### Batch 3: AOR Rules Update (Modify, NOT Delete) + FMEA + Migration Status
 
@@ -150,7 +150,7 @@
 - ~90% non-container parity
 
 - **Total new AOR rules**: 14 (plus 1 modified)
-- **Files**: `intelitor-v5.2/GEMINI.md`, `intelitor-v5.2/CLAUDE.md`
+- **Files**: `c3i/GEMINI.md`, `c3i/CLAUDE.md`
 
 ### Batch 4: Root GEMINI.md Expansion
 
@@ -158,7 +158,7 @@
 - Added version header: v21.4.0-GLM
 - Added Language Architecture table (Gleam/Rust/Elixir/F# roles and commands)
 - Added Build Order reference (AOR-BUILD-001)
-- Added pointer to canonical `intelitor-v5.2/GEMINI.md`
+- Added pointer to canonical `c3i/GEMINI.md`
 - Updated SC-CMP-025 to SC-CMP-035 table with Gleam-specific verification methods
 - Added Category E: SC-GLM-CMP-001 to SC-GLM-CMP-005
 - Added Category F: SC-GLM-MIG-001 to SC-GLM-MIG-005
@@ -174,13 +174,13 @@
 
 ### Batch 6: CLAUDE.md Sync
 
-All Batch 1-3 edits applied identically to `intelitor-v5.2/CLAUDE.md`:
+All Batch 1-3 edits applied identically to `c3i/CLAUDE.md`:
 - Omega-1 Patient Mode (Gleam + Rust NIF commands)
 - Section 2.2 Multi-Language Kernel (4 subsections)
 - SC-GLM-CMP/CORE/NIF/MIG constraint families (22 constraints)
 - SC-PARALLEL-003
 - Section 9.0 restructured (9.1-9.4 with 14 new AOR rules)
-- **File**: `intelitor-v5.2/CLAUDE.md`
+- **File**: `c3i/CLAUDE.md`
 
 ---
 
@@ -255,8 +255,8 @@ All Batch 1-3 edits applied identically to `intelitor-v5.2/CLAUDE.md`:
 
 | File | Lines Changed | Type |
 |------|--------------|------|
-| `intelitor-v5.2/GEMINI.md` | +120 lines (6 edits) | STAMP, AOR, FMEA, Section restructure |
-| `intelitor-v5.2/CLAUDE.md` | +100 lines (4 edits) | Synced: Omega-1, 2.2, STAMP, AOR |
+| `c3i/GEMINI.md` | +120 lines (6 edits) | STAMP, AOR, FMEA, Section restructure |
+| `c3i/CLAUDE.md` | +100 lines (4 edits) | Synced: Omega-1, 2.2, STAMP, AOR |
 | `GEMINI.md` (root) | +40 lines (1 edit) | Expanded stub with language arch + new SC families |
 | `.gemini/skills/gleam-expert/SKILL.md` | +30 lines (1 edit) | STAMP/AOR tables, migration status |
 

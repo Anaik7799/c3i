@@ -5,7 +5,7 @@
 **Status**: DRAFT
 
 ## Objective
-Enable the Gleam CLI (`cepaf_gleam`) to read and manage the authoritative planning data currently stored in the F# system's SQLite database (`sub-projects/intelitor-v5.2/data/smriti/planning.db`). This fulfills the user's requirement to "read via gleam" while maintaining data consistency across the multi-language stack.
+Enable the Gleam CLI (`cepaf_gleam`) to read and manage the authoritative planning data currently stored in the F# system's SQLite database (`sub-projects/c3i/data/smriti/planning.db`). This fulfills the user's requirement to "read via gleam" while maintaining data consistency across the multi-language stack.
 
 ## Key Files & Context
 - `lib/cepaf_gleam/src/cepaf_gleam/db/sqlite.gleam`: (NEW) SQLite FFI wrapper.

@@ -148,7 +148,9 @@ fn render_details(model: HealthGridModel) -> Element(HealthGridMsg) {
             html.p([], [
               element.text("Health Score: " <> float.to_string(d.health_score)),
             ]),
-            html.p([], [element.text("Last Seen: " <> int.to_string(d.last_seen))]),
+            html.p([], [
+              element.text("Last Seen: " <> int.to_string(d.last_seen)),
+            ]),
           ])
         Error(_) -> html.div([], [element.text("Device not found")])
       }

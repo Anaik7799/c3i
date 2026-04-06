@@ -30,8 +30,7 @@ pub fn e2e_all_responses_are_valid_json_test() {
   list.each(routes, fn(path) {
     let resp = get(path)
     let is_json =
-      string.starts_with(resp.body, "{")
-      || string.starts_with(resp.body, "[")
+      string.starts_with(resp.body, "{") || string.starts_with(resp.body, "[")
     is_json |> should.be_true()
   })
 }
@@ -529,16 +528,13 @@ fn contains(body: String, expected: String) {
 
 fn all_get_routes() -> List(String) {
   [
-    "/health", "/api/v1/pages",
-    "/api/v1/dashboard", "/api/v1/planning", "/api/v1/immune",
-    "/api/v1/knowledge", "/api/v1/zenoh", "/api/v1/verification",
-    "/api/v1/substrate", "/api/v1/metabolic", "/api/v1/podman",
-    "/api/v1/mcp", "/api/v1/kms", "/api/v1/telemetry",
-    "/api/v1/prajna", "/api/v1/agents", "/api/v1/holon",
-    "/api/v1/config", "/api/v1/git", "/api/v1/db",
-    "/api/v1/bridge", "/api/v1/smriti",
-    "/api/v1/health_grid", "/api/v1/planning_dashboard",
-    "/api/v1/federation",
+    "/health", "/api/v1/pages", "/api/v1/dashboard", "/api/v1/planning",
+    "/api/v1/immune", "/api/v1/knowledge", "/api/v1/zenoh",
+    "/api/v1/verification", "/api/v1/substrate", "/api/v1/metabolic",
+    "/api/v1/podman", "/api/v1/mcp", "/api/v1/kms", "/api/v1/telemetry",
+    "/api/v1/prajna", "/api/v1/agents", "/api/v1/holon", "/api/v1/config",
+    "/api/v1/git", "/api/v1/db", "/api/v1/bridge", "/api/v1/smriti",
+    "/api/v1/health_grid", "/api/v1/planning_dashboard", "/api/v1/federation",
     "/ag-ui/health", "/ag-ui/state", "/ag-ui/hitl/pending",
   ]
 }

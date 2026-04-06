@@ -14,7 +14,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
-use ideas::{ideas, Idea, CATEGORIES};
+use ideas::{ideas, CATEGORIES};
 
 // =============================================================================
 // CLI
@@ -312,7 +312,7 @@ mod tests {
     fn test_markdown_contains_all_categories() {
         let catalog = build_catalog(10);
         let md = render_markdown(&catalog, 10);
-        for cat in &CATEGORIES {
+        for cat in CATEGORIES {
             assert!(md.contains(cat.2), "Markdown missing category: {}", cat.2);
         }
     }

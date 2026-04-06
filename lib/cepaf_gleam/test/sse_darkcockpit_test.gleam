@@ -157,7 +157,8 @@ pub fn events_since_returns_empty_when_last_id_exceeds_all_test() {
 // =============================================================================
 
 pub fn format_sse_event_contains_id_line_test() {
-  let ev = SSEEvent(id: "42", event_type: "update", data: "hello", retry_ms: None)
+  let ev =
+    SSEEvent(id: "42", event_type: "update", data: "hello", retry_ms: None)
   let wire = format_sse_event(ev)
   wire |> string.contains("id: 42\n") |> should.be_true()
 }
@@ -181,7 +182,7 @@ pub fn format_sse_event_ends_with_double_newline_test() {
 }
 
 pub fn format_sse_event_correct_full_wire_format_test() {
-  let ev = SSEEvent(id: "7", event_type: "ping", data: "{}",  retry_ms: None)
+  let ev = SSEEvent(id: "7", event_type: "ping", data: "{}", retry_ms: None)
   let wire = format_sse_event(ev)
   wire |> should.equal("id: 7\nevent: ping\ndata: {}\n\n")
 }

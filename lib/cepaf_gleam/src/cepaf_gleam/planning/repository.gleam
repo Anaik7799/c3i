@@ -31,7 +31,6 @@ fn dynamic_from(a: a) -> Dynamic
 @external(erlang, "cepaf_gleam_ffi", "to_string")
 fn ffi_to_string(a: Dynamic) -> Result(String, Nil)
 
-
 // =============================================================================
 // Schema & Initialization
 // =============================================================================
@@ -105,8 +104,11 @@ pub fn get_all_tasks() -> Result(List(Task), String) {
 }
 
 /// Retrieves all tasks from a specific SQLite connection.
-pub fn get_all_tasks_sqlite(conn: sqlite.DbConnection) -> Result(List(Task), String) {
-  let sql = "SELECT id, title, status, priority, parent_id, owner_id, created_at, updated_at, version FROM tasks"
+pub fn get_all_tasks_sqlite(
+  conn: sqlite.DbConnection,
+) -> Result(List(Task), String) {
+  let sql =
+    "SELECT id, title, status, priority, parent_id, owner_id, created_at, updated_at, version FROM tasks"
   use rows <- result.try(sqlite.query(conn, sql, []))
   list.try_map(rows, parse_row)
 }

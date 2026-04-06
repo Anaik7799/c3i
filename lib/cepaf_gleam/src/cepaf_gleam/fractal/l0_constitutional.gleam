@@ -81,10 +81,7 @@ pub fn initial_approval_state() -> ApprovalState {
   ApprovalState(pending_requests: [], history: [])
 }
 
-pub fn add_request(
-  state: ApprovalState,
-  req: ApprovalRequest,
-) -> ApprovalState {
+pub fn add_request(state: ApprovalState, req: ApprovalRequest) -> ApprovalState {
   ApprovalState(..state, pending_requests: [req, ..state.pending_requests])
 }
 
@@ -95,10 +92,10 @@ pub fn resolve_request(
 ) -> ApprovalState {
   let remaining =
     list.filter(state.pending_requests, fn(r) { r.request_id != request_id })
-  ApprovalState(
-    pending_requests: remaining,
-    history: [#(request_id, decision), ..state.history],
-  )
+  ApprovalState(pending_requests: remaining, history: [
+    #(request_id, decision),
+    ..state.history
+  ])
 }
 
 pub fn pending_count(state: ApprovalState) -> Int {
@@ -132,12 +129,7 @@ pub fn trigger_emergency(
 }
 
 pub fn reset_emergency(state: EmergencyState) -> EmergencyState {
-  EmergencyState(
-    ..state,
-    armed: False,
-    triggered: False,
-    trigger_reason: None,
-  )
+  EmergencyState(..state, armed: False, triggered: False, trigger_reason: None)
 }
 
 pub fn all_psi_pass(checks: List(PsiCheck)) -> Bool {
@@ -212,8 +204,7 @@ pub fn cast_vote(
   guardian_id: String,
   vote: ConsensusVote,
 ) -> ConsensusState {
-  let already_voted =
-    list.any(state.votes, fn(v) { v.0 == guardian_id })
+  let already_voted = list.any(state.votes, fn(v) { v.0 == guardian_id })
   case already_voted {
     True -> state
     False ->

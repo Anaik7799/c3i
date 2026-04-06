@@ -130,7 +130,8 @@ fn build_query_sql(pattern: TriplePattern) -> #(String, List(Dynamic)) {
   case filters {
     [] -> #(base_sql <> ";", [])
     _ -> {
-      let where_clause = " WHERE " <> string.join(list.reverse(filters), " AND ")
+      let where_clause =
+        " WHERE " <> string.join(list.reverse(filters), " AND ")
       #(base_sql <> where_clause <> ";", list.reverse(params))
     }
   }

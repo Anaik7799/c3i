@@ -6,7 +6,6 @@
 ///
 /// STAMP: SC-AGUI-002, SC-AGUI-004, SC-GLM-UI-001, SC-GLM-UI-003,
 ///        SC-UIGT-008, SC-FED-001
-
 import cepaf_gleam/agui/sse as agui_sse
 import cepaf_gleam/agui/tools as agui_tools
 import cepaf_gleam/ui/wisp/router

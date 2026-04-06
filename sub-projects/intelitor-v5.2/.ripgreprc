@@ -1,8 +1,0 @@
---glob=!data/*
---glob=!_build/*
---glob=!deps/*
---glob=!node_modules/*
---glob=!.git/*
---glob=!.elixir_ls/*
---glob=!.lexical/*
---hidden

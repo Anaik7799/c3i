@@ -18,7 +18,7 @@ Following the successful implementation of the "Bulletproof" Rust Ignition Daemo
 5. **[Rank 16] Agent CoT Ticker (IMPLEMENTED)**: Added a scrolling marquee to the header to show exactly what the orchestrator is "thinking" in real-time, providing immediate visibility into the underlying OODA loop execution trace.
 
 ## 4. Implementation Details
-We modified `sub-projects/intelitor-v5.2/native/ignition_daemon/src/tui.rs`:
+We modified `sub-projects/c3i/native/ignition_daemon/src/tui.rs`:
 - **Header**: Added dynamic CoT ticker displaying `Phase -> Action -> Result`.
 - **Swarm Tab**: Replaced percentage bars with Unicode block characters `▰▰▰▰▱▱▱▱` colored by `HealthStatus` to indicate the specific phase of creation.
 - **Topology Tab**: Converted a simple list into a visual DAG mapping the precise startup sequence and network structure.

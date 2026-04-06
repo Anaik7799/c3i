@@ -16,7 +16,7 @@
 
 Rust ignition_daemon orchestrates 16-container SIL-6 Biomorphic Mesh (F# engine: legacy, replaced by Rust).
 
-**Rust binary**: `sub-projects/intelitor-v5.2/native/ignition_daemon/src/main.rs` (entry point)
+**Rust binary**: `sub-projects/c3i/native/ignition_daemon/src/main.rs` (entry point)
 **Legacy F# files (historical)**: PanopticIgnition.fs (~830 lines) + BuildStreamMonitor.fs (~462) + BuildHistory.fs (~317)
 
 ### 16-Container Genome (sil6Genome)

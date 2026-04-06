@@ -126,24 +126,63 @@ pub fn shannon_entropy_normalized(cov: FileCoverage) -> Float {
   |> result.unwrap(0.0)
 }
 
-/// Composite Coverage Metric — weighted average of the eight category
-/// scores using the canonical weight vector.
-/// CCM = sum(w_i * cov_i) / sum(w_i)
+/// Composite Coverage Metric — calibrated weighted average measuring each
+/// category against its P0 minimum requirement.
+/// CCM = sum(w_i * min(c_i / min_i, 1.0)) / sum(w_i)
+/// When all categories meet their P0 minimums, CCM = 1.0.
+/// Returns 0.0 when there are no features at all.
 /// STAMP: SC-MATH-COV-003
 pub fn ccm(cov: FileCoverage) -> Float {
-  let weights = category_weights()
-  let counts = [
-    cov.c1, cov.c2, cov.c3, cov.c4, cov.c5, cov.c6, cov.c7, cov.c8,
-  ]
+  let weights = list.map(category_weights(), fn(w) { w.1 })
+  let mins = list.map(p0_minimums(), fn(m) { m.1 })
+  let counts = [cov.c1, cov.c2, cov.c3, cov.c4, cov.c5, cov.c6, cov.c7, cov.c8]
   let total = int.to_float(total_features(cov))
 
-  // Pair each count with its weight
+  case float.compare(total, 0.0) {
+    order.Gt -> {
+      // Pair each (count, weight, min_required) together
+      let triples = list.zip(counts, list.zip(weights, mins))
+
+      let weight_sum =
+        list.fold(triples, 0.0, fn(acc, t) { float.add(acc, t.1.0) })
+
+      case float.compare(weight_sum, 0.0) {
+        order.Gt -> {
+          let weighted_sum =
+            list.fold(triples, 0.0, fn(acc, t) {
+              let #(count, #(w, min_req)) = t
+              let ratio =
+                float.divide(int.to_float(count), int.to_float(min_req))
+                |> result.unwrap(0.0)
+              let capped = float.clamp(ratio, min: 0.0, max: 1.0)
+              float.add(acc, float.multiply(w, capped))
+            })
+          float.divide(weighted_sum, weight_sum)
+          |> result.unwrap(0.0)
+        }
+        _ -> 0.0
+      }
+    }
+    _ -> 0.0
+  }
+}
+
+/// Raw CCM — original proportion-based formula (kept for backwards
+/// compatibility and audit purposes).
+/// CCM_raw = sum(w_i * (c_i / total)) / sum(w_i)
+/// STAMP: SC-MATH-COV-003
+pub fn ccm_raw(cov: FileCoverage) -> Float {
+  let weights = category_weights()
+  let counts = [cov.c1, cov.c2, cov.c3, cov.c4, cov.c5, cov.c6, cov.c7, cov.c8]
+  let total = int.to_float(total_features(cov))
+
   let paired = list.zip(counts, list.map(weights, fn(w) { w.1 }))
 
   let weight_sum =
     list.fold(paired, 0.0, fn(acc, pair) { float.add(acc, pair.1) })
 
-  case float.compare(total, 0.0) == order.Gt
+  case
+    float.compare(total, 0.0) == order.Gt
     && float.compare(weight_sum, 0.0) == order.Gt
   {
     True -> {
@@ -231,7 +270,7 @@ pub fn itqs(cov: FileCoverage, suite_fsi: Float) -> Float {
 /// A >= 0.90, B >= 0.85, C >= 0.75, D < 0.75
 /// STAMP: SC-MATH-COV-007
 pub fn itqs_grade(score: Float) -> Grade {
-  case score >=. 0.90 {
+  case score >=. 0.9 {
     True -> GradeA
     False ->
       case score >=. 0.85 {

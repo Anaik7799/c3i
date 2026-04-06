@@ -81,7 +81,7 @@ pub fn initialize_hierarchy() -> AgentHierarchy {
       dict.insert(acc, id, agent)
     })
 
-  // Create functional supervisors (10) and workers (29) = total 50
+  // Create functional supervisors (10)
   let with_func_sups =
     list.index_fold(domains, with_domain_sups, fn(acc, domain, idx) {
       let parent_id = "dsup-" <> int.to_string(idx + 1)
@@ -97,10 +97,11 @@ pub fn initialize_hierarchy() -> AgentHierarchy {
       dict.insert(acc, fsup_id, fsup)
     })
 
-  // Create 29 workers spread across domains
+  // Create 28 workers spread across domains
+  let domain_count = list.length(domains)
   let with_workers =
     int.range(from: 1, to: 29, with: with_func_sups, run: fn(acc, i) {
-      let domain_idx = { i - 1 } % list.length(domains)
+      let domain_idx = { i - 1 } % domain_count
       let domain = case list.drop(domains, domain_idx) {
         [d, ..] -> d
         [] -> "system"

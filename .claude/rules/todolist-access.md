@@ -2,7 +2,7 @@
 **Status**: CRITICAL | **Mandate**: SC-TODO-001
 
 ## 1. Authoritative Tooling
-All updates to tasks, status transitions, and `PROJECT_TODOLIST.md` MUST be performed exclusively via the Rust `sa-plan-daemon` binary at `./sub-projects/intelitor-v5.2/target/release/sa-plan-daemon` (or the `./sa-plan` wrapper script at repo root).
+All updates to tasks, status transitions, and `PROJECT_TODOLIST.md` MUST be performed exclusively via the Rust `sa-plan-daemon` binary at `./sub-projects/c3i/target/release/sa-plan-daemon` (or the `./sa-plan` wrapper script at repo root).
 
 ## 2. Strict Prohibitions
 - **NO Manual Edits**: Direct modification of `PROJECT_TODOLIST.md` using `write_file`, `replace`, `echo`, or editors is STRICTLY FORBIDDEN.

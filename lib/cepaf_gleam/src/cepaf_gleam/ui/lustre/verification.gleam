@@ -6,13 +6,13 @@ const max_proof_history = 100
 
 const max_run_history = 100
 
+import cepaf_gleam/ui/lustre/widgets/evolution_vector.{type EvolutionVectorData}
+import cepaf_gleam/ui/lustre/widgets/hs_ds_pane.{type HsDsData}
 import cepaf_gleam/verification/graph_verification.{type GraphCheck}
 import cepaf_gleam/verification/prometheus.{
   type ProofToken, type VerificationResult, Inconclusive, Rejected, Verified,
 }
 import cepaf_gleam/verification/swarm.{type SwarmReport}
-import cepaf_gleam/ui/lustre/widgets/evolution_vector.{type EvolutionVectorData}
-import cepaf_gleam/ui/lustre/widgets/hs_ds_pane.{type HsDsData}
 import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}

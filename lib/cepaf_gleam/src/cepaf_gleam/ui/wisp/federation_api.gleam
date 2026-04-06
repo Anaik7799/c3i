@@ -22,10 +22,7 @@ pub fn federation_status_json(state: FederationState) -> String {
     #("plane", json.string("federation")),
     #("local_id", json.string(state.local_id)),
     #("peer_count", json.int(peer_count(state))),
-    #(
-      "connected_count",
-      json.int(list.length(connected_peers(state))),
-    ),
+    #("connected_count", json.int(list.length(connected_peers(state)))),
     #("all_attested", json.bool(all_attested(state))),
     #("peers", json.array(state.peers, encode_peer)),
     #("version_vector", json.array(state.local_version, encode_version_entry)),

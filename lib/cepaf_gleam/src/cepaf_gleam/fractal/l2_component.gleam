@@ -101,12 +101,9 @@ pub fn badge_to_json(badge: Badge) -> json.Json {
   json.object([
     #("label", json.string(badge.label)),
     #("severity", json.string(severity_to_string(badge.severity))),
-    #(
-      "tooltip",
-      case badge.tooltip {
-        Some(t) -> json.string(t)
-        None -> json.null()
-      },
-    ),
+    #("tooltip", case badge.tooltip {
+      Some(t) -> json.string(t)
+      None -> json.null()
+    }),
   ])
 }

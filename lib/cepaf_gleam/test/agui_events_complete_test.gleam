@@ -1,15 +1,14 @@
 /// AG-UI event constructor and serialization tests — full coverage of all 28 event types.
 ///
 /// STAMP: SC-AGUI-001, SC-GLM-CMP-001, SC-GLM-CORE-002
-
 import cepaf_gleam/agui/events.{
   ActivityDelta, ActivitySnapshot, Custom, MessagesSnapshot, MetaEvent, Raw,
   ReasoningEncryptedValue, ReasoningEnd, ReasoningMessageChunk,
   ReasoningMessageContent, ReasoningMessageEnd, ReasoningMessageStart,
   ReasoningStart, RunError, RunFinished, RunStarted, StateDelta, StateSnapshot,
-  StepFinished, StepStarted, TextMessageChunk, TextMessageContent, TextMessageEnd,
-  TextMessageStart, ToolCallArgs, ToolCallChunk, ToolCallEnd, ToolCallResult,
-  ToolCallStart,
+  StepFinished, StepStarted, TextMessageChunk, TextMessageContent,
+  TextMessageEnd, TextMessageStart, ToolCallArgs, ToolCallChunk, ToolCallEnd,
+  ToolCallResult, ToolCallStart,
 }
 import gleam/json
 import gleam/string
@@ -205,13 +204,16 @@ pub fn tool_call_chunk_payload_contains_tool_name_test() {
 // =============================================================================
 
 pub fn state_snapshot_event_type_test() {
-  let e = events.new_state_snapshot(json.object([#("health", json.string("ok"))]))
+  let e =
+    events.new_state_snapshot(json.object([#("health", json.string("ok"))]))
   e.event_type |> should.equal(StateSnapshot)
 }
 
 pub fn state_snapshot_payload_carries_data_test() {
   let e =
-    events.new_state_snapshot(json.object([#("status", json.string("running"))]))
+    events.new_state_snapshot(
+      json.object([#("status", json.string("running"))]),
+    )
   let s = json.to_string(e.payload)
   string.contains(s, "running") |> should.be_true()
 }
@@ -319,8 +321,7 @@ pub fn reasoning_encrypted_value_event_type_test() {
 }
 
 pub fn reasoning_encrypted_value_payload_contains_entity_id_test() {
-  let e =
-    events.new_reasoning_encrypted_value("message", "entity-xyz", "blob")
+  let e = events.new_reasoning_encrypted_value("message", "entity-xyz", "blob")
   let s = json.to_string(e.payload)
   string.contains(s, "entity-xyz") |> should.be_true()
 }
@@ -430,7 +431,8 @@ pub fn reasoning_events_have_positive_timestamps_test() {
 // =============================================================================
 
 pub fn event_type_text_message_chunk_string_test() {
-  events.event_type_to_string(TextMessageChunk) |> should.equal("TEXT_MESSAGE_CHUNK")
+  events.event_type_to_string(TextMessageChunk)
+  |> should.equal("TEXT_MESSAGE_CHUNK")
 }
 
 pub fn event_type_tool_call_chunk_string_test() {
@@ -438,7 +440,8 @@ pub fn event_type_tool_call_chunk_string_test() {
 }
 
 pub fn event_type_activity_snapshot_string_test() {
-  events.event_type_to_string(ActivitySnapshot) |> should.equal("ACTIVITY_SNAPSHOT")
+  events.event_type_to_string(ActivitySnapshot)
+  |> should.equal("ACTIVITY_SNAPSHOT")
 }
 
 pub fn event_type_activity_delta_string_test() {

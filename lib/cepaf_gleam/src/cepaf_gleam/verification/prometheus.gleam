@@ -60,13 +60,7 @@ pub fn is_acyclic(dag: VerificationDag) -> Bool {
   let all_with_edges = dict.keys(in_degree) |> set.from_list()
   let no_edge_nodes = set.to_list(set.difference(nodes_set, all_with_edges))
   let initial_queue = list.append(zero_in, no_edge_nodes)
-  kahn_iterate(
-    dag.edges,
-    in_degree,
-    initial_queue,
-    0,
-    list.length(dag.nodes),
-  )
+  kahn_iterate(dag.edges, in_degree, initial_queue, 0, list.length(dag.nodes))
 }
 
 fn compute_in_degrees(dag: VerificationDag) -> Dict(String, Int) {

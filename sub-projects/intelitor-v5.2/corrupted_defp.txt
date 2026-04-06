@@ -1,8 +1,0 @@
-./test/comprehensive_compilation_test.exs
-./test/readme/sopv51_performance_regression_validation_test.exs
-./test/readme/sopv51_complete_command_coverage_test.exs
-./lib/mix/tasks/comprehensive_compile_check.ex
-./lib/mix/tasks/performance/setup_data.ex
-./lib/indrajaal/integration/monitoring_dashboard.ex
-./lib/indrajaal/testing/timescale_integration.ex
-./lib/indrajaal/alarms/storm_detection.ex

@@ -7,3 +7,68 @@
 [indrajaal-db-prod] (STDOUT) 9f2911de0894651e80138f1e8b498fbb2b437cf5eb9478b8c72eabeffaa6b3ab
 [indrajaal-ml-runner-1] (STDOUT) 427d2e0a6664070814b063ef8055808fc4509ce4167e0406546d9186f1534aaa
 [indrajaal-ml-runner-2] (STDOUT) f01b753e8968706cd60abef031524ea37a6247ef2375d5c0011f2bcc2cdbd254
+[indrajaal-ex-test-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-mojo] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-db-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ollama] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-obs-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-cortex] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-1] (STDOUT) d0c0fd9ea1d69a548ec78bd7509853079b78bd972b24bfdf703c776d8503eaeb
+[indrajaal-ml-runner-1] (STDOUT) 749a5badf8598987781968ae261c5b3a55b8465ec2fb0ab70a69a7501c1527bb
+[zenoh-router-3] (STDOUT) 25a7cf5cba51863f51b256ea6a5ace2f59e5c9d26a006ca1844b21fc0a47dfc1
+[indrajaal-obs-prod] (STDOUT) 52d778d4738ca3e4c8651967a9968f4df52a54fa4dfb8fcfa2ccce14cf1ed93e
+[indrajaal-cortex] (STDOUT) f7f92ab67a8a28a74cba7d9560aaa5010958adeba104f69d3a123c0493703fab
+[indrajaal-ex-app-1] (STDERR) Error: requested static ip 172.28.0.10 not in any subnet on network indrajaal-sil6-mesh
+[zenoh-router-2] (STDOUT) 045764813b566447a0d4fd02667dc139ed0895d9297d5ce3468d85c7124eddb2
+[zenoh-router-3] (STDOUT) 437aa1598e81cfdb3e2771e18b1e27cd4b91de1aac0fa13fa90ef2ea6229f59d
+[zenoh-router-3] (STDOUT) b9b9fad6fe515e4ddf98d314a64a8774298cb096003e5cac262933f03f98dcf7
+[zenoh-router-1] (STDOUT) c1db19213f2b1c79c9622cb291685d0257db3b6dd94b872b0f7562b378f0282f
+[indrajaal-mojo] (STDOUT) f9266cad7155a73e386d9c8d9b04e35233adc730bf0e550929cb54f0ca478031
+[zenoh-router-2] (STDOUT) 29261b64e9024a08589c5f4318abd771000f819c72e1fb74ef9c25bac115fc4a
+[indrajaal-db-prod] (STDOUT) 7b7ca53164a687b4b130fbf29e633dba0d6caa35917e5d6c5234f4a909f06b8b
+[indrajaal-obs-prod] (STDOUT) 022f259baa5a4df589797d92f0cc5935eb9d167527a586d1919ceaf2f2b525b4
+[indrajaal-ollama] (STDOUT) 6895db31688e8b00d9d28ff9449f09b9a76ca1c9fbb0c70ba6d46d2f1dd56284
+[indrajaal-ml-runner-1] (STDOUT) 5501ea8a4d381a8ff6d415acc73d27308b7ee78c13a110d6442424c915c90487
+[indrajaal-cortex] (STDOUT) e34d570bb53fd894510c6cb2a903a190ee315ba026a3bdaf18ad7e212a18dd69
+[indrajaal-ml-runner-2] (STDOUT) 2228d380b3998820516d1589ed40a371809b9329916d656ec2c8babf640234a2
+[cepaf-bridge] (STDOUT) 2a31bd58d79520848e279836649fa8c7bc435ababde3856ed09128e912f8ee8d
+[indrajaal-chaya] (STDOUT) 8b7897dc9e12bd94723dccf86851e67365acb2eb76490b6012a9cdd976c7944d
+[indrajaal-ex-app-2] (STDOUT) b306500d00a4b914016ff746b0d87c7ce6623e7643051163099367602cdfa198
+[indrajaal-ex-app-3] (STDOUT) d007d68e2d6f79559af57b91d0b1640b3df01689b78bdc706294ece3f2913b80
+[indrajaal-ex-app-1] (STDERR) Error: IPAM error: requested ip address 172.28.0.10 is already allocated to container ID e34d570bb53fd894510c6cb2a903a190ee315ba026a3bdaf18ad7e212a18dd69
+[zenoh-router-1] (STDOUT) 2e31fc8c2cb5c940bd083c27ae9448a6c017da4a161bafa5f5649eec363cc45f
+[zenoh-router-2] (STDOUT) 9899aa53009765a1d4882df584bda28f3d53edf7b0ba10ed20574207d10ed396
+[indrajaal-ollama] (STDOUT) 17fefea9ba17145b76359da41540d8b2565aae8f569a4bb1dc42ef9e10882572
+[indrajaal-db-prod] (STDOUT) 1bb726b6152cfe391ad16e1e919948febf42e355a77e933106d907b201e7b70c
+[indrajaal-obs-prod] (STDOUT) cee913e7661b6f9ad1ad6c71434c657c03214c1ce950e73166426ac071ae5fe8
+[indrajaal-ml-runner-1] (STDOUT) 2556ddabee80679f864393023464ece287f0967539ae9f8a2ad1f8dd3cf40f93
+[indrajaal-ml-runner-2] (STDOUT) 63da7ec991b133722dc63d8d87b7e0849d4a58f2a85c844f811355f1d1fe7980
+[indrajaal-mojo] (STDOUT) 9d018adcc678e14d63ebc6b278e6cba39dc21f432958a673cd6beaa7109f4487
+[indrajaal-ex-app-1] (STDERR) Error: IPAM error: requested ip address 172.28.0.10 is already allocated to container ID 2685026440f55d0344a2cc91f251152835a85daaafdf4d4339a576225329703c
+[indrajaal-chaya] (STDOUT) 55d52d2a2268ae6365f553ee751f391f7a82f540b7bb1dc13fa22e91016ccee5
+[zenoh-router-3] (STDOUT) 011c3a1ef58ef2197e8c0e0503045108f313fe72b4a3fd18ff660bbfbf3b4bcb
+[indrajaal-ex-app-2] (STDOUT) dffa06103dcd89a00d12ba925b8ef2464f8b6894807bae8ef26329adb8cb46b3
+[cepaf-bridge] (STDOUT) dae74f1830e79ff5357b32dacdb00b249605e8e49e4e7a0f574ae57c2c7e3dc1
+[indrajaal-cortex] (STDOUT) 2685026440f55d0344a2cc91f251152835a85daaafdf4d4339a576225329703c
+[indrajaal-ex-app-3] (STDOUT) 5b064f2ce8f64e42cc89ca2e87cb2daeec595beb347a156caf9539b069c89495
+[zenoh-router-1] (STDOUT) b3a6b7462436d9ac798c31084e7a8422a6713f7ce408e4bd22e677ba5495ea0f
+[zenoh-router-2] (STDOUT) 159a4c55a17bd38de11e2959be6165d94474ff1b02c3331449f441cd2d74fb46
+[zenoh-router-3] (STDOUT) 8b0fa187e0a18384054fd88e7dfbd3a1f446cb7909b50e4535fdc7e9bb149e02
+[indrajaal-ollama] (STDOUT) ce121aa9fe2e04fe5ad16a8a51b844391d5827fd4fd14a0dc7e69aa07099b8a8
+[indrajaal-db-prod] (STDOUT) 425ff82103302500d4815ac3dea7198c8426f0aabb174603b9adbda099d86d5e
+[indrajaal-obs-prod] (STDOUT) 6c46cbe6365ba2093b5f6a9b5b752806e514a75e3b4f9c12c65f3c8f2b8ef826
+[indrajaal-mojo] (STDOUT) 61801238c6d939f40c77f4577326264595f099a7094d0289d17e732f5f0d2fc1
+[indrajaal-ml-runner-1] (STDOUT) 8330d86947baa6bbb5ba38497d0523e774f4be0fd08dfc84b5e56e1af3f86399
+[indrajaal-cortex] (STDOUT) 681c029c103eb7e8b3674cb468bf4cc7961e06fac8e81f24dca7be01eb3fbd3b
+[indrajaal-ex-app-1] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-ml-runner-2] (STDOUT) 35c85eaa4a1cb03201516a68f3319d3b105b1fef63b6d3c300fb83902c659305
+[cepaf-bridge] (STDOUT) 5decd9b320bcb26242026f6129dcdd2a92df6c3441c7e50c8fd16a4fbfd38e29
+[indrajaal-ex-app-3] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-chaya] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-ex-app-2] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory

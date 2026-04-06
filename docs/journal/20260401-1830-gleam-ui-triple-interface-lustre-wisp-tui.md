@@ -39,7 +39,7 @@
   - Phoenix LiveView — MAINTAINED (Indrajaal domain pages)
   - Prajna TUI — MAINTAINED as fallback
 - Added **UI Mandate** block: SC-GLM-UI-001 triple-interface requirement
-- **Files**: `intelitor-v5.2/GEMINI.md`, `intelitor-v5.2/CLAUDE.md`
+- **Files**: `c3i/GEMINI.md`, `c3i/CLAUDE.md`
 
 **Edit 2 — gleam.toml dependencies**:
 - Added 3 new deps with SC-GLM-UI-001 comment:
@@ -86,7 +86,7 @@
 | SC-GLM-UI-009 | All 3 interfaces share same domain types | CRITICAL |
 | SC-GLM-UI-010 | Lustre replaces Bolero; Gleam TUI replaces Prajna TUI | HIGH |
 
-- **Files**: `intelitor-v5.2/GEMINI.md`, `intelitor-v5.2/CLAUDE.md`
+- **Files**: `c3i/GEMINI.md`, `c3i/CLAUDE.md`
 
 ### Batch 3: AOR-GLM-UI Rules + FMEA Updates (GEMINI.md + CLAUDE.md)
 
@@ -114,7 +114,7 @@
 | Triple-interface divergence | 8 | 4 | 2 | 64 | SC-GLM-UI-001, AOR-GLM-UI-009 |
 | Lustre dep breaking change | 5 | 2 | 3 | 30 | Pin version in gleam.toml |
 
-- **Files**: `intelitor-v5.2/GEMINI.md`, `intelitor-v5.2/CLAUDE.md`
+- **Files**: `c3i/GEMINI.md`, `c3i/CLAUDE.md`
 
 ### Batch 4: Gleam-Expert Skill Update
 
@@ -194,8 +194,8 @@
 
 | File | Action | Lines |
 |------|--------|-------|
-| `intelitor-v5.2/GEMINI.md` | MODIFIED | +40 (Section 2.1, SC-GLM-UI, AOR-GLM-UI, FMEA) |
-| `intelitor-v5.2/CLAUDE.md` | MODIFIED | +35 (Section 2.1, SC-GLM-UI, AOR-GLM-UI) |
+| `c3i/GEMINI.md` | MODIFIED | +40 (Section 2.1, SC-GLM-UI, AOR-GLM-UI, FMEA) |
+| `c3i/CLAUDE.md` | MODIFIED | +35 (Section 2.1, SC-GLM-UI, AOR-GLM-UI) |
 | `lib/cepaf_gleam/gleam.toml` | MODIFIED | +3 (lustre, wisp, mist deps) |
 | `.gemini/skills/gleam-expert/SKILL.md` | MODIFIED | +20 (UI table, STAMP, AOR entries) |
 | `lib/cepaf_gleam/src/cepaf_gleam/ui/domain.gleam` | CREATED | 87 |

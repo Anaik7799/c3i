@@ -49,7 +49,7 @@ Systematically map, port, and verify all F# operational logic into native Rust d
 - **Muda Enforcement**: Zero warnings gate (SC-CMP-025) is mandatory.
 
 ## 6. Implementation Steps: `planning_daemon`
-1.  **Clone**: `cp -r sub-projects/intelitor-v5.2/native/ignition_daemon sub-projects/intelitor-v5.2/native/planning_daemon`
+1.  **Clone**: `cp -r sub-projects/c3i/native/ignition_daemon sub-projects/c3i/native/planning_daemon`
 2.  **Prune (Muda)**: Remove `launch.rs`, `podman.rs`, `preflight.rs`, `verify.rs`, etc.
 3.  **Adapt**: Modify `Cargo.toml` (name="planning_daemon", add `rusqlite`, `pulldown-cmark`).
 4.  **Implement**: Create `db.rs` (SQLite), `markdown.rs` (Artifact sync), and `cli.rs` (Commands: list, add, update, status).

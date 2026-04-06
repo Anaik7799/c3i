@@ -5,16 +5,15 @@
 ///
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-007, SC-FED-001, SC-FED-006,
 ///        SC-UIGT-003, SC-UIGT-007, SC-UIGT-008, SC-UIGT-009
-
 import cepaf_gleam/fractal/l7_federation.{
-  FederationPeer, PeerConnected, PeerDisconnected,
-  PeerSuspected, add_peer, initial_federation,
+  FederationPeer, PeerConnected, PeerDisconnected, PeerSuspected, add_peer,
+  initial_federation,
 }
 import cepaf_gleam/ui/domain
 import cepaf_gleam/ui/lustre/federation.{
   ErrorReceived, FederationModel, PeerAdded, PeerRemoved, RefreshFederation,
-  StateReceived, VersionIncremented, all_attested_check, connected_count,
-  init, update,
+  StateReceived, VersionIncremented, all_attested_check, connected_count, init,
+  update,
 }
 import cepaf_gleam/ui/tui/federation_view
 import cepaf_gleam/ui/wisp/federation_api

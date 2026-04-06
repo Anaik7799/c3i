@@ -64,10 +64,7 @@ pub fn initial_ooda() -> OodaCycleState {
   )
 }
 
-pub fn set_ooda_phase(
-  state: OodaCycleState,
-  phase: OodaPhase,
-) -> OodaCycleState {
+pub fn set_ooda_phase(state: OodaCycleState, phase: OodaPhase) -> OodaCycleState {
   OodaCycleState(..state, current_phase: phase)
 }
 

@@ -3,8 +3,7 @@
 // STAMP: SC-AGUI-004, SC-AGUI-014, SC-AGUI-017
 
 import cepaf_gleam/agui/tools.{
-  ArgsComplete, AwaitingApproval, Completed, Executing, Failed, Pending,
-  ToolDef,
+  ArgsComplete, AwaitingApproval, Completed, Executing, Failed, Pending, ToolDef,
 }
 import cepaf_gleam/ui/lustre/effects.{
   Approved, BatchEffects, Edited, Escalated, NoEffect, Rejected,

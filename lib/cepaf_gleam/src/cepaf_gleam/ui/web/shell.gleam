@@ -100,3 +100,20 @@ pub fn data_table(
 ) -> Element(msg) {
   lustre_shell.data_table(headers, rows)
 }
+
+/// Action button that performs an API call via JS fetch.
+pub fn action_button(
+  label: String,
+  endpoint: String,
+  payload: String,
+) -> Element(msg) {
+  lustre_shell.action_button(label, endpoint, payload)
+}
+
+/// Apalache Formal Verification Gate (SC-ULTRA-UI-004)
+pub fn apalache_guard(
+  action: Element(msg),
+  safety_status: String,
+) -> Element(msg) {
+  lustre_shell.apalache_guard(action, safety_status)
+}

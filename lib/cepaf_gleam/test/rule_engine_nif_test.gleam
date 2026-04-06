@@ -167,7 +167,8 @@ pub fn cascade_apoptosis_depth_3_test() {
 pub fn cascade_apoptosis_depth_5_test() {
   // depth 5 with p0=true: both Apoptosis(100) and Isolate(70) match; highest wins
   let r = engine.evaluate_cascade(5, True)
-  { r.decision == "Apoptosis" || r.decision == "IsolateTier" } |> should.equal(True)
+  { r.decision == "Apoptosis" || r.decision == "IsolateTier" }
+  |> should.equal(True)
 }
 
 pub fn cascade_isolate_depth_2_p0_test() {

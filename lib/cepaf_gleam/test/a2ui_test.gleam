@@ -318,8 +318,7 @@ pub fn render_html_contains_id_attribute_test() {
       binding: None,
     )
   case renderer.render(proposal, renderer.HtmlTarget) {
-    HtmlOutput(html) ->
-      html |> string.contains("myid") |> should.be_true
+    HtmlOutput(html) -> html |> string.contains("myid") |> should.be_true
     _ -> should.fail()
   }
 }
@@ -334,8 +333,7 @@ pub fn render_ansi_contains_component_id_test() {
       binding: None,
     )
   case renderer.render(proposal, renderer.AnsiTarget) {
-    AnsiOutput(text) ->
-      text |> string.contains("ansiid") |> should.be_true
+    AnsiOutput(text) -> text |> string.contains("ansiid") |> should.be_true
     _ -> should.fail()
   }
 }
@@ -401,8 +399,7 @@ pub fn extract_bindings_empty_when_no_bindings_test() {
 }
 
 pub fn binding_count_correct_for_nested_proposals_test() {
-  let binding =
-    DataBinding(state_path: "/x", prop_name: "p", transform: None)
+  let binding = DataBinding(state_path: "/x", prop_name: "p", transform: None)
   let child =
     ComponentProposal(
       id: "child",

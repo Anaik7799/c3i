@@ -4,7 +4,7 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # cd into sub-project directory
-cd "$(dirname "$0")/sub-projects/intelitor-v5.2" || exit 1
+cd "$(dirname "$0")/sub-projects/c3i" || exit 1
 
 # Execute Rust planning daemon
 target/release/sa-plan-daemon "$@"
