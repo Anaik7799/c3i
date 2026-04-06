@@ -22,6 +22,21 @@ pub type Page {
   Telemetry
   Federation
   HealthGrid
+  Prajna
+  Agents
+  Holon
+  Config
+  Git
+  Database
+  Bridge
+  Smriti
+  PlanningDashboard
+  Integrity
+  Evolution
+  Biomorphic
+  HomeostasisPage
+  Bicameral
+  Singularity
 }
 
 /// Health status shared across all interfaces.
@@ -92,6 +107,21 @@ pub fn page_to_path(page: Page) -> String {
     Telemetry -> "/telemetry"
     Federation -> "/federation"
     HealthGrid -> "/health-grid"
+    Prajna -> "/prajna"
+    Agents -> "/agents"
+    Holon -> "/holon"
+    Config -> "/config"
+    Git -> "/git"
+    Database -> "/database"
+    Bridge -> "/bridge"
+    Smriti -> "/smriti"
+    PlanningDashboard -> "/planning-dashboard"
+    Integrity -> "/integrity"
+    Evolution -> "/evolution"
+    Biomorphic -> "/biomorphic"
+    HomeostasisPage -> "/homeostasis"
+    Bicameral -> "/bicameral"
+    Singularity -> "/singularity"
   }
 }
 
@@ -113,6 +143,21 @@ pub fn page_to_label(page: Page) -> String {
     Telemetry -> "Telemetry"
     Federation -> "Federation (L7)"
     HealthGrid -> "Device Health Grid"
+    Prajna -> "Prajna Biomorphic"
+    Agents -> "Cybernetic Agents"
+    Holon -> "Holon Identity"
+    Config -> "Mesh Configuration"
+    Git -> "Git Intelligence"
+    Database -> "Database"
+    Bridge -> "Bridge"
+    Smriti -> "Smriti Knowledge"
+    PlanningDashboard -> "Planning Dashboard"
+    Integrity -> "Mathematical Integrity"
+    Evolution -> "Evolution Vectors"
+    Biomorphic -> "Biomorphic Matrix"
+    HomeostasisPage -> "Homeostasis Controls"
+    Bicameral -> "Bicameral Sign-Off"
+    Singularity -> "Singularity Estimation"
   }
 }
 
@@ -134,6 +179,21 @@ pub fn page_fractal_layer(page: Page) -> FractalLayer {
     Telemetry -> L1AtomicDebug
     Federation -> L7Federation
     HealthGrid -> L4System
+    Prajna -> L5Cognitive
+    Agents -> L5Cognitive
+    Holon -> L3Transaction
+    Config -> L4System
+    Git -> L1AtomicDebug
+    Database -> L3Transaction
+    Bridge -> L6Ecosystem
+    Smriti -> L5Cognitive
+    PlanningDashboard -> L3Transaction
+    Integrity -> L0Constitutional
+    Evolution -> L5Cognitive
+    Biomorphic -> L5Cognitive
+    HomeostasisPage -> L2Component
+    Bicameral -> L0Constitutional
+    Singularity -> L7Federation
   }
 }
 

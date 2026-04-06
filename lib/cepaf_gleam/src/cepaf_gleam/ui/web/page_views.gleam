@@ -1238,6 +1238,129 @@ pub fn planning_dashboard_view(_state: SharedMeshState) -> Element(msg) {
 }
 
 // ---------------------------------------------------------------------------
+// 25. Mathematical Integrity — L0 Constitutional
+// ---------------------------------------------------------------------------
+
+pub fn integrity_view(_state: SharedMeshState) -> Element(msg) {
+  html.div([attribute.class("w-full")], [
+    page_header(
+      "Mathematical Integrity",
+      "Formal verification and propagation proofs",
+    ),
+    shell.section("Proofs", [
+      html.div([attribute.class("card-grid")], [
+        shell.status_card("Convergence", "Healthy", "0.85", "score"),
+        shell.status_card("Drift Rate", "Healthy", "0.001", "deviation/cycle"),
+        shell.status_card("Error Margin", "Healthy", "0.12", "acceptable bound"),
+      ]),
+    ]),
+  ])
+}
+
+// ---------------------------------------------------------------------------
+// 26. Evolution Vectors — L5 Cognitive
+// ---------------------------------------------------------------------------
+
+pub fn evolution_view(_state: SharedMeshState) -> Element(msg) {
+  html.div([attribute.class("w-full")], [
+    page_header(
+      "Evolution Vectors",
+      "Adaptive trajectories and fitness metrics",
+    ),
+    shell.section("Metrics", [
+      html.div([attribute.class("card-grid")], [
+        shell.status_card("Adaptability", "Healthy", "0.90", "fitness"),
+        shell.status_card("Resilience", "Healthy", "0.80", "fitness"),
+        shell.status_card("Efficiency", "Healthy", "0.70", "fitness"),
+        shell.status_card("Coherence", "Healthy", "0.60", "fitness"),
+      ]),
+    ]),
+  ])
+}
+
+// ---------------------------------------------------------------------------
+// 27. Biomorphic Matrix — L5 Cognitive
+// ---------------------------------------------------------------------------
+
+pub fn biomorphic_view(_state: SharedMeshState) -> Element(msg) {
+  html.div([attribute.class("w-full")], [
+    page_header(
+      "Biomorphic Matrix",
+      "Cellular visualization of holon health",
+    ),
+    shell.section("Layers", [
+      html.div([attribute.class("card-grid")], [
+        shell.status_card("Total Layers", "Healthy", "8", "L0-L7"),
+        shell.status_card("Healthy Nodes", "Healthy", "7", "nominal"),
+        shell.status_card("Degraded Nodes", "Degraded", "1", "recovering"),
+      ]),
+    ]),
+  ])
+}
+
+// ---------------------------------------------------------------------------
+// 28. Homeostasis Controls — L2 Component
+// ---------------------------------------------------------------------------
+
+pub fn homeostasis_view(_state: SharedMeshState) -> Element(msg) {
+  html.div([attribute.class("w-full")], [
+    page_header(
+      "Homeostasis Controls",
+      "PID tuning and metabolic set-points",
+    ),
+    shell.section("PID Parameters", [
+      html.div([attribute.class("card-grid")], [
+        shell.status_card("Kp", "Healthy", "1.0", "proportional"),
+        shell.status_card("Ki", "Healthy", "0.1", "integral"),
+        shell.status_card("Kd", "Healthy", "0.05", "derivative"),
+        shell.status_card("Set Point", "Healthy", "80.0", "target"),
+        shell.status_card("Current", "Healthy", "78.5", "actual"),
+        shell.status_card("Error", "Healthy", "1.5", "delta"),
+      ]),
+    ]),
+  ])
+}
+
+// ---------------------------------------------------------------------------
+// 29. Bicameral Sign-Off — L0 Constitutional
+// ---------------------------------------------------------------------------
+
+pub fn bicameral_view(_state: SharedMeshState) -> Element(msg) {
+  html.div([attribute.class("w-full")], [
+    page_header(
+      "Bicameral Sign-Off",
+      "Dual-authorization requirements for critical mutations",
+    ),
+    shell.section("Consensus", [
+      html.div([attribute.class("card-grid")], [
+        shell.status_card("Guardian", "Healthy", "Approved", "Agent consent"),
+        shell.status_card("Constitutional", "Degraded", "Pending", "Logic gate"),
+      ]),
+    ]),
+  ])
+}
+
+// ---------------------------------------------------------------------------
+// 30. Singularity Estimation — L7 Federation
+// ---------------------------------------------------------------------------
+
+pub fn singularity_view(_state: SharedMeshState) -> Element(msg) {
+  html.div([attribute.class("w-full")], [
+    page_header(
+      "Singularity Estimation",
+      "Convergence timing and phase transition probability",
+    ),
+    shell.section("Metrics", [
+      html.div([attribute.class("card-grid")], [
+        shell.status_card("T-Minus (ms)", "Healthy", "3600000", "1 hour"),
+        shell.status_card("Confidence", "Healthy", "0.95", "probabilistic"),
+        shell.status_card("Status", "Healthy", "Approaching", "phase 4"),
+      ]),
+    ]),
+  ])
+}
+
+// ---------------------------------------------------------------------------
 // 404 Not Found
 // ---------------------------------------------------------------------------
 

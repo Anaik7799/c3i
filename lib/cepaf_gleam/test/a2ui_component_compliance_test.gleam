@@ -433,14 +433,14 @@ pub fn render_unknown_type_html_uses_data_a2ui_type_attribute_test() {
   let proposal =
     ComponentProposal(
       id: "r-unk",
-      component_type: "topology",
+      component_type: "unknown_type",
       props: json.object([]),
       children: [],
       binding: None,
     )
   case renderer.render(proposal, renderer.HtmlTarget) {
     renderer.HtmlOutput(html) ->
-      html |> string.contains("data-a2ui-type") |> should.be_true
+      html |> string.contains("data-a2ui-type=\"unknown_type\"") |> should.be_true
     _ -> should.fail()
   }
 }

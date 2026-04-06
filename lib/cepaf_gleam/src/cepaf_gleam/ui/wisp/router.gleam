@@ -1145,6 +1145,42 @@ fn route_html(path: String) -> String {
         "planning-dashboard",
         page_views.planning_dashboard_view(state),
       )
+    "/integrity" ->
+      shell.render_page(
+        "Mathematical Integrity",
+        "integrity",
+        page_views.integrity_view(state),
+      )
+    "/evolution" ->
+      shell.render_page(
+        "Evolution Vectors",
+        "evolution",
+        page_views.evolution_view(state),
+      )
+    "/biomorphic" ->
+      shell.render_page(
+        "Biomorphic Matrix",
+        "biomorphic",
+        page_views.biomorphic_view(state),
+      )
+    "/homeostasis" ->
+      shell.render_page(
+        "Homeostasis Controls",
+        "homeostasis",
+        page_views.homeostasis_view(state),
+      )
+    "/bicameral" ->
+      shell.render_page(
+        "Bicameral Sign-Off",
+        "bicameral",
+        page_views.bicameral_view(state),
+      )
+    "/singularity" ->
+      shell.render_page(
+        "Singularity Estimation",
+        "singularity",
+        page_views.singularity_view(state),
+      )
     _ -> shell.render_page("Not Found", "", page_views.not_found_view(path))
   }
 }

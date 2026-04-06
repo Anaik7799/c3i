@@ -17,6 +17,8 @@
 import cepaf_gleam/ui/domain.{
   type Page, Cockpit, Dashboard, Federation, HealthGrid, Immune, Kms, Knowledge,
   Mcp, Metabolic, Planning, Podman, Substrate, Telemetry, Verification, Zenoh,
+  Prajna, Agents, Holon, Config, Git, Database, Bridge, Smriti, PlanningDashboard,
+  Integrity, Evolution, Biomorphic, HomeostasisPage, Bicameral, Singularity,
   page_to_path,
 }
 import cepaf_gleam/zenoh/client
@@ -84,6 +86,21 @@ pub fn page_to_string(page: Page) -> String {
     Telemetry -> "telemetry"
     Federation -> "federation"
     HealthGrid -> "health_grid"
+    Prajna -> "prajna"
+    Agents -> "agents"
+    Holon -> "holon"
+    Config -> "config"
+    Git -> "git"
+    Database -> "database"
+    Bridge -> "bridge"
+    Smriti -> "smriti"
+    PlanningDashboard -> "planning_dashboard"
+    Integrity -> "integrity"
+    Evolution -> "evolution"
+    Biomorphic -> "biomorphic"
+    HomeostasisPage -> "homeostasis"
+    Bicameral -> "bicameral"
+    Singularity -> "singularity"
   }
 }
 
