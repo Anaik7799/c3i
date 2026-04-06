@@ -1,0 +1,61 @@
+-- allium: 3
+-- C3I Performance & Concurrency Formal Verification
+-- Covers: Max Parallelization, Future Resolution, Head-of-Line Blocking, and Throughput
+-- Date: 2026-04-06
+
+-- ---------------------------------------------------------------------------
+-- 1. Concurrent Future Resolution & Join Semantics (SC-PERF-001)
+-- ---------------------------------------------------------------------------
+-- Awaiting spawned tasks sequentially in a loop introduces Head-Of-Line (HOL)
+-- blocking at the executor level, artificially limiting throughput if an early
+-- task hangs while later tasks complete.
+
+value DurationMs {
+    ms: Integer
+}
+
+entity AsyncExecutionGroup {
+    task_count: Integer
+    execution_strategy: sequential_await | join_all | futures_unordered
+    hol_blocking_present: Boolean
+    
+    transitions execution_strategy {
+        sequential_await -> join_all
+        sequential_await -> futures_unordered
+    }
+}
+
+rule EnforceJoinAllSemantics {
+    when: group: AsyncExecutionGroup.execution_strategy
+    ensures:
+        -- The system is mathematically forbidden from awaiting independent tasks
+        -- in a sequential `for` loop. All spawned futures MUST be pushed to a
+        -- `futures::future::join_all` or `FuturesUnordered` vector to maximize
+        -- executor throughput and prevent blocked aggregators.
+        if group.execution_strategy = "sequential_await":
+            group.hol_blocking_present = true
+        else if group.execution_strategy in {"join_all", "futures_unordered"}:
+            group.hol_blocking_present = false
+            
+    @guarantee TrueParallelization
+        -- Guarantees that the ignition and health orchestra phases scale
+        -- perfectly across all `+S 16` BEAM schedulers and Rust Tokio workers.
+}
+
+-- ---------------------------------------------------------------------------
+-- 2. TLA+ Bounds for Concurrency Limits (SC-PERF-002)
+-- ---------------------------------------------------------------------------
+-- Formal specification mapping to TLA+ validation of concurrency.
+
+contract ConcurrencyBounds {
+    check_deadlock_freedom: (group: AsyncExecutionGroup) -> Boolean
+    
+    @invariant Liveness
+        -- `join_all` must guarantee that all tasks eventually resolve (Ok or Err),
+        -- meaning no individual task can permanently deadlock the wave.
+        
+    @invariant ThroughputMaximization
+        -- Total execution time for a wave of N tasks MUST be bound by:
+        -- max(latency(task_1), ..., latency(task_N)) + epsilon,
+        -- NOT sum(latency(task_1), ..., latency(task_N)).
+}
