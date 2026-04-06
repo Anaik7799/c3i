@@ -1,0 +1,169 @@
+-- allium: 3
+-- C3I Ultrathink HMI Ergonomics & High-Performance GUI Standards
+-- Covers: ISA-101 Principles, Latency Bounds, Spatial Memory, Graceful Degradation, and Reversibility
+-- Date: 2026-04-06
+
+-- ---------------------------------------------------------------------------
+-- 1. High-Performance HMI (ISA-101 / SC-HMI-101)
+-- ---------------------------------------------------------------------------
+-- UI must use low-contrast, desaturated colors for normal operations. Saturated
+-- colors are strictly reserved for abnormal situations (alarms, failures).
+
+value Color {
+    hex: String
+    saturation: Float
+    luminance: Float
+}
+
+entity UIElement {
+    role: background | text | indicator | active_alarm | critical_alarm
+    color: Color
+    
+    -- Morphological constraints based on role
+    is_flashing: Boolean
+}
+
+rule HighPerformanceColorPalette {
+    when: element: UIElement.color
+    ensures:
+        if element.role in {background, text, indicator}:
+            element.color.saturation <= 0.2
+            element.is_flashing = false
+        else if element.role = active_alarm:
+            element.color.saturation >= 0.8
+            element.is_flashing = false
+        else if element.role = critical_alarm:
+            element.color.saturation >= 0.9
+            element.is_flashing = true
+            
+    @guarantee ISA101Compliance
+        -- Guarantees that nominal states do not compete for the operator's
+        -- visual attention, instantly drawing focus to active anomalies.
+}
+
+-- ---------------------------------------------------------------------------
+-- 2. Strict Latency Bounds & Feedback Loops (SC-HMI-050)
+-- ---------------------------------------------------------------------------
+-- The system must respect human perceptual limits.
+
+external entity OperatorInput {
+    id: String
+    timestamp_ms: Integer
+    action_type: String
+}
+
+entity VisualFeedback {
+    input_id: String
+    timestamp_ms: Integer
+    state: acknowledged | processing | resolved
+}
+
+contract LatencyStandards {
+    @invariant ImmediateAcknowledgment
+        -- VisualFeedback.timestamp_ms - OperatorInput.timestamp_ms MUST BE <= 50ms
+        -- Ensures the UI feels instantly responsive.
+        
+    @invariant TransactionProgress
+        -- If an action takes > 100ms to resolve, the UI MUST transition to a
+        -- determinate or indeterminate progress state to prevent operator uncertainty.
+}
+
+-- ---------------------------------------------------------------------------
+-- 3. Graceful Degradation & Partition Tolerance (SC-ZMOF-900)
+-- ---------------------------------------------------------------------------
+-- If the ZMOF (Zenoh backplane) partitions, the UI must explicitly indicate
+-- data staleness rather than freezing or silently failing.
+
+entity DataSubscription {
+    topic: String
+    last_received_ms: Integer
+    staleness_threshold_ms: Integer
+    visual_state: live | stale | disconnected
+}
+
+rule DetectStaleSubscription {
+    when: sub: DataSubscription.last_received_ms
+    requires: (now - sub.last_received_ms) > sub.staleness_threshold_ms
+    ensures:
+        sub.visual_state = stale
+        
+    @guidance
+        -- 'stale' state should apply a desaturated or translucent overlay
+        -- to the corresponding UI panel, with an explicit "Last updated X seconds ago" watermark.
+}
+
+-- ---------------------------------------------------------------------------
+-- 4. Spatial Memory & Fitts's Law (SC-HMI-040)
+-- ---------------------------------------------------------------------------
+-- Critical controls must respect human motor control mathematics.
+
+entity ControlTarget {
+    action: String
+    is_critical: Boolean
+    target_area_pixels: Integer
+    screen_position: edge | center | inline
+}
+
+rule FittsLawOptimization {
+    when: control: ControlTarget.is_critical becomes true
+    ensures:
+        -- Critical actions (e.g., Emergency Stop) must have either a massive hit area
+        -- or be pinned to the screen edge to provide an "infinite" target area in Fitts's Law.
+        control.screen_position in {edge, center}
+        control.target_area_pixels >= 4096
+}
+
+-- ---------------------------------------------------------------------------
+-- 5. Reversibility & Temporal Undo (Psi-2 Invariant)
+-- ---------------------------------------------------------------------------
+-- Every non-terminal operator action must generate a reversal token, affording
+-- the operator psychological safety.
+
+entity OperatorAction {
+    id: String
+    is_terminal: Boolean
+    state: applied | reversed
+    reversal_token: String
+}
+
+surface ActionReversibilityGate {
+    facing operator: Operator
+    context action: OperatorAction
+    
+    provides:
+        UndoAction(operator, action.reversal_token)
+            when action.state = applied and action.is_terminal = false
+}
+
+rule ExecuteUndo {
+    when: ActionReversibilityGate.UndoAction(operator, token)
+    ensures:
+        action.state = reversed
+        
+    @guarantee PsychologicalSafety
+        -- Operators can act with higher velocity (OODA speed) knowing that
+        -- errors of execution (slips) can be instantly rewound.
+}
+
+-- ---------------------------------------------------------------------------
+-- 6. Cognitive Bandwidth & Hick's Law (SC-HMI-060)
+-- ---------------------------------------------------------------------------
+-- The time it takes to make a decision increases with the number and complexity of choices.
+
+entity DecisionContext {
+    ooda_phase: String
+    available_actions: Set<ControlTarget>
+    slm_recommended_action: ControlTarget
+}
+
+rule HicksLawConstraint {
+    when: ctx: DecisionContext.ooda_phase in {"orient", "decide"}
+    ensures:
+        -- The UI must dynamically prune or visually de-prioritize non-essential actions.
+        -- The SLM (Small Language Model) recommendation must be visually distinct (e.g., primary button).
+        ctx.available_actions.count <= 5
+        
+    @guarantee MinimumDecisionLatency
+        -- Restricting choices during crisis resolution mathematically reduces
+        -- operator decision latency.
+}

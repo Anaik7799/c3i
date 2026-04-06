@@ -1,0 +1,273 @@
+-- allium: 3
+-- C3I Fractal Agentic UI — Comprehensive Behavioral Specification
+-- Covers: Triple-Interface Mandate (SC-GLM-UI-001), A2UI Generative Morphogenesis, and Full L0-L7 Operational Controls
+-- Date: 2026-04-06
+
+contract TripleInterfaceMandate {
+    -- Mandate: SC-GLM-UI-001 — Every UI feature MUST exist in Lustre + Wisp + TUI
+    render_lustre: (state: SharedMeshState) -> HtmlDocument
+    render_wisp: (state: SharedMeshState) -> JsonResponse
+    render_tui: (state: SharedMeshState) -> AnsiBuffer
+
+    @invariant Parity
+        -- render_lustre, render_wisp, and render_tui must project the exact same
+        -- semantic Domain state without data loss or semantic drift.
+}
+
+external entity Operator {
+    role: String
+    clearance_level: Integer
+}
+
+value FractalLayer {
+    level: Integer
+    name: String
+    domain: String
+}
+
+entity SharedMeshState {
+    container_count: Integer
+    healthy_count: Integer
+    zenoh_connected: Boolean
+    quorum_healthy: Boolean
+    threat_level: String
+    ooda_phase: String
+    dark_cockpit_mode: String
+}
+
+entity OperationalControl {
+    layer: FractalLayer
+    label: String
+    endpoint: String
+    payload_schema: String
+    requires_hitl: Boolean
+    
+    transitions status {
+        idle -> executing
+        executing -> success
+        executing -> failure
+        terminal: success, failure
+    }
+}
+
+-- ---------------------------------------------------------------------------
+-- L0 Constitutional: Integrity & Safety (Priority: P0)
+-- ---------------------------------------------------------------------------
+surface VerificationView {
+    facing operator: Operator
+    
+    context mesh_state: SharedMeshState
+    
+    exposes:
+        mesh_state.threat_level
+        mesh_state.quorum_healthy
+        
+    provides:
+        EmergencyStop(operator)
+            when mesh_state.threat_level = "critical"
+            
+        HaltMutations(operator)
+            when mesh_state.quorum_healthy = true
+            
+        ExecuteSaVerify(operator)
+}
+
+rule EmergencyStopTriggered {
+    when: VerificationView.EmergencyStop(operator)
+    ensures: OperationalControl.created(
+        layer: FractalLayer(level: 0, name: "Constitutional", domain: "Integrity"),
+        label: "Emergency Stop < 5s",
+        endpoint: "/api/v1/emergency/trigger",
+        payload_schema: "{\"reason\": \"Operator initiated\", \"confirmation\": \"EMERGENCY STOP\"}",
+        requires_hitl: true
+    )
+}
+
+-- ---------------------------------------------------------------------------
+-- L1 Atomic/Debug: Observability & Probes
+-- ---------------------------------------------------------------------------
+surface MetabolicView {
+    facing operator: Operator
+    context mesh_state: SharedMeshState
+    
+    provides:
+        SystemLogs(operator)
+        PortSubstrate(operator)
+        ShutdownAndPrune(operator)
+}
+
+rule PortSubstrateTriggered {
+    when: MetabolicView.PortSubstrate(operator)
+    ensures: OperationalControl.created(
+        layer: FractalLayer(level: 1, name: "Atomic", domain: "Observability"),
+        label: "Port Substrate (sa-scour)",
+        endpoint: "/api/v1/podman/action",
+        payload_schema: "{\"verb\": \"scour\", \"container\": \"mesh\", \"reason\": \"Isolation\"}",
+        requires_hitl: true
+    )
+}
+
+-- ---------------------------------------------------------------------------
+-- L2 Component: Lifecycle & Actors
+-- ---------------------------------------------------------------------------
+surface AgentsView {
+    facing operator: Operator
+    context mesh_state: SharedMeshState
+    
+    provides:
+        RestartActor(operator)
+        CompileCode(operator)
+        TestSil6(operator)
+}
+
+rule RestartActorTriggered {
+    when: AgentsView.RestartActor(operator)
+    ensures: OperationalControl.created(
+        layer: FractalLayer(level: 2, name: "Component", domain: "Lifecycle"),
+        label: "Start/Stop/Restart Actor",
+        endpoint: "/api/v1/podman/action",
+        payload_schema: "{\"verb\": \"restart_actor\", \"container\": \"all\", \"reason\": \"Actor refresh\"}",
+        requires_hitl: false
+    )
+}
+
+-- ---------------------------------------------------------------------------
+-- L3 Transaction: State & Persistence
+-- ---------------------------------------------------------------------------
+surface SubstrateView {
+    facing operator: Operator
+    context mesh_state: SharedMeshState
+    
+    provides:
+        DbMigrate(operator)
+        DbReset(operator)
+        DbSetup(operator)
+}
+
+rule DbMigrateTriggered {
+    when: SubstrateView.DbMigrate(operator)
+    ensures: OperationalControl.created(
+        layer: FractalLayer(level: 3, name: "Transaction", domain: "State"),
+        label: "DB Migrate (db-migrate)",
+        endpoint: "/api/v1/podman/action",
+        payload_schema: "{\"verb\": \"migrate\", \"container\": \"db-prod\", \"reason\": \"Schema update\"}",
+        requires_hitl: true
+    )
+}
+
+-- ---------------------------------------------------------------------------
+-- L4 System: Swarm & Resource Governance
+-- ---------------------------------------------------------------------------
+surface PodmanView {
+    facing operator: Operator
+    context mesh_state: SharedMeshState
+    
+    provides:
+        WaveIgnition(operator)
+        Apoptosis(operator)
+        RestartGenome(operator)
+}
+
+rule WaveIgnitionTriggered {
+    when: PodmanView.WaveIgnition(operator)
+    ensures: OperationalControl.created(
+        layer: FractalLayer(level: 4, name: "System", domain: "Swarm"),
+        label: "Wave Ignition (sa-up)",
+        endpoint: "/api/v1/podman/action",
+        payload_schema: "{\"verb\": \"up\", \"container\": \"all\", \"reason\": \"Manual start\"}",
+        requires_hitl: true
+    )
+}
+
+-- ---------------------------------------------------------------------------
+-- L5 Cognitive: OODA & Intelligence
+-- ---------------------------------------------------------------------------
+surface DashboardView {
+    facing operator: Operator
+    context mesh_state: SharedMeshState
+    
+    exposes:
+        mesh_state.ooda_phase
+        mesh_state.healthy_count
+        
+    provides:
+        ForceOodaCycle(operator)
+        TriggerLlmAdvisor(operator)
+        InjectFact(operator)
+}
+
+rule ForceOodaCycleTriggered {
+    when: DashboardView.ForceOodaCycle(operator)
+    ensures: OperationalControl.created(
+        layer: FractalLayer(level: 5, name: "Cognitive", domain: "Intelligence"),
+        label: "Force OODA Cycle (sa-orch-ooda)",
+        endpoint: "/api/v1/ooda/trigger",
+        payload_schema: "{\"action\": \"force_cycle\"}",
+        requires_hitl: false
+    )
+}
+
+-- ---------------------------------------------------------------------------
+-- L6 Ecosystem: Mesh & Quorum
+-- ---------------------------------------------------------------------------
+surface ZenohMeshView {
+    facing operator: Operator
+    context mesh_state: SharedMeshState
+    
+    provides:
+        QuorumCheck(operator)
+        BioSync(operator)
+        InjectChaos(operator)
+}
+
+rule InjectChaosTriggered {
+    when: ZenohMeshView.InjectChaos(operator)
+    ensures: OperationalControl.created(
+        layer: FractalLayer(level: 6, name: "Ecosystem", domain: "Mesh"),
+        label: "Inject Chaos (sa-test-agents)",
+        endpoint: "/api/v1/podman/action",
+        payload_schema: "{\"verb\": \"chaos\", \"container\": \"mesh\", \"reason\": \"Chaos testing\"}",
+        requires_hitl: true
+    )
+}
+
+-- ---------------------------------------------------------------------------
+-- L7 Federation: Multiverse & Architecture
+-- ---------------------------------------------------------------------------
+surface FederationView {
+    facing operator: Operator
+    context mesh_state: SharedMeshState
+    
+    provides:
+        CheckpointState(operator)
+        RestoreState(operator)
+        ForkMultiverse(operator)
+}
+
+rule ForkMultiverseTriggered {
+    when: FederationView.ForkMultiverse(operator)
+    ensures: OperationalControl.created(
+        layer: FractalLayer(level: 7, name: "Federation", domain: "Multiverse"),
+        label: "Fork Multiverse (sa-fork)",
+        endpoint: "/api/v1/podman/action",
+        payload_schema: "{\"verb\": \"fork\", \"container\": \"mesh\", \"reason\": \"Shadow universe\"}",
+        requires_hitl: true
+    )
+}
+
+-- ---------------------------------------------------------------------------
+-- A2UI Component Evolution (Morphological Adaptability)
+-- ---------------------------------------------------------------------------
+entity A2uiComponent {
+    panel_id: String
+    schema_hash: String
+    is_active: Boolean
+}
+
+rule MorphologicalEvolution {
+    when: component: A2uiComponent.is_active becomes true
+    ensures: 
+        -- System dynamically renders the component across all 3 interfaces
+        -- fulfilling the TripleInterfaceMandate without code changes
+        component.schema_hash != ""
+}

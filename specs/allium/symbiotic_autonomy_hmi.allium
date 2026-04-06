@@ -1,0 +1,161 @@
+-- allium: 3
+-- C3I Ultrathink Symbiotic Autonomy & Predictive HMI
+-- Covers: Levels of Automation (LOA), Prescient Situational Awareness, and Operator Cognitive Modeling
+-- Date: 2026-04-06
+
+-- ---------------------------------------------------------------------------
+-- 1. Dynamic Levels of Automation (LOA) - SC-HMI-200
+-- ---------------------------------------------------------------------------
+-- The system dynamically shifts the level of automation based on the 
+-- calculated cognitive load of the operator and the urgency of the threat.
+
+value CognitiveLoad {
+    score: Float -- 0.0 (idle) to 1.0 (overwhelmed)
+    measured_via: action_latency | error_rate | physiological_proxy
+}
+
+entity LevelOfAutomation {
+    level: manual | advisory | shared_control | supervised_autonomy | full_autonomy
+    active_threat_urgency: Float
+    operator_load: CognitiveLoad
+    
+    transitions level {
+        manual -> advisory
+        advisory -> shared_control
+        shared_control -> supervised_autonomy
+        supervised_autonomy -> full_autonomy
+        
+        full_autonomy -> supervised_autonomy
+        supervised_autonomy -> shared_control
+        shared_control -> advisory
+        advisory -> manual
+        
+        -- Emergency escalations
+        advisory -> full_autonomy
+        shared_control -> full_autonomy
+    }
+}
+
+rule LOA_DynamicShift {
+    when: loa: LevelOfAutomation.active_threat_urgency
+    ensures:
+        if loa.active_threat_urgency > 0.9 and loa.operator_load.score > 0.8:
+            -- Operator is overwhelmed during critical threat. System seizes control.
+            loa.level = full_autonomy
+        else if loa.operator_load.score > 0.6:
+            -- Operator is highly loaded. System handles execution, operator supervises.
+            loa.level = supervised_autonomy
+        else if loa.active_threat_urgency < 0.3:
+            -- Nominal operations. Operator retains manual or advisory control.
+            loa.level = advisory
+            
+    @guarantee CognitiveOverloadPrevention
+        -- The system mathematically prevents the operator from becoming the bottleneck
+        -- during a catastrophic failure cascade.
+}
+
+-- ---------------------------------------------------------------------------
+-- 2. Prescient Situational Awareness (Predictive UI) - SC-HMI-210
+-- ---------------------------------------------------------------------------
+-- The UI does not just display current state; it projects high-probability 
+-- future states derived from the Causal AI engine (Mojo).
+
+entity FutureStateProjection {
+    time_horizon_ms: Integer
+    predicted_anomaly: String
+    probability: Float
+    confidence_interval: Float
+    ui_rendering: hidden | ghosted | materialized
+}
+
+rule ProjectFutureState {
+    when: projection: FutureStateProjection.probability
+    ensures:
+        if projection.probability > 0.85 and projection.confidence_interval > 0.9:
+            -- High certainty anomaly in the future. Render it transparently in the UI NOW.
+            projection.ui_rendering = ghosted
+        else if projection.probability <= 0.85:
+            projection.ui_rendering = hidden
+            
+    @guidance
+        -- 'ghosted' UI elements should use a dashed outline and low opacity to 
+        -- indicate they are predicted future states, allowing the operator to 
+        -- pre-emptively orient and decide before the Act phase is required.
+}
+
+-- ---------------------------------------------------------------------------
+-- 3. Attentional Funneling & Alarm Triage (SC-HMI-220)
+-- ---------------------------------------------------------------------------
+-- In SIL-6 systems, alarm floods cause catastrophic operator failure.
+-- The UI must mathematically triage and suppress derivative alarms.
+
+entity AlarmCluster {
+    root_cause_alarm: String
+    derivative_alarms: Set<String>
+    suppression_active: Boolean
+}
+
+rule SuppressDerivativeAlarms {
+    when: cluster: AlarmCluster.derivative_alarms.count becomes > 0
+    ensures:
+        -- The UI exclusively renders the root cause. All derivative symptoms
+        -- are visually collapsed into a single "N related anomalies" badge.
+        cluster.suppression_active = true
+        
+    @guarantee AlarmFloodPrevention
+        -- Ensures the operator's visual field is constrained to O(1) root 
+        -- causes rather than O(N) cascading symptoms.
+}
+
+-- ---------------------------------------------------------------------------
+-- 4. Somatic & Multi-Modal Feedback Cues (SC-HMI-230)
+-- ---------------------------------------------------------------------------
+-- Visual channels saturate quickly. The HMI must utilize auditory and haptic channels
+-- for specific, orthogonal data streams.
+
+external entity OperatorInterface {
+    supports_haptic: Boolean
+    supports_spatial_audio: Boolean
+}
+
+entity FeedbackEvent {
+    severity: String
+    modality: visual | auditory | haptic | multi_modal
+}
+
+rule MultiModalRouting {
+    when: event: FeedbackEvent.severity
+    requires: interface: OperatorInterface
+    ensures:
+        if event.severity = "critical" and interface.supports_spatial_audio and interface.supports_haptic:
+            event.modality = multi_modal
+        else if event.severity = "warning" and interface.supports_spatial_audio:
+            -- Non-interruptive spatial audio "ping" for background awareness
+            event.modality = auditory
+        else:
+            event.modality = visual
+            
+    @guarantee SensoryBandwidthOptimization
+        -- Offloads telemetry from the visual cortex to auditory/somatosensory systems
+        -- during high-stress OODA loops.
+}
+
+-- ---------------------------------------------------------------------------
+-- 5. Context-Aware Command Palette (The Operator's Weapon)
+-- ---------------------------------------------------------------------------
+-- Point-and-click is too slow for expert operators. The system must provide
+-- a mathematically optimized, context-sensitive command palette (e.g., Cmd+K).
+
+entity CommandPalette {
+    is_open: Boolean
+    context_entity_id: String
+    ranked_commands: List<String>
+}
+
+contract CommandRankingAlgorithm {
+    rank_by_markov_chain: (context: String, historical_actions: List<String>) -> List<String>
+    
+    @invariant TopThreeRelevance
+        -- The top 3 commands presented in the palette MUST account for >90% of
+        -- historically taken actions given the current `context_entity_id`.
+}

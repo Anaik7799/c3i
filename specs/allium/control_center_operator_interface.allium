@@ -1,0 +1,406 @@
+-- allium: 3
+-- C3I Control Center — Human-Managed Operator Interface Specification
+-- Covers: Full infrastructure control via cepaf_gleam WebUI, real-time monitoring,
+--         container lifecycle management, emergency procedures, alert triage,
+--         OODA visualization, Zenoh mesh topology, Guardian approval workflows
+-- STAMP: SC-GLM-UI-001..010, SC-HMI-001..080, SC-AGUI-001..017, SC-SIL4-006,
+--        SC-SAFETY-001..022, SC-DRK-001..004, SC-ZMOF-001..006
+-- Date: 2026-04-05
+-- Author: Claude Opus 4.6 (operator-assisted)
+-- Predecessor: All 5 webui_*.allium specs (2,882 lines)
+
+-- =============================================================================
+-- §1. OPERATOR INTERFACE MANDATE
+-- =============================================================================
+
+-- The cepaf_gleam WebUI at port 4100 is the PRIMARY human operator interface
+-- for the C3I SIL-6 Biomorphic Mesh. It is governed by the multi-objective 
+-- optimization function: O = max(Criticality * FEMA * Robustness * Usability * Stability * SIL-6).
+--
+-- It MUST provide:
+-- 1. SITUATIONAL AWARENESS — Live FEMA Tensor heatmaps and Lyapunov stability vectors across all containers.
+-- 2. CONTROL — Start/stop/restart containers, trigger OODA, run preflight via cryptographically signed ProofTokens.
+-- 3. SAFETY — L0 Guardian approval for P0 actions, emergency stop, 2oo3 consensus.
+-- 4. DIAGNOSIS — Container logs, Zenoh message inspection, OTel trace drill-down.
+-- 5. ALERTING — Dark cockpit driven by FEMA tensors (trip when Severity x Occurrence > 100).
+-- 6. AUDIT — Every action logged, traceable, reversible, maintaining V_dot(x) < 0.
+
+-- =============================================================================
+-- §2. PAGE ARCHITECTURE (24 Pages, 8 Fractal Layers)
+-- =============================================================================
+
+-- Each page renders as full HTML via Lustre SSR (no client JS required).
+-- API endpoints at /api/v1/* return JSON for programmatic access.
+-- Both share types from ui/domain.gleam + ui/state.gleam.
+
+enum PageCategory {
+    overview |       -- Dashboard, Cockpit, HealthGrid
+    operations |     -- Podman, Metabolic, Substrate, Config
+    intelligence |   -- Planning, OODA, Knowledge, Agents
+    safety |         -- Immune, Verification, Guardian, KMS
+    mesh |           -- Zenoh, MCP, Federation, Telemetry
+    system           -- Bridge, Database, Git, Holon, Smriti, Prajna
+}
+
+-- Page → Category mapping:
+-- overview:      Dashboard(L5), Cockpit(L5), HealthGrid(L4)
+-- operations:    Podman(L4), Metabolic(L1), Substrate(L3), Config(L4)
+-- intelligence:  Planning(L3), OODA(L5), Knowledge(L3), Agents(L5)
+-- safety:        Immune(L0), Verification(L0), Guardian(L0), KMS(L0)
+-- mesh:          Zenoh(L6), MCP(L6), Federation(L7), Telemetry(L1)
+-- system:        Bridge(L4), Database(L3), Git(L3), Holon(L3), Smriti(L3), Prajna(L5)
+
+-- =============================================================================
+-- §3. DARK COCKPIT OPERATOR PATTERN (SC-HMI-010)
+-- =============================================================================
+
+-- Principle: When everything is healthy, the dashboard is nearly EMPTY.
+-- Anomalies SURFACE automatically. Healthy state HIDES.
+-- This prevents operator fatigue and ensures critical alerts are visible.
+
+contract DarkCockpitInterface {
+    rule "Healthy State Hidden" {
+        when container.status = "running" and container.health > 0.8
+        then container_card.visibility = "collapsed"
+        ensure "Only container name and green dot visible"
+        @guidance Operator should see 15 green dots when all is well.
+                  Expanding a card requires explicit click.
+    }
+
+    rule "Anomaly Surfaces" {
+        when container.status != "running" or container.health <= 0.8
+        then container_card.visibility = "expanded"
+        then container_card.border_color = severity_color(container.health)
+        ensure "Degraded/critical containers are immediately visible"
+    }
+
+    rule "Alert Banner" {
+        when any container.health <= 0.5
+        then show_alert_banner(
+            level = "critical",
+            message = "Container {name} health critical: {health}%",
+            action = "Click to investigate"
+        )
+    }
+
+    rule "Progressive Disclosure" {
+        -- Dark (all green) → Dim (warnings) → Normal (errors) → Bright (multiple) → Emergency
+        mode_transitions: {
+            dark: "0 unacked alerts → minimal display, monochrome"
+            dim: "1+ warnings → subtle yellow highlights"
+            normal: "1+ errors → visible orange, expanded cards"
+            bright: "3+ errors → high visibility, all details"
+            emergency: "critical + guardian alert → full illumination, red, audio"
+        }
+    }
+}
+
+-- =============================================================================
+-- §4. CONTAINER CONTROL PANEL (Primary Operational Surface)
+-- =============================================================================
+
+surface ContainerControlCenter {
+    facing: Operator
+    path: "/podman"
+    category: operations
+
+    -- 15-container grid (3 rows × 5 columns)
+    layout {
+        row1: "Zenoh Routers"    — zenoh-router-1, zenoh-router-2, zenoh-router-3
+        row2: "Core Services"     — db-prod, obs-prod, cortex, cepaf-bridge, ex-app-1
+        row3: "Application Tier"  — ex-app-2, ex-app-3, chaya, ollama, mojo
+        row4: "ML Runners"        — ml-runner-1, ml-runner-2 (half-width)
+    }
+
+    -- Each container card displays:
+    card_fields {
+        name: "Container name (bold)"
+        status_badge: "Running(green) | Stopped(red) | Created(gray) | Degraded(yellow)"
+        uptime: "3h 42m (or 'Stopped')"
+        cpu_bar: "Mini progress bar 0-100% (color-coded)"
+        memory: "256MB / 512MB"
+        ports: "4000:4000, 4001:4001"
+        actions: "[Start] [Stop] [Restart] [Logs] [Inspect]"
+    }
+
+    -- Action buttons wired to MoZ:
+    interaction "Start Container" {
+        button_class: "btn-success"
+        enabled_when: container.status in ["stopped", "exited", "created"]
+        disabled_when: container.status = "running"
+        flow: click → POST /api/v1/podman/action {verb:"start", container:name}
+        feedback: "Starting..." badge → SSE container_state_change → "Running" badge
+    }
+
+    interaction "Stop Container" {
+        button_class: "btn-warning"
+        enabled_when: container.status = "running"
+        confirmation: "Stop {name}? Active connections will be dropped."
+        flow: click → confirm dialog → POST /api/v1/podman/action {verb:"stop"}
+    }
+
+    interaction "Restart Container" {
+        button_class: "btn-info"
+        enabled_when: container.status = "running"
+        flow: click → POST {verb:"restart"} → stop → start (sequential)
+    }
+
+    interaction "View Logs" {
+        button_class: "btn-secondary"
+        flow: click → expand log panel → stream last 100 lines
+        note: "Logs fetched via podman exec, not stored"
+    }
+
+    -- Batch operations:
+    interaction "Wave Ignition" {
+        location: "Top toolbar"
+        button_class: "btn-primary btn-lg"
+        guardian_gate: true
+        flow: click → HITL modal → Guardian 2oo3 → MoZ "launch" → 7-tier boot
+        progress: "SSE per-tier progress events (7 phases)"
+    }
+
+    interaction "Emergency Stop" {
+        location: "Top toolbar, right side"
+        button_class: "btn-danger btn-lg"
+        guardian_gate: true
+        confirmation: "Type EMERGENCY STOP to confirm"
+        flow: click → typed confirmation → POST /api/v1/emergency/trigger
+        sla: "All containers stopped within 5 seconds (SC-SAFETY-022)"
+    }
+}
+
+-- =============================================================================
+-- §5. DASHBOARD PAGE (System Overview)
+-- =============================================================================
+
+surface SystemDashboard {
+    facing: Operator
+    path: "/" and "/dashboard"
+    category: overview
+
+    layout {
+        header: "C3I SIL-6 Biomorphic Mesh — Operator Console"
+        row1_metrics: [
+            "Containers: 15/15 running",
+            "Zenoh: 3 routers, 2oo3 quorum OK",
+            "OODA: observe phase, 12ms cycle",
+            "Dark Cockpit: Dark (all nominal)"
+        ]
+        row2_health_grid: "15 container mini-cards (collapsed dark cockpit)"
+        row3_alerts: "Alert feed (empty when healthy)"
+        row4_activity: "Recent mutations, Guardian approvals, system events"
+    }
+
+    -- Real-time updates via SSE:
+    subscriptions: [
+        "/api/v1/sse/mesh",     -- container state changes
+        "/api/v1/sse/health"    -- health updates
+    ]
+
+    -- Auto-refresh: SSE push, no polling needed
+    -- Fallback: full page refresh every 30s if JS disabled
+}
+
+-- =============================================================================
+-- §6. GUARDIAN & SAFETY PAGES (L0 Constitutional)
+-- =============================================================================
+
+surface GuardianPage {
+    facing: Operator
+    path: "/guardian"
+    category: safety
+
+    layout {
+        section1_pending: "Pending Approval Requests (table)"
+        section2_consensus: "2oo3 Consensus Status (vote tracker)"
+        section3_psi: "Psi Invariant Status (6 checks, all green/red)"
+        section4_emergency: "Emergency Controls (arm/trigger/reset)"
+        section5_history: "Approval History (last 50)"
+    }
+
+    -- Approval workflow:
+    interaction "Approve Request" {
+        button_class: "btn-success"
+        enabled_when: request.status = "pending"
+        flow: click → POST /api/v1/guardian/respond {decision:"approved"}
+        feedback: "Row moves to history, consensus updated"
+    }
+
+    interaction "Reject Request" {
+        button_class: "btn-danger"
+        flow: click → POST /api/v1/guardian/respond {decision:"rejected"}
+    }
+}
+
+-- =============================================================================
+-- §7. ZENOH MESH PAGE (L6 Ecosystem)
+-- =============================================================================
+
+surface ZenohMeshPage {
+    facing: Operator
+    path: "/zenoh"
+    category: mesh
+
+    layout {
+        section1_topology: "Mesh topology diagram (3 routers + 12 satellites)"
+        section2_health: "Router health (zenoh-router-1/2/3 with heartbeat status)"
+        section3_topics: "Active topic list with message rates"
+        section4_messages: "Recent message inspector (last 20)"
+        section5_otel: "OTel span summary (spans/sec by page)"
+    }
+}
+
+-- =============================================================================
+-- §8. OODA VISUALIZATION PAGE (L5 Cognitive)
+-- =============================================================================
+
+surface OODAPage {
+    facing: Operator
+    path: "/ooda"
+    category: intelligence
+
+    layout {
+        section1_ring: "OODA cycle ring (observe→orient→decide→act→verify)"
+        section2_latency: "Phase latency table (target vs actual)"
+        section3_decisions: "Recent OODA decisions (rule engine output)"
+        section4_reasoning: "Reasoning stream (last 10 decision rationales)"
+        section5_trigger: "Manual OODA trigger button"
+    }
+
+    -- OODA latency thresholds:
+    config {
+        observe_budget_ms: 30
+        orient_budget_ms: 20
+        decide_budget_ms: 10
+        act_budget_ms: 5
+        verify_budget_ms: 35
+        total_cycle_sla_ms: 100
+    }
+}
+
+-- =============================================================================
+-- §9. PLANNING PAGE (L3 Transaction)
+-- =============================================================================
+
+surface PlanningPage {
+    facing: Operator
+    path: "/planning"
+    category: intelligence
+
+    layout {
+        section1_summary: "Task summary (total, active, pending, completed)"
+        section2_board: "Task board (kanban-style: Pending → Active → Completed)"
+        section3_priority: "Priority breakdown (P0/P1/P2/P3 counts)"
+        section4_recent: "Recently completed tasks (last 20)"
+    }
+
+    -- Task data from sa-plan-daemon via MoZ:
+    data_source: "MoZ tool: planning_status → Rust sa-plan-daemon → SQLite planning.db"
+}
+
+-- =============================================================================
+-- §10. KEYBOARD SHORTCUTS (Operator Efficiency)
+-- =============================================================================
+
+contract KeyboardShortcuts {
+    -- Navigation:
+    shortcuts {
+        "g d": "Go to Dashboard"
+        "g p": "Go to Podman (containers)"
+        "g z": "Go to Zenoh mesh"
+        "g o": "Go to OODA"
+        "g s": "Go to Guardian (safety)"
+        "g l": "Go to Planning"
+        "g v": "Go to Verification"
+        "?": "Show keyboard shortcuts help"
+    }
+
+    -- Actions:
+    shortcuts {
+        "e": "Emergency stop (opens confirmation dialog)"
+        "r": "Refresh current page"
+        "k": "Toggle dark cockpit mode"
+        "1-9": "Select container by index"
+    }
+
+    note: "Shortcuts require minimal JS (~30 lines). Work without JS via form buttons."
+}
+
+-- =============================================================================
+-- §11. IMPLEMENTATION PRIORITY (MCDA-Scored)
+-- =============================================================================
+
+-- Using same AHP weights as webui_evolution_plan.allium:
+-- w = [crit:0.22, fmea:0.10, robust:0.12, usab:0.05, stab:0.08, sil6:0.43]
+
+-- Phase 1: HTML Rendering (IN PROGRESS — 3 agents building)
+--   shell.gleam (layout + CSS + nav)
+--   page_views.gleam (24 page view functions)
+--   router.gleam (HTML vs JSON dispatch)
+
+-- Phase 2: Real Container Data (Next)
+--   Wire podman container list to real data (os_cmd podman ps)
+--   Wire health status from SharedMeshState
+--   Wire Zenoh router status from mesh
+
+-- Phase 3: Live Updates
+--   SSE → DOM patch (minimal JS EventSource)
+--   Auto-refresh cards on container state change
+--   Alert banner on health degradation
+
+-- Phase 4: Interactive Controls
+--   Container action buttons (start/stop/restart)
+--   Guardian approval forms
+--   Emergency stop confirmation dialog
+--   OODA manual trigger
+
+-- Phase 5: Polish
+--   Keyboard shortcuts
+--   Responsive layout testing
+--   Dark cockpit mode toggle
+--   Accessibility (WCAG 2.1 AA)
+
+-- =============================================================================
+-- §12. FMEA FOR OPERATOR INTERFACE
+-- =============================================================================
+
+fmea "Operator clicks wrong container action" {
+    severity: 7
+    occurrence: 4
+    detection: 2
+    rpn: 56
+    mitigation: "Confirmation dialog for stop/restart. Container name shown in dialog."
+}
+
+fmea "Dashboard shows stale data" {
+    severity: 6
+    occurrence: 5
+    detection: 3
+    rpn: 90
+    mitigation: "Last-updated timestamp on every card. 'Stale' badge if > 30s old."
+}
+
+fmea "Operator misses critical alert" {
+    severity: 9
+    occurrence: 3
+    detection: 2
+    rpn: 54
+    mitigation: "Dark cockpit mode ensures anomalies surface. Red banner for criticals."
+}
+
+fmea "Emergency stop button accidentally triggered" {
+    severity: 10
+    occurrence: 2
+    detection: 1
+    rpn: 20
+    mitigation: "Typed confirmation 'EMERGENCY STOP'. Guardian 2oo3 consensus for P0."
+}
+
+fmea "HTML page fails to render" {
+    severity: 5
+    occurrence: 2
+    detection: 1
+    rpn: 10
+    mitigation: "JSON API always available as fallback. /health endpoint for monitoring."
+}

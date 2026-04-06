@@ -1,0 +1,37 @@
+-- allium: 3
+-- Unified Biomorphic Agent Framework (UBAF) & Fractal Layers — Spec
+-- STAMP: SC-UBAF-001..010, SC-OODA-FIX-001..005
+-- Scope: Service Roles, Autonomous Fixing, High-Performance OODA
+
+contract UnifiedBiomorphicAgentFramework {
+    value ServiceRoles {
+        Cortex: "AI Cognition & Intent analysis"
+        Prajna: "Threat analysis & Orient phase optimization"
+        Smriti: "Knowledge retrieval & state persistence"
+        CEPAF: "Substrate execution & Podman orchestration"
+        Planning: "Decide phase & coordination strategy"
+        Chaya: "Shadow execution & simulation"
+        Guardian: "Autonomous approval & safety enforcement"
+    }
+
+    rule "Service Role Autonomy" {
+        strategy: "OTP Supervision (One-for-All across service domains)"
+        constraint: "Each service MUST run as an independent OODA agent."
+    }
+
+    rule "Autonomous Fixing" {
+        when decision == "Fix" (e.g., RestartContainer, EmergencyStop)
+        then execute action directly via L0 substrate FFI or L4 mesh command.
+        assert Guardian approval is implicit for known recovery patterns (SC-OODA-FIX-001).
+    }
+
+    rule "High-Performance Pattern Matching" {
+        mechanism: "Single-pass keyword matching in OODA Orient phase."
+        optimization: "Reduce string allocations by 80% compared to nested case logic (SC-OODA-TPS-002)."
+    }
+
+    rule "Fractal Parallelism" {
+        definition: "Parallel OODA cycles across L1-L7 layers."
+        constraint: "Inter-agent communication MUST be non-blocking over Zenoh/Subjects."
+    }
+}

@@ -1,0 +1,131 @@
+-- allium: 3
+-- C3I Ultimate Migration & Feature Implementation Spec (2026-04-05)
+-- Ref: docs/plans/20260404-unattended-full-migration-plan.md
+-- STAMP: SC-SEC-101, SC-COG-201, SC-MJO-301, SC-ODA-401, SC-INT-501, SC-VIS-601, SC-UI-701, SC-HOM-801, SC-VER-901
+
+-- =============================================================================
+-- Batch 1: Security & Cognitive (Rust Layer 1)
+-- =============================================================================
+
+contract ProofTokenEnforcer {
+    -- SC-SEC-101: Ed25519 ProofToken Enforcement
+    
+    command validate_token(token: String, public_key: String) -> Boolean
+    command inject_token(container_name: String, token: String) -> Boolean
+    
+    rule "Ed25519 Signature Required" {
+        when call ProofTokenEnforcer.validate_token
+        ensure "token is valid Ed25519 signature"
+    }
+    
+    rule "Fail Closed" {
+        when call ProofTokenEnforcer.validate_token
+        on failure reject "SC-SEC-101: Invalid or missing ProofToken"
+    }
+}
+
+contract LethalMutationGate {
+    -- SC-COG-201: Entropy-based mutation gate
+    
+    command evaluate_entropy(delta: String) -> Decimal
+    command block_mutation(reason: String)
+    
+    rule "Entropy Threshold" {
+        when call LethalMutationGate.evaluate_entropy
+        let entropy = result
+        requires entropy < 0.85
+        ensures "mutation allowed"
+    }
+    
+    rule "Lethal Mutation Blocked" {
+        when call LethalMutationGate.evaluate_entropy
+        let entropy = result
+        requires entropy >= 0.85
+        then call LethalMutationGate.block_mutation("High entropy: SC-COG-201")
+    }
+}
+
+-- =============================================================================
+-- Batch 2: Performance & Lifecycle (Rust Layer 1)
+-- =============================================================================
+
+contract MojoMaxDeployment {
+    -- SC-MJO-301: Mojo MAX Compute Deployment
+    
+    command deploy_mojo(container_name: String, weights_path: String) -> Boolean
+    
+    rule "Mojo Runtime Required" {
+        when call MojoMaxDeployment.deploy_mojo
+        ensure "mojo runtime available in substrate"
+    }
+}
+
+contract SemanticOodaCache {
+    -- SC-ODA-401: Semantic OODA Caching
+    
+    command cache_decision(observation_hash: String, decision: Decision)
+    command lookup_cache(observation_hash: String) -> Decision?
+    
+    rule "Cache Hit SLA" {
+        when call SemanticOodaCache.lookup_cache
+        ensure "latency < 5ms"
+    }
+}
+
+-- =============================================================================
+-- Batch 3: Integrity & Visualization (Gleam Layer 2)
+-- =============================================================================
+
+entity MathHsDsPane {
+    -- SC-INT-501: Mathematical Hs/Ds Pane
+    
+    shannon_entropy: Decimal
+    ccm_score: Decimal
+    itqs_score: Decimal
+    
+    invariant MathIntegrity {
+        this.itqs_score >= 0.85
+    }
+}
+
+entity EvolutionVector {
+    -- SC-VIS-601: Evolution Vector V1-V4
+    
+    v1_physics: Vector3
+    v2_logic: Vector3
+    v3_cognitive: Vector3
+    v4_social: Vector3
+}
+
+-- =============================================================================
+-- Batch 4: UI, Control & Verification (Gleam Layer 2)
+-- =============================================================================
+
+entity BiomorphicMatrix {
+    -- SC-UI-701: NASA-STD-3000 Biomorphic Matrix
+    
+    visual_balance: Decimal
+    cognitive_load: Decimal
+    ergonomic_score: Decimal
+}
+
+contract HomeostasisControl {
+    -- SC-HOM-801: Interactive Homeostasis Thresholds
+    
+    command set_threshold(metric: String, value: Decimal)
+    command trigger_equilibrium()
+    
+    @invariant Convergence
+        -- Threshold changes must lead to system equilibrium within 30s.
+}
+
+contract WallabyRegression {
+    -- SC-VER-901: Wallaby GUI Regression Suite
+    
+    command run_regression(suite_id: String) -> TestResult
+    
+    rule "100% UI Coverage" {
+        when call WallabyRegression.run_regression
+        ensure "all Lustre components traversed"
+    }
+}

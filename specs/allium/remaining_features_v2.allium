@@ -1,0 +1,54 @@
+-- allium: 3
+-- Comprehensive Fractal Verification Spec (v2.0.0)
+-- Covers: Implementation Language, Test Parallelization, Autonomous Completion
+-- Date: 2026-04-04
+
+contract LanguageGovernance {
+    -- Mandate: All features must be implemented in the assigned language
+    
+    command verify_implementation(task_id: String, language: String)
+    
+    rule "Enforce Language Assignment" {
+        when call verify_implementation
+        ensure (task_id == "5740a000" implies language == "Rust")
+        ensure (task_id == "9c4452d5" implies language == "Rust")
+        ensure (task_id == "aa1ce076" implies language == "Gleam")
+        ensure (task_id == "167fff39" implies language == "Gleam")
+    }
+}
+
+contract ParallelTesting {
+    -- Mandate: Max parallelization for all test suites
+    
+    command execute_cargo_test(threads: Integer)
+    command execute_gleam_test(jobs: Integer)
+    
+    rule "Saturate Hardware" {
+        when call execute_cargo_test
+        ensure threads >= 16
+    }
+    
+    rule "Gleam Concurrency" {
+        when call execute_gleam_test
+        ensure jobs >= 16
+    }
+}
+
+contract AutonomousSupervisorV2 {
+    -- Mandate: Full unattended migration resolution
+    
+    command select_task(priority: String)
+    command implement_feature(id: String)
+    command complete_task(id: String)
+    
+    rule "Priority Gating" {
+        when call select_task
+        ensure "P0 tasks selected before P1"
+    }
+    
+    rule "Jidoka Validation" {
+        when call complete_task
+        ensure "Zero compilation warnings"
+        ensure "100% test pass rate for component"
+    }
+}

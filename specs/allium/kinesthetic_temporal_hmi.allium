@@ -1,0 +1,149 @@
+-- allium: 3
+-- C3I Ultrathink Kinesthetic & 4D Temporal HMI Standards
+-- Covers: Virtual Friction, Temporal Scrubbing, Multi-Operator Consensus, and Gestalt Jitter Filtering
+-- Date: 2026-04-06
+
+-- ---------------------------------------------------------------------------
+-- 1. Virtual Friction & Kinesthetic Guardrails (SC-HMI-400)
+-- ---------------------------------------------------------------------------
+-- In a physical control room, critical switches have physical safety covers or 
+-- require significant force to turn. The digital UI must mathematically simulate 
+-- "virtual friction" to prevent accidental slip-errors during high-stress operations.
+
+entity CriticalInteraction {
+    target_action: String
+    interaction_type: click | long_press | complex_chord | swipe_to_confirm
+    required_duration_ms: Integer
+    accumulated_duration_ms: Integer
+    is_committed: Boolean
+}
+
+rule EnforceVirtualFriction {
+    when: interaction: CriticalInteraction.accumulated_duration_ms
+    requires: interaction.interaction_type = "long_press"
+    ensures:
+        -- The UI does not execute the action immediately. It requires sustained, 
+        -- uninterrupted physical intent (e.g., holding the mouse button for 2500ms).
+        -- If the accumulated duration drops before the threshold, the action aborts.
+        if interaction.accumulated_duration_ms >= interaction.required_duration_ms:
+            interaction.is_committed = true
+        else:
+            interaction.is_committed = false
+            
+    @guarantee SlipErrorEradication
+        -- Mathematically eliminates the possibility of a "misclick" bringing down 
+        -- the SIL-6 mesh. The physical effort required scales with the criticality of the action.
+}
+
+-- ---------------------------------------------------------------------------
+-- 2. Temporal Scrubbing & 4D State Visualization (SC-HMI-410)
+-- ---------------------------------------------------------------------------
+-- The UI is not constrained to the present moment. Because the system utilizes 
+-- an immutable Event Sourcing Log (SC-ULTRA-001) and Causal AI, the UI must act 
+-- as a 4D viewport, allowing operators to scrub through time.
+
+value TimeDelta {
+    offset_ms: Integer -- Negative for past, Positive for future
+}
+
+entity TemporalViewport {
+    current_time_offset: TimeDelta
+    visual_mode: historical_replay | real_time | predictive_simulation
+    confidence_rendering: solid | translucent | wireframe
+}
+
+rule TemporalStateProjection {
+    when: viewport: TemporalViewport.current_time_offset
+    ensures:
+        if viewport.current_time_offset.offset_ms < 0:
+            viewport.visual_mode = historical_replay
+            viewport.confidence_rendering = solid -- The past is certain
+        else if viewport.current_time_offset.offset_ms = 0:
+            viewport.visual_mode = real_time
+            viewport.confidence_rendering = solid
+        else if viewport.current_time_offset.offset_ms > 0:
+            viewport.visual_mode = predictive_simulation
+            viewport.confidence_rendering = wireframe -- The future is probabilistic
+            
+    @guarantee 4DSituationalAwareness
+        -- Operators can drag a timeline slider to rewind the 16-container mesh 
+        -- visualization to exactly t-5 minutes to observe the origin of a fault cascade, 
+        -- or scrub forward to t+1 minute to see the AI's predicted outcome.
+}
+
+-- ---------------------------------------------------------------------------
+-- 3. High-Stress Jitter Filtering (SC-HMI-430)
+-- ---------------------------------------------------------------------------
+-- Adrenaline causes loss of fine motor control and micro-tremors in human operators. 
+-- The UI must implement digital signal processing on operator inputs.
+
+entity PointerInput {
+    x_velocity: Float
+    y_velocity: Float
+    micro_tremor_frequency_hz: Float
+    input_classification: intentional_movement | stress_jitter
+}
+
+rule SignalProcessOperatorInput {
+    when: input: PointerInput.micro_tremor_frequency_hz
+    ensures:
+        -- Apply a low-pass mathematical filter to the operator's input device.
+        -- If high-frequency micro-tremors (e.g., > 8Hz) are detected, the UI 
+        -- dynamically increases the "magnetic snap" radius of critical buttons 
+        -- and ignores stray micro-clicks outside of established bounds.
+        if input.micro_tremor_frequency_hz > 8.0:
+            input.input_classification = stress_jitter
+            -- UI automatically expands hitboxes and dampens cursor acceleration
+        else:
+            input.input_classification = intentional_movement
+}
+
+-- ---------------------------------------------------------------------------
+-- 4. Multi-Operator Epistemic Consensus (SC-HMI-420)
+-- ---------------------------------------------------------------------------
+-- In a distributed control environment, two operators must be mathematically 
+-- guaranteed to be observing the exact same topological reality before executing 
+-- a coordinated multi-key authorization.
+
+entity OperatorSession {
+    operator_id: String
+    rendered_state_hash: String
+}
+
+contract EpistemicConsensus {
+    verify_shared_reality: (session_a: OperatorSession, session_b: OperatorSession) -> Boolean
+    
+    @invariant HallucinationSymmetry
+        -- If Operator A and Operator B are authorizing a joint action (e.g., 
+        -- Nuclear Apoptosis), their local WASM clients must exchange and verify 
+        -- the cryptographic hash of their currently rendered UI states. 
+        -- If the rendered_state_hash differs (e.g., one has network lag), the 
+        -- joint action is mathematically prohibited.
+}
+
+-- ---------------------------------------------------------------------------
+-- 5. Gestalt Topological Clustering (SC-HMI-440)
+-- ---------------------------------------------------------------------------
+-- The human brain processes visual structures as whole forms (Gestalt). 
+-- The UI must not position elements on a grid arbitrarily; it must position 
+-- them topologically based on their underlying systemic coupling.
+
+entity UINode {
+    id: String
+    system_coupling_coefficient: Float -- How tightly coupled this node is to another
+    rendered_proximity_px: Integer
+}
+
+rule GestaltProximityEnforcement {
+    when: node: UINode.system_coupling_coefficient
+    ensures:
+        -- The physical distance between two UI elements on the screen must be 
+        -- inversely proportional to their systemic coupling coefficient.
+        -- Highly coupled microservices (e.g., DB and App) MUST be rendered 
+        -- with physical proximity and explicit enclosure borders.
+        node.rendered_proximity_px <= (1000 / node.system_coupling_coefficient)
+        
+    @guarantee IntuitiveArchitectureComprehension
+        -- The operator instantly understands the blast radius of a failing 
+        -- component because the UI layout physically mirrors the systemic dependency graph.
+}

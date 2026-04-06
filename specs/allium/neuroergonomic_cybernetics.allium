@@ -1,0 +1,144 @@
+-- allium: 3
+-- C3I Ultrathink Neuroergonomics & Cybernetic Symbiosis
+-- Covers: Vigilance Decrement, Semantic Zooming, Muscle Memory, and Byzantine Fault Tolerant Rendering
+-- Date: 2026-04-06
+
+-- ---------------------------------------------------------------------------
+-- 1. Vigilance Decrement Mitigation (SC-HMI-300)
+-- ---------------------------------------------------------------------------
+-- In highly autonomous SIL-6 systems, operators suffer from "vigilance decrement" 
+-- (zoning out because the system is too perfect). The UI must mathematically 
+-- force active cognitive engagement to keep the operator in the loop (OITL).
+
+entity OperatorAttention {
+    last_meaningful_interaction_ms: Integer
+    attention_score: Float -- 1.0 (engaged) to 0.0 (disengaged)
+    vigilance_task_active: Boolean
+}
+
+rule CombatVigilanceDecrement {
+    when: op: OperatorAttention.last_meaningful_interaction_ms
+    requires: (now - op.last_meaningful_interaction_ms) > 1800000 -- 30 minutes
+    ensures:
+        -- The system intentionally surfaces a low-stakes, non-critical anomaly 
+        -- or a configuration verification task to force the operator to orient 
+        -- and decide, resetting the attention score.
+        op.vigilance_task_active = true
+        op.attention_score = 1.0
+        
+    @guarantee OutOfTheLoopPrevention
+        -- Mathematically guarantees the operator retains situational context 
+        -- and is never caught "cold" when a true P0 catastrophic failure occurs.
+}
+
+-- ---------------------------------------------------------------------------
+-- 2. Semantic Zooming & Topological Navigation (SC-HMI-310)
+-- ---------------------------------------------------------------------------
+-- A 16-container x 8-layer mesh is an N-dimensional graph. Flat dashboards 
+-- fail at this scale. The UI must employ Semantic Zooming (like a map app).
+
+value ZoomLevel {
+    level: system | holon | container | actor | memory_alloc
+}
+
+entity TopologyViewport {
+    target_node_id: String
+    current_zoom: ZoomLevel
+    rendered_complexity: Integer
+}
+
+rule SemanticZoomTransition {
+    when: viewport: TopologyViewport.current_zoom transitions_to actor
+    ensures:
+        -- As the operator zooms from 'container' to 'actor', the UI does not just 
+        -- magnify the container; it fundamentally mutates the representation from 
+        -- a physical resource box (CPU/RAM) into a logical supervision tree graph.
+        viewport.rendered_complexity <= 7 -- Miller's Law (7±2 elements)
+        
+    @guarantee InformationArchitectureContinuity
+        -- The operator navigates the system contextually without ever switching "tabs", 
+        -- preserving spatial and architectural relationships in their working memory.
+}
+
+-- ---------------------------------------------------------------------------
+-- 3. Muscle Memory Preservation & Spatial Invariance (SC-HMI-320)
+-- ---------------------------------------------------------------------------
+-- During an adrenaline-spiking crisis, operators rely on procedural (muscle) 
+-- memory. The UI must absolutely forbid dynamic reflowing of critical controls.
+
+entity CriticalControl {
+    action: String
+    x_coordinate: Integer
+    y_coordinate: Integer
+    is_spatially_locked: Boolean
+}
+
+contract SpatialInvariance {
+    @invariant AbsoluteCoordinateLock
+        -- For any CriticalControl where is_spatially_locked = true, 
+        -- x_coordinate and y_coordinate MUST NEVER mutate during a session, 
+        -- regardless of screen resizing, new alarms, or dynamic panels expanding.
+        
+    @invariant ChordingConsistency
+        -- Keyboard shortcuts (chords) for critical actions must be 
+        -- mathematically distinct and impossible to trigger accidentally 
+        -- (e.g., requiring simultaneous distinct hemisphere keystrokes).
+}
+
+-- ---------------------------------------------------------------------------
+-- 4. Byzantine UI Fault Tolerance (Anti-Illusion Rendering) (SC-HMI-330)
+-- ---------------------------------------------------------------------------
+-- What if the UI rendering thread crashes or the WebSocket is compromised? 
+-- The UI must mathematically prove it is not rendering an illusion of safety.
+
+entity TelemetryPixel {
+    value: Float
+    cryptographic_signature: String
+    render_status: verified | untrusted
+}
+
+rule RenderByzantineValidation {
+    when: pixel: TelemetryPixel.value
+    ensures:
+        -- The WASM client mathematically verifies the Zenoh payload signature 
+        -- BEFORE rendering the pixel green.
+        if verify_signature(pixel.value, pixel.cryptographic_signature):
+            pixel.render_status = verified
+        else:
+            -- If the signature fails or lags, the UI mathematically defaces itself 
+            -- (e.g., rendering static/noise) to aggressively break the illusion of safety.
+            pixel.render_status = untrusted
+            
+    @guarantee HallucinationEradication
+        -- Guarantees the operator is never looking at a "frozen" green dashboard 
+        -- while the underlying cluster is actively melting down.
+}
+
+-- ---------------------------------------------------------------------------
+-- 5. Operator Cognitive Recovery (Post-Incident Decompression)
+-- ---------------------------------------------------------------------------
+-- SIL-6 incidents cause severe physiological stress. The HMI's responsibility 
+-- does not end when the alarm clears.
+
+entity IncidentState {
+    id: String
+    severity: String
+    status: active | resolved
+    operator_heart_rate_proxy: Float
+}
+
+rule PostIncidentDecompression {
+    when: incident: IncidentState.status transitions_to resolved
+    requires: incident.severity = "critical"
+    ensures:
+        -- The UI shifts from high-stress diagnostic mode into a dedicated 
+        -- "Decompression and RCA" (Root Cause Analysis) mode.
+        -- It mathematically throttles new non-critical alerts for 5 minutes 
+        -- to allow operator cortisol levels to drop.
+        SuspendNonCriticalAlerts(duration: 300000)
+        
+    @guidance
+        -- The UI palette should seamlessly transition to cool, restorative colors 
+        -- (blues/greens) and present a calm, structured timeline of the resolved event 
+        -- to aid in psychological closure and narrative generation.
+}

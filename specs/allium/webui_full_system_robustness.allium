@@ -127,36 +127,36 @@ contract RustMcpProtocol {
 -- Rate limiting: 0/5 — No middleware
 -- Real-time subscriptions: 1/5 — Effects subscribe but never unsubscribe
 
--- GAP-007: Authentication completely missing
+-- GAP-007: Authentication completely missing (SIL-6 C2 Interface)
 gap AuthenticationMissing {
     severity: P0
     description: "Port 4100 Wisp API has ZERO authentication. Any caller can invoke
-                  any endpoint. When mutation endpoints are added (GAP-001), this becomes
-                  a container control vulnerability."
+                  any endpoint. As this evolves into a L5 Operator C2 interface (SC-UI-C2-001),
+                  this becomes a severe container control vulnerability."
     files_affected: ["ui/wisp/router.gleam", "web/server.gleam"]
     remediation: {
-        step1: "Add bearer token middleware to handle_request()"
-        step2: "Read-only GET: allow unauthenticated (monitoring)"
-        step3: "Mutation POST: require valid bearer token"
-        step4: "L0 P0 actions: require proof token (Guardian-signed)"
+        step1: "Add bearer token RBAC middleware to handle_request() for L5_Operator."
+        step2: "Read-only GET: allow unauthenticated (monitoring L1-L4 telemetry)."
+        step3: "Mutation POST: require valid bearer token."
+        step4: "L0 P0 actions: require cryptographically signed ProofToken from L0_Guardian (SC-UI-C2-001)."
     }
-    stamp: ["SC-SEC-001", "SC-SEC-002"]
+    stamp: ["SC-SEC-001", "SC-SEC-002", "SC-UI-C2-001"]
 }
 
--- GAP-008: Circuit breaker implemented but never used
+-- GAP-008: Circuit breaker orphaned (FEMA L2_Immune integration needed)
 gap CircuitBreakerOrphaned {
     severity: P1
-    description: "prajna/circuit_breaker.gleam (93 lines) implements a correct circuit
-                  breaker pattern (Closed→Open→HalfOpen) with thresholds. But it is
-                  NEVER instantiated or invoked anywhere in the 184-module codebase."
+    description: "prajna/circuit_breaker.gleam implements a correct circuit breaker but is orphaned.
+                  It must act as the L2_Immune layer, governed by FEMA tensors (SC-SIL6-001).
+                  If Severity x Occurrence > 100, the circuit must trip."
     files_affected: ["prajna/circuit_breaker.gleam"]
     remediation: {
-        step1: "Integrate with MoZClient — open circuit on consecutive Zenoh failures"
-        step2: "Integrate with SSEBridge — open circuit on Zenoh subscription loss"
-        step3: "Integrate with web/server.gleam — report circuit state in /health"
-        step4: "Integrate with dark_cockpit — circuit open → Emergency mode"
+        step1: "Integrate with Zenoh ingestor — evaluate FEMA tensors on telemetry."
+        step2: "Open circuit when FEMA F > Threshold, preventing cascading failure to L1."
+        step3: "Integrate with web/server.gleam — report L2_Immune state via SSE."
+        step4: "Ensure Lyapunov stability derivative V_dot(x) < 0 when transitioning to HalfOpen."
     }
-    stamp: ["SC-CIRCUIT-001", "SC-CIRCUIT-002"]
+    stamp: ["SC-CIRCUIT-001", "SC-CIRCUIT-002", "SC-SIL6-001", "SC-MATH-001"]
 }
 
 -- GAP-009: Dark cockpit not connected to real alert sources

@@ -1,0 +1,145 @@
+-- allium: 3
+-- C3I Ultrathink Evolutionary UI Hardening & Architectural Alignment
+-- Covers: A2UI Isomorphism, Cryptographic Provenance, Apoptosis UI Resilience, and Formal Verification Gating
+-- Date: 2026-04-06
+
+-- ---------------------------------------------------------------------------
+-- 1. A2UI Isomorphism & Zenoh CRDT State Coupling (SC-ULTRA-UI-001)
+-- ---------------------------------------------------------------------------
+-- Enforces Pillar 2 and 4 of the Ultrathink Mandate.
+-- The UI is forbidden from holding local, mutable state that diverges from the 
+-- Zenoh-Native CRDT State Backplane. 
+
+entity UIComponentState {
+    component_id: String
+    crdt_vector_clock: String
+    local_mutation_flag: Boolean
+}
+
+rule IsomorphicStateEnforcement {
+    when: component: UIComponentState.local_mutation_flag becomes true
+    ensures:
+        -- The UI mathematically cannot render a local state change until that change 
+        -- has been serialized, broadcast over Zenoh, and mathematically folded into 
+        -- the global CRDT. Local optimistic rendering is forbidden in SIL-6 to 
+        -- prevent hallucinated success states.
+        component.local_mutation_flag = false
+        
+    @guarantee EradicationOfSplitBrainUI
+        -- Guarantees that what the operator sees is exactly, mathematically what 
+        -- the swarm believes, synchronized at the vector clock level.
+}
+
+-- ---------------------------------------------------------------------------
+-- 2. Cryptographic Provenance & Event Sourcing Visibility (SC-ULTRA-UI-002)
+-- ---------------------------------------------------------------------------
+-- Enforces Pillar 7 of the Ultrathink Mandate.
+-- Every pixel of telemetry rendered must be cryptographically verifiable by the operator.
+
+value MerkleProof {
+    root_hash: String
+    leaf_hash: String
+    is_valid: Boolean
+}
+
+entity RenderedTelemetry {
+    metric_name: String
+    displayed_value: String
+    event_log_proof: MerkleProof
+    provenance_overlay_active: Boolean
+}
+
+rule VisualCryptographyVerification {
+    when: telemetry: RenderedTelemetry.provenance_overlay_active becomes true
+    ensures:
+        -- When the operator holds a specific key chord (e.g., Alt+Shift), the UI 
+        -- overlays the cryptographic Merkle proof over every telemetry widget, 
+        -- visually tracing the rendered value back to the immutable Event Sourcing Log.
+        if telemetry.event_log_proof.is_valid = false:
+            -- If provenance fails, the widget is immediately mathematically defaced.
+            telemetry.displayed_value = "ERR_PROVENANCE_FAIL"
+            
+    @guarantee AbsoluteDataIntegrity
+        -- An operator never has to trust the UI layer; they can mathematically verify 
+        -- the cryptographic lineage of any number on the screen in real-time.
+}
+
+-- ---------------------------------------------------------------------------
+-- 3. Continuous Stochastic Apoptosis UI Resilience (SC-ULTRA-UI-003)
+-- ---------------------------------------------------------------------------
+-- Enforces Pillar 8 of the Ultrathink Mandate.
+-- The swarm is constantly murdering its own containers. The UI must not flicker, 
+-- throw 500 errors, or induce panic when a monitored node intentionally dies.
+
+entity RenderedNode {
+    node_id: String
+    lifecycle_state: booting | active | scheduled_for_apoptosis | apoptotic | regenerating
+}
+
+rule ApoptoticVisualContinuity {
+    when: node: RenderedNode.lifecycle_state transitions_to scheduled_for_apoptosis
+    ensures:
+        -- The UI smoothly transitions the node's visual representation. 
+        -- It does not register as a "failure" (red), but as a natural, healthy 
+        -- biological process (e.g., a serene purple dissolving animation).
+        -- The UI automatically re-binds its telemetry subscription to the 
+        -- incoming regenerating node via Zenoh before the dying node terminates.
+        RenderedNode.created(
+            node_id: node.node_id + "_clone",
+            lifecycle_state: booting
+        )
+        
+    @guarantee PanicFreeChaosEngineering
+        -- Operators learn to visually differentiate between a catastrophic, unplanned 
+        -- node death (Red/Flashing) and a continuous, healthy apoptotic cycle (Purple/Smooth).
+}
+
+-- ---------------------------------------------------------------------------
+-- 4. Formal Verification Action Gating (SC-ULTRA-UI-004)
+-- ---------------------------------------------------------------------------
+-- Enforces Pillar 5 of the Ultrathink Mandate.
+-- The UI physically prevents the operator from taking an action that has not 
+-- been mathematically proven safe by the TLA+/Apalache engine for the current state space.
+
+entity OperatorCommand {
+    command_id: String
+    intent: String
+    tla_plus_proof_status: unverified | proving | mathematically_safe | mathematically_unsafe
+    ui_button_state: hidden | disabled_and_locked | enabled
+}
+
+rule ApalacheActionGating {
+    when: cmd: OperatorCommand.tla_plus_proof_status
+    ensures:
+        if cmd.tla_plus_proof_status = "mathematically_unsafe":
+            -- The action violates a STAMP constraint in the current state space.
+            -- The button is locked, and the mathematical counter-example is displayed.
+            cmd.ui_button_state = disabled_and_locked
+        else if cmd.tla_plus_proof_status = "mathematically_safe":
+            cmd.ui_button_state = enabled
+        else:
+            cmd.ui_button_state = hidden
+            
+    @guarantee MathematicallyImpossibleOperatorError
+        -- It is physically impossible for an operator to click a button that would 
+        -- put the mesh into a mathematically invalid or dangerous state.
+}
+
+-- ---------------------------------------------------------------------------
+-- 5. Embedded WASM SLM Frame-Rate Budgeting (SC-ULTRA-UI-005)
+-- ---------------------------------------------------------------------------
+-- Enforces Pillar 6 of the Ultrathink Mandate.
+-- The Small Language Model (SLM) running in the browser (WASM) for cognitive 
+-- assistance must never block the main UI rendering thread.
+
+external entity WasmExecutionThread {
+    current_frame_budget_ms: Float
+    slm_inference_time_ms: Float
+}
+
+contract UIFrameRateGuarantee {
+    @invariant UnblockedRenderLoop
+        -- WasmExecutionThread.slm_inference_time_ms MUST be preempted or yielded 
+        -- if it exceeds WasmExecutionThread.current_frame_budget_ms (e.g., 16.6ms for 60fps).
+        -- Cognitive advisory text must stream in asynchronously without ever causing UI stutter.
+}

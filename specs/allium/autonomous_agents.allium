@@ -1,0 +1,30 @@
+-- allium: 3
+-- Autonomous Biomorphic Agents & OODA Optimization (TPS) — Spec
+-- STAMP: SC-AGENT-001..010, SC-OODA-TPS-001..005
+-- Scope: 3-Layer Supervision, Asynchronous OODA, TPS Optimization
+
+contract AutonomousAgents {
+    value Hierarchy {
+        Executive: "Global strategy, L5/L6 coordination, human interface"
+        Domain: "Sub-system OODA controllers (Planning, Podman, Zenoh), L3/L4"
+        Worker: "Low-level sensors (Observe) and effectors (Act), L1/L2"
+    }
+
+    rule "3-Layer OTP Supervision" {
+        strategy: "OTP Supervision (One-for-One / Rest-for-One)"
+        constraint: "Worker agents MUST use non-blocking message passing (SC-MESH-003)."
+        requirement: "Automatic restart of domain sub-trees on agent failure."
+    }
+
+    rule "OODA TPS Optimization" {
+        cycle_time_target: < 100ms
+        throughput_metric: "Transactions Per Second (TPS)"
+        mechanism: "Zenoh-backed asynchronous decision pipeline."
+        constraint: "Pipelined execution: Observe/Orient phase MUST NOT block Decide/Act phase."
+    }
+
+    rule "FEMA-Driven Prioritization" {
+        when severity == "Critical" (FEMA score > 100)
+        then bypass batching queue and escalate to DomainSupervisor immediately.
+    }
+}

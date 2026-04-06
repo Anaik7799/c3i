@@ -1,0 +1,177 @@
+-- allium: 3
+-- C3I Operator Human-Machine Interface (HMI) Standards — Behavioral Specification
+-- Covers: Dark Cockpit (SC-HMI-010), Cognitive Load Management, HITL Authorization, and Information Density
+-- Date: 2026-04-06
+
+-- ---------------------------------------------------------------------------
+-- 1. Dark Cockpit State Machine (SC-HMI-010)
+-- ---------------------------------------------------------------------------
+-- The UI must minimize visual noise during nominal operations. Colors are 
+-- exclusively reserved for anomalous or critical state transitions.
+
+value ErrorCount {
+    count: Integer
+}
+
+entity CockpitMode {
+    mode: dark | dim | normal | bright | emergency
+    active_alarms: Integer
+    threat_level: String
+
+    transitions mode {
+        dark -> dim
+        dim -> normal
+        normal -> bright
+        bright -> emergency
+        
+        emergency -> bright
+        bright -> normal
+        normal -> dim
+        dim -> dark
+        
+        -- Jump transitions
+        dark -> emergency
+        normal -> emergency
+    }
+}
+
+rule DarkCockpitTransition {
+    when: cockpit: CockpitMode.active_alarms
+    ensures:
+        if cockpit.active_alarms = 0 and cockpit.threat_level = "nominal":
+            cockpit.mode = dark
+        else if cockpit.active_alarms < 3 and cockpit.threat_level = "elevated":
+            cockpit.mode = dim
+        else if cockpit.active_alarms < 10 and cockpit.threat_level = "high":
+            cockpit.mode = normal
+        else if cockpit.threat_level = "severe":
+            cockpit.mode = bright
+        else if cockpit.threat_level = "critical":
+            cockpit.mode = emergency
+            
+    @guidance
+        -- In 'dark' mode, the UI is monochromatic (grays/blacks).
+        -- In 'emergency' mode, high-contrast reds and strobing indicators are permitted.
+}
+
+-- ---------------------------------------------------------------------------
+-- 2. Human-In-The-Loop (HITL) & 2oo3 Authorization
+-- ---------------------------------------------------------------------------
+-- Critical operations MUST be gated by human confirmation and cryptographic 
+-- proof of consensus.
+
+external entity Operator {
+    id: String
+    clearance: String
+}
+
+entity CriticalAction {
+    action_type: String
+    status: pending_approval | executing | rejected
+    required_signatures: Integer
+    collected_signatures: Integer
+    
+    transitions status {
+        pending_approval -> executing
+        pending_approval -> rejected
+        terminal: executing, rejected
+    }
+}
+
+surface HitlAuthorizationGate {
+    facing operator: Operator
+    context action: CriticalAction
+    
+    exposes:
+        action.action_type
+        action.required_signatures
+        action.collected_signatures
+        
+    provides:
+        SignAction(operator)
+            when action.status = pending_approval
+            
+        RejectAction(operator)
+            when action.status = pending_approval
+}
+
+rule HitlSignatureCollected {
+    when: HitlAuthorizationGate.SignAction(operator)
+    requires: operator.clearance = "SIL-6_AUTHORITY"
+    ensures:
+        action.collected_signatures = action.collected_signatures + 1
+        if action.collected_signatures >= action.required_signatures:
+            action.status = executing
+}
+
+rule HitlActionRejected {
+    when: HitlAuthorizationGate.RejectAction(operator)
+    ensures: action.status = rejected
+}
+
+-- ---------------------------------------------------------------------------
+-- 3. Morphological Information Density Scaling
+-- ---------------------------------------------------------------------------
+-- UI components dynamically expand to reveal more telemetry when the OODA loop
+-- escalates from Observe to Orient/Decide, reducing cognitive load during nominal phases.
+
+entity A2uiPanel {
+    id: String
+    density: collapsed | standard | expanded | exhaustive
+    linked_ooda_phase: String
+}
+
+rule AdaptiveDensityScaling {
+    when: panel: A2uiPanel.linked_ooda_phase
+    ensures:
+        if panel.linked_ooda_phase = "observe":
+            panel.density = collapsed
+        else if panel.linked_ooda_phase = "orient":
+            panel.density = standard
+        else if panel.linked_ooda_phase in {"decide", "act"}:
+            panel.density = expanded
+        else if panel.linked_ooda_phase = "verify":
+            panel.density = exhaustive
+            
+    @guarantee CognitiveLoadManagement
+        -- Ensures the operator is only presented with exhaustive data during
+        -- the verify phase, preventing telemetry fatigue during passive observation.
+}
+
+-- ---------------------------------------------------------------------------
+-- 4. Systems GUI Standards (Accessibility & Legibility)
+-- ---------------------------------------------------------------------------
+
+contract AccessibilityStandards {
+    check_contrast: (foreground: String, background: String) -> Float
+    check_color_blindness_safe: (palette: List<String>) -> Boolean
+
+    @invariant MinimumContrastRatio
+        -- text must have a minimum contrast ratio of 4.5:1 against its background.
+        
+    @invariant ColorIndependence
+        -- State changes must not rely solely on hue (e.g., Red vs Green). 
+        -- They must be accompanied by shape, text, or iconography changes.
+}
+
+-- ---------------------------------------------------------------------------
+-- 5. Real-Time OODA Marquee Visibility
+-- ---------------------------------------------------------------------------
+
+entity ReasoningMarquee {
+    is_visible: Boolean
+    content: String
+    urgency: Integer
+}
+
+rule RevealChainOfThought {
+    -- Ensures that when the system is deciding on a critical action, 
+    -- the Chain of Thought (CoT) is explicitly streamed to the operator.
+    when: action: CriticalAction.status becomes pending_approval
+    ensures:
+        ReasoningMarquee.created(
+            is_visible: true,
+            content: "Awaiting HITL authorization for: " + action.action_type,
+            urgency: 5
+        )
+}

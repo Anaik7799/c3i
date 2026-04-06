@@ -1,0 +1,143 @@
+-- allium: 3
+-- C3I Ultrathink Ambient, Biological, & Epistemic HMI Standards
+-- Covers: Data Sonification, Biometric UI Sync, Epistemic Transparency, and Contextual Handover
+-- Date: 2026-04-06
+
+-- ---------------------------------------------------------------------------
+-- 1. Continuous Data Sonification (SC-HMI-500)
+-- ---------------------------------------------------------------------------
+-- Visual dashboards require active foveal attention. An ultrathink SIL-6 system 
+-- must utilize auditory processing to convey continuous system state subliminally, 
+-- much like a mechanic listening to an engine's hum.
+
+value SoundscapeParams {
+    base_frequency_hz: Float
+    rhythm_bpm: Integer
+    harmonic_dissonance: Float -- 0.0 (pure harmony) to 1.0 (harsh dissonance)
+}
+
+entity SystemSonification {
+    mesh_health_score: Float
+    active_anomaly_count: Integer
+    audio_output: SoundscapeParams
+}
+
+rule ModulateAmbientSoundscape {
+    when: sys: SystemSonification.mesh_health_score
+    ensures:
+        -- As mesh health degrades, the ambient "engine hum" of the control room 
+        -- mathematically shifts. Rhythm speeds up (bpm increases) and harmonic 
+        -- dissonance increases to trigger an intuitive, subconscious orient response 
+        -- before the operator even looks at the screen.
+        sys.audio_output.base_frequency_hz = 432.0 - ((1.0 - sys.mesh_health_score) * 100.0)
+        sys.audio_output.rhythm_bpm = 60 + (sys.active_anomaly_count * 15)
+        sys.audio_output.harmonic_dissonance = 1.0 - sys.mesh_health_score
+        
+    @guarantee SubliminalSituationalAwareness
+        -- The operator "feels" the state of the mesh instantly without needing 
+        -- to visually scan 16 container metrics.
+}
+
+-- ---------------------------------------------------------------------------
+-- 2. Ambient Biometric Synchronization (SC-HMI-510)
+-- ---------------------------------------------------------------------------
+-- The HMI is a cybernetic loop. It must not only push data to the operator, 
+-- but read the operator's biological reality to adjust the interface environment.
+
+external entity OperatorBiology {
+    heart_rate_bpm: Integer
+    pupil_dilation_mm: Float
+    ambient_room_lux: Integer
+}
+
+entity BiomorphicInterface {
+    contrast_mode: high_contrast | ultra_low_glare
+    font_weight: normal | bold | heavy
+    animation_speed: smooth | instant
+}
+
+rule AdaptToBiologicalStress {
+    when: op: OperatorBiology.heart_rate_bpm
+    ensures:
+        if op.heart_rate_bpm > 110 or op.pupil_dilation_mm > 6.0:
+            -- Operator is in fight-or-flight. Visual acuity for fine details drops.
+            -- UI automatically shifts to bold/heavy fonts, strips all smooth animations 
+            -- in favor of instant rendering, and maximizes contrast.
+            BiomorphicInterface.font_weight = heavy
+            BiomorphicInterface.animation_speed = instant
+            BiomorphicInterface.contrast_mode = high_contrast
+            
+    @guarantee FightOrFlightOptimization
+        -- The UI adapts its morphological rendering to match the biological limitations 
+        -- of a human experiencing an adrenaline dump.
+}
+
+-- ---------------------------------------------------------------------------
+-- 3. Epistemic Transparency (SC-HMI-520)
+-- ---------------------------------------------------------------------------
+-- The system must never present a prediction or heuristic as an absolute fact. 
+-- It must visually communicate its own epistemological uncertainty.
+
+value EpistemicOrigin {
+    source: deterministic_sensor | stochastic_model | heuristical_inference | stale_cache
+}
+
+entity RenderedMetric {
+    data_value: String
+    origin: EpistemicOrigin
+    confidence_score: Float
+    epistemic_visual_marker: none | dashed_underline | pulsing | blurred
+}
+
+rule EnforceEpistemicHonesty {
+    when: metric: RenderedMetric.confidence_score
+    ensures:
+        if metric.origin.source = "deterministic_sensor":
+            metric.epistemic_visual_marker = none -- Solid fact
+        else if metric.origin.source = "stochastic_model":
+            metric.epistemic_visual_marker = dashed_underline -- AI prediction
+        else if metric.confidence_score < 0.7:
+            metric.epistemic_visual_marker = blurred -- High uncertainty
+            
+    @guarantee EradicationOfAutomationBias
+        -- Operators will not blindly trust an AI recommendation because the UI 
+        -- mathematically forces the data to look "uncertain" (e.g., blurred or dashed), 
+        -- prompting active human scrutiny.
+}
+
+-- ---------------------------------------------------------------------------
+-- 4. Cryptographic Context Handover (Shift Change) (SC-HMI-530)
+-- ---------------------------------------------------------------------------
+-- When Operator A ends their shift and Operator B takes over, the transfer of 
+-- situational awareness is the most dangerous period. The UI must formalize this.
+
+entity ShiftHandover {
+    outgoing_operator_id: String
+    incoming_operator_id: String
+    active_critical_alarms: Integer
+    handover_status: initiated | acknowledging | complete
+}
+
+surface ContextTransferGate {
+    facing incoming: OperatorBiology
+    context handover: ShiftHandover
+    
+    provides:
+        AcknowledgeSystemState(incoming)
+            when handover.handover_status = "acknowledging"
+}
+
+rule EnforceContextualTransfer {
+    when: ContextTransferGate.AcknowledgeSystemState(incoming)
+    requires: handover.active_critical_alarms > 0
+    ensures:
+        -- If there are active critical alarms, Operator B cannot simply click "Accept". 
+        -- The UI forces them to explicitly type out the ID of the critical alarm 
+        -- or click through a guided interactive replay of the last 15 minutes of OODA loops.
+        handover.handover_status = complete
+        
+    @guarantee ContinuityOfOperations
+        -- Mathematically guarantees that the incoming operator possesses the 
+        -- necessary working memory and contextual awareness of active incidents 
+        -- before they are granted mutation authority over the mesh.
+}

@@ -1,0 +1,59 @@
+-- allium: 3
+-- WebUI SIL-6 Biomorphic Control Center — Definitive Production Spec
+-- STAMP: SC-SIL6-001..010, SC-UI-C2-001..005, SC-MATH-001..005
+-- Scope: Operator Interface, Supervisory Layers, Mathematical Optimization
+-- Description: Transforms cepaf_gleam WebUI into a fully functional
+-- production-grade operational utility running the full infrastructure.
+
+contract Sil6ControlCenter {
+    value Architecture {
+        Type: "Biomorphic Fractal Holarchy"
+        OptimizationObjective: "O = max(Criticality * FEMA * Robustness * Usability * Stability * SIL-6)"
+        CoreParadigm: "Category Theory: Functor F: Genome -> Phenotype mapping configuration to OTP supervisors"
+        StabilityModel: "Lyapunov Function V(x) via OODA Loop"
+    }
+
+    value SupervisoryLayers {
+        L0_Guardian: "Hard limits, Substrate execution (cgroups, namespaces), FFI boundaries"
+        L1_Metabolic: "Gleam OTP actors, CPU/Memory homeostasis, localized restarts"
+        L2_Immune: "FEMA-driven anomaly detection (Severity x Occurrence), Circuit Breakers"
+        L3_Cognitive: "Fast OODA Loop, predictive state modeling, stability maintenance"
+        L4_Mesh: "Zenoh Pub/Sub, Decentralized causality, distributed state replication"
+        L5_Operator: "indrajaal_gleam_web C2 WebUI, Human-in-the-Loop decision arbiter"
+        L6_Evolution: "Code generation, genetic payload permutation, live deployment"
+    }
+
+    value FEMATensor {
+        Definition: "F = Severity(C) x Occurrence(O) x Detectability(D)"
+        Threshold: 100 -- If F > 100, trigger L2_Immune escalation
+    }
+
+    -- SC-SIL6-001
+    rule "FEMA-Driven Circuit Breaking" {
+        when L2_Immune detects an anomaly yielding FEMATensor F > Threshold
+        then trip circuit breaker AND escalate to L5_Operator (WebUI Alert)
+        assert state == "HalfOpen" after operator acknowledgement
+        assert Lyapunov stability derivative V_dot(x) < 0 during recovery
+    }
+
+    -- SC-UI-C2-001
+    rule "Proof-Token C2 Mutations" {
+        when L5_Operator requests infrastructure state mutation (e.g., Podman drain/restart)
+        then require cryptographically signed ProofToken from L0_Guardian
+        calls: cepaf_gleam/planning/safety_kernel::verify_token()
+        on_failure: reject securely, emit Zenoh audit event, maintain Homeostasis
+    }
+
+    -- SC-MATH-001
+    rule "Max Parallelization Topology" {
+        definition: "DAG G = (V, E) where V are OTP processes, E are Zenoh channels"
+        constraint: "No blocking synchronous calls across domain boundaries. All IPC must be non-blocking over Zenoh."
+    }
+
+    -- SC-UI-C2-002
+    rule "Live Telemetry Matrix" {
+        when WebUI is active
+        then maintain < 10ms latency Lustre SSE stream from L4_Mesh
+        require visual heatmaps of FEMA tensors and Lyapunov stability vectors
+    }
+}

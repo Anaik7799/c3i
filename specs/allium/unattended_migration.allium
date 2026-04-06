@@ -1,0 +1,59 @@
+-- allium: 3
+-- Ultimate Fractal Migration: Feature & Testing Specification
+-- Covers: 100% Substrate Parity, Max Parallelization, Dual-Supervisor Gates
+-- Date: 2026-04-04
+
+contract MigrationIntegrity {
+    -- Mandate: 100% Rust/Gleam Substrate
+    
+    command verify_no_fsharp_dependency()
+    command check_zero_warnings()
+    
+    rule "Muda Enforcement" {
+        when call MigrationIntegrity.check_zero_warnings
+        ensure "Compiler output contains 0 warnings (SC-CMP-025)"
+    }
+}
+
+contract FeatureSpecification {
+    -- L1/L6 Security: Ed25519 ProofTokens
+    rule "Ed25519 Enforcement" {
+        ensure "NIF and Router boundary verify ed25519: signatures"
+        ensure "Verification latency < 1ms"
+    }
+    
+    -- L5 Cognitive: Entropy Gate
+    rule "LethalMutationGate" {
+        ensure "State transitions blocked if H(S) > 0.2"
+    }
+    
+    -- L4 System: NASA-STD-3000 UI
+    rule "Biomorphic Visualization" {
+        ensure "Triple-Interface (Lustre+Wisp+TUI) active for all metrics"
+        ensure "High-contrast homeostasis colors enforced"
+    }
+}
+
+contract TestingArchitecture {
+    -- Mandate: Max Parallelization & 100% Coverage
+    
+    command run_parallel_tests(threads: Integer, jobs: Integer)
+    
+    rule "Hardware Saturation" {
+        when call TestingArchitecture.run_parallel_tests
+        ensure threads >= 16
+        ensure jobs >= 16
+    }
+    
+    rule "Full Branch Coverage" {
+        ensure "Rust unit tests achieve 100% coverage on new L0-L1 logic"
+        ensure "Gleam property tests prove UI state stability"
+    }
+}
+
+contract UnattendedOrchestration {
+    rule "Autonomous Closure" {
+        invariant "sa-plan pending count monotonically decreases to zero"
+        ensure "No manual edits to PROJECT_TODOLIST.md"
+    }
+}
