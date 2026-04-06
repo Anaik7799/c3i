@@ -107,7 +107,7 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
         "dark cockpit state",
       ),
     ]),
-    shell.section("OODA Ring", [
+    shell.section("OODA Ring [A2UI Continuous Wavefront]", [
       html.div([attribute.class("ooda-phases")], [
         ooda_phase_pill("Observe", state.ooda_phase == "observe"),
         html.span([attribute.class("ooda-arrow")], [element.text("▶")]),
@@ -116,7 +116,26 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
         ooda_phase_pill("Decide", state.ooda_phase == "decide"),
         html.span([attribute.class("ooda-arrow")], [element.text("▶")]),
         ooda_phase_pill("Act", state.ooda_phase == "act"),
+        html.span([attribute.class("ooda-arrow")], [element.text("▶")]),
+        ooda_phase_pill("Verify", state.ooda_phase == "verify"),
       ]),
+      html.div(
+        [
+          attribute.class("reasoning-marquee"),
+          attribute.attribute(
+            "style",
+            "margin-top: 1rem; padding: 0.75rem; background: rgba(61, 214, 140, 0.1); border-left: 4px solid #3dd68c; font-family: monospace; color: #a6accd;",
+          ),
+        ],
+        [
+          element.text("CoT [RETE-UL]: "),
+          html.span([attribute.attribute("style", "color: #3dd68c;")], [
+            element.text(
+              "Evaluating missing critical nodes... No anomalies detected. System in homeostasis. Transitioning to Observe.",
+            ),
+          ]),
+        ],
+      ),
     ]),
     shell.section("Quick Links", [
       html.div([attribute.class("card-grid-wide")], [
@@ -147,23 +166,42 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
       ]),
     ]),
     shell.section("L5 Operational Controls [A2UI Cognitive Projection]", [
-      html.div([attribute.class("card-grid")], [
-        shell.action_button(
-          "Force OODA Cycle (sa-orch-ooda)",
-          "/api/v1/ooda/trigger",
-          "{\\\"action\\\": \\\"force_cycle\\\"}",
-        ),
-        shell.action_button(
-          "Trigger LLM Advisor",
-          "/api/v1/ooda/trigger",
-          "{\\\"action\\\": \\\"llm_advise\\\"}",
-        ),
-        shell.action_button(
-          "Inject Fact (RETE-UL)",
-          "/api/v1/ooda/trigger",
-          "{\\\"action\\\": \\\"inject_fact\\\"}",
-        ),
-      ]),
+      case state.threat_level {
+        "critical" | "severe" ->
+          html.div([attribute.class("loa-pruned")], [
+            html.span(
+              [
+                attribute.attribute(
+                  "style",
+                  "color: #e06c75; font-style: italic;",
+                ),
+              ],
+              [
+                element.text(
+                  "⚠️ High threat detected. Manual controls pruned (Dynamic LOA: Supervised Autonomy). System is autonomously mitigating.",
+                ),
+              ],
+            ),
+          ])
+        _ ->
+          html.div([attribute.class("card-grid")], [
+            shell.action_button(
+              "Force OODA Cycle (sa-orch-ooda)",
+              "/api/v1/ooda/trigger",
+              "{\\\"action\\\": \\\"force_cycle\\\"}",
+            ),
+            shell.action_button(
+              "Trigger LLM Advisor",
+              "/api/v1/ooda/trigger",
+              "{\\\"action\\\": \\\"llm_advise\\\"}",
+            ),
+            shell.action_button(
+              "Inject Fact (RETE-UL)",
+              "/api/v1/ooda/trigger",
+              "{\\\"action\\\": \\\"inject_fact\\\"}",
+            ),
+          ])
+      },
     ]),
   ])
 }
@@ -412,20 +450,29 @@ pub fn verification_view(_state: SharedMeshState) -> Element(msg) {
     ]),
     shell.section("L0 Operational Controls [A2UI Morphologically Evolvable]", [
       html.div([attribute.class("card-grid")], [
-        shell.action_button(
-          "Emergency Stop < 5s",
-          "/api/v1/emergency/trigger",
-          "{\\\"reason\\\": \\\"Operator initiated\\\", \\\"confirmation\\\": \\\"EMERGENCY STOP\\\"}",
+        shell.apalache_guard(
+          shell.action_button(
+            "Emergency Stop < 5s",
+            "/api/v1/emergency/trigger",
+            "{\\\"reason\\\": \\\"Operator initiated\\\", \\\"confirmation\\\": \\\"EMERGENCY STOP\\\"}",
+          ),
+          "mathematically_safe",
         ),
-        shell.action_button(
-          "Halt Mutations (Stabilize)",
-          "/api/v1/podman/action",
-          "{\\\"verb\\\": \\\"stabilize\\\", \\\"container\\\": \\\"mesh\\\", \\\"reason\\\": \\\"Halt mutations\\\"}",
+        shell.apalache_guard(
+          shell.action_button(
+            "Halt Mutations (Stabilize)",
+            "/api/v1/podman/action",
+            "{\\\"verb\\\": \\\"stabilize\\\", \\\"container\\\": \\\"mesh\\\", \\\"reason\\\": \\\"Halt mutations\\\"}",
+          ),
+          "mathematically_safe",
         ),
-        shell.action_button(
-          "Execute sa-verify",
-          "/api/v1/podman/action",
-          "{\\\"verb\\\": \\\"verify\\\", \\\"container\\\": \\\"system\\\", \\\"reason\\\": \\\"5-order effects\\\"}",
+        shell.apalache_guard(
+          shell.action_button(
+            "Execute sa-verify",
+            "/api/v1/podman/action",
+            "{\\\"verb\\\": \\\"verify\\\", \\\"container\\\": \\\"system\\\", \\\"reason\\\": \\\"5-order effects\\\"}",
+          ),
+          "mathematically_safe",
         ),
       ]),
     ]),
@@ -584,11 +631,11 @@ pub fn podman_view(state: SharedMeshState) -> Element(msg) {
         shell.container_card("zenoh-router-3", "running", 0.02, 0.08),
         shell.container_card("ex-app-2", "running", 0.18, 0.38),
         shell.container_card("ex-app-3", "running", 0.19, 0.4),
-        shell.container_card("chaya", "running", 0.08, 0.2),
+        shell.container_card("chaya", "apoptotic", 0.08, 0.2),
         shell.container_card("ollama", "running", 0.15, 0.6),
         shell.container_card("mojo", "running", 0.12, 0.45),
         shell.container_card("ml-runner-1", "running", 0.25, 0.7),
-        shell.container_card("ml-runner-2", "running", 0.23, 0.68),
+        shell.container_card("ml-runner-2", "apoptotic", 0.23, 0.68),
       ]),
     ]),
     shell.section("L4 Operational Controls [A2UI Evolvable Interface]", [
@@ -836,7 +883,66 @@ pub fn agents_view(_state: SharedMeshState) -> Element(msg) {
       "Cybernetic Agents",
       "25-agent biomorphic hierarchy — OODA orchestration",
     ),
-    shell.section("Hierarchy", [
+    shell.section("A2UI Semantic Zoom [SC-HMI-310]", [
+      html.div(
+        [
+          attribute.class("card-grid"),
+          attribute.attribute(
+            "style",
+            "border-bottom: 1px dashed #4b5263; padding-bottom: 1rem; margin-bottom: 1rem;",
+          ),
+        ],
+        [
+          html.div(
+            [
+              attribute.attribute(
+                "style",
+                "display: flex; align-items: center; gap: 1rem;",
+              ),
+            ],
+            [
+              element.text("Zoom Level: "),
+              html.select(
+                [
+                  attribute.attribute(
+                    "style",
+                    "background: #1e222a; color: #abb2bf; border: 1px solid #4b5263; padding: 0.25rem;",
+                  ),
+                ],
+                [
+                  html.option(
+                    [attribute.value("container")],
+                    "Physical Container View (L4)",
+                  ),
+                  html.option(
+                    [attribute.value("actor"), attribute.selected(True)],
+                    "Logical BEAM Supervision Tree (L2)",
+                  ),
+                  html.option(
+                    [attribute.value("memory")],
+                    "Memory Allocation View (L1)",
+                  ),
+                ],
+              ),
+              html.span(
+                [
+                  attribute.attribute(
+                    "style",
+                    "color: #56b6c2; font-style: italic; font-size: 0.85rem;",
+                  ),
+                ],
+                [
+                  element.text(
+                    "↳ Rendering 7 nodes (Miller's Law optimization)",
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    ]),
+    shell.section("Logical Hierarchy (Zoom: Actor)", [
       html.div([attribute.class("card-grid")], [
         shell.status_card("Executive", "Healthy", "1", "EXEC-001 (opus)"),
         shell.status_card(
@@ -864,20 +970,29 @@ pub fn agents_view(_state: SharedMeshState) -> Element(msg) {
     ]),
     shell.section("L2 Operational Controls [A2UI Agentic Interface]", [
       html.div([attribute.class("card-grid")], [
-        shell.action_button(
-          "Start/Stop/Restart Actor",
-          "/api/v1/podman/action",
-          "{\\\"verb\\\": \\\"restart_actor\\\", \\\"container\\\": \\\"all\\\", \\\"reason\\\": \\\"Actor refresh\\\"}",
+        shell.apalache_guard(
+          shell.action_button(
+            "Start/Stop/Restart Actor",
+            "/api/v1/podman/action",
+            "{\\\"verb\\\": \\\"restart_actor\\\", \\\"container\\\": \\\"all\\\", \\\"reason\\\": \\\"Actor refresh\\\"}",
+          ),
+          "mathematically_safe",
         ),
-        shell.action_button(
-          "Compile",
-          "/api/v1/podman/action",
-          "{\\\"verb\\\": \\\"compile\\\", \\\"container\\\": \\\"all\\\", \\\"reason\\\": \\\"Build\\\"}",
+        shell.apalache_guard(
+          shell.action_button(
+            "Compile",
+            "/api/v1/podman/action",
+            "{\\\"verb\\\": \\\"compile\\\", \\\"container\\\": \\\"all\\\", \\\"reason\\\": \\\"Build\\\"}",
+          ),
+          "mathematically_safe",
         ),
-        shell.action_button(
-          "Test SIL-6",
-          "/api/v1/podman/action",
-          "{\\\"verb\\\": \\\"test\\\", \\\"container\\\": \\\"all\\\", \\\"reason\\\": \\\"Verify\\\"}",
+        shell.apalache_guard(
+          shell.action_button(
+            "Test SIL-6",
+            "/api/v1/podman/action",
+            "{\\\"verb\\\": \\\"test\\\", \\\"container\\\": \\\"all\\\", \\\"reason\\\": \\\"Verify\\\"}",
+          ),
+          "mathematically_safe",
         ),
       ]),
     ]),

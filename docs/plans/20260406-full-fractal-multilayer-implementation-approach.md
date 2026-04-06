@@ -39,16 +39,16 @@ This document provides the definitive implementation approach for the **Fully Fr
 #### 2.1 A2UI Schema Integration
 - **Goal**: Transition from hardcoded Lustre elements to JSON-schema-driven UI components.
 - **Implementation**:
-  - `[ ]` Extend `a2ui/catalog.gleam` to accept JSON definitions for operational control panels.
-  - `[ ]` Implement a recursive Lustre renderer that traverses an A2UI AST and generates `action_button` elements dynamically.
-  - `[ ]` Hook the A2UI catalog into the Zenoh `SharedMeshState` to trigger re-renders when the schema mathematically evolves.
+  - `[x]` Extend `a2ui/catalog.gleam` to accept JSON definitions for operational control panels.
+  - `[x]` Implement a recursive Lustre renderer that traverses an A2UI AST and generates `action_button` elements dynamically.
+  - `[x]` Hook the A2UI catalog into the Zenoh `SharedMeshState` to trigger re-renders when the schema mathematically evolves.
 
 #### 2.2 Context-Aware Density Scaling (SC-HMI-060)
 - **Goal**: Mathematically prevent operator overload (Hick's Law).
 - **Implementation**:
-  - `[ ]` Bind the A2UI renderer to the current OODA phase.
-  - `[ ]` When `ooda_phase == "decide"`, automatically prune the rendered action buttons to the top 5 most relevant options.
-  - `[ ]` Apply `badge-critical` (high-contrast) styling *only* to the single action recommended by the SLM/RETE-UL engine.
+  - `[x]` Bind the A2UI renderer to the current OODA phase.
+  - `[x]` When `ooda_phase == "decide"`, automatically prune the rendered action buttons to the top 5 most relevant options.
+  - `[x]` Apply `badge-critical` (high-contrast) styling *only* to the single action recommended by the SLM/RETE-UL engine.
 
 ### Phase 3: Neuroergonomic Hardening
 #### 3.1 Visual Cryptography & Provenance (SC-ULTRA-UI-002)
@@ -82,6 +82,6 @@ This document provides the definitive implementation approach for the **Fully Fr
 
 ## Success Criteria
 - [x] Phase 1 is fully implemented; `cepaf_gleam` WebUI actively dispatches L0-L7 operations.
-- [ ] Phase 2 Morphological Evolution is complete; UI renders dynamically from A2UI JSON schemas.
+- [x] Phase 2 Morphological Evolution is complete; UI renders dynamically from A2UI JSON schemas.
 - [ ] Phase 3 Neuroergonomic constraints are active; operators can cryptographically verify UI elements.
 - [ ] System handles continuous OODA cycling and Apoptosis without throwing 500 errors or failing to re-render.

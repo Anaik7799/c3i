@@ -196,10 +196,20 @@ pub fn container_card(
 ) -> Element(msg) {
   let status_class = case string.lowercase(status) {
     "running" -> "status-healthy"
+    "apoptotic" | "apoptosis" -> "status-apoptotic"
     "stopped" | "exited" -> "status-critical"
     _ -> "status-degraded"
   }
-  html.div([attribute.class("card")], [
+  let extra_style = case status_class {
+    "status-apoptotic" -> [
+      attribute.attribute(
+        "style",
+        "animation: dissolve 3s infinite alternate; border-color: #c678dd; box-shadow: 0 0 10px #c678dd55;",
+      ),
+    ]
+    _ -> []
+  }
+  html.div([attribute.class("card"), ..extra_style], [
     html.p([attribute.class("card-title")], [element.text(name)]),
     html.p([attribute.class("card-value " <> status_class)], [
       element.text(status),
@@ -313,5 +323,49 @@ pub fn action_button(
       ),
     ],
     [element.text(label)],
+  )
+}
+
+/// Apalache Formal Verification Gate (SC-ULTRA-UI-004)
+pub fn apalache_guard(
+  action: Element(msg),
+  safety_status: String,
+) -> Element(msg) {
+  let is_safe = safety_status == "mathematically_safe"
+  let border_color = case is_safe {
+    True -> "#3dd68c"
+    False -> "#e06c75"
+  }
+  let title_text = case is_safe {
+    True -> "Action verified safe by Apalache TLA+ Model Checker"
+    False -> "Action LOCKED: Violates STAMP constraint"
+  }
+  let overlay = case is_safe {
+    True -> []
+    False -> [
+      html.div(
+        [
+          attribute.attribute(
+            "style",
+            "position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(40, 44, 52, 0.8); z-index: 10; display: flex; align-items: center; justify-content: center; color: #e06c75; font-size: 0.7rem; font-weight: bold; cursor: not-allowed;",
+          ),
+        ],
+        [element.text("TLA+ UNSAFE")],
+      ),
+    ]
+  }
+
+  html.div(
+    [
+      attribute.class("apalache-guard"),
+      attribute.attribute("title", title_text),
+      attribute.attribute(
+        "style",
+        "position: relative; display: inline-block; margin-right: 0.5rem; border: 1px solid "
+          <> border_color
+          <> "; border-radius: 4px; overflow: hidden;",
+      ),
+    ],
+    [action, ..overlay],
   )
 }

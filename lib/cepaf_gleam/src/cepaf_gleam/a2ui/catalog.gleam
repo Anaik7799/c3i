@@ -198,12 +198,52 @@ pub fn default_catalog() -> Catalog {
         [],
       ),
     ),
+    // Operational Control Panels (L0-L7)
+    #(
+      "action_button",
+      ComponentSpec(
+        "action_button",
+        L2Component,
+        "Action button that performs an API call via JS fetch.",
+        [
+          PropSpec("label", StringProp, "Button label"),
+          PropSpec("endpoint", StringProp, "API endpoint to call"),
+          PropSpec("payload", StringProp, "JSON string payload to send"),
+        ],
+        [],
+      ),
+    ),
+    #(
+      "card_grid",
+      ComponentSpec(
+        "card_grid",
+        L2Component,
+        "Grid layout for cards or buttons",
+        [],
+        [],
+      ),
+    ),
+    #(
+      "section",
+      ComponentSpec(
+        "section",
+        L2Component,
+        "Section with a title",
+        [
+          PropSpec("title", StringProp, "Section title"),
+        ],
+        [],
+      ),
+    ),
   ]
   Catalog(components: dict.from_list(components))
 }
 
 /// Look up a component spec by type name.
-pub fn lookup(catalog: Catalog, component_type: String) -> Result(ComponentSpec, String) {
+pub fn lookup(
+  catalog: Catalog,
+  component_type: String,
+) -> Result(ComponentSpec, String) {
   dict.get(catalog.components, component_type)
   |> result.replace_error(
     "Component '" <> component_type <> "' not in catalog (SC-A2UI-002)",
