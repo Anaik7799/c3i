@@ -1,0 +1,119 @@
+-- allium: 3
+-- C3I Performance & Scalability Behavioral Specification
+-- Covers: Parallelized Testing, Thread Safety, DB Concurrency, and Zenoh Network Convergence
+-- Date: 2026-04-06
+
+-- ---------------------------------------------------------------------------
+-- 1. Parallel Thread Isolation & Thread-Local DB State
+-- ---------------------------------------------------------------------------
+-- Global environment variable modifications cause race conditions during parallel
+-- execution. The system must mathematically guarantee that each test thread
+-- operates within a completely isolated SQLite temporary file path.
+
+entity ThreadTestContext {
+    thread_id: String
+    assigned_db_path: String
+    is_isolated: Boolean
+}
+
+rule EnsureThreadIsolation {
+    when: ctx: ThreadTestContext.assigned_db_path
+    ensures:
+        -- The database path is resolved using a thread_local RefCell rather than
+        -- std::env::set_var, ensuring that parallel `cargo test` tasks cannot
+        -- overwrite each other's test fixtures.
+        ctx.is_isolated = true
+        
+    @guarantee SafeParallelExecution
+        -- Mathematically ensures that Test A and Test B can run simultaneously
+        -- without a "no such table: Tasks" panic due to environment state races.
+}
+
+-- ---------------------------------------------------------------------------
+-- 2. Exponential Backoff & Concurrency Jitter (L3 Transaction)
+-- ---------------------------------------------------------------------------
+-- During peak OODA cycle loops, multiple agents may attempt to write to the 
+-- planning database simultaneously. The SQLite WAL mode requires backoff 
+-- strategies to prevent SQLITE_BUSY panics.
+
+entity DatabaseTransaction {
+    operation: String
+    max_retries: Integer
+    current_attempt: Integer
+    backoff_delay_ms: Integer
+    status: executing | success | failed_timeout
+}
+
+rule ApplyExponentialBackoff {
+    when: txn: DatabaseTransaction.current_attempt
+    requires: txn.status = "executing"
+    ensures:
+        if txn.current_attempt < txn.max_retries:
+            -- Exponential backoff formula: (2^attempt * 10) + jitter(0..20)
+            txn.backoff_delay_ms = (2 ^ txn.current_attempt) * 10
+            
+    @guarantee DeadlockEradication
+        -- Allows highly concurrent, asynchronous Rust tasks to saturate the
+        -- SQLite transaction layer without triggering unrecoverable deadlocks.
+}
+
+-- ---------------------------------------------------------------------------
+-- 3. Zenoh Mesh Convergence Readiness Probe (L4 System)
+-- ---------------------------------------------------------------------------
+-- Containers booting faster than the Zenoh router overlay can crystallize
+-- leads to false-positive connection failures (e.g., 27/28 failed matrices).
+
+entity MeshConnectivity {
+    routers_converged: Boolean
+    attempt_count: Integer
+    timeout_threshold_ms: Integer
+}
+
+surface IgnitionConnectivityGate {
+    facing ignition_daemon: MeshConnectivity
+    
+    provides:
+        VerifySocketConnections(ignition_daemon)
+            when ignition_daemon.routers_converged = true
+}
+
+rule WaitForZenohCrystallization {
+    when: MeshConnectivity.attempt_count
+    ensures:
+        -- The ignition daemon actively probes the topological peer visibility
+        -- of zenoh-router-1, zenoh-router-2, and zenoh-router-3.
+        -- It mathematically blocks TCP/HTTP socket verification until 100% of
+        -- the routing matrix is proven to be fully connected.
+        MeshConnectivity.routers_converged = true
+        
+    @guarantee FalsePositiveElimination
+        -- Ensures that application nodes are never tested for health before the
+        -- underlying Zero-IP Zenoh backplane has established a quorum.
+}
+
+-- ---------------------------------------------------------------------------
+-- 4. Zero-IP Identity Routing (L6 Ecosystem)
+-- ---------------------------------------------------------------------------
+-- IPAM collisions occur when hardcoded IP addresses are assigned to containers.
+-- All inter-container transport must use ZIDs and semantic topics.
+
+entity PodmanConfiguration {
+    container_name: String
+    has_hardcoded_ip: Boolean
+    has_hardcoded_network: Boolean
+    zenoh_endpoint: String
+}
+
+rule EradicateIpDependencies {
+    when: config: PodmanConfiguration.has_hardcoded_ip becomes true
+    ensures:
+        -- The system automatically rejects any configuration that attempts to
+        -- bind a static IP address (e.g., 172.28.0.10) to a container payload.
+        config.has_hardcoded_ip = false
+        config.has_hardcoded_network = false
+        config.zenoh_endpoint != ""
+        
+    @guarantee ZeroIpCollision
+        -- IPAM (IP Address Management) exhaustion and collisions are mathematically
+        -- eradicated, enabling infinite scaling on any host network.
+}
