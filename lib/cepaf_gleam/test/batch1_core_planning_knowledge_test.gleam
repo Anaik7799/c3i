@@ -279,7 +279,7 @@ pub fn run_full_sequence_empty_actions_test() {
 
 pub fn validate_proof_token_valid_test() {
   safety_kernel.validate_proof_token(
-    "placeholder-token",
+    "STAMP-token",
     "update",
     "ai:agent1:gpt4",
     "2025-01-01T00:00:00Z",
@@ -296,7 +296,7 @@ pub fn validate_proof_token_invalid_test() {
     "2025-01-01T00:00:00Z",
     300_000,
   )
-  |> should.equal(Error("Invalid proof token"))
+  |> should.equal(Error("Invalid proof token: Missing STAMP signature"))
 }
 
 pub fn execute_with_rollback_success_test() {
@@ -431,7 +431,7 @@ pub fn enforcer_ai_todolist_valid_token_allowed_test() {
       enforcer.AIAgent("bot1", "gpt4"),
       "/PROJECT_TODOLIST.md",
       "write",
-      option.Some("placeholder-token"),
+      option.Some("STAMP-token"),
     )
   let result = enforcer.enforce_access(ctx, 0, 5)
   case result {
@@ -461,7 +461,7 @@ pub fn enforcer_ai_non_todolist_valid_token_allowed_test() {
       enforcer.AIAgent("bot1", "gpt4"),
       "/other/file.md",
       "read",
-      option.Some("placeholder-token"),
+      option.Some("STAMP-token"),
     )
   let result = enforcer.enforce_access(ctx, 0, 5)
   case result {
@@ -530,7 +530,7 @@ pub fn enforcer_system_process_with_token_allowed_test() {
       enforcer.SystemProcess("proc1"),
       "/some/file.md",
       "update",
-      option.Some("placeholder-token"),
+      option.Some("STAMP-token"),
     )
   let result = enforcer.enforce_access(ctx, 0, 5)
   case result {
