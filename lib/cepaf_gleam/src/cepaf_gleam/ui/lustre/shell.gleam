@@ -56,7 +56,7 @@ h2{font-size:1.1rem;margin:1rem 0 .5rem;color:#7a8fa6;}
 p.sub{font-size:.85rem;color:#7a8fa6;margin:0 0 1rem;}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin:.75rem 0;}
 .card-grid-wide{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin:.75rem 0;}
-.card{background:#141922;border:1px solid #1e2a3a;border-radius:6px;padding:1rem;}
+.card{background:#141922;border:1px solid #1e2a3a;border-radius:6px;padding:1rem;position:relative;overflow:hidden;}
 .card-title{font-size:.8rem;color:#7a8fa6;text-transform:uppercase;margin:0 0 .4rem;}
 .card-value{font-size:1.5rem;font-weight:700;margin:0 0 .25rem;}
 .card-detail{font-size:.8rem;color:#7a8fa6;}
@@ -86,6 +86,15 @@ td{padding:.4rem .6rem;border-bottom:1px solid #1e2a3a;}
 .pill{display:inline-block;padding:.2rem .6rem;border-radius:12px;font-size:.8rem;background:#1e2a3a;color:#7a8fa6;}
 .pill-active{background:#1a3d2a;color:#3dd68c;}
 .w-full{width:100%;}
+.dashboard-evolutionary{background-image:linear-gradient(rgba(30,42,58,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(30,42,58,0.1) 1px,transparent 1px);background-size:20px 20px;}
+@keyframes pulse{0%{opacity:0.6;}50%{opacity:1;}100%{opacity:0.6;}}
+.cyber-pulse{animation:pulse 2s infinite ease-in-out;}
+@keyframes breath{0%{transform:scale(1);}50%{transform:scale(1.02);}100%{transform:scale(1);}}
+.mesh-breath{animation:breath 4s infinite ease-in-out;}
+.led-on{box-shadow:0 0 10px #3dd68c;border-color:#3dd68c;}
+.emergency-stop-btn{background:#e05252;color:white;border:none;padding:.75rem 1.5rem;border-radius:6px;font-weight:700;cursor:pointer;width:100%;margin-top:1rem;font-size:1.1rem;box-shadow:0 4px 15px rgba(224,82,82,0.4);transition:transform 0.1s;}
+.emergency-stop-btn:active{transform:scale(0.98);box-shadow:0 2px 5px rgba(224,82,82,0.4);}
+.section-actions{display:flex;justify-content:center;padding:1rem 0;}
 @media(max-width:768px){nav{padding:.25rem;}.card-grid,.card-grid-wide{grid-template-columns:1fr;}main{padding:.75rem;}}
 "
 
