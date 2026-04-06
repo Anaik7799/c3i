@@ -1,0 +1,121 @@
+-- allium: 3
+-- C3I Comprehensive UI Testing Framework & BDD Execution
+-- Covers: Triple-Interface Parity, End-to-End Playwright Automation, and Graph-Theory Paths
+-- Date: 2026-04-06
+
+-- ---------------------------------------------------------------------------
+-- 1. Intent & Scope (SC-UIGT-001 - SC-UIGT-015)
+-- ---------------------------------------------------------------------------
+-- "test every aspect of gleam webpages using rust and playwright code. 
+-- every element per page x static and dynamic behavior of every element 
+-- x ened to end usecases x full user journeys and multi page scenarios 
+-- must be tested and verified."
+
+entity UITestingFramework {
+    playwright_suite_active: Boolean
+    gleam_unit_suite_active: Boolean
+    rust_integration_active: Boolean
+}
+
+rule EnforceEndToEndTestBehavior {
+    when: framework: UITestingFramework.playwright_suite_active
+    ensures:
+        -- The system requires absolute confirmation of UI functionality
+        -- natively in the DOM. Pure backend rendering checks are insufficient.
+        framework.playwright_suite_active = true
+        framework.gleam_unit_suite_active = true
+        framework.rust_integration_active = true
+
+    @guarantee FullCoverageMatrix
+        -- Every node in the navigation graph (all 30 pages) and every
+        -- interaction edge is tested in a fully wired state.
+}
+
+-- ---------------------------------------------------------------------------
+-- 2. Playwright Behavioral Verification
+-- ---------------------------------------------------------------------------
+
+value DomElement {
+    selector: String
+    aria_role: String
+    tabindex: Integer
+    is_dynamic: Boolean
+}
+
+value UserJourney {
+    name: String
+    start_path: String
+    end_path: String
+    actions: Set<String>
+}
+
+entity PlaywrightSuite {
+    elements_checked: Set<DomElement>
+    journeys_verified: Set<UserJourney>
+}
+
+rule VerifyDynamicAndStaticElements {
+    when: suite: PlaywrightSuite.elements_checked.count becomes > 0
+    ensures:
+        -- Every structural component (e.g., A2UI Schema components) must
+        -- be verified in the DOM. Neuroergonomic accessibility requires
+        -- `aria-label` and `role` tags to be fully rendered.
+        suite.elements_checked.contains_all([
+            DomElement { selector: "article[role='article']", aria_role: "article", tabindex: -1, is_dynamic: false },
+            DomElement { selector: "button[role='button']", aria_role: "button", tabindex: 0, is_dynamic: true }
+        ])
+}
+
+rule VerifyEndToEndJourneys {
+    when: suite: PlaywrightSuite.journeys_verified.count becomes > 0
+    ensures:
+        -- All multi-page sequences (e.g. Dashboard -> Planning -> Metabolic)
+        -- must be driven programmatically via Playwright to simulate the exact
+        -- topological state machines defined in the MSTS contracts.
+        suite.journeys_verified.contains(
+            UserJourney { 
+                name: "Cross-Tab Intent Navigation", 
+                start_path: "/dashboard", 
+                end_path: "/planning", 
+                actions: ["wait_for_card_grid", "click_nav_planning", "wait_for_url_planning"] 
+            }
+        )
+}
+
+-- ---------------------------------------------------------------------------
+-- 3. Triple-Interface Harmonization (Web, REST, TUI)
+-- ---------------------------------------------------------------------------
+
+entity TripleInterfaceParity {
+    html_endpoints_verified: Integer
+    json_api_endpoints_verified: Integer
+    ansi_tui_render_verified: Boolean
+}
+
+rule EnforceAbsoluteParity {
+    when: parity: TripleInterfaceParity.html_endpoints_verified
+    ensures:
+        -- 30 HTML routes and exactly matched JSON endpoints must return
+        -- HTTP 200 without exceptions.
+        parity.html_endpoints_verified >= 30
+        parity.json_api_endpoints_verified >= 30
+        parity.ansi_tui_render_verified = true
+}
+
+-- ---------------------------------------------------------------------------
+-- 4. Evolutionary Change Management (Criticality Prioritization)
+-- ---------------------------------------------------------------------------
+-- "all evolution and changes must only be made via the planning system, 
+-- criticality based prioritization."
+
+rule MandatePlanningSystemForEvolution {
+    when: any_task: String
+    ensures:
+        -- All future evolutionary changes to the UI must be registered
+        -- through `sa-plan` before being implemented.
+        true
+
+    @guarantee Auditability
+        -- No shadow development; every UI change traces directly back to
+        -- a formal planning directive in SQLite.
+}

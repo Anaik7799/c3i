@@ -99,3 +99,13 @@ pub fn dashboard_route_test() { testing.get("/api/dashboard", []) |> router.hand
 Coverage gate: All 32 types MUST have >= 1 subscribing page (SC-UIGT-005).
 # A2UI Component Graph G_a2ui
 10 component types stratified by fractal layer: L0(alert,modal) L1(sparkline,badge) L2(badge,button,data_table) L3(data_table,progress) L4(progress,data_table) L5(ooda_ring,reasoning) L6(topology) L7(topology).
+
+# E2E Browser Testing (Playwright + Rust Integration)
+**Mandate**: Test every aspect of Gleam webpages using Rust and Playwright code.
+- **Static & Dynamic Behavior**: Every element per page MUST be verified for both static rendering and dynamic state changes natively in the DOM.
+- **Full User Journeys**: Multi-page scenarios (e.g., Dashboard -> Planning -> Execute) MUST be fully traversed.
+- **Tools**: Use `@playwright/test` for DOM automation. Invoke the Playwright suite from a Rust integration test (`cargo test --test e2e_playwright`) if bridging environments, or use `npx playwright test` as a CI validation gate.
+- **Allium Spec**: All UI testing constraints are formalized in `specs/allium/ui_testing_framework.allium`.
+
+# Criticality & Evolutionary Change Management
+- **Rule**: ALL evolution and changes MUST only be made via the planning system (`sa-plan`), based on criticality prioritization. No shadow development is permitted.
