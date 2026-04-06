@@ -1,0 +1,64 @@
+-- allium: 3
+-- C3I Centralized Configuration State
+-- Covers: Unified Location for IP Addresses, Directory Paths, and Config State
+-- Date: 2026-04-06
+
+-- ---------------------------------------------------------------------------
+-- 1. Unified Configuration Source of Truth (SC-CONF-001)
+-- ---------------------------------------------------------------------------
+-- Hardcoding IP addresses, directory paths, and thresholds inside compiled
+-- Rust binaries or bash scripts causes configuration drift and deployment
+-- fragility. All system configuration state MUST be centralized.
+
+entity UnifiedConfiguration {
+    file_path: String
+    format: toml | yaml | json
+    is_authoritative: Boolean
+}
+
+rule EnforceUnifiedConfiguration {
+    when: config: UnifiedConfiguration.file_path
+    ensures:
+        -- The system mathematically guarantees that `config/indrajaal.toml`
+        -- is the single, authoritative source of truth for all environment
+        -- and execution parameters across the entire 16-container SIL-6 mesh.
+        config.file_path = "config/indrajaal.toml"
+        config.format = toml
+        config.is_authoritative = true
+        
+    @guarantee EradicationOfConfigDrift
+        -- Ensures that a change to an IP address or directory path needs to
+        -- be made in only one place, instantaneously applying to all downstream
+        -- daemons (Ignition, Planning, Cortex) upon restart or runtime reload.
+}
+
+-- ---------------------------------------------------------------------------
+-- 2. Configuration Domains (SC-CONF-002)
+-- ---------------------------------------------------------------------------
+
+value PortAllocation {
+    service_name: String
+    port_number: Integer
+}
+
+value PathAllocation {
+    resource_name: String
+    file_path: String
+}
+
+entity ConfigurationState {
+    network_mesh_name: String
+    ports: Set<PortAllocation>
+    paths: Set<PathAllocation>
+    test_environment_overrides: Boolean
+}
+
+rule ValidateConfigurationState {
+    when: state: ConfigurationState.network_mesh_name
+    ensures:
+        -- All ports (Zenoh, Phoenix, Postgres, OTEL) and paths (Smriti DB, 
+        -- Build History) must be explicitly resolved from the central
+        -- configuration dictionary before dependent services boot.
+        state.ports.count >= 15
+        state.paths.count >= 3
+}
