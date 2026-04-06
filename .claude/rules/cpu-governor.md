@@ -1,1 +1,0 @@
-<!-- Consolidated into build-and-test.md §2 -->

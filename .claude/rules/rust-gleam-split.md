@@ -1,12 +1,8 @@
 # Rust-Gleam Architectural Split (SC-ARCH-SPLIT)
-
-## PERMANENT RULE
-
+# PERMANENT RULE
 **Monitoring, orchestration, infrastructure, and advanced diagnostics are RUST ONLY.**
 **UI, domain types, testing framework, and NIF bridges are GLEAM.**
-
-## Rust (ignition daemon) — Operations
-
+# Rust (ignition daemon) — Operations
 ALL of the following MUST be implemented in Rust only:
 - Container lifecycle (start/stop/restart/build/pull)
 - OODA supervisor (observe/orient/decide/act)
@@ -29,9 +25,7 @@ ALL of the following MUST be implemented in Rust only:
 - MCP-over-Zenoh bridge
 - Build stream monitoring
 - Build history (SQLite EMA)
-
-## Gleam (cepaf_gleam) — Presentation + Types + Testing
-
+# Gleam (cepaf_gleam) — Presentation + Types + Testing
 ALL of the following MUST be implemented in Gleam only:
 - Domain types (`ui/domain.gleam`: Page, FractalLayer, HealthStatus)
 - Lustre SSR web UI (24 pages, port 4100)
@@ -45,9 +39,7 @@ ALL of the following MUST be implemented in Gleam only:
 - Zenoh OTel span observation (test-time)
 - Flight check (Gleam-side preflight for tests)
 - Gemini verification (pipeline testing)
-
-## Bridge Points (Gleam calls Rust)
-
+# Bridge Points (Gleam calls Rust)
 | Bridge | Mechanism | Direction |
 |--------|-----------|-----------|
 | Rule engine | NIF (`rule_engine_nif.so`) | Gleam → Rust → Gleam |
@@ -55,9 +47,7 @@ ALL of the following MUST be implemented in Gleam only:
 | Zenoh pub/sub | Zenoh NIF (`zenoh_nif.so`) | Gleam → Rust → Zenoh |
 | OODA results | Zenoh subscription | Rust → Zenoh → Gleam |
 | Ignition commands | `./sa-up` CLI | Gleam TUI → Shell → Rust |
-
-## What Gleam MUST NOT Do
-
+# What Gleam MUST NOT Do
 - Gleam MUST NOT implement container orchestration logic
 - Gleam MUST NOT implement OODA supervisor loop
 - Gleam MUST NOT implement health polling/consensus
@@ -65,9 +55,7 @@ ALL of the following MUST be implemented in Gleam only:
 - Gleam MUST NOT implement build/image management
 - Gleam MUST NOT implement recovery playbooks
 - Gleam MUST NOT duplicate Rust monitoring functionality
-
-## STAMP
-
+# STAMP
 | ID | Constraint | Severity |
 |----|------------|----------|
 | SC-ARCH-SPLIT-001 | Monitoring + ops = Rust only | CRITICAL |

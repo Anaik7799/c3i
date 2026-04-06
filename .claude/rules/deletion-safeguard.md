@@ -1,1 +1,0 @@
-<!-- Consolidated into core-protocols.md §2 -->

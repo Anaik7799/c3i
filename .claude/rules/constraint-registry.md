@@ -1,10 +1,7 @@
 # Constraint Registry (Reconciled 2026-03-22, PARITY ACHIEVED)
-
 All SC-*/AOR-* constraint families. CLAUDE.md + .claude/rules/ is the authoritative superset.
 Individual constraint details live in code; this registry tracks families and ranges.
-
-## P0-SAFETY (CRITICAL)
-
+# P0-SAFETY (CRITICAL)
 | Family | IDs | # | Description |
 |--------|-----|---|-------------|
 | SC-ENFORCE | 001-025 | 25 | Planning enforcer access control, circuit breaker, audit |
@@ -20,8 +17,7 @@ Individual constraint details live in code; this registry tracks families and ra
 | SC-NEURO | 001-005 | 5 | Neural/cognitive substrate safety |
 | SC-NIF | 001-006 | 6 | NIF layer: Rust FFI boundary safety, crash isolation |
 | SC-PRIME | 001-003 | 3 | Constitutional prime axioms, symbiotic defense |
-
-### P0 Key Individual Constraints (highest decision-criticality)
+# P0 Key Individual Constraints (highest decision-criticality)
 | ID | Constraint |
 |----|------------|
 | SC-SIL4-001 | Safety functions MUST fail to safe state |
@@ -40,11 +36,8 @@ Individual constraint details live in code; this registry tracks families and ra
 | SC-DMS-002 | Failsafe triggers within 50ms of timeout |
 | SC-GUARD-002 | Guardian integrates with DeadMansSwitch, fail closed |
 | SC-PRIME-001 | Constitutional prime axioms inviolable |
-
 **AOR-P0**: ENFORCE(15) SAFETY(15) SIL4(6) SIL6(4) SEC(3) GUARD(2) NEURO(2) NIF(1) PRIME(1)
-
-## P1-CORE (HIGH)
-
+# P1-CORE (HIGH)
 | Family | IDs | # | Description |
 |--------|-----|---|-------------|
 | SC-FSH | 003-122 | 24 | F# safety: active patterns, units of measure, Kleisli, workflows, recursion |
@@ -77,11 +70,8 @@ Individual constraint details live in code; this registry tracks families and ra
 | SC-VAL | 001-008 | 8 | Validation: FPPS consensus, compilation, patterns |
 | SC-REGEN | 002-004 | 3 | Regeneration: container lifecycle, health, supervisor |
 | SC-ZEN | 001-005 | 5 | Zenoh session: lifecycle, connectivity, routing |
-
 **AOR-P1**: VER(40) XHOLON(40) MATH(20) ORCH(15) FSH(12) CONSOL(10) OPT(10) PHICS(10) SYNC(8) LOG(6) CI(5) AGENT(4) OBS(4) VAL(4) BOOT(3) FFI(3) FRAC(3) RECONFIG(3) GDE(2) HLC(2) IKE(2) FED(1) LOGIC(1)
-
-## P2-DOMAIN: Critical (RPN >= 200)
-
+# P2-DOMAIN: Critical (RPN >= 200)
 | Family | IDs | # | Description |
 |--------|-----|---|-------------|
 | SC-HMI | 001-080 | 80 | Human-Machine Interface: cockpit UI, accessibility, dark cockpit |
@@ -89,9 +79,7 @@ Individual constraint details live in code; this registry tracks families and ra
 | SC-SEM | 001-072 | 72 | Semantic analysis: NLP, embedding, classification |
 | SC-ACE | 001-039 | 39 | Agent Collaboration Engine: coordination, task allocation |
 | SC-KMS | 001-023 | 23 | Key Management: lifecycle, encryption, certificates |
-
-## P2-DOMAIN: High (6+ IDs)
-
+# P2-DOMAIN: High (6+ IDs)
 | Family | # | Sev | Description |
 |--------|---|-----|-------------|
 | SC-ALARM | 41 | H | Alarm management, storm detection, escalation |
@@ -129,19 +117,12 @@ Individual constraint details live in code; this registry tracks families and ra
 | SC-PROP | 6 | M | Property testing, PropCheck |
 | SC-BUS | 5 | M | Unified control bus, backpressure |
 | SC-SOVEREIGNTY | 5 | M | AI inference sovereignty, data locality |
-
 **AOR-P2-High**: CMD(8) FOUNDER(10) CTX(10) TPS(3) CAE(3) CHAYA(5) CNT(4) VAR(4)
-
-## P2-DOMAIN: Minor/Standard (1-5 IDs each)
-
+# P2-DOMAIN: Minor/Standard (1-5 IDs each)
 **Missed families**: SC-CAMERA(5) SC-PM(5) SC-AUC(4) SC-DIS(4) SC-SITE(2) SC-GIT-006(1)
-
 **3-ID families (MEDIUM)**: SC-ALERT SC-ARTERY SC-COCKPIT SC-DEP SC-EDIT SC-GOSSIP SC-HEALTH SC-HITL SC-HTTP SC-MA SC-PREROLL SC-SENS SC-STPA SC-TEL SC-THR SC-WS SC-CREDO SC-MIG SC-TDG
-
 **2-ID families (MEDIUM)**: SC-BUF SC-CAT SC-CEA SC-CHANNEL SC-CLUSTER SC-COMM SC-COMPLIANCE SC-COUNT SC-DEVICE SC-DISPATCH SC-DSP SC-FM SC-MAT SC-MIL SC-MULTILINE SC-PASS SC-PROD SC-REPORT SC-RESP SC-SEN SC-SER SC-SYNAPSE SC-VID SC-VIEW SC-EVAL SC-RCA SC-DRIFT SC-GEM SC-PORTAL SC-VAR
-
 **1-ID families**: SC-A SC-B SC-C SC-CACHE SC-CEPAF SC-CPU SC-DATA SC-DBBOTH SC-DEMO SC-DIAG SC-DOC SC-DOS SC-EID SC-ERGO SC-FAIL SC-FLM SC-FPPS SC-HIST SC-K8S SC-L1 SC-L7 SC-LATENCY SC-MORPH SC-NAME SC-NASA SC-PRD SC-PRIV SC-PVE SC-RECOVER SC-REFLEX SC-SAF SC-SENTINEL SC-SHARED SC-SRE SC-STAMP SC-TRACE SC-TWIN SC-UX SC-VSM SC-ZUIP SC-CA SC-ANA
-
 **4-ID VSM families**: SC-S1 SC-S2 SC-S3 SC-S4 SC-S5 SC-BEL SC-SUR SC-EVT SC-SNP SC-PRJ SC-RPL SC-TT SC-SHADOW SC-TRAIN SC-CPL
 **4-ID Architecture**: SC-HOL SC-HLT SC-SUP SC-PROT SC-MET SC-ACT SC-CROSS SC-HIER(5) SC-SEV
 **4-ID Jain/Federation**: SC-APR SC-BUD SC-CON SC-CRD SC-CRY SC-DIR SC-GEN SC-JAI SC-PRO SC-REP SC-WAL
@@ -151,15 +132,10 @@ Individual constraint details live in code; this registry tracks families and ra
 **Gleam UI Families**: SC-GLM-UI(10) SC-GLM-ZEN(3) SC-GLM-TST(2) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6)
 **Gleam UI Families**: SC-GLM-UI(10) SC-GLM-ZEN(3) SC-GLM-TST(2) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6)
 **4-ID Data/Knowledge**: SC-STORE(4) SC-DBPROXY SC-PUBSUB SC-TENANT SC-AUDIT SC-AUTH SC-AUTHZ SC-AUTO SC-JOB SC-LV SC-MAINT SC-MEM
-
 **Larger P2 families**: SC-EVO(30) SC-MODEL(20) SC-STARTUP(20) SC-TRI(15) SC-SMOKE(13) SC-BDD(10) SC-CPM(10) SC-DBINT(10) SC-DFA(10) SC-RCPSP(10) SC-STREAM(10) SC-EFFECT(10) SC-COMONAD(8) SC-STM(8) SC-MOJO(7) SC-CHAYA(6) SC-SESS(5) SC-SET(10) SC-C3I(5) SC-CHAOS(5) SC-DASH(5) SC-HOM(5) SC-JRN(5) SC-MSG(6) SC-RES(5) SC-MV(5) SC-FAME(5) SC-TXN(5) SC-ECON(4) SC-SING(10) SC-VIDEO(5) SC-GRAV(4)
-
-## P2-DOMAIN: Analytics (all MEDIUM, 5 IDs each unless noted)
-
+# P2-DOMAIN: Analytics (all MEDIUM, 5 IDs each unless noted)
 SC-AAE SC-AC SC-AD SC-ADE SC-ANALYTICS SC-BDW SC-BI SC-BP SC-BVM SC-CS SC-EDE SC-HM SC-IP SC-KPI SC-LOKI SC-MDRS SC-ML SC-MLI SC-PA SC-PB SC-PERF SC-PPM SC-PRED SC-PTR SC-PVF SC-RBC SC-REALTIME SC-RPT SC-RS SC-RTBC SC-SD SC-SID SC-SM SC-TA SC-TREND SC-UAE SC-UNIFIED SC-AN SC-SIG | SC-ANA(1) SC-SRE(1) | AOR-KPI(3)
-
-## P3-STYLE (LOW, from ErrorPatterns.fs)
-
+# P3-STYLE (LOW, from ErrorPatterns.fs)
 | Family | # | Description |
 |--------|---|-------------|
 | SC-DEPR | 25 | Deprecated API usage detection |
@@ -172,12 +148,8 @@ SC-AAE SC-AC SC-AD SC-ADE SC-ANALYTICS SC-BDW SC-BI SC-BP SC-BVM SC-CS SC-EDE SC
 | SC-MOD | 4 | Module structure |
 | SC-STR | 4 | String handling |
 | SC-MACRO | 2 | Macro usage patterns |
-
 **1-ID SC-P3**: ACCESS ANON ATTR BINARY CASE DRY KWLIST PATTERN PIN PIPE RAISE RECEIVE SIGIL STRUCT TRY WITH
-
 **AOR-P3**: DEPR(25) STYLE(25) UNUSED(25) WARN(4) MACRO(3) + 30 single-ID AOR rules (ACCESS ANON ARCH ATOM ATTR BIN BINARY BOOL CASE CB CLAUSE COMP IMPORT KWLIST MAP MATCH MOD PATTERN PIN PIPE PROC RAISE RECEIVE SIGIL SPEC STR STRUCT TRY TYPE WITH)
-
-## P2-DOMAIN AOR Rules
-
+# P2-DOMAIN AOR Rules
 **AOR-P2-Standard**: DEBUG(5) FLAME(3) GRAPH(3) DASH(2) FAME(2) ASH(2) SING(10) BRIDGE(2) CREDO(2) DBCROSS(2) DBLOCAL(2) DOC(5) GEM(5) TEST(2) KPI(3)
 **AOR-P2-Single**: AGT BATCH BDD BUS CLI COCKPIT CODE COMM COMPLIANCE CONFIG CPM DB DEP DEV DFA DISPATCH ENV EVO-006 FAG-002 GVF IGNITE MCP PERF PROP QUA RCA RCPSP SET SITE THR VIDEO

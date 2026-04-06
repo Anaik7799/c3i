@@ -1,1 +1,0 @@
-<!-- Consolidated into operational-architecture.md §2 -->

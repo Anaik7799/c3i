@@ -2,58 +2,41 @@
 name: timestamp-sync
 description: Synchronize system and OpenCode timestamps. Runs at session start and every 30 minutes.
 ---
-
 # Timestamp Sync Skill
-
-## Purpose
-
+# Purpose
 Ensure system and OpenCode timestamps are synchronized to prevent drift.
-
-## Usage
-
-### Automatic (Recommended)
-
+# Usage
+# Automatic (Recommended)
 The Rust daemon runs in background:
-
 ```bash
 # Start daemon
 ~/.config/opencode/bin/timestamp-sync-hook.sh start
-
 # Check status
 ~/.config/opencode/bin/timestamp-sync-hook.sh status
-
 # One-shot sync
 ~/.config/opencode/bin/timestamp-sync-hook.sh sync
 ```
-
-## Features
-
+# Features
 - **Rust Daemon**: Long-running background process
 - **TUI**: ANSI color-coded display
 - **Fractal Logging**: L0-L7 JSON Lines
 - **Zenoh**: Telemetry publisher
 - **OTEL**: Traces to JSONL
-
-## Thresholds
-
+# Thresholds
 | Drift | Level | Color | Action |
 |-------|-------|-------|--------|
 | 0-2s | NOMINAL | Green | Log |
 | 2-5s | MINOR | Yellow | Warning |
 | 5-10s | WARNING | Magenta | Alert |
 | >10s | CRITICAL | Red | Halt + NTP |
-
-## Files
-
+# Files
 | File | Purpose |
 |------|---------|
 | `~/.config/opencode/bin/timestamp-sync-hook.sh` | Hook script |
 | `~/.local/share/indrajaal-timestamp-sync/` | Daemon data |
 | `logs/fractal.log` | Fractal logs |
 | `logs/otel_traces.jsonl` | OTEL traces |
-
-## Integration
-
+# Integration
 Added to `~/.config/opencode/AGENTS.md`:
 - Session bootstrap with timestamp sync
 - Hook location documented

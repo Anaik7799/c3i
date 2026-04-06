@@ -1,15 +1,10 @@
 ---
 paths: lib/cepaf_gleam/test/**/*_test.gleam, lib/cepaf_gleam/src/cepaf_gleam/ui/lustre/**/*.gleam, lib/cepaf_gleam/src/cepaf_gleam/testing/**/*.gleam
 ---
-
 # UI Graph-Theory Testing Framework (SC-UIGT)
-
 Graph-theory-based testing for all 22 Gleam Lustre pages. Navigation modeled as digraph G_nav=(V,E), page state as LTS from MVU types, AG-UI flow as bipartite hypergraph.
-
 **Frameworks**: gleeunit (unit) | Wisp `testing` module (API E2E, no browser) | `testing/coverage_math.gleam` (metrics) | `testing/nav_graph.gleam` (PageRank, SCC)
-
-## STAMP Constraints
-
+# STAMP Constraints
 | ID | Constraint | Severity |
 |----|------------|----------|
 | SC-UIGT-001 | G_nav MUST cover all 22 Lustre pages as vertices | CRITICAL |
@@ -27,9 +22,7 @@ Graph-theory-based testing for all 22 Gleam Lustre pages. Navigation modeled as 
 | SC-UIGT-013 | Chinese Postman lower bound computed per release | MEDIUM |
 | SC-UIGT-014 | PageRank-weighted test priority guides execution order | MEDIUM |
 | SC-UIGT-015 | Cross-page AG-UI event flow tested E2E via Zenoh bus | HIGH |
-
-## AOR Rules
-
+# AOR Rules
 | ID | Rule |
 |----|------|
 | AOR-UIGT-001 | Model each page as LTS (states=Model fields, labels=Msg variants) BEFORE writing tests |
@@ -42,13 +35,9 @@ Graph-theory-based testing for all 22 Gleam Lustre pages. Navigation modeled as 
 | AOR-UIGT-008 | Run SCC analysis after any route change |
 | AOR-UIGT-009 | Compute coverage: C_node, C_edge, C_path, C_data via coverage_math.gleam |
 | AOR-UIGT-010 | Weight test priority by PageRank — test_priority_order() |
-
-## Navigation Digraph G_nav
-
+# Navigation Digraph G_nav
 |V|=22 pages, |E|≈462 (complete via nav bar), SCC=1, density=1.0.
-
-### 22-Page Vertex Set
-
+# 22-Page Vertex Set
 | # | Page | Path | Module | Layer |
 |---|------|------|--------|-------|
 | 1 | Dashboard | /dashboard | lustre/app.gleam | L5 |
@@ -65,15 +54,10 @@ Graph-theory-based testing for all 22 Gleam Lustre pages. Navigation modeled as 
 | 12 | Kms | /kms | lustre/kms.gleam | L2 |
 | 13 | Telemetry | /telemetry | lustre/telemetry.gleam | L1 |
 | 14-22 | Agents, Bridge, Config, Database, Git, Holon, Prajna, Smriti, PlanningDashboard | Various | lustre/*.gleam | L1-L6 |
-
-## Page-Level LTS
-
+# Page-Level LTS
 For each page p: `LTS(p) = (S_p, Sigma_p, ->_p, s0_p)` where States=Model field combos, Labels=Msg ADT variants, Transitions=update() branches, s0=init() result.
-
 **Gleam advantage**: Exhaustive pattern matching in update() means Sigma_p is provably complete.
-
-## Coverage Criteria (testing/coverage_math.gleam)
-
+# Coverage Criteria (testing/coverage_math.gleam)
 | Criterion | Target | Gate |
 |-----------|--------|------|
 | Node C_node | >= 1.0 | All Model field combinations tested |
@@ -81,26 +65,18 @@ For each page p: `LTS(p) = (S_p, Sigma_p, ->_p, s0_p)` where States=Model field 
 | Prime Path C_path | >= 0.95 Tier 1 | Maximal simple paths |
 | Data Flow C_data | >= 0.90 | Def-use pairs in model fields |
 | Total (0.2 node + 0.3 edge + 0.3 path + 0.2 data) | >= 0.95 | — |
-
 **Math gates**: Shannon H >= 2.5, CCM >= 0.90, ITQS >= 0.85, D_EA <= 0.10.
-
 **Prime paths**: Simple paths (no repeated vertices except cycle endpoints) not subpaths of longer ones. DFS enumeration -> each prime path = one `pub fn pp_xxx_test()`.
-
 **Chinese Postman**: CPP = |E| + matching_cost(odd_degree). For G_nav: CPP ≈ 462. System-wide: ~600-700 test cases minimum.
-
 **PageRank priority**: d=0.85, 30 iterations. Dashboard(0.055) > Cockpit(0.052) > Verification(0.050) > Agents(0.048) > Planning(0.047).
-
-## Page Complexity Tiers
-
+# Page Complexity Tiers
 | Tier | Msgs | Fields | Pages | Tests |
 |------|------|--------|-------|-------|
 | 1 (High) | 6+ | 5+ | Dashboard, Cockpit, Agents, Verification, Planning, Immune | 15-20 |
 | 2 (Medium) | 3-5 | 3-4 | Knowledge, Zenoh, Telemetry, Substrate, Metabolic, Podman, Smriti | 10-15 |
 | 3 (Low) | 1-2 | 1-2 | Mcp, Kms, Bridge, Config, Database, Git, Holon, Prajna, PlanningDashboard | 5-10 |
-
-## Test Patterns
-
-### gleeunit MVU LTS Test
+# Test Patterns
+# gleeunit MVU LTS Test
 ```gleam
 // Test file mirrors page: agents_lts_test.gleam for agents.gleam
 // Node coverage: init() -> verify defaults
@@ -108,25 +84,18 @@ For each page p: `LTS(p) = (S_p, Sigma_p, ->_p, s0_p)` where States=Model field 
 // Prime paths: chained update() calls through multi-step sequences
 import cepaf_gleam/ui/lustre/agents.{init, update, HierarchyLoaded, ...}
 import gleeunit/should
-
 pub fn init_returns_defaults_test() { init().total_agents |> should.equal(0) }
 pub fn hierarchy_loaded_test() { update(init(), HierarchyLoaded(25,1,4,20)).total_agents |> should.equal(25) }
 pub fn pp_load_then_efficiency_test() { init() |> update(_, HierarchyLoaded(20,1,4,15)) |> update(_, EfficiencyUpdated(0.92)) |> fn(m) { m.efficiency |> should.equal(0.92) } }
 ```
-
-### Wisp API E2E Test
+# Wisp API E2E Test
 ```gleam
 // HTTP endpoint verification via wisp/testing (no browser)
 import wisp/testing
 pub fn dashboard_route_test() { testing.get("/api/dashboard", []) |> router.handle_request |> fn(r) { r.status |> should.equal(200) } }
 ```
-
-## AG-UI Event Graph G_agui
-
+# AG-UI Event Graph G_agui
 32 event types mapped across pages. Key subscriptions: Dashboard(RunStarted,RunFinished,StateSnapshot) | Agents(StepStarted,StepFinished,ActivitySnapshot) | Cockpit(ToolCallStart,ToolCallEnd,ReasoningStart) | Verification(RunError,StateSnapshot,StateDelta) | Telemetry(TextMessageChunk,ReasoningMessageContent).
-
 Coverage gate: All 32 types MUST have >= 1 subscribing page (SC-UIGT-005).
-
-## A2UI Component Graph G_a2ui
-
+# A2UI Component Graph G_a2ui
 10 component types stratified by fractal layer: L0(alert,modal) L1(sparkline,badge) L2(badge,button,data_table) L3(data_table,progress) L4(progress,data_table) L5(ooda_ring,reasoning) L6(topology) L7(topology).

@@ -1,1 +1,0 @@
-<!-- Consolidated into constraint-sync.md -->

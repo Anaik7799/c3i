@@ -1,15 +1,11 @@
 ---
 paths: lib/indrajaal/cockpit/prajna/biomorphic_test_evolution.ex, lib/cepaf/src/Cepaf/Cockpit/FractalTestRunner.fs, lib/indrajaal/ai/**/*.ex
 ---
-
 # Biomorphic Test Evolution Rules
-
-## Overview
+# Overview
 OpenRouter-integrated AI-powered test evolution system with biomorphic lifecycle.
 Tests evolve autonomously using free AI models with OODA cycles and fractal structure.
-
-## STAMP Constraints (Test Evolution)
-
+# STAMP Constraints (Test Evolution)
 | ID | Constraint | Severity |
 |----|------------|----------|
 | SC-TEST-EVO-001 | OODA cycle for test evolution < 30s | HIGH |
@@ -19,9 +15,7 @@ Tests evolve autonomously using free AI models with OODA cycles and fractal stru
 | SC-TEST-EVO-005 | Genome evolution respects diversity floor (0.3) | MEDIUM |
 | SC-TEST-EVO-006 | TrainingGym integration for learning feedback | HIGH |
 | SC-TEST-EVO-007 | Zenoh publishing for test metrics telemetry | MEDIUM |
-
-## STAMP Constraints (OpenRouter Integration)
-
+# STAMP Constraints (OpenRouter Integration)
 | ID | Constraint | Severity |
 |----|------------|----------|
 | SC-OPENROUTER-001 | Free models MUST be prioritized | HIGH |
@@ -29,65 +23,53 @@ Tests evolve autonomously using free AI models with OODA cycles and fractal stru
 | SC-OPENROUTER-003 | Fallback to mock on API unavailable | HIGH |
 | SC-OPENROUTER-004 | Max 10 concurrent AI requests | CRITICAL |
 | SC-OPENROUTER-005 | Context window < 4K tokens per request | HIGH |
-
-## Free AI Models by Purpose
-
+# Free AI Models by Purpose
 ```elixir
 @free_models %{
-  property_gen:   "meta-llama/llama-3.1-8b-instruct:free",
-  code_analysis:  "google/gemma-2-9b-it:free",
-  bdd_gen:        "mistralai/mistral-7b-instruct:free",
-  fmea_analysis:  "qwen/qwen-2-7b-instruct:free",
-  formal_verify:  "meta-llama/llama-3.1-8b-instruct:free"
+property_gen:   "meta-llama/llama-3.1-8b-instruct:free",
+code_analysis:  "google/gemma-2-9b-it:free",
+bdd_gen:        "mistralai/mistral-7b-instruct:free",
+fmea_analysis:  "qwen/qwen-2-7b-instruct:free",
+formal_verify:  "meta-llama/llama-3.1-8b-instruct:free"
 }
 ```
-
-## Biomorphic Lifecycle
-
-### 1. Genome (Configuration)
+# Biomorphic Lifecycle
+# 1. Genome (Configuration)
 ```elixir
 %Genome{
-  mutation_rate: 0.1,        # Probability of test mutation
-  selection_pressure: 0.7,   # Keep top 70% of tests
-  crossover_rate: 0.3,       # Gene combination rate
-  ai_model_weights: %{...},  # Model selection weights
-  target_coverage: 0.95      # Target code coverage
+mutation_rate: 0.1,        # Probability of test mutation
+selection_pressure: 0.7,   # Keep top 70% of tests
+crossover_rate: 0.3,       # Gene combination rate
+ai_model_weights: %{...},  # Model selection weights
+target_coverage: 0.95      # Target code coverage
 }
 ```
-
-### 2. Phenotype (Tests)
+# 2. Phenotype (Tests)
 - Generated tests across 5 levels
 - Compiled test modules
 - Executable test suites
-
-### 3. Fitness Function
+# 3. Fitness Function
 ```elixir
 fitness =
-  (coverage_weight * coverage_score) +
-  (pass_weight * pass_rate) +
-  (mutation_weight * mutation_score) +
-  (diversity_weight * diversity_score)
-
+(coverage_weight * coverage_score) +
+(pass_weight * pass_rate) +
+(mutation_weight * mutation_score) +
+(diversity_weight * diversity_score)
 # Default weights: 0.3, 0.3, 0.2, 0.2
 ```
-
-### 4. Selection
+# 4. Selection
 - Keep tests with fitness > median
 - Elite preservation for top 10%
 - Roulette wheel for remaining slots
-
-### 5. Mutation
+# 5. Mutation
 - Parameter tweaks (thresholds, values)
 - Operator swaps (assertions)
 - Boundary exploration
-
-### 6. Reproduction
+# 6. Reproduction
 - Crossover between high-fitness tests
 - Combine best features from parents
 - Inject novel test patterns
-
-## OODA Cycle for Test Evolution
-
+# OODA Cycle for Test Evolution
 ```
 ┌─────────────────────────────────────────────────────┐
 │                  30-SECOND OODA CYCLE               │
@@ -103,9 +85,7 @@ fitness =
 │                                                     │
 └─────────────────────────────────────────────────────┘
 ```
-
-## AOR Rules (Test Evolution)
-
+# AOR Rules (Test Evolution)
 | ID | Rule |
 |----|------|
 | AOR-TEST-EVO-001 | Test generation MUST use free AI models first |
@@ -116,9 +96,7 @@ fitness =
 | AOR-TEST-EVO-006 | Mutation respects STAMP constraints |
 | AOR-TEST-EVO-007 | Selection preserves diversity floor |
 | AOR-TEST-EVO-008 | Publish metrics to Zenoh indrajaal/test/evolution |
-
-## AOR Rules (OpenRouter)
-
+# AOR Rules (OpenRouter)
 | ID | Rule |
 |----|------|
 | AOR-OPENROUTER-001 | Use :free suffix models exclusively |
@@ -126,103 +104,83 @@ fitness =
 | AOR-OPENROUTER-003 | Cache successful generations |
 | AOR-OPENROUTER-004 | Log all API calls for audit |
 | AOR-OPENROUTER-005 | Fallback to mock for offline development |
-
-## 5-Level Fractal Test Generation
-
-### Level 1: TDG (Property Tests)
+# 5-Level Fractal Test Generation
+# Level 1: TDG (Property Tests)
 - Model: `meta-llama/llama-3.1-8b-instruct:free`
 - Output: PropCheck + ExUnitProperties tests
 - Focus: Edge cases, invariants, generators
-
-### Level 2: FMEA (Failure Analysis)
+# Level 2: FMEA (Failure Analysis)
 - Model: `qwen/qwen-2-7b-instruct:free`
 - Output: RPN calculations, failure mode tests
 - Focus: Critical paths, safety constraints
-
-### Level 3: Formal (Verification)
+# Level 3: Formal (Verification)
 - Model: `meta-llama/llama-3.1-8b-instruct:free`
 - Output: Dialyzer specs, Quint models
 - Focus: Type safety, temporal properties
-
-### Level 4: Graph (Path Analysis)
+# Level 4: Graph (Path Analysis)
 - Model: `google/gemma-2-9b-it:free`
 - Output: Control flow tests, FSM coverage
 - Focus: State transitions, code paths
-
-### Level 5: BDD (Integration)
+# Level 5: BDD (Integration)
 - Model: `mistralai/mistral-7b-instruct:free`
 - Output: Gherkin features, step definitions
 - Focus: User journeys, acceptance criteria
-
-## Telemetry Events
-
+# Telemetry Events
 ```elixir
 # Test generation started
 :telemetry.execute(
-  [:test_evolution, :generate, :start],
-  %{module: module_path, level: level},
-  %{}
+[:test_evolution, :generate, :start],
+%{module: module_path, level: level},
+%{}
 )
-
 # Test generation completed
 :telemetry.execute(
-  [:test_evolution, :generate, :complete],
-  %{duration_ms: elapsed, tokens_used: tokens},
-  %{module: module_path, level: level, success: true}
+[:test_evolution, :generate, :complete],
+%{duration_ms: elapsed, tokens_used: tokens},
+%{module: module_path, level: level, success: true}
 )
-
 # OODA cycle completed
 :telemetry.execute(
-  [:test_evolution, :ooda, :complete],
-  %{cycle_ms: elapsed, mutations: count, fitness: score},
-  %{}
+[:test_evolution, :ooda, :complete],
+%{cycle_ms: elapsed, mutations: count, fitness: score},
+%{}
 )
-
 # Evolution epoch completed
 :telemetry.execute(
-  [:test_evolution, :evolve, :epoch],
-  %{generation: gen, avg_fitness: avg, best_fitness: best},
-  %{}
+[:test_evolution, :evolve, :epoch],
+%{generation: gen, avg_fitness: avg, best_fitness: best},
+%{}
 )
 ```
-
-## Zenoh Topics
-
+# Zenoh Topics
 | Topic | Purpose | Format |
 |-------|---------|--------|
 | `indrajaal/test/evolution/status` | System status | JSON |
 | `indrajaal/test/evolution/fitness` | Fitness metrics | JSON |
 | `indrajaal/test/evolution/generations` | Generation count | Integer |
 | `indrajaal/test/evolution/coverage` | Coverage percent | Float |
-
-## Integration with TrainingGym
-
+# Integration with TrainingGym
 Every test generation records an episode:
-
 ```elixir
 TrainingGym.record_episode(%{
-  type: :test_generation,
-  model: model_name,
-  level: level,
-  success: success?,
-  fitness_delta: before_fitness - after_fitness,
-  tokens_used: token_count,
-  latency_ms: generation_time
+type: :test_generation,
+model: model_name,
+level: level,
+success: success?,
+fitness_delta: before_fitness - after_fitness,
+tokens_used: token_count,
+latency_ms: generation_time
 })
 ```
-
-## File Locations
-
+# File Locations
 ```
 lib/indrajaal/cockpit/prajna/
 ├── biomorphic_test_evolution.ex    # Main GenServer
 ├── smart_test_runner.ex            # Command testing
 └── test_evolution_config.ex        # Configuration
-
 lib/cepaf/src/Cepaf/Cockpit/
 ├── FractalTestRunner.fs            # F# OODA runner
 └── TestCockpit.fs                  # F# test cockpit
-
 test/
 ├── generated/                      # AI-generated tests
 │   ├── tdg/                        # Level 1 tests
@@ -231,30 +189,22 @@ test/
 │   ├── graph/                      # Level 4 tests
 │   └── bdd/                        # Level 5 tests
 └── evolution/
-    └── genome_snapshots/           # Genome history
+└── genome_snapshots/           # Genome history
 ```
-
-## Running Test Evolution
-
+# Running Test Evolution
 ```bash
 # Start evolution server
 mix test.evolution start
-
 # Generate tests for module
 mix test.evolution generate lib/indrajaal/accounts/user.ex
-
 # Run single OODA cycle
 mix test.evolution ooda
-
 # Check fitness status
 mix test.evolution status
-
 # Evolve current genome
 mix test.evolution evolve
 ```
-
-## FMEA for Evolution Failures
-
+# FMEA for Evolution Failures
 | Failure Mode | Severity | Occurrence | Detection | RPN | Mitigation |
 |--------------|----------|------------|-----------|-----|------------|
 | API rate limit | 6 | 4 | 8 | 192 | Exponential backoff |
@@ -262,9 +212,7 @@ mix test.evolution evolve
 | Model unavailable | 7 | 2 | 9 | 126 | Fallback to mock |
 | Token overflow | 4 | 3 | 7 | 84 | Chunk requests |
 | Diversity collapse | 6 | 3 | 5 | 90 | Diversity floor enforcement |
-
-## Constitutional Alignment
-
+# Constitutional Alignment
 Test evolution MUST respect:
 - **Ψ₀ (Existence)**: Tests ensure system survival
 - **Ψ₁ (Regeneration)**: Tests verify reproducibility

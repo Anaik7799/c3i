@@ -1,31 +1,24 @@
 ---
 paths:
-  - test/**/*.exs
-  - lib/indrajaal/testing/**/*.ex
-  - lib/indrajaal/boot/**/*.ex
-  - lib/cepaf/src/Cepaf/Mesh/*Publisher*.fs
-  - lib/cepaf/src/Cepaf/Mesh/*Checkpoint*.fs
+- test/**/*.exs
+- lib/indrajaal/testing/**/*.ex
+- lib/indrajaal/boot/**/*.ex
+- lib/cepaf/src/Cepaf/Mesh/*Publisher*.fs
+- lib/cepaf/src/Cepaf/Mesh/*Checkpoint*.fs
 ---
-
 # Zenoh Real-Time Test Messaging System (SC-ZTEST)
-
-## Overview
-
+# Overview
 This rule file governs the Zenoh pub/sub real-time test messaging system that replaces log-based verification with checkpoint-based messages for <100ms test feedback.
-
 **Version**: 3.0.0 | **Date**: 2026-04-04 | **Phase**: 9 (Gleam Test Observer Integration)
 **Compliance**: IEC 61508 SIL-6, ISO 27001 | **Fallback**: Log-based per SC-ZTEST-008
-
-## Extensions: Gleam Test Observer & OTel Integration (v3.0.0)
-
-### New Gleam Components
+# Extensions: Gleam Test Observer & OTel Integration (v3.0.0)
+# New Gleam Components
 - `testing/zenoh_test_observer.gleam` — Zenoh message verification during gleeunit tests
 - `ui/zenoh_otel.gleam` — OTel span publishing for all 15 UI pages over Zenoh
 - `testing/test_dashboard.gleam` — Real-time test tracking model
 - `ui/tui/split_screen.gleam` — Dashboard + test results split view
 - `scripts/run-split-screen-tests.sh` — 10-minute test cycle (381 tests)
-
-### New STAMP Constraints
+# New STAMP Constraints
 | ID | Constraint | Severity |
 |----|------------|----------|
 | SC-GLM-ZEN-001 | All UI state changes MUST publish OTel spans via zenoh_otel | CRITICAL |
@@ -33,24 +26,20 @@ This rule file governs the Zenoh pub/sub real-time test messaging system that re
 | SC-GLM-ZEN-003 | Split-screen TUI MUST display dashboard + test results simultaneously | HIGH |
 | SC-GLM-TST-001 | 100+ regression tests required per release | CRITICAL |
 | SC-GLM-TST-002 | Each tab monitored for 30+ seconds during verification | HIGH |
-
-### Test Metrics (Current)
+# Test Metrics (Current)
 - Total Tests: 1,559 passed, 0 failures
 - Shannon Entropy H: 2.67 bits (weighted mean, >= 2.5 threshold)
 - CCM: 0.770 (improving, target 0.90)
 - ITQS: 0.736 (improving, target 0.85)
 - Tab Coverage: 100% (15/15 tabs × 8 fractal layers)
-
-## Extensions: Gleam Test Observer & OTel Integration (v3.0.0)
-
-### New Gleam Components
+# Extensions: Gleam Test Observer & OTel Integration (v3.0.0)
+# New Gleam Components
 - `testing/zenoh_test_observer.gleam` — Zenoh message verification during gleeunit tests
 - `ui/zenoh_otel.gleam` — OTel span publishing for all 15 UI pages over Zenoh
 - `testing/test_dashboard.gleam` — Real-time test tracking model
 - `ui/tui/split_screen.gleam` — Dashboard + test results split view
 - `scripts/run-split-screen-tests.sh` — 10-minute test cycle (381 tests)
-
-### New STAMP Constraints
+# New STAMP Constraints
 | ID | Constraint | Severity |
 |----|------------|----------|
 | SC-GLM-ZEN-001 | All UI state changes MUST publish OTel spans via zenoh_otel | CRITICAL |
@@ -58,16 +47,13 @@ This rule file governs the Zenoh pub/sub real-time test messaging system that re
 | SC-GLM-ZEN-003 | Split-screen TUI MUST display dashboard + test results simultaneously | HIGH |
 | SC-GLM-TST-001 | 100+ regression tests required per release | CRITICAL |
 | SC-GLM-TST-002 | Each tab monitored for 30+ seconds during verification | HIGH |
-
-### Test Metrics (Current)
+# Test Metrics (Current)
 - Total Tests: 1,559 passed, 0 failures
 - Shannon Entropy H: 2.67 bits (weighted mean, >= 2.5 threshold)
 - CCM: 0.770 (improving, target 0.90)
 - ITQS: 0.736 (improving, target 0.85)
 - Tab Coverage: 100% (15/15 tabs × 8 fractal layers)
-
-## Architecture
-
+# Architecture
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                     ZENOH TEST MESSAGING ARCHITECTURE                        │
@@ -93,13 +79,9 @@ This rule file governs the Zenoh pub/sub real-time test messaging system that re
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
-
 ---
-
-## 1.0 STAMP Constraints (SC-ZTEST-001 to SC-ZTEST-020)
-
-### 1.1 Core Messaging Constraints
-
+# 1.0 STAMP Constraints (SC-ZTEST-001 to SC-ZTEST-020)
+# 1.1 Core Messaging Constraints
 | ID | Constraint | Severity | Layer | Verification | Mathematical Basis |
 |----|------------|----------|-------|--------------|-------------------|
 | SC-ZTEST-001 | All checkpoints MUST have unique topic | CRITICAL | L1 | Topic registry | $\forall c_i, c_j: topic(c_i) \neq topic(c_j)$ |
@@ -113,9 +95,7 @@ This rule file governs the Zenoh pub/sub real-time test messaging system that re
 | SC-ZTEST-009 | F# scripts MUST publish boot checkpoints | HIGH | L3 | Integration test | $\forall script_{F\#}: publishes(CP_{boot})$ |
 | SC-ZTEST-010 | Jidoka gates MUST publish pass/fail status | HIGH | L3 | Gate verification | $\forall gate: publishes(status)$ |
 | SC-ZTEST-011 | State vector changes MUST be published | HIGH | L3 | Event verification | $\Delta\vec{S} \implies publish(\vec{S}_{new})$ |
-
-### 1.2 Extended Constraints (Pass 1 Additions)
-
+# 1.2 Extended Constraints (Pass 1 Additions)
 | ID | Constraint | Severity | Layer | Verification | Mathematical Basis |
 |----|------------|----------|-------|--------------|-------------------|
 | SC-ZTEST-012 | Message ordering MUST be FIFO per topic | HIGH | L4 | Sequence test | $\forall t: order(m_i) < order(m_j) \iff ts(m_i) < ts(m_j)$ |
@@ -127,22 +107,15 @@ This rule file governs the Zenoh pub/sub real-time test messaging system that re
 | SC-ZTEST-018 | Subscriber timeout = 5 seconds | HIGH | L5 | Config validation | $T_{subscribe} = 5000ms$ |
 | SC-ZTEST-019 | Publisher retry count = 3 | MEDIUM | L1 | Config validation | $retry_{max} = 3$ |
 | SC-ZTEST-020 | Quorum messages require 2oo3 consensus | CRITICAL | L6 | Quorum test | $healthy \geq \lfloor N/2 \rfloor + 1$ |
-
 ---
-
-## 2.0 AOR Rules
+# 2.0 AOR Rules
 > AOR-ZTEST-001 to AOR-ZTEST-015 — defined in CLAUDE.md §9.0
 > Key: ZenohTestFormatter, async-only publishing, log fallback BEFORE Zenoh, state vector in boot, FIFO ordering, 2oo3 consensus
-
 ---
-
-## 3.0 Mathematical Foundations
-
-### 3.1 State Vector Algebra
-
+# 3.0 Mathematical Foundations
+# 3.1 State Vector Algebra
 **Definition**: The system state is represented by a 6-dimensional binary vector:
 $$\vec{S} = [s_1, s_2, s_3, s_4, s_5, s_6] \in \{0, 1, \_\}^6$$
-
 where:
 - $s_1$ = Compile status (Valid=1, Invalid=0, Pending=_)
 - $s_2$ = Migrations status
@@ -150,25 +123,17 @@ where:
 - $s_4$ = Zenoh status
 - $s_5$ = Health status
 - $s_6$ = Quorum status
-
 **Valid Startup Predicate**:
 $$ValidStartup(\vec{S}) \iff \prod_{i=1}^{6} s_i = 1$$
-
 **State Transition Function**:
 $$\sigma: \vec{S} \times \mathcal{E} \to \vec{S}$$
-
 where $\mathcal{E} = \{e_1, e_2, ..., e_n\}$ is the set of checkpoint events.
-
 **Monotonicity Theorem**:
 $$\forall i, t_1 < t_2: s_i(t_1) = 1 \implies s_i(t_2) = 1$$
-
-### 3.2 Latency Budget Algebra
-
+# 3.2 Latency Budget Algebra
 **Total E2E Latency Budget**: $L_{total} = 100ms$
-
 **Latency Composition**:
 $$L_{total} = L_{publish} + L_{route} + L_{subscribe} + L_{process} + L_{aggregate}$$
-
 **Budget Allocation**:
 | Component | Budget | Constraint |
 |-----------|--------|------------|
@@ -178,49 +143,35 @@ $$L_{total} = L_{publish} + L_{route} + L_{subscribe} + L_{process} + L_{aggrega
 | $L_{process}$ | 15ms | Message parsing |
 | $L_{aggregate}$ | 50ms | Aggregation window |
 | **Total** | **100ms** | SC-ZTEST-005 |
-
-### 3.3 Quorum Mathematics
-
+# 3.3 Quorum Mathematics
 **Quorum Size**:
 $$Q(N) = \lfloor N/2 \rfloor + 1$$
-
 **Availability Function**:
 $$A(N, f) = \begin{cases}
 1 & \text{if } N - f \geq Q(N) \\
 0 & \text{otherwise}
 \end{cases}$$
-
 **Probability of Quorum** (assuming independent failures):
 $$P(quorum) = \sum_{k=Q(N)}^{N} \binom{N}{k} p^k (1-p)^{N-k}$$
-
 For N=3, Q=2, p=0.99:
 $$P(quorum) = 0.999702$$
-
-### 3.4 Checkpoint DAG Formal Definition
-
+# 3.4 Checkpoint DAG Formal Definition
 **DAG Definition**:
 $$G = (V, E)$$
-
 where:
 - $V = \{CP\text{-}BOOT\text{-}01, ..., CP\text{-}BOOT\text{-}10\}$ (checkpoints)
 - $E \subseteq V \times V$ (dependencies)
-
 **Topological Order Existence**:
 $$\exists \tau: V \to \mathbb{N} \text{ such that } (u,v) \in E \implies \tau(u) < \tau(v)$$
-
 **Critical Path Length**:
 $$CPL = \max_{\pi \in Paths(G)} \sum_{v \in \pi} duration(v)$$
-
-### 3.5 FMEA Risk Priority Number
-
+# 3.5 FMEA Risk Priority Number
 **RPN Calculation**:
 $$RPN = S \times O \times D$$
-
 where:
 - $S$ = Severity (1-10)
 - $O$ = Occurrence probability (1-10)
 - $D$ = Detection difficulty (1-10)
-
 **Risk Classification**:
 $$Risk(RPN) = \begin{cases}
 \text{CRITICAL} & RPN > 200 \\
@@ -228,13 +179,9 @@ $$Risk(RPN) = \begin{cases}
 \text{MEDIUM} & 50 < RPN \leq 100 \\
 \text{LOW} & RPN \leq 50
 \end{cases}$$
-
 ---
-
-## 4.0 7-Level Fractal Constraint Mapping
-
-### 4.1 Layer-Constraint Matrix
-
+# 4.0 7-Level Fractal Constraint Mapping
+# 4.1 Layer-Constraint Matrix
 ```
 Layer    │ Primary SC-ZTEST │ Secondary │ Tertiary │
 ─────────┼──────────────────┼───────────┼──────────┤
@@ -246,9 +193,7 @@ L4-Container│ 012, 016         │ 018       │ -        │
 L5-Node     │ 005, 018         │ 012       │ -        │
 L6-Cluster  │ 020              │ 005       │ -        │
 ```
-
-### 4.2 Cross-Layer Interactions
-
+# 4.2 Cross-Layer Interactions
 | From Layer | To Layer | Interaction | Constraint |
 |------------|----------|-------------|------------|
 | L0→L1 | NIF→Publisher | Function call | SC-ZTEST-003 |
@@ -257,11 +202,8 @@ L6-Cluster  │ 020              │ 005       │ -        │
 | L3→L4 | StateMachine→Router | Message routing | SC-ZTEST-012 |
 | L4→L5 | Router→Orchestrator | Aggregation | SC-ZTEST-005 |
 | L5→L6 | Orchestrator→Quorum | Consensus | SC-ZTEST-020 |
-
 ---
-
-## 5.0 Boot Phase Checkpoints (CP-BOOT-*)
-
+# 5.0 Boot Phase Checkpoints (CP-BOOT-*)
 | Checkpoint | Topic | Trigger | State Vector Impact |
 |------------|-------|---------|---------------------|
 | CP-BOOT-01 | `indrajaal/boot/preflight/start` | Startup initiated | [0,0,0,0,0,0] |
@@ -274,11 +216,8 @@ L6-Cluster  │ 020              │ 005       │ -        │
 | CP-BOOT-08 | `indrajaal/boot/app/seed_ready` | Primary app healthy | [1,1,1,1,1,0] |
 | CP-BOOT-09 | `indrajaal/boot/homeostasis/verified` | All health checks pass | [1,1,1,1,1,1] |
 | CP-BOOT-10 | `indrajaal/boot/complete` | Full mesh operational | [1,1,1,1,1,1] |
-
 ---
-
-## 6.0 Test Checkpoints (CP-TEST-*)
-
+# 6.0 Test Checkpoints (CP-TEST-*)
 | Checkpoint | Topic | Trigger |
 |------------|-------|---------|
 | CP-TEST-01 | `indrajaal/test/suite/start` | ExUnit suite begins |
@@ -289,11 +228,8 @@ L6-Cluster  │ 020              │ 005       │ -        │
 | CP-TEST-06 | `indrajaal/test/module/{name}/complete` | Module tests done |
 | CP-TEST-07 | `indrajaal/test/suite/complete` | All tests finished |
 | CP-TEST-08 | `indrajaal/test/coverage/report` | Coverage generated |
-
 ---
-
-## 7.0 Smoke Test Checkpoints (CP-SMOKE-*)
-
+# 7.0 Smoke Test Checkpoints (CP-SMOKE-*)
 | Checkpoint | Topic | Trigger |
 |------------|-------|---------|
 | CP-SMOKE-01 | `indrajaal/smoke/batch/start` | Smoke batch begins |
@@ -304,90 +240,71 @@ L6-Cluster  │ 020              │ 005       │ -        │
 | CP-SMOKE-06 | `indrajaal/smoke/security/complete` | Security tests done |
 | CP-SMOKE-07 | `indrajaal/smoke/resilience/complete` | Resilience tests done |
 | CP-SMOKE-08 | `indrajaal/smoke/batch/complete` | All smoke tests done |
-
 ---
-
-## 8.0 Log-Based Fallback (SC-ZTEST-008)
-
-### 8.1 Fallback Format
-
+# 8.0 Log-Based Fallback (SC-ZTEST-008)
+# 8.1 Fallback Format
 When Zenoh is unavailable, all checkpoints MUST be written to structured logs:
-
 ```
 [ZTEST-CHECKPOINT] checkpoint={id} topic={topic} message={msg} state_vector={vec} timestamp={ts}
 ```
-
-### 8.2 Fallback Implementation Pattern
-
+# 8.2 Fallback Implementation Pattern
 ```elixir
 # Elixir pattern
 defp log_checkpoint_fallback(topic, message) do
-  checkpoint_id = Map.get(message, :checkpoint, "unknown")
-  type = Map.get(message, :type, "unknown")
-  Logger.info(
-    "[ZTEST-CHECKPOINT] topic=#{topic} checkpoint=#{checkpoint_id} type=#{type} payload=#{Jason.encode!(message)}",
-    domain: :zenoh_test
-  )
+checkpoint_id = Map.get(message, :checkpoint, "unknown")
+type = Map.get(message, :type, "unknown")
+Logger.info(
+"[ZTEST-CHECKPOINT] topic=#{topic} checkpoint=#{checkpoint_id} type=#{type} payload=#{Jason.encode!(message)}",
+domain: :zenoh_test
+)
 end
 ```
-
 ```fsharp
 // F# pattern
 let logCheckpointFallback (checkpointId: string) (topic: string) (message: string) (stateVectorStr: string) =
-    let timestamp = DateTimeOffset.UtcNow.ToString("o")
-    printfn "[ZTEST-CHECKPOINT] checkpoint=%s topic=%s message=%s state_vector=%s timestamp=%s"
-        checkpointId topic message stateVectorStr timestamp
+let timestamp = DateTimeOffset.UtcNow.ToString("o")
+printfn "[ZTEST-CHECKPOINT] checkpoint=%s topic=%s message=%s state_vector=%s timestamp=%s"
+checkpointId topic message stateVectorStr timestamp
 ```
-
-### 8.3 Fallback Parsing Regex
-
+# 8.3 Fallback Parsing Regex
 ```regex
 \[ZTEST-CHECKPOINT\] checkpoint=(?<checkpoint>[^\s]+) topic=(?<topic>[^\s]+) (?:message=(?<message>[^\s]+) )?(?:state_vector=(?<state_vector>\[[^\]]+\]) )?(?:type=(?<type>[^\s]+) )?(?:payload=(?<payload>\{.*\}) )?timestamp=(?<timestamp>[^\s]+)
 ```
-
-### 8.4 Dual-Write Strategy
-
+# 8.4 Dual-Write Strategy
 1. **ALWAYS** write to log first (guaranteed durability)
 2. **THEN** attempt Zenoh publish (best-effort real-time)
 3. **ON FAILURE** Zenoh publish already has log backup
-
 ---
-
-## 9.0 TDG Generators
+# 9.0 TDG Generators
 > Dual property tests (PC. + SD.) mandatory — see CLAUDE.md §7.0, EP-GEN-014
-
 ```elixir
 # Generator for checkpoint IDs
 def checkpoint_id_gen do
-  SD.bind(SD.member_of(["BOOT", "TEST", "SMOKE"]), fn domain ->
-    SD.bind(SD.integer(1..99), fn num ->
-      "CP-#{domain}-#{String.pad_leading(to_string(num), 2, "0")}"
-    end)
-  end)
+SD.bind(SD.member_of(["BOOT", "TEST", "SMOKE"]), fn domain ->
+SD.bind(SD.integer(1..99), fn num ->
+"CP-#{domain}-#{String.pad_leading(to_string(num), 2, "0")}"
+end)
+end)
 end
-
 # Generator for state vectors
 def state_vector_gen do
-  SD.fixed_list([
-    SD.member_of([0, 1]),  # Compile
-    SD.member_of([0, 1]),  # Migrations
-    SD.member_of([0, 1]),  # Containers
-    SD.member_of([0, 1]),  # Zenoh
-    SD.member_of([0, 1]),  # Health
-    SD.member_of([0, 1])   # Quorum
-  ])
+SD.fixed_list([
+SD.member_of([0, 1]),  # Compile
+SD.member_of([0, 1]),  # Migrations
+SD.member_of([0, 1]),  # Containers
+SD.member_of([0, 1]),  # Zenoh
+SD.member_of([0, 1]),  # Health
+SD.member_of([0, 1])   # Quorum
+])
 end
-
 # Generator for topics
 def topic_gen do
-  SD.bind(SD.list_of(SD.string(:alphanumeric, min_length: 1, max_length: 20), min_length: 2, max_length: 6), fn parts ->
-    "indrajaal/" <> Enum.join(parts, "/")
-  end)
+SD.bind(SD.list_of(SD.string(:alphanumeric, min_length: 1, max_length: 20), min_length: 2, max_length: 6), fn parts ->
+"indrajaal/" <> Enum.join(parts, "/")
+end)
 end
 ```
-
-### 9.2 Property Specifications
-
+# 9.2 Property Specifications
 | Property ID | Description | Generator | Constraint |
 |-------------|-------------|-----------|------------|
 | TDG-ZTEST-001 | Checkpoint ID uniqueness | checkpoint_id_gen | SC-ZTEST-001 |
@@ -398,11 +315,8 @@ end
 | TDG-ZTEST-006 | Latency < 10ms | timing_gen | SC-ZTEST-003 |
 | TDG-ZTEST-007 | FIFO ordering | sequence_gen | SC-ZTEST-012 |
 | TDG-ZTEST-008 | Quorum consensus | quorum_gen | SC-ZTEST-020 |
-
 ---
-
-## 10.0 FMEA Risk Analysis (Extended)
-
+# 10.0 FMEA Risk Analysis (Extended)
 | ID | Failure Mode | Severity | Occurrence | Detection | RPN | Mitigation | Constraint |
 |----|--------------|----------|------------|-----------|-----|------------|------------|
 | FMEA-ZTEST-001 | Zenoh unavailable | 7 | 3 | 8 | 168 | Log fallback | SC-ZTEST-008 |
@@ -415,11 +329,8 @@ end
 | FMEA-ZTEST-008 | FIFO violation | 6 | 2 | 4 | 48 | Sequencing | SC-ZTEST-012 |
 | FMEA-ZTEST-009 | Quorum lost | 9 | 2 | 3 | 54 | 2oo3 voting | SC-ZTEST-020 |
 | FMEA-ZTEST-010 | Log fallback unreadable | 5 | 2 | 4 | 40 | Regex test | AOR-ZTEST-013 |
-
 ---
-
-## 11.0 Topic Hierarchy
-
+# 11.0 Topic Hierarchy
 ```
 indrajaal/
 ├── boot/
@@ -448,110 +359,85 @@ indrajaal/
 │   └── summary
 │
 └── orchestrator/
-    ├── status
-    ├── aggregate
-    └── alerts
+├── status
+├── aggregate
+└── alerts
 ```
-
 ---
-
-## 12.0 Message Schemas
-
-### 12.1 Boot Checkpoint Message
-
+# 12.0 Message Schemas
+# 12.1 Boot Checkpoint Message
 ```json
 {
-  "checkpoint": "CP-BOOT-01",
-  "topic": "indrajaal/boot/preflight/start",
-  "message": "Comprehensive SIL-6 startup initiated",
-  "state_vector": "[0,0,0,0,0,0]",
-  "timestamp": "2026-01-18T12:00:00.000Z",
-  "schema_version": "2.0.0"
+"checkpoint": "CP-BOOT-01",
+"topic": "indrajaal/boot/preflight/start",
+"message": "Comprehensive SIL-6 startup initiated",
+"state_vector": "[0,0,0,0,0,0]",
+"timestamp": "2026-01-18T12:00:00.000Z",
+"schema_version": "2.0.0"
 }
 ```
-
-### 12.2 Test Result Message
-
+# 12.2 Test Result Message
 ```json
 {
-  "type": "test_passed",
-  "checkpoint": "CP-TEST-TX-02",
-  "test_id": "uuid",
-  "module": "Indrajaal.MyModuleTest",
-  "name": "test description",
-  "duration_us": 1234,
-  "assertions": 5,
-  "timestamp": "2026-01-18T12:00:01.234Z"
+"type": "test_passed",
+"checkpoint": "CP-TEST-TX-02",
+"test_id": "uuid",
+"module": "Indrajaal.MyModuleTest",
+"name": "test description",
+"duration_us": 1234,
+"assertions": 5,
+"timestamp": "2026-01-18T12:00:01.234Z"
 }
 ```
-
-### 12.3 Failure Context Message (SC-ZTEST-007)
-
+# 12.3 Failure Context Message (SC-ZTEST-007)
 ```json
 {
-  "type": "test_failed",
-  "checkpoint": "CP-TEST-TX-03",
-  "test_id": "uuid",
-  "duration_us": 5678,
-  "failure": {
-    "type": "assertion",
-    "message": "Expected true, got false",
-    "left": "actual_value",
-    "right": "expected_value",
-    "stacktrace": ["file:line", "..."]
-  },
-  "timestamp": "2026-01-18T12:00:05.678Z"
+"type": "test_failed",
+"checkpoint": "CP-TEST-TX-03",
+"test_id": "uuid",
+"duration_us": 5678,
+"failure": {
+"type": "assertion",
+"message": "Expected true, got false",
+"left": "actual_value",
+"right": "expected_value",
+"stacktrace": ["file:line", "..."]
+},
+"timestamp": "2026-01-18T12:00:05.678Z"
 }
 ```
-
 ---
-
-## 13.0 Implementation Files
-
-### 13.1 Elixir Modules
-
+# 13.0 Implementation Files
+# 13.1 Elixir Modules
 | File | Purpose | STAMP |
 |------|---------|-------|
 | `lib/indrajaal/testing/zenoh_test_formatter.ex` | ExUnit formatter | SC-ZTEST-001,002,004,008 |
 | `lib/indrajaal/testing/zenoh_test_orchestrator.ex` | Central aggregator | SC-ZTEST-005 |
 | `lib/indrajaal/boot/zenoh_boot_publisher.ex` | Boot publisher | SC-ZTEST-006,009 |
 | `lib/indrajaal/testing/checkpoint_messages.ex` | Message schemas | SC-ZTEST-002,007 |
-
-### 13.2 F# Modules
-
+# 13.2 F# Modules
 | File | Purpose | STAMP |
 |------|---------|-------|
 | `lib/cepaf/scripts/EnhancedSwarmOrchestrator.fsx` | Swarm integration | SC-ZTEST-008,009,010 |
 | `lib/cepaf/scripts/ComprehensiveStartupOrchestrator.fsx` | Jidoka integration | SC-ZTEST-008,009,010 |
-
 ---
-
-## 14.0 Verification Commands
-
+# 14.0 Verification Commands
 ```bash
 # Subscribe to all boot checkpoints
 zenoh-boot-sub     # devenv command
-
 # Subscribe to all test checkpoints
 zenoh-test-sub     # devenv command
-
 # Subscribe to all smoke checkpoints
 zenoh-smoke-sub    # devenv command
-
 # Subscribe to all checkpoints
 zenoh-all-sub      # devenv command
-
 # Run tests with Zenoh orchestration
 test-orchestrate   # devenv command
-
 # Verify fallback log parsing
 grep '\[ZTEST-CHECKPOINT\]' logs/*.log | head -10
 ```
-
 ---
-
-## 15.0 Success Criteria
-
+# 15.0 Success Criteria
 | Metric | Target | Verification |
 |--------|--------|--------------|
 | Checkpoint coverage | 100% | All 26 checkpoints have topics |
@@ -561,11 +447,8 @@ grep '\[ZTEST-CHECKPOINT\]' logs/*.log | head -10
 | Dashboard updates | Real-time | Visual verification |
 | State vector sync | Every change | Event verification |
 | Fallback parseable | 100% | Regex validation |
-
 ---
-
-## 16.0 Integration with Existing Constraints
-
+# 16.0 Integration with Existing Constraints
 This rule integrates with:
 - **SC-ZENOH-001**: Zenoh NIF must be loaded (SKIP_ZENOH_NIF=0)
 - **SC-ZENOH-002**: Zenoh router reachable from all app nodes
@@ -574,22 +457,16 @@ This rule integrates with:
 - **SC-OBS-069**: Dual Log (Term+Zenoh)
 - **SC-SIL6-001**: Mesh boot 5 stages
 - **SC-SIL6-006**: 2oo3 voting MANDATORY
-
 ---
-
-## 17.0 DAG Dependency Rules
-
-### 17.1 Boot Checkpoint DAG
-
+# 17.0 DAG Dependency Rules
+# 17.1 Boot Checkpoint DAG
 ```
 CP-BOOT-01 → CP-BOOT-02 → CP-BOOT-03 → CP-BOOT-05 → CP-BOOT-08 → CP-BOOT-09 → CP-BOOT-10
-                       ↘                 ↗
-                         CP-BOOT-04 ────┘
-                         CP-BOOT-06 → CP-BOOT-07 ↗
+↘                 ↗
+CP-BOOT-04 ────┘
+CP-BOOT-06 → CP-BOOT-07 ↗
 ```
-
-### 17.2 DAG Constraints
-
+# 17.2 DAG Constraints
 | ID | Constraint | Mathematical Form |
 |----|------------|-------------------|
 | DAG-ZTEST-001 | Acyclic dependency graph | $\nexists$ cycle in $G$ |
@@ -597,31 +474,24 @@ CP-BOOT-01 → CP-BOOT-02 → CP-BOOT-03 → CP-BOOT-05 → CP-BOOT-08 → CP-BO
 | DAG-ZTEST-003 | Single sink (CP-BOOT-10) | $|sinks(G)| = 1$ |
 | DAG-ZTEST-004 | Critical path ≤ 7 hops | $CPL(G) \leq 7$ |
 | DAG-ZTEST-005 | Parallel factor ≥ 2 | $width(G) \geq 2$ |
-
 ---
-
-## 18.0 Revision History
-
+# 18.0 Revision History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-01-18 | Claude Opus 4.5 | Initial creation |
 | 2.0.0 | 2026-01-18 | Claude Opus 4.5 | Pass 1: Extended STAMP (012-020), Math foundations, TDG, FMEA, DAG rules |
 | 2.0.0 | 2026-01-18 | Claude Opus 4.5 | Pass 2: Comprehensive FMEA (20 failure modes), extended AOR rules (001-015) |
 | 2.0.0 | 2026-01-18 | Claude Opus 4.5 | Pass 3: Log-based fallback verification, dual-write strategy, verification procedures |
-
 ---
-
-## 19.0 Specification Documents
-
-### 19.1 Primary Specifications
+# 19.0 Specification Documents
+# 19.1 Primary Specifications
 | Document | Purpose | Location |
 |----------|---------|----------|
 | ZENOH_TEST_MESSAGING_COMPREHENSIVE.md | Complete 7x7 architecture spec | `docs/architecture/` |
 | ZENOH_TEST_MESSAGING_STAMP_COMPLETE.md | Extended STAMP constraints | `docs/specifications/` |
 | ZENOH_TEST_MESSAGING_FMEA_DAG.md | FMEA (20 failure modes) and DAG specs | `docs/specifications/` |
 | ZENOH_TEST_MESSAGING_FALLBACK_VERIFICATION.md | Log-based fallback verification | `docs/specifications/` |
-
-### 19.2 Key Standards
+# 19.2 Key Standards
 - IEC 61508 (SIL-6 Extended)
 - ISO 8601 (Timestamp format)
 - Zenoh Protocol Specification

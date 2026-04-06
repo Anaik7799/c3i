@@ -1,24 +1,19 @@
 ---
 paths:
-  - lib/cepaf/**/*.fs
-  - lib/cepaf/**/*.fsproj
-  - lib/cepaf/artifacts/**/*.yml
-  - lib/cepaf/scripts/**/*.fsx
+- lib/cepaf/**/*.fs
+- lib/cepaf/**/*.fsproj
+- lib/cepaf/artifacts/**/*.yml
+- lib/cepaf/scripts/**/*.fsx
 ---
-
 # F# SIL-6 Mesh Orchestration Rules
-
-## Overview
+# Overview
 This rule file governs all F# SIL-6 mesh operations including swarming, observability, cortex integration, and multiverse capabilities.
-
-## Cross-Cutting Constraint References
+# Cross-Cutting Constraint References
 > SC-NET-001/002, AOR-NET-001: All F# projects MUST target net10.0 — see CLAUDE.md §13.0
 > SC-FFI-001/002: F# Zenoh FFI tests MUST set LD_LIBRARY_PATH, ZENOH_USE_NATIVE=true — see CLAUDE.md §13.0
 > SC-CEP-005: All F# orchestration MUST be pre-compiled (no .fsx in production) — see CLAUDE.md §13.0
 > SC-DBNAME-001 to SC-DBNAME-010: UHI database naming for cross-holon references — see CLAUDE.md §5.0
-
-## STAMP Constraints (F# Mesh)
-
+# STAMP Constraints (F# Mesh)
 | ID | Constraint | Severity |
 |----|------------|----------|
 | SC-MESH-001 | SIL6MeshOrchestrator.fsx is unified entry point | CRITICAL |
@@ -32,13 +27,10 @@ This rule file governs all F# SIL-6 mesh operations including swarming, observab
 | SC-MESH-009 | All state changes logged to telemetry | MEDIUM |
 | SC-MESH-010 | Graceful degradation before failure | HIGH |
 | SC-MESH-011 | Health checks MUST verify Biological Pulse (Zenoh pub/sub) | CRITICAL |
-
-## AOR Rules
+# AOR Rules
 > AOR-MESH-001 to AOR-MESH-010 — defined in CLAUDE.md §9.0
 > Key: Use `sa-up` for mesh ops, checkpoint before shutdown, 2oo3 consensus, FPPS validation, Digital Twin authoritative
-
-## Boot Sequence Stages
-
+# Boot Sequence Stages
 ```
 S0_PREFLIGHT    →  Environment validation, port scouring, cleanup
 S1_INFRASTRUCTURE →  DB + Observability containers
@@ -46,9 +38,7 @@ S2_ZENOH_MESH   →  Zenoh router + control plane
 S3_APP_SEED     →  Application seed node with health wait
 S4_HOMEOSTASIS  →  Health check, quorum, Cortex verification
 ```
-
-## Available Commands
-
+# Available Commands
 | Command | Description |
 |---------|-------------|
 | `sa-mesh boot` | Full SIL-6 biomorphic mesh boot sequence |
@@ -65,23 +55,19 @@ S4_HOMEOSTASIS  →  Health check, quorum, Cortex verification
 | `sa-checkpoint [name]` | Create state checkpoint |
 | `sa-restore [name]` | Restore from checkpoint |
 | `sa-fork [name]` | Fork shadow universe for testing |
-
-## Digital Twin State
-
+# Digital Twin State
 ```fsharp
 type DigitalTwin = {
-    Holons: Dictionary<string, HolonState>    // Node states
-    FractalState: Map<FractalLayer, bool>     // L0-L7 verification
-    GlobalHealth: float                        // 0-100%
-    QuorumStatus: QuorumStatus                 // Achieved/NotAchieved
-    ZenohMeshActive: bool                      // All nodes connected
-    CortexConnected: bool                      // F#/Elixir bridge
-    ObservabilityActive: bool                  // Full stack running
+Holons: Dictionary<string, HolonState>    // Node states
+FractalState: Map<FractalLayer, bool>     // L0-L7 verification
+GlobalHealth: float                        // 0-100%
+QuorumStatus: QuorumStatus                 // Achieved/NotAchieved
+ZenohMeshActive: bool                      // All nodes connected
+CortexConnected: bool                      // F#/Elixir bridge
+ObservabilityActive: bool                  // Full stack running
 }
 ```
-
-## Fractal Layers
-
+# Fractal Layers
 | Layer | Description | Verified By |
 |-------|-------------|-------------|
 | L0_Runtime | System compiles and boots | S0_PREFLIGHT |
@@ -92,9 +78,7 @@ type DigitalTwin = {
 | L5_Node | Runtime stable | S3_APP_SEED |
 | L6_Cluster | Consensus holds | S4_HOMEOSTASIS |
 | L7_Federation | Global invariants | S4_HOMEOSTASIS |
-
-## Observability Stack
-
+# Observability Stack
 | Component | Port | Purpose |
 |-----------|------|---------|
 | OTEL Collector | 4317, 4318 | Telemetry ingestion |
@@ -102,33 +86,24 @@ type DigitalTwin = {
 | Grafana | 3000 | Visualization |
 | Loki | 3100 | Log aggregation |
 | Zenoh Router | 7447 | Real-time pub/sub |
-
-## Change Control Workflow
-
+# Change Control Workflow
 ```
 1. Create checkpoint before risky operation
-   $ sa-checkpoint pre-upgrade
-
+$ sa-checkpoint pre-upgrade
 2. Perform operation
-   $ sa-mesh down && sa-mesh boot
-
+$ sa-mesh down && sa-mesh boot
 3. On failure, restore checkpoint
-   $ sa-restore pre-upgrade-20260110-123456
-
+$ sa-restore pre-upgrade-20260110-123456
 4. For testing, fork shadow universe
-   $ sa-fork experiment-1
+$ sa-fork experiment-1
 ```
-
-## Multiverse Capability
-
+# Multiverse Capability
 Shadow universes allow isolated testing:
 - Fork from any checkpoint
 - Isolated container instances
 - No impact on production state
 - Requires Guardian approval per SC-UCR-011
-
-## 5-Order Effects (Mesh Boot)
-
+# 5-Order Effects (Mesh Boot)
 | Order | Effect |
 |-------|--------|
 | 1st | Containers start, ports bound |
@@ -136,25 +111,18 @@ Shadow universes allow isolated testing:
 | 3rd | Quorum achieved, cluster consensus |
 | 4th | Services available, tests runnable |
 | 5th | GA deployable, production ready |
-
-## Integration Points
-
-### Elixir Backend
+# Integration Points
+# Elixir Backend
 - Health endpoint: `http://localhost:4000/api/health`
 - Guardian API: `http://localhost:4000/api/prajna/guardian/*`
 - Sentinel API: `http://localhost:4000/api/prajna/sentinel/*`
-
-### Zenoh Telemetry
+# Zenoh Telemetry
 - Health topic: `indrajaal/mesh/health`
 - Metrics topic: `indrajaal/container/{name}/metrics`
 - Control topic: `indrajaal/mesh/control`
-
-## Zenoh Container Agents (SC-ZENOH-010 to SC-ZENOH-015)
-
+# Zenoh Container Agents (SC-ZENOH-010 to SC-ZENOH-015)
 Each container has a Zenoh agent that publishes state and accepts control commands.
-
-### Topic Patterns
-
+# Topic Patterns
 | Topic Pattern | Purpose |
 |---------------|---------|
 | `indrajaal/container/{name}/health` | Container health status (JSON) |
@@ -162,25 +130,21 @@ Each container has a Zenoh agent that publishes state and accepts control comman
 | `indrajaal/container/{name}/control` | Control commands (published on execution) |
 | `indrajaal/container/{name}/state` | Full container state snapshot |
 | `indrajaal/container/{name}/alerts` | Alert notifications |
-
-### Container State Model
-
+# Container State Model
 ```fsharp
 type ContainerState = {
-    Name: string        // Container name
-    Status: string      // running, stopped, paused
-    Health: string      // healthy, unhealthy, starting
-    Uptime: string      // Duration since start
-    CpuPercent: float   // CPU usage percentage
-    MemoryMB: int       // Memory usage in MB
-    NetworkRx: int64    // Network bytes received
-    NetworkTx: int64    // Network bytes transmitted
-    LastCheck: DateTime // Last health check time
+Name: string        // Container name
+Status: string      // running, stopped, paused
+Health: string      // healthy, unhealthy, starting
+Uptime: string      // Duration since start
+CpuPercent: float   // CPU usage percentage
+MemoryMB: int       // Memory usage in MB
+NetworkRx: int64    // Network bytes received
+NetworkTx: int64    // Network bytes transmitted
+LastCheck: DateTime // Last health check time
 }
 ```
-
-### Control Commands
-
+# Control Commands
 | Command | Description |
 |---------|-------------|
 | `Start` | Start container |
@@ -191,24 +155,18 @@ type ContainerState = {
 | `HealthCheck` | Trigger health check and publish status |
 | `GetMetrics` | Publish current metrics |
 | `GetState` | Publish full state snapshot |
-
-### Usage Examples
-
+# Usage Examples
 ```bash
 # Monitor all containers
 sa-agents
-
 # Control specific container
 sa-control indrajaal-db-prod health
 sa-control indrajaal-ex-app-1 restart
 sa-control indrajaal-obs-prod metrics
-
 # Test Zenoh agents
 sa-test-agents
 ```
-
-### STAMP Constraints (Zenoh Agents)
-
+# STAMP Constraints (Zenoh Agents)
 | ID | Constraint | Severity |
 |----|------------|----------|
 | SC-ZENOH-010 | Container agents publish health every 30s | HIGH |
@@ -217,22 +175,16 @@ sa-test-agents
 | SC-ZENOH-013 | Metrics include CPU, memory, network | MEDIUM |
 | SC-ZENOH-014 | State snapshots include full container info | MEDIUM |
 | SC-ZENOH-015 | All agent operations are non-blocking | HIGH |
-
-## Error Handling
-
+# Error Handling
 ```
 Boot failure → Rollback to previous state
 Zenoh disconnect → Retry with exponential backoff
 Health degradation → Alert, graceful degradation
 Quorum lost → Apoptosis trigger condition
 ```
-
-## Smoke Test Zenoh Messaging (SC-ZTEST-*)
-
+# Smoke Test Zenoh Messaging (SC-ZTEST-*)
 The `SmokeTestPublisher.fs` module provides Zenoh checkpoint messaging for smoke tests, replacing log-based verification with <100ms real-time feedback.
-
-### Checkpoint IDs
-
+# Checkpoint IDs
 | Checkpoint | ID | Description |
 |------------|-----|-------------|
 | Batch Start | CP-SMOKE-01 | Smoke test batch starting |
@@ -243,9 +195,7 @@ The `SmokeTestPublisher.fs` module provides Zenoh checkpoint messaging for smoke
 | Security Complete | CP-SMOKE-06 | Security validation tests complete |
 | Resilience Complete | CP-SMOKE-07 | Resilience tests complete |
 | All Complete | CP-SMOKE-08 | All smoke tests finished |
-
-### Topic Patterns
-
+# Topic Patterns
 ```
 indrajaal/smoke/
 ├── batch/{batchId}/start      # Batch starting
@@ -256,9 +206,7 @@ indrajaal/smoke/
 ├── test/{testId}/result       # Individual test result
 └── summary                    # Overall summary
 ```
-
-### STAMP Constraints (Smoke Test Messaging)
-
+# STAMP Constraints (Smoke Test Messaging)
 | ID | Constraint | Severity |
 |----|------------|----------|
 | SC-ZTEST-001 | All checkpoints MUST have unique topic | CRITICAL |
@@ -269,9 +217,7 @@ indrajaal/smoke/
 | SC-ZTEST-006 | Boot checkpoints MUST include state vector | HIGH |
 | SC-ZTEST-007 | Test failures MUST include full context (evidence + details) | HIGH |
 | SC-ZTEST-008 | No log parsing for test results - pure Zenoh pub/sub | CRITICAL |
-
-### AOR Rules (Smoke Test Publishing)
-
+# AOR Rules (Smoke Test Publishing)
 | ID | Rule |
 |----|------|
 | AOR-ZTEST-001 | Use SmokeTestOrchestrator.createState() to initialize test batch |
@@ -279,29 +225,22 @@ indrajaal/smoke/
 | AOR-ZTEST-003 | Publish completion message via Zenoh at batch end |
 | AOR-ZTEST-004 | Include evidence list in all test results |
 | AOR-ZTEST-005 | Use printSummary() for console output |
-
-### Usage Pattern
-
+# Usage Pattern
 ```fsharp
 open Cepaf.Mesh
-
 // Initialize
 let state = SmokeTestOrchestrator.createState "indrajaal-ex-app-1"
-
 // Record results
 let result = SmokeTestPublisher.createTestResult
-    "API-001" API P0_Critical Passed 45L
-    "HTTP 200 OK" ["HTTP 200"; "JSON valid"] None
+"API-001" API P0_Critical Passed 45L
+"HTTP 200 OK" ["HTTP 200"; "JSON valid"] None
 SmokeTestOrchestrator.recordResult state result
-
 // Completion
 let summary = SmokeTestOrchestrator.getCompletionMessage state
 // Publish to: indrajaal/smoke/batch/{batchId}/complete
 SmokeTestOrchestrator.printSummary state
 ```
-
-## Related Documents
-
+# Related Documents
 - `lib/cepaf/scripts/SIL6MeshOrchestrator.fsx` - Main orchestrator
 - `lib/cepaf/src/Cepaf/Mesh/*.fs` - Core mesh modules
 - `lib/cepaf/src/Cepaf/Mesh/SmokeTestPublisher.fs` - Smoke test Zenoh publisher

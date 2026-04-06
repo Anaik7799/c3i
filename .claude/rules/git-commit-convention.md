@@ -1,1 +1,0 @@
-<!-- Consolidated into git-and-workflow.md §1 -->
