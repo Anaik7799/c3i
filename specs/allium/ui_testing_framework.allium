@@ -29,6 +29,11 @@ rule EnforceEndToEndTestBehavior {
     @guarantee FullCoverageMatrix
         -- Every node in the navigation graph (all 30 pages) and every
         -- interaction edge is tested in a fully wired state.
+
+    @guarantee RatatuiParity
+        -- Every visual component and dashboard view currently existing in the
+        -- Rust Ratatui TUI must be replicated within the Gleam Lustre framework.
+        -- Functional fidelity must be equal or superior to the terminal console.
 }
 
 -- ---------------------------------------------------------------------------
