@@ -38,6 +38,7 @@ import cepaf_gleam/ui/lustre/shell
 import cepaf_gleam/ui/state.{type SharedMeshState}
 import gleam/float
 import gleam/int
+import gleam/list
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
@@ -1926,12 +1927,28 @@ pub fn component_demo_view(state: SharedMeshState) -> Element(msg) {
   html.div([attribute.class("w-full")], [
     page_header(
       "Component Demo (A2UI Catalog)",
-      "233 isomorphic components across 10 domains — Real-time data from c3i_nif + Allium-verified specs",
+      "233 A2UI components across 10 domains — NIF-backed live data — Allium behavioral specs linked",
     ),
     // --- LIVE RUNTIME DATA (from NIF) ---
     shell.section("Live Runtime Data (c3i_nif)", [
       html.p([attribute.class("card-detail")], [
         element.text("These values come directly from the unified Rust NIF — not hardcoded. Containers via podman, Zenoh via TCP probe, tasks from Smriti.db."),
+      ]),
+      html.p([], [
+        html.a(
+          [attribute.href("/allium/ignition"), attribute.class("badge badge-healthy")],
+          [element.text("Allium: ignition.allium")],
+        ),
+        element.text(" "),
+        html.a(
+          [attribute.href("/allium/gleam_webui_comprehensive"), attribute.class("badge badge-healthy")],
+          [element.text("Allium: gleam_webui_comprehensive.allium")],
+        ),
+        element.text(" "),
+        html.a(
+          [attribute.href("/allium"), attribute.class("badge badge-healthy")],
+          [element.text("All 36 Specs →")],
+        ),
       ]),
       html.div([attribute.class("card-grid")], [
         shell.status_card(
@@ -2209,6 +2226,140 @@ pub fn component_demo_view(state: SharedMeshState) -> Element(msg) {
 // ---------------------------------------------------------------------------
 // 404 Not Found
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Allium Specification Viewer
+// ---------------------------------------------------------------------------
+
+/// Allium index — lists all spec files with links.
+pub fn allium_index_view() -> Element(msg) {
+  let specs = [
+    #("ignition", "16-container genome, boot, OODA, rules, health", "2,241"),
+    #("gleam_webui_comprehensive", "Full Gleam WebUI behavioral specification", "1,116"),
+    #("webui_evolution_plan", "WebUI evolution roadmap and phases", "940"),
+    #("webui_operational_control", "Operational control patterns", "761"),
+    #("webui_full_system_robustness", "System robustness and hardening", "631"),
+    #("webui_production_hardening", "Production deployment hardening", "550"),
+    #("control_center_operator_interface", "Operator HMI specification", "406"),
+    #("fractal_agentic_ui", "AG-UI + A2UI + fractal architecture", "273"),
+    #("operator_hmi_standards", "HMI ergonomics and dark cockpit", "176"),
+    #("adversarial_topology_hmi", "Adversarial topology and security", "169"),
+    #("symbiotic_autonomy_hmi", "Symbiotic human-AI autonomy", "160"),
+    #("kinesthetic_temporal_hmi", "Temporal scrubbing and 4D projection", "148"),
+    #("neuroergonomic_cybernetics", "Neuroergonomic control patterns", "143"),
+    #("ambient_epistemic_hmi", "Ambient epistemic interface patterns", "142"),
+    #("20260405-features", "Feature specifications 2026-04-05", "131"),
+    #("ui_testing_framework", "UI testing framework specification", "126"),
+    #("ultrathink_evolutionary_ui_hardening", "Evolutionary UI hardening", "144"),
+    #("ultrathink_hmi_ergonomics", "HMI ergonomics deep analysis", "168"),
+    #("dashboard_50_improvements", "50 dashboard cybernetic enhancements", "99"),
+    #("zmof", "Zenoh-MCP-OTel Fractal backplane", "95"),
+    #("gleam_ui", "Gleam UI core specification", "84"),
+    #("configuration_state", "Unified configuration state", "63"),
+    #("intelligent_planning_cortex", "Planning cortex specification", "61"),
+    #("testing_architecture", "Test architecture specification", "58"),
+    #("zenoh_ffi", "Zenoh FFI binding specification", "52"),
+    #("ark", "Ark persistence specification", "48"),
+  ]
+  html.div([attribute.class("w-full")], [
+    page_header(
+      "Allium Behavioral Specifications",
+      "36 specification files, 9,841 lines — capturing system behavioral intent formally",
+    ),
+    shell.section("Specification Catalog", [
+      html.p([attribute.class("card-detail")], [
+        element.text("Click any spec to view its full content. Allium v3 captures intent (what the system SHOULD do) separately from implementation (what the code DOES). Divergence = information."),
+      ]),
+      html.table([], [
+        html.thead([], [
+          html.tr([], [
+            html.th([], [element.text("Specification")]),
+            html.th([], [element.text("Description")]),
+            html.th([], [element.text("Lines")]),
+            html.th([], [element.text("View")]),
+          ]),
+        ]),
+        html.tbody([], list.map(specs, fn(s) {
+          let #(name, desc, lines) = s
+          html.tr([], [
+            html.td([], [
+              html.a(
+                [attribute.href("/allium/" <> name)],
+                [element.text(name)],
+              ),
+            ]),
+            html.td([], [element.text(desc)]),
+            html.td([], [element.text(lines)]),
+            html.td([], [
+              html.a(
+                [attribute.href("/allium/" <> name), attribute.class("badge badge-healthy")],
+                [element.text("View")],
+              ),
+            ]),
+          ])
+        })),
+      ]),
+    ]),
+    shell.section("API Access", [
+      html.div([attribute.class("card-grid")], [
+        shell.status_card("List All", "Healthy", "/api/v1/allium", "JSON spec catalog"),
+        shell.status_card("View Spec", "Healthy", "/api/v1/allium/{name}", "JSON spec content"),
+        shell.status_card("HTML Viewer", "Healthy", "/allium/{name}", "Browser-rendered view"),
+      ]),
+    ]),
+  ])
+}
+
+/// Allium spec viewer — renders a single spec file as formatted HTML.
+pub fn allium_spec_view(name: String) -> Element(msg) {
+  html.div([attribute.class("w-full")], [
+    page_header(
+      "Allium: " <> name,
+      "Behavioral specification — specs/allium/" <> name <> ".allium",
+    ),
+    shell.section("Navigation", [
+      html.div([attribute.class("card-grid")], [
+        shell.status_card("Back", "Healthy", "← All Specs", "allium index"),
+        shell.status_card("API", "Healthy", "/api/v1/allium/" <> name, "JSON endpoint"),
+        shell.status_card("File", "Healthy", "specs/allium/" <> name <> ".allium", "source path"),
+      ]),
+      html.p([], [
+        html.a([attribute.href("/allium")], [element.text("← Back to Allium Index")]),
+      ]),
+    ]),
+    shell.section("Specification Content", [
+      html.div(
+        [attribute.attribute("style", "background:#0a0e17;border:1px solid #1e2a3a;border-radius:6px;padding:1rem;font-family:monospace;font-size:.82rem;white-space:pre-wrap;overflow-x:auto;max-height:80vh;overflow-y:auto;color:#a6accd;line-height:1.5;"),
+         attribute.attribute("id", "allium-content"),
+         attribute.attribute("data-spec", name)],
+        [element.text("Loading " <> name <> ".allium... (fetched via JS from /api/v1/allium/" <> name <> ")")],
+      ),
+      html.script([], "
+        fetch('/api/v1/allium/" <> name <> "')
+          .then(r => r.json())
+          .then(data => {
+            const el = document.getElementById('allium-content');
+            if (data.content) {
+              // Syntax highlight: comments in dim, rules in green, entities in cyan
+              let html = data.content
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/^(--.*)/gm, '<span style=\"color:#7a8fa6\">$1</span>')
+                .replace(/\\b(entity|rule|contract|config|invariant|surface|transitions|when|then|ensure|reject|requires|ensures)\\b/g, '<span style=\"color:#3dd68c;font-weight:bold\">$1</span>')
+                .replace(/\\b(salience|terminal|status|criticality)\\b/g, '<span style=\"color:#f5a623\">$1</span>')
+                .replace(/\"([^\"]*)\"/g, '<span style=\"color:#e0c882\">\"$1\"</span>');
+              el.innerHTML = html;
+              el.style.color = '#e0e6ed';
+            } else {
+              el.textContent = 'Error: ' + (data.error || 'unknown');
+            }
+          })
+          .catch(e => {
+            document.getElementById('allium-content').textContent = 'Fetch error: ' + e.message;
+          });
+      "),
+    ]),
+  ])
+}
 
 pub fn not_found_view(path: String) -> Element(msg) {
   html.div([attribute.class("w-full")], [

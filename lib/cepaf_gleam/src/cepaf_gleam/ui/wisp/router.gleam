@@ -50,6 +50,7 @@ import gleam/http/response.{type Response as HttpResponse}
 import gleam/int
 import gleam/json
 import gleam/list
+import gleam/bit_array
 import gleam/string
 
 @external(erlang, "cepaf_gleam_ffi", "system_time_nanos")
@@ -86,6 +87,20 @@ pub fn route(path: String) -> String {
     "/api/v1/bicameral" -> bicameral_json()
     "/api/v1/singularity" -> singularity_json()
     "/api/v1/components" -> component_demo_json()
+    "/api/v1/allium" -> allium_list_json()
+    "/api/v1/allium/ignition" -> allium_spec_json("ignition")
+    "/api/v1/allium/gleam_webui_comprehensive" -> allium_spec_json("gleam_webui_comprehensive")
+    "/api/v1/allium/fractal_agentic_ui" -> allium_spec_json("fractal_agentic_ui")
+    "/api/v1/allium/control_center_operator_interface" -> allium_spec_json("control_center_operator_interface")
+    "/api/v1/allium/webui_evolution_plan" -> allium_spec_json("webui_evolution_plan")
+    "/api/v1/allium/webui_operational_control" -> allium_spec_json("webui_operational_control")
+    "/api/v1/allium/webui_production_hardening" -> allium_spec_json("webui_production_hardening")
+    "/api/v1/allium/testing_architecture" -> allium_spec_json("testing_architecture")
+    "/api/v1/allium/ui_testing_framework" -> allium_spec_json("ui_testing_framework")
+    "/api/v1/allium/zmof" -> allium_spec_json("zmof")
+    "/api/v1/allium/zenoh_ffi" -> allium_spec_json("zenoh_ffi")
+    "/api/v1/allium/dashboard_50_improvements" -> allium_spec_json("dashboard_50_improvements")
+    "/api/v1/allium/operator_hmi_standards" -> allium_spec_json("operator_hmi_standards")
     // Safety and Enforcer (Planning Panels 3 & 4)
     "/api/safety/status" | "/api/v1/safety" -> safety_json()
     "/api/enforcer/status" | "/api/v1/enforcer" -> enforcer_json()
@@ -500,6 +515,78 @@ fn component_demo_json() -> String {
     #("live_system_health", json.string(health)),
   ])
   |> json.to_string()
+}
+
+/// List all Allium specification files.
+fn allium_list_json() -> String {
+  let specs = [
+    #("ignition", "16-container genome, boot, OODA, rules", 2241),
+    #("gleam_webui_comprehensive", "Full Gleam WebUI behavioral spec", 1116),
+    #("webui_evolution_plan", "WebUI evolution roadmap", 940),
+    #("webui_operational_control", "Operational control patterns", 761),
+    #("webui_full_system_robustness", "System robustness patterns", 631),
+    #("webui_production_hardening", "Production hardening spec", 550),
+    #("control_center_operator_interface", "Operator HMI specification", 406),
+    #("fractal_agentic_ui", "AG-UI + A2UI + fractal architecture", 273),
+    #("operator_hmi_standards", "HMI ergonomics standards", 176),
+    #("dashboard_50_improvements", "50 dashboard enhancements", 99),
+    #("testing_architecture", "Test architecture specification", 58),
+    #("ui_testing_framework", "UI testing framework spec", 126),
+    #("zmof", "Zenoh-MCP-OTel Fractal backplane", 95),
+    #("zenoh_ffi", "Zenoh FFI binding spec", 52),
+  ]
+  json.object([
+    #("page", json.string("Allium Specifications")),
+    #("total_specs", json.int(36)),
+    #("total_lines", json.int(9841)),
+    #("specs", json.array(specs, fn(s) {
+      let #(name, desc, lines) = s
+      json.object([
+        #("name", json.string(name)),
+        #("description", json.string(desc)),
+        #("lines", json.int(lines)),
+        #("url", json.string("/allium/" <> name)),
+        #("api_url", json.string("/api/v1/allium/" <> name)),
+      ])
+    })),
+  ])
+  |> json.to_string()
+}
+
+/// Read a specific Allium spec file and return as JSON.
+fn allium_spec_json(name: String) -> String {
+  let path = "../../specs/allium/" <> name <> ".allium"
+  case read_allium_file(path) {
+    Ok(content) ->
+      json.object([
+        #("name", json.string(name)),
+        #("path", json.string("specs/allium/" <> name <> ".allium")),
+        #("content", json.string(content)),
+        #("lines", json.int(string.split(content, "\n") |> list.length())),
+        #("viewer_url", json.string("/allium/" <> name)),
+      ])
+      |> json.to_string()
+    Error(_) ->
+      json.object([
+        #("error", json.string("Spec not found: " <> name)),
+        #("available", json.string("/api/v1/allium")),
+      ])
+      |> json.to_string()
+  }
+}
+
+@external(erlang, "cepaf_gleam_ffi", "file_read")
+fn read_allium_raw(path: String) -> Result(BitArray, String)
+
+fn read_allium_file(path: String) -> Result(String, String) {
+  case read_allium_raw(path) {
+    Ok(bits) ->
+      case bit_array.to_string(bits) {
+        Ok(s) -> Ok(s)
+        Error(_) -> Error("Invalid UTF-8")
+      }
+    Error(e) -> Error(e)
+  }
 }
 
 /// AG-UI SSE run handler — generates a complete AG-UI event stream.
@@ -1267,7 +1354,26 @@ fn route_html(path: String) -> String {
         "components",
         page_views.component_demo_view(state),
       )
-    _ -> shell.render_page("Not Found", "", page_views.not_found_view(path))
+    "/allium" ->
+      shell.render_page(
+        "Allium Specifications",
+        "allium",
+        page_views.allium_index_view(),
+      )
+    _ -> {
+      // Dynamic Allium spec viewer: /allium/{spec_name}
+      case string.starts_with(path, "/allium/") {
+        True -> {
+          let spec_name = string.drop_start(path, 8)
+          shell.render_page(
+            "Allium: " <> spec_name,
+            "allium",
+            page_views.allium_spec_view(spec_name),
+          )
+        }
+        False -> shell.render_page("Not Found", "", page_views.not_found_view(path))
+      }
+    }
   }
 }
 
