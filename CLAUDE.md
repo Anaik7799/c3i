@@ -1,4 +1,4 @@
-# C3I Gleam-First System — Claude Guidance (v22.0.0-GLM)
+# C3I Gleam-First System — Claude Guidance (v22.3.0-GLM)
 
 ## §1.0 System Identity & Mandate
 
@@ -153,9 +153,16 @@ All events defined in `agui/events.gleam` (5 modules, 1,224 lines):
 | Special | 4 | Raw, Custom, MetaEvent, Heartbeat |
 | **TOTAL** | **32** | — |
 
-**Modules**: `events.gleam` (582 lines), `state.gleam` (268), `tools.gleam` (231), `sse.gleam` (84), `zenoh_bus.gleam` (59)
+**Modules**: `events.gleam` (582 lines), `state.gleam` (268), `tools.gleam` (231), `sse.gleam` (84), `zenoh_bus.gleam` (59), `event_stream_widget.gleam` (isomorphic HTML+ANSI event log)
 
 **Transport**: Lustre server components (WebSocket) + Wisp REST (JSON) + Zenoh PubSub (telemetry) + OTel spans (zenoh_otel).
+
+**MCP Tools** (26 total, all NIF-backed via `c3i_nif`):
+- Planning (7): plan_status, plan_list_pending, plan_list, plan_get, plan_add, plan_update, plan_search
+- System (5): system_health, system_dashboard, system_immune, system_zenoh, system_verification
+- Knowledge (2): knowledge_search, verification_run
+- Domain (11): podman_containers, metabolic_state, ooda_phase, ooda_decide, fractal_status, prajna_health, dark_cockpit_mode, integrity_check, evolution_metrics, mesh_topology, kms_catalog
+- Utility (1): read_file
 
 ---
 
@@ -163,14 +170,14 @@ All events defined in `agui/events.gleam` (5 modules, 1,224 lines):
 
 **A2UI** is the component schema system for agents. No executable code, JSON-only.
 
-**16 Component Types** across 5 modules (655 lines):
+**115 Component Types** across 5 modules (1,200+ lines):
 - `schema.gleam` (118 lines) — ComponentSpec, PropSpec, BindingSpec, FractalLayer types
-- `catalog.gleam` (230 lines) — Trusted registry: badge, button, data_table, progress, sparkline, alert, modal, ooda_ring, reasoning, topology, form_input, select, textarea, checkbox, radio, slider
-- `renderer.gleam` (100 lines) — A2UI JSON → Lustre Element mapping
+- `catalog.gleam` (500+ lines) — Trusted registry: 115 components across 7 categories (Layout 14, Data 16, Status 18, Interactive 16, Visualization 20, Agent 10, Safety 6)
+- `renderer.gleam` (300+ lines) — Isomorphic A2UI → HTML + JSON + ANSI rendering (render_tripartite)
 - `bindings.gleam` (88 lines) — Data binding (state path → component prop)
 - `validator.gleam` (119 lines) — Security validation (allowlist enforcement)
 
-**Pattern**: Agent → (A2UI JSON spec) → Validator → Renderer → Lustre HTML.
+**Pattern**: Agent → (A2UI JSON spec) → Validator → Renderer → {Lustre HTML, Wisp JSON, TUI ANSI}.
 
 ---
 
@@ -227,12 +234,16 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 
 | Metric | Value | Threshold | Status |
 |--------|-------|-----------|--------|
-| Total Tests | 1,559 passed, 0 failures | — | PASS |
+| Total Tests | 2,873 passed, 0 failures | — | PASS |
 | Shannon Entropy H | 2.67 bits (weighted mean) | ≥ 2.5 bits | PASS |
 | CCM | 0.770 | ≥ 0.90 | IMPROVING |
 | ITQS | 0.736 | ≥ 0.85 | IMPROVING |
 | D_EA | — | ≤ 10% | — |
-| Tab Coverage | 100% (15/15) | 100% | PASS |
+| Tab Coverage | 100% (30/30) | 100% | PASS |
+| Nav Graph Pages | 30 (SCC=1, edges=870) | 30 | PASS |
+| A2UI Components | 115 | — | PASS |
+| MCP Tools | 26 (all NIF-backed) | — | PASS |
+| Zenoh Observer | 30 pages | 30 | PASS |
 | Zenoh Verification | Active | — | PASS |
 
 ---
@@ -246,15 +257,18 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 | Wisp REST API | 15 | 2,278+ | `lib/cepaf_gleam/src/cepaf_gleam/ui/wisp/*.gleam` |
 | TUI Terminal | 23 | 1,730+ | `lib/cepaf_gleam/src/cepaf_gleam/ui/tui/*.gleam` |
 | Zenoh OTel | 1 | — | `lib/cepaf_gleam/src/cepaf_gleam/ui/zenoh_otel.gleam` |
-| AG-UI Events | 5 | 1,224 | `lib/cepaf_gleam/src/cepaf_gleam/agui/*.gleam` |
-| A2UI Catalog | 5 | 655 | `lib/cepaf_gleam/src/cepaf_gleam/a2ui/*.gleam` |
+| AG-UI Events | 6 | 1,400+ | `lib/cepaf_gleam/src/cepaf_gleam/agui/*.gleam` |
+| A2UI Catalog | 5 | 1,200+ | `lib/cepaf_gleam/src/cepaf_gleam/a2ui/*.gleam` (115 components) |
 | Fractal L0-L7 | 8 | 1,107 | `lib/cepaf_gleam/src/cepaf_gleam/fractal/*.gleam` |
+| Unified NIF | 7 | 725 | `lib/cepaf_gleam/native/c3i_nif/src/*.rs` (14 NIFs) |
+| NIF Bridge | 2 | 120 | `lib/cepaf_gleam/src/{c3i_nif.erl,cepaf_gleam/c3i/nif.gleam}` |
+| MoZ Transport | 3 | 280+ | `lib/cepaf_gleam/src/cepaf_gleam/moz/*.gleam` |
 | Testing | 4 | 602+ | `lib/cepaf_gleam/src/cepaf_gleam/testing/*.gleam` |
-| Zenoh Test Observer | 1 | — | `lib/cepaf_gleam/src/cepaf_gleam/testing/zenoh_test_observer.gleam` |
+| Zenoh Test Observer | 1 | — | `lib/cepaf_gleam/src/cepaf_gleam/testing/zenoh_test_observer.gleam` (30 pages) |
 | Test Dashboard | 1 | — | `lib/cepaf_gleam/src/cepaf_gleam/testing/test_dashboard.gleam` |
 | Verification | 4 | 383 | `lib/cepaf_gleam/src/cepaf_gleam/verification/*.gleam` |
-| **Test suite** | **24** | **10,106+** | `lib/cepaf_gleam/test/*_test.gleam` |
-| **TOTAL** | **113+** | **~22,000+** | — |
+| **Test suite** | **58** | **15,000+** | `lib/cepaf_gleam/test/*_test.gleam` |
+| **TOTAL** | **130+** | **~26,000+** | — |
 
 ---
 
@@ -321,7 +335,7 @@ Commands: `/allium`, `/allium:tend`, `/allium:weed`, `/allium:distill`, `/allium
 | `evaluate_rca()` | RCA Escalation | 4 | L1 NIF/L4 Container/L6 Quorum/L7 LLM |
 | `evaluate_hysteresis()` | Hysteresis Config | 3 | Aggressive/Conservative/Default |
 
-Rust tests: **307 passed** (41 rule engine tests). Gleam tests: **1,721 passed**.
+Rust tests: **307 passed** (41 rule engine tests). Gleam tests: **2,873 passed**.
 
 ---
 
@@ -350,6 +364,6 @@ All updates to `PROJECT_TODOLIST.md`, task status transitions (Pending -> Active
 
 ---
 
-**Version**: 22.2.0-GLM
-**Last Updated**: 2026-04-05
-**Status**: Gleam-first platform operational (ZMOF active, Muda enforced, sa-plan-daemon authoritative)
+**Version**: 22.3.0-GLM
+**Last Updated**: 2026-04-07
+**Status**: Gleam-first platform operational (unified c3i_nif, 26 MCP tools, 115 A2UI components, ZMOF active, Muda enforced, sa-plan-daemon authoritative)

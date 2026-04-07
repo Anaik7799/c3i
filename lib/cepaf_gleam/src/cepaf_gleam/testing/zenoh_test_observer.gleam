@@ -478,7 +478,10 @@ pub fn verify_all_pages_published(
   let page_names = [
     "dashboard", "planning", "immune", "knowledge", "zenoh", "cockpit",
     "verification", "substrate", "metabolic", "podman", "mcp", "kms",
-    "telemetry", "federation", "health_grid",
+    "telemetry", "federation", "health_grid", "prajna", "agents", "holon",
+    "config", "git", "database", "bridge", "smriti", "planning_dashboard",
+    "integrity", "evolution", "biomorphic", "homeostasis", "bicameral",
+    "singularity", "component_demo",
   ]
   list.map(page_names, fn(page) {
     let has_span =

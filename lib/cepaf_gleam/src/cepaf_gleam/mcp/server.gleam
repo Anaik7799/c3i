@@ -1,16 +1,19 @@
-// STAMP: SC-MCP-001, SC-FUNC-001
-// AOR: AOR-GLM-001
+// STAMP: SC-MCP-001, SC-FUNC-001, SC-TODO-001, SC-ZMOF-005
+// AOR: AOR-GLM-001, AOR-MCP-001
 // Criticality: Level 2 (HIGH) - MCP Server stdio JSON-RPC 2.0 transport
 //
-// Full stdio JSON-RPC 2.0 transport matching F# Cepaf.Sentinel.MCP:
+// Full stdio JSON-RPC 2.0 transport with NIF-backed planning tools:
 // 1. Reads lines from stdin
 // 2. Parses JSON-RPC requests
-// 3. Dispatches to tool handlers
+// 3. Dispatches to tool handlers (planning via Rust NIF, others via stubs)
 // 4. Writes JSON-RPC responses to stdout
 // 5. Logs diagnostics to stderr
+// 6. Zenoh transport via bridge/zenoh_mcp.gleam (handle_request_raw)
 
 import cepaf_gleam/mcp/protocol.{type ToolDefinition}
 import cepaf_gleam/mcp/tools
+import cepaf_gleam/c3i/nif as c3i_nif
+import cepaf_gleam/ui/wisp/router as wisp_router
 import gleam/dynamic
 import gleam/dynamic/decode
 import gleam/io
@@ -29,7 +32,6 @@ fn erl_get_line(prompt: String) -> dynamic.Dynamic
 @external(erlang, "erlang", "is_binary")
 fn is_binary(val: dynamic.Dynamic) -> Bool
 
-/// Coerce a Dynamic known to be a binary into a String.
 @external(erlang, "gleam_stdlib", "identity")
 fn coerce_to_string(val: dynamic.Dynamic) -> String
 
@@ -40,11 +42,15 @@ fn erl_file_read(path: String) -> Result(BitArray, String)
 // Public API
 // ---------------------------------------------------------------------------
 
-pub fn start() {
+pub fn main() {
   io.println_error(
-    "[mcp-server] Starting Gleam MCP Server (stdio transport)...",
+    "[mcp-server] Starting C3I Planning MCP Server (stdio transport)...",
   )
   loop()
+}
+
+pub fn start() {
+  main()
 }
 
 // ---------------------------------------------------------------------------
@@ -73,7 +79,6 @@ fn loop() {
       }
     }
     False -> {
-      // EOF or error atom — exit cleanly
       io.println_error("[mcp-server] stdin closed, shutting down")
     }
   }
@@ -139,8 +144,8 @@ fn initialize_response(id: Option(String)) -> String {
       #(
         "serverInfo",
         json.object([
-          #("name", json.string("cepaf-gleam-mcp")),
-          #("version", json.string("0.1.0")),
+          #("name", json.string("c3i-planning-mcp")),
+          #("version", json.string("1.0.0")),
         ]),
       ),
     ]),
@@ -168,7 +173,7 @@ fn tools_list_response(id: Option(String)) -> String {
 }
 
 // ---------------------------------------------------------------------------
-// tools/call  –  extract tool name then execute
+// tools/call
 // ---------------------------------------------------------------------------
 
 fn tools_call(id: Option(String), raw_line: String) -> String {
@@ -183,66 +188,194 @@ fn tools_call(id: Option(String), raw_line: String) -> String {
 }
 
 // ---------------------------------------------------------------------------
-// Tool execution
+// Tool execution — NIF-backed planning + existing tools
 // ---------------------------------------------------------------------------
 
 fn execute_tool(name: String, id: Option(String), raw_line: String) -> String {
   case name {
-    "planning_query" -> tool_planning_query(id)
+    // Planning tools (Rust NIF -> Smriti.db)
+    "plan_status" -> tool_plan_status(id)
+    "plan_list_pending" -> tool_plan_list_pending(id)
+    "plan_list" -> tool_plan_list(id, raw_line)
+    "plan_get" -> tool_plan_get(id, raw_line)
+    "plan_add" -> tool_plan_add(id, raw_line)
+    "plan_update" -> tool_plan_update(id, raw_line)
+    "plan_search" -> tool_plan_search(id, raw_line)
+    // System data tools (mesh state)
+    "system_health" -> tool_system_health(id)
+    "system_dashboard" -> tool_system_dashboard(id)
+    "system_immune" -> tool_system_immune(id)
+    "system_zenoh" -> tool_system_zenoh(id)
+    "system_verification" -> tool_system_verification(id)
+    // Legacy aliases (backward compat)
+    "planning_query" -> tool_plan_list_pending(id)
+    "todo_status" -> tool_plan_status(id)
+    // Other tools
     "knowledge_search" -> tool_knowledge_search(id, raw_line)
     "verification_run" -> tool_verification_run(id)
     "read_file" -> tool_read_file(id, raw_line)
-    "todo_status" -> tool_todo_status(id)
+    // Domain-specific page tools (per-page MCP access)
+    "podman_containers" -> tool_page_json(id, "/api/v1/podman")
+    "metabolic_state" -> tool_page_json(id, "/api/v1/metabolic")
+    "ooda_phase" -> tool_page_json(id, "/api/v1/ooda")
+    "fractal_status" -> tool_page_json(id, "/api/v1/verification")
+    "prajna_health" -> tool_page_json(id, "/api/v1/prajna")
+    "dark_cockpit_mode" -> tool_content_response(id, c3i_nif.system_dashboard())
+    "integrity_check" -> tool_page_json(id, "/api/v1/integrity")
+    "evolution_metrics" -> tool_page_json(id, "/api/v1/evolution")
+    "mesh_topology" -> tool_content_response(id, c3i_nif.system_zenoh())
+    "ooda_decide" -> tool_page_json(id, "/api/v1/ooda/decide")
+    "kms_catalog" -> tool_page_json(id, "/api/v1/kms")
     _ -> error_response(id, -32_602, "Unknown tool: " <> name)
   }
 }
 
-// -- planning_query: read PROJECT_TODOLIST.md ---------------------------------
+// ---------------------------------------------------------------------------
+// Planning tool handlers (NIF-backed)
+// ---------------------------------------------------------------------------
 
-fn tool_planning_query(id: Option(String)) -> String {
-  let path = "/home/an/dev/ver/c3i/PROJECT_TODOLIST.md"
-  case read_file_as_string(path) {
-    Ok(content) -> tool_content_response(id, content)
-    Error(e) -> tool_content_response(id, "Error reading todolist: " <> e)
+fn tool_plan_status(id: Option(String)) -> String {
+  tool_content_response(id, c3i_nif.plan_status())
+}
+
+fn tool_plan_list_pending(id: Option(String)) -> String {
+  tool_content_response(id, c3i_nif.plan_list_pending())
+}
+
+fn tool_plan_list(id: Option(String), raw_line: String) -> String {
+  let status_decoder = {
+    use s <- decode.subfield(
+      ["params", "arguments", "status"],
+      decode.string,
+    )
+    decode.success(s)
+  }
+  let status = case json.parse(raw_line, status_decoder) {
+    Ok(s) -> s
+    Error(_) -> "all"
+  }
+  tool_content_response(id, c3i_nif.plan_list_by_status(status))
+}
+
+fn tool_plan_get(id: Option(String), raw_line: String) -> String {
+  let id_decoder = {
+    use i <- decode.subfield(["params", "arguments", "id"], decode.string)
+    decode.success(i)
+  }
+  case json.parse(raw_line, id_decoder) {
+    Ok(task_id) -> tool_content_response(id, c3i_nif.plan_get_task(task_id))
+    Error(_) -> error_response(id, -32_602, "Missing params.arguments.id")
   }
 }
 
-// -- knowledge_search: structured stub ----------------------------------------
+fn tool_plan_add(id: Option(String), raw_line: String) -> String {
+  let decoder = {
+    use title <- decode.subfield(
+      ["params", "arguments", "title"],
+      decode.string,
+    )
+    use priority <- decode.subfield(
+      ["params", "arguments", "priority"],
+      decode.string,
+    )
+    decode.success(#(title, priority))
+  }
+  case json.parse(raw_line, decoder) {
+    Ok(#(title, priority)) ->
+      tool_content_response(id, c3i_nif.plan_add_task(title, priority))
+    Error(_) ->
+      error_response(
+        id,
+        -32_602,
+        "Missing params.arguments.title and/or params.arguments.priority",
+      )
+  }
+}
+
+fn tool_plan_update(id: Option(String), raw_line: String) -> String {
+  let decoder = {
+    use task_id <- decode.subfield(
+      ["params", "arguments", "id"],
+      decode.string,
+    )
+    use status <- decode.subfield(
+      ["params", "arguments", "status"],
+      decode.string,
+    )
+    decode.success(#(task_id, status))
+  }
+  case json.parse(raw_line, decoder) {
+    Ok(#(task_id, status)) ->
+      tool_content_response(id, c3i_nif.plan_update_task(task_id, status))
+    Error(_) ->
+      error_response(
+        id,
+        -32_602,
+        "Missing params.arguments.id and/or params.arguments.status",
+      )
+  }
+}
+
+fn tool_plan_search(id: Option(String), raw_line: String) -> String {
+  let query_decoder = {
+    use q <- decode.subfield(
+      ["params", "arguments", "query"],
+      decode.string,
+    )
+    decode.success(q)
+  }
+  case json.parse(raw_line, query_decoder) {
+    Ok(query) -> tool_content_response(id, c3i_nif.plan_search(query))
+    Error(_) -> error_response(id, -32_602, "Missing params.arguments.query")
+  }
+}
+
+// ---------------------------------------------------------------------------
+// System data tool handlers (mesh state)
+// ---------------------------------------------------------------------------
+
+fn tool_system_health(id: Option(String)) -> String {
+  tool_content_response(id, c3i_nif.system_health())
+}
+
+fn tool_system_dashboard(id: Option(String)) -> String {
+  tool_content_response(id, c3i_nif.system_dashboard())
+}
+
+fn tool_system_immune(id: Option(String)) -> String {
+  tool_content_response(id, c3i_nif.system_immune())
+}
+
+fn tool_system_zenoh(id: Option(String)) -> String {
+  tool_content_response(id, c3i_nif.system_zenoh())
+}
+
+fn tool_system_verification(id: Option(String)) -> String {
+  tool_content_response(id, c3i_nif.system_verification())
+}
+
+// ---------------------------------------------------------------------------
+// Other tool handlers (kept from original)
+// ---------------------------------------------------------------------------
 
 fn tool_knowledge_search(id: Option(String), raw_line: String) -> String {
   let query_decoder = {
-    use q <- decode.subfield(["params", "arguments", "query"], decode.string)
+    use q <- decode.subfield(
+      ["params", "arguments", "query"],
+      decode.string,
+    )
     decode.success(q)
   }
   let query = case json.parse(raw_line, query_decoder) {
     Ok(q) -> q
-    Error(_) -> "<no query>"
+    Error(_) -> ""
   }
-  let body =
-    "Knowledge search results for: "
-    <> query
-    <> "\n\n"
-    <> "1. Indrajaal v21.3.2-SIL6 — Biomorphic Fractal Mesh\n"
-    <> "2. CEPAF Gleam core — BEAM target, Lustre + Wisp + TUI triple stack\n"
-    <> "3. Zenoh pub/sub mesh — real-time telemetry transport\n"
-    <> "4. SQLite/DuckDB persistence — single-writer actor model\n"
-    <> "5. IEC 61508 SIL-6 compliance — safety-critical invariants\n"
-  tool_content_response(id, body)
+  tool_content_response(id, c3i_nif.knowledge_search(query))
 }
-
-// -- verification_run: gleam check result -------------------------------------
 
 fn tool_verification_run(id: Option(String)) -> String {
-  let body =
-    "Verification complete.\n"
-    <> "  gleam check: PASS\n"
-    <> "  Tests: 410 passed, 0 failed\n"
-    <> "  Warnings: 0\n"
-    <> "  Status: GREEN"
-  tool_content_response(id, body)
+  tool_content_response(id, c3i_nif.verification_run())
 }
-
-// -- read_file: read arbitrary file -------------------------------------------
 
 fn tool_read_file(id: Option(String), raw_line: String) -> String {
   let path_decoder = {
@@ -260,29 +393,9 @@ fn tool_read_file(id: Option(String), raw_line: String) -> String {
   }
 }
 
-// -- todo_status: task counts -------------------------------------------------
-
-fn tool_todo_status(id: Option(String)) -> String {
-  let result_json =
-    json.object([
-      #("completed", json.int(25)),
-      #("pending", json.int(0)),
-      #("total", json.int(25)),
-    ])
-  success_response(
-    id,
-    json.object([
-      #(
-        "content",
-        json.preprocessed_array([
-          json.object([
-            #("type", json.string("text")),
-            #("text", json.string(json.to_string(result_json))),
-          ]),
-        ]),
-      ),
-    ]),
-  )
+/// Route a per-page tool through the Wisp router to get JSON data.
+fn tool_page_json(id: Option(String), api_path: String) -> String {
+  tool_content_response(id, wisp_router.route(api_path))
 }
 
 // ---------------------------------------------------------------------------
@@ -304,7 +417,6 @@ fn read_file_as_string(path: String) -> Result(String, String) {
 @external(erlang, "gleam_stdlib", "identity")
 fn bit_array_to_string(bits: BitArray) -> Result(String, Nil)
 
-/// Build a standard MCP tool content response (text content array).
 fn tool_content_response(id: Option(String), text: String) -> String {
   success_response(
     id,
@@ -322,7 +434,6 @@ fn tool_content_response(id: Option(String), text: String) -> String {
   )
 }
 
-/// Build a JSON-RPC 2.0 success response.
 fn success_response(id: Option(String), result: json.Json) -> String {
   json.to_string(
     json.object([
@@ -333,7 +444,6 @@ fn success_response(id: Option(String), result: json.Json) -> String {
   )
 }
 
-/// Build a JSON-RPC 2.0 error response.
 fn error_response(id: Option(String), code: Int, message: String) -> String {
   json.to_string(
     json.object([
@@ -358,7 +468,7 @@ fn encode_id(id: Option(String)) -> json.Json {
 }
 
 // ---------------------------------------------------------------------------
-// handle_request (kept for backward-compat / direct Gleam callers)
+// Public API for Zenoh transport (bridge/zenoh_mcp.gleam calls these)
 // ---------------------------------------------------------------------------
 
 pub fn handle_request(
@@ -369,7 +479,6 @@ pub fn handle_request(
   dispatch(method, id, raw_line)
 }
 
-/// Process a raw JSON-RPC line (for Zenoh or other transports).
 pub fn handle_request_raw(line: String) -> Option(String) {
   process_line(line)
 }

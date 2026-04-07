@@ -19,7 +19,7 @@ import cepaf_gleam/ui/domain.{
   Mcp, Metabolic, Planning, Podman, Substrate, Telemetry, Verification, Zenoh,
   Prajna, Agents, Holon, Config, Git, Database, Bridge, Smriti, PlanningDashboard,
   Integrity, Evolution, Biomorphic, HomeostasisPage, Bicameral, Singularity,
-  page_to_path,
+  ComponentDemo, page_to_path,
 }
 import cepaf_gleam/zenoh/client
 import gleam/json
@@ -101,6 +101,7 @@ pub fn page_to_string(page: Page) -> String {
     HomeostasisPage -> "homeostasis"
     Bicameral -> "bicameral"
     Singularity -> "singularity"
+    ComponentDemo -> "component_demo"
   }
 }
 

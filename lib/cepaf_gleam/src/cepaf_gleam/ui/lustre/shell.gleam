@@ -95,6 +95,56 @@ td{padding:.4rem .6rem;border-bottom:1px solid #1e2a3a;}
 .emergency-stop-btn{background:#e05252;color:white;border:none;padding:.75rem 1.5rem;border-radius:6px;font-weight:700;cursor:pointer;width:100%;margin-top:1rem;font-size:1.1rem;box-shadow:0 4px 15px rgba(224,82,82,0.4);transition:transform 0.1s;}
 .emergency-stop-btn:active{transform:scale(0.98);box-shadow:0 2px 5px rgba(224,82,82,0.4);}
 .section-actions{display:flex;justify-content:center;padding:1rem 0;}
+.cognitive-multilayer-display{background:rgba(20,25,34,0.5);border:1px solid #1e2a3a;border-radius:6px;padding:1rem;margin-top:.5rem;}
+.multilayer-row{display:flex;flex-wrap:wrap;gap:2rem;margin-bottom:.75rem;border-bottom:1px solid rgba(30,42,58,0.5);padding-bottom:.5rem;}
+.multilayer-row:last-child{margin-bottom:0;border-bottom:none;padding-bottom:0;}
+/* === Dark Cockpit 5-Mode System (SC-HMI-010) === */
+/* Mode 1: DARK — healthy system, minimal display, suppress nominal cards */
+.cockpit-dark .card{opacity:0.6;transform:scale(0.98);}
+.cockpit-dark .status-healthy{color:#1a3d2a;}
+.cockpit-dark .section{border-color:#0a0e17;}
+.cockpit-dark .card-detail{display:none;}
+.cockpit-dark .alert-critical,.cockpit-dark .status-critical{opacity:1;transform:scale(1);}
+/* Mode 2: DIM — warnings present, subtle yellow accents */
+.cockpit-dim .card{opacity:0.8;}
+.cockpit-dim .section-title{color:#f5a623;}
+.cockpit-dim nav{border-bottom-color:#f5a623;}
+/* Mode 3: NORMAL — standard display, all elements visible */
+.cockpit-normal .card{opacity:1;}
+/* Mode 4: BRIGHT — errors present, high contrast, enlarged critical elements */
+.cockpit-bright .card{border-color:#f5a623;}
+.cockpit-bright .status-critical{font-size:1.2rem;font-weight:700;}
+.cockpit-bright .alert-critical{border-width:2px;box-shadow:0 0 12px rgba(224,82,82,0.3);}
+.cockpit-bright main{background:#0d1117;}
+/* Mode 5: EMERGENCY — critical failure, red dominant, pulsing border */
+.cockpit-emergency{background:#1a0a0a !important;}
+.cockpit-emergency main{background:#1a0a0a;}
+.cockpit-emergency nav{background:#2a0a0a;border-bottom-color:#e05252;}
+.cockpit-emergency .card{border-color:#e05252;animation:pulse 1.5s infinite;}
+.cockpit-emergency .section-title{color:#e05252;}
+.cockpit-emergency h1,.cockpit-emergency h2{color:#e05252;}
+/* === Container Genome Grid (16-cell SIL-6 Biomorphic Mesh) === */
+.genome-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:.75rem 0;}
+.genome-cell{background:#141922;border:1px solid #1e2a3a;border-radius:4px;padding:8px;text-align:center;font-size:.75rem;position:relative;transition:all 0.3s;}
+.genome-cell .genome-name{font-weight:600;color:#e0e6ed;margin-bottom:2px;}
+.genome-cell .genome-status{font-size:.65rem;color:#7a8fa6;}
+.genome-cell .genome-led{position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;}
+.genome-cell.genome-healthy{border-color:#1a3d2a;}.genome-cell.genome-healthy .genome-led{background:#3dd68c;box-shadow:0 0 6px #3dd68c;}
+.genome-cell.genome-degraded{border-color:#3d2e10;}.genome-cell.genome-degraded .genome-led{background:#f5a623;box-shadow:0 0 6px #f5a623;}
+.genome-cell.genome-critical{border-color:#3d1515;animation:pulse 2s infinite;}.genome-cell.genome-critical .genome-led{background:#e05252;box-shadow:0 0 6px #e05252;}
+/* === OODA Phase Ring (5-tier) === */
+.ooda-5tier{display:flex;flex-direction:column;gap:4px;margin:.5rem 0;}
+.ooda-tier{display:flex;align-items:center;gap:.5rem;padding:4px 8px;border-radius:4px;font-size:.8rem;}
+.ooda-tier.active{background:#1a3d2a;border:1px solid #3dd68c;}
+.ooda-tier .ooda-budget{color:#7a8fa6;font-size:.7rem;margin-left:auto;}
+.ooda-tier .ooda-dot{width:8px;height:8px;border-radius:50%;background:#7a8fa6;}
+.ooda-tier.active .ooda-dot{background:#3dd68c;box-shadow:0 0 8px #3dd68c;}
+/* === Proof Chain Visualization === */
+.proof-chain{display:flex;align-items:center;gap:0;margin:.5rem 0;overflow-x:auto;}
+.proof-block{background:#141922;border:1px solid #1e2a3a;border-radius:3px;padding:4px 8px;font-size:.7rem;font-family:monospace;white-space:nowrap;}
+.proof-block.verified{border-color:#3dd68c;color:#3dd68c;}
+.proof-block.pending{border-color:#f5a623;color:#f5a623;}
+.proof-arrow{color:#7a8fa6;padding:0 2px;font-size:.7rem;}
 @media(max-width:768px){nav{padding:.25rem;}.card-grid,.card-grid-wide{grid-template-columns:1fr;}main{padding:.75rem;}}
 "
 
@@ -103,6 +153,7 @@ td{padding:.4rem .6rem;border-bottom:1px solid #1e2a3a;}
 // ---------------------------------------------------------------------------
 
 const nav_pages: List(#(String, String)) = [
+  // Core (15 original)
   #("/dashboard", "Dashboard"),
   #("/planning", "Planning"),
   #("/immune", "Immune"),
@@ -118,6 +169,24 @@ const nav_pages: List(#(String, String)) = [
   #("/telemetry", "Telemetry"),
   #("/federation", "Federation"),
   #("/health-grid", "Health Grid"),
+  // Extended (9 existing)
+  #("/prajna", "Prajna"),
+  #("/agents", "Agents"),
+  #("/holon", "Holon"),
+  #("/config", "Config"),
+  #("/git", "Git"),
+  #("/database", "Database"),
+  #("/bridge", "Bridge"),
+  #("/smriti", "Smriti"),
+  #("/planning-dashboard", "OODA"),
+  // Wave 1 (6 new)
+  #("/integrity", "Integrity"),
+  #("/evolution", "Evolution"),
+  #("/biomorphic", "Biomorphic"),
+  #("/homeostasis", "Homeostasis"),
+  #("/bicameral", "Bicameral"),
+  #("/singularity", "Singularity"),
+  #("/components", "Components"),
 ]
 
 // ---------------------------------------------------------------------------
@@ -280,39 +349,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Continuous Data Sonification & Biometric Sync
-  let audioCtx = null;
-  let oscillator = null;
-  let isMuted = true;
-  
-  // Ambient sonification mapping (Engine Hum)
-  window.addEventListener('click', () => {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      oscillator = audioCtx.createOscillator();
-      oscillator.type = 'sine';
-      oscillator.frequency.value = 432.0; // Base harmony
-      const gainNode = audioCtx.createGain();
-      gainNode.gain.value = 0.05; // Subliminal volume
-      oscillator.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-      oscillator.start();
-      isMuted = false;
-      console.log('[Sonification] Engine hum active (432Hz Base).');
-    }
-  }, { once: true });
-
-  // Simulated WebBluetooth Biometric Proxy (Operator Heart Rate -> Font Weight)
-  setInterval(() => {
-    const hr = 70 + Math.random() * 50; 
-    if (hr > 110) {
-      document.body.style.fontWeight = 'bold';
-      document.body.style.setProperty('--card-bg', '#1e1414'); // Adrenaline flush
-    } else {
-      document.body.style.fontWeight = 'normal';
-      document.body.style.setProperty('--card-bg', '#1e222a');
-    }
-  }, 5000);
 
   // Decentralized Emergent Ignition Visualization
   const renderIgnitionCanvas = () => {
@@ -361,17 +397,212 @@ document.addEventListener('DOMContentLoaded', () => {
   renderIgnitionCanvas();
   setInterval(renderIgnitionCanvas, 2000);
 
-  // TLA+/Apalache Formal Verification Fetch Interceptor
-  const originalFetch = window.fetch;
-  window.fetch = async function() {
-    let [resource, config] = arguments;
-    if (config && config.method === 'POST' && resource.includes('/api/v1/')) {
-      console.log(`[TLA+ Gate] Simulating formal verification for: ${resource}`);
-      await new Promise(r => setTimeout(r, 50)); 
-      return originalFetch.apply(this, arguments);
-    }
-    return originalFetch.apply(this, arguments);
+  // === C3I Live Data System (Progressive Enhancement) ===
+  // Base SSR works without JS (SC-GLM-UI-002). This layer adds:
+  // 1. Auto-fetch from /api/v1/{page} on load → update data-api elements
+  // 2. AG-UI SSE subscription for real-time mesh updates
+  // 3. Dark cockpit mode auto-transition from health state
+  // 4. Heartbeat indicator (top-right pulse dot)
+
+  // Detect current page from nav active link
+  const activePage = document.querySelector('nav a.active');
+  const pagePath = activePage ? activePage.getAttribute('href') : '/dashboard';
+  const apiPath = '/api/v1' + pagePath;
+
+  // Live data fetch — update card values from API
+  const refreshData = async () => {
+    try {
+      const res = await fetch(apiPath);
+      if (!res.ok) return;
+      const data = await res.json();
+
+      // Update all elements with data-api-field attributes
+      document.querySelectorAll('[data-api]').forEach(el => {
+        const field = el.dataset.api;
+        if (data[field] !== undefined) {
+          el.textContent = typeof data[field] === 'number'
+            ? data[field].toLocaleString()
+            : String(data[field]);
+        }
+      });
+
+      // Update card-value elements that match JSON keys
+      document.querySelectorAll('.card-value').forEach(el => {
+        const card = el.closest('.card');
+        if (!card) return;
+        const title = card.querySelector('.card-title');
+        if (!title) return;
+        const key = title.textContent.toLowerCase().replace(/[^a-z_]/g, '_').replace(/_+/g, '_');
+        if (data[key] !== undefined) {
+          el.textContent = String(data[key]);
+        }
+      });
+
+      // Dark cockpit auto-transition
+      if (data.dark_cockpit_mode) {
+        document.body.dataset.cockpitMode = data.dark_cockpit_mode;
+        document.body.className = 'cockpit-' + data.dark_cockpit_mode;
+      }
+
+      // Health-based LED indicators
+      if (data.health_pct !== undefined) {
+        const healthDot = document.getElementById('c3i-health-dot');
+        if (healthDot) {
+          healthDot.style.background = data.health_pct >= 90 ? '#3dd68c'
+            : data.health_pct >= 50 ? '#f5a623' : '#e05252';
+        }
+      }
+    } catch(e) { /* Graceful degradation — SSR content remains */ }
   };
+
+  // AG-UI SSE subscription for real-time updates
+  let sseRetries = 0;
+  const connectSSE = () => {
+    if (sseRetries > 5) return;
+    try {
+      const evtSrc = new EventSource('/ag-ui/events?page=' + encodeURIComponent(pagePath));
+
+      evtSrc.onmessage = (e) => {
+        try {
+          const evt = JSON.parse(e.data);
+          // StateSnapshot → full refresh
+          if (evt.type === 'state_snapshot' || evt.type === 'state_delta') {
+            refreshData();
+          }
+          // RunStarted/RunFinished → update activity indicator
+          if (evt.type === 'run_started') {
+            const indicator = document.getElementById('c3i-activity');
+            if (indicator) indicator.classList.add('cyber-pulse');
+          }
+          if (evt.type === 'run_finished') {
+            const indicator = document.getElementById('c3i-activity');
+            if (indicator) indicator.classList.remove('cyber-pulse');
+          }
+          // Heartbeat → reset connection watchdog
+          if (evt.type === 'heartbeat') sseRetries = 0;
+        } catch(pe) { /* ignore parse errors */ }
+      };
+
+      evtSrc.onerror = () => {
+        evtSrc.close();
+        sseRetries++;
+        setTimeout(connectSSE, Math.min(sseRetries * 2000, 30000));
+      };
+    } catch(e) { /* SSE not available — SSR fallback active */ }
+  };
+
+  // Heartbeat pulse dot (shows mesh is alive)
+  const dot = document.createElement('div');
+  dot.id = 'c3i-health-dot';
+  dot.style.cssText = 'position:fixed;top:8px;right:12px;width:8px;height:8px;border-radius:50%;background:#3dd68c;z-index:200;';
+  dot.classList.add('cyber-pulse');
+  dot.title = 'Mesh heartbeat';
+  document.body.appendChild(dot);
+
+  // Activity indicator
+  const activity = document.createElement('div');
+  activity.id = 'c3i-activity';
+  activity.style.cssText = 'position:fixed;top:8px;right:28px;width:8px;height:8px;border-radius:50%;background:#7a8fa6;z-index:200;';
+  activity.title = 'Agent activity';
+  document.body.appendChild(activity);
+
+  // Column sorting on data tables
+  document.querySelectorAll('th').forEach((th, colIdx) => {
+    th.style.cursor = 'pointer';
+    th.title = 'Click to sort';
+    th.addEventListener('click', () => {
+      const table = th.closest('table');
+      if (!table) return;
+      const tbody = table.querySelector('tbody') || table;
+      const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => !r.querySelector('th'));
+      const dir = th.dataset.sortDir === 'asc' ? 'desc' : 'asc';
+      th.dataset.sortDir = dir;
+      // Clear other headers
+      th.closest('tr').querySelectorAll('th').forEach(h => { if (h !== th) delete h.dataset.sortDir; });
+      rows.sort((a, b) => {
+        const aVal = (a.cells[colIdx] || {}).textContent || '';
+        const bVal = (b.cells[colIdx] || {}).textContent || '';
+        const aNum = parseFloat(aVal), bNum = parseFloat(bVal);
+        const cmp = (!isNaN(aNum) && !isNaN(bNum)) ? aNum - bNum : aVal.localeCompare(bVal);
+        return dir === 'asc' ? cmp : -cmp;
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      th.textContent = th.textContent.replace(/ [▲▼]/, '') + (dir === 'asc' ? ' ▲' : ' ▼');
+    });
+  });
+
+  // Keyboard navigation (j/k scroll, 1-9 page switch, / search)
+  document.addEventListener('keydown', (e) => {
+    // Don't capture if user is typing in an input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    const navLinks = Array.from(document.querySelectorAll('nav a'));
+    const activeIdx = navLinks.findIndex(a => a.classList.contains('active'));
+
+    if (e.key === 'j' || e.key === 'ArrowDown') {
+      window.scrollBy(0, 80);
+    } else if (e.key === 'k' || e.key === 'ArrowUp') {
+      window.scrollBy(0, -80);
+    } else if (e.key >= '1' && e.key <= '9') {
+      const idx = parseInt(e.key) - 1;
+      if (navLinks[idx]) window.location.href = navLinks[idx].href;
+    } else if (e.key === '0') {
+      if (navLinks[9]) window.location.href = navLinks[9].href;
+    } else if (e.key === '[' && activeIdx > 0) {
+      window.location.href = navLinks[activeIdx - 1].href;
+    } else if (e.key === ']' && activeIdx < navLinks.length - 1) {
+      window.location.href = navLinks[activeIdx + 1].href;
+    } else if (e.key === '/' && !e.ctrlKey) {
+      e.preventDefault();
+      const searchBox = document.getElementById('c3i-search');
+      if (searchBox) searchBox.focus();
+    } else if (e.key === '?' && !e.ctrlKey) {
+      // Show keyboard shortcut help
+      const help = document.getElementById('c3i-help');
+      if (help) help.style.display = help.style.display === 'none' ? 'block' : 'none';
+    }
+  });
+
+  // Search/filter bar for data tables
+  const tableContainers = document.querySelectorAll('table');
+  tableContainers.forEach(table => {
+    if (table.querySelectorAll('tr').length < 4) return; // Skip tiny tables
+    const search = document.createElement('input');
+    search.type = 'search';
+    search.id = 'c3i-search';
+    search.placeholder = 'Filter rows... (press /)';
+    search.style.cssText = 'width:100%;padding:6px 10px;margin:4px 0 8px;background:#141922;color:#e0e6ed;border:1px solid #1e2a3a;border-radius:4px;font-size:.85rem;';
+    search.addEventListener('input', () => {
+      const q = search.value.toLowerCase();
+      table.querySelectorAll('tr').forEach((row, i) => {
+        if (i === 0 && row.querySelector('th')) return; // keep header
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+    table.parentElement.insertBefore(search, table);
+  });
+
+  // Keyboard shortcut help overlay
+  const helpDiv = document.createElement('div');
+  helpDiv.id = 'c3i-help';
+  helpDiv.style.cssText = 'display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#0d1420;border:1px solid #1e2a3a;border-radius:8px;padding:1.5rem;z-index:300;color:#e0e6ed;font-family:monospace;font-size:.85rem;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,0.6);';
+  helpDiv.innerHTML = '<div style=\"color:#3dd68c;font-weight:bold;margin-bottom:.75rem\">⌨ Keyboard Shortcuts</div>'
+    + '<div style=\"display:grid;grid-template-columns:60px 1fr;gap:4px\">'
+    + '<span style=\"color:#7a8fa6\">j/k</span><span>Scroll down/up</span>'
+    + '<span style=\"color:#7a8fa6\">1-9,0</span><span>Jump to page 1-10</span>'
+    + '<span style=\"color:#7a8fa6\">[ ]</span><span>Previous/next page</span>'
+    + '<span style=\"color:#7a8fa6\">/</span><span>Focus search filter</span>'
+    + '<span style=\"color:#7a8fa6\">?</span><span>Toggle this help</span>'
+    + '<span style=\"color:#7a8fa6\">Alt+Shift</span><span>Merkle proof overlay</span>'
+    + '</div><div style=\"margin-top:.75rem;color:#7a8fa6;font-size:.75rem\">Press ? to close</div>';
+  document.body.appendChild(helpDiv);
+
+  // Initial data fetch + SSE connection
+  refreshData();
+  setInterval(refreshData, 10000); // Refresh every 10s
+  connectSSE();
+
+  console.log('[C3I] Live data system active. Press ? for keyboard shortcuts.');
 });
 "
 
@@ -620,5 +851,75 @@ pub fn apalache_guard(
       ),
     ],
     [action, ..overlay],
+  )
+}
+
+/// 16-cell Container Genome Grid — SIL-6 Biomorphic Mesh at a glance.
+/// Each cell has a name, status, and LED indicator.
+pub fn genome_grid(
+  containers: List(#(String, String)),
+) -> Element(msg) {
+  html.div(
+    [attribute.class("genome-grid")],
+    list.map(containers, fn(c) {
+      let #(name, status) = c
+      let cell_class = "genome-cell genome-" <> status
+      html.div([attribute.class(cell_class)], [
+        html.div([attribute.class("genome-led")], []),
+        html.div([attribute.class("genome-name")], [element.text(name)]),
+        html.div([attribute.class("genome-status")], [element.text(status)]),
+      ])
+    }),
+  )
+}
+
+/// OODA 5-Tier Decision Ring — shows phase across all tiers with latency budgets.
+pub fn ooda_5tier(active_phase: String) -> Element(msg) {
+  let tiers = [
+    #("Agent", "<30ms", active_phase == "observe" || active_phase == "act"),
+    #("Intelligence", "<100ms", active_phase == "orient"),
+    #("Knowledge", "<1ms", True),
+    #("Cortex", "<50ms", active_phase == "decide"),
+    #("Strategy", "<1s", active_phase == "observe"),
+  ]
+  html.div(
+    [attribute.class("ooda-5tier")],
+    list.map(tiers, fn(tier) {
+      let #(name, budget, is_active) = tier
+      let tier_class = case is_active {
+        True -> "ooda-tier active"
+        False -> "ooda-tier"
+      }
+      html.div([attribute.class(tier_class)], [
+        html.div([attribute.class("ooda-dot")], []),
+        element.text(name),
+        html.span([attribute.class("ooda-budget")], [element.text(budget)]),
+      ])
+    }),
+  )
+}
+
+/// Constitutional Proof Chain — visual hash chain with verified/pending blocks.
+pub fn proof_chain(
+  blocks: List(#(String, Bool)),
+) -> Element(msg) {
+  html.div(
+    [attribute.class("proof-chain")],
+    list.index_map(blocks, fn(block, i) {
+      let #(hash, verified) = block
+      let block_class = case verified {
+        True -> "proof-block verified"
+        False -> "proof-block pending"
+      }
+      let arrow = case i > 0 {
+        True -> "→ "
+        False -> ""
+      }
+      html.span([], [
+        element.text(arrow),
+        html.span([attribute.class(block_class)], [element.text(hash)]),
+        element.text(" "),
+      ])
+    }),
   )
 }

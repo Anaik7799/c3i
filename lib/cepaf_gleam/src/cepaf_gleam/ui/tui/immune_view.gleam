@@ -11,9 +11,31 @@ pub fn render(model: ImmuneModel) -> String {
   let header = visuals.with_color("  IMMUNE SYSTEM", "cyan")
   let threat = render_threat(model)
   let mara = render_mara(model.mara_running)
+  let status_strip =
+    "  "
+    <> visuals.render_status_strip([
+      #("Sentinel", case model.mara_running {
+        True -> "healthy"
+        False -> "warning"
+      }),
+      #("Antibodies", case model.antibodies != [] {
+        True -> "healthy"
+        False -> "info"
+      }),
+      #("Threats", case list.length(model.active_attacks) {
+        0 -> "healthy"
+        _ -> "critical"
+      }),
+    ])
+  let attack_spark =
+    "  Attack History: "
+    <> visuals.render_sparkline([0.0, 0.0, 0.1, 0.3, 0.2, 0.0, 0.1, 0.0])
   let antibodies = render_antibodies(model.antibodies)
   let events = render_events(model.recent_events)
-  string.join([header, threat, mara, "", antibodies, "", events], "\n")
+  string.join(
+    [header, threat, mara, status_strip, attack_spark, "", antibodies, "", events],
+    "\n",
+  )
 }
 
 fn render_threat(model: ImmuneModel) -> String {

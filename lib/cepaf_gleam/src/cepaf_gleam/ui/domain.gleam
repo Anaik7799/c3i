@@ -37,6 +37,7 @@ pub type Page {
   HomeostasisPage
   Bicameral
   Singularity
+  ComponentDemo
 }
 
 /// Health status shared across all interfaces.
@@ -122,6 +123,7 @@ pub fn page_to_path(page: Page) -> String {
     HomeostasisPage -> "/homeostasis"
     Bicameral -> "/bicameral"
     Singularity -> "/singularity"
+    ComponentDemo -> "/components"
   }
 }
 
@@ -158,6 +160,7 @@ pub fn page_to_label(page: Page) -> String {
     HomeostasisPage -> "Homeostasis Controls"
     Bicameral -> "Bicameral Sign-Off"
     Singularity -> "Singularity Estimation"
+    ComponentDemo -> "Component Demo"
   }
 }
 
@@ -194,6 +197,7 @@ pub fn page_fractal_layer(page: Page) -> FractalLayer {
     HomeostasisPage -> L2Component
     Bicameral -> L0Constitutional
     Singularity -> L7Federation
+    ComponentDemo -> L2Component
   }
 }
 

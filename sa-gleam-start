@@ -1,0 +1,88 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# sa-gleam-start — Start the CEPAF Gleam Wisp HTTP server (port 4100)
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAMP: SC-GLM-UI-006, SC-FUNC-001
+#
+# Usage:
+#   ./sa-gleam-start          # Start server (foreground)
+#   ./sa-gleam-start -d       # Start server (daemon/background)
+#   ./sa-gleam-start --build  # Build NIF + Gleam, then start
+#
+# Port: 4100 (SC-GLM-UI-006 — outside mesh range 4000-4010)
+# NIF:  c3i_nif.so (14 NIFs: planning, system, knowledge, verification)
+
+set -euo pipefail
+cd "$(dirname "$0")"
+
+PORT=4100
+GLEAM_DIR="lib/cepaf_gleam"
+NIF_DIR="$GLEAM_DIR/native/c3i_nif"
+PID_FILE="/tmp/cepaf-gleam-server.pid"
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+DIM='\033[0;90m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+echo -e "${CYAN}${BOLD}╔═══════════════════════════════════════════════╗${NC}"
+echo -e "${CYAN}${BOLD}║  CEPAF Gleam — Wisp HTTP Server (port $PORT)  ║${NC}"
+echo -e "${CYAN}${BOLD}╚═══════════════════════════════════════════════╝${NC}"
+
+# Check if already running
+if lsof -ti:$PORT &>/dev/null; then
+    EXISTING_PID=$(lsof -ti:$PORT)
+    echo -e "${RED}⚠ Port $PORT already in use (PID: $EXISTING_PID)${NC}"
+    echo -e "${DIM}  Run ./sa-gleam-stop first, or kill $EXISTING_PID${NC}"
+    exit 1
+fi
+
+# Optional: build NIF + Gleam
+if [[ "${1:-}" == "--build" ]]; then
+    shift
+    echo -e "\n${CYAN}[1/3] Building c3i_nif (Rust)...${NC}"
+    cd "$NIF_DIR"
+    cargo build --release 2>&1 | tail -3
+    cp target/release/libc3i_nif.so ../../priv/c3i_nif.so
+    echo -e "${GREEN}  ✓ c3i_nif.so deployed${NC}"
+    cd "$(dirname "$0")"
+
+    echo -e "${CYAN}[2/3] Building Gleam...${NC}"
+    cd "$GLEAM_DIR"
+    gleam build 2>&1 | tail -2
+    echo -e "${GREEN}  ✓ Gleam compiled${NC}"
+    cd "$(dirname "$0")"
+
+    echo -e "${CYAN}[3/3] Starting server...${NC}"
+else
+    echo -e "\n${CYAN}Starting server...${NC}"
+fi
+
+cd "$GLEAM_DIR"
+
+if [[ "${1:-}" == "-d" || "${1:-}" == "--daemon" ]]; then
+    # Background mode
+    gleam run -- --serve > /tmp/cepaf-gleam-server.log 2>&1 &
+    SERVER_PID=$!
+    echo "$SERVER_PID" > "$PID_FILE"
+    echo -e "${GREEN}  ✓ Server started (PID: $SERVER_PID, daemon mode)${NC}"
+    echo -e "${DIM}  Log: /tmp/cepaf-gleam-server.log${NC}"
+
+    # Wait for port to be ready
+    for i in $(seq 1 10); do
+        if curl -sf http://localhost:$PORT/health &>/dev/null; then
+            echo -e "${GREEN}  ✓ Health check passed${NC}"
+            echo -e "${DIM}  http://localhost:$PORT${NC}"
+            exit 0
+        fi
+        sleep 1
+    done
+    echo -e "${RED}  ⚠ Server started but health check timed out (10s)${NC}"
+else
+    # Foreground mode
+    echo -e "${GREEN}  ✓ Serving on http://localhost:$PORT${NC}"
+    echo -e "${DIM}  Press Ctrl+C to stop${NC}\n"
+    exec gleam run -- --serve
+fi

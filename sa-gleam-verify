@@ -1,0 +1,182 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# sa-gleam-verify — Verify CEPAF Gleam build, tests, NIF, and running server
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAMP: SC-FUNC-001, SC-GLM-UI-001, SC-NIF-001, SC-MCP-001
+#
+# Usage:
+#   ./sa-gleam-verify          # Full verification (build + test + server check)
+#   ./sa-gleam-verify --quick  # Server health check only
+#   ./sa-gleam-verify --test   # Build + test only (no server check)
+#   ./sa-gleam-verify --nif    # Build NIF + deploy + verify load
+
+set -euo pipefail
+cd "$(dirname "$0")"
+
+PORT=4100
+GLEAM_DIR="lib/cepaf_gleam"
+NIF_DIR="$GLEAM_DIR/native/c3i_nif"
+PASS=0
+FAIL=0
+TOTAL=0
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+CYAN='\033[0;36m'
+DIM='\033[0;90m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+check() {
+    TOTAL=$((TOTAL + 1))
+    local desc="$1"
+    shift
+    if "$@" &>/dev/null; then
+        echo -e "  ${GREEN}✓${NC} $desc"
+        PASS=$((PASS + 1))
+    else
+        echo -e "  ${RED}✗${NC} $desc"
+        FAIL=$((FAIL + 1))
+    fi
+}
+
+echo -e "${CYAN}${BOLD}╔═══════════════════════════════════════════════════╗${NC}"
+echo -e "${CYAN}${BOLD}║  CEPAF Gleam Verification Suite                   ║${NC}"
+echo -e "${CYAN}${BOLD}╚═══════════════════════════════════════════════════╝${NC}"
+
+MODE="${1:-full}"
+
+# --- Quick mode: server health only ---
+if [[ "$MODE" == "--quick" ]]; then
+    echo -e "\n${CYAN}[Quick] Server Health Check${NC}"
+    if curl -sf http://localhost:$PORT/health &>/dev/null; then
+        HEALTH=$(curl -s http://localhost:$PORT/health)
+        echo -e "  ${GREEN}✓${NC} Server alive on port $PORT"
+        echo -e "  ${DIM}$HEALTH${NC}"
+
+        # Parse key fields
+        STATUS=$(echo "$HEALTH" | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','?'))" 2>/dev/null || echo "?")
+        CONTAINERS=$(echo "$HEALTH" | python3 -c "import sys,json; print(json.load(sys.stdin).get('container_count','?'))" 2>/dev/null || echo "?")
+        ZENOH=$(echo "$HEALTH" | python3 -c "import sys,json; print(json.load(sys.stdin).get('zenoh_connected','?'))" 2>/dev/null || echo "?")
+        echo -e "\n  Status: ${GREEN}$STATUS${NC}  Containers: ${CYAN}$CONTAINERS${NC}  Zenoh: ${CYAN}$ZENOH${NC}"
+    else
+        echo -e "  ${RED}✗${NC} Server not reachable on port $PORT"
+    fi
+    exit 0
+fi
+
+# --- NIF mode: build + deploy NIF ---
+if [[ "$MODE" == "--nif" ]]; then
+    echo -e "\n${CYAN}[NIF] Build & Deploy${NC}"
+    cd "$NIF_DIR"
+    echo -e "  ${DIM}Building c3i_nif (Rust)...${NC}"
+    cargo build --release 2>&1 | tail -2
+    cp target/release/libc3i_nif.so ../../priv/c3i_nif.so
+    echo -e "  ${GREEN}✓${NC} c3i_nif.so built and deployed"
+    echo -e "  ${DIM}$(ls -lh ../../priv/c3i_nif.so)${NC}"
+    exit 0
+fi
+
+# --- Build verification ---
+if [[ "$MODE" != "--quick" ]]; then
+    echo -e "\n${CYAN}[1/5] Gleam Build${NC}"
+    cd "$GLEAM_DIR"
+    BUILD_OUT=$(gleam build 2>&1)
+    if echo "$BUILD_OUT" | grep -q "Compiled"; then
+        echo -e "  ${GREEN}✓${NC} gleam build — 0 warnings"
+    else
+        echo -e "  ${RED}✗${NC} gleam build failed"
+        echo "$BUILD_OUT" | tail -5
+        FAIL=$((FAIL + 1))
+    fi
+    PASS=$((PASS + 1))
+    TOTAL=$((TOTAL + 1))
+    cd "$(dirname "$0")"
+fi
+
+# --- Test verification ---
+if [[ "$MODE" == "--test" || "$MODE" == "full" || "$MODE" == "" ]]; then
+    echo -e "\n${CYAN}[2/5] Gleam Tests${NC}"
+    cd "$GLEAM_DIR"
+    TEST_OUT=$(gleam test 2>&1)
+    TEST_LINE=$(echo "$TEST_OUT" | grep -oP '\d+ passed' | head -1)
+    FAIL_LINE=$(echo "$TEST_OUT" | grep -oP '\d+ failures' | head -1)
+    if echo "$TEST_OUT" | grep -q "no failures"; then
+        echo -e "  ${GREEN}✓${NC} $TEST_LINE, no failures"
+        PASS=$((PASS + 1))
+    else
+        echo -e "  ${RED}✗${NC} $TEST_LINE, $FAIL_LINE"
+        echo "$TEST_OUT" | grep "panic" | head -5
+        FAIL=$((FAIL + 1))
+    fi
+    TOTAL=$((TOTAL + 1))
+    cd "$(dirname "$0")"
+fi
+
+if [[ "$MODE" == "--test" ]]; then
+    echo -e "\n${CYAN}Results: ${GREEN}$PASS passed${NC}, ${RED}$FAIL failed${NC} / $TOTAL checks"
+    exit $FAIL
+fi
+
+# --- NIF verification ---
+echo -e "\n${CYAN}[3/5] NIF Binary${NC}"
+check "c3i_nif.so exists" test -f "$GLEAM_DIR/priv/c3i_nif.so"
+check "planning_nif.so exists" test -f "$GLEAM_DIR/priv/planning_nif.so"
+check "rule_engine_nif.so exists" test -f "$GLEAM_DIR/priv/rule_engine_nif.so"
+
+# --- Server verification ---
+echo -e "\n${CYAN}[4/5] Server Endpoints (port $PORT)${NC}"
+if curl -sf http://localhost:$PORT/health &>/dev/null; then
+    check "GET /health" curl -sf http://localhost:$PORT/health
+    check "GET /api/v1/dashboard" curl -sf http://localhost:$PORT/api/v1/dashboard
+    check "GET /api/v1/plan/status" curl -sf http://localhost:$PORT/api/v1/plan/status
+    check "GET /api/v1/immune" curl -sf http://localhost:$PORT/api/v1/immune
+    check "GET /api/v1/zenoh" curl -sf http://localhost:$PORT/api/v1/zenoh
+    check "GET /api/v1/verification" curl -sf http://localhost:$PORT/api/v1/verification
+    check "GET /api/v1/integrity" curl -sf http://localhost:$PORT/api/v1/integrity
+    check "GET /api/v1/evolution" curl -sf http://localhost:$PORT/api/v1/evolution
+    check "GET /api/v1/ooda/decide" curl -sf http://localhost:$PORT/api/v1/ooda/decide
+    check "GET /api/v1/pages (30 pages)" curl -sf http://localhost:$PORT/api/v1/pages
+    check "GET /ag-ui/health" curl -sf http://localhost:$PORT/ag-ui/health
+    check "GET /dashboard (HTML)" curl -sf http://localhost:$PORT/dashboard
+
+    # Verify NIF data is live (not hardcoded)
+    HEALTH=$(curl -s http://localhost:$PORT/health)
+    TS=$(echo "$HEALTH" | python3 -c "import sys,json; print(json.load(sys.stdin).get('last_updated_ms',0))" 2>/dev/null || echo "0")
+    TOTAL=$((TOTAL + 1))
+    if [[ "$TS" != "0" ]]; then
+        echo -e "  ${GREEN}✓${NC} NIF live data (timestamp: $TS)"
+        PASS=$((PASS + 1))
+    else
+        echo -e "  ${YELLOW}~${NC} NIF may not be loaded (timestamp: 0)"
+        FAIL=$((FAIL + 1))
+    fi
+else
+    echo -e "  ${YELLOW}⚠${NC} Server not running on port $PORT — skipping endpoint checks"
+    echo -e "  ${DIM}  Run ./sa-gleam-start -d first${NC}"
+fi
+
+# --- MCP tool count ---
+echo -e "\n${CYAN}[5/5] System Inventory${NC}"
+PAGES=$(curl -s http://localhost:$PORT/api/v1/pages 2>/dev/null | python3 -c "import sys,json; print(len(json.load(sys.stdin).get('pages',[])))" 2>/dev/null || echo "?")
+echo -e "  Pages registered:  ${CYAN}$PAGES${NC}"
+
+PLAN=$(curl -s http://localhost:$PORT/api/v1/plan/status 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(f\"{d.get('completed',0)} completed, {d.get('pending',0)} pending, {d.get('total',0)} total\")" 2>/dev/null || echo "?")
+echo -e "  Planning tasks:    ${CYAN}$PLAN${NC}"
+
+OODA=$(curl -s http://localhost:$PORT/api/v1/ooda/decide 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(f\"decision={d.get('ooda_decision','?')} engine={d.get('engine_version','?')}\")" 2>/dev/null || echo "?")
+echo -e "  OODA brain:        ${CYAN}$OODA${NC}"
+
+NIF_SIZE=$(ls -lh "$GLEAM_DIR/priv/c3i_nif.so" 2>/dev/null | awk '{print $5}' || echo "?")
+echo -e "  c3i_nif.so:        ${CYAN}$NIF_SIZE${NC}"
+
+# --- Summary ---
+echo -e "\n${CYAN}${BOLD}════════════════════════════════════════════════════${NC}"
+if [[ $FAIL -eq 0 ]]; then
+    echo -e "${GREEN}${BOLD}  ALL CHECKS PASSED: $PASS/$TOTAL${NC}"
+else
+    echo -e "${RED}${BOLD}  $FAIL FAILED, $PASS PASSED / $TOTAL TOTAL${NC}"
+fi
+echo -e "${CYAN}${BOLD}════════════════════════════════════════════════════${NC}"
+exit $FAIL

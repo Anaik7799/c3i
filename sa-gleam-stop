@@ -1,0 +1,71 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# sa-gleam-stop — Stop the CEPAF Gleam Wisp HTTP server
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAMP: SC-FUNC-001, SC-SIL4-007 (dying gasp)
+#
+# Usage:
+#   ./sa-gleam-stop          # Graceful stop (SIGTERM, 5s timeout)
+#   ./sa-gleam-stop --force  # Immediate kill (SIGKILL)
+
+set -euo pipefail
+cd "$(dirname "$0")"
+
+PORT=4100
+PID_FILE="/tmp/cepaf-gleam-server.pid"
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+DIM='\033[0;90m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+echo -e "${CYAN}${BOLD}╔═══════════════════════════════════════════════╗${NC}"
+echo -e "${CYAN}${BOLD}║  CEPAF Gleam — Stopping Server (port $PORT)   ║${NC}"
+echo -e "${CYAN}${BOLD}╚═══════════════════════════════════════════════╝${NC}"
+
+# Find PIDs on port 4100
+PIDS=$(lsof -ti:$PORT 2>/dev/null || true)
+
+if [[ -z "$PIDS" ]]; then
+    echo -e "  ${DIM}No process found on port $PORT${NC}"
+    # Clean up stale PID file
+    rm -f "$PID_FILE"
+    exit 0
+fi
+
+echo -e "  ${DIM}Found process(es): $PIDS${NC}"
+
+if [[ "${1:-}" == "--force" ]]; then
+    echo -e "  ${RED}Force killing (SIGKILL)...${NC}"
+    echo "$PIDS" | xargs kill -9 2>/dev/null || true
+    sleep 1
+else
+    echo -e "  ${CYAN}Graceful shutdown (SIGTERM, 5s timeout)...${NC}"
+    echo "$PIDS" | xargs kill -15 2>/dev/null || true
+
+    # Wait up to 5 seconds for graceful shutdown
+    for i in $(seq 1 5); do
+        if ! lsof -ti:$PORT &>/dev/null; then
+            break
+        fi
+        sleep 1
+    done
+
+    # If still running, force kill
+    if lsof -ti:$PORT &>/dev/null; then
+        echo -e "  ${YELLOW}Graceful timeout — force killing...${NC}"
+        lsof -ti:$PORT | xargs kill -9 2>/dev/null || true
+        sleep 1
+    fi
+fi
+
+# Verify stopped
+if lsof -ti:$PORT &>/dev/null; then
+    echo -e "  ${RED}✗ Failed to stop server on port $PORT${NC}"
+    exit 1
+else
+    echo -e "  ${GREEN}✓ Server stopped${NC}"
+    rm -f "$PID_FILE"
+fi

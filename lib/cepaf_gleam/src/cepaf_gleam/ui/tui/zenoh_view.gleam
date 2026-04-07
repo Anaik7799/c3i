@@ -25,8 +25,13 @@ pub fn render(model: ZenohModel) -> String {
   let header = visuals.with_color("  ZENOH MESH", "cyan")
   let status = render_status(model)
   let stats = render_stats(model)
+  let is_connected = case model.health.status {
+    Connected -> True
+    _ -> False
+  }
+  let topology = visuals.render_mesh_topology(3, is_connected, 16, 16)
   let subs = render_subscriptions(model.subscriptions)
-  string.join([header, status, stats, "", subs], "\n")
+  string.join([header, status, stats, "", topology, "", subs], "\n")
 }
 
 fn render_status(model: ZenohModel) -> String {

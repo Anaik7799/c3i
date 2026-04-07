@@ -2,11 +2,14 @@
 ////   <fractal-topology><layer>L1_ATOMIC_DEBUG</layer></fractal-topology>
 ////   <compliance><stamp-controls>SC-UIGT-001..014</stamp-controls></compliance></c3i-module>
 ////
-//// Navigation digraph for 13 Gleam pages with PageRank and SCC.
+//// Navigation digraph for 30 Gleam pages with PageRank and SCC.
 
 import cepaf_gleam/ui/domain.{
-  type Page, Cockpit, Dashboard, Immune, Kms, Knowledge, Mcp, Metabolic,
-  Planning, Podman, Substrate, Telemetry, Verification, Zenoh,
+  type Page, Agents, Bicameral, Biomorphic, Bridge, Cockpit, Config, Dashboard,
+  Database, Evolution, Federation, Git, HealthGrid, Holon, HomeostasisPage,
+  ComponentDemo, Immune, Integrity, Kms, Knowledge, Mcp, Metabolic, Planning,
+  PlanningDashboard, Podman, Prajna, Singularity, Smriti, Substrate, Telemetry,
+  Verification, Zenoh,
 }
 import gleam/dict.{type Dict}
 import gleam/float
@@ -15,28 +18,20 @@ import gleam/list
 import gleam/result
 import gleam/set.{type Set}
 
-/// All pages in the navigation graph.
+/// All 30 pages in the navigation graph (SC-UIGT-001).
 pub fn all_pages() -> List(Page) {
   [
-    Dashboard,
-    Planning,
-    Immune,
-    Knowledge,
-    Zenoh,
-    Cockpit,
-    Verification,
-    Substrate,
-    Metabolic,
-    Podman,
-    Mcp,
-    Kms,
-    Telemetry,
+    Dashboard, Planning, Immune, Knowledge, Zenoh, Cockpit, Verification,
+    Substrate, Metabolic, Podman, Mcp, Kms, Telemetry, Federation, HealthGrid,
+    Prajna, Agents, Holon, Config, Git, Database, Bridge, Smriti,
+    PlanningDashboard, Integrity, Evolution, Biomorphic, HomeostasisPage,
+    Bicameral, Singularity, ComponentDemo,
   ]
 }
 
 /// Page count.
 pub fn page_count() -> Int {
-  13
+  31
 }
 
 /// Build a list of integers from start to stop inclusive.

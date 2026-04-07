@@ -20,8 +20,11 @@
 
 import cepaf_gleam/testing/zenoh_test_observer
 import cepaf_gleam/ui/domain.{
-  Cockpit, Dashboard, Federation, HealthGrid, Immune, Kms, Knowledge, Mcp,
-  Metabolic, Planning, Podman, Substrate, Telemetry, Verification, Zenoh,
+  Agents, Bicameral, Biomorphic, Bridge, Cockpit, ComponentDemo, Config,
+  Dashboard, Database, Evolution, Federation, Git, HealthGrid, Holon,
+  HomeostasisPage, Immune, Integrity, Kms, Knowledge, Mcp, Metabolic, Planning,
+  PlanningDashboard, Podman, Prajna, Singularity, Smriti, Substrate, Telemetry,
+  Verification, Zenoh,
 }
 import cepaf_gleam/ui/zenoh_otel.{
   Act, Decide, Observe, Orient, agent_attrs, all_page_topics, control_attrs,
@@ -178,10 +181,13 @@ pub fn agent_attrs_contains_agent_id_action_and_kind_test() {
 // =============================================================================
 
 pub fn verify_all_pages_published_all_present_test() {
-  // Seed the span log with one span per all 15 pages.
+  // Seed the span log with one span per all 31 pages.
   let all_pages = [
     Dashboard, Planning, Immune, Knowledge, Zenoh, Cockpit, Verification,
     Substrate, Metabolic, Podman, Mcp, Kms, Telemetry, Federation, HealthGrid,
+    Prajna, Agents, Holon, Config, Git, Database, Bridge, Smriti,
+    PlanningDashboard, Integrity, Evolution, Biomorphic, HomeostasisPage,
+    Bicameral, Singularity, ComponentDemo,
   ]
   let state =
     list.fold(all_pages, zenoh_test_observer.init([]), fn(acc, page) {
@@ -191,12 +197,12 @@ pub fn verify_all_pages_published_all_present_test() {
       )
     })
   let results = zenoh_test_observer.verify_all_pages_published(state)
-  list.length(results) |> should.equal(15)
+  list.length(results) |> should.equal(31)
   list.all(results, fn(r) { r.passed }) |> should.be_true()
 }
 
 pub fn verify_all_pages_published_missing_pages_fail_test() {
-  // Only Dashboard and Planning published — remaining 13 must fail.
+  // Only Dashboard and Planning published — remaining 29 of 31 pages must fail.
   let state =
     zenoh_test_observer.init([])
     |> zenoh_test_observer.record_span(new_span(
@@ -213,7 +219,7 @@ pub fn verify_all_pages_published_missing_pages_fail_test() {
     ))
   let results = zenoh_test_observer.verify_all_pages_published(state)
   let failed = list.filter(results, fn(r) { !r.passed })
-  list.length(failed) |> should.equal(13)
+  list.length(failed) |> should.equal(29)
 }
 
 pub fn verify_ooda_coverage_all_phases_pass_test() {

@@ -185,18 +185,18 @@ fn string_slice(s: String, start: Int, length: Int) -> String {
 pub fn nav_graph_all_pages_count_test() {
   nav_graph.all_pages()
   |> list.length()
-  |> should.equal(13)
+  |> should.equal(31)
 }
 
 pub fn nav_graph_page_count_test() {
   nav_graph.page_count()
-  |> should.equal(13)
+  |> should.equal(31)
 }
 
 pub fn nav_graph_edge_count_test() {
-  // Complete directed graph: n * (n-1) = 13 * 12 = 156
+  // Complete directed graph: n * (n-1) = 31 * 30 = 930
   nav_graph.edge_count()
-  |> should.equal(156)
+  |> should.equal(930)
 }
 
 pub fn nav_graph_density_test() {
@@ -205,10 +205,10 @@ pub fn nav_graph_density_test() {
   |> should.equal(1.0)
 }
 
-pub fn nav_graph_page_rank_has_13_entries_test() {
+pub fn nav_graph_page_rank_has_30_entries_test() {
   nav_graph.page_rank()
   |> dict.size()
-  |> should.equal(13)
+  |> should.equal(31)
 }
 
 pub fn nav_graph_page_rank_values_positive_test() {
@@ -228,10 +228,10 @@ pub fn nav_graph_page_rank_sums_to_one_test() {
   |> should.be_true()
 }
 
-pub fn nav_graph_test_priority_order_has_13_entries_test() {
+pub fn nav_graph_test_priority_order_has_30_entries_test() {
   nav_graph.test_priority_order()
   |> list.length()
-  |> should.equal(13)
+  |> should.equal(31)
 }
 
 pub fn nav_graph_chinese_postman_bound_equals_edge_count_test() {

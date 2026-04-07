@@ -15,16 +15,16 @@ import gleeunit/should
 
 pub fn all_13_pages_in_graph_test() {
   let pages = nav_graph.all_pages()
-  list.length(pages) |> should.equal(13)
+  list.length(pages) |> should.equal(31)
 }
 
 pub fn page_count_matches_vertex_set_test() {
-  nav_graph.page_count() |> should.equal(13)
+  nav_graph.page_count() |> should.equal(31)
 }
 
 pub fn edge_count_complete_graph_test() {
-  // Complete graph: n*(n-1) = 13*12 = 156
-  nav_graph.edge_count() |> should.equal(156)
+  // Complete graph: n*(n-1) = 31*30 = 930
+  nav_graph.edge_count() |> should.equal(930)
 }
 
 pub fn density_is_one_for_complete_graph_test() {
@@ -43,12 +43,12 @@ pub fn scc_count_is_one_test() {
 
 pub fn adjacency_has_13_entries_test() {
   let adj = nav_graph.adjacency()
-  dict.size(adj) |> should.equal(13)
+  dict.size(adj) |> should.equal(31)
 }
 
 pub fn each_page_connects_to_12_others_test() {
   let adj = nav_graph.adjacency()
-  dict.each(adj, fn(_idx, neighbors) { set.size(neighbors) |> should.equal(12) })
+  dict.each(adj, fn(_idx, neighbors) { set.size(neighbors) |> should.equal(30) })
 }
 
 pub fn no_self_loops_test() {
@@ -64,7 +64,7 @@ pub fn no_self_loops_test() {
 
 pub fn pagerank_has_13_entries_test() {
   let ranks = nav_graph.page_rank()
-  dict.size(ranks) |> should.equal(13)
+  dict.size(ranks) |> should.equal(31)
 }
 
 pub fn pagerank_sums_to_approximately_one_test() {
@@ -81,7 +81,7 @@ pub fn pagerank_all_positive_test() {
 
 pub fn test_priority_order_returns_13_pages_test() {
   let priority = nav_graph.test_priority_order()
-  list.length(priority) |> should.equal(13)
+  list.length(priority) |> should.equal(31)
 }
 
 pub fn test_priority_order_descending_test() {
@@ -95,7 +95,7 @@ pub fn test_priority_order_descending_test() {
 // =============================================================================
 
 pub fn chinese_postman_bound_equals_edge_count_test() {
-  nav_graph.chinese_postman_bound() |> should.equal(156)
+  nav_graph.chinese_postman_bound() |> should.equal(930)
 }
 
 // =============================================================================

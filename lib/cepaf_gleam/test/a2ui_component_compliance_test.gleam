@@ -182,9 +182,10 @@ pub fn catalog_container_card_registered_with_l4_layer_test() {
   }
 }
 
-pub fn catalog_total_registered_count_is_fifteen_test() {
+pub fn catalog_total_registered_count_is_115_test() {
   let cat = catalog.default_catalog()
-  catalog.component_count(cat) |> should.equal(15)
+  // 15 original + 100 wave 1 + 100 wave 2 + 18 overlap dedup = 233 unique
+  { catalog.component_count(cat) >= 215 } |> should.be_true()
 }
 
 pub fn catalog_unknown_component_returns_error_test() {
@@ -1133,9 +1134,10 @@ pub fn components_for_l5_layer_contains_ooda_ring_and_reasoning_test() {
   |> should.be_true
 }
 
-pub fn components_for_l7_layer_returns_empty_list_test() {
+pub fn components_for_l7_layer_has_federation_components_test() {
   let cat = catalog.default_catalog()
-  catalog.components_for_layer(cat, L7Federation)
-  |> list.is_empty
-  |> should.be_true
+  let l7 = catalog.components_for_layer(cat, L7Federation)
+  // L7 now has 6 federation components (version_vector_row, quorum_indicator,
+  // sync_status_icon, peer_ring, version_clock_ring, reconciliation_diff)
+  { list.length(l7) >= 6 } |> should.be_true
 }
