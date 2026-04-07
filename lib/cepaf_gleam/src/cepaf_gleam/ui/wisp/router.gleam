@@ -460,12 +460,14 @@ fn singularity_json() -> String {
   |> json.to_string()
 }
 
-/// Component demo catalog — returns all 115+ A2UI components with metadata.
+/// Component demo catalog — returns all 233 A2UI components with live metadata.
 fn component_demo_json() -> String {
+  let health = c3i_nif.system_health()
   json.object([
     #("page", json.string("Component Demo")),
-    #("total_components", json.int(115)),
+    #("total_components", json.int(233)),
     #("categories", json.object([
+      #("core", json.int(15)),
       #("layout", json.int(14)),
       #("data", json.int(16)),
       #("status", json.int(18)),
@@ -473,15 +475,29 @@ fn component_demo_json() -> String {
       #("visualization", json.int(20)),
       #("agent", json.int(10)),
       #("safety", json.int(6)),
-      #("core", json.int(15)),
+      #("real_time_monitors", json.int(15)),
+      #("zenoh_mesh", json.int(10)),
+      #("container_lifecycle", json.int(10)),
+      #("planning_task", json.int(10)),
+      #("knowledge_semantic", json.int(8)),
+      #("rule_engine", json.int(8)),
+      #("recovery_resilience", json.int(8)),
+      #("observability", json.int(8)),
+      #("biomorphic", json.int(8)),
+      #("federation_l7", json.int(8)),
+      #("accessibility", json.int(8)),
+      #("security_crypto", json.int(7)),
+      #("allium_spec", json.int(5)),
+      #("notification", json.int(5)),
     ])),
     #("render_targets", json.array([
       json.string("HTML (Lustre SSR)"),
       json.string("JSON (Wisp API)"),
       json.string("ANSI (TUI Terminal)"),
     ], of: fn(x) { x })),
-    #("isomorphic_count", json.int(108)),
+    #("isomorphic_count", json.int(226)),
     #("html_only_count", json.int(7)),
+    #("live_system_health", json.string(health)),
   ])
   |> json.to_string()
 }
