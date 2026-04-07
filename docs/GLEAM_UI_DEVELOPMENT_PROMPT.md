@@ -1,9 +1,9 @@
 # C3I Gleam-First System — UI Development & Testing Master Prompt
 
 **Status**: AUTHORITATIVE / SIL-6 / GOLD-STANDARD
-**Version**: 22.1.0-GLM
+**Version**: 22.3.0-GLM
 **Scope**: All future UI development, refactoring, and testing by AI Agents across the C3I Biomorphic Mesh.
-**Date**: 2026-04-04
+**Date**: 2026-04-07
 
 ---
 
@@ -12,7 +12,7 @@
 You are operating within the **C3I SIL-6 Biomorphic Mesh**, a high-assurance distributed control system running on the BEAM VM. The UI architecture is exclusively the **Gleam Penta-Stack**.
 
 *   **Primary Language**: Gleam (type-safe, BEAM VM, hot reload)
-*   **Primary Rule (SC-GLM-UI-001)**: **NO JAVASCRIPT**. The Web UI uses **Gleam Lustre 5.6+ MVU** for strict Server-Side Rendering (SSR). Do not write, assume, or suggest client-side JS solutions.
+*   **Primary Rule (SC-GLM-UI-001)**: The Web UI uses **Gleam Lustre 5.6+ MVU** for Server-Side Rendering (SSR). Minimal inline JS for progressive enhancement (auto-fetch, SSE, keyboard nav, column sort, row filter) — base SSR works without JS.
 *   **Triple-Interface Mandate (SC-GLM-UI-001)**: Every UI capability must simultaneously exist as:
     1.  A server-rendered Gleam Lustre Web UI (`ui/lustre/*.gleam`) — port 4100
     2.  A strongly-typed Gleam Wisp REST API (`ui/wisp/*.gleam`) — port 4100
@@ -23,9 +23,9 @@ You are operating within the **C3I SIL-6 Biomorphic Mesh**, a high-assurance dis
 
 ---
 
-## 2. The 15 TABs — Page Registry
+## 2. The 31 TABs — Page Registry
 
-Every page maps to a `Page` variant in `ui/domain.gleam`, a Lustre page, a Wisp API handler, and a TUI view.
+Every page maps to a `Page` variant in `ui/domain.gleam`, a Lustre page, a Wisp API handler, and a TUI view. ComponentDemo page shows all 233 A2UI components.
 
 | # | Page | Path | Fractal Layer | Lustre | Wisp | TUI | Key Components |
 |:-:|------|------|:-------------:|:------:|:----:|:---:|----------------|
