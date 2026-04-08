@@ -108,7 +108,6 @@
     # Google Cloud SDK (gcloud CLI)
     google-cloud-sdk                   # gcloud, gsutil, bq
     rclone                             # Google Drive FUSE mount
-    ollama                             # Local LLM Inference (Gemma)
     # gRPC/Protobuf Support (SC-LSP-003)
     buf                                # Buf CLI for protobuf (includes LSP)
     protobuf                           # Protocol Buffers compiler
@@ -172,11 +171,6 @@
   scripts.app-gleam.exec = ''
     echo "🚀 Starting Indrajaal Gleam Web server (Mist + Lustre)..."
     cd lib/indrajaal_gleam_web && gleam run
-  '';
-
-  scripts.ollama-start.exec = ''
-    echo "🧠 Starting Ollama server..."
-    ollama serve
   '';
 
   # ============================================
