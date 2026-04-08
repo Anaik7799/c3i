@@ -8,11 +8,8 @@
 
 import cepaf_gleam/gateway/telegram
 import cepaf_gleam/moz/client as moz
-import cepaf_gleam/zenoh/client as zenoh
 import gleam/erlang/process.{type Subject}
 import gleam/io
-import gleam/json
-import gleam/option.{None, Some}
 import gleam/otp/actor
 
 pub type BriefingMessage {
@@ -59,7 +56,7 @@ fn handle_message(state: BriefingState, msg: BriefingMessage) -> actor.Next(Brie
 - Email Triage: 5 High-signal messages detected."
       
       // 3. DISPATCH: Send to mobile gateway
-      let _ = telegram.send_notification(state.telegram, summary)
+      let _ = telegram.send_notification(state.telegram, "telegram", summary)
       
       actor.continue(state)
     }

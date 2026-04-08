@@ -16,6 +16,10 @@ pub type GatewayState {
   GatewayState(moz: moz.MoZClientState, bot_token: String, chat_id: String)
 }
 
+pub fn new_moz_state() -> moz.MoZClientState {
+  moz.new()
+}
+
 /// Start the Telegram Gateway listener loop.
 pub fn start(bot_token: String, chat_id: String) {
   let state = GatewayState(moz: moz.new(), bot_token: bot_token, chat_id: chat_id)
@@ -46,7 +50,7 @@ fn listen_loop(state: GatewayState) {
   // Check if Zenoh is actually operational before notification
   let _ = case zenoh.open("{}") {
     Ok(session) -> {
-      let _ = send_notification(state, "🚀 C3I Mesh Ignition: All systems nominal.")
+      let _ = send_notification(state, "telegram", "🚀 C3I Mesh Ignition: All systems nominal.")
       
       // Simulation of receiving an inbound command from Telegram
       // In production, this would be triggered by a long-poll or webhook
@@ -89,9 +93,10 @@ pub fn process_inbound_message(session: zenoh.Session, _state: GatewayState, tex
   }
 }
 
-/// Send a notification to Telegram via MoZ/MCP request to the bridge.
-pub fn send_notification(state: GatewayState, message: String) -> Result(Nil, String) {
+/// Send a notification to a specific channel via MoZ/MCP request to the bridge.
+pub fn send_notification(state: GatewayState, channel: String, message: String) -> Result(Nil, String) {
   let params = json.object([
+    #("channel", json.string(channel)),
     #("token", json.string(state.bot_token)),
     #("chat_id", json.string(state.chat_id)),
     #("text", json.string(message))
@@ -101,11 +106,11 @@ pub fn send_notification(state: GatewayState, message: String) -> Result(Nil, St
   
   case result {
     Ok(_) -> {
-      io.println("  [gateway] Notification routed to Zenoh: " <> message)
+      io.println("  [gateway] Notification routed to Zenoh (" <> channel <> "): " <> message)
       Ok(Nil)
     }
     Error(e) -> {
-      io.println("  [gateway] Failed to route notification: " <> e)
+      io.println("  [gateway] Failed to route notification (" <> channel <> "): " <> e)
       Error(e)
     }
   }
