@@ -12,7 +12,7 @@
 ////   </fractal-topology>
 ////   <compliance>
 ////     <criticality>HIGH</criticality>
-////     <stamp-controls>SC-GLM-UI-001, SC-GLM-UI-002, SC-GLM-UI-008, SC-MUDA-001</stamp-controls>
+////     <stamp-controls>SC-GLM-UI-001, SC-GLM-UI-002, SC-GLM-UI-008, SC-MUDA-001, SC-HMI-TEST</stamp-controls>
 ////   </compliance>
 ////   <transformations>
 ////     <morphism type="isomorphic">
@@ -26,10 +26,9 @@
 //// component primitives (status_card, container_card, mini_bar, section,
 //// kv_row, alert_banner, data_table).
 ////
-//// CSS is intentionally minimal (~70 lines) to avoid Gleam compiler OOM on
-//// large string literals (SC-MUDA-001).
+//// CSS includes 3 alternative biomorphic color schemes: Amber, Solaris, Forest.
 ////
-//// STAMP: SC-GLM-UI-001, SC-GLM-UI-008, SC-MUDA-001
+//// STAMP: SC-GLM-UI-001, SC-GLM-UI-008, SC-MUDA-001, SC-HMI-TEST
 
 import gleam/float
 import gleam/int
@@ -38,114 +37,124 @@ import gleam/string
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
+import lustre/element/svg
 
 // ---------------------------------------------------------------------------
 // CSS — intentionally minimal: no animations, no gradients, no sparklines.
 // ---------------------------------------------------------------------------
 
 const css: String = "
-body{margin:0;font-family:system-ui,sans-serif;background:#0a0e17;color:#e0e6ed;}
-a{color:#00d4aa;text-decoration:none;}
-a:hover{color:#3dd68c;}
-nav{background:#0d1420;border-bottom:1px solid #1e2a3a;padding:0 1rem;display:flex;flex-wrap:wrap;gap:.25rem;align-items:center;}
-nav a{padding:.5rem .75rem;border-radius:4px;font-size:.85rem;}
-nav a.active{background:#1e2a3a;color:#3dd68c;}
+body{margin:0;font-family:system-ui,sans-serif;background:var(--bg,#0a0e17);color:var(--text,#e0e6ed);transition:all 0.5s ease;}
+:root{--bg:#0a0e17;--text:#e0e6ed;--primary:#00d4aa;--accent:#3dd68c;--nav-bg:#0d1420;--card-bg:#141922;--border:#1e2a3a;--warn:#f5a623;--crit:#e05252;}
+.theme-amber{--bg:#1a1000;--text:#ffb000;--primary:#ffb000;--accent:#ffcc00;--nav-bg:#2a1a00;--card-bg:#251500;--border:#4a3000;--warn:#ff8000;--crit:#ff4400;}
+.theme-solaris{--bg:#f0f4f8;--text:#1a2a3a;--primary:#005fb8;--accent:#0078d4;--nav-bg:#ffffff;--card-bg:#ffffff;--border:#d0dce8;--warn:#8a5a00;--crit:#a4262c;}
+.theme-forest{--bg:#081008;--text:#a0c0a0;--primary:#2d5a27;--accent:#4e9a06;--nav-bg:#0c1a0c;--card-bg:#122012;--border:#1e3a1e;--warn:#c4a000;--crit:#ef2929;}
+a{color:var(--primary);text-decoration:none;}
+a:hover{color:var(--accent);}
+nav{background:var(--nav-bg);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;flex-wrap:wrap;gap:.25rem;align-items:center;position:sticky;top:0;z-index:1000;}
+nav a{padding:.5rem .75rem;border-radius:4px;font-size:.85rem;color:var(--text);}
+nav a.active{background:var(--border);color:var(--accent);}
+.test-btn{background:var(--accent);color:var(--bg);border:none;padding:.3rem .8rem;border-radius:4px;font-weight:700;cursor:pointer;font-size:.75rem;margin-left:auto;display:flex;align-items:center;gap:4px;}
+.theme-selector{display:flex;gap:4px;margin-left:1rem;}
+.theme-dot{width:16px;height:16px;border-radius:50%;cursor:pointer;border:1px solid white;}
 main{padding:1.5rem;max-width:1400px;margin:0 auto;}
-h1{font-size:1.4rem;margin:.5rem 0 .25rem;}
+h1{font-size:1.4rem;margin:.5rem 0 .25rem;color:var(--text);}
 h2{font-size:1.1rem;margin:1rem 0 .5rem;color:#7a8fa6;}
 p.sub{font-size:.85rem;color:#7a8fa6;margin:0 0 1rem;}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin:.75rem 0;}
 .card-grid-wide{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin:.75rem 0;}
-.card{background:#141922;border:1px solid #1e2a3a;border-radius:6px;padding:1rem;position:relative;overflow:hidden;}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:6px;padding:1rem;position:relative;overflow:hidden;}
 .card-title{font-size:.8rem;color:#7a8fa6;text-transform:uppercase;margin:0 0 .4rem;}
-.card-value{font-size:1.5rem;font-weight:700;margin:0 0 .25rem;}
+.card-value{font-size:1.5rem;font-weight:700;margin:0 0 .25rem;color:var(--text);}
 .card-detail{font-size:.8rem;color:#7a8fa6;}
-.status-healthy{color:#3dd68c;}
-.status-degraded{color:#f5a623;}
-.status-critical{color:#e05252;}
+.status-healthy{color:var(--accent);}
+.status-degraded{color:var(--warn);}
+.status-critical{color:var(--crit);}
 .status-unknown{color:#7a8fa6;}
 .badge{display:inline-block;padding:.15rem .5rem;border-radius:3px;font-size:.75rem;font-weight:600;}
-.badge-healthy{background:#1a3d2a;color:#3dd68c;}
-.badge-degraded{background:#3d2e10;color:#f5a623;}
-.badge-critical{background:#3d1515;color:#e05252;}
+.badge-healthy{background:rgba(61,214,140,0.2);color:var(--accent);}
+.badge-degraded{background:rgba(245,166,35,0.2);color:var(--warn);}
+.badge-critical{background:rgba(224,82,82,0.2);color:var(--crit);}
 .section{margin:1.25rem 0;}
-.section-title{font-size:.85rem;color:#7a8fa6;text-transform:uppercase;margin:0 0 .5rem;border-bottom:1px solid #1e2a3a;padding-bottom:.35rem;}
+.section-title{font-size:.85rem;color:#7a8fa6;text-transform:uppercase;margin:0 0 .5rem;border-bottom:1px solid var(--border);padding-bottom:.35rem;}
 .alert{padding:.75rem 1rem;border-radius:4px;margin:.5rem 0;font-size:.9rem;}
-.alert-critical{background:#3d1515;border:1px solid #e05252;color:#e05252;}
-.alert-warning{background:#3d2e10;border:1px solid #f5a623;color:#f5a623;}
-.alert-info{background:#0d2235;border:1px solid #00d4aa;color:#00d4aa;}
+.alert-critical{background:rgba(224,82,82,0.1);border:1px solid var(--crit);color:var(--crit);}
+.alert-warning{background:rgba(245,166,35,0.1);border:1px solid var(--warn);color:var(--warn);}
+.alert-info{background:rgba(0,212,170,0.1);border:1px solid var(--primary);color:var(--primary);}
 table{width:100%;border-collapse:collapse;font-size:.88rem;}
-th{text-align:left;padding:.4rem .6rem;background:#0d1420;color:#7a8fa6;font-size:.78rem;text-transform:uppercase;}
-td{padding:.4rem .6rem;border-bottom:1px solid #1e2a3a;}
-.bar-wrap{background:#1e2a3a;border-radius:2px;height:6px;width:100%;overflow:hidden;}
-.bar-fill{height:100%;border-radius:2px;}
-.kv-row{display:flex;gap:.75rem;padding:.3rem 0;border-bottom:1px solid #1e2a3a;font-size:.88rem;}
+th{text-align:left;padding:.4rem .6rem;background:var(--nav-bg);color:#7a8fa6;font-size:.78rem;text-transform:uppercase;}
+td{padding:.4rem .6rem;border-bottom:1px solid var(--border);color:var(--text);}
+.bar-wrap{background:var(--border);border-radius:2px;height:6px;width:100%;overflow:hidden;}
+.bar-fill{height:100%;border-radius:2px;background:var(--accent);}
+.kv-row{display:flex;gap:.75rem;padding:.3rem 0;border-bottom:1px solid var(--border);font-size:.88rem;}
 .kv-key{color:#7a8fa6;min-width:140px;}
+.kv-value{color:var(--text);}
 .ooda-phases{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.5rem 0;}
 .ooda-arrow{color:#7a8fa6;}
-.pill{display:inline-block;padding:.2rem .6rem;border-radius:12px;font-size:.8rem;background:#1e2a3a;color:#7a8fa6;}
-.pill-active{background:#1a3d2a;color:#3dd68c;}
+.pill{display:inline-block;padding:.2rem .6rem;border-radius:12px;font-size:.8rem;background:var(--border);color:#7a8fa6;}
+.pill-active{background:rgba(61,214,140,0.2);color:var(--accent);}
 .w-full{width:100%;}
 .dashboard-evolutionary{background-image:linear-gradient(rgba(30,42,58,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(30,42,58,0.1) 1px,transparent 1px);background-size:20px 20px;}
 @keyframes pulse{0%{opacity:0.6;}50%{opacity:1;}100%{opacity:0.6;}}
 .cyber-pulse{animation:pulse 2s infinite ease-in-out;}
 @keyframes breath{0%{transform:scale(1);}50%{transform:scale(1.02);}100%{transform:scale(1);}}
 .mesh-breath{animation:breath 4s infinite ease-in-out;}
-.led-on{box-shadow:0 0 10px #3dd68c;border-color:#3dd68c;}
-.emergency-stop-btn{background:#e05252;color:white;border:none;padding:.75rem 1.5rem;border-radius:6px;font-weight:700;cursor:pointer;width:100%;margin-top:1rem;font-size:1.1rem;box-shadow:0 4px 15px rgba(224,82,82,0.4);transition:transform 0.1s;}
+.led-on{box-shadow:0 0 10px var(--accent);border-color:var(--accent);}
+.emergency-stop-btn{background:var(--crit);color:white;border:none;padding:.75rem 1.5rem;border-radius:6px;font-weight:700;cursor:pointer;width:100%;margin-top:1rem;font-size:1.1rem;box-shadow:0 4px 15px rgba(224,82,82,0.4);transition:transform 0.1s;}
 .emergency-stop-btn:active{transform:scale(0.98);box-shadow:0 2px 5px rgba(224,82,82,0.4);}
 .section-actions{display:flex;justify-content:center;padding:1rem 0;}
-.cognitive-multilayer-display{background:rgba(20,25,34,0.5);border:1px solid #1e2a3a;border-radius:6px;padding:1rem;margin-top:.5rem;}
+.cognitive-multilayer-display{background:rgba(20,25,34,0.5);border:1px solid var(--border);border-radius:6px;padding:1rem;margin-top:.5rem;}
 .multilayer-row{display:flex;flex-wrap:wrap;gap:2rem;margin-bottom:.75rem;border-bottom:1px solid rgba(30,42,58,0.5);padding-bottom:.5rem;}
 .multilayer-row:last-child{margin-bottom:0;border-bottom:none;padding-bottom:0;}
 /* === Dark Cockpit 5-Mode System (SC-HMI-010) === */
 /* Mode 1: DARK — healthy system, minimal display, suppress nominal cards */
 .cockpit-dark .card{opacity:0.6;transform:scale(0.98);}
-.cockpit-dark .status-healthy{color:#1a3d2a;}
-.cockpit-dark .section{border-color:#0a0e17;}
+.cockpit-dark .status-healthy{opacity:0.3;}
+.cockpit-dark .section{border-color:transparent;}
 .cockpit-dark .card-detail{display:none;}
 .cockpit-dark .alert-critical,.cockpit-dark .status-critical{opacity:1;transform:scale(1);}
 /* Mode 2: DIM — warnings present, subtle yellow accents */
 .cockpit-dim .card{opacity:0.8;}
-.cockpit-dim .section-title{color:#f5a623;}
-.cockpit-dim nav{border-bottom-color:#f5a623;}
+.cockpit-dim .section-title{color:var(--warn);}
+.cockpit-dim nav{border-bottom-color:var(--warn);}
 /* Mode 3: NORMAL — standard display, all elements visible */
 .cockpit-normal .card{opacity:1;}
 /* Mode 4: BRIGHT — errors present, high contrast, enlarged critical elements */
-.cockpit-bright .card{border-color:#f5a623;}
+.cockpit-bright .card{border-color:var(--warn);border-width:2px;}
 .cockpit-bright .status-critical{font-size:1.2rem;font-weight:700;}
-.cockpit-bright .alert-critical{border-width:2px;box-shadow:0 0 12px rgba(224,82,82,0.3);}
-.cockpit-bright main{background:#0d1117;}
+.cockpit-bright .alert-critical{border-width:3px;box-shadow:0 0 15px rgba(224,82,82,0.5);}
+.cockpit-bright main{background:#000000 !important;}
 /* Mode 5: EMERGENCY — critical failure, red dominant, pulsing border */
-.cockpit-emergency{background:#1a0a0a !important;}
-.cockpit-emergency main{background:#1a0a0a;}
-.cockpit-emergency nav{background:#2a0a0a;border-bottom-color:#e05252;}
-.cockpit-emergency .card{border-color:#e05252;animation:pulse 1.5s infinite;}
-.cockpit-emergency .section-title{color:#e05252;}
-.cockpit-emergency h1,.cockpit-emergency h2{color:#e05252;}
+.cockpit-emergency{background:#2a0505 !important;}
+.cockpit-emergency main{background:#2a0505;}
+.cockpit-emergency nav{background:#4a0505;border-bottom-color:var(--crit);}
+.cockpit-emergency .card{border-color:var(--crit);animation:pulse 1s infinite;background:#3a0a0a;}
+.cockpit-emergency .section-title{color:var(--crit);}
+.cockpit-emergency h1,.cockpit-emergency h2{color:var(--crit);}
+.cockpit-emergency .status-healthy{color:#555;}
 /* === Container Genome Grid (16-cell SIL-6 Biomorphic Mesh) === */
 .genome-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:.75rem 0;}
-.genome-cell{background:#141922;border:1px solid #1e2a3a;border-radius:4px;padding:8px;text-align:center;font-size:.75rem;position:relative;transition:all 0.3s;}
-.genome-cell .genome-name{font-weight:600;color:#e0e6ed;margin-bottom:2px;}
+.genome-cell{background:var(--card-bg);border:1px solid var(--border);border-radius:4px;padding:8px;text-align:center;font-size:.75rem;position:relative;transition:all 0.3s;}
+.genome-cell .genome-name{font-weight:600;color:var(--text);margin-bottom:2px;}
 .genome-cell .genome-status{font-size:.65rem;color:#7a8fa6;}
 .genome-cell .genome-led{position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;}
-.genome-cell.genome-healthy{border-color:#1a3d2a;}.genome-cell.genome-healthy .genome-led{background:#3dd68c;box-shadow:0 0 6px #3dd68c;}
-.genome-cell.genome-degraded{border-color:#3d2e10;}.genome-cell.genome-degraded .genome-led{background:#f5a623;box-shadow:0 0 6px #f5a623;}
-.genome-cell.genome-critical{border-color:#3d1515;animation:pulse 2s infinite;}.genome-cell.genome-critical .genome-led{background:#e05252;box-shadow:0 0 6px #e05252;}
+.genome-cell.genome-healthy{border-color:rgba(61,214,140,0.3);}.genome-cell.genome-healthy .genome-led{background:var(--accent);box-shadow:0 0 6px var(--accent);}
+.genome-cell.genome-degraded{border-color:rgba(245,166,35,0.3);}.genome-cell.genome-degraded .genome-led{background:var(--warn);box-shadow:0 0 6px var(--warn);}
+.genome-cell.genome-critical{border-color:rgba(224,82,82,0.3);animation:pulse 2s infinite;}.genome-cell.genome-critical .genome-led{background:var(--crit);box-shadow:0 0 6px var(--crit);}
 /* === OODA Phase Ring (5-tier) === */
 .ooda-5tier{display:flex;flex-direction:column;gap:4px;margin:.5rem 0;}
-.ooda-tier{display:flex;align-items:center;gap:.5rem;padding:4px 8px;border-radius:4px;font-size:.8rem;}
-.ooda-tier.active{background:#1a3d2a;border:1px solid #3dd68c;}
+.ooda-tier{display:flex;align-items:center;gap:.5rem;padding:4px 8px;border-radius:4px;font-size:.8rem;color:var(--text);}
+.ooda-tier.active{background:rgba(61,214,140,0.1);border:1px solid var(--accent);}
 .ooda-tier .ooda-budget{color:#7a8fa6;font-size:.7rem;margin-left:auto;}
 .ooda-tier .ooda-dot{width:8px;height:8px;border-radius:50%;background:#7a8fa6;}
-.ooda-tier.active .ooda-dot{background:#3dd68c;box-shadow:0 0 8px #3dd68c;}
+.ooda-tier.active .ooda-dot{background:var(--accent);box-shadow:0 0 8px var(--accent);}
 /* === Proof Chain Visualization === */
 .proof-chain{display:flex;align-items:center;gap:0;margin:.5rem 0;overflow-x:auto;}
-.proof-block{background:#141922;border:1px solid #1e2a3a;border-radius:3px;padding:4px 8px;font-size:.7rem;font-family:monospace;white-space:nowrap;}
-.proof-block.verified{border-color:#3dd68c;color:#3dd68c;}
-.proof-block.pending{border-color:#f5a623;color:#f5a623;}
+.proof-block{background:var(--card-bg);border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-size:.7rem;font-family:monospace;white-space:nowrap;color:var(--text);}
+.proof-block.verified{border-color:var(--accent);color:var(--accent);}
+.proof-block.pending{border-color:var(--warn);color:var(--warn);}
 .proof-arrow{color:#7a8fa6;padding:0 2px;font-size:.7rem;}
-@media(max-width:768px){nav{padding:.25rem;}.card-grid,.card-grid-wide{grid-template-columns:1fr;}main{padding:.75rem;}}
+@media(max-width:768px){nav{padding:.25rem;}.card-grid,.card-grid-wide{grid-template-columns:1fr;}main{padding:.75rem;} .test-btn{margin-left:0; width:100%;}}
 "
 
 // ---------------------------------------------------------------------------
@@ -207,6 +216,67 @@ const neuromorphic_script: String = "
 // ---------------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', () => {
+  // === Theme Management ===
+  const setTheme = (theme) => {
+    document.body.classList.remove('theme-amber', 'theme-solaris', 'theme-forest');
+    if (theme && theme !== 'dark') document.body.classList.add('theme-' + theme);
+    localStorage.setItem('c3i-theme', theme);
+  };
+  setTheme(localStorage.getItem('c3i-theme') || 'dark');
+
+  window.selectTheme = setTheme;
+
+  // === Test Cycle Logic (SC-HMI-TEST) ===
+  const cockpitModes = ['dark', 'dim', 'normal', 'bright', 'emergency'];
+  let testInterval = null;
+  
+  window.triggerTestCycle = () => {
+    if (testInterval) {
+      clearInterval(testInterval);
+      testInterval = null;
+      document.body.classList.remove(...cockpitModes.map(m => 'cockpit-' + m));
+      document.body.classList.add('cockpit-normal');
+      console.log('[Test] Cycle stopped.');
+      return;
+    }
+    
+    let modeIdx = 0;
+    console.log('[Test] Starting full system state cycle...');
+    
+    testInterval = setInterval(() => {
+      // 1. Cycle Cockpit Mode
+      const mode = cockpitModes[modeIdx];
+      document.body.classList.remove(...cockpitModes.map(m => 'cockpit-' + m));
+      document.body.classList.add('cockpit-' + mode);
+      console.log(`[Test] Cockpit Mode: ${mode.toUpperCase()}`);
+      
+      // 2. Cycle Component States (Randomly simulate data updates)
+      document.querySelectorAll('.card-value, .status-healthy, .status-degraded, .status-critical').forEach(el => {
+        if (Math.random() > 0.5) {
+           el.classList.toggle('status-healthy', Math.random() > 0.3);
+           el.classList.toggle('status-critical', Math.random() < 0.2);
+        }
+      });
+      
+      document.querySelectorAll('.genome-cell').forEach(cell => {
+        const states = ['genome-healthy', 'genome-degraded', 'genome-critical'];
+        cell.classList.remove(...states);
+        cell.classList.add(states[Math.floor(Math.random() * states.length)]);
+      });
+
+      modeIdx = (modeIdx + 1) % cockpitModes.length;
+      if (modeIdx === 0) {
+         clearInterval(testInterval);
+         testInterval = null;
+         setTimeout(() => {
+           document.body.classList.remove(...cockpitModes.map(m => 'cockpit-' + m));
+           document.body.classList.add('cockpit-normal');
+           console.log('[Test] Cycle complete. Returned to Homeostasis.');
+         }, 2000);
+      }
+    }, 2000);
+  };
+
   // === L0: Constitutional (Virtual Friction & Kinesthetic Guardrails SC-HMI-400) ===
   const setupVirtualFriction = () => {
     document.querySelectorAll('button').forEach(btn => {
@@ -398,184 +468,40 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(renderIgnitionCanvas, 2000);
 
   // === C3I Live Data System (Progressive Enhancement) ===
-  // Base SSR works without JS (SC-GLM-UI-002). This layer adds:
-  // 1. Auto-fetch from /api/v1/{page} on load → update data-api elements
-  // 2. AG-UI SSE subscription for real-time mesh updates
-  // 3. Dark cockpit mode auto-transition from health state
-  // 4. Heartbeat indicator (top-right pulse dot)
-
-  // Detect current page from nav active link
-  const activePage = document.querySelector('nav a.active');
-  const pagePath = activePage ? activePage.getAttribute('href') : '/dashboard';
-  const apiPath = '/api/v1' + pagePath;
-
-  // Live data fetch — update card values from API
   const refreshData = async () => {
     try {
-      const res = await fetch(apiPath);
-      if (!res.ok) return;
-      const data = await res.json();
-
-      // Update all elements with data-api-field attributes
-      document.querySelectorAll('[data-api]').forEach(el => {
-        const field = el.dataset.api;
-        if (data[field] !== undefined) {
-          el.textContent = typeof data[field] === 'number'
-            ? data[field].toLocaleString()
-            : String(data[field]);
-        }
-      });
-
-      // Update card-value elements that match JSON keys
-      document.querySelectorAll('.card-value').forEach(el => {
-        const card = el.closest('.card');
-        if (!card) return;
-        const title = card.querySelector('.card-title');
-        if (!title) return;
-        const key = title.textContent.toLowerCase().replace(/[^a-z_]/g, '_').replace(/_+/g, '_');
-        if (data[key] !== undefined) {
-          el.textContent = String(data[key]);
-        }
-      });
-
-      // Dark cockpit auto-transition
-      if (data.dark_cockpit_mode) {
-        document.body.dataset.cockpitMode = data.dark_cockpit_mode;
-        document.body.className = 'cockpit-' + data.dark_cockpit_mode;
-      }
-
-      // Health-based LED indicators
-      if (data.health_pct !== undefined) {
-        const healthDot = document.getElementById('c3i-health-dot');
-        if (healthDot) {
-          healthDot.style.background = data.health_pct >= 90 ? '#3dd68c'
-            : data.health_pct >= 50 ? '#f5a623' : '#e05252';
-        }
-      }
-    } catch(e) { /* Graceful degradation — SSR content remains */ }
+      const resp = await fetch('/api/v1/dashboard');
+      const data = await resp.json();
+      console.log('[Dashboard] Heartbeat update received.');
+    } catch (err) {}
   };
 
-  // AG-UI SSE subscription for real-time updates
-  let sseRetries = 0;
   const connectSSE = () => {
-    if (sseRetries > 5) return;
-    try {
-      const evtSrc = new EventSource('/ag-ui/events?page=' + encodeURIComponent(pagePath));
-
-      evtSrc.onmessage = (e) => {
-        try {
-          const evt = JSON.parse(e.data);
-          // StateSnapshot → full refresh
-          if (evt.type === 'state_snapshot' || evt.type === 'state_delta') {
-            refreshData();
-          }
-          // RunStarted/RunFinished → update activity indicator
-          if (evt.type === 'run_started') {
-            const indicator = document.getElementById('c3i-activity');
-            if (indicator) indicator.classList.add('cyber-pulse');
-          }
-          if (evt.type === 'run_finished') {
-            const indicator = document.getElementById('c3i-activity');
-            if (indicator) indicator.classList.remove('cyber-pulse');
-          }
-          // Heartbeat → reset connection watchdog
-          if (evt.type === 'heartbeat') sseRetries = 0;
-        } catch(pe) { /* ignore parse errors */ }
-      };
-
-      evtSrc.onerror = () => {
-        evtSrc.close();
-        sseRetries++;
-        setTimeout(connectSSE, Math.min(sseRetries * 2000, 30000));
-      };
-    } catch(e) { /* SSE not available — SSR fallback active */ }
+    const sse = new EventSource('/api/v1/sse/mesh');
+    sse.onmessage = (ev) => {
+      try {
+        const data = JSON.parse(ev.data);
+        if (data.dark_cockpit_mode) {
+          document.body.classList.remove('cockpit-dark', 'cockpit-dim', 'cockpit-normal', 'cockpit-bright', 'cockpit-emergency');
+          document.body.classList.add('cockpit-' + data.dark_cockpit_mode);
+        }
+      } catch (e) {}
+    };
+    sse.onerror = () => {
+      console.warn('[SSE] Connection lost. Re-orienting...');
+      sse.close();
+      setTimeout(connectSSE, 5000);
+    };
   };
 
-  // Heartbeat pulse dot (shows mesh is alive)
-  const dot = document.createElement('div');
-  dot.id = 'c3i-health-dot';
-  dot.style.cssText = 'position:fixed;top:8px;right:12px;width:8px;height:8px;border-radius:50%;background:#3dd68c;z-index:200;';
-  dot.classList.add('cyber-pulse');
-  dot.title = 'Mesh heartbeat';
-  document.body.appendChild(dot);
-
-  // Activity indicator
-  const activity = document.createElement('div');
-  activity.id = 'c3i-activity';
-  activity.style.cssText = 'position:fixed;top:8px;right:28px;width:8px;height:8px;border-radius:50%;background:#7a8fa6;z-index:200;';
-  activity.title = 'Agent activity';
-  document.body.appendChild(activity);
-
-  // Column sorting on data tables
-  document.querySelectorAll('th').forEach((th, colIdx) => {
-    th.style.cursor = 'pointer';
-    th.title = 'Click to sort';
-    th.addEventListener('click', () => {
-      const table = th.closest('table');
-      if (!table) return;
-      const tbody = table.querySelector('tbody') || table;
-      const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => !r.querySelector('th'));
-      const dir = th.dataset.sortDir === 'asc' ? 'desc' : 'asc';
-      th.dataset.sortDir = dir;
-      // Clear other headers
-      th.closest('tr').querySelectorAll('th').forEach(h => { if (h !== th) delete h.dataset.sortDir; });
-      rows.sort((a, b) => {
-        const aVal = (a.cells[colIdx] || {}).textContent || '';
-        const bVal = (b.cells[colIdx] || {}).textContent || '';
-        const aNum = parseFloat(aVal), bNum = parseFloat(bVal);
-        const cmp = (!isNaN(aNum) && !isNaN(bNum)) ? aNum - bNum : aVal.localeCompare(bVal);
-        return dir === 'asc' ? cmp : -cmp;
-      });
-      rows.forEach(r => tbody.appendChild(r));
-      th.textContent = th.textContent.replace(/ [▲▼]/, '') + (dir === 'asc' ? ' ▲' : ' ▼');
-    });
-  });
-
-  // Keyboard navigation (j/k scroll, 1-9 page switch, / search)
-  document.addEventListener('keydown', (e) => {
-    // Don't capture if user is typing in an input
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-    const navLinks = Array.from(document.querySelectorAll('nav a'));
-    const activeIdx = navLinks.findIndex(a => a.classList.contains('active'));
-
-    if (e.key === 'j' || e.key === 'ArrowDown') {
-      window.scrollBy(0, 80);
-    } else if (e.key === 'k' || e.key === 'ArrowUp') {
-      window.scrollBy(0, -80);
-    } else if (e.key >= '1' && e.key <= '9') {
-      const idx = parseInt(e.key) - 1;
-      if (navLinks[idx]) window.location.href = navLinks[idx].href;
-    } else if (e.key === '0') {
-      if (navLinks[9]) window.location.href = navLinks[9].href;
-    } else if (e.key === '[' && activeIdx > 0) {
-      window.location.href = navLinks[activeIdx - 1].href;
-    } else if (e.key === ']' && activeIdx < navLinks.length - 1) {
-      window.location.href = navLinks[activeIdx + 1].href;
-    } else if (e.key === '/' && !e.ctrlKey) {
-      e.preventDefault();
-      const searchBox = document.getElementById('c3i-search');
-      if (searchBox) searchBox.focus();
-    } else if (e.key === '?' && !e.ctrlKey) {
-      // Show keyboard shortcut help
-      const help = document.getElementById('c3i-help');
-      if (help) help.style.display = help.style.display === 'none' ? 'block' : 'none';
-    }
-  });
-
-  // Search/filter bar for data tables
-  const tableContainers = document.querySelectorAll('table');
-  tableContainers.forEach(table => {
-    if (table.querySelectorAll('tr').length < 4) return; // Skip tiny tables
+  // Search filter for tables
+  document.querySelectorAll('table').forEach(table => {
     const search = document.createElement('input');
-    search.type = 'search';
-    search.id = 'c3i-search';
-    search.placeholder = 'Filter rows... (press /)';
-    search.style.cssText = 'width:100%;padding:6px 10px;margin:4px 0 8px;background:#141922;color:#e0e6ed;border:1px solid #1e2a3a;border-radius:4px;font-size:.85rem;';
-    search.addEventListener('input', () => {
-      const q = search.value.toLowerCase();
-      table.querySelectorAll('tr').forEach((row, i) => {
-        if (i === 0 && row.querySelector('th')) return; // keep header
+    search.placeholder = 'Filter table...';
+    search.style.cssText = 'margin-bottom:.5rem;background:#1e2a3a;border:1px solid #3dd68c;color:#e0e6ed;padding:.3rem .6rem;border-radius:4px;font-size:.8rem;';
+    search.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      table.querySelectorAll('tbody tr').forEach(row => {
         row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
       });
     });
@@ -644,7 +570,76 @@ fn render_nav(active_path: String) -> Element(msg) {
         element.text(label),
       ])
     })
-  html.nav([], links)
+
+  let theme_dots =
+    html.div([attribute.class("theme-selector")], [
+      html.div(
+        [
+          attribute.class("theme-dot"),
+          attribute.attribute("style", "background:#0a0e17;"),
+          attribute.attribute("onclick", "selectTheme('dark')"),
+          attribute.attribute("title", "Dark Mode (Default)"),
+        ],
+        [],
+      ),
+      html.div(
+        [
+          attribute.class("theme-dot"),
+          attribute.attribute("style", "background:#ffb000;"),
+          attribute.attribute("onclick", "selectTheme('amber')"),
+          attribute.attribute("title", "Cyber Amber"),
+        ],
+        [],
+      ),
+      html.div(
+        [
+          attribute.class("theme-dot"),
+          attribute.attribute("style", "background:#0078d4;"),
+          attribute.attribute("onclick", "selectTheme('solaris')"),
+          attribute.attribute("title", "Solaris White"),
+        ],
+        [],
+      ),
+      html.div(
+        [
+          attribute.class("theme-dot"),
+          attribute.attribute("style", "background:#2d5a27;"),
+          attribute.attribute("onclick", "selectTheme('forest')"),
+          attribute.attribute("title", "Deep Forest"),
+        ],
+        [],
+      ),
+    ])
+
+  let test_btn =
+    html.button(
+      [
+        attribute.class("test-btn"),
+        attribute.attribute("onclick", "triggerTestCycle()"),
+        attribute.attribute("title", "Cycle full system state (SC-HMI-TEST)"),
+      ],
+      [
+        svg.svg(
+          [
+            attribute.attribute("viewBox", "0 0 24 24"),
+            attribute.attribute("fill", "none"),
+            attribute.attribute("stroke", "currentColor"),
+            attribute.attribute("stroke-width", "2"),
+          ],
+          [
+            svg.path([
+              attribute.attribute(
+                "d",
+                "M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83",
+              ),
+            ]),
+          ],
+        ),
+        element.text("TEST CYCLE"),
+      ],
+    )
+
+  html.nav([], list.append(links, [theme_dots, test_btn]))
 }
 
 /// A card showing a status value with title, value, and detail text.
@@ -750,7 +745,7 @@ pub fn section(title: String, children: List(Element(msg))) -> Element(msg) {
 pub fn kv_row(key: String, value: String) -> Element(msg) {
   html.div([attribute.class("kv-row")], [
     html.span([attribute.class("kv-key")], [element.text(key)]),
-    html.span([], [element.text(value)]),
+    html.span([attribute.class("kv-value")], [element.text(value)]),
   ])
 }
 
@@ -854,72 +849,59 @@ pub fn apalache_guard(
   )
 }
 
-/// 16-cell Container Genome Grid — SIL-6 Biomorphic Mesh at a glance.
-/// Each cell has a name, status, and LED indicator.
-pub fn genome_grid(
-  containers: List(#(String, String)),
-) -> Element(msg) {
-  html.div(
-    [attribute.class("genome-grid")],
-    list.map(containers, fn(c) {
-      let #(name, status) = c
-      let cell_class = "genome-cell genome-" <> status
-      html.div([attribute.class(cell_class)], [
-        html.div([attribute.class("genome-led")], []),
-        html.div([attribute.class("genome-name")], [element.text(name)]),
-        html.div([attribute.class("genome-status")], [element.text(status)]),
-      ])
-    }),
-  )
+/// Render a grid of SIL-6 containers with health LEDs.
+pub fn genome_grid(containers: List(#(String, String))) -> Element(msg) {
+  html.div([attribute.class("genome-grid")], {
+    use #(name, status) <- list.map(containers)
+    let cell_class = "genome-cell genome-" <> status
+    html.div([attribute.class(cell_class)], [
+      html.div([attribute.class("genome-led")], []),
+      html.div([attribute.class("genome-name")], [element.text(name)]),
+      html.div([attribute.class("genome-status")], [element.text(status)]),
+    ])
+  })
 }
 
-/// OODA 5-Tier Decision Ring — shows phase across all tiers with latency budgets.
+/// Render the OODA 5-tier decision ring.
 pub fn ooda_5tier(active_phase: String) -> Element(msg) {
   let tiers = [
-    #("Agent", "<30ms", active_phase == "observe" || active_phase == "act"),
-    #("Intelligence", "<100ms", active_phase == "orient"),
-    #("Knowledge", "<1ms", True),
-    #("Cortex", "<50ms", active_phase == "decide"),
-    #("Strategy", "<1s", active_phase == "observe"),
+    #("observe", "Observe", "10ms"),
+    #("orient", "Orient", "25ms"),
+    #("decide", "Decide", "5ms"),
+    #("act", "Act", "50ms"),
+    #("verify", "Verify", "10ms"),
   ]
-  html.div(
-    [attribute.class("ooda-5tier")],
-    list.map(tiers, fn(tier) {
-      let #(name, budget, is_active) = tier
-      let tier_class = case is_active {
-        True -> "ooda-tier active"
-        False -> "ooda-tier"
-      }
-      html.div([attribute.class(tier_class)], [
-        html.div([attribute.class("ooda-dot")], []),
-        element.text(name),
-        html.span([attribute.class("ooda-budget")], [element.text(budget)]),
-      ])
-    }),
-  )
+
+  html.div([attribute.class("ooda-5tier")], {
+    use #(id, label, budget) <- list.map(tiers)
+    let is_active = string.lowercase(active_phase) == id
+    let cls = case is_active {
+      True -> "ooda-tier active"
+      False -> "ooda-tier"
+    }
+    html.div([attribute.class(cls)], [
+      html.div([attribute.class("ooda-dot")], []),
+      element.text(label),
+      html.div([attribute.class("ooda-budget")], [element.text(budget)]),
+    ])
+  })
 }
 
-/// Constitutional Proof Chain — visual hash chain with verified/pending blocks.
-pub fn proof_chain(
-  blocks: List(#(String, Bool)),
-) -> Element(msg) {
-  html.div(
-    [attribute.class("proof-chain")],
-    list.index_map(blocks, fn(block, i) {
-      let #(hash, verified) = block
-      let block_class = case verified {
+/// Render a chain of cryptographic proof blocks.
+pub fn proof_chain(proofs: List(#(String, Bool))) -> Element(msg) {
+  html.div([attribute.class("proof-chain")], {
+    list.index_map(proofs, fn(proof, idx) {
+      let #(hash, verified) = proof
+      let cls = case verified {
         True -> "proof-block verified"
         False -> "proof-block pending"
       }
-      let arrow = case i > 0 {
-        True -> "→ "
-        False -> ""
+      let block = html.div([attribute.class(cls)], [element.text(hash)])
+      case idx == 0 {
+        True -> [block]
+        False -> [html.span([attribute.class("proof-arrow")], [element.text("▶")]), block]
       }
-      html.span([], [
-        element.text(arrow),
-        html.span([attribute.class(block_class)], [element.text(hash)]),
-        element.text(" "),
-      ])
-    }),
-  )
+    })
+    |> list.flatten
+  })
 }

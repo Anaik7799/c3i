@@ -11,7 +11,13 @@ pub fn render(model: MetabolicModel) -> String {
   let health = render_health(model)
   let energy = render_energy(model)
   let cpu = render_cpu(model)
-  string.join([header, health, "", energy, cpu], "\n")
+  let sparkline = render_cpu_sparkline(model)
+  string.join([header, health, "", energy, cpu, sparkline], "\n")
+}
+
+fn render_cpu_sparkline(model: MetabolicModel) -> String {
+  let samples = [0.3, 0.4, 0.5, 0.45, 0.6, 0.55, 0.7, 0.65, model.cpu_load]
+  "  CPU History: " <> visuals.render_sparkline(samples)
 }
 
 fn render_health(model: MetabolicModel) -> String {

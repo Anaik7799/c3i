@@ -58,4 +58,5 @@ pub type PlanningError {
   TaskNotFound(id: String)
   DatabaseError(reason: String)
   ValidationError(message: String)
+  RemoteError(reason: String)
 }

@@ -68,12 +68,16 @@ fn system_time_nanos() -> Int
 // =============================================================================
 
 /// Zenoh topic prefix for MoZ requests.
-/// Full topic: {request_topic_prefix}/{method}/{request_id}
-pub const request_topic_prefix = "indrajaal/l4/ignition/mcp/req"
+/// Full topic: {request_topic_prefix}/{domain}/{method}/{request_id}
+pub const request_topic_prefix = "indrajaal/l5/cog/mcp/req"
 
 /// Zenoh topic prefix for MoZ responses.
 /// Full topic: {response_topic_prefix}/{request_id}
-pub const response_topic_prefix = "indrajaal/l4/ignition/mcp/res"
+pub const response_topic_prefix = "indrajaal/l5/cog/mcp/res"
+
+/// Zenoh topic prefix for MoZ queries (synchronous GET).
+/// Full topic: {query_topic_prefix}/{domain}/{method}
+pub const query_topic_prefix = "indrajaal/l5/cog/mcp/query"
 
 /// Number of consecutive Zenoh publish failures before the circuit opens.
 pub const max_consecutive_failures = 5
@@ -145,14 +149,18 @@ pub fn new() -> MoZClientState {
 
 /// Build the Zenoh publish topic for a request.
 ///
-/// Pattern: indrajaal/l4/ignition/mcp/req/{method}/{request_id}
-pub fn build_request_topic(method: String, request_id: String) -> String {
-  string.join([request_topic_prefix, method, request_id], "/")
+/// Pattern: {request_topic_prefix}/{domain}/{method}/{request_id}
+pub fn build_request_topic(
+  domain: String,
+  method: String,
+  request_id: String,
+) -> String {
+  string.join([request_topic_prefix, domain, method, request_id], "/")
 }
 
 /// Build the Zenoh subscribe topic for the corresponding response.
 ///
-/// Pattern: indrajaal/l4/ignition/mcp/res/{request_id}
+/// Pattern: indrajaal/l5/cog/mcp/res/{request_id}
 pub fn build_response_topic(request_id: String) -> String {
   string.join([response_topic_prefix, request_id], "/")
 }
@@ -198,13 +206,14 @@ pub fn build_request_json(
 /// <c3i-atomic>
 ///   <morphism type="injective">Zenoh put ↪ async fire-and-forget dispatch</morphism>
 ///   <formal-proof>
-///     <P> method in {"launch","restart","drain"} (caller responsibility) </P>
-///     <C> send_request(state, method, params) </C>
+///     <P> method in {"launch","restart","drain","plan_list",...} (caller responsibility) </P>
+///     <C> send_request(state, domain, method, params) </C>
 ///     <Q> Result(request_id, reason) with state reflecting failure/success delta </Q>
 ///   </formal-proof>
 /// </c3i-atomic>
 pub fn send_request(
   state: MoZClientState,
+  domain: String,
   method: String,
   params: json.Json,
 ) -> #(MoZClientState, Result(String, String)) {
@@ -212,7 +221,7 @@ pub fn send_request(
     False -> #(state, Error("circuit_open"))
     True -> {
       let request_id = generate_id()
-      let topic = build_request_topic(method, request_id)
+      let topic = build_request_topic(domain, method, request_id)
       let payload = build_request_json(method, params, request_id)
       let request =
         MoZRequest(method: method, params: params, request_id: request_id)
@@ -237,6 +246,43 @@ pub fn send_request(
                   consecutive_failures: 0,
                 )
               #(new_state, Ok(request_id))
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/// Attempt to send a JSON-RPC 2.0 query over Zenoh (synchronous GET).
+///
+/// Returns the updated state and either:
+///   Ok(json_payload) — query replied successfully
+///   Error(reason)    — circuit open, Zenoh unavailable, or query timeout
+pub fn send_query(
+  state: MoZClientState,
+  domain: String,
+  method: String,
+) -> #(MoZClientState, Result(String, String)) {
+  case circuit_breaker.is_allowed(state.circuit) {
+    False -> #(state, Error("circuit_open"))
+    True -> {
+      let topic = string.join([query_topic_prefix, domain, method], "/")
+
+      case zenoh.open("{}") {
+        Error(reason) -> {
+          let new_state = record_failure(state)
+          #(new_state, Error("zenoh_open_failed: " <> reason))
+        }
+        Ok(session) -> {
+          case zenoh.get(session, topic) {
+            Error(reason) -> {
+              let new_state = record_failure(state)
+              #(new_state, Error("zenoh_get_failed: " <> reason))
+            }
+            Ok(payload) -> {
+              let new_state = record_success(state)
+              #(new_state, Ok(payload))
             }
           }
         }

@@ -1,0 +1,30 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# C3I UNIFIED ARTIFACT SYNCHRONIZER (SC-SYNC-001)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+echo "🔄 Synchronizing C3I Artifacts..."
+
+# 1. Sync Task Authority (Rust DB -> Sub-project MD -> Root MD)
+./sa-plan sync
+cp sub-projects/c3i/PROJECT_TODOLIST.md PROJECT_TODOLIST.md
+echo "  [ok] PROJECT_TODOLIST.md synchronized."
+
+# 2. Sync Constitutional Guidance (Root -> Sub-projects)
+cp GEMINI.md sub-projects/c3i/GEMINI.md
+cp CLAUDE.md sub-projects/c3i/CLAUDE.md
+echo "  [ok] GEMINI.md & CLAUDE.md propagated to sub-projects."
+
+# 3. Verify Database Alignment (Smriti.db check)
+if [ -f "sub-projects/c3i/data/smriti/Smriti.db" ]; then
+    COUNT=$(sqlite3 sub-projects/c3i/data/smriti/Smriti.db "SELECT COUNT(*) FROM Tasks;")
+    echo "  [ok] Smriti.db verified ($COUNT tasks)."
+else
+    echo "  [!] WARNING: Smriti.db not found."
+fi
+
+# 4. Git Persistence (SC-ASSP-004)
+git add PROJECT_TODOLIST.md GEMINI.md CLAUDE.md
+echo "  [ok] Artifacts staged in root git."
+
+echo "✨ Sync Complete."

@@ -296,8 +296,8 @@ pub fn route_pages_contains_all_13_pages_test() {
 pub fn route_planning_contains_tasks_test() {
   let result = router.route("/api/v1/planning")
   string.contains(result, "\"Planning\"") |> should.be_true()
-  string.contains(result, "\"tasks\"") |> should.be_true()
-  string.contains(result, "\"summary\"") |> should.be_true()
+  string.contains(result, "\"summary_raw\"") |> should.be_true()
+  string.contains(result, "\"pending_raw\"") |> should.be_true()
 }
 
 pub fn route_immune_contains_threat_level_test() {

@@ -1505,7 +1505,7 @@ fn podman_action_json(body: String) -> String {
               #("container", json.string(req.container)),
               #("reason", json.string(req.reason)),
             ])
-          case moz_client.send_request(state, req.verb, params) {
+          case moz_client.send_request(state, "ignition", req.verb, params) {
             #(_new_state, Error(reason)) ->
               podman_api.error_response_json(
                 reason,
@@ -1588,7 +1588,7 @@ fn emergency_trigger_response(body: String) -> HttpResponse(String) {
       let moz_state = moz_client.new()
       let drain_params = json.object([#("reason", json.string(reason))])
       let #(_new_moz, dispatch_result) =
-        moz_client.send_request(moz_state, "drain", drain_params)
+        moz_client.send_request(moz_state, "ignition", "drain", drain_params)
       let _emergency_state =
         trigger_emergency(initial_emergency_state(), reason, timestamp_ms)
       let moz_info = case dispatch_result {

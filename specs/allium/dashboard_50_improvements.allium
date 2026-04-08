@@ -1,20 +1,35 @@
 -- allium: 3
 -- C3I Dashboard: 50 Neuroergonomic and Cybernetic Improvements
 -- Covers: Visual, Telemetric, Semantic, and A2UI structural enhancements
+-- Optimized for: Cognitive Complexity, Optional Sonification, and LLM Monitoring
+-- Model: Qwen3 Coder (480B/35B active) via OpenRouter
 -- Date: 2026-04-06
 
 entity DashboardEnhancements {
     total_improvements: Integer
+    optional_sound_enabled: Boolean
+    cognitive_load_optimized: Boolean
+    llm_plane_active: Boolean
+    multilayer_display_active: Boolean
 }
 
-rule Enforce50Improvements {
+rule EnforceCognitiveOptimization {
     when: dash: DashboardEnhancements.total_improvements
     ensures:
         dash.total_improvements >= 50
+        -- Mandate SC-HMI-060: Sound MUST be optional to prevent irritation.
+        dash.optional_sound_enabled = true
+        -- Mandate SC-HMI-061: Cognitive Load MUST be optimized via LOA Pruning.
+        dash.cognitive_load_optimized = true
+        -- Mandate SC-COG-003: LLM Cognitive Plane MUST monitor Qwen3 Coder active inference.
+        dash.llm_plane_active = true
+        -- Mandate SC-HMI-062: Multilayer Information Display MUST show high semantic content.
+        dash.multilayer_display_active = true
 
-    @guarantee CognitiveOverloadMitigation
-        -- Spreads telemetry into highly dense, subconsciously parseable widgets
-        -- reducing operator stress while maximizing data saturation.
+    @guarantee HumanPerformancePreservation
+        -- Uses semantic zooming and Level of Automation (LOA) pruning to 
+        -- ensure that while 50+ data vectors are available, only the 
+        -- criticality-relevant subset is surfaced by default.
 }
 
 -- Section 1: Mesh Health & Autonomy (10)
@@ -26,19 +41,19 @@ rule Enforce50Improvements {
 -- 6. Cockpit Mode (Dark/Bright state)
 -- 7. Symbiotic Autonomy (Human-AI Handover Readiness)
 -- 8. Systemic Anti-Fragility Score
--- 9. Ghost in the Machine Anomaly Detector
--- 10. Byzantine Fault Tolerance Confidence
+-- 9. Ghost Detector (Substrate Logic)
+-- 10. BFT Confidence (Byzantine Fault Tol.)
 
--- Section 2: Cognitive & Inference (10)
--- 11. LLM Token Burn Rate
--- 12. Semantic Memory Fragmentation
+-- Section 2: Cognitive & Inference (Qwen3-Coder) (10)
+-- 11. LLM Token Burn Rate (Tokens/sec)
+-- 12. Semantic Memory Fragmentation visualizer
 -- 13. Operator Cognitive Overload Estimator
--- 14. Edge-Inference SLM Readiness
--- 15. Swarm Intelligence PSO Activity
--- 16. Time to Singularity Countdown
--- 17. Active Inference Surprise Minimization (FEP)
--- 18. Multi-tenant Resource Saturation
--- 19. Context Press Threshold
+-- 14. Edge-Inference SLM Readiness (Loaded/Ready)
+-- 15. Swarm Intelligence PSO Activity (Converged/Divergent)
+-- 16. Time to Singularity Countdown Ticker
+-- 17. Active Inference Surprise Minimization (FEP) Value
+-- 18. Multi-tenant Resource Saturation Rings
+-- 19. Context Press Threshold Gauge (Token limit tracking)
 -- 20. Ambient Epistemic Resonance Indicator (AERI)
 
 -- Section 3: Telemetry & Performance (10)
@@ -75,5 +90,10 @@ rule Enforce50Improvements {
 -- 47. Dead-Letter Queue Backpressure Warning
 -- 48. Breath of the Mesh (Opacity animation heartbeat)
 -- 49. Interactive Jidoka Pull-the-Cord Emergency Stop Button
--- 50. L0-L7 Layer Activation Matrix (8-segment LED style)
+-- 50. LED Matrix (L0-L7 Layer Activation)
 
+-- Section 6: Human Factors (New)
+-- 51. Sonification Mute Toggle (Mandatory per User Request)
+-- 52. Semantic Zoom Level Controller
+-- 53. LOA Detail Pruning Toggle
+-- 54. Multilayer Semantic Row Display

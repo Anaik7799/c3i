@@ -182,16 +182,16 @@ pub fn moz_client_circuit_status_open_test() {
 // =============================================================================
 
 pub fn moz_client_build_request_topic_test() {
-  let topic = moz_client.build_request_topic("launch", "req-abc-123")
+  let topic = moz_client.build_request_topic("ignition", "launch", "req-abc-123")
 
   topic
-  |> should.equal("indrajaal/l4/ignition/mcp/req/launch/req-abc-123")
+  |> should.equal("indrajaal/l5/cog/mcp/req/ignition/launch/req-abc-123")
 }
 
 pub fn moz_client_build_request_topic_restart_test() {
-  let topic = moz_client.build_request_topic("restart", "req-xyz-456")
+  let topic = moz_client.build_request_topic("ignition", "restart", "req-xyz-456")
 
-  string.starts_with(topic, "indrajaal/l4/ignition/mcp/req/restart/")
+  string.starts_with(topic, "indrajaal/l5/cog/mcp/req/ignition/restart/")
   |> should.be_true()
   string.contains(topic, "req-xyz-456") |> should.be_true()
 }
@@ -199,20 +199,20 @@ pub fn moz_client_build_request_topic_restart_test() {
 pub fn moz_client_build_response_topic_test() {
   let topic = moz_client.build_response_topic("req-abc-123")
 
-  topic |> should.equal("indrajaal/l4/ignition/mcp/res/req-abc-123")
+  topic |> should.equal("indrajaal/l5/cog/mcp/res/req-abc-123")
 }
 
 pub fn moz_client_build_response_topic_different_id_test() {
   let topic = moz_client.build_response_topic("req-999")
 
-  string.starts_with(topic, "indrajaal/l4/ignition/mcp/res/")
+  string.starts_with(topic, "indrajaal/l5/cog/mcp/res/")
   |> should.be_true()
   string.contains(topic, "req-999") |> should.be_true()
 }
 
 pub fn moz_client_request_and_response_topics_share_id_test() {
   let id = "my-unique-request-id"
-  let req_topic = moz_client.build_request_topic("drain", id)
+  let req_topic = moz_client.build_request_topic("ignition", "drain", id)
   let res_topic = moz_client.build_response_topic(id)
 
   string.contains(req_topic, id) |> should.be_true()

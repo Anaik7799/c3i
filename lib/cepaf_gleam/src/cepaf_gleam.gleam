@@ -23,6 +23,7 @@
 //// </c3i-module>
 //// =============================================================================
 
+import cepaf_gleam/agents/cybernetic
 import cepaf_gleam/planning/cli
 import cepaf_gleam/podman/containers
 import cepaf_gleam/podman/domain.{PodmanClientConfig, Rootless}
@@ -53,6 +54,16 @@ pub fn main() {
   case exporter.export_span("c3i.boot", 0.0, "ok", []) {
     Ok(Nil) -> io.println("  [otel] Boot span exported to collector")
     Error(e) -> io.println("  [otel] Boot span export failed: " <> e)
+  }
+
+  // 0.1 Start Biomorphic Agent Hierarchy (L7-L0)
+  let _ = case list.contains(args, "--serve") || list.contains(args, "--daemon") {
+    True -> {
+      io.println("  [agents] Starting 3-layer autonomous hierarchy...")
+      let _ = cybernetic.start_executive_supervisor()
+      Nil
+    }
+    False -> Nil
   }
 
   // 1. Planning Module Execution

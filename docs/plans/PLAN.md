@@ -17,9 +17,9 @@
 ## 1.0 - Phase 1: Foundation & Metabolic Criticality (P0)
 ### 1.1 - Metabolic Migration (Vital Signs Tracking)
 #### 1.1.1 - Port `MetabolicTools.fs` Logic
-- [ ] 1.1.1.1 - Define `MetabolicState` record in `cepaf_gleam/metabolic/domain.gleam`.
-- [ ] 1.1.1.2 - Implement `calculate_metabolic_set_point` in Gleam.
-- [ ] 1.1.1.3 - Implement Zenoh publisher for metabolic rate in `cepaf_gleam/metabolic/service.gleam`.
+- [x] 1.1.1.1 - Define `MetabolicState` record in `cepaf_gleam/metabolic/domain.gleam`.
+- [x] 1.1.1.2 - Implement `calculate_metabolic_set_point` in Gleam.
+- [x] 1.1.1.3 - Implement Zenoh publisher for metabolic rate in `cepaf_gleam/metabolic/service.gleam`.
 #### 1.1.2 - Verify Metabolic Homeostasis
 - [x] 1.1.2.1 - Property-based tests for metabolic scaling algorithms.
 - [x] 1.1.2.2 - Zenoh telemetry verification (OODA Loop integration).
@@ -42,9 +42,9 @@
 ## 2.0 - Phase 2: Semantic Intelligence & Git Homeostasis (P1)
 ### 2.1 - Semantic Triple Store (Smriti.Semantic)
 #### 2.1.1 - Port `TripleStore.fs` & `QueryEngine.fs`
-- [ ] 2.1.1.1 - Implement Gleam wrapper for DuckDB semantic storage.
-- [ ] 2.1.1.2 - Port SPO/POS/OSP indexing logic.
-- [ ] 2.1.1.3 - Implement SPARQL-lite query parser in Gleam.
+- [x] 2.1.1.1 - Implement Gleam wrapper for DuckDB semantic storage.
+- [x] 2.1.1.2 - Port SPO/POS/OSP indexing logic.
+- [x] 2.1.1.3 - Implement SPARQL-lite query parser in Gleam.
 #### 2.1.2 - Materialized Inference Engine
 - [ ] 2.1.2.1 - Port `MaterializedInference.fs` rule engine to Gleam.
 - [ ] 2.1.2.2 - Verify inference correctness against F# golden samples.

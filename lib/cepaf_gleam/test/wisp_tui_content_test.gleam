@@ -83,7 +83,7 @@ pub fn planning_has_status_test() {
 
 pub fn planning_has_tasks_test() {
   let body = router.route("/api/v1/planning")
-  body |> string.contains("\"tasks\"") |> should.be_true()
+  body |> string.contains("\"pending_raw\"") |> should.be_true()
 }
 
 pub fn immune_has_page_test() {

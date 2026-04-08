@@ -72,3 +72,78 @@
 [indrajaal-ex-app-3] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
 [indrajaal-chaya] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
 [indrajaal-ex-app-2] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[zenoh-router-1] (STDOUT) 978a534cb549c387ca30f86fec897b3abce4179ba6f2eb968acd1aa8db581490
+[zenoh-router-2] (STDOUT) 1a9a0659c0a886a59838e22387b369d3f85595b2f4b7cf754906bf2b0a040fed
+[indrajaal-ollama] (STDOUT) f7f2585208f76b9efef334a10f8c964ebeb28f44adf82f4e1fd77ec53a1bf627
+[indrajaal-mojo] (STDOUT) 9651d8654ba1d710ae7aa38b74e57b25b35e5c4dda2095a0c2791b26525c76c1
+[zenoh-router-3] (STDOUT) 57a06102aabe27c91724ea7c461eb49687616b00edac80e5fc0c71a57518a495
+[indrajaal-db-prod] (STDOUT) 25c96be05f3d4c3f8f79a764a3cdf2fbeceabc637ad935bd807a10857928e913
+[indrajaal-obs-prod] (STDOUT) b54ce6f54dc8a4f9c0c0d47262759c4e3dda11c96de9731794f1665f17ec2c37
+[indrajaal-ml-runner-1] (STDOUT) 7a4d2be586254a333f1af8e10c388279cbc9bc6146a3851da552d57b716e270a
+[indrajaal-ml-runner-2] (STDOUT) fb5b594d98757f2434497dd3537fbea12a61fc848275a05d952697524d29098d
+[indrajaal-cortex] (STDOUT) 90d2e1806d324caa3c96f9c7199330b0191df6bfb9fe1cc3f163d515a64aed6a
+[indrajaal-ex-app-1] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[cepaf-bridge] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-2] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-chaya] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-ex-app-3] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[zenoh-router-3] (STDOUT) 8bc2da949d48d97a6b7997adbd2877036df32394a9a847daa07d695b96732c9c
+[zenoh-router-2] (STDOUT) cbfbba94efaf895b0f3b63809f95ef198db257bde4ca9647d70c9605b8b6522d
+[zenoh-router-1] (STDOUT) 52770be864284930473e1083aaaa5aaf0f600406e2c4f9505b16a2cef7fdc71b
+[indrajaal-db-prod] (STDOUT) 6b6486581649ede895bdb2d00e4b88df7552a5cf8ab450e1160e229639737ddc
+[indrajaal-ollama] (STDOUT) fb2eee3bacc56dbdc9a5d1515bd31a1764a3dab4b81be26c5e372a27c7aa19db
+[indrajaal-obs-prod] (STDOUT) e3e707d61e3f55da2c9b10d193b6eebd47e14da932ef217ab3127343d1f231a7
+[indrajaal-mojo] (STDOUT) 186d0e682f0ec212c329c752d972181aa4dbb95c063d17e5f450b3d388c247ab
+[indrajaal-ml-runner-1] (STDOUT) 4c475c71bdcdddff14e01d38ededb32405b9903c1aeadf351c71f07faff94910
+[indrajaal-ml-runner-2] (STDOUT) 0bd54f950a17510c27ff54d077683c849c02e0995c55c1290fc30230a5cfd594
+[indrajaal-cortex] (STDOUT) f57c6785b4d94f751122b7f7c86900df1d178ae3dd557b3b26fbd0b39405d485
+[indrajaal-ex-app-1] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[cepaf-bridge] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-chaya] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-ex-app-3] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-ex-app-2] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[zenoh-router-2] (STDOUT) 9deb4b3d2ae3606aec7ff60c950b13598f753472dd1d83fa3c2168a5e0d59600
+[zenoh-router-3] (STDOUT) 0b8096c0ca1f82df89487274d30ce37d2e03df9814e2523e5210695e69195ace
+[zenoh-router-1] (STDOUT) 05ee50e487066a92a031e9b4cf5ca78ac1150a5b5008b67c799e8e3bec5e42e1
+[indrajaal-ollama] (STDOUT) 3687b399c94b58a586f1eab60a979eb0cd12f587dbeb02517ab72a65e2fac626
+[indrajaal-obs-prod] (STDOUT) c154b788597968c3ed679c384c3c603bf1932e08554e7fce133289c2cb433e5b
+[indrajaal-db-prod] (STDOUT) 0c313d748f70e86ef00ae4ab474aa0bacf19c623b3b2447b4aec513c05b81a25
+[indrajaal-mojo] (STDOUT) 0af3a439332e0f175933a259f15aed8cdc402d2fd8ae2d69419016e0ec2bee37
+[indrajaal-ml-runner-1] (STDOUT) 831d5905072163748e367f6a197ad548e1f5a77dece455ac0b466fff5c0fa767
+[indrajaal-ml-runner-2] (STDOUT) b6002d17574574e333c896ff24bfff1d9de357050b3095cc5974ca5995048f4d
+[indrajaal-cortex] (STDOUT) 4a6442a5b66d79a759b30f93db3b51184da47a99d91965e68698b0fba1e6d5fc
+[indrajaal-ex-app-1] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-ex-app-3] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-ex-app-2] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-chaya] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[cepaf-bridge] (STDOUT) ffddb37dbde5963b0261c77e4147108f9337bc6b2ea179f7d091da6bdc11efa6
+[zenoh-router-2] (STDOUT) 7c51d4483ba29b3b200ebf74b1e7d85f732d3b90a4b328ef89f05253b3fbab6b
+[zenoh-router-1] (STDOUT) a9dd5814233e01f1f7797e0d9183c220b927d8868ecdd3728fc7a89edabca8b0
+[indrajaal-ollama] (STDOUT) 361d8ffdb27181a2d16cc7058328b3df91c32fab533acde810734ba010d37036
+[indrajaal-db-prod] (STDOUT) a4ff637550ab81b795aaff5b81eb4d0bae6d7af688f7491c4112aac3339975ff
+[indrajaal-obs-prod] (STDOUT) bfc51ef364480612a70673e4ec0e47a8984846e3a1449cd91b1b61680ba3e3ea
+[zenoh-router-3] (STDOUT) f7da7b98d79b025d58bd28a68e6d609befa0d1c85048fa3f5ba35ff55c7f763f
+[indrajaal-mojo] (STDOUT) 41ee38129f096e9a66004cde317bcddf2fc7c77e57fd287d98e6b2095dc18a85
+[indrajaal-cortex] (STDOUT) 37f3e0dbd3888f7c21fcfe4be808cdf95964b711138b3f1b69543257946b4fa0
+[indrajaal-ex-app-1] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-ex-app-3] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-ex-app-2] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-chaya] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-ml-runner-2] (STDOUT) 56e49fc85d185ae06c6f285d852713c78511d176118112d2d04ad6c658f8b0a3
+[indrajaal-ml-runner-1] (STDOUT) 74d2732efb68e8d17560134b98edccdfbf300928601377e67fb4185068512dd0
+[cepaf-bridge] (STDOUT) 502c9e60588462f9b94d33850174a3d82f3f62930f34e9f4d1b03d26f8edc48b
+[zenoh-router-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ollama] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-mojo] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-db-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-cortex] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-obs-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[cepaf-bridge] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-1] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-ex-app-2] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-ex-app-3] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[indrajaal-chaya] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
