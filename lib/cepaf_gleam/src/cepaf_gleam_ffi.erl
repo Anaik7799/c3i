@@ -1,12 +1,38 @@
 -module(cepaf_gleam_ffi).
+
 -export([hackney_request/5, hackney_http_request/4, get_uid/0, sha256/1, sqrt/1, get_arguments/0]).
 -export([system_time_nanos/0]).
 -export([sqlite_open/1, sqlite_exec/2, sqlite_q/3, sqlite_close/1]).
+-export([podman_uds_request/4]).
 -export([duckdb_open/1, duckdb_connection/1, duckdb_query/2, duckdb_execute/2, duckdb_ensure_schema/1, duckdb_fetch_all/1, duckdb_columns/1]).
 -export([zenoh_open/1, zenoh_put/3, zenoh_get/2, zenoh_subscribe/3, try_load_zenoh_nif/0]).
 -export([file_read/1, file_write/2, file_rename/2]).
 -export([generate_id/0, os_cmd/1, identity/1]).
 -export([to_string/1, to_int/1, to_float/1, to_bool/1]).
+
+%% @doc Execute a REST request over Podman Unix Domain Socket
+podman_uds_request(Path, Method, Endpoint, Body) ->
+    case gen_tcp:connect({local, binary_to_list(Path)}, 0, [binary, {active, false}, {packet, raw}]) of
+        {ok, Socket} ->
+            Request = list_to_binary([
+                Method, " ", Endpoint, " HTTP/1.1\r\n",
+                "Host: localhost\r\n",
+                "Content-Length: ", integer_to_list(byte_size(Body)), "\r\n",
+                "\r\n",
+                Body
+            ]),
+            gen_tcp:send(Socket, Request),
+            case gen_tcp:recv(Socket, 0, 5000) of
+                {ok, Response} ->
+                    gen_tcp:close(Socket),
+                    {ok, Response};
+                {error, Reason} ->
+                    gen_tcp:close(Socket),
+                    {error, list_to_binary(atom_to_list(Reason))}
+            end;
+        {error, Reason} ->
+            {error, list_to_binary(atom_to_list(Reason))}
+    end.
 
 identity(X) -> X.
 
