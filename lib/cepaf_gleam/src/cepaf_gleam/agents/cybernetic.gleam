@@ -12,6 +12,7 @@ import gleam/list
 import gleam/option.{type Option}
 import cepaf_gleam/agents/cortex
 import cepaf_gleam/agents/briefing
+import cepaf_gleam/agents/workspace
 
 // =============================================================================
 // Type Definitions — Autonomous Agents
@@ -149,6 +150,7 @@ pub fn start_executive_supervisor() -> Result(actor.Started(supervisor.Superviso
   supervisor.new(supervisor.OneForAll)
   |> supervisor.add(supervision.worker(fn() { cortex.start("Cortex-Alpha") }))
   |> supervisor.add(supervision.worker(fn() { briefing.start("Briefing-Alpha") }))
+  |> supervisor.add(supervision.worker(fn() { workspace.start("Workspace-Alpha", "abhijit.naik@boutytek.com") }))
   |> supervisor.add(supervision.supervisor(fn() { start_domain_supervisor("Prajna", Prajna, 3) }))
   |> supervisor.add(supervision.supervisor(fn() { start_domain_supervisor("Smriti", Smriti, 3) }))
   |> supervisor.add(supervision.supervisor(fn() { start_domain_supervisor("CEPAF", CEPAF, 3) }))
