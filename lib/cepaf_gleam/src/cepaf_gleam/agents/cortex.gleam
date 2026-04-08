@@ -84,8 +84,9 @@ fn handle_message(
     ProcessIntent(id, text) -> {
       io.println("🧠 Cortex [" <> state.id <> "]: Ingesting Intent -> " <> id)
 
-      // 1. ORIENT: Fetch context and start reasoning stream
+      // 1. ORIENT: Fetch context, preferences, and start reasoning stream
       let memory = fetch_context(state.moz)
+      let voice_pref = fetch_preference(state.moz, "executive_voice")
       let new_reasoning = l5_cognitive.start_reasoning(state.reasoning, id)
       let new_ooda = l5_cognitive.set_ooda_phase(state.ooda, Orient)
 
@@ -97,8 +98,14 @@ fn handle_message(
         memory: memory
       )
 
+      // 1.1 PERSONA INJECTION: Use voice preference if available
+      let text_with_persona = case voice_pref {
+        Some(voice) -> "Persona[" <> voice <> "]: " <> text
+        None -> text
+      }
+
       // 2. DECIDE
-      decide_next_action(new_state, text)
+      decide_next_action(new_state, text_with_persona)
     }
 
     ObserveToolResult(req_id, result) -> {
@@ -162,6 +169,25 @@ fn fetch_context(moz_state: moz.MoZClientState) -> List(EventLogEntry) {
       }
     }
     _ -> []
+  }
+}
+
+fn fetch_preference(moz_state: moz.MoZClientState, key: String) -> Option(String) {
+  let params = json.object([#("key", json.string(key))])
+  // Standard MoZ query for a single preference
+  case moz.send_query(moz_state, "plan", "plan_get_pref") {
+    #(_, Ok(payload)) -> {
+      // Decode Option(String) result from McpResponse
+      let decoder = {
+        use result <- decode.field("result", decode.optional(decode.string))
+        decode.success(result)
+      }
+      case json.parse(from: payload, using: decoder) {
+        Ok(val) -> val
+        Error(_) -> None
+      }
+    }
+    _ -> None
   }
 }
 
