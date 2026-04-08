@@ -1,6 +1,6 @@
 # Command: /evolve-sil6
 
-**Description**: The master directive for autonomous, mathematically verified system evolution.
+**Description**: The master directive for autonomous, mathematically verified system evolution. See `docs/user_guides/PROMPT_COMMANDS_USER_GUIDE.md` for full scenarios and user journeys.
 
 **Usage**: `/evolve-sil6 [SPRINT_GOAL]`
 

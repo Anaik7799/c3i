@@ -4,7 +4,7 @@
 **Project spec**: `specs/allium/ignition.allium` (1,923 lines, 26 sections)
 **Template**: `specs/allium/TEMPLATE.allium` (316 lines, 26-section standard)
 **Checklist**: `specs/allium/CHECKLIST.md` (144 lines, per-construct verification)
-**User Guide**: `docs/allium-user-guide.md` (full workflow + 33 math structures)
+**User Guide**: `docs/allium-user-guide.md` (full workflow + 33 math structures) AND `docs/user_guides/PROMPT_COMMANDS_USER_GUIDE.md` (for user journeys and scenarios).
 **Journal**: `docs/journal/20260404-allium-comprehensive-system-spec.md` (13-section entry)
 
 ## Usage
