@@ -1,0 +1,54 @@
+spec openclaw_perception_acp {
+    // ----------------------------------------------------------------------
+    // 1. Invariants (SIL-6 Math Rules)
+    // ----------------------------------------------------------------------
+    invariant acp_boundary_isolation {
+        // The Agent Control Protocol MUST guarantee that session bounds are never exceeded
+        forall s in ACPSessions: s.resources_accessed subset_of s.policy_bounds;
+    }
+
+    invariant canvas_state_convergence {
+        // The A2UI Canvas Host MUST converge to identical state across all observers (CRDT)
+        forall c1, c2 in CanvasObservers: time(now) - c1.last_sync > 50ms implies c1.state == c2.state;
+    }
+
+    invariant realtime_stream_latency {
+        // Voice and Media streams MUST process frames within strict bounds to prevent lag
+        forall f in AudioFrames: time(f.processed) - time(f.ingested) < 20ms;
+    }
+
+    invariant continuous_guardian_override {
+        // The Guardian can halt a realtime stream instantly based on continuous evaluation
+        forall s in RealtimeStreams: Guardian.override == true implies s.status == Terminated;
+    }
+
+    // ----------------------------------------------------------------------
+    // 2. Contracts (Interfaces)
+    // ----------------------------------------------------------------------
+    contract AgentControlProtocol {
+        demand EstablishBoundary(agent: ID, policy: PolicyTree)
+        fulfil TranslateAction(action: Action) -> SafeAction
+    }
+
+    contract SharedCanvas {
+        demand RenderA2UI(component: A2UI, state: Json)
+        fulfil StateBroadcast(topic: "indrajaal/l6/canvas")
+    }
+
+    // ----------------------------------------------------------------------
+    // 3. States
+    // ----------------------------------------------------------------------
+    state StreamState {
+        Buffering,
+        Transcribing,
+        Synthesizing,
+        Terminated
+    }
+
+    state CanvasState {
+        Idle,
+        Rendering,
+        ConflictResolution,
+        Synced
+    }
+}
