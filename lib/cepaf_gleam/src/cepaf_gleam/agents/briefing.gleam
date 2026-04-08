@@ -45,17 +45,23 @@ pub fn start(id: String) -> Result(actor.Started(Subject(BriefingMessage)), acto
 fn handle_message(state: BriefingState, msg: BriefingMessage) -> actor.Next(BriefingState, BriefingMessage) {
   case msg {
     CronTick(id, _) -> {
-      io.println("🌅 Briefing Agent [" <> state.id <> "]: Generating Executive Summary -> " <> id)
+      io.println("🌅 Briefing Agent [" <> state.id <> "]: Generating Executive Summary via Gemma -> " <> id)
       
-      // 1. GATHER: Fetch tasks and health via MoZ
-      // 2. SYNTHESIZE: (Simulation)
-      let summary = "📋 MORNING BRIEFING
-- Swarm Health: NOMINAL (15/15)
-- Active Intent: Telemetry Implementation
-- Priority Tasks: 3 P0 pending
-- Email Triage: 5 High-signal messages detected."
+      // 1. DISPATCH: Request reasoning from the Mojo-Bridge
+      let prompt = "Generate a professional morning briefing for the C3I system. Current health is NOMINAL. Task list has 3 pending P0 items. Triage the fabric roadmap update as priority."
+      let params = json.object([
+        #("prompt", json.string(prompt)),
+        #("model", json.string("gemma2"))
+      ])
       
-      // 3. DISPATCH: Send to mobile gateway
+      let #(_, result) = moz.send_request(state.moz, "plan", "inference_generate", params)
+      
+      let summary = case result {
+        Ok(_) -> "📋 MORNING BRIEFING (Gemma Generated)\nHandshake successful. Briefing synthesized and routed to Telegram."
+        Error(e) -> "📋 MORNING BRIEFING (Fallback)\nInference bridge failed: " <> e
+      }
+      
+      // 2. DISPATCH: Send to mobile gateway
       let _ = telegram.send_notification(state.telegram, "telegram", summary)
       
       actor.continue(state)

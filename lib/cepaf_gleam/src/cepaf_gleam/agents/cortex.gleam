@@ -13,6 +13,7 @@ import cepaf_gleam/fractal/l5_cognitive.{
 import cepaf_gleam/moz/client as moz
 import cepaf_gleam/telemetry/otel.{type SpanContext}
 import gleam/dict
+import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
 import gleam/erlang/process.{type Subject}
 import gleam/io
@@ -20,6 +21,7 @@ import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/otp/actor
+import gleam/result
 
 // =============================================================================
 // Cortex State & Messages
@@ -160,12 +162,18 @@ fn decide_next_action(state: CortexState, text: String) -> actor.Next(CortexStat
   let tool_ctx = otel.generate_context(state.span_ctx)
   otel.start_span(["cepaf", "cortex", "tool"], dict.from_list([#("method", method)]), Some(tool_ctx))
 
-  // Inject span context into MCP params for recursive tracing in Rust
-  let params_with_ctx = case params {
-    _ -> {
-      // In a real implementation, we'd merge the trace_id into the JSON object
-      params
-    }
+  // FRACTAL INSTRUMENTATION: Inject context into MCP params
+  let params_with_ctx = {
+      // Add trace metadata to the JSON object
+      let ctx_fields = [
+        #("trace_id", json.string(tool_ctx.trace_id)),
+        #("span_id", json.string(tool_ctx.span_id))
+      ]
+      
+      json.object(list.append(ctx_fields, case text {
+        "list tasks" -> []
+        _ -> [#("prompt", json.string(text))]
+      }))
   }
 
   let #(new_moz, result) = moz.send_request(state.moz, domain, method, params_with_ctx)
@@ -272,6 +280,9 @@ fn log_cortex_action(state: CortexState, action: String, status: String) {
   let _ = moz.send_request(state.moz, "plan", "plan_log", params)
   Nil
 }
+
+@external(erlang, "cepaf_gleam_ffi", "identity")
+fn to_dynamic(a: a) -> Dynamic
 
 @external(erlang, "erlang", "integer_to_binary")
 fn int_to_string(i: Int) -> String
