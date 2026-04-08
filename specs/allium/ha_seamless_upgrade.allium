@@ -1,0 +1,50 @@
+spec ha_seamless_upgrade {
+    // ----------------------------------------------------------------------
+    // 1. High Availability Invariants (SIL-6 Math Rules)
+    // ----------------------------------------------------------------------
+    invariant continuous_service_liveness {
+        // At least one authoritative routing node (Primary or Backup) MUST be active at all times.
+        forall t in Time: count(n in Nodes: n.state == Active && n.role in {Primary, Backup}) >= 1;
+    }
+
+    invariant mutual_exclusion_authority {
+        // Only one node can hold the Mutating Authority lock for Smriti.db at any given time.
+        count(n in Nodes: n.has_write_lock == true) <= 1;
+    }
+
+    invariant seamless_handover_latency {
+        // The handover of authority from Primary to Backup MUST complete within the 50ms OODA tick SLA.
+        forall h in Handovers: time(h.end) - time(h.start) <= 50ms;
+    }
+
+    invariant state_parity_on_promotion {
+        // Before a Backup can be promoted to Primary, its SQLite CRDT vector clock must match the dying Primary.
+        forall promotion in Promotions: promotion.target.vector_clock >= promotion.source.vector_clock;
+    }
+
+    // ----------------------------------------------------------------------
+    // 2. Contracts (Interfaces)
+    // ----------------------------------------------------------------------
+    contract LeaderElection {
+        demand RequestLeadership(node_id: ID, version: String, vector_clock: VectorClock)
+        fulfil GrantLeadership(node_id: ID) -> Lease
+    }
+
+    contract TrafficRouting {
+        demand RouteIntent(intent: Intent)
+        fulfil ProcessIntent(intent: Intent, handler: ID)
+    }
+
+    // ----------------------------------------------------------------------
+    // 3. States
+    // ----------------------------------------------------------------------
+    state NodeLifecycle {
+        Bootstrapping,
+        SyncingState,
+        Standby,
+        ActivePrimary,
+        Draining,
+        Upgrading,
+        Terminated
+    }
+}

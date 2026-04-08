@@ -75,7 +75,13 @@ fn get_containers_for_phase(phase: BootPhase) -> List(String) {
     Foundation -> ["indrajaal-substrate"]
     NervousSystem -> ["zenoh-router-1", "zenoh-router-2", "zenoh-router-3"]
     StatePlane -> ["indrajaal-db", "indrajaal-redis"]
-    CognitivePlane -> ["ignition-daemon", "planning-daemon", "cortex-mesh"]
+    CognitivePlane -> [
+      "ignition-daemon",
+      "planning-daemon-primary", // High Availability Primary
+      "planning-daemon-backup",  // High Availability Backup
+      "cortex-mesh-primary",     // Gleam Cognitive Primary
+      "cortex-mesh-backup"       // Gleam Cognitive Backup
+    ]
     Verification -> ["verification-agent"]
   }
 }

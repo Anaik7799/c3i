@@ -43,9 +43,21 @@ fn uds_http_call(
 ) -> Result(String, String)
 
 /// Higher-level: List containers via UDS.
-pub fn list_containers(conn: PodmanConnection) -> Result(json.Json, String) {
-  case request(conn, "GET", "/v5.0.0/libpod/containers/json", "") {
-    Ok(resp) -> Ok(json.string(resp)) // In production, parse actual JSON
-    Error(e) -> Error(e)
-  }
+pub fn list_containers(conn: PodmanConnection) -> Result(String, String) {
+  request(conn, "GET", "/v5.0.0/libpod/containers/json", "")
+}
+
+/// Start a container by name or ID.
+pub fn start_container(conn: PodmanConnection, name: String) -> Result(String, String) {
+  request(conn, "POST", "/v5.0.0/libpod/containers/" <> name <> "/start", "")
+}
+
+/// Stop a container by name or ID.
+pub fn stop_container(conn: PodmanConnection, name: String) -> Result(String, String) {
+  request(conn, "POST", "/v5.0.0/libpod/containers/" <> name <> "/stop", "")
+}
+
+/// Inspect a container.
+pub fn inspect_container(conn: PodmanConnection, name: String) -> Result(String, String) {
+  request(conn, "GET", "/v5.0.0/libpod/containers/" <> name <> "/json", "")
 }
