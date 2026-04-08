@@ -11,6 +11,7 @@ import gleam/dict.{type Dict}
 import gleam/list
 import gleam/option.{type Option}
 import cepaf_gleam/agents/cortex
+import cepaf_gleam/agents/briefing
 
 // =============================================================================
 // Type Definitions — Autonomous Agents
@@ -147,6 +148,7 @@ fn int_to_string(i: Int) -> String
 pub fn start_executive_supervisor() -> Result(actor.Started(supervisor.Supervisor), actor.StartError) {
   supervisor.new(supervisor.OneForAll)
   |> supervisor.add(supervision.worker(fn() { cortex.start("Cortex-Alpha") }))
+  |> supervisor.add(supervision.worker(fn() { briefing.start("Briefing-Alpha") }))
   |> supervisor.add(supervision.supervisor(fn() { start_domain_supervisor("Prajna", Prajna, 3) }))
   |> supervisor.add(supervision.supervisor(fn() { start_domain_supervisor("Smriti", Smriti, 3) }))
   |> supervisor.add(supervision.supervisor(fn() { start_domain_supervisor("CEPAF", CEPAF, 3) }))
