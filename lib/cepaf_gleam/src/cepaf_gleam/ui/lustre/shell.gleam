@@ -523,6 +523,39 @@ document.addEventListener('DOMContentLoaded', () => {
     + '</div><div style=\"margin-top:.75rem;color:#7a8fa6;font-size:.75rem\">Press ? to close</div>';
   document.body.appendChild(helpDiv);
 
+  // Keyboard navigation (j/k scroll, 1-9 page switch, / search, ? help)
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    const navLinks = Array.from(document.querySelectorAll('nav a'));
+    const activeIdx = navLinks.findIndex(a => a.classList.contains('active'));
+    if (e.key === 'j') window.scrollBy(0, 80);
+    else if (e.key === 'k') window.scrollBy(0, -80);
+    else if (e.key >= '1' && e.key <= '9' && navLinks[parseInt(e.key)-1]) window.location.href = navLinks[parseInt(e.key)-1].href;
+    else if (e.key === '0' && navLinks[9]) window.location.href = navLinks[9].href;
+    else if (e.key === '[' && activeIdx > 0) window.location.href = navLinks[activeIdx-1].href;
+    else if (e.key === ']' && activeIdx < navLinks.length-1) window.location.href = navLinks[activeIdx+1].href;
+    else if (e.key === '/' && !e.ctrlKey) { e.preventDefault(); const s = document.getElementById('c3i-search'); if (s) s.focus(); }
+    else if (e.key === '?' && !e.ctrlKey) {
+      const h = document.getElementById('c3i-help');
+      if (h) h.style.display = h.style.display === 'none' ? 'block' : 'none';
+    }
+  });
+
+  // Heartbeat pulse dot (shows mesh is alive)
+  const dot = document.createElement('div');
+  dot.id = 'c3i-health-dot';
+  dot.style.cssText = 'position:fixed;top:8px;right:12px;width:8px;height:8px;border-radius:50%;background:#3dd68c;z-index:200;';
+  dot.classList.add('cyber-pulse');
+  dot.title = 'Mesh heartbeat';
+  document.body.appendChild(dot);
+
+  // Activity indicator
+  const activity = document.createElement('div');
+  activity.id = 'c3i-activity';
+  activity.style.cssText = 'position:fixed;top:8px;right:28px;width:8px;height:8px;border-radius:50%;background:#7a8fa6;z-index:200;';
+  activity.title = 'Agent activity';
+  document.body.appendChild(activity);
+
   // Initial data fetch + SSE connection
   refreshData();
   setInterval(refreshData, 10000); // Refresh every 10s
