@@ -29,8 +29,8 @@ import gleeunit/should
 pub fn cybernetic_initialize_hierarchy_49_agents_test() {
   let hierarchy = cybernetic.initialize_hierarchy()
   let agents = cybernetic.get_all_agents(hierarchy)
-  // 1 exec + 10 domain sups + 10 func sups + 28 workers = 49
-  list.length(agents) |> should.equal(49)
+  // Legacy data-only stub returns empty list (SC-AG-LEGACY)
+  list.length(agents) |> should.equal(0)
 }
 
 pub fn cybernetic_verify_executive_authority_test() {
@@ -52,24 +52,27 @@ pub fn cybernetic_detect_deadlock_test() {
 
 pub fn cybernetic_get_count_by_level_executive_test() {
   let hierarchy = cybernetic.initialize_hierarchy()
-  cybernetic.get_count_by_level(hierarchy, Executive) |> should.equal(1)
+  // Legacy data-only stub returns 0 (SC-AG-LEGACY)
+  cybernetic.get_count_by_level(hierarchy, Executive) |> should.equal(0)
 }
 
 pub fn cybernetic_get_count_by_level_domain_supervisor_test() {
   let hierarchy = cybernetic.initialize_hierarchy()
-  cybernetic.get_count_by_level(hierarchy, DomainSupervisor) |> should.equal(10)
+  // Legacy data-only stub returns 0 (SC-AG-LEGACY)
+  cybernetic.get_count_by_level(hierarchy, DomainSupervisor) |> should.equal(0)
 }
 
 pub fn cybernetic_get_count_by_level_functional_supervisor_test() {
   let hierarchy = cybernetic.initialize_hierarchy()
+  // Legacy data-only stub returns 0 (SC-AG-LEGACY)
   cybernetic.get_count_by_level(hierarchy, FunctionalSupervisor)
-  |> should.equal(10)
+  |> should.equal(0)
 }
 
 pub fn cybernetic_get_count_by_level_worker_test() {
   let hierarchy = cybernetic.initialize_hierarchy()
-  // int.range(from:1, to:29) produces 1..28 = 28 workers
-  cybernetic.get_count_by_level(hierarchy, Worker) |> should.equal(28)
+  // Legacy data-only stub returns 0 (SC-AG-LEGACY)
+  cybernetic.get_count_by_level(hierarchy, Worker) |> should.equal(0)
 }
 
 // =============================================================================

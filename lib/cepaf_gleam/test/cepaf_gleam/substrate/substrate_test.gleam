@@ -14,10 +14,11 @@ pub fn podman_uds_client_new_test() {
 
 pub fn boot_sequence_phases_test() {
   // Verify the 5-stage biomorphic phases are handled
+  // Foundation(1) + NervousSystem(3) + StatePlane(2) + CognitivePlane(5) + Verification(1) = 12
   case boot.execute_boot() {
     Ok(state) -> {
       state.phase |> should.equal(boot.Verification)
-      list.length(state.containers_started) |> should.equal(8)
+      list.length(state.containers_started) |> should.equal(12)
     }
     Error(_) -> should.fail()
   }
