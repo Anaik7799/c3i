@@ -11,15 +11,30 @@ import cepaf_gleam/fractal/l5_cognitive.{
   type OodaCycleState, type ReasoningState, Act, Decide, Observe, Orient,
 }
 import cepaf_gleam/moz/client as moz
+import gleam/dynamic/decode
 import gleam/erlang/process.{type Subject}
 import gleam/io
 import gleam/json
+import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/otp/actor
 
 // =============================================================================
 // Cortex State & Messages
 // =============================================================================
+
+pub type EventLogEntry {
+  EventLogEntry(
+    id: String,
+    timestamp: String,
+    agent_id: String,
+    intent_id: Option(String),
+    action: String,
+    payload: Option(String),
+    result: Option(String),
+    status: String,
+  )
+}
 
 pub type CortexState {
   CortexState(
@@ -28,6 +43,7 @@ pub type CortexState {
     reasoning: ReasoningState,
     moz: moz.MoZClientState,
     active_intent: Option(String),
+    memory: List(EventLogEntry),
   )
 }
 
@@ -52,6 +68,7 @@ pub fn start(id: String) -> Result(actor.Started(Subject(CortexMessage)), actor.
       reasoning: l5_cognitive.initial_reasoning(),
       moz: moz.new(),
       active_intent: None,
+      memory: [],
     )
 
   actor.new(initial_state)
@@ -66,30 +83,31 @@ fn handle_message(
   case msg {
     ProcessIntent(id, text) -> {
       io.println("🧠 Cortex [" <> state.id <> "]: Ingesting Intent -> " <> id)
-      
-      // 1. ORIENT: Start reasoning stream
+
+      // 1. ORIENT: Fetch context and start reasoning stream
+      let memory = fetch_context(state.moz)
       let new_reasoning = l5_cognitive.start_reasoning(state.reasoning, id)
       let new_ooda = l5_cognitive.set_ooda_phase(state.ooda, Orient)
-      
+
       let new_state = CortexState(
         ..state, 
         active_intent: Some(id), 
         reasoning: new_reasoning,
-        ooda: new_ooda
+        ooda: new_ooda,
+        memory: memory
       )
-      
-      // 2. DECIDE: For now, simulate a direct tool call based on intent
-      // In Task 2.2, this will use an actual LLM/Rule-Engine call
+
+      // 2. DECIDE
       decide_next_action(new_state, text)
     }
 
     ObserveToolResult(req_id, result) -> {
       io.println("👁️ Cortex [" <> state.id <> "]: Observing Tool Result [" <> req_id <> "]")
-      
+
       // 3. OBSERVE: Update reasoning with results
       let new_reasoning = l5_cognitive.append_reasoning(state.reasoning, "\nResult: " <> result)
       let new_ooda = l5_cognitive.set_ooda_phase(state.ooda, Observe)
-      
+
       actor.continue(CortexState(..state, reasoning: new_reasoning, ooda: new_ooda))
     }
 
@@ -103,8 +121,11 @@ fn handle_message(
 fn decide_next_action(state: CortexState, text: String) -> actor.Next(CortexState, CortexMessage) {
   let new_ooda = l5_cognitive.set_ooda_phase(state.ooda, Decide)
   
+  // 2.1 CONTEXTUAL AWARENESS: Inject summarized memory into logic
+  let context_summary = summarize_memory(state.memory)
+  io.println("🧠 Cortex Context: " <> context_summary)
+
   // Simple pattern match for Wave 1/2 tools
-  // In Phase 2.2, this becomes a dynamic ReAct prompt to an SLM
   let #(domain, method, params) = case text {
     "list tasks" -> #("plan", "plan_list", json.object([]))
     "check health" -> #("ignition", "ignition_status", json.object([]))
@@ -117,6 +138,9 @@ fn decide_next_action(state: CortexState, text: String) -> actor.Next(CortexStat
   let new_ooda_act = l5_cognitive.set_ooda_phase(new_ooda, Act)
   let #(new_moz, result) = moz.send_request(state.moz, domain, method, params)
   
+  // 4.1 EPISODIC LOGGING: Record the action decision
+  let _ = log_cortex_action(state, method, "dispatched")
+
   case result {
     Ok(request_id) -> {
       io.println("  [ok] MoZ request dispatched: " <> request_id)
@@ -128,3 +152,73 @@ fn decide_next_action(state: CortexState, text: String) -> actor.Next(CortexStat
     }
   }
 }
+
+fn fetch_context(moz_state: moz.MoZClientState) -> List(EventLogEntry) {
+  case moz.send_query(moz_state, "plan", "list_events") {
+    #(_, Ok(payload)) -> {
+      case parse_event_list(payload) {
+        Ok(events) -> events
+        Error(_) -> []
+      }
+    }
+    _ -> []
+  }
+}
+
+fn parse_event_list(payload: String) -> Result(List(EventLogEntry), String) {
+  let event_decoder = {
+    use id <- decode.field("id", decode.string)
+    use timestamp <- decode.field("timestamp", decode.string)
+    use agent_id <- decode.field("agent_id", decode.string)
+    use intent_id <- decode.optional_field("intent_id", None, decode.optional(decode.string))
+    use action <- decode.field("action", decode.string)
+    use payload_field <- decode.optional_field("payload", None, decode.optional(decode.string))
+    use result <- decode.optional_field("result", None, decode.optional(decode.string))
+    use status <- decode.field("status", decode.string)
+
+    decode.success(EventLogEntry(
+      id: id,
+      timestamp: timestamp,
+      agent_id: agent_id,
+      intent_id: intent_id,
+      action: action,
+      payload: payload_field,
+      result: result,
+      status: status,
+    ))
+  }
+
+  let response_decoder = {
+    use result <- decode.field("result", decode.list(event_decoder))
+    decode.success(result)
+  }
+
+  case json.parse(from: payload, using: response_decoder) {
+    Ok(events) -> Ok(events)
+    Error(_) -> Error("Failed to decode Event log")
+  }
+}
+
+fn summarize_memory(memory: List(EventLogEntry)) -> String {
+  case list.length(memory) {
+    0 -> "No previous events."
+    n -> "Last " <> int_to_string(n) <> " actions performed successfully."
+  }
+}
+
+fn log_cortex_action(state: CortexState, action: String, status: String) {
+  let params = json.object([
+    #("agent_id", json.string(state.id)),
+    #("action", json.string(action)),
+    #("status", json.string(status)),
+    #("intent_id", case state.active_intent {
+      Some(id) -> json.string(id)
+      None -> json.null()
+    })
+  ])
+  let _ = moz.send_request(state.moz, "plan", "plan_log", params)
+  Nil
+}
+
+@external(erlang, "erlang", "integer_to_binary")
+fn int_to_string(i: Int) -> String
