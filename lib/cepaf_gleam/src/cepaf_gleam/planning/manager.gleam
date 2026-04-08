@@ -11,8 +11,7 @@ import cepaf_gleam/core/types
 import cepaf_gleam/db/sqlite
 import cepaf_gleam/moz/client as moz_client
 import cepaf_gleam/planning/domain.{
-  type PlanningError, type Task, DatabaseError, InvalidTransition, RemoteError,
-  Task, TaskNotFound,
+  type PlanningError, type Task, InvalidTransition, RemoteError, Task, TaskNotFound,
 }
 import cepaf_gleam/planning/parser
 import cepaf_gleam/planning/repository
