@@ -402,6 +402,9 @@ Each fractal layer publishes its health independently to `indrajaal/fractal/L{n}
 | SC-RECONFIG-001 | Any L1-L7 reconfigurable |
 | SC-RECONFIG-002 | L0 Constitution immutable |
 | SC-RECONFIG-005 | Lineage preserved through changes |
+# Evolutionary Execution
+All fractal restructuring, feature additions, or deep-pass analyses MUST be initiated via the `/evolve-sil6 [SPRINT_GOAL]` prompt command. This ensures maximum parallelization, full autonomy, and strict 100% test coverage integration.
+
 # Related Agents
 - `holon-analyzer`: For state sovereignty
 - `constitutional-verifier`: For invariant verification
