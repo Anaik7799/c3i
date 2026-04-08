@@ -506,7 +506,7 @@ pub fn agent_span(
   publish_span(session, span)
 }
 
-/// All 15 page topic prefixes (for observer subscription).
+/// All 31 page topic prefixes (for observer subscription).
 pub fn all_page_topics() -> List(String) {
   [
     otel_prefix <> "dashboard",
@@ -524,5 +524,21 @@ pub fn all_page_topics() -> List(String) {
     otel_prefix <> "telemetry",
     otel_prefix <> "federation",
     otel_prefix <> "health_grid",
+    otel_prefix <> "prajna",
+    otel_prefix <> "agents",
+    otel_prefix <> "holon",
+    otel_prefix <> "config",
+    otel_prefix <> "git",
+    otel_prefix <> "database",
+    otel_prefix <> "bridge",
+    otel_prefix <> "smriti",
+    otel_prefix <> "planning_dashboard",
+    otel_prefix <> "integrity",
+    otel_prefix <> "evolution",
+    otel_prefix <> "biomorphic",
+    otel_prefix <> "homeostasis",
+    otel_prefix <> "bicameral",
+    otel_prefix <> "singularity",
+    otel_prefix <> "component_demo",
   ]
 }

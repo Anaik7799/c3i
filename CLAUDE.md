@@ -170,9 +170,9 @@ All events defined in `agui/events.gleam` (5 modules, 1,224 lines):
 
 **A2UI** is the component schema system for agents. No executable code, JSON-only.
 
-**115 Component Types** across 5 modules (1,200+ lines):
+**233 Component Types** across 5 modules (1,800+ lines):
 - `schema.gleam` (118 lines) — ComponentSpec, PropSpec, BindingSpec, FractalLayer types
-- `catalog.gleam` (500+ lines) — Trusted registry: 115 components across 7 categories (Layout 14, Data 16, Status 18, Interactive 16, Visualization 20, Agent 10, Safety 6)
+- `catalog.gleam` (500+ lines) — Trusted registry: 233 components across 22 domains (15 core + 100 wave1 + 118 wave2)
 - `renderer.gleam` (300+ lines) — Isomorphic A2UI → HTML + JSON + ANSI rendering (render_tripartite)
 - `bindings.gleam` (88 lines) — Data binding (state path → component prop)
 - `validator.gleam` (119 lines) — Security validation (allowlist enforcement)
@@ -234,16 +234,16 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 
 | Metric | Value | Threshold | Status |
 |--------|-------|-----------|--------|
-| Total Tests | 2,873 passed, 0 failures | — | PASS |
+| Total Tests | 3,354 passed, 0 failures | — | PASS |
 | Shannon Entropy H | 2.67 bits (weighted mean) | ≥ 2.5 bits | PASS |
 | CCM | 0.770 | ≥ 0.90 | IMPROVING |
 | ITQS | 0.736 | ≥ 0.85 | IMPROVING |
 | D_EA | — | ≤ 10% | — |
-| Tab Coverage | 100% (30/30) | 100% | PASS |
-| Nav Graph Pages | 30 (SCC=1, edges=870) | 30 | PASS |
-| A2UI Components | 115 | — | PASS |
-| MCP Tools | 26 (all NIF-backed) | — | PASS |
-| Zenoh Observer | 30 pages | 30 | PASS |
+| Tab Coverage | 100% (31/31) | 100% | PASS |
+| Nav Graph Pages | 31 (SCC=1, edges=930) | 31 | PASS |
+| A2UI Components | 233 | — | PASS |
+| MCP Tools | 26 + 47 sa-plan-daemon (73 total) | — | PASS |
+| Zenoh Observer | 31 pages | 31 | PASS |
 | Zenoh Verification | Active | — | PASS |
 
 ---
@@ -258,7 +258,7 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 | TUI Terminal | 23 | 1,730+ | `lib/cepaf_gleam/src/cepaf_gleam/ui/tui/*.gleam` |
 | Zenoh OTel | 1 | — | `lib/cepaf_gleam/src/cepaf_gleam/ui/zenoh_otel.gleam` |
 | AG-UI Events | 6 | 1,400+ | `lib/cepaf_gleam/src/cepaf_gleam/agui/*.gleam` |
-| A2UI Catalog | 5 | 1,200+ | `lib/cepaf_gleam/src/cepaf_gleam/a2ui/*.gleam` (115 components) |
+| A2UI Catalog | 5 | 1,800+ | `lib/cepaf_gleam/src/cepaf_gleam/a2ui/*.gleam` (233 components) |
 | Fractal L0-L7 | 8 | 1,107 | `lib/cepaf_gleam/src/cepaf_gleam/fractal/*.gleam` |
 | Unified NIF | 7 | 725 | `lib/cepaf_gleam/native/c3i_nif/src/*.rs` (14 NIFs) |
 | NIF Bridge | 2 | 120 | `lib/cepaf_gleam/src/{c3i_nif.erl,cepaf_gleam/c3i/nif.gleam}` |
@@ -267,8 +267,8 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 | Zenoh Test Observer | 1 | — | `lib/cepaf_gleam/src/cepaf_gleam/testing/zenoh_test_observer.gleam` (30 pages) |
 | Test Dashboard | 1 | — | `lib/cepaf_gleam/src/cepaf_gleam/testing/test_dashboard.gleam` |
 | Verification | 4 | 383 | `lib/cepaf_gleam/src/cepaf_gleam/verification/*.gleam` |
-| **Test suite** | **58** | **15,000+** | `lib/cepaf_gleam/test/*_test.gleam` |
-| **TOTAL** | **130+** | **~26,000+** | — |
+| **Test suite** | **67** | **18,000+** | `lib/cepaf_gleam/test/*_test.gleam` |
+| **TOTAL** | **225+** | **~26,000+** | — |
 
 ---
 
@@ -335,7 +335,7 @@ Commands: `/allium`, `/allium:tend`, `/allium:weed`, `/allium:distill`, `/allium
 | `evaluate_rca()` | RCA Escalation | 4 | L1 NIF/L4 Container/L6 Quorum/L7 LLM |
 | `evaluate_hysteresis()` | Hysteresis Config | 3 | Aggressive/Conservative/Default |
 
-Rust tests: **307 passed** (41 rule engine tests). Gleam tests: **2,873 passed**.
+Rust tests: **307 passed** (41 rule engine tests). Gleam tests: **3,354 passed**.
 
 ---
 
@@ -392,4 +392,4 @@ All updates to `PROJECT_TODOLIST.md`, task status transitions (Pending -> Active
 
 **Version**: 22.3.0-GLM
 **Last Updated**: 2026-04-08
-**Status**: Gleam-first platform operational (unified c3i_nif, 26 MCP tools, 115 A2UI components, ZMOF active, Muda enforced, sa-plan-daemon authoritative, OpenClaw & HA integrated)
+**Status**: Gleam-first platform operational (unified c3i_nif, 73 MCP tools, 233 A2UI components, ZMOF active, Muda enforced, sa-plan-daemon authoritative, OpenClaw & HA integrated)
