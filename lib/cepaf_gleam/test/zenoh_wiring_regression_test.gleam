@@ -311,9 +311,9 @@ pub fn verify_mcp_relay_empty_received_vacuously_passes_test() {
 // Group 4: all_page_topics invariants (3 tests)
 // =============================================================================
 
-pub fn all_page_topics_returns_15_entries_test() {
+pub fn all_page_topics_returns_31_entries_test() {
   let topics = all_page_topics()
-  list.length(topics) |> should.equal(15)
+  list.length(topics) |> should.equal(31)
 }
 
 pub fn all_page_topics_all_start_with_prefix_test() {

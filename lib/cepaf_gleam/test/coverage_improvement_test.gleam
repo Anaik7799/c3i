@@ -246,7 +246,7 @@ pub fn c7_agui_span_health_grid_test() {
 }
 
 pub fn c7_agui_all_page_topics_count_test() {
-  zenoh_otel.all_page_topics() |> list.length |> should.equal(15)
+  zenoh_otel.all_page_topics() |> list.length |> should.equal(31)
 }
 
 pub fn c7_control_attrs_has_action_test() {

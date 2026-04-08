@@ -137,9 +137,9 @@ pub fn agent_attrs_structure_test() {
 // All Page Topics (SC-GLM-ZEN-002)
 // =============================================================================
 
-pub fn all_page_topics_returns_15_test() {
+pub fn all_page_topics_returns_31_test() {
   let topics = zenoh_otel.all_page_topics()
-  list.length(topics) |> should.equal(15)
+  list.length(topics) |> should.equal(31)
 }
 
 pub fn all_page_topics_have_otel_prefix_test() {
