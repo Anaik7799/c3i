@@ -886,3 +886,6 @@
 [x] 52d987dc - OpenClaw: Implement Zenoh-to-Telegram Gateway Bridge (P0) [COMPLETED]
 [x] 865fd43b - OpenClaw: Implement Gleam Podman UDS Shell Runner (P0) [COMPLETED]
 [ ] 70516d8a - OpenClaw: Implement Autonomous GitHub PR/Git-Gate Manager (P0) [PENDING]
+[x] d104896a - HA: Implement Rust Leader Election and TLA+ Models (P0) [COMPLETED]
+[x] 4c16a154 - HA: Implement Gleam Leadership Monitor and Graceful Drain (P0) [COMPLETED]
+[x] b21517da - HA: E2E Chaos Testing for Zero-Downtime Upgrade (P0) [COMPLETED]
