@@ -29,6 +29,9 @@ You are working with **Allium v3** behavioral specifications for the C3I SIL-6 B
 
 ### Project Allium Files
 - `specs/allium/ignition.allium` — Main spec (1,189 lines): 16-container genome, 7-tier boot, OODA supervisor, rule engine (rust-rule-engine v1.20.1), OpenRouter LLM advisor, FMEA failure modes, UI dashboard, testing collateral, formal verification (Agda/Quint/TLA+)
+- `specs/allium/ha_seamless_upgrade.allium` — HA Active/Standby Leader Election, Graceful Drain, Deadlock freedom
+- `specs/allium/openclaw_advanced.allium` — Isolated Cortex Sessions, Semantic Vector Memory, Subagent Routing
+- `specs/allium/openclaw_perception_acp.allium` — Continuous Voice Streams, Shared A2UI CRDT Hologram, Agent Control Protocol (ACP) Boundaries
 
 ### Allium v3 Syntax Quick Reference
 
