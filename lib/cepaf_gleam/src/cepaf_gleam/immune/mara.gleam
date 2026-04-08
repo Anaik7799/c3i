@@ -7,6 +7,7 @@ import gleam/dict
 import gleam/erlang/process.{type Subject}
 import gleam/int
 import gleam/io
+import gleam/option.{None}
 import gleam/otp/actor
 import gleam/result
 
@@ -39,14 +40,14 @@ fn handle_message(
     SetEnabled(val) -> actor.continue(MaraConfig(..config, is_enabled: val))
     Strike -> {
       let tags = dict.from_list([#("actor", "mara"), #("action", "strike")])
-      otel.start_span(["cepaf", "immune", "mara"], tags)
+      otel.start_span(["cepaf", "immune", "mara"], tags, None)
 
       case config.is_enabled {
         True -> {
           let attack = select_random_attack()
           execute_attack(attack, config)
 
-          otel.stop_span(["cepaf", "immune", "mara"], 1.5, tags)
+          otel.stop_span(["cepaf", "immune", "mara"], 1.5, tags, None)
           actor.continue(config)
         }
         False -> {
@@ -57,6 +58,7 @@ fn handle_message(
             0.1,
             "agent_disabled",
             tags,
+            None,
           )
           actor.continue(config)
         }

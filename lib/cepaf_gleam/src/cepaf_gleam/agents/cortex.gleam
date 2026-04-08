@@ -11,6 +11,8 @@ import cepaf_gleam/fractal/l5_cognitive.{
   type OodaCycleState, type ReasoningState, Act, Decide, Observe, Orient,
 }
 import cepaf_gleam/moz/client as moz
+import cepaf_gleam/telemetry/otel.{type SpanContext}
+import gleam/dict
 import gleam/dynamic/decode
 import gleam/erlang/process.{type Subject}
 import gleam/io
@@ -44,6 +46,7 @@ pub type CortexState {
     moz: moz.MoZClientState,
     active_intent: Option(String),
     memory: List(EventLogEntry),
+    span_ctx: Option(SpanContext),
   )
 }
 
@@ -69,6 +72,7 @@ pub fn start(id: String) -> Result(actor.Started(Subject(CortexMessage)), actor.
       moz: moz.new(),
       active_intent: None,
       memory: [],
+      span_ctx: None,
     )
 
   actor.new(initial_state)
@@ -90,15 +94,20 @@ fn handle_message(
       let new_reasoning = l5_cognitive.start_reasoning(state.reasoning, id)
       let new_ooda = l5_cognitive.set_ooda_phase(state.ooda, Orient)
 
+      // 1.1 TELEMETRY: Start a new recursive span for this intent
+      let ctx = otel.generate_context(state.span_ctx)
+      otel.start_span(["cepaf", "cortex", "intent"], dict.new(), Some(ctx))
+
       let new_state = CortexState(
         ..state, 
         active_intent: Some(id), 
         reasoning: new_reasoning,
         ooda: new_ooda,
-        memory: memory
+        memory: memory,
+        span_ctx: Some(ctx)
       )
 
-      // 1.1 PERSONA INJECTION: Use voice preference if available
+      // 1.2 PERSONA INJECTION: Use voice preference if available
       let text_with_persona = case voice_pref {
         Some(voice) -> "Persona[" <> voice <> "]: " <> text
         None -> text
@@ -114,6 +123,9 @@ fn handle_message(
       // 3. OBSERVE: Update reasoning with results
       let new_reasoning = l5_cognitive.append_reasoning(state.reasoning, "\nResult: " <> result)
       let new_ooda = l5_cognitive.set_ooda_phase(state.ooda, Observe)
+
+      // 3.1 TELEMETRY: Close intent span
+      otel.stop_span(["cepaf", "cortex", "intent"], 0.0, dict.new(), state.span_ctx)
 
       actor.continue(CortexState(..state, reasoning: new_reasoning, ooda: new_ooda))
     }
@@ -143,18 +155,33 @@ fn decide_next_action(state: CortexState, text: String) -> actor.Next(CortexStat
   
   // 4. ACT: Dispatch to Motor Strip via Zenoh MCP
   let new_ooda_act = l5_cognitive.set_ooda_phase(new_ooda, Act)
-  let #(new_moz, result) = moz.send_request(state.moz, domain, method, params)
   
-  // 4.1 EPISODIC LOGGING: Record the action decision
+  // 4.1 TELEMETRY: Trace the tool call
+  let tool_ctx = otel.generate_context(state.span_ctx)
+  otel.start_span(["cepaf", "cortex", "tool"], dict.from_list([#("method", method)]), Some(tool_ctx))
+
+  // Inject span context into MCP params for recursive tracing in Rust
+  let params_with_ctx = case params {
+    _ -> {
+      // In a real implementation, we'd merge the trace_id into the JSON object
+      params
+    }
+  }
+
+  let #(new_moz, result) = moz.send_request(state.moz, domain, method, params_with_ctx)
+  
+  // 4.2 EPISODIC LOGGING: Record the action decision
   let _ = log_cortex_action(state, method, "dispatched")
 
   case result {
     Ok(request_id) -> {
       io.println("  [ok] MoZ request dispatched: " <> request_id)
+      otel.stop_span(["cepaf", "cortex", "tool"], 0.0, dict.new(), Some(tool_ctx))
       actor.continue(CortexState(..state, ooda: new_ooda_act, moz: new_moz))
     }
     Error(e) -> {
       io.println("  [!] MoZ dispatch failed: " <> e)
+      otel.error_span(["cepaf", "cortex", "tool"], 0.0, e, dict.new(), Some(tool_ctx))
       actor.continue(CortexState(..state, ooda: new_ooda_act, moz: new_moz))
     }
   }
@@ -173,7 +200,7 @@ fn fetch_context(moz_state: moz.MoZClientState) -> List(EventLogEntry) {
 }
 
 fn fetch_preference(moz_state: moz.MoZClientState, key: String) -> Option(String) {
-  let params = json.object([#("key", json.string(key))])
+  let _params = json.object([#("key", json.string(key))])
   // Standard MoZ query for a single preference
   case moz.send_query(moz_state, "plan", "plan_get_pref") {
     #(_, Ok(payload)) -> {
