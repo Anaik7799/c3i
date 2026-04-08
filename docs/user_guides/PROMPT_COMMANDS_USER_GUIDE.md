@@ -47,6 +47,14 @@ This guide details the operational procedures and user journeys for the **Prompt
     3.  **Security**: Uses the `Smriti.db` secure Vault for the Slack token.
     4.  **Closure**: Syncs state and logs the implementation.
 
+#### Scenario D: Automated Documentation Notifications (SC-NOTIFY)
+*   **User Action**: Types `/evolve-sil6 create a new API endpoint for the task manager and document its usage.`
+*   **Agent Behavior**:
+    1.  **Execution**: Completes the implementation and creates `docs/API_REFERENCE.md`.
+    2.  **Email Notification**: Automatically invokes the `gmail_send_email` MCP tool to send the full Markdown content of `docs/API_REFERENCE.md` to `abhijit.naik@boutytek.com`.
+    3.  **Chat Notification**: Automatically invokes the `gateway` MCP tool to send a summary (e.g., "✅ Added new API reference at docs/API_REFERENCE.md. Key features: POST/GET tasks.") to Google Chat or Telegram.
+    4.  **Value**: The operator receives passive, real-time intelligence on structural system changes without needing to explicitly check the git history.
+
 ### 2.4 Error Handling & Fallbacks
 If the agent determines the `[SPRINT_GOAL]` violates a core mandate (e.g., "Bypass Podman sandboxing for speed"), it is instructed to **REFUSE** the command, cite the specific SC-* constraint violated, and await a revised, compliant command.
 

@@ -27,5 +27,8 @@
 | Standard (4-15 files) | Paragraphs/Full Detail |
 | Major (15+ files) | Subsections/Diagrams |
 ---
-# 3.0 Agent Requirement
-Agents MUST use this template for EVERY journal creation. Failure to include all 13 headers is a **Category 1 (CRITICAL)** violation.
+# 4.0 Post-Creation Notification Mandate (SC-NOTIFY)
+Whenever a journal entry, specification, user guide, or architectural document is created or significantly modified, the agent MUST autonomously dispatch a notification loop to the operator:
+1. **Email Dispatch**: Send an email via `gmail_send_email` (or equivalent MCP tool) containing the full document content or a detailed summary.
+2. **Chat Dispatch**: Send a brief summary with key takeaways and a file path/link to the document via the `gateway` tool (Telegram, GChat, or WhatsApp).
+This ensures the operator is constantly updated on the system's evolving structural knowledge.
