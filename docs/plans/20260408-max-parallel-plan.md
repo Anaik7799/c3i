@@ -44,3 +44,19 @@ To elevate the Indrajaal C3I system autonomy, integrating OpenClaw-type features
 - All Priority 0 Tasks marked as completed in sa-plan.
 - Git history reflects atomic commits and pushes for every feature.
 - sa-sync validates complete alignment across artifacts.
+## 4.0 OpenClaw Feature Alignment Matrix (200 Features)
+
+### L0-L2: Core Cell & Memory (Priority: P0)
+- **Feature 28 (ReAct Engine)**: Implemented in Gleam OODA Supervisor.
+- **Feature 50 (Relational State DB)**: Authority moved to Rust sa-plan-daemon (Smriti.db).
+- **Feature 133 (HITL Approval)**: Guardian-gated MoZ requests for P0 tasks.
+
+### L3-L4: Computer Use & Substrate (Priority: P0)
+- **Feature 62 (Git Operations)**: Integrated into every autonomous 'Git Gate'.
+- **Feature 63 (Sandboxed Terminal)**: Rust-Podman UDS execution for all NIF builds.
+- **Feature 72 (Browser Control)**: Python-Playwright visual crawler for UI audit.
+
+### L5-L7: Intelligence & Federation (Priority: P1)
+- **Feature 155 (Morning Briefing)**: Scheduled Zenoh-to-Gateway daily summaries.
+- **Feature 199 (Executive Voice)**: MSTS-aware persona injection into Gleam prompts.
+
