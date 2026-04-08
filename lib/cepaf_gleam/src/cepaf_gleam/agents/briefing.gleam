@@ -10,6 +10,7 @@ import cepaf_gleam/gateway/telegram
 import cepaf_gleam/moz/client as moz
 import gleam/erlang/process.{type Subject}
 import gleam/io
+import gleam/json
 import gleam/otp/actor
 
 pub type BriefingMessage {

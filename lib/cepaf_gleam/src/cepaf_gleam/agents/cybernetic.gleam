@@ -13,6 +13,7 @@ import gleam/option.{type Option}
 import cepaf_gleam/agents/cortex
 import cepaf_gleam/agents/briefing
 import cepaf_gleam/agents/workspace
+import cepaf_gleam/agents/skill_loader
 
 // =============================================================================
 // Type Definitions — Autonomous Agents
