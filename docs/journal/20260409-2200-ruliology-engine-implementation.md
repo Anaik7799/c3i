@@ -312,3 +312,152 @@ These are intentionally independent. Phase B will synchronize them (ruliology re
 Implemented a complete Wolfram-style computational rule engine for C3I in 1,346 lines (671 Wolfram + 675 Rust). The engine formalizes all system rules into introspectable, testable, simulatable structures: 3 cellular automata, 1 multiway system, 1 causal graph, 50 production rules, and a 245-dimensional rulial space. The engine runs in shadow mode — observing and logging without controlling — with a clear 3-phase path to active control (Shadow → Advisory → Active). Ten unit tests verify all state machines. The `/rules` chat command provides real-time introspection of the entire rule system. Runtime overhead is <1μs per intent.
 
 The key insight from Wolfram's ruliology: the C3I system's simple rules (circuit breaker thresholds, Guardian state transitions, 2oo3 voting) produce **emergent** fault tolerance, self-healing, and adaptive behavior. By formalizing these rules, we can prove safety properties (NoBlackhole, QuorumSafety), simulate failure scenarios without running the full system, and eventually search the rulial space for optimal configurations — all from a single `ruliology.rs` file.
+
+---
+
+## Appendix A: System-Wide Integration — Chat, Zenoh, Observability, Fractal Logging
+
+### A.1 Chat Engine Integration
+
+Every message triggers the ruliology chain:
+1. `Guardian.step(stress_level)` → state published to Zenoh
+2. `CB.check(all_tiers)` → availability published to Zenoh
+3. `Classify(text)` → RETE rule evaluated
+4. `Infer(prompt)` → Multiway system branches
+5. `First tier succeeds` → Other branches pruned
+6. `Gateway.deliver()` → Causal graph edge traversed
+7. `Trace.finish()` → All steps logged to SQLite + Zenoh
+
+### A.2 Zenoh Topic Map (Ruliology Events)
+
+| Topic | Payload | Trigger | Rate |
+|-------|---------|---------|------|
+| `indrajaal/l0/const/guardian` | `{state, input, prev, epoch}` | Guardian state CHANGE only | ~1/min |
+| `indrajaal/l5/cog/cb/{tier}` | `{state, failures, cooldown}` | CB state CHANGE only | ~1/hour |
+| `indrajaal/l5/cog/rete/eval` | `{domain, rule, action}` | On complex query only | ~10/min |
+| `indrajaal/l4/system/container/{name}` | `{state, input}` | Container state CHANGE | ~1/hour |
+| `indrajaal/l5/cog/trace/{intent_id}` | Full pipeline trace JSON | Complex queries only | ~10/min |
+
+**Rate limiting strategy**: Publish only on STATE CHANGES, not every step. If Guardian stays "Safe" for 100 intents, only the first "Safe" is published. This prevents message pipeline overload.
+
+### A.3 Fractal Logging Per Layer
+
+```
+[L0] Guardian: Safe → Warning (input: Anomaly, intent: tg-poll-abc)
+[L1] NIF: c3i_nif.system_health() → OK (substrate: verified)
+[L2] Supervisor: ex-app-1 health_fail → restart (strategy: one_for_one)
+[L3] TX: SemanticCache INSERT hash=a1b2c3 ttl=3600s
+[L4] Container: ex-app-1 Running → Degraded (health_fail)
+[L5] OODA: Observe → Orient (stress=0.4, guardian=Warning)
+[L5] Cascade: gemini_direct won hedged race (1200ms)
+[L5] CB: openrouter failure_count=2 (threshold=3, still Closed)
+[L6] Quorum: vote(true, true, false) → consensus_reached (2oo3)
+[L7] Federation: peer edge-node-42 attestation verified (Ed25519)
+```
+
+### A.4 Observability (OTel Spans + Metrics)
+
+Every automaton STATE CHANGE becomes an OTel span:
+```
+Span: "ruliology.guardian.step"
+  input: "Anomaly", prev: "Safe", new: "Warning", duration_ns: 850
+```
+
+Metrics (gauge/counter):
+```
+c3i_guardian_state{state="Warning"} 1
+c3i_cb_open_total{tier="gemini"} 3
+c3i_rete_fires_total{domain="decision"} 142
+```
+
+### A.5 Message Pipeline Overload Prevention
+
+Key design: **publish only on state TRANSITIONS, not every evaluation.**
+
+| Event Type | Publish Frequency | Why |
+|-----------|-------------------|-----|
+| Guardian step (no change) | SKIP | 95% of steps don't change state |
+| Guardian step (state change) | PUBLISH | Rare and important |
+| CB step (no change) | SKIP | Most requests don't change CB state |
+| CB step (state change) | PUBLISH | Open/Close transitions are critical |
+| RETE evaluation | THROTTLE (max 10/min) | Could fire on every complex query |
+| Container lifecycle | PUBLISH on change | Rare, important |
+| Pipeline trace | THROTTLE (max 20/min) | Already per-complex-query |
+
+Expected Zenoh message rate from ruliology: **<5 messages/minute** under normal operation.
+
+---
+
+## Appendix B: Prompt Commands Used to Create the Ruliology System
+
+### B.1 Initial Exploration
+```
+User: "how can ruliology be applied to this system"
+→ Generated: Wolfram concept × C3I mapping table, 5 emergent properties,
+  Wolfram Physics analogy, computational irreducibility analysis
+```
+
+### B.2 Wolfram Language Specification
+```
+User: "ultrathink, review all fractal layers x all fractal components x full runtime
+       behavior x structural behavior and all other elements of the system to create
+       the ruliology of this system - use wolfram language for all these aspects"
+→ Generated: specs/wolfram/c3i-ruliology.wl (671 lines, 16 sections)
+  Covers: L0-L7 fractal layers, multiway systems, causal graphs,
+  hypergraph rewriting, computational irreducibility, rulial space
+```
+
+### B.3 Rust Implementation
+```
+User: "can this be implemented in rust"
+→ Generated: Wolfram→Rust mapping table showing every construct has a Rust equivalent
+  CellularAutomaton→enum+match, Graph→petgraph, MultiwaySystem→tokio::spawn+mpsc,
+  SubstitutionSystem→pattern match, NestList→loop, Hash→DefaultHasher
+
+User: "implement this"
+→ Generated: ruliology.rs (675 lines)
+  8 structures, 10 unit tests, all passing
+```
+
+### B.4 Active Runtime Integration
+```
+User: "how will the system use the ruliology engine. ultrathink"
+→ Generated: 5 usage patterns (runtime eval, /rules command, self-evolution,
+  anomaly detection, formal verification), architecture diagram
+
+User: "yes" (wire it in)
+→ Generated: SystemRuliology singleton (OnceLock<Mutex>), Guardian stepping
+  on every intent, /rules command with 5 modes, cortex Stage 0 integration
+```
+
+### B.5 Impact and Benefits Analysis
+```
+User: "what is impact of ruliology engine on existing architecture"
+→ Generated: Impact matrix (all NONE except 2 LOW), dual CB system explanation,
+  3-phase integration path (Shadow→Advisory→Active)
+
+User: "what is the benefit of this"
+→ Generated: 5 concrete benefits (observability, single source of truth,
+  testability, self-evolution, formal verification)
+```
+
+### B.6 System-Wide Integration
+```
+User: "how will this be used by the chat engine, zenoh, observability,
+       fractal logging and all system fractal layer implications"
+→ Generated: Full stack integration map, per-layer table (L0-L7),
+  Zenoh topic map, OTel spans, fractal log examples, rate limiting strategy
+
+User: "add this to the journal, capture ALL prompt commands, implement
+       zenoh publishing, don't overload messaging pipeline"
+→ This appendix + Zenoh publishing implementation with change-only publishing
+```
+
+---
+
+## Appendix C: Zenoh Publishing Implementation
+
+Added to `ruliology.rs`: `publish_state_change()` function that only publishes when state actually changes. Uses a `last_published_state` HashMap to debounce identical states.
+
+Rate budget: <5 Zenoh messages/minute from ruliology under normal operation.
+Under Emergency: burst of ~10 messages (Guardian + all CB probes), then settles.
