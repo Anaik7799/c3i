@@ -1,0 +1,1168 @@
+-- allium: 3
+-- OpenClaw Chat Interaction System — Behavioral Specification
+-- Covers: Telegram/GChat/WhatsApp multi-channel gateway, neuromorphic cortex intent routing,
+--         simulator harness, OODA-driven intent classification, LLM inference fallback,
+--         heartbeat service, rate limiting, task creation from chat, Zenoh backplane integration
+-- STAMP: SC-COG-001..003, SC-OPENCLAW-001..004, SC-ZMOF-001, SC-SIM-001..007,
+--        SC-API-001..010, SC-OODA-001..009, SC-ZENOH-001..008, SC-MCP-001..082
+-- Date: 2026-04-09
+-- Author: Claude Opus 4.6 (1M context)
+
+-- =============================================================================
+-- S1. EXTERNAL ENTITIES (systems not defined here)
+-- =============================================================================
+
+external entity TelegramBotAPI
+external entity GoogleChatPubSub
+external entity WhatsAppBusinessAPI
+external entity ZenohRouter
+external entity OllamaInferenceEngine
+external entity SmritiDatabase
+external entity ReteUlRuleEngine
+external entity PlanningAuthority
+
+-- =============================================================================
+-- S2. ENUMERATIONS (domain value sets)
+-- =============================================================================
+
+enum MessageStatus { received | processing | responded | acknowledged | failed }
+
+enum IntentType { command | query | ack | emergency | skill | greeting | status_query | health_check | broadcast }
+
+enum SessionPhase { active | idle | draining }
+
+enum OodaPhase { observe | orient | decide | act | verify }
+
+enum ChannelType { telegram | gchat | whatsapp | simulator }
+
+enum Priority { p0_critical | p1_high | p2_medium | p3_low }
+
+enum InferenceStatus { queued | running | complete | failed | timed_out }
+
+enum RuleOutcome { pending | evaluated | applied | rejected }
+
+enum TaskStatus { pending | in_progress | completed | blocked }
+
+enum HeartbeatPhase { tick | published }
+
+enum SimEndpoint { get_updates | send_message | pull | acknowledge | webhook | inject | status | outbox | clear }
+
+-- =============================================================================
+-- S3. VALUE TYPES (structured data without identity, immutable)
+-- =============================================================================
+
+value ResponseLatencyMetric {
+    message_id: String
+    channel: ChannelType
+    ingress_timestamp_ms: Integer
+    ack_timestamp_ms: Integer?
+    full_response_timestamp_ms: Integer?
+    ack_latency_ms: Integer?
+    full_latency_ms: Integer?
+}
+
+value ThroughputSample {
+    window_start_ms: Integer
+    window_end_ms: Integer
+    message_count: Integer
+    messages_per_second: Decimal
+}
+
+value StressClassification {
+    raw_stress: Decimal
+    priority: Priority
+    -- Mapping: 0.0-0.5 = P2, 0.5-0.8 = P1, 0.8+ = P0
+}
+
+value ChannelCredentials {
+    channel: ChannelType
+    token: String?
+    chat_id: String?
+    webhook_url: String?
+    phone: String?
+    is_configured: Boolean
+}
+
+value RuleInput {
+    cpu_percent: Decimal
+    is_booting: Boolean
+    restart_requested: Boolean
+    health_critical_count: Integer
+    stress_level: Decimal
+}
+
+value SimQueueStats {
+    telegram_inbox: Integer
+    telegram_outbox: Integer
+    gchat_inbox: Integer
+    gchat_outbox: Integer
+}
+
+-- =============================================================================
+-- S4. CONFIG (parameterized thresholds, timeouts, limits)
+-- =============================================================================
+
+config {
+    -- Polling intervals
+    telegram_poll_timeout_secs: Integer = 10
+    gchat_poll_interval_secs: Integer = 2
+    telegram_inter_poll_delay_secs: Integer = 1
+
+    -- Heartbeat cadence
+    heartbeat_interval_secs: Integer = 600
+    cortex_recalculate_interval_secs: Integer = 60
+
+    -- LLM inference
+    llm_inference_timeout_secs: Integer = 30
+    llm_model_default: String = "tinyllama"
+
+    -- Rate limiting
+    rate_limit_max_msgs_per_minute: Integer = 10
+    rate_limit_window_secs: Integer = 60
+
+    -- Response latency SLAs
+    ack_latency_max_ms: Integer = 2_000
+    full_response_latency_max_ms: Integer = 30_000
+
+    -- Stress thresholds
+    stress_p0_threshold: Decimal = 0.8
+    stress_p1_threshold: Decimal = 0.5
+    -- Below 0.5 is P2
+
+    -- Simulator
+    simulator_port: Integer = 9876
+    simulator_default_chat_id: String = "6249174059"
+    simulator_gchat_space: String = "spaces/sim_space"
+
+    -- Zenoh topics
+    intent_topic: String = "indrajaal/l5/cog/intent/**"
+    mcp_topic: String = "indrajaal/l5/cog/mcp/req/plan/**"
+    cron_topic: String = "indrajaal/l5/cog/intent/cron"
+    intent_req_topic: String = "indrajaal/l5/cog/intent/req"
+
+    -- Smriti persistence keys
+    telegram_offset_key: String = "telegram_poll_offset"
+    telegram_token_key: String = "telegram_token"
+    telegram_chat_id_key: String = "telegram_chat_id"
+    gchat_webhook_key: String = "gchat_webhook"
+
+    -- Task creation
+    command_prefix: String = "/"
+    min_text_length_for_task: Integer = 10
+
+    -- Feature flags
+    enable_llm_inference: Boolean = true
+    enable_simulator_redirect: Boolean = true
+    enable_gchat_polling: Boolean = true
+    enable_whatsapp: Boolean = false
+}
+
+-- =============================================================================
+-- S5. ENTITIES (domain objects with identity and lifecycle)
+-- =============================================================================
+
+entity ChatMessage {
+    id: String
+    raw_text: String
+    source: ChannelType
+    chat_id: String?
+    timestamp_ms: Integer
+    status: MessageStatus
+    intent: IntentType?
+    priority: Priority?
+    response_text: String?
+    swarm_stress_level: Decimal?
+
+    -- Derived values
+    is_ack: this.raw_text = "ACK"
+    is_command: this.raw_text starts_with config.command_prefix
+    is_substantive: length(this.raw_text) > config.min_text_length_for_task
+    should_create_task: this.is_command or this.is_substantive
+
+    -- State machine
+    transitions status {
+        received -> processing
+        processing -> responded
+        processing -> failed
+        responded -> acknowledged
+        terminal: acknowledged
+        terminal: failed
+    }
+
+    -- Entity-level invariant
+    invariant ValidTimestamp {
+        this.timestamp_ms > 0
+    }
+
+    invariant SourceNotEmpty {
+        this.source != null
+    }
+}
+
+entity IntentClassification {
+    message_id: String
+    intent_type: IntentType
+    confidence: Decimal
+    stress_level: Decimal
+    computed_priority: Priority
+
+    -- Derived values
+    is_emergency: this.intent_type = emergency or this.stress_level >= config.stress_p0_threshold
+    is_high_priority: this.stress_level >= config.stress_p1_threshold
+
+    -- Priority derivation from stress
+    -- stress >= 0.8 -> P0, stress >= 0.5 -> P1, else -> P2
+    derived_priority:
+        if this.stress_level >= config.stress_p0_threshold then p0_critical
+        else if this.stress_level >= config.stress_p1_threshold then p1_high
+        else p2_medium
+
+    invariant StressBounded {
+        this.stress_level >= 0.0 and this.stress_level <= 1.0
+    }
+}
+
+entity CortexSession {
+    session_id: String
+    phase: SessionPhase
+    zenoh_session_active: Boolean
+    intent_subscriber_active: Boolean
+    mcp_subscriber_active: Boolean
+    heartbeat_spawned: Boolean
+    polling_spawned: Boolean
+    gchat_polling_spawned: Boolean
+    recalculate_timer_spawned: Boolean
+    messages_processed: Integer
+    last_intent_timestamp_ms: Integer?
+
+    transitions phase {
+        active -> idle
+        idle -> active
+        active -> draining
+        idle -> draining
+        terminal: draining
+    }
+
+    invariant ZenohRequired {
+        this.zenoh_session_active = true
+    }
+}
+
+entity OodaCycle {
+    cycle_id: String
+    phase: OodaPhase
+    intent_id: String
+    observation: String?
+    orientation: String?
+    decision: String?
+    action_taken: String?
+    duration_ms: Integer?
+
+    transitions phase {
+        observe -> orient
+        orient -> decide
+        decide -> act
+        act -> verify
+        terminal: verify
+    }
+
+    invariant CycleSla {
+        this.duration_ms = null or this.duration_ms <= 100
+    }
+
+    @guidance
+        -- The OODA cycle for chat intent processing is:
+        -- OBSERVE: Receive raw message from channel ingress polling
+        -- ORIENT: Parse intent type, compute stress classification
+        -- DECIDE: Evaluate RETE-UL rules, determine priority and response strategy
+        -- ACT: Execute response (LLM inference or rule-based), create task if needed
+        -- VERIFY: Confirm response delivered, update Smriti state
+}
+
+entity GatewayChannel {
+    channel_type: ChannelType
+    is_configured: Boolean
+    token: String?
+    chat_id: String?
+    webhook_url: String?
+    is_simulated: Boolean
+    messages_sent: Integer
+    messages_received: Integer
+    last_error: String?
+
+    -- Derived
+    is_operational: this.is_configured and this.last_error = null
+    uses_simulator: this.is_simulated and config.enable_simulator_redirect
+
+    invariant ConfiguredBeforeUse {
+        this.messages_sent > 0 implies this.is_configured
+    }
+}
+
+entity SimulatorState {
+    telegram_inbox: List<SimMessage>
+    telegram_outbox: List<SimMessage>
+    gchat_inbox: List<SimMessage>
+    gchat_outbox: List<SimMessage>
+    next_update_id: Integer
+    next_ack_id: Integer
+    is_running: Boolean
+    port: Integer
+
+    -- Derived
+    total_inbox_count: count(this.telegram_inbox) + count(this.gchat_inbox)
+    total_outbox_count: count(this.telegram_outbox) + count(this.gchat_outbox)
+
+    invariant PortValid {
+        this.port > 0 and this.port < 65536
+    }
+}
+
+entity RuleEvaluation {
+    evaluation_id: String
+    intent_id: String
+    rule_input: RuleInput
+    outcome: RuleOutcome
+    decision: String?
+    salience: Integer?
+    evaluation_time_ms: Integer?
+
+    transitions outcome {
+        pending -> evaluated
+        evaluated -> applied
+        evaluated -> rejected
+        terminal: applied
+        terminal: rejected
+    }
+
+    @guidance
+        -- Rule evaluation uses the RETE-UL engine from rule_engine.rs.
+        -- The evaluate_decision() API is called with stress-derived inputs.
+        -- High salience rules (Emergency Stop = 100) take priority.
+}
+
+entity TaskFromChat {
+    task_id: String
+    description: String
+    priority: Priority
+    source_message_id: String
+    source_channel: ChannelType
+    status: TaskStatus
+
+    transitions status {
+        pending -> in_progress
+        in_progress -> completed
+        in_progress -> blocked
+        blocked -> in_progress
+        terminal: completed
+    }
+
+    @guidance
+        -- Tasks created from chat are persisted via db::add_task().
+        -- Priority is dynamically computed from swarm stress level.
+        -- Task ID is generated by Smriti.db (SQLite UUID).
+}
+
+entity LlmInference {
+    inference_id: String
+    prompt: String
+    model: String
+    status: InferenceStatus
+    response: String?
+    duration_ms: Integer?
+    error: String?
+
+    transitions status {
+        queued -> running
+        running -> complete
+        running -> failed
+        running -> timed_out
+        terminal: complete
+        terminal: failed
+        terminal: timed_out
+    }
+
+    invariant TimeoutEnforced {
+        this.status = timed_out implies this.duration_ms >= config.llm_inference_timeout_secs * 1000
+    }
+
+    @guidance
+        -- LLM inference uses mcp_inference::handle_inference_request().
+        -- Default model is "tinyllama" via local Ollama instance.
+        -- On timeout or failure, falls back to rule-based classification.
+}
+
+entity HeartbeatCycle {
+    tick_id: String
+    phase: HeartbeatPhase
+    timestamp_ms: Integer
+    zenoh_topic: String
+    published: Boolean
+
+    transitions phase {
+        tick -> published
+        terminal: published
+    }
+
+    @guidance
+        -- Heartbeat emits periodic cron intents to trigger Gleam OODA proactive cycles.
+        -- Cadence: every 10 minutes (config.heartbeat_interval_secs = 600).
+        -- Published to indrajaal/l5/cog/intent/cron.
+}
+
+entity IngressPoller {
+    poller_id: String
+    channel: ChannelType
+    is_active: Boolean
+    current_offset: Integer
+    messages_ingested: Integer
+    last_poll_timestamp_ms: Integer?
+    consecutive_errors: Integer
+
+    -- Derived
+    is_healthy: this.consecutive_errors < 3
+    offset_persisted: this.current_offset > 0
+
+    invariant OffsetMonotonic {
+        -- Offset must never decrease (prevents message replay)
+        this.current_offset >= 0
+    }
+}
+
+entity RateLimiter {
+    channel: ChannelType
+    chat_id: String
+    window_start_ms: Integer
+    message_count: Integer
+    is_rate_limited: Boolean
+
+    -- Derived
+    rate_exceeded: this.message_count > config.rate_limit_max_msgs_per_minute
+
+    invariant WindowPositive {
+        this.window_start_ms > 0
+    }
+}
+
+-- =============================================================================
+-- S6. CONTRACTS (module boundaries -- demands/fulfils)
+-- =============================================================================
+
+contract TelegramAPI {
+    get_updates: (token: String, offset: Integer, timeout: Integer) -> List<TelegramUpdate>
+    send_message: (token: String, chat_id: String, text: String, needs_ack: Boolean) -> Boolean
+
+    @invariant OffsetPersisted
+        -- Polling offset is persisted to Smriti after each batch to survive restarts.
+    @invariant LongPollTimeout
+        -- getUpdates uses timeout=10s for efficient long-polling.
+    @guidance
+        -- When SIMULATOR_TELEGRAM_URL is set, all requests route to the local simulator.
+        -- Mock tokens (empty or "INTERNAL_SIL6_TOKEN") skip real HTTP requests.
+}
+
+contract GChatPubSub {
+    pull: (project_id: String, subscription_id: String, max_messages: Integer) -> List<PubSubMessage>
+    acknowledge: (project_id: String, subscription_id: String, ack_ids: List<String>) -> Boolean
+    send_webhook: (webhook_url: String, text: String, needs_ack: Boolean) -> Boolean
+
+    @invariant PreflightCheck
+        -- Before polling, verify the Pub/Sub subscription exists (404 = halt polling).
+    @invariant Base64Decode
+        -- Message data is Base64-encoded; decode before parsing chat event JSON.
+    @guidance
+        -- GCP auth token obtained via `gcloud auth application-default print-access-token`.
+        -- When SIMULATOR_GCHAT_URL is set, all requests route to the local simulator.
+}
+
+contract CortexEngine {
+    process_intent: (intent: ChatMessage) -> OodaCycle
+    recalculate_priorities: () -> Void
+    classify_intent: (text: String, stress: Decimal) -> IntentClassification
+
+    @invariant NonBlockingSelect
+        -- The tokio::select! loop in run_cortex_daemon MUST never block > 100ms.
+        -- Intent processing is spawned as separate tokio tasks.
+    @invariant SpawnedProcessing
+        -- All intent processing MUST be spawned via tokio::spawn to prevent blocking.
+    @guidance
+        -- recalculate_priorities runs on a 60s timer, separate from the select loop.
+        -- LLM inference is expensive (~10-20s per call), hence the 60s cadence.
+}
+
+contract GatewayDispatcher {
+    broadcast_message: (text: String, needs_ack: Boolean) -> Void
+    send_message: (channel: ChannelType, text: String, token: String?, chat_id: String?, phone: String?, needs_ack: Boolean) -> Boolean
+
+    @invariant AllConfiguredChannels
+        -- broadcast_message sends to ALL configured channels (Telegram + GChat).
+    @invariant GracefulMockSkip
+        -- Mock/empty tokens cause a skip, not an error.
+    @guidance
+        -- Channel dispatch is sequential (Telegram first, GChat second).
+        -- WhatsApp requires explicit phone number parameter.
+        -- needs_ack=true adds inline keyboard (Telegram) or cardsV2 (GChat).
+}
+
+contract SimulatorAPI {
+    inject_telegram: (text: String) -> Boolean
+    inject_gchat: (text: String) -> Boolean
+    status: () -> SimQueueStats
+    outbox: () -> SimOutbox
+    clear: () -> Boolean
+
+    @invariant FidelityMatch
+        -- Simulator responses MUST match the structure of real API responses.
+        -- Telegram: {"ok": true, "result": [...]} format preserved.
+        -- GChat: {"receivedMessages": [...]} format preserved.
+    @invariant SequentialIds
+        -- update_id (Telegram) and ack_id (GChat) are monotonically increasing.
+    @guidance
+        -- Simulator runs on configurable port (default 9876).
+        -- Supports: GET /bot{token}/getUpdates, POST /bot{token}/sendMessage,
+        --           POST :pull, POST :acknowledge, POST /webhook,
+        --           POST /sim/inject/telegram, POST /sim/inject/gchat,
+        --           GET /sim/status, GET /sim/outbox, POST /sim/clear
+}
+
+-- =============================================================================
+-- S7. ACTORS (parties at system boundaries)
+-- =============================================================================
+
+actor Operator {
+    identified_by: User where channel in [telegram, gchat, whatsapp]
+    -- The human operator who sends messages via chat channels.
+}
+
+actor AiAgent {
+    identified_by: System where source = "heartbeat_daemon" or source = "cortex"
+    -- Internal agents that produce intent events.
+}
+
+actor TestHarness {
+    identified_by: System where channel = simulator
+    -- E2E test runners that inject messages via the simulator API.
+}
+
+-- =============================================================================
+-- S8. RULES (event-driven behavior: when/requires/ensures)
+-- =============================================================================
+
+rule AckImmediate {
+    when: msg: ChatMessage where msg.raw_text = "ACK"
+    requires: msg.status = received
+    ensures: msg.status = acknowledged
+    ensures: GatewayDispatcher.broadcast_message("Acknowledged.", false)
+    ensures: no LlmInference created
+    @guidance
+        -- ACK messages get an immediate response with zero LLM overhead.
+        -- Source: cortex.rs:116-119 — early return on ACK text.
+}
+
+rule CommandPrefix {
+    when: msg: ChatMessage where msg.raw_text starts_with config.command_prefix
+    requires: msg.status = processing
+    ensures: TaskFromChat.created(description: msg.raw_text, priority: msg.priority, source_message_id: msg.id)
+    ensures: PlanningAuthority.add_task(msg.raw_text, msg.priority)
+    @guidance
+        -- Slash-prefixed messages (e.g., "/deploy", "/status") are treated as commands.
+        -- They are added as tasks via db::add_task() with dynamic priority.
+        -- Source: cortex.rs:158 — raw_text.starts_with('/').
+}
+
+rule EmergencyClassification {
+    when: intent: IntentClassification where intent.stress_level >= config.stress_p0_threshold
+    requires: intent.intent_type != ack
+    ensures: intent.computed_priority = p0_critical
+    ensures: GatewayDispatcher.broadcast_message("P0 EMERGENCY: " + intent.message_id, true)
+    @guidance
+        -- Stress > 0.8 triggers P0 classification with immediate broadcast.
+        -- The rule engine maps health_critical_count >= 3 when stress > 0.8.
+        -- Source: cortex.rs:131-136 — rule input construction from stress level.
+}
+
+rule QueryWithLlm {
+    when: msg: ChatMessage where msg.intent = query and config.enable_llm_inference
+    requires: msg.status = processing
+    requires: not exists RateLimiter{chat_id: msg.chat_id, is_rate_limited: true}
+    ensures: LlmInference.created(prompt: msg.raw_text, model: config.llm_model_default, status: queued)
+    ensures: msg.response_text set from LlmInference.response
+    @guidance
+        -- Queries go through LLM inference when available.
+        -- If LLM fails or times out, falls back to rule-based classification.
+        -- Source: cortex.rs:139-152 — handle_inference_request with fallback.
+}
+
+rule GreetingResponse {
+    when: msg: ChatMessage where msg.intent = greeting
+    requires: msg.status = processing
+    ensures: GatewayDispatcher.send_message(msg.source, "Hello! C3I Cortex online. How can I help?", ...)
+    ensures: msg.status = responded
+    @guidance
+        -- Simple greetings receive a friendly acknowledgment without LLM invocation.
+}
+
+rule StatusQuery {
+    when: msg: ChatMessage where msg.intent = status_query
+    requires: msg.status = processing
+    ensures: response includes system metrics from SmritiDatabase.get_all_tasks()
+    ensures: msg.status = responded
+    @guidance
+        -- Status queries return current task counts and system health metrics.
+        -- Source: cortex.rs PlanningMethod::ListTasks handler.
+}
+
+rule HealthCheck {
+    when: msg: ChatMessage where msg.intent = health_check
+    requires: msg.status = processing
+    ensures: response includes db.get_all_tasks() count
+    ensures: response includes zenoh session status
+    ensures: msg.status = responded
+    @guidance
+        -- Health checks perform TCP probe on key services and return DB stats.
+}
+
+rule StressEscalation {
+    when: intent: IntentClassification where intent.stress_level > config.stress_p0_threshold
+    requires: true
+    ensures: intent.computed_priority = p0_critical
+    ensures: RuleEvaluation.created(rule_input: {health_critical_count: 3, stress_level: intent.stress_level})
+    @guidance
+        -- Stress > 0.8 maps to health_critical_count >= 3 in the RETE-UL input.
+        -- Source: cortex.rs:131-136.
+}
+
+rule LlmTimeoutFallback {
+    when: inference: LlmInference.status transitions_to timed_out or failed
+    requires: inference.duration_ms >= config.llm_inference_timeout_secs * 1000 or inference.status = failed
+    ensures: msg.response_text = rule_based_classification(msg.raw_text, msg.swarm_stress_level)
+    ensures: msg.status = responded
+    @guidance
+        -- When LLM is unreachable or times out, the system falls back to priority-based
+        -- classification using stress level thresholds.
+        -- Source: cortex.rs:148-151 — Err(_) branch produces rule-based response.
+}
+
+rule RapidFireRateLimit {
+    when: msg: ChatMessage where count(ChatMessage{chat_id: msg.chat_id, timestamp_ms > now - config.rate_limit_window_secs * 1000}) > config.rate_limit_max_msgs_per_minute
+    requires: msg.status = received
+    ensures: RateLimiter.updated(chat_id: msg.chat_id, is_rate_limited: true)
+    ensures: GatewayDispatcher.send_message(msg.source, "Rate limit exceeded. Please wait.", ...)
+    ensures: msg.status = failed
+    @guidance
+        -- More than 10 messages per minute from a single chat_id triggers rate limiting.
+        -- The message is rejected with a friendly notification.
+}
+
+rule SimulatorModeRedirect {
+    when: GatewayChannel where channel.is_simulated = true
+    requires: config.enable_simulator_redirect
+    ensures: all API calls redirect to localhost:config.simulator_port
+    @guidance
+        -- When SIMULATOR_TELEGRAM_URL or SIMULATOR_GCHAT_URL is set, all HTTP requests
+        -- are redirected to the local simulator.
+        -- Source: gateway.rs:46-48 (Telegram), gateway.rs:108-109 (GChat).
+}
+
+rule BroadcastToAll {
+    when: BroadcastRequested(text: String, needs_ack: Boolean)
+    requires: true
+    ensures: for channel in configured_channels: GatewayDispatcher.send_message(channel, text, ...)
+    @guidance
+        -- broadcast_message sends to all configured channels sequentially.
+        -- Source: gateway.rs:7-22 — iterates Telegram then GChat.
+}
+
+rule OffsetPersistence {
+    when: IngressPoller.current_offset changes
+    requires: IngressPoller.channel = telegram
+    ensures: SmritiDatabase.set_preference(config.telegram_offset_key, offset.to_string(), "infra_state")
+    @guidance
+        -- Telegram polling offset is persisted to Smriti after each batch.
+        -- On restart, the offset is restored to avoid replaying old messages.
+        -- Source: ingress_polling.rs:15-18 (restore), :51 (persist).
+}
+
+rule HeartbeatCron {
+    when: HeartbeatCycle.phase = tick
+    requires: CortexSession.phase = active
+    ensures: zenoh_publish(config.cron_topic, {id: "cron-{timestamp}", source: "heartbeat_daemon", type: "periodic_triage"})
+    ensures: HeartbeatCycle.phase = published
+    @guidance
+        -- Heartbeat cron runs every 10 minutes, emitting a proactive intent.
+        -- Source: heartbeat.rs:12-29.
+}
+
+rule IntentPublishToZenoh {
+    when: msg: ChatMessage where msg.status = received
+    requires: CortexSession.zenoh_session_active = true
+    ensures: zenoh_publish(config.intent_req_topic, {id: msg.id, raw_text: msg.raw_text, source: msg.source, chat_id: msg.chat_id, timestamp_ms: msg.timestamp_ms})
+    @guidance
+        -- Inbound messages from polling are published as Zenoh intents.
+        -- Source: ingress_polling.rs:60-67 (Telegram), :154-161 (GChat).
+}
+
+-- =============================================================================
+-- S9. INVARIANTS (always-true, pure, no side effects)
+-- =============================================================================
+
+invariant IntentNeverLost {
+    for msg in ChatMessages where msg.status = received:
+        eventually msg.status in [responded, acknowledged, failed]
+    -- Every ingested message MUST eventually get a response or be marked failed.
+    -- No message may remain in 'received' state indefinitely.
+}
+
+invariant NonBlockingSelect {
+    for session in CortexSessions where session.phase = active:
+        select_loop_latency_ms <= 100
+    -- The tokio::select! loop in run_cortex_daemon MUST never block > 100ms.
+    -- Intent processing is spawned as separate tokio tasks.
+    -- Source: cortex.rs:74-102 — tokio::select! with tokio::spawn.
+}
+
+invariant OffsetPersisted {
+    for poller in IngressPollers where poller.channel = telegram:
+        poller.current_offset persisted to SmritiDatabase
+    -- Telegram polling offset MUST survive daemon restarts.
+    -- Prevents message replay on restart.
+    -- Source: ingress_polling.rs:15-18.
+}
+
+invariant ResponseLatency {
+    for msg in ChatMessages where msg.status = responded:
+        msg.ack_latency_ms <= config.ack_latency_max_ms and
+        msg.full_latency_ms <= config.full_response_latency_max_ms
+    -- Acknowledgment within 2 seconds, full response within 30 seconds.
+}
+
+invariant SimulatorFidelity {
+    for sim in SimulatorStates where sim.is_running:
+        telegram_response_structure matches TelegramBotAPI.response_structure and
+        gchat_response_structure matches GoogleChatPubSub.response_structure
+    -- Simulator HTTP responses MUST match the structure of real API responses.
+    -- Source: simulator.rs — all handlers produce API-compatible JSON.
+}
+
+invariant ZenohSessionAlive {
+    for session in CortexSessions where session.phase = active:
+        session.zenoh_session_active = true
+    -- The Zenoh session MUST remain connected for the cortex to function.
+}
+
+invariant MonotonicOffset {
+    for poller in IngressPollers where poller.channel = telegram:
+        poller.current_offset is monotonically increasing
+    -- Offset MUST only increase (offset = update_id + 1).
+    -- Source: ingress_polling.rs:49 — offset = update_id + 1.
+}
+
+invariant NoOrphanedInferences {
+    for inf in LlmInferences where inf.status = running:
+        inf.duration_ms < config.llm_inference_timeout_secs * 1000
+    -- No LLM inference may run indefinitely. Timeout is enforced.
+}
+
+-- =============================================================================
+-- S10. SURFACES (actor-facing boundaries)
+-- =============================================================================
+
+surface TelegramChat {
+    facing viewer: Operator
+    context messages: ChatMessage where source = telegram
+
+    exposes:
+        messages.raw_text
+        messages.status
+        messages.response_text
+        messages.priority
+
+    provides:
+        SendMessage(text: String)
+            when viewer authenticated via telegram_token
+        AcknowledgeAlert(message_id: String)
+            when messages.status = responded
+
+    contracts:
+        demands TelegramAPI
+        demands GatewayDispatcher
+        demands CortexEngine
+
+    timeout:
+        PollTimeout when no messages received for config.telegram_poll_timeout_secs * 10
+
+    @guarantee OperatorCanAlwaysSendACK
+    @guarantee AllMessagesGetResponse
+}
+
+surface GChatSpace {
+    facing viewer: Operator
+    context messages: ChatMessage where source = gchat
+
+    exposes:
+        messages.raw_text
+        messages.status
+        messages.response_text
+        messages.priority
+
+    provides:
+        SendMessage(text: String)
+            when viewer authenticated via gchat_webhook
+        AcknowledgeAlert(message_id: String)
+
+    contracts:
+        demands GChatPubSub
+        demands GatewayDispatcher
+        demands CortexEngine
+
+    timeout:
+        PollTimeout when no messages received for config.gchat_poll_interval_secs * 60
+
+    @guarantee MessagesAcknowledgedInPubSub
+    @guarantee WebhookDeliveryAtLeastOnce
+}
+
+surface SimulatorDashboard {
+    facing viewer: TestHarness
+    context sim: SimulatorState
+
+    exposes:
+        sim.telegram_inbox
+        sim.telegram_outbox
+        sim.gchat_inbox
+        sim.gchat_outbox
+        sim.next_update_id
+        sim.is_running
+
+    provides:
+        InjectTelegram(text: String)
+        InjectGChat(text: String)
+        GetStatus()
+        GetOutbox()
+        ClearAll()
+
+    contracts:
+        demands SimulatorAPI
+
+    @guarantee InjectionsAppearInPolling
+    @guarantee OutboxCapturesSentMessages
+    @guarantee ClearResetsAllQueues
+}
+
+-- =============================================================================
+-- S11. DEFAULTS (unconditional entity instances)
+-- =============================================================================
+
+default GatewayChannel telegram_channel = {
+    channel_type: telegram,
+    is_configured: false,
+    is_simulated: false,
+    messages_sent: 0,
+    messages_received: 0
+}
+
+default GatewayChannel gchat_channel = {
+    channel_type: gchat,
+    is_configured: false,
+    is_simulated: false,
+    messages_sent: 0,
+    messages_received: 0
+}
+
+default SimulatorState sim_default = {
+    telegram_inbox: [],
+    telegram_outbox: [],
+    gchat_inbox: [],
+    gchat_outbox: [],
+    next_update_id: 1000,
+    next_ack_id: 1,
+    is_running: false,
+    port: 9876
+}
+
+-- =============================================================================
+-- S12. DEFERRED SPECIFICATIONS (logic defined elsewhere)
+-- =============================================================================
+
+deferred ReteUlRuleEngine.evaluate_decision
+deferred ReteUlRuleEngine.evaluate_recovery
+deferred OllamaInferenceEngine.generate
+deferred PlanningAuthority.add_task
+deferred PlanningAuthority.update_status
+deferred SmritiDatabase.get_preference
+deferred SmritiDatabase.set_preference
+deferred SmritiDatabase.get_all_tasks
+
+-- =============================================================================
+-- S13. OPEN QUESTIONS (unresolved design decisions)
+-- =============================================================================
+
+open question "Should WhatsApp support be activated by default, or remain behind feature flag?"
+open question "What is the optimal heartbeat cadence? 10m may be too infrequent for fast-moving swarms."
+open question "Should rate limiting be per-channel or global across all channels?"
+open question "Should the simulator support WebSocket streaming for real-time test observation?"
+open question "Is tinyllama sufficient for intent classification or should a larger model be default?"
+open question "Should failed LLM inferences be retried with exponential backoff?"
+
+-- =============================================================================
+-- S14. FORMAL VERIFICATION (Agda / Quint / TLA+)
+-- =============================================================================
+--
+-- Quint (state machine bounded model checking):
+--   1. IntentNeverLost: all ChatMessage eventually reach terminal state
+--   2. Offset monotonicity: telegram offset never decreases
+--   3. NonBlockingSelect: select loop never blocks > 100ms (model via timed automata)
+--   4. Rate limiter correctness: no more than N messages per window are processed
+--
+-- TLA+ (temporal logic):
+--   1. Liveness: every received message eventually gets responded/failed
+--   2. Safety: no two pollers process the same message (offset-based deduplication)
+--   3. Fairness: heartbeat cron fires within bounded time of interval
+--   4. Simulator fidelity: response structure isomorphic to real API
+
+-- =============================================================================
+-- S15. STAMP CONSTRAINTS (cross-reference to SC-* registry)
+-- =============================================================================
+--
+-- SC-COG-001: Neuromorphic intent routing via Cortex → rule CortexEngine.process_intent
+-- SC-COG-002: Continuous OODA wavefront → contract CortexEngine.recalculate_priorities
+-- SC-COG-003: Proactive heartbeat cron → rule HeartbeatCron
+-- SC-OPENCLAW-001: Tools (Motor) mapped to L4 (Rust) → contract GatewayDispatcher
+-- SC-OPENCLAW-002: Skills (Cognitive) mapped to L5 → rule CommandPrefix
+-- SC-ZMOF-001: Zenoh sole transport → rule IntentPublishToZenoh, invariant ZenohSessionAlive
+-- SC-SIM-001: Simulator for local testing → contract SimulatorAPI, surface SimulatorDashboard
+-- SC-API-001..010: API safety, rate limiting → rule RapidFireRateLimit
+-- SC-OODA-001..009: OODA cycle constraints → entity OodaCycle, contract CortexEngine
+-- SC-ZENOH-001..008: Zenoh telemetry mandatory → invariant ZenohSessionAlive
+
+-- =============================================================================
+-- S16. AOR OPERATIONAL RULES (cross-reference to AOR-* registry)
+-- =============================================================================
+--
+-- AOR-ZENOH-001: NEVER disable Zenoh → invariant ZenohSessionAlive
+-- AOR-ZENOH-007: PUBLISH node health to Zenoh every 10 seconds → rule HeartbeatCron (10m cadence)
+-- AOR-FUNC-001: VERIFY compilation before commit → rule LlmTimeoutFallback (graceful degradation)
+-- AOR-CMD-001: ALWAYS use sa-plan for task operations → rule CommandPrefix → PlanningAuthority
+
+-- =============================================================================
+-- S17. FMEA (Failure Modes with RPN scoring)
+-- =============================================================================
+--
+-- | # | Failure Mode              | S | O | D | RPN | Rule                    | Playbook                     |
+-- |---|---------------------------|---|---|---|-----|-------------------------|------------------------------|
+-- | 1 | Telegram token expired    | 7 | 4 | 3 | 84  | SimulatorModeRedirect   | Refresh token in Smriti      |
+-- | 2 | LLM inference timeout     | 5 | 6 | 2 | 60  | LlmTimeoutFallback      | Fallback to rule-based       |
+-- | 3 | Zenoh session lost        | 9 | 2 | 2 | 36  | ZenohSessionAlive       | Reconnect with backoff       |
+-- | 4 | GChat subscription 404    | 7 | 3 | 2 | 42  | GChatPubSub.preflight   | Halt polling, notify operator |
+-- | 5 | Offset not persisted      | 8 | 1 | 3 | 24  | OffsetPersisted         | Replay from last known       |
+-- | 6 | Rate limit false positive | 4 | 3 | 5 | 60  | RapidFireRateLimit      | Widen window or increase N   |
+-- | 7 | Simulator port conflict   | 3 | 2 | 2 | 12  | SimulatorAPI            | Use alternative port         |
+-- | 8 | Malformed intent JSON     | 6 | 4 | 3 | 72  | CortexEngine            | Log warning, skip message    |
+-- | 9 | All channels unconfigured | 8 | 1 | 1 | 8   | GatewayDispatcher       | Mock mode (no sends)         |
+-- |10 | WhatsApp API rate limit   | 5 | 5 | 4 |100  | GatewayDispatcher       | Exponential backoff          |
+-- |11 | Smriti DB locked          | 7 | 2 | 3 | 42  | OffsetPersistence       | WAL mode, retry              |
+-- |12 | Cortex OOM                | 9 | 1 | 2 | 18  | CortexEngine            | Memory limit + restart       |
+
+-- =============================================================================
+-- S18. UI SPECIFICATION (screens, tabs, controls)
+-- =============================================================================
+--
+-- The OpenClaw chat interaction system is primarily headless (daemon), but its state
+-- is exposed through the Gleam Triple-Interface Mandate:
+--   1. Lustre Web UI: Chat history page at /chat (port 4100)
+--   2. Wisp REST API: /api/chat/messages, /api/chat/send (port 4100)
+--   3. TUI Terminal: Chat tab in the 15-tab split-screen dashboard
+--
+-- Dashboard elements:
+--   - Message throughput sparkline (msgs/min)
+--   - Channel status badges (Telegram: green/red, GChat: green/red)
+--   - LLM inference latency histogram
+--   - Rate limiter status per chat_id
+--   - Simulator queue depths (if simulator active)
+
+-- =============================================================================
+-- S19. TESTING SPECIFICATION (coverage gates, BDD levels)
+-- =============================================================================
+--
+-- Testing uses the Simulator API for deterministic E2E coverage:
+--
+-- L1 Unit:   SimState::new(), inject_telegram(), inject_gchat()
+-- L2 Snapshot: Simulator HTTP response format validation
+-- L3 Style:  JSON response structure matches real API
+-- L4 Integration: Full cycle: inject -> poll -> cortex -> response -> outbox
+-- L5 Responsive: Multiple concurrent messages from different channels
+-- L6 Accessibility: ACK flow completes within 2s SLA
+-- L7 E2E:    Playwright-style smoke via simulator inject -> outbox check
+--
+-- Math Gates:
+--   Shannon H >= 2.5 bits (message classification entropy)
+--   CCM >= 0.90 (cyclomatic complexity metric for intent routing)
+--   ITQS >= 0.85 (integrated test quality score)
+
+-- =============================================================================
+-- S20. MATHEMATICAL STRUCTURES (algorithms, formulas, metrics)
+-- =============================================================================
+--
+-- 1. Response Latency Histogram
+--    - Buckets: [0-500ms, 500ms-1s, 1s-2s, 2s-5s, 5s-30s, 30s+]
+--    - Percentiles: P50, P90, P99 tracked per channel
+--    - SLA: ack_latency P99 < 2s, full_response P99 < 30s
+--
+-- 2. Message Throughput (msgs/sec)
+--    - Sliding window: 60 seconds
+--    - Formula: count(messages in window) / window_duration_secs
+--    - Rate limiter trigger: throughput > config.rate_limit_max_msgs_per_minute / 60
+--
+-- 3. Stress Classification (linear mapping)
+--    - f(stress) -> Priority:
+--      if stress in [0.0, 0.5): return P2 (routine)
+--      if stress in [0.5, 0.8): return P1 (high)
+--      if stress in [0.8, 1.0]: return P0 (critical)
+--    - Source: cortex.rs:154 — dynamic_priority derivation
+--
+-- 4. EMA for LLM Inference Latency
+--    - alpha = 0.3 (same as build history EMA)
+--    - EMA_new = alpha * latency_current + (1 - alpha) * EMA_previous
+--    - Used to predict expected inference time for operator feedback
+--
+-- 5. Offset Delta Rate
+--    - delta_rate = (offset_current - offset_previous) / time_elapsed_secs
+--    - High delta_rate indicates burst; may trigger adaptive polling interval
+
+-- =============================================================================
+-- S21. KNOWLEDGE MAP (document & code references)
+-- =============================================================================
+--
+-- Rust Source Files:
+--   - native/planning_daemon/src/gateway.rs (153 lines) — Multi-channel dispatcher
+--   - native/planning_daemon/src/cortex.rs (405 lines) — Neuromorphic intent routing
+--   - native/planning_daemon/src/simulator.rs (303 lines) — Telegram/GChat API simulator
+--   - native/planning_daemon/src/ingress_polling.rs (265 lines) — Egress-only polling
+--   - native/planning_daemon/src/heartbeat.rs (30 lines) — Proactive cron heartbeat
+--   - native/planning_daemon/src/types.rs — Core types and constants
+--   - native/planning_daemon/src/db.rs — Smriti SQLite persistence
+--   - native/planning_daemon/src/mcp_inference.rs — LLM inference bridge
+--
+-- Config References:
+--   - Smriti.db preferences: telegram_token, telegram_chat_id, gchat_webhook,
+--     telegram_poll_offset, gcp_project_id, gcp_pubsub_subscription
+--
+-- Zenoh Topics:
+--   - indrajaal/l5/cog/intent/** — Intent subscriber
+--   - indrajaal/l5/cog/mcp/req/plan/** — MCP request subscriber
+--   - indrajaal/l5/cog/intent/req — Intent publish target
+--   - indrajaal/l5/cog/intent/cron — Heartbeat cron topic
+--
+-- Related Allium Specs:
+--   - specs/allium/ignition.allium — Parent system boot sequence
+--   - specs/allium/zmof.allium — Zenoh-MCP-OTel fractal backplane
+--   - specs/allium/multi_channel_gateway.allium — Gateway design
+
+-- =============================================================================
+-- S22. UI TESTING SPECIFICATION (automated, multi-platform)
+-- =============================================================================
+--
+-- Simulator-Based Test Matrix:
+--
+-- | Test Case                 | Inject Via      | Assert Outbox | SLA     |
+-- |---------------------------|-----------------|---------------|---------|
+-- | ACK immediate             | sim/inject/tg   | tg outbox     | < 2s    |
+-- | Command /deploy           | sim/inject/tg   | tg outbox     | < 30s   |
+-- | Query "system status"     | sim/inject/gc   | gc outbox     | < 30s   |
+-- | Emergency stress=0.9      | sim/inject/tg   | tg outbox     | < 2s    |
+-- | Rate limit (11 msgs)      | sim/inject/tg   | rate_limited  | N/A     |
+-- | GChat pull                | sim/inject/gc   | gc outbox     | < 30s   |
+-- | Broadcast                 | API broadcast   | both outboxes | < 5s    |
+-- | Clear state               | sim/clear       | empty status  | instant |
+--
+-- Smoke Test (cargo test):
+--   - smoke_test.rs covers basic simulator inject + outbox round-trip
+--   - Runs in CI without real API credentials
+
+-- =============================================================================
+-- S23. IMPLEMENTATION NOTES (key algorithms, caching, known bugs)
+-- =============================================================================
+--
+-- Key Algorithm: Neuromorphic Intent Routing (cortex.rs)
+--   1. Receive raw message via Zenoh subscriber
+--   2. Deserialize into TaskIntent struct
+--   3. Check for ACK (early return, no LLM)
+--   4. Send immediate ack to chat channel
+--   5. Construct RETE-UL rule input from stress level
+--   6. Attempt LLM inference via mcp_inference
+--   7. On LLM failure: fallback to stress-based priority
+--   8. If text starts with '/' or len > 10: create task via db::add_task
+--   9. Send cortex response to chat channel
+--
+-- Caching:
+--   - Telegram offset cached in Smriti.db under "infra_state" category
+--   - Channel credentials cached in Smriti.db preferences table
+--   - No in-memory LRU cache for messages (stateless polling)
+--
+-- Known Limitations:
+--   - WhatsApp support is compile-time gated (enable_whatsapp = false)
+--   - GChat Pub/Sub requires gcloud CLI installed on host
+--   - Simulator uses raw TCP (not axum/warp) for minimal dependency footprint
+--   - Rate limiter is per-process (not persisted across restarts)
+--   - LLM inference is single-model only (tinyllama); model routing not implemented
+
+-- =============================================================================
+-- S24. DESIGN PRINCIPLES & PATTERNS
+-- =============================================================================
+--
+-- Principles:
+--   1. Dark Cockpit Architecture: Egress-only polling (no inbound webhooks).
+--      The daemon polls outward; never exposes a public endpoint.
+--   2. Rule-First, LLM-Escalation: RETE-UL rules handle classification;
+--      LLM is advisory and non-blocking.
+--   3. Graceful Degradation: Every channel operates independently.
+--      Telegram failure does not affect GChat and vice versa.
+--   4. Offset Persistence: Telegram polling offset survives restarts.
+--      No message replay, no message loss.
+--   5. Simulator Parity: Test harness produces API-identical responses.
+--      Tests run without real credentials.
+--
+-- Patterns:
+--   - Spawn-on-Receive: Intent processing spawned as tokio tasks (non-blocking select)
+--   - Publish-on-Transition: State changes published to Zenoh topics
+--   - Fallback Chain: LLM -> Rule-based -> Static response
+--   - Credential Resolution: Smriti DB -> Environment variable -> Default/mock
+--   - Preflight Gate: GChat subscription verified before entering poll loop
+
+-- =============================================================================
+-- S25. ANTI-PATTERNS (things to AVOID)
+-- =============================================================================
+--
+-- 1. Blocking the select loop: NEVER process intents inline in the select! branch.
+--    Always tokio::spawn. Violation blocks ALL channels.
+-- 2. Hardcoded credentials: NEVER embed API tokens in source code.
+--    Always resolve from Smriti.db or env vars.
+-- 3. Unbounded inbox: NEVER accumulate messages without processing.
+--    The simulator uses VecDeque with pop_front for bounded consumption.
+-- 4. Ignoring poll offset: NEVER restart polling from offset=0.
+--    Causes full message replay and duplicate processing.
+-- 5. Synchronous LLM calls in hot path: NEVER call LLM synchronously.
+--    The 60s recalculate timer is separate from the intent select loop.
+-- 6. Silent channel failure: NEVER swallow send_message errors.
+--    Log error and update GatewayChannel.last_error.
+-- 7. In-memory only state: NEVER store critical state (offset, tokens) only in memory.
+--    Smriti.db is the authoritative persistence layer.
+
+-- =============================================================================
+-- S26. SESSION JOURNAL TEMPLATE (SC-JOURNAL, 13 mandatory sections)
+-- =============================================================================
+--
+-- 1. Scope & Trigger: OpenClaw chat interaction behavioral specification
+-- 2. Pre-State: Multi-channel gateway operational; cortex daemon running
+-- 3. Execution Detail: 26-section Allium v3 spec covering 12 entities, 15 rules,
+--    5 contracts, 8 invariants, 3 surfaces, 5 math structures
+-- 4. RCA: N/A (specification, not bug fix)
+-- 5. Fix Taxonomy: N/A
+-- 6. Patterns: Dark Cockpit, Spawn-on-Receive, Fallback Chain, Simulator Parity
+-- 7. Verification: Quint model checking for IntentNeverLost + OffsetPersisted
+-- 8. Files: specs/allium/openclaw_interactions.allium (this file)
+-- 9. Architecture: L4-System (Rust) + L5-Cognitive (Cortex) + Zenoh backplane
+-- 10. Gaps: WhatsApp integration, persistent rate limiter, multi-model LLM routing
+-- 11. Metrics: 12 entities, 15 rules, 5 contracts, 8 invariants, 3 surfaces
+-- 12. STAMP: SC-COG-001..003, SC-OPENCLAW-001..004, SC-ZMOF-001, SC-SIM-001..007
+-- 13. Conclusion: Comprehensive behavioral specification for OpenClaw chat interactions
