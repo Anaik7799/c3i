@@ -1,0 +1,285 @@
+-- allium: 3
+-- C3I Unified NIF + MCP + Homomorphic Tripartite UI — Behavioral Specification
+-- Covers: c3i_nif (14 NIFs), 233 A2UI components, 73 MCP tools, 31 pages,
+--         Allium viewer, ComponentDemo, OODA Decision Brain, Gmail send,
+--         GChat gateway, sa-gleam-* lifecycle, Smriti preferences CLI
+-- STAMP: SC-MCP-001, SC-NIF-001, SC-A2UI-003, SC-GLM-UI-001, SC-ULTRA-001-4,
+--        SC-ZMOF-001, SC-ALLIUM-001, SC-HOLON-009, SC-OPENCLAW-001
+
+-- =============================================================================
+-- ENTITIES
+-- =============================================================================
+
+entity C3iNif {
+  -- Unified Rust NIF crate consolidating all MCP tool backends
+  status: loaded | error
+  nif_count: Integer = 14
+  categories: planning | system | knowledge | verification
+
+  config {
+    db_path: String = "sub-projects/c3i/data/smriti/Smriti.db"
+    schedule: String = "DirtyCpu"
+    backoff_max_attempts: Integer = 10
+    busy_timeout_ms: Integer = 5000
+  }
+}
+
+entity A2uiCatalog {
+  -- Declarative component catalog for agent UI proposals
+  status: active | degraded
+  component_count: Integer = 233
+  domains: Integer = 22
+  render_targets: html | json | ansi
+
+  transitions status {
+    active -> degraded
+    degraded -> active
+    terminal: none
+  }
+}
+
+entity McpToolRegistry {
+  -- Aggregated MCP tool catalog across 3 providers
+  total_tools: Integer = 73
+  providers: claude_mcp | sa_plan_daemon | gleam_c3i_nif
+
+  config {
+    claude_tools: Integer = 16
+    daemon_tools: Integer = 40
+    gleam_tools: Integer = 26
+  }
+}
+
+entity AlliumViewer {
+  -- Browser-based Allium specification viewer with syntax highlighting
+  status: active | offline
+  spec_count: Integer = 40
+  total_lines: Integer = 9841
+  routes: html_index | html_viewer | api_list | api_content
+}
+
+entity ComponentDemo {
+  -- Page 31: comprehensive showcase of all 233 A2UI components
+  status: active
+  sections: Integer = 20
+  cards: Integer = 77
+  live_nif_data: Boolean = true
+  allium_links: Integer = 3
+}
+
+entity SmritiPreferences {
+  -- Centralized system configuration store
+  total: Integer = 73
+  categories: Integer = 13
+  access: mcp_only
+
+  config {
+    identity: Integer = 7
+    gateway: Integer = 2
+    infrastructure: Integer = 7
+    infra_state: Integer = 9
+    system: Integer = 8
+    toolchain: Integer = 7
+    hardware: Integer = 5
+    artifacts: Integer = 12
+    binaries: Integer = 4
+    databases: Integer = 3
+    agent: Integer = 3
+    secrets: Integer = 1
+    git: Integer = 5
+  }
+}
+
+entity GmailSender {
+  -- Real Gmail send via OAuth2 + Gmail API
+  status: configured | needs_oauth | error
+  methods: gmail_send_email | gmail_send_draft
+
+  transitions status {
+    needs_oauth -> configured
+    configured -> error
+    error -> configured
+  }
+}
+
+entity GatewayDispatcher {
+  -- Multi-channel message dispatch
+  channels: gchat | telegram | whatsapp
+  webhook_source: smriti | params
+}
+
+entity OodaDecisionBrain {
+  -- Live RETE-UL rule engine evaluation
+  engine_version: String = "rust-rule-engine/1.20.1 RETE-UL"
+  domains: Integer = 13
+  rules: Integer = 52
+  tiers: agent | intelligence | knowledge | cortex | strategy
+}
+
+-- =============================================================================
+-- RULES
+-- =============================================================================
+
+rule "NIF Load Safety" salience 100 {
+  when C3iNif.status == error
+  then System.Decision = "FallbackToStubs"
+  ensures "Erlang stubs return safe defaults when NIF unavailable"
+  @guidance SC-NIF-001: DirtyCpu scheduling prevents BEAM blocking
+}
+
+rule "A2UI Catalog Minimum" salience 90 {
+  when A2uiCatalog.component_count < 215
+  then System.Decision = "CatalogDegraded"
+  ensures "Catalog always has minimum viable component set"
+}
+
+rule "MCP Tool Parity" salience 80 {
+  when McpToolRegistry.total_tools < 50
+  then System.Decision = "ReducedCapability"
+  ensures "System operates with reduced tool set"
+}
+
+rule "Smriti MCP Only" salience 100 {
+  when SmritiPreferences.access != mcp_only
+  then System.Decision = "BlockDirectAccess"
+  reject "SC-TODO-001: All Smriti access MUST go through sa-plan-daemon"
+}
+
+rule "Gmail OAuth Required" salience 90 {
+  when GmailSender.status == needs_oauth
+  then System.Decision = "FallbackToDraft"
+  ensures "Create draft via Claude MCP when OAuth not configured"
+}
+
+rule "OODA Brain NoAction" salience 10 {
+  when OodaDecisionBrain.domains >= 13
+  then System.Decision = "NoAction"
+  ensures "Mesh aligned with genotype when all domains healthy"
+}
+
+-- =============================================================================
+-- CONTRACTS
+-- =============================================================================
+
+contract NifBridge {
+  -- Bridge between Rust NIFs and Gleam/BEAM
+  plan_status: () -> String
+  plan_list_pending: () -> String
+  system_health: () -> String
+  system_dashboard: () -> String
+  knowledge_search: (query: String) -> String
+  verification_run: () -> String
+
+  @invariant AllReturnJson
+  -- All NIF functions return valid JSON strings
+}
+
+contract SmritiAccess {
+  -- Authoritative preference CRUD via MCP
+  get_pref: (key: String) -> Option(String)
+  set_pref: (key: String, value: String, category: String) -> ()
+  list_prefs: (category: Option(String)) -> List((String, String, String))
+
+  @invariant McpOnly
+  -- Direct sqlite3 access is FORBIDDEN
+}
+
+contract GatewayBroadcast {
+  -- Multi-channel message dispatch
+  send: (channel: String, text: String, token: Option(String)) -> ()
+
+  @invariant WebhookFromSmriti
+  -- GChat webhook read from Smriti when not in params
+}
+
+contract GmailApi {
+  -- Real Gmail send via OAuth2
+  send_email: (to: String, subject: String, body: String) -> Result
+  send_draft: (draft_id: String) -> Result
+  refresh_token: () -> String
+
+  @invariant TokenCaching
+  -- Access tokens cached with expiry check
+}
+
+-- =============================================================================
+-- INVARIANTS
+-- =============================================================================
+
+invariant TripartiteRendering {
+  -- Every A2UI component renders to all 3 targets
+  for c in A2uiCatalog.components:
+    render(c, html) != empty &&
+    render(c, json) != empty &&
+    render(c, ansi) != empty
+}
+
+invariant ZenohFullCoverage {
+  -- All 31 pages have OTel topic registrations
+  length(all_page_topics()) == 31
+}
+
+invariant TestsGreen {
+  -- Zero failures across all test suites
+  gleeunit.failures == 0 && playwright.failures == 0
+}
+
+invariant SmritiComplete {
+  -- All 13 preference categories populated
+  distinct_categories(UserPreferences) >= 13
+}
+
+-- =============================================================================
+-- SURFACES
+-- =============================================================================
+
+surface ComponentDemoPage {
+  -- /components — showcase of all 233 A2UI components
+  sections: live_runtime_data | container_fleet | status | data | visualization |
+            interactive | ooda_brain | safety | agent | layout |
+            realtime_monitors | zenoh_mesh | rule_engine | planning | recovery | summary
+  allium_links: ignition | gleam_webui_comprehensive | all_specs
+  genome_grid: 16 cells with LED indicators
+  ooda_5tier: agent(30ms) | intelligence(100ms) | knowledge(1ms) | cortex(50ms) | strategy(1s)
+  proof_chain: 8 verified blocks
+  event_stream: 11 AG-UI demo events
+}
+
+surface AlliumViewerPage {
+  -- /allium — behavioral specification browser
+  index: 26 specs with descriptions and line counts
+  viewer: JS syntax highlighting (keywords green, comments gray, strings yellow)
+  api: /api/v1/allium (catalog) + /api/v1/allium/{name} (content)
+}
+
+surface SmritiCli {
+  -- sa-plan-daemon get-pref/set-pref/list-prefs
+  get_pref: --key <key> → value
+  set_pref: --key <key> --value <val> --category <cat>
+  list_prefs: [--category <cat>] → table
+}
+
+-- =============================================================================
+-- MATH
+-- =============================================================================
+
+math ShannonEntropy {
+  H = -sum(p_i * log2(p_i)) for i in C1..C8
+  gate: H >= 2.5 bits
+  current: 2.67 bits
+}
+
+math CoverageMetric {
+  CCM = sum(w_i * cov_i) / sum(w_i)
+  weights: [1.0, 1.5, 1.0, 0.8, 1.2, 0.8, 1.5, 3.0]
+  gate: CCM >= 0.90
+  current: 0.770
+}
+
+math NavigationGraph {
+  pages: 31
+  edges: 930 (complete digraph)
+  scc: 1
+  density: 1.0
+  chinese_postman: 930
+}
