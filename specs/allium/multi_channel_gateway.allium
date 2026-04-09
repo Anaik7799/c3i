@@ -1,0 +1,64 @@
+-- allium: 3
+-- C3I SIL-6 Biomorphic Mesh: Multi-Channel Gateway Behavioral Specification
+-- Covers: Telegram Ingress/Egress, Google Chat Ingress/Egress, Cortex OODA Silence, Preflight Connectivity Validation
+-- STAMP: SC-GATEWAY-001..010, SC-OODA-010..012, SC-PREFLIGHT-020
+
+enum MessageChannel { telegram | gchat | webui }
+enum DeliveryStatus { pending | delivered | failed_with_fallback | acknowledged }
+
+value GatewayMessage {
+    id: String
+    channel: MessageChannel
+    content: String
+    requires_ack: Boolean
+    timestamp_ms: Integer
+}
+
+contract MultiChannelGateway {
+    -- Mandate: SC-GATEWAY-001 — All alerts must be broadcast to all configured channels redundantly
+    command broadcast_alert(message: String, require_ack: Boolean)
+    command send_interactive_payload(channel: MessageChannel, message: String, callback_data: String)
+    command receive_ingress(channel: MessageChannel, raw_text: String) -> String
+    
+    rule "Redundant Egress" {
+        when call broadcast_alert
+        then dispatch_to(telegram) and dispatch_to(gchat)
+    }
+    
+    rule "OODA Silence" {
+        -- SC-OODA-010: Do not process new commands if the system is already reasoning about a high-priority task
+        when call receive_ingress
+        requires: Cortex.is_reasoning == false
+        reject "System is currently processing a complex intent. Please wait."
+    }
+    
+    rule "Preflight Validation" {
+        -- SC-PREFLIGHT-020: Validate GCP/Telegram API connectivity before marking gateway as healthy
+        when: system_boot
+        ensure check_connectivity(gchat) == true and check_connectivity(telegram) == true
+        on_fail "Log degraded gateway status, fallback to local TUI"
+    }
+
+    rule "Interactive Acknowledgment Data Path" {
+        -- SC-GATEWAY-005: Egress must support interactive inline keyboards
+        when call send_interactive_payload
+        ensure "Payload includes inline_keyboard with callback_data='ACK'"
+    }
+}
+
+entity EgressDelivery {
+    message_id: String
+    primary_channel: MessageChannel
+    status: DeliveryStatus
+    
+    transitions status {
+        pending -> delivered
+        pending -> failed_with_fallback
+        delivered -> acknowledged
+    }
+    
+    invariant DeliveryGuarantee {
+        -- If primary fails, secondary must be attempted
+        this.status == failed_with_fallback implies secondary_attempted == true
+    }
+}

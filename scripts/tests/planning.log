@@ -1,0 +1,62 @@
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /home/an/dev/ver/c3i/sub-projects/c3i/indrajaal_ark/Cargo.toml
+workspace: /home/an/dev/ver/c3i/sub-projects/c3i/Cargo.toml
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /home/an/dev/ver/c3i/sub-projects/c3i/native/timestamp_daemon/Cargo.toml
+workspace: /home/an/dev/ver/c3i/sub-projects/c3i/Cargo.toml
+   Compiling planning_daemon v0.1.0 (/home/an/dev/ver/c3i/sub-projects/c3i/native/planning_daemon)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.57s
+     Running `target/debug/sa-plan-daemon daemon`
+[2026-04-09T00:07:58.125Z INFO  sa_plan_daemon] ╔═══════════════════════════════════════════════════════╗
+[2026-04-09T00:07:58.125Z INFO  sa_plan_daemon] ║  INDRAJAAL PLANNING DAEMON v0.1.0                  ║
+[2026-04-09T00:07:58.125Z INFO  sa_plan_daemon] ║  SIL-6 Task & Intent Authority                      ║
+[2026-04-09T00:07:58.125Z INFO  sa_plan_daemon] ╚═══════════════════════════════════════════════════════╝
+[2026-04-09T00:07:58.125Z INFO  sa_plan_daemon::cortex] 🧠 Starting Neuromorphic Cortex Daemon (SC-COG-001)
+[2026-04-09T00:07:58.126Z INFO  zenoh::net::runtime] Using ZID: 46a47e4246d4e8e75a69086b9f0f8c3b
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[2001:2042:3003:e500:87e:7fdd:d55e:e197]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[2001:2042:3003:e500:1e4f:d42a:fc9a:5719]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[2001:2042:3003:e500:fdda:51f:c54f:8f07]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[2001:2042:3003:e500:1004:47a4:4f25:2a33]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[2001:2042:3003:e500:be24:11ff:fe93:b8e4]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[2001:2042:3003:e500:b35b:2b9b:24e6:db83]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[2001:2042:3003:e500:7406:791f:fc7c:e081]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[2001:2042:3003:e500:a8ed:1900:dfce:e093]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[2001:2042:3003:e500:57f9:1836:570c:2832]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[2001:2042:3003:e500:5ac0:3a5f:1e6:1d4c]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[fd7a:115c:a1e0::f436:6212]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/100.78.98.18:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[fe80::be24:11ff:fe93:b8e4]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[fe80::3900:c88:e33f:6bec]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[fe80::f1c1:3a22:3821:902c]:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/192.168.1.134:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/192.168.1.110:35665
+[2026-04-09T00:07:58.127Z INFO  zenoh::net::runtime::orchestrator] zenohd listening scout messages on 224.0.0.224:7446
+[2026-04-09T00:07:58.629Z INFO  sa_plan_daemon::cortex] 📡 Subscribing to Neuromorphic Intent Routing: indrajaal/l5/cog/intent/**
+[2026-04-09T00:07:58.630Z INFO  sa_plan_daemon::cortex] 📡 Subscribing to Planning MCP Requests: indrajaal/l5/cog/mcp/req/plan/**
+[2026-04-09T00:07:58.630Z INFO  sa_plan_daemon::cortex] 📡 Declaring Zenoh Queryable for Planning: indrajaal/l5/cog/mcp/query/plan/**
+[2026-04-09T00:07:58.630Z INFO  sa_plan_daemon::heartbeat] 💓 Starting SIL-6 Proactive Heartbeat Service (10m cadence)
+[2026-04-09T00:07:58.630Z INFO  sa_plan_daemon::ingress_polling] 📡 Starting SIL-6 Egress-Only Ingress Polling (Dark Cockpit)
+[2026-04-09T00:07:58.630Z INFO  sa_plan_daemon::ingress_polling] 📡 Starting SIL-6 GChat Egress-Only Polling via GCP Pub/Sub
+[2026-04-09T00:07:58.631Z INFO  sa_plan_daemon::heartbeat] 💓 Emitting Proactive Cron Intent: indrajaal/l5/cog/intent/cron
+[2026-04-09T00:07:58.631Z INFO  sa_plan_daemon::cortex] ⚡ Received Swarm Intent: {"id":"cron-1775693278","source":"heartbeat_daemon","timestamp_ms":1775693278631,"type":"periodic_triage"}
+[2026-04-09T00:07:58.631Z INFO  sa_plan_daemon::cortex] 🧠 Synthesized Priority P2 for intent cron-1775693278
+[2026-04-09T00:07:58.632Z WARN  sa_plan_daemon::cortex] Failed to update task state for intent cron-1775693278: Internal error: Task cron-1775693278 not found
+[2026-04-09T00:07:58.633Z INFO  sa_plan_daemon::ingress_polling] 📥 INGRESS: Received external command -> Hello Indrajaal! Test command from Telegram Simulator.
+[2026-04-09T00:07:58.634Z INFO  sa_plan_daemon::cortex] ⚡ Received Swarm Intent: {"chat_id":"12345","id":"tg-poll-6efc3e35-fc75-4e88-a0fb-03b12bde7c95","raw_text":"Hello Indrajaal! Test command from Telegram Simulator.","source":"telegram","timestamp_ms":1775693278633}
+[2026-04-09T00:07:58.634Z INFO  sa_plan_daemon::ingress_polling] 📥 INGRESS [GChat Sim]: Received -> Hello Indrajaal! Test command from GChat Simulator.
+[2026-04-09T00:07:58.635Z INFO  sa_plan_daemon::gateway] 📱 GATEWAY: telegram Sending -> ✅ Received request from telegram. Initializing Cortex reasoning...
+[2026-04-09T00:07:58.636Z INFO  sa_plan_daemon::gateway] 📱 GATEWAY: gchat Sending -> ✅ Received request from telegram. Initializing Cortex reasoning...
+[2026-04-09T00:08:00.639Z INFO  sa_plan_daemon::ingress_polling] 📥 INGRESS [GChat Sim]: Received -> Hello Indrajaal! Test command from GChat Simulator.
+[2026-04-09T00:08:00.639Z INFO  sa_plan_daemon::gateway] 📱 GATEWAY: telegram Sending -> 🧠 **Thinking/Plan**:
+    - Target: Analyze semantic stress level.
+    - Sub-task: Determine priority inversion.
+    - ETA: ~5 seconds.
+[2026-04-09T00:08:00.641Z INFO  sa_plan_daemon::gateway] 📱 GATEWAY: gchat Sending -> 🧠 **Thinking/Plan**:
+    - Target: Analyze semantic stress level.
+    - Sub-task: Determine priority inversion.
+    - ETA: ~5 seconds.
+[2026-04-09T00:08:02.644Z INFO  sa_plan_daemon::ingress_polling] 📥 INGRESS [GChat Sim]: Received -> Hello Indrajaal! Test command from GChat Simulator.
+[2026-04-09T00:08:03.645Z INFO  sa_plan_daemon::gateway] 📱 GATEWAY: telegram Sending -> 🔄 Still working... evaluating RETE-UL rules against current Swarm homeostasis.
+[2026-04-09T00:08:03.648Z INFO  sa_plan_daemon::gateway] 📱 GATEWAY: gchat Sending -> 🔄 Still working... evaluating RETE-UL rules against current Swarm homeostasis.
+[2026-04-09T00:08:03.649Z INFO  sa_plan_daemon::cortex] 🧠 Synthesized Priority P2 for intent tg-poll-6efc3e35-fc75-4e88-a0fb-03b12bde7c95
+[2026-04-09T00:08:03.650Z WARN  sa_plan_daemon::cortex] Failed to update task state for intent tg-poll-6efc3e35-fc75-4e88-a0fb-03b12bde7c95: Internal error: Task tg-poll-6efc3e35-fc75-4e88-a0fb-03b12bde7c95 not found

@@ -1,0 +1,25 @@
+INFO:root:🤖 GChat Simulator running on port 8082
+127.0.0.1 - - [09/Apr/2026 02:07:58] "POST /v1/projects/bountytek-db/subscriptions/indrajaal-gchat-pull:pull HTTP/1.1" 200 -
+INFO:root:Delivered 1 messages to daemon.
+127.0.0.1 - - [09/Apr/2026 02:07:58] "POST /v1/projects/bountytek-db/subscriptions/indrajaal-gchat-pull:acknowledge HTTP/1.1" 200 -
+INFO:root:Delivered 1 messages to daemon.
+INFO:root:🚀 [SIMULATOR] Received Outbound GChat Message:
+INFO:root:   |> Text:    ✅ Received request from telegram. Initializing Cortex reasoning...
+127.0.0.1 - - [09/Apr/2026 02:07:58] "POST /webhook HTTP/1.1" 200 -
+127.0.0.1 - - [09/Apr/2026 02:08:00] "POST /v1/projects/bountytek-db/subscriptions/indrajaal-gchat-pull:pull HTTP/1.1" 200 -
+INFO:root:Delivered 1 messages to daemon.
+127.0.0.1 - - [09/Apr/2026 02:08:00] "POST /v1/projects/bountytek-db/subscriptions/indrajaal-gchat-pull:acknowledge HTTP/1.1" 200 -
+INFO:root:Delivered 1 messages to daemon.
+INFO:root:🚀 [SIMULATOR] Received Outbound GChat Message:
+INFO:root:   |> Text:    🧠 **Thinking/Plan**:
+- Target: Analyze semantic stress level.
+- Sub-task: Determine priority inversion.
+- ETA: ~5 seconds.
+127.0.0.1 - - [09/Apr/2026 02:08:00] "POST /webhook HTTP/1.1" 200 -
+127.0.0.1 - - [09/Apr/2026 02:08:02] "POST /v1/projects/bountytek-db/subscriptions/indrajaal-gchat-pull:pull HTTP/1.1" 200 -
+INFO:root:Delivered 1 messages to daemon.
+127.0.0.1 - - [09/Apr/2026 02:08:02] "POST /v1/projects/bountytek-db/subscriptions/indrajaal-gchat-pull:acknowledge HTTP/1.1" 200 -
+INFO:root:Delivered 1 messages to daemon.
+INFO:root:🚀 [SIMULATOR] Received Outbound GChat Message:
+INFO:root:   |> Text:    🔄 Still working... evaluating RETE-UL rules against current Swarm homeostasis.
+127.0.0.1 - - [09/Apr/2026 02:08:03] "POST /webhook HTTP/1.1" 200 -
