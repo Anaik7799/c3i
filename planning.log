@@ -1,0 +1,12 @@
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /home/an/dev/ver/c3i/sub-projects/c3i/indrajaal_ark/Cargo.toml
+workspace: /home/an/dev/ver/c3i/sub-projects/c3i/Cargo.toml
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /home/an/dev/ver/c3i/sub-projects/c3i/native/timestamp_daemon/Cargo.toml
+workspace: /home/an/dev/ver/c3i/sub-projects/c3i/Cargo.toml
+error: no bin target named `planning_daemon` in default-run packages
+help: available bin targets:
+    ignition
+    indrajaal_ark
+    sa-plan-daemon
+    timestamp_daemon

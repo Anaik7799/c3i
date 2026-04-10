@@ -71,6 +71,16 @@ pub type TelemetryPoint {
   TelemetryPoint(key: String, value: Float, timestamp: Int, unit: String)
 }
 
+/// Biometric voice status for real-time feedback.
+pub type VoiceStatus {
+  VoiceIdle
+  VoiceListening
+  VoiceProcessing
+  VoiceAuthenticating
+  VoiceAuthenticated(user: String)
+  VoiceRejected(reason: String)
+}
+
 /// Navigation action — same semantics in Web, API, and TUI.
 pub type Action {
   Navigate(page: Page)
@@ -78,7 +88,10 @@ pub type Action {
   Execute(command: String)
   Subscribe(topic: String)
   Unsubscribe(topic: String)
+  RequestApproval(id: String, description: String, level: Int)
+  BiometricVerify(embedding_b64: String)
 }
+
 
 /// Rendering context — carries session state for all 3 interfaces.
 pub type RenderContext {

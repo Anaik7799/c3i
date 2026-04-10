@@ -1,0 +1,7 @@
+INFO:root:🤖 Telegram Simulator running on port 8081
+INFO:root:🚀 [SIMULATOR] Received Outbound Telegram Message:
+INFO:root:   |> Chat ID: 6249174059
+INFO:root:   |> Text:    Analyze System
+127.0.0.1 - - [09/Apr/2026 01:52:48] "POST /botmock/sendMessage HTTP/1.1" 200 -
+127.0.0.1 - - [09/Apr/2026 01:52:56] "GET /botmock/getUpdates HTTP/1.1" 200 -
+INFO:root:Delivered 1 messages to daemon.

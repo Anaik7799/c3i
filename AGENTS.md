@@ -1,4 +1,6 @@
-# C3I Agent System — UI Development & Testing Agents (v21.6.0-GLM)
+# C3I Agent System — UI Development & Testing Agents (v22.4.0-VOICE)
+
+**Master Architecture Matrix**: See `docs/architecture/FRACTAL_SYSTEM_VOICE_CHAT_OBSERVABILITY_MATRIX.md` for comprehensive mapping of offline voice, chat components, Zenoh, observability, logging, and formal specs across all L0-L7 fractal layers.
 
 ## Overview
 

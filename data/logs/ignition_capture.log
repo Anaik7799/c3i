@@ -147,3 +147,44 @@
 [indrajaal-ex-app-2] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
 [indrajaal-ex-app-3] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
 [indrajaal-chaya] (STDERR) Error: statfs /home/an/dev/ver/c3i/priv/native: no such file or directory
+[zenoh-router-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-mojo] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ollama] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-db-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-obs-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-cortex] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-1] (STDERR) Error: invalid port format - format is [[hostIP:]hostPort:]containerPort
+[zenoh-router-3] (STDOUT) 19330f77bbc7569acdd0dafdc3fe47ab01302de8326b6a434e78430f684fc7d6
+[zenoh-router-2] (STDOUT) a67132630afd9b55e0254a199768e9f76ff909630b219672c51bf888138a9fb5
+[indrajaal-ollama] (STDOUT) 1f1292936d5e81b25be6ec72a7a8c55b7ceb26940e055033ee78e883368dbf28
+[zenoh-router] (STDOUT) f1be9940d0079f3e8aab5a864d328a7875cef302b38f5314816982a262ad74b2
+[zenoh-router-1] (STDOUT) 22e1a43180086a2c7fc64f4cf33365d7fc2e32d4c76a00bc21ab3df7cb33c4ab
+[indrajaal-ml-runner-2] (STDOUT) be245fa407e512f90f9070fc26c9547ef4470092c4fc591419a4971739348568
+[indrajaal-obs-prod] (STDOUT) fcc7c812a9758a0ae9102250bf9a56bbad38b56b3ecfc0ac79344c0a59e809f4
+[indrajaal-mojo] (STDOUT) de5dbbb3d61990d307fe177a55aa91388fd7f9a1bff0abea5d3c37a133121134
+[indrajaal-cortex] (STDOUT) 209f7c4d007afe396895c85ecea7766759f23986f51d26e9ad1ca59c7675e6c3
+[indrajaal-ex-app-2] (STDOUT) c390ea338962743bbf79f2bb8e0682674937d6174c271309cfea36ffde05483c
+[indrajaal-ex-app-1] (STDOUT) 3086bd11f0826ee887e01cae9f4d70c0a57439eb6eb70f9fe069e160ff23cf1f
+[indrajaal-ex-app-3] (STDOUT) f119face8eab2e70db7343a88a8c7ec9965e6b7019c360ede07278b51b4213de
+[indrajaal-db-prod] (STDOUT) da7b8ef6747972bd26e19566a2a9396898a96e38c200571453d7af810827300f
+[indrajaal-ml-runner-1] (STDOUT) e55c4fa82aec0a5d45f69949030af77822fa2d24eef9a78e5afdccaf351faef1
+[indrajaal-chaya] (STDOUT) d19ff3d3d170fb5a49553b40f0b80bcf96bfee7536b7c0f0b1515d01290e0429
+[cepaf-bridge] (STDOUT) f369f7c16829729e7495eeffa8f40e654f74823ed5da2ebbf92a48faa2a30643
+[zenoh-router-2] (STDOUT) de97add8c752f1d03c1ee60723b240c37c3b7f36a2b0cacf6be55ba7c0708704
+[zenoh-router-3] (STDOUT) 9be7e5a2bc2e03653703e8a838e67e8eb1d9c2af8bebeda4553de7fd465703df
+[zenoh-router] (STDOUT) 52040ec7e5ef59731bc8ab587c55a7db0d5e93ac3e423884ac240ef950af3bf3
+[zenoh-router-1] (STDOUT) cf728ff2a9b9e886cd78e194ce33291eaab1dc8543ca064d6fd80ff2ef36e000
+[indrajaal-ollama] (STDOUT) 8035ebdda7ad5445a6fe8a7f0f79e5f209a871d60cec9601653c83e0e7addd69
+[indrajaal-obs-prod] (STDOUT) adc49ab73037b6c96049c100377c9dbb05dd7d4e6f50a31375c413b42ba1a1fc
+[indrajaal-db-prod] (STDOUT) 76bf53a30922a268e9ba5e83fdf4da8da154a189893ebfc306602aebbd1a2b7a
+[indrajaal-mojo] (STDOUT) 0975abff7ad30fa67cb7bda69f6ea5b0182c0bcf17be1501f6c1b740fd84c728
+[indrajaal-ml-runner-2] (STDOUT) 12de8425f5f56e9bf324b659df52b6b10b9771f4706383f0217dfdb70e5101ed
+[indrajaal-cortex] (STDOUT) 913fad6b7e3de224a46954d0434f10c86ffb68e386f953a9de14419619645339
+[indrajaal-ml-runner-1] (STDOUT) de3e1c5ed8f5eb51298d7c6d484f23cd23bbf9f548a28ccfefd401808a8cf913
+[indrajaal-ex-app-1] (STDOUT) f66b2e67b88836502622cd142f9747aea65a9c111cc82e30292d0643127adb1f
+[cepaf-bridge] (STDOUT) 36d8d053bcbe9735c4c09f6d7112817c8f20c11d504ccb324185c4d4eb40fb09

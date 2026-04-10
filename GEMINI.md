@@ -1,5 +1,7 @@
 # GEMINI.md — Indrajaal c3i Multi-Language System Spec (Root)
-**Version**: 22.1.0-GLM | **Status**: ACTIVE | **Primary Language**: Gleam (BEAM) | **Date**: 2026-04-05
+**Version**: 22.2.0-VOICE | **Status**: ACTIVE | **Primary Language**: Gleam (BEAM) / Rust (Daemon) | **Date**: 2026-04-09
+
+**Master Architecture Matrix**: See `docs/architecture/FRACTAL_SYSTEM_VOICE_CHAT_OBSERVABILITY_MATRIX.md` for comprehensive mapping of offline voice, chat components, Zenoh, and observability across all L0-L7 fractal layers.
 
 ## Language Architecture
 | Language | Role | Build Command | Constraint |

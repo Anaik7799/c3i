@@ -1,0 +1,1 @@
+ check --config=specs/tla/ChatPipeline.cfg specs/tla/ChatPipeline.tla

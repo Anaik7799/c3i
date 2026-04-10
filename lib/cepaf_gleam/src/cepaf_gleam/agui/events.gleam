@@ -101,8 +101,77 @@ pub fn event_type_to_string(event_type: EventType) -> String {
     ReasoningEnd -> "REASONING_END"
     ReasoningEncryptedValue -> "REASONING_ENCRYPTED_VALUE"
     MetaEvent -> "META_EVENT"
+    BiometricStarted -> "BIOMETRIC_STARTED"
+    BiometricResult -> "BIOMETRIC_RESULT"
+    ApprovalRequested -> "APPROVAL_REQUESTED"
+    ApprovalResult -> "APPROVAL_RESULT"
   }
 }
+
+// ---------------------------------------------------------------------------
+// Biometric and Approval constructors
+// ---------------------------------------------------------------------------
+
+/// Create a BIOMETRIC_STARTED event.
+pub fn new_biometric_started(user_id: String) -> AgUiEvent {
+  let id = generate_id()
+  AgUiEvent(
+    event_type: BiometricStarted,
+    timestamp: now_ms(),
+    thread_id: id,
+    run_id: id,
+    payload: json.object([
+      #("user_id", json.string(user_id)),
+    ]),
+  )
+}
+
+/// Create a BIOMETRIC_RESULT event.
+pub fn new_biometric_result(user_id: String, success: Bool, score: Float) -> AgUiEvent {
+  let id = generate_id()
+  AgUiEvent(
+    event_type: BiometricResult,
+    timestamp: now_ms(),
+    thread_id: id,
+    run_id: id,
+    payload: json.object([
+      #("user_id", json.string(user_id)),
+      #("success", json.bool(success)),
+      #("score", json.float(score)),
+    ]),
+  )
+}
+
+/// Create an APPROVAL_REQUESTED event.
+pub fn new_approval_requested(approval_id: String, description: String) -> AgUiEvent {
+  let id = generate_id()
+  AgUiEvent(
+    event_type: ApprovalRequested,
+    timestamp: now_ms(),
+    thread_id: id,
+    run_id: id,
+    payload: json.object([
+      #("approval_id", json.string(approval_id)),
+      #("description", json.string(description)),
+    ]),
+  )
+}
+
+/// Create an APPROVAL_RESULT event.
+pub fn new_approval_result(approval_id: String, approved: Bool) -> AgUiEvent {
+  let id = generate_id()
+  AgUiEvent(
+    event_type: ApprovalResult,
+    timestamp: now_ms(),
+    thread_id: id,
+    run_id: id,
+    payload: json.object([
+      #("approval_id", json.string(approval_id)),
+      #("approved", json.bool(approved)),
+    ]),
+  )
+}
+
 
 // ---------------------------------------------------------------------------
 // Event constructors

@@ -1,0 +1,48 @@
+2026-04-09T22:32:16,262 [main] INFO  a.f.a.t.Tool$ - # APALACHE version: 0.44.2 | build: 3360796
+2026-04-09T22:32:16,281 [main] INFO  a.f.a.i.p.o.OptionGroup$ -   > ChatPipeline.cfg: Loading TLC configuration
+2026-04-09T22:32:16,315 [main] INFO  a.f.a.i.p.o.OptionGroup$ -   > Using temporal predicate(s) NoBlackhole, RuleFallbackNeverFails, CBEventualRecovery from the TLC config
+2026-04-09T22:32:16,315 [main] INFO  a.f.a.i.p.o.OptionGroup$ -   > Using inv predicate(s) TypeOK from the TLC config
+2026-04-09T22:32:16,316 [main] INFO  a.f.a.t.t.o.CheckCmd - Tuning: search.outputTraces=false
+2026-04-09T22:32:16,449 [main] INFO  a.f.a.i.p.PassChainExecutor$ - PASS #0: SanyParser
+2026-04-09T22:32:16,616 [main] DEBUG a.f.a.i.p.PassChainExecutor$ - PASS #0: SanyParser [OK]
+2026-04-09T22:32:16,617 [main] INFO  a.f.a.i.p.PassChainExecutor$ - PASS #1: TypeCheckerSnowcat
+2026-04-09T22:32:16,617 [main] INFO  a.f.a.t.p.t.EtcTypeCheckerPassImpl -  > Running Snowcat .::.
+2026-04-09T22:32:16,801 [main] INFO  a.f.a.t.p.t.EtcTypeCheckerPassImpl -  > Your types are purrfect!
+2026-04-09T22:32:16,802 [main] INFO  a.f.a.t.p.t.EtcTypeCheckerPassImpl -  > All expressions are typed
+2026-04-09T22:32:16,802 [main] DEBUG a.f.a.i.p.PassChainExecutor$ - PASS #1: TypeCheckerSnowcat [OK]
+2026-04-09T22:32:16,802 [main] INFO  a.f.a.i.p.PassChainExecutor$ - PASS #2: ConfigurationPass
+2026-04-09T22:32:16,933 [main] INFO  a.f.a.t.p.p.ConfigurationPassImpl -   > ChatPipeline.cfg: Using SPECIFICATION Spec
+2026-04-09T22:32:16,935 [main] WARN  a.f.a.t.p.p.ConfigurationPassImpl - Fairness constraints are ignored by Apalache: WF_vars()(Next())
+2026-04-09T22:32:16,935 [main] INFO  a.f.a.t.p.p.ConfigurationPassImpl -   > ChatPipeline.cfg: found INVARIANTS: TypeOK
+2026-04-09T22:32:16,935 [main] INFO  a.f.a.t.p.p.ConfigurationPassImpl -   > ChatPipeline.cfg: found PROPERTIES: NoBlackhole, RuleFallbackNeverFails, CBEventualRecovery
+2026-04-09T22:32:16,937 [main] INFO  a.f.a.t.p.p.ConfigurationPassImpl -   > Set the initialization predicate to Init
+2026-04-09T22:32:16,937 [main] INFO  a.f.a.t.p.p.ConfigurationPassImpl -   > Set the transition predicate to Next
+2026-04-09T22:32:16,937 [main] INFO  a.f.a.t.p.p.ConfigurationPassImpl -   > Set the constant initialization predicate to CInit
+2026-04-09T22:32:16,937 [main] INFO  a.f.a.t.p.p.ConfigurationPassImpl -   > Set an invariant to TypeOK
+2026-04-09T22:32:16,938 [main] INFO  a.f.a.t.p.p.ConfigurationPassImpl -   > Set a temporal property to NoBlackhole
+2026-04-09T22:32:16,938 [main] INFO  a.f.a.t.p.p.ConfigurationPassImpl -   > Set a temporal property to RuleFallbackNeverFails
+2026-04-09T22:32:16,939 [main] DEBUG a.f.a.i.p.PassChainExecutor$ - Adapted exception intercepted: 
+at.forsyte.apalache.io.ConfigurationError: Operator RuleFallbackNeverFails not found (used as a temporal property)
+	at at.forsyte.apalache.tla.passes.pp.ConfigurationPassImpl.assertDecl$1(ConfigurationPassImpl.scala:212)
+	at at.forsyte.apalache.tla.passes.pp.ConfigurationPassImpl.$anonfun$ensureDeclarationsArePresent$4(ConfigurationPassImpl.scala:223)
+	at at.forsyte.apalache.tla.passes.pp.ConfigurationPassImpl.$anonfun$ensureDeclarationsArePresent$4$adapted(ConfigurationPassImpl.scala:223)
+	at scala.collection.immutable.List.foreach(List.scala:333)
+	at at.forsyte.apalache.tla.passes.pp.ConfigurationPassImpl.ensureDeclarationsArePresent(ConfigurationPassImpl.scala:223)
+	at at.forsyte.apalache.tla.passes.pp.ConfigurationPassImpl.execute(ConfigurationPassImpl.scala:95)
+	at at.forsyte.apalache.infra.passes.PassChainExecutor$.exec(PassChainExecutor.scala:64)
+	at at.forsyte.apalache.infra.passes.PassChainExecutor$.$anonfun$runPassOnModule$3(PassChainExecutor.scala:53)
+	at scala.util.Either.flatMap(Either.scala:352)
+	at at.forsyte.apalache.infra.passes.PassChainExecutor$.$anonfun$runPassOnModule$1(PassChainExecutor.scala:51)
+	at scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:183)
+	at scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:179)
+	at scala.collection.immutable.List.foldLeft(List.scala:79)
+	at at.forsyte.apalache.infra.passes.PassChainExecutor$.runOnPasses(PassChainExecutor.scala:44)
+	at at.forsyte.apalache.infra.passes.PassChainExecutor$.run(PassChainExecutor.scala:34)
+	at at.forsyte.apalache.tla.tooling.opt.CheckCmd.run(CheckCmd.scala:129)
+	at at.forsyte.apalache.tla.Tool$.runCommand(Tool.scala:138)
+	at at.forsyte.apalache.tla.Tool$.run(Tool.scala:118)
+	at at.forsyte.apalache.tla.Tool$.main(Tool.scala:40)
+	at at.forsyte.apalache.tla.Tool.main(Tool.scala)
+2026-04-09T22:32:16,940 [main] ERROR a.f.a.t.Tool$ - Configuration error (see the manual): Operator RuleFallbackNeverFails not found (used as a temporal property)
+2026-04-09T22:32:16,940 [main] INFO  a.f.a.t.Tool$ - It took me 0 days  0 hours  0 min  0 sec
+2026-04-09T22:32:16,940 [main] INFO  a.f.a.t.Tool$ - Total time: 0.677 sec

@@ -1,0 +1,18 @@
+2026-04-09T22:38:12,328 [main] INFO  a.f.a.t.Tool$ - # APALACHE version: 0.44.2 | build: 3360796
+2026-04-09T22:38:12,341 [main] INFO  a.f.a.i.p.o.OptionGroup$ -   > ChatPipeline.cfg: Loading TLC configuration
+2026-04-09T22:38:12,372 [main] INFO  a.f.a.i.p.o.OptionGroup$ -   > Using temporal predicate(s) NoBlackhole, RuleFallbackNeverFails, CBEventualRecovery from the TLC config
+2026-04-09T22:38:12,373 [main] INFO  a.f.a.i.p.o.OptionGroup$ -   > Using inv predicate(s) TypeOK from the TLC config
+2026-04-09T22:38:12,373 [main] INFO  a.f.a.t.t.o.CheckCmd - Tuning: search.outputTraces=false
+2026-04-09T22:38:12,502 [main] INFO  a.f.a.i.p.PassChainExecutor$ - PASS #0: SanyParser
+2026-04-09T22:38:12,597 [main] ERROR a.f.a.t.p.i.SanyParserPassImpl - Parsing error: *** Errors: 1
+
+line 128, col 5 to line 128, col 79 of module ChatPipeline
+
+[] followed by action not of form [A]_v.
+
+
+
+2026-04-09T22:38:12,612 [main] DEBUG a.f.a.i.p.PassChainExecutor$ - PASS #0: SanyParser [FAIL]
+2026-04-09T22:38:12,613 [main] INFO  a.f.a.t.Tool$ - Checker has found an error
+2026-04-09T22:38:12,613 [main] INFO  a.f.a.t.Tool$ - It took me 0 days  0 hours  0 min  0 sec
+2026-04-09T22:38:12,613 [main] INFO  a.f.a.t.Tool$ - Total time: 0.283 sec

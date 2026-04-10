@@ -1,0 +1,33 @@
+2026-04-09T22:21:24,691 [main] INFO  a.f.a.t.Tool$ - # APALACHE version: 0.44.2 | build: 3360796
+2026-04-09T22:21:24,702 [main] INFO  a.f.a.i.p.o.OptionGroup$ -   > ChatPipeline.cfg: Loading TLC configuration
+2026-04-09T22:21:24,729 [main] INFO  a.f.a.i.p.o.OptionGroup$ -   > Using temporal predicate(s) NoBlackhole, RuleFallbackNeverFails, CBEventualRecovery from the TLC config
+2026-04-09T22:21:24,730 [main] INFO  a.f.a.i.p.o.OptionGroup$ -   > Using inv predicate(s) TypeOK from the TLC config
+2026-04-09T22:21:24,730 [main] INFO  a.f.a.t.t.o.CheckCmd - Tuning: search.outputTraces=false
+2026-04-09T22:21:24,848 [main] INFO  a.f.a.i.p.PassChainExecutor$ - PASS #0: SanyParser
+2026-04-09T22:21:25,010 [main] DEBUG a.f.a.i.p.PassChainExecutor$ - PASS #0: SanyParser [OK]
+2026-04-09T22:21:25,011 [main] INFO  a.f.a.i.p.PassChainExecutor$ - PASS #1: TypeCheckerSnowcat
+2026-04-09T22:21:25,011 [main] INFO  a.f.a.t.p.t.EtcTypeCheckerPassImpl -  > Running Snowcat .::.
+2026-04-09T22:21:25,069 [main] DEBUG a.f.a.i.p.PassChainExecutor$ - Adapted exception intercepted: 
+at.forsyte.apalache.tla.typecheck.TypingInputException: Expected a type annotation for VARIABLE response_sent
+	at at.forsyte.apalache.tla.typecheck.etc.ToEtcExpr.apply(ToEtcExpr.scala:38)
+	at at.forsyte.apalache.tla.typecheck.TypeCheckerTool.$anonfun$check$1(TypeCheckerTool.scala:46)
+	at scala.collection.immutable.List.foldRight(List.scala:352)
+	at at.forsyte.apalache.tla.typecheck.TypeCheckerTool.check(TypeCheckerTool.scala:45)
+	at at.forsyte.apalache.tla.passes.typecheck.EtcTypeCheckerPassImpl.execute(EtcTypeCheckerPassImpl.scala:54)
+	at at.forsyte.apalache.infra.passes.PassChainExecutor$.exec(PassChainExecutor.scala:64)
+	at at.forsyte.apalache.infra.passes.PassChainExecutor$.$anonfun$runPassOnModule$3(PassChainExecutor.scala:53)
+	at scala.util.Either.flatMap(Either.scala:352)
+	at at.forsyte.apalache.infra.passes.PassChainExecutor$.$anonfun$runPassOnModule$1(PassChainExecutor.scala:51)
+	at scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:183)
+	at scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:179)
+	at scala.collection.immutable.List.foldLeft(List.scala:79)
+	at at.forsyte.apalache.infra.passes.PassChainExecutor$.runOnPasses(PassChainExecutor.scala:44)
+	at at.forsyte.apalache.infra.passes.PassChainExecutor$.run(PassChainExecutor.scala:34)
+	at at.forsyte.apalache.tla.tooling.opt.CheckCmd.run(CheckCmd.scala:129)
+	at at.forsyte.apalache.tla.Tool$.runCommand(Tool.scala:138)
+	at at.forsyte.apalache.tla.Tool$.run(Tool.scala:118)
+	at at.forsyte.apalache.tla.Tool$.main(Tool.scala:40)
+	at at.forsyte.apalache.tla.Tool.main(Tool.scala)
+2026-04-09T22:21:25,074 [main] ERROR a.f.a.t.Tool$ - ChatPipeline.tla:19:5-19:17: type input error: Expected a type annotation for VARIABLE response_sent
+2026-04-09T22:21:25,075 [main] INFO  a.f.a.t.Tool$ - It took me 0 days  0 hours  0 min  0 sec
+2026-04-09T22:21:25,075 [main] INFO  a.f.a.t.Tool$ - Total time: 0.383 sec
