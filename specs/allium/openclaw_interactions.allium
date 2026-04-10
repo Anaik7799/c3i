@@ -1166,3 +1166,360 @@ open question "Should failed LLM inferences be retried with exponential backoff?
 -- 11. Metrics: 12 entities, 15 rules, 5 contracts, 8 invariants, 3 surfaces
 -- 12. STAMP: SC-COG-001..003, SC-OPENCLAW-001..004, SC-ZMOF-001, SC-SIM-001..007
 -- 13. Conclusion: Comprehensive behavioral specification for OpenClaw chat interactions
+
+-- =============================================================================
+-- S27. EXTENDED ENTITIES (2026-04-09 — chat pipeline formal verification)
+-- =============================================================================
+
+enum GuardianState { safe | warning | emergency }
+
+enum CBState { closed | open | half_open }
+
+entity TokenBucketRateLimiter {
+    chat_id: String
+    tokens: Integer = 20
+    last_refill_ms: Integer
+    max_tokens: Integer = 20
+    refill_rate_ms: Integer = 3000
+
+    -- Derived
+    is_exhausted: this.tokens <= 0
+    can_consume: this.tokens > 0
+
+    transitions tokens {
+        available -> consumed
+        consumed -> available
+        consumed -> rejected
+    }
+
+    invariant TokensBounded {
+        this.tokens >= 0 and this.tokens <= this.max_tokens
+    }
+
+    @guidance
+        -- Token bucket rate limiter with periodic refill.
+        -- Tokens are consumed on each request; refilled every refill_rate_ms.
+        -- When tokens = 0, requests are rejected until next refill.
+        -- Maps to TLA+ variable: tokens[chat_id]
+}
+
+entity RuliologyEngine {
+    guardian_state: GuardianState
+    circuit_breakers: Map<String, CBState>
+    rete_rules: Integer = 50
+    rulial_dimensions: Integer = 245
+    event_log_capacity: Integer = 1000
+
+    -- Derived
+    any_cb_open: exists cb in this.circuit_breakers.values where cb = open
+    all_cb_closed: for all cb in this.circuit_breakers.values: cb = closed
+
+    invariant ReteRulesPositive {
+        this.rete_rules > 0
+    }
+
+    invariant EventLogBounded {
+        this.event_log_capacity > 0
+    }
+
+    @guidance
+        -- The RuliologyEngine wraps the RETE-UL rule engine (rule_engine.rs, 52 GRL rules)
+        -- with the Guardian automaton state machine and per-tier circuit breakers.
+        -- Guardian state transitions: safe -> warning -> emergency (escalation)
+        --                             emergency -> warning -> safe (de-escalation)
+        -- Guardian NEVER transitions directly from emergency to safe.
+        -- Maps to TLA+ variable: guardian, cb_mode
+}
+
+entity SemanticCache {
+    prompt_hash: String
+    response: String
+    model_used: String
+    created_ms: Integer
+    ttl_secs: Integer = 3600
+    hit_count: Integer = 0
+
+    -- Derived
+    age_secs: (now_ms - this.created_ms) / 1000
+    is_expired: this.age_secs > this.ttl_secs
+    is_valid: not this.is_expired
+
+    invariant TTLPositive {
+        this.ttl_secs > 0
+    }
+
+    invariant HitCountNonNegative {
+        this.hit_count >= 0
+    }
+
+    @guidance
+        -- Semantic cache stores LLM responses keyed by prompt hash.
+        -- On cache hit (same prompt hash, not expired), the cached response is
+        -- returned without invoking the LLM, saving inference latency and cost.
+        -- TTL default is 1 hour (3600 seconds).
+        -- Cache eviction: entries with age > ttl_secs are considered expired.
+}
+
+entity ConversationHistory {
+    chat_id: String
+    messages: List<Message>
+    max_messages: Integer = 50
+    needs_summary: Boolean
+
+    -- Derived
+    message_count: count(this.messages)
+    is_near_capacity: this.message_count >= this.max_messages - 5
+    summary_threshold: Integer = 45
+
+    invariant MessageCountBounded {
+        count(this.messages) <= this.max_messages
+    }
+
+    @guidance
+        -- Conversation history maintains a sliding window of messages per chat_id.
+        -- When message count reaches summary_threshold (45), the oldest 35 messages
+        -- are compressed into a single summary message, keeping context while
+        -- bounding memory usage. Max capacity is 50 messages.
+}
+
+entity FailureInjector {
+    tier: String
+    is_failing: Boolean = false
+    sim_mode_only: Boolean = true
+
+    -- Derived
+    is_active: this.is_failing and this.sim_mode_only
+
+    invariant SimModeGuard {
+        this.is_failing implies this.sim_mode_only
+        -- Failure injection MUST only be active in simulator mode.
+        -- Production failure injection is forbidden.
+    }
+
+    @guidance
+        -- FailureInjector enables deterministic testing of the 5-tier inference
+        -- cascade by forcing specific tiers to fail on demand.
+        -- Used in sim-test and E2E test suites to verify:
+        --   - Circuit breaker tripping after CBFailThreshold failures
+        --   - Tier cascade from gemini -> openrouter -> ollama -> rule_fallback
+        --   - Rule fallback always succeeds (TLA+ property RuleFallbackNeverFails)
+        -- NEVER enabled outside simulator mode (sim_mode_only invariant).
+}
+
+entity InferenceTier {
+    tier_idx: Integer
+    name: String
+    cb_state: CBState
+    cb_failure_count: Integer = 0
+    cb_fail_threshold: Integer = 3
+    cb_cooldown_secs: Integer = 60
+    last_failure_ms: Integer?
+
+    -- Derived
+    is_available: this.cb_state != open
+    is_rule_fallback: this.tier_idx = 4
+    needs_probe: this.cb_state = open and age(this.last_failure_ms) >= this.cb_cooldown_secs * 1000
+
+    transitions cb_state {
+        closed -> open
+        open -> half_open
+        half_open -> closed
+        half_open -> open
+    }
+
+    invariant RuleFallbackNeverOpen {
+        this.is_rule_fallback implies this.cb_state = closed
+        -- The rule fallback tier MUST NEVER have its circuit breaker open.
+        -- It is the tier of last resort and must always be available.
+    }
+
+    @guidance
+        -- Maps directly to the TLA+ TryTier and RuleFallback actions.
+        -- Tier ordering: 0=gemini_live, 1=gemini_rest, 2=openrouter, 3=ollama, 4=rule_fallback
+        -- Circuit breaker state machine:
+        --   CLOSED --[CBFailThreshold failures]--> OPEN
+        --   OPEN --[cooldown elapsed]--> HALF_OPEN
+        --   HALF_OPEN --[probe success]--> CLOSED
+        --   HALF_OPEN --[probe failure]--> OPEN
+}
+
+-- =============================================================================
+-- S28. EXTENDED RULES (2026-04-09 — chat pipeline formal verification)
+-- =============================================================================
+
+rule RateLimitEnforce {
+    when: request arrives AND limiter: TokenBucketRateLimiter where limiter.tokens <= 0
+    requires: limiter.chat_id = request.chat_id
+    ensures: response = "Rate limited. Please wait."
+    ensures: request.status = failed
+    @salience 200
+    @guidance
+        -- Highest salience rule (200). Rate limiting takes priority over all
+        -- other processing. Maps to TLA+ RateLimitCheck action where
+        -- tokens[current_chat] = 0 leads to dead_letter.
+}
+
+rule GuardianEscalation {
+    when: guardian: RuliologyEngine where guardian.guardian_state = emergency
+    requires: true
+    ensures: all circuit_breakers probed for recovery
+    ensures: GatewayDispatcher.broadcast_message("GUARDIAN EMERGENCY: probing all tiers", true)
+    @salience 150
+    @guidance
+        -- When guardian enters emergency state, all circuit breakers are probed
+        -- to discover which tiers are recoverable. This accelerates recovery
+        -- by triggering half-open probes ahead of the cooldown schedule.
+        -- Maps to TLA+ GuardianEscalate + CBRecovery interaction.
+}
+
+rule SemanticCacheHit {
+    when: msg: ChatMessage where cache: SemanticCache contains hash(msg.raw_text)
+    requires: cache.is_valid
+    ensures: msg.response_text = cache.response
+    ensures: cache.hit_count incremented
+    ensures: no LlmInference created
+    @salience 180
+    @guidance
+        -- Cache hit bypasses all inference tiers. Second highest salience (180)
+        -- after rate limiting. Reduces latency from ~900ms (hedged inference)
+        -- to near-zero. Only valid if cache entry has not expired (age < ttl).
+}
+
+rule ConversationSummarize {
+    when: history: ConversationHistory where count(history.messages) >= 45
+    requires: history.needs_summary = false
+    ensures: oldest 35 messages compressed to 1 summary message
+    ensures: history.needs_summary = true
+    ensures: count(history.messages) <= history.max_messages - 34
+    @guidance
+        -- Triggered when conversation history approaches capacity.
+        -- Summarization uses the LLM to produce a condensed summary of the
+        -- oldest 35 messages, replacing them with a single summary entry.
+        -- This keeps the context window bounded while preserving conversational
+        -- continuity. Post-condition: message count drops by ~34.
+}
+
+rule CircuitBreakerTrip {
+    when: tier: InferenceTier where tier.cb_failure_count >= tier.cb_fail_threshold
+    requires: tier.cb_state = closed or tier.cb_state = half_open
+    requires: not tier.is_rule_fallback
+    ensures: tier.cb_state = open
+    ensures: tier.last_failure_ms = now_ms
+    @salience 100
+    @guidance
+        -- After CBFailThreshold (3) consecutive failures, the circuit breaker
+        -- trips open. The tier is skipped until cooldown elapses.
+        -- Rule fallback tier is exempt (invariant RuleFallbackNeverOpen).
+        -- Maps to TLA+ cb_mode transition in TryTier failure branch.
+}
+
+rule CircuitBreakerProbe {
+    when: tier: InferenceTier where tier.needs_probe
+    requires: tier.cb_state = open
+    ensures: tier.cb_state = half_open
+    @salience 90
+    @guidance
+        -- After cooldown (60s), an open circuit breaker transitions to half_open.
+        -- A single probe request is allowed. On success -> closed, on failure -> open.
+        -- Maps to TLA+ CBRecovery action.
+}
+
+rule TierCascadeFallback {
+    when: tier: InferenceTier where tier.cb_state = open and state = "inferring"
+    requires: tier.tier_idx < 4
+    ensures: advance to tier.tier_idx + 1
+    @guidance
+        -- When a tier's circuit breaker is open, the inference cascade skips
+        -- to the next tier. This continues until either a tier succeeds or
+        -- the rule fallback (tier 4) is reached.
+        -- Maps to TLA+ TryTier action with IsCBOpen(tier_idx) guard.
+}
+
+-- =============================================================================
+-- S29. EXTENDED INVARIANTS (2026-04-09 — chat pipeline formal verification)
+-- =============================================================================
+
+invariant RateLimitBound {
+    for l in TokenBucketRateLimiters:
+        0 <= l.tokens and l.tokens <= l.max_tokens
+    -- Token count MUST always be within [0, max_tokens].
+    -- Maps to TLA+ RateLimitSafety property.
+}
+
+invariant GuardianNeverSkipsWarning {
+    for g in RuliologyEngines:
+        g.guardian_state transitions emergency -> warning -> safe
+        -- The guardian automaton MUST NOT skip the warning state when de-escalating.
+        -- Emergency -> Safe directly is forbidden. The operator must acknowledge
+        -- the warning state before the system returns to safe.
+        -- Maps to TLA+ GuardianTransitionSafety property.
+}
+
+invariant CacheTTLExpiry {
+    for c in SemanticCaches:
+        age(c) > c.ttl_secs implies c.is_expired
+    -- Expired cache entries MUST be treated as misses.
+    -- No stale response may be served after TTL expiration.
+}
+
+invariant RuleFallbackAlwaysAvailable {
+    for tier in InferenceTiers where tier.is_rule_fallback:
+        tier.cb_state = closed
+    -- The rule fallback tier (tier 4) MUST always have its circuit breaker closed.
+    -- This is the safety net of last resort. If it were ever open, messages
+    -- could be blackholed.
+    -- Maps to TLA+ RuleFallbackNeverFails property.
+}
+
+invariant NoBlackhole {
+    for msg in ChatMessages where msg.status = received:
+        eventually msg.status in [responded, acknowledged, failed]
+    -- Every received message MUST eventually reach a terminal state.
+    -- No message may remain in an intermediate state indefinitely.
+    -- Maps to TLA+ NoBlackhole property.
+    -- Strengthened from S9 IntentNeverLost: now includes formal TLA+ correspondence.
+}
+
+invariant ConversationBounded {
+    for h in ConversationHistories:
+        count(h.messages) <= h.max_messages
+    -- Conversation history MUST never exceed max_messages capacity.
+    -- Summarization rule triggers before capacity is reached.
+}
+
+invariant FailureInjectorSafety {
+    for fi in FailureInjectors:
+        fi.is_failing implies fi.sim_mode_only
+    -- Failure injection is ONLY permitted in simulator mode.
+    -- Production systems MUST NOT have active failure injectors.
+}
+
+-- =============================================================================
+-- S30. TLA+ CORRESPONDENCE (formal verification cross-reference)
+-- =============================================================================
+--
+-- This section maps Allium constructs to TLA+ properties in specs/tla/ChatPipeline.tla.
+--
+-- | Allium Construct                  | TLA+ Property/Action              | Type      |
+-- |------------------------------------|------------------------------------|-----------|
+-- | invariant RateLimitBound           | RateLimitSafety                   | Invariant |
+-- | invariant GuardianNeverSkipsWarning | GuardianTransitionSafety         | Property  |
+-- | invariant RuleFallbackAlwaysAvailable | RuleFallbackNeverFails         | Property  |
+-- | invariant NoBlackhole              | NoBlackhole                       | Property  |
+-- | invariant CacheTTLExpiry           | (not modeled in TLA+)             | Invariant |
+-- | entity TokenBucketRateLimiter      | tokens, RateLimitCheck            | Variable  |
+-- | entity RuliologyEngine             | guardian, GuardianEscalate/De     | Variable  |
+-- | entity InferenceTier               | cb_mode, TryTier, CBRecovery      | Variable  |
+-- | entity SemanticCache               | (not modeled in TLA+)             | Entity    |
+-- | entity ConversationHistory         | (not modeled in TLA+)             | Entity    |
+-- | entity FailureInjector             | nondeterministic failure in TryTier | Action   |
+-- | rule RateLimitEnforce              | RateLimitCheck (dead_letter branch) | Action   |
+-- | rule GuardianEscalation            | GuardianEscalate                  | Action    |
+-- | rule CircuitBreakerTrip            | TryTier (failure branch)          | Action    |
+-- | rule CircuitBreakerProbe           | CBRecovery                        | Action    |
+-- | rule TierCascadeFallback           | TryTier (IsCBOpen skip)           | Action    |
+--
+-- TLA+ Constants Mapping:
+--   NumTiers = 5, MaxZenohRetries = 3, MaxGwRetries = 1
+--   CBFailThreshold = 3, CBCooldownTicks = 60
+--   MaxTokens = 20, RefillTicks = 3, NumChatIds = 2, NumChannels = 2
