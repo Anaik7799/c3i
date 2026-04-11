@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "c3i": {
+      "command": "/home/an/dev/ver/c3i/sub-projects/c3i/target/release/c3i-mcp-server",
+      "args": [],
+      "env": {
+        "WORKSPACE_ROOT": "/home/an/dev/ver/c3i",
+        "GLEAM_PROJECT": "/home/an/dev/ver/c3i/lib/cepaf_gleam",
+        "SA_PLAN_DAEMON": "/home/an/dev/ver/c3i/sub-projects/c3i/target/release/sa-plan-daemon"
+      }
+    }
+  }
+}
