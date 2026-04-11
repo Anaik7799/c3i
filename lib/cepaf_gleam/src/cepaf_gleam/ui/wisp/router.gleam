@@ -21,9 +21,11 @@ import cepaf_gleam/agui/state as agui_state
 import cepaf_gleam/agui/tools as agui_tools
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/beam_metrics
+import cepaf_gleam/ha/guard_grid
 import cepaf_gleam/ha/health_cascade
 import cepaf_gleam/ha/hot_reload
 import cepaf_gleam/ha/invariant_gate
+import cepaf_gleam/ha/module_guard
 import cepaf_gleam/ha/slo_tracker
 import cepaf_gleam/fractal/l0_constitutional.{
   type ApprovalRequest, ApprovalRequest, Approved, Critical as ApprovalCritical,
@@ -70,10 +72,12 @@ pub fn route(path: String) -> String {
   // Sprint 5: SLO tracking — each request recorded for error budget (SC-SATYA)
   // TODO: Wire slo_tracker.record_event() when OTP actor manages state
   case path {
-    // Primary API routes
-    "/health" | "/api/health" -> health_json()
+    // Primary API routes — Sprint 6: guarded via module_guard (SC-SATYA-001)
+    "/health" | "/api/health" ->
+      module_guard.unwrap(module_guard.guard_json(health_json(), "health", "status"))
     "/api/v1/pages" | "/api/pages" -> pages_json()
-    "/api/v1/dashboard" | "/api/dashboard" -> dashboard_json()
+    "/api/v1/dashboard" | "/api/dashboard" ->
+      module_guard.unwrap(module_guard.guard_json(dashboard_json(), "dashboard", "page"))
     // Dashboard sub-endpoints — fractal layers, supervisors, threads (SC-AGUI-UI)
     "/api/v1/dashboard/supervisors" -> dashboard_supervisors_json()
     "/api/v1/dashboard/threads" -> dashboard_threads_json()
@@ -81,24 +85,39 @@ pub fn route(path: String) -> String {
     // Hot code reload endpoint (SC-HA-001) — zero-downtime bytecode upgrade
     "/api/v1/reload" -> hot_reload_json()
     // OODA cycle monitoring (SC-TPS-006 Andon)
-    "/api/v1/system/ooda" -> system_ooda_json()
+    "/api/v1/system/ooda" ->
+      module_guard.unwrap(module_guard.guard_json(system_ooda_json(), "system/ooda", "phase"))
     // Fractal TPS metrics
-    "/api/v1/system/tps" -> system_tps_json()
+    "/api/v1/system/tps" ->
+      module_guard.unwrap(module_guard.guard_json(system_tps_json(), "system/tps", "page"))
     // F17 BEAM scheduler utilisation monitoring (SC-GLM-UI-001, L1_ATOMIC_DEBUG)
-    "/api/v1/system/beam" -> beam_metrics_json()
+    "/api/v1/system/beam" ->
+      module_guard.unwrap(module_guard.guard_json(beam_metrics_json(), "system/beam", "scheduler_count"))
     // F02/F29 SLI/SLO Dashboard + Error Budget Tracking (SC-GLM-UI-001, L5_COGNITIVE)
-    "/api/v1/system/slo" -> slo_json()
+    "/api/v1/system/slo" ->
+      module_guard.unwrap(module_guard.guard_json(slo_json(), "system/slo", "slos"))
     // F05 Circuit breaker state visualisation (SC-GLM-UI-001, L5_COGNITIVE)
     "/api/v1/system/circuits" -> circuit_breaker_json()
+    // Sprint 6: Guard grid — 24-cell L0-L7 verdict matrix (SC-SIL4-001, SC-FUNC-002)
+    // तन्त्रिका सक्रिय — Nerves activated
+    "/api/v1/system/guard-grid" -> guard_grid_json()
     // Data freshness / staleness check (SC-EVO-KPI-003)
-    "/api/v1/health/freshness" -> data_freshness_json()
+    "/api/v1/health/freshness" ->
+      module_guard.unwrap(module_guard.guard_json(data_freshness_json(), "health/freshness", "staleness"))
     // Health cascade across L0-L7 fractal layers (SC-SIL4-001, SC-VER-001, SC-HA-001)
     "/api/v1/health/cascade" ->
-      health_cascade.check_cascade() |> health_cascade.to_json()
+      module_guard.unwrap(
+        module_guard.guard_json(
+          health_cascade.check_cascade() |> health_cascade.to_json(),
+          "health/cascade",
+          "layers",
+        ),
+      )
     // Cockpit endpoints (SC-HMI-010 Dark Cockpit)
     "/api/v1/cockpit/alarms" -> cockpit_alarms_json()
     "/api/v1/cockpit/mode" -> cockpit_mode_json()
-    "/api/v1/planning" | "/api/planning/tasks" -> planning_json()
+    "/api/v1/planning" | "/api/planning/tasks" ->
+      module_guard.unwrap(module_guard.guard_json(planning_json(), "planning", "page"))
     "/api/v1/immune" | "/api/immune/status" -> immune_json()
     "/api/v1/knowledge" | "/api/knowledge/graph" -> knowledge_json()
     "/api/v1/zenoh" | "/api/zenoh/health" -> zenoh_json()
@@ -174,7 +193,8 @@ pub fn route(path: String) -> String {
     // Guardian lane routes (T010) — L0 Constitutional (SC-SAFETY-001)
     "/api/v1/guardian/pending" -> guardian_pending_json()
     // Planning NIF routes (Rust NIF -> Smriti.db, SC-TODO-001, SC-ZMOF-005)
-    "/api/v1/plan/status" -> c3i_nif.plan_status()
+    "/api/v1/plan/status" ->
+      module_guard.unwrap(module_guard.guard_nif(c3i_nif.plan_status(), "plan_status"))
     "/api/v1/plan/pending" -> c3i_nif.plan_list_pending()
     "/api/v1/plan/list/pending" -> c3i_nif.plan_list_by_status("pending")
     "/api/v1/plan/list/in_progress" ->
@@ -642,6 +662,16 @@ fn circuit_breaker_json() -> String {
     #("half_open", json.int(0)),
   ])
   |> json.to_string()
+}
+
+/// Sprint 6: Guard grid endpoint — 24-cell L0-L7 verdict matrix (SC-SIL4-001)
+/// तन्त्रिका सक्रिय — Nerves activated across all fractal layers
+/// Initialises a fresh guard grid and serialises its state to JSON.
+/// In production a persistent OTP actor would maintain the live verdict state;
+/// this endpoint exposes the baseline (all-PASSED) snapshot for integration tests.
+fn guard_grid_json() -> String {
+  let grid = guard_grid.init()
+  guard_grid.to_json(grid)
 }
 
 /// Data freshness check — components report staleness (SC-EVO-KPI-003)

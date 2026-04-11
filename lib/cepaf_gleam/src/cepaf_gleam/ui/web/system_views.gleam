@@ -78,6 +78,11 @@ pub fn immune_view(state: SharedMeshState) -> Element(msg) {
         ["Psi-5 Truthfulness", "PASS", "No deception in outputs"],
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/immune-grid.js?v=22.10.0")],
+      [],
+    ),
   ])
 }
 
@@ -137,6 +142,11 @@ pub fn zenoh_view(state: SharedMeshState) -> Element(msg) {
         ["indrajaal/mcp/**", "pub/sub", "MCP-over-Zenoh (MoZ)"],
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/zenoh-grid.js?v=22.10.0")],
+      [],
+    ),
   ])
 }
 
@@ -202,6 +212,11 @@ pub fn verification_view(_state: SharedMeshState) -> Element(msg) {
         ["Tab coverage (15/15)", "100%", "PASS"],
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/verification-grid.js?v=22.10.0")],
+      [],
+    ),
   ])
 }
 
@@ -242,6 +257,11 @@ pub fn substrate_view(_state: SharedMeshState) -> Element(msg) {
         ],
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/substrate-grid.js?v=22.10.0")],
+      [],
+    ),
   ])
 }
 
@@ -363,6 +383,11 @@ pub fn podman_view(state: SharedMeshState) -> Element(msg) {
         ),
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/podman-grid.js?v=22.10.0")],
+      [],
+    ),
   ])
 }
 

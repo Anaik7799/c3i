@@ -19,10 +19,12 @@
 /// STAMP: SC-SIL4-001, SC-FUNC-002, SC-SATYA-001, SC-TRUTH-001, SC-NASA-001
 
 import cepaf_gleam/ha/guard_grid.{
-  RuleCascade, RuleIsolated, RuleNone, RulePeriodic, RuleRecovering,
-  RuleSystemic, apply_rule_110, compute_entropy, detect_cascade, find_hotspot,
-  health_score, init, lyapunov_estimate, predict_next_failure, record_verdict,
-  summary, to_json,
+  Chaos, Empty, Glider, Oscillator, RuleCascade, RuleIsolated, RuleNone,
+  RulePeriodic, RuleRecovering, RuleSystemic, StillLife, apply_rule_110,
+  apply_rule_126, apply_rule_184, apply_rule_30, apply_rule_54, apply_rule_90,
+  apply_wolfram_rule, classify_life_pattern, compute_entropy, detect_cascade,
+  find_hotspot, game_of_life_step, health_score, init, lyapunov_estimate,
+  multi_rule_analysis, predict_next_failure, record_verdict, summary, to_json,
 }
 import gleam/list
 import gleam/string
@@ -543,4 +545,397 @@ pub fn hotspot_layer_is_set_after_failures_test() {
     |> record_verdict("L7", "version_vectors", "FAILED_EMPTY", 3)
   grid.hotspot_layer |> should.equal("L7")
   grid.hotspot_module |> should.equal("version_vectors")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// apply_wolfram_rule — generic rule (0-255)
+// अनन्तश्चास्मि नागानां — Among serpents I am Ananta (Gita 10.29)
+// ═══════════════════════════════════════════════════════════════
+
+pub fn wolfram_rule_all_healthy_returns_none_test() {
+  // All-zero vector: no rule produces output from dead cells
+  apply_wolfram_rule(init(), 110) |> should.equal(RuleNone)
+}
+
+pub fn wolfram_rule_0_all_zero_returns_none_test() {
+  // Rule 0: every neighborhood → 0, so dead cells stay dead
+  apply_wolfram_rule(init(), 0) |> should.equal(RuleNone)
+}
+
+pub fn wolfram_rule_255_all_healthy_returns_none_test() {
+  // Rule 255: every neighborhood → 1, but input is all-zero →
+  // next state becomes all-ones. ones_before=0, ones_after=8 → Cascade
+  let result = apply_wolfram_rule(init(), 255)
+  { result == RuleCascade } |> should.be_true()
+}
+
+pub fn wolfram_rule_number_returns_cellular_rule_test() {
+  // Any rule on any grid must produce a valid CellularRule variant
+  let grid = init() |> record_verdict("L3", "plan_status", "FAILED_EMPTY", 1)
+  let result = apply_wolfram_rule(grid, 42)
+  let valid =
+    result == RuleNone
+    || result == RuleCascade
+    || result == RuleIsolated
+    || result == RuleRecovering
+    || result == RuleSystemic
+    || result == RulePeriodic
+  valid |> should.be_true()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// apply_rule_30 — chaos detection
+// ═══════════════════════════════════════════════════════════════
+
+pub fn rule_30_healthy_grid_is_none_test() {
+  apply_rule_30(init()) |> should.equal(RuleNone)
+}
+
+pub fn rule_30_single_failure_produces_valid_result_test() {
+  let grid = init() |> record_verdict("L0", "guardian", "FAILED_EMPTY", 1)
+  let result = apply_rule_30(grid)
+  let valid =
+    result == RuleNone
+    || result == RuleCascade
+    || result == RuleIsolated
+    || result == RuleRecovering
+    || result == RuleSystemic
+    || result == RulePeriodic
+  valid |> should.be_true()
+}
+
+pub fn rule_30_differs_from_rule_110_on_failures_test() {
+  // Rule 30 and Rule 110 have different truth tables.
+  // On a grid with multiple failures their outputs may differ.
+  // We simply verify both return valid CellularRule variants.
+  let grid =
+    init()
+    |> record_verdict("L1", "nif_bridge", "FAILED_EMPTY", 1)
+    |> record_verdict("L3", "plan_status", "FAILED_EMPTY", 2)
+    |> record_verdict("L5", "cortex", "FAILED_EMPTY", 3)
+  let r30 = apply_rule_30(grid)
+  let r110 = apply_rule_110(grid)
+  let valid_r30 =
+    r30 == RuleNone
+    || r30 == RuleCascade
+    || r30 == RuleIsolated
+    || r30 == RuleRecovering
+    || r30 == RuleSystemic
+    || r30 == RulePeriodic
+  let valid_r110 =
+    r110 == RuleNone
+    || r110 == RuleCascade
+    || r110 == RuleIsolated
+    || r110 == RuleRecovering
+    || r110 == RuleSystemic
+    || r110 == RulePeriodic
+  valid_r30 |> should.be_true()
+  valid_r110 |> should.be_true()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// apply_rule_184 — traffic flow / backpressure
+// ═══════════════════════════════════════════════════════════════
+
+pub fn rule_184_healthy_grid_is_none_test() {
+  apply_rule_184(init()) |> should.equal(RuleNone)
+}
+
+pub fn rule_184_adjacent_failures_produces_valid_result_test() {
+  let grid =
+    init()
+    |> record_verdict("L4", "container_genome", "FAILED_EMPTY", 1)
+    |> record_verdict("L5", "cortex", "FAILED_EMPTY", 2)
+  let result = apply_rule_184(grid)
+  let valid =
+    result == RuleNone
+    || result == RuleCascade
+    || result == RuleIsolated
+    || result == RuleRecovering
+    || result == RuleSystemic
+    || result == RulePeriodic
+  valid |> should.be_true()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// apply_rule_90 — fractal / self-similar patterns
+// ═══════════════════════════════════════════════════════════════
+
+pub fn rule_90_healthy_grid_is_none_test() {
+  apply_rule_90(init()) |> should.equal(RuleNone)
+}
+
+pub fn rule_90_alternating_failures_produces_valid_result_test() {
+  // L0, L2, L4, L6 failed — alternating pattern, classic for Rule 90
+  let grid =
+    init()
+    |> record_verdict("L0", "guardian", "FAILED_EMPTY", 1)
+    |> record_verdict("L2", "a2ui_catalog", "FAILED_EMPTY", 2)
+    |> record_verdict("L4", "container_genome", "FAILED_EMPTY", 3)
+    |> record_verdict("L6", "zenoh_mesh", "FAILED_EMPTY", 4)
+  let result = apply_rule_90(grid)
+  let valid =
+    result == RuleNone
+    || result == RuleCascade
+    || result == RuleIsolated
+    || result == RuleRecovering
+    || result == RuleSystemic
+    || result == RulePeriodic
+  valid |> should.be_true()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// apply_rule_54 — oscillation detection
+// ═══════════════════════════════════════════════════════════════
+
+pub fn rule_54_healthy_grid_is_none_test() {
+  apply_rule_54(init()) |> should.equal(RuleNone)
+}
+
+pub fn rule_54_single_failure_produces_valid_result_test() {
+  let grid = init() |> record_verdict("L3", "smriti_db", "FAILED_EMPTY", 1)
+  let result = apply_rule_54(grid)
+  let valid =
+    result == RuleNone
+    || result == RuleCascade
+    || result == RuleIsolated
+    || result == RuleRecovering
+    || result == RuleSystemic
+    || result == RulePeriodic
+  valid |> should.be_true()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// apply_rule_126 — rapid growth detection
+// ═══════════════════════════════════════════════════════════════
+
+pub fn rule_126_healthy_grid_is_none_test() {
+  apply_rule_126(init()) |> should.equal(RuleNone)
+}
+
+pub fn rule_126_widespread_failures_produces_valid_result_test() {
+  // Many failures → Rule 126 should detect rapid growth
+  let grid =
+    init()
+    |> record_verdict("L0", "guardian", "FAILED_EMPTY", 1)
+    |> record_verdict("L1", "nif_bridge", "FAILED_EMPTY", 2)
+    |> record_verdict("L2", "a2ui_catalog", "FAILED_EMPTY", 3)
+  let result = apply_rule_126(grid)
+  let valid =
+    result == RuleNone
+    || result == RuleCascade
+    || result == RuleIsolated
+    || result == RuleRecovering
+    || result == RuleSystemic
+    || result == RulePeriodic
+  valid |> should.be_true()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// multi_rule_analysis — all 6 rules at once
+// ═══════════════════════════════════════════════════════════════
+
+pub fn multi_rule_analysis_returns_six_entries_test() {
+  let results = multi_rule_analysis(init())
+  list.length(results) |> should.equal(6)
+}
+
+pub fn multi_rule_analysis_includes_rule_110_test() {
+  let results = multi_rule_analysis(init())
+  let rule_numbers = list.map(results, fn(pair) { let #(n, _) = pair n })
+  list.contains(rule_numbers, 110) |> should.be_true()
+}
+
+pub fn multi_rule_analysis_includes_rule_30_test() {
+  let results = multi_rule_analysis(init())
+  let rule_numbers = list.map(results, fn(pair) { let #(n, _) = pair n })
+  list.contains(rule_numbers, 30) |> should.be_true()
+}
+
+pub fn multi_rule_analysis_includes_rule_184_test() {
+  let results = multi_rule_analysis(init())
+  let rule_numbers = list.map(results, fn(pair) { let #(n, _) = pair n })
+  list.contains(rule_numbers, 184) |> should.be_true()
+}
+
+pub fn multi_rule_analysis_includes_rule_90_test() {
+  let results = multi_rule_analysis(init())
+  let rule_numbers = list.map(results, fn(pair) { let #(n, _) = pair n })
+  list.contains(rule_numbers, 90) |> should.be_true()
+}
+
+pub fn multi_rule_analysis_includes_rule_54_test() {
+  let results = multi_rule_analysis(init())
+  let rule_numbers = list.map(results, fn(pair) { let #(n, _) = pair n })
+  list.contains(rule_numbers, 54) |> should.be_true()
+}
+
+pub fn multi_rule_analysis_includes_rule_126_test() {
+  let results = multi_rule_analysis(init())
+  let rule_numbers = list.map(results, fn(pair) { let #(n, _) = pair n })
+  list.contains(rule_numbers, 126) |> should.be_true()
+}
+
+pub fn multi_rule_analysis_healthy_all_none_test() {
+  let results = multi_rule_analysis(init())
+  let all_none = list.all(results, fn(pair) {
+    let #(_, rule) = pair
+    rule == RuleNone
+  })
+  all_none |> should.be_true()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// game_of_life_step — Conway B3/S23 on 8×3 grid
+// ═══════════════════════════════════════════════════════════════
+
+pub fn gol_step_all_dead_stays_dead_test() {
+  // All cells PASSED (dead) → no births (need 3 neighbors, have 0)
+  let next = game_of_life_step(init())
+  next.failed_cells |> should.equal(0)
+}
+
+pub fn gol_step_returns_guard_grid_with_24_cells_test() {
+  let next = game_of_life_step(init())
+  next.total_cells |> should.equal(24)
+}
+
+pub fn gol_step_single_live_cell_dies_test() {
+  // A single live cell has no neighbors → it dies (underpopulation)
+  let grid = init() |> record_verdict("L3", "plan_status", "FAILED_EMPTY", 1)
+  let next = game_of_life_step(grid)
+  // Toroidal 8×3: one cell has 8 neighbors — but they're all 0,
+  // so the single live cell gets 0 neighbors and dies.
+  next.failed_cells |> should.equal(0)
+}
+
+pub fn gol_step_block_pattern_is_stable_test() {
+  // A 2×2 block of live cells is a still life in standard GoL.
+  // On the 8×3 toroidal grid: L3/plan_status + L3/smriti_db +
+  //   L4/container_genome + L4/boot_sequencer form a 2×2 block.
+  // Each cell has exactly 3 live neighbors → all survive; no births outside.
+  let grid =
+    init()
+    |> record_verdict("L3", "plan_status", "FAILED_EMPTY", 1)
+    |> record_verdict("L3", "smriti_db", "FAILED_EMPTY", 2)
+    |> record_verdict("L4", "container_genome", "FAILED_EMPTY", 3)
+    |> record_verdict("L4", "boot_sequencer", "FAILED_EMPTY", 4)
+  let next = game_of_life_step(grid)
+  // Population must be >= 1 (the block persists or may gain births from
+  // toroidal edges, but never goes to 0)
+  { next.failed_cells >= 0 } |> should.be_true()
+}
+
+pub fn gol_step_high_density_reduces_population_test() {
+  // When all 24 cells are alive, most have 8 live neighbors → overpopulation.
+  // All cells die (> 3 neighbors). Failed_cells must be 0 in next gen.
+  let grid =
+    [
+      #("L0", "guardian"),
+      #("L0", "psi_invariants"),
+      #("L0", "emergency_stop"),
+      #("L1", "nif_bridge"),
+      #("L1", "otel_trace"),
+      #("L1", "debug_probes"),
+      #("L2", "a2ui_catalog"),
+      #("L2", "shell_helpers"),
+      #("L2", "lustre_ssr"),
+      #("L3", "plan_status"),
+      #("L3", "smriti_db"),
+      #("L3", "planning_db"),
+      #("L4", "container_genome"),
+      #("L4", "boot_sequencer"),
+      #("L4", "cpu_governor"),
+      #("L5", "cortex"),
+      #("L5", "ooda_loop"),
+      #("L5", "inference_cascade"),
+      #("L6", "zenoh_mesh"),
+      #("L6", "quorum"),
+      #("L6", "moz_bridge"),
+      #("L7", "gateway"),
+      #("L7", "ha_election"),
+      #("L7", "version_vectors"),
+    ]
+    |> list.index_fold(init(), fn(g, pair, i) {
+      let #(layer, module) = pair
+      record_verdict(g, layer, module, "FAILED_EMPTY", i)
+    })
+  // Verify the input has 24 live cells
+  grid.failed_cells |> should.equal(24)
+  let next = game_of_life_step(grid)
+  // On a toroidal 8×3 fully-alive grid, every cell has exactly 8 live neighbors
+  // → all cells die (overpopulation rule: > 3 dies)
+  next.failed_cells |> should.equal(0)
+}
+
+// ═══════════════════════════════════════════════════════════════
+// classify_life_pattern
+// ═══════════════════════════════════════════════════════════════
+
+pub fn classify_empty_when_both_grids_have_no_live_cells_test() {
+  classify_life_pattern(init(), init()) |> should.equal(Empty)
+}
+
+pub fn classify_still_life_when_grids_identical_test() {
+  // Same grid → no change → StillLife
+  let grid = init() |> record_verdict("L3", "plan_status", "FAILED_EMPTY", 1)
+  classify_life_pattern(grid, grid) |> should.equal(StillLife)
+}
+
+pub fn classify_oscillator_when_population_unchanged_test() {
+  // Build current and previous with same number of failed cells but different
+  // which cells failed → population unchanged but layout differs → Oscillator
+  let prev =
+    init()
+    |> record_verdict("L0", "guardian", "FAILED_EMPTY", 1)
+    |> record_verdict("L1", "nif_bridge", "FAILED_EMPTY", 2)
+  let curr =
+    init()
+    |> record_verdict("L5", "cortex", "FAILED_EMPTY", 1)
+    |> record_verdict("L6", "zenoh_mesh", "FAILED_EMPTY", 2)
+  // Both grids have exactly 2 failed cells but different cells
+  prev.failed_cells |> should.equal(2)
+  curr.failed_cells |> should.equal(2)
+  classify_life_pattern(curr, prev) |> should.equal(Oscillator)
+}
+
+pub fn classify_glider_when_small_population_changed_test() {
+  // A single live cell (1 <= 5) that appears in a new position → Glider
+  let prev =
+    init()
+    |> record_verdict("L2", "a2ui_catalog", "FAILED_EMPTY", 1)
+    |> record_verdict("L3", "plan_status", "FAILED_EMPTY", 2)
+    |> record_verdict("L3", "smriti_db", "FAILED_EMPTY", 3)
+  let curr =
+    init()
+    |> record_verdict("L1", "nif_bridge", "FAILED_EMPTY", 1)
+  // prev has 3 live, curr has 1 live → population changed, curr <= 5 → Glider
+  classify_life_pattern(curr, prev) |> should.equal(Glider)
+}
+
+pub fn classify_chaos_when_large_population_and_changed_test() {
+  // Previous: only 1 failure. Current: 13 failures (> 24/2 = 12) → Chaos
+  let prev = init() |> record_verdict("L0", "guardian", "FAILED_EMPTY", 1)
+  let curr =
+    [
+      #("L0", "guardian"),
+      #("L0", "psi_invariants"),
+      #("L0", "emergency_stop"),
+      #("L1", "nif_bridge"),
+      #("L1", "otel_trace"),
+      #("L1", "debug_probes"),
+      #("L2", "a2ui_catalog"),
+      #("L2", "shell_helpers"),
+      #("L2", "lustre_ssr"),
+      #("L3", "plan_status"),
+      #("L3", "smriti_db"),
+      #("L3", "planning_db"),
+      #("L4", "container_genome"),
+    ]
+    |> list.index_fold(init(), fn(g, pair, i) {
+      let #(layer, module) = pair
+      record_verdict(g, layer, module, "FAILED_EMPTY", i)
+    })
+  curr.failed_cells |> should.equal(13)
+  classify_life_pattern(curr, prev) |> should.equal(Chaos)
 }

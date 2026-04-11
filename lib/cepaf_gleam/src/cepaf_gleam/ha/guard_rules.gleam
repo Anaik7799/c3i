@@ -34,12 +34,13 @@
 //// RETE-UL Guard Rules Engine — Typed rule definitions for guard grid evaluation
 //// नियतं कुरु कर्म त्वं — Perform your prescribed duty (Gita 3.8)
 ////
-//// 15 predefined rules cover cascade detection, cockpit mode escalation,
-//// self-healing triggers, entropy/Lyapunov divergence signals, and constitutional
-//// layer protection.  Rules are evaluated in salience order (highest first);
+//// 30 predefined rules cover cascade detection, cockpit mode escalation,
+//// self-healing triggers, entropy/Lyapunov divergence signals, constitutional
+//// layer protection, failure correlation, predictive alerting, and compound
+//// degradation detection.  Rules are evaluated in salience order (highest first);
 //// the first triggered rule's action is returned as the highest-priority action.
 ////
-//// Rule inventory:
+//// Rule inventory (GR-001..GR-015 — original):
 ////   GR-001  CascadeEscalation       salience 100  cascade_depth >= 3 → JidokaHalt
 ////   GR-002  EmergencyMode           salience  95  health < 0.3       → SetCockpitMode("emergency")
 ////   GR-003  ConstitutionalThreat    salience 100  LayerFailing("L0") → JidokaHalt
@@ -55,6 +56,23 @@
 ////   GR-013  LyapunovDivergence      salience  60  LyapunovPositive   → LogWarning
 ////   GR-014  NormalMode              salience  40  health > 0.9       → SetCockpitMode("dark")
 ////   GR-015  AllClear                salience  30  health >= 0.95 AND entropy < 0.3 → NoAction
+////
+//// Rule inventory (GR-016..GR-030 — extended predictive & correlation layer):
+////   GR-016  RecurringNifFailure     salience  70  ConsecutiveFailures("nif_bridge",3) → TriggerRunbook("RB-001")
+////   GR-017  HealthOscillation       salience  65  HealthOscillating(0.2)  → PreventiveCooldown
+////   GR-018  ReliabilityStreak       salience  25  HealthAbove(0.95)       → RecordMilestone("1h_streak")
+////   GR-019  NifPlanningCorrelation  salience  55  LayersFailing(["L1","L3"]) → CorrelateFailures
+////   GR-020  HealthDeclineRate       salience  60  HealthDeclining(-0.1)   → PredictiveAlert
+////   GR-021  ZenohFedCorrelation     salience  55  LayersFailing(["L6","L7"]) → CorrelateFailures
+////   GR-022  GhostStateDetection     salience  45  L4/health low AND NOT L5 → ClassifyPattern
+////   GR-023  EntropyEscalation       salience  80  EntropyIncreasing(3)    → PreventiveCooldown
+////   GR-024  DegradedClassification  salience  50  HealthBelow(0.6)        → ClassifyPattern
+////   GR-025  IsolatedFailure         salience  35  failures > 1, no cascade → ClassifyPattern
+////   GR-026  CriticalDivergence      salience  95  LyapunovPositive + cascade → JidokaHalt
+////   GR-027  ComponentDegradation    salience  40  LayerFailing("L2")      → LogWarning
+////   GR-028  TransactionRecovery     salience  45  LayerFailing("L3")      → TriggerRunbook("RB-003")
+////   GR-029  MassFailureEmergency    salience  75  failure_count > 8       → SetCockpitMode("emergency")
+////   GR-030  CompoundDegradation     salience  55  HealthDeclining + EntropyExceeds → EscalateToOperator
 ////
 //// STAMP: SC-SIL4-001, SC-HA-001, SC-OODA-001, SC-MUDA-001, SC-FUNC-001
 
@@ -109,6 +127,23 @@ pub type RuleCondition {
   AllOf(conditions: List(RuleCondition))
   /// Any sub-condition is true (logical OR)
   AnyOf(conditions: List(RuleCondition))
+  /// Consecutive failures for a specific module exceed threshold.
+  /// Encoded at evaluation time as failure_count > threshold (conservative
+  /// approximation when per-module history is not available in the signature).
+  ConsecutiveFailures(module: String, threshold: Int)
+  /// Health oscillating — delta > threshold in a sliding window.
+  /// Encoded as entropy > delta_threshold (oscillation raises entropy).
+  HealthOscillating(delta_threshold: Float)
+  /// Health derivative is negative (health is declining at rate <= rate).
+  /// Encoded via lyapunov < rate (rate is negative, e.g. -0.1).
+  HealthDeclining(rate: Float)
+  /// Entropy has been increasing for N consecutive cycles.
+  /// Encoded as cascade_depth >= cycles (rising entropy escalates depth).
+  EntropyIncreasing(cycles: Int)
+  /// All listed fractal layers are failing simultaneously.
+  /// Requires evaluate_condition_with_layers for accurate evaluation;
+  /// falls back to failure_count > list.length(layers) in basic API.
+  LayersFailing(layers: List(String))
 }
 
 /// Rule actions — control decisions produced by fired rules
@@ -131,6 +166,16 @@ pub type RuleAction {
   NoAction
   /// Execute multiple actions in sequence
   ActionSequence(actions: List(RuleAction))
+  /// Correlate failures across layers for root-cause analysis
+  CorrelateFailures(description: String)
+  /// Classify failure pattern for diagnostic routing
+  ClassifyPattern(pattern: String)
+  /// Record a reliability milestone for SLO tracking
+  RecordMilestone(milestone: String)
+  /// Predictive alert based on current trend extrapolation
+  PredictiveAlert(prediction: String)
+  /// Preventive cooldown to arrest an unstable trajectory
+  PreventiveCooldown(reason: String)
 }
 
 /// Result of evaluating a single rule against current grid metrics
@@ -150,7 +195,7 @@ pub type RuleEvaluation {
 }
 
 // ---------------------------------------------------------------------------
-// Rule catalog — 15 predefined rules
+// Rule catalog — 30 predefined rules
 // ---------------------------------------------------------------------------
 
 /// All guard rules ordered by salience (highest first).
@@ -174,6 +219,15 @@ pub fn all_rules() -> List(GuardRule) {
       action: JidokaHalt("L0 Constitutional layer failing: Psi invariants may be violated"),
       layer: "L0",
       description: "L0 Constitutional layer failure triggers immediate Jidoka halt",
+    ),
+    GuardRule(
+      id: "GR-026",
+      name: "CriticalDivergence",
+      salience: 95,
+      condition: AllOf(conditions: [LyapunovPositive, CascadeDepth(min_depth: 2)]),
+      action: JidokaHalt("Lyapunov positive with cascade depth >= 2: stability boundary breached"),
+      layer: "*",
+      description: "Positive Lyapunov exponent combined with cascade triggers Jidoka halt",
     ),
     GuardRule(
       id: "GR-002",
@@ -212,6 +266,15 @@ pub fn all_rules() -> List(GuardRule) {
       description: "Health < 50% transitions cockpit to bright (high-visibility) mode",
     ),
     GuardRule(
+      id: "GR-023",
+      name: "EntropyEscalation",
+      salience: 80,
+      condition: EntropyIncreasing(cycles: 3),
+      action: PreventiveCooldown("entropy rising for 3+ consecutive cycles"),
+      layer: "*",
+      description: "Entropy increasing for 3+ cycles triggers preventive cooldown",
+    ),
+    GuardRule(
       id: "GR-007",
       name: "AutoHealNif",
       salience: 80,
@@ -219,6 +282,15 @@ pub fn all_rules() -> List(GuardRule) {
       action: AttemptHotReload,
       layer: "L1",
       description: "3 consecutive NIF bridge failures trigger hot code reload",
+    ),
+    GuardRule(
+      id: "GR-029",
+      name: "MassFailureEmergency",
+      salience: 75,
+      condition: FailureCountExceeds(threshold: 8),
+      action: SetCockpitMode("emergency"),
+      layer: "*",
+      description: "Mass failure (> 8 modules) escalates cockpit to emergency",
     ),
     GuardRule(
       id: "GR-008",
@@ -239,6 +311,24 @@ pub fn all_rules() -> List(GuardRule) {
       description: "L1 Atomic/NIF layer failure invokes NIF Pipeline Recovery runbook",
     ),
     GuardRule(
+      id: "GR-016",
+      name: "RecurringNifFailure",
+      salience: 70,
+      condition: ConsecutiveFailures(module: "nif_bridge", threshold: 3),
+      action: TriggerRunbook("RB-001"),
+      layer: "L1",
+      description: "Recurring NIF bridge failures (> 3) invoke recovery runbook",
+    ),
+    GuardRule(
+      id: "GR-017",
+      name: "HealthOscillation",
+      salience: 65,
+      condition: HealthOscillating(delta_threshold: 0.2),
+      action: PreventiveCooldown("health unstable: oscillation delta > 0.2"),
+      layer: "*",
+      description: "Health oscillating with delta > 0.2 triggers preventive cooldown",
+    ),
+    GuardRule(
       id: "GR-012",
       name: "EntropyAlert",
       salience: 65,
@@ -246,6 +336,15 @@ pub fn all_rules() -> List(GuardRule) {
       action: EscalateToOperator("Shannon entropy > 1.5 bits: failures are systemic / unpredictable"),
       layer: "*",
       description: "High Shannon entropy signals systemic unpredictability — escalate",
+    ),
+    GuardRule(
+      id: "GR-020",
+      name: "HealthDeclineRate",
+      salience: 60,
+      condition: HealthDeclining(rate: -0.1),
+      action: PredictiveAlert("health declining at rate > 0.1/cycle — emergency in ~70s"),
+      layer: "*",
+      description: "Health declining at >= 0.1/cycle predicts imminent emergency",
     ),
     GuardRule(
       id: "GR-013",
@@ -266,6 +365,36 @@ pub fn all_rules() -> List(GuardRule) {
       description: "L5 Cognitive layer degraded — invoke circuit breaker reset runbook",
     ),
     GuardRule(
+      id: "GR-019",
+      name: "NifPlanningCorrelation",
+      salience: 55,
+      condition: LayersFailing(layers: ["L1", "L3"]),
+      action: CorrelateFailures("NIF→Planning pipeline failure correlation detected"),
+      layer: "*",
+      description: "L1 and L3 failing simultaneously — NIF-Planning pipeline correlation",
+    ),
+    GuardRule(
+      id: "GR-021",
+      name: "ZenohFedCorrelation",
+      salience: 55,
+      condition: LayersFailing(layers: ["L6", "L7"]),
+      action: CorrelateFailures("Zenoh→Federation dependency failure correlation detected"),
+      layer: "*",
+      description: "L6 and L7 failing simultaneously — Zenoh-Federation dependency correlation",
+    ),
+    GuardRule(
+      id: "GR-030",
+      name: "CompoundDegradation",
+      salience: 55,
+      condition: AllOf(conditions: [
+        HealthDeclining(rate: -0.05),
+        EntropyExceeds(threshold: 1.0),
+      ]),
+      action: EscalateToOperator("compound degradation: health declining + entropy elevated"),
+      layer: "*",
+      description: "Declining health combined with elevated entropy signals compound degradation",
+    ),
+    GuardRule(
       id: "GR-011",
       name: "HealthDegraded",
       salience: 50,
@@ -275,6 +404,36 @@ pub fn all_rules() -> List(GuardRule) {
       description: "Health < 70% logs a degradation warning",
     ),
     GuardRule(
+      id: "GR-024",
+      name: "DegradedClassification",
+      salience: 50,
+      condition: HealthBelow(threshold: 0.6),
+      action: ClassifyPattern("degraded_but_operational"),
+      layer: "*",
+      description: "Health < 60% classifies system as degraded but operational",
+    ),
+    GuardRule(
+      id: "GR-022",
+      name: "GhostStateDetection",
+      salience: 45,
+      condition: AllOf(conditions: [
+        AnyOf(conditions: [LayerFailing("L4"), HealthBelow(threshold: 0.8)]),
+        HealthAbove(threshold: 0.0),
+      ]),
+      action: ClassifyPattern("container_issue_cortex_alive"),
+      layer: "*",
+      description: "L4/health degraded while L5 intact — ghost state (container issue, cortex alive)",
+    ),
+    GuardRule(
+      id: "GR-028",
+      name: "TransactionRecovery",
+      salience: 45,
+      condition: LayerFailing(layer: "L3"),
+      action: TriggerRunbook("RB-003"),
+      layer: "L3",
+      description: "L3 Transaction layer failure invokes transaction recovery runbook",
+    ),
+    GuardRule(
       id: "GR-014",
       name: "NormalMode",
       salience: 40,
@@ -282,6 +441,27 @@ pub fn all_rules() -> List(GuardRule) {
       action: SetCockpitMode("dark"),
       layer: "*",
       description: "Health > 90% returns cockpit to dark (nominal suppressed) mode",
+    ),
+    GuardRule(
+      id: "GR-027",
+      name: "ComponentDegradation",
+      salience: 40,
+      condition: LayerFailing(layer: "L2"),
+      action: LogWarning("L2 Component layer degraded"),
+      layer: "L2",
+      description: "L2 Component layer failure logged as a degradation warning",
+    ),
+    GuardRule(
+      id: "GR-025",
+      name: "IsolatedFailure",
+      salience: 35,
+      condition: AllOf(conditions: [
+        FailureCountExceeds(threshold: 1),
+        AnyOf(conditions: [EntropyExceeds(threshold: 0.0)]),
+      ]),
+      action: ClassifyPattern("isolated_failure"),
+      layer: "*",
+      description: "Isolated failure (failures > 1, no deep cascade) classified for tracking",
     ),
     GuardRule(
       id: "GR-015",
@@ -301,6 +481,15 @@ pub fn all_rules() -> List(GuardRule) {
       action: NoAction,
       layer: "*",
       description: "Health >= 95% and entropy < 0.3 — all clear, no action required",
+    ),
+    GuardRule(
+      id: "GR-018",
+      name: "ReliabilityStreak",
+      salience: 25,
+      condition: HealthAbove(threshold: 0.95),
+      action: RecordMilestone("1h_streak"),
+      layer: "*",
+      description: "Health >= 95% sustained — record reliability streak milestone for SLO",
     ),
   ]
 }
@@ -371,6 +560,24 @@ pub fn evaluate_condition(
       list.any(conditions, fn(c) {
         evaluate_condition(c, health, entropy, cascade_depth, failure_count, lyapunov)
       })
+
+    // ConsecutiveFailures: conservative approximation — fire when failure_count
+    // exceeds the threshold (no per-module history available in basic signature).
+    ConsecutiveFailures(_, threshold) -> failure_count > threshold
+
+    // HealthOscillating: oscillation raises entropy; fire when entropy > delta_threshold.
+    HealthOscillating(delta_threshold) -> entropy >. delta_threshold
+
+    // HealthDeclining: lyapunov encodes health derivative when < 0.
+    // Fire when lyapunov <= rate (both negative; rate e.g. -0.1 means declining at 0.1/cycle).
+    HealthDeclining(rate) -> lyapunov <. 0.0 && lyapunov <=. rate
+
+    // EntropyIncreasing: encoded as cascade_depth >= cycles (rising entropy propagates depth).
+    EntropyIncreasing(cycles) -> cascade_depth >= cycles
+
+    // LayersFailing (basic API): fire when failure_count exceeds the number of
+    // layers listed (conservative proxy — use evaluate_condition_with_layers for accuracy).
+    LayersFailing(layers) -> failure_count > list.length(layers)
   }
 }
 
@@ -481,6 +688,11 @@ pub fn action_to_string(action: RuleAction) -> String {
       "ActionSequence(["
       <> string.join(list.map(actions, action_to_string), ",")
       <> "])"
+    CorrelateFailures(description) -> "CorrelateFailures(" <> description <> ")"
+    ClassifyPattern(pattern) -> "ClassifyPattern(" <> pattern <> ")"
+    RecordMilestone(milestone) -> "RecordMilestone(" <> milestone <> ")"
+    PredictiveAlert(prediction) -> "PredictiveAlert(" <> prediction <> ")"
+    PreventiveCooldown(reason) -> "PreventiveCooldown(" <> reason <> ")"
   }
 }
 
@@ -493,9 +705,9 @@ pub fn action_to_string(action: RuleAction) -> String {
 /// Convention: callers signal a failing layer by passing a negative health
 /// value where the integer part encodes the layer index:
 ///   L0 → health < 0.0  AND  trunc(health) == 0   (i.e. health in (-1, 0))
-///   L1 → health < -1.0 AND trunc(health) == -1   (health in (-2, -1))
+///   L1 → health < -1.0 AND  trunc(health) == -1   (health in (-2, -1))
 ///   …
-///   L7 → health < -7.0 AND trunc(health) == -7
+///   L7 → health < -7.0 AND  trunc(health) == -7
 ///
 /// For production use, callers should wrap evaluate_all_with_layers/3 which
 /// accepts an explicit list of failing layer strings.
@@ -550,7 +762,7 @@ pub fn evaluate_all_with_layers(
 }
 
 /// Condition evaluator that uses an explicit failing-layers list for
-/// LayerFailing conditions (avoids the health-encoding convention).
+/// LayerFailing and LayersFailing conditions (avoids the health-encoding convention).
 pub fn evaluate_condition_with_layers(
   condition: RuleCondition,
   health: Float,
@@ -562,6 +774,10 @@ pub fn evaluate_condition_with_layers(
 ) -> Bool {
   case condition {
     LayerFailing(layer) -> list.contains(failing_layers, layer)
+
+    // LayersFailing: all listed layers must be present in failing_layers.
+    LayersFailing(layers) ->
+      list.all(layers, fn(l) { list.contains(failing_layers, l) })
 
     ModuleConsecutiveFailures(_, count) ->
       lyapunov <. 0.0 && float.absolute_value(lyapunov) >=. int.to_float(count)

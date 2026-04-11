@@ -4,10 +4,13 @@
 //// नियतं कुरु कर्म त्वं — Perform your prescribed duty (Gita 3.8)
 
 import cepaf_gleam/ha/guard_rules.{
-  ActionSequence, AllOf, AnyOf, AttemptHotReload, CascadeDepth, EntropyExceeds,
-  EscalateToOperator, FailureCountExceeds, HealthAbove, HealthBelow,
-  IsolateCell, JidokaHalt, LogWarning, LyapunovPositive,
-  ModuleConsecutiveFailures, NoAction, SetCockpitMode, TriggerRunbook,
+  ActionSequence, AllOf, AnyOf, AttemptHotReload, CascadeDepth,
+  ClassifyPattern, ConsecutiveFailures, CorrelateFailures, EntropyExceeds,
+  EntropyIncreasing, EscalateToOperator, FailureCountExceeds, HealthAbove,
+  HealthBelow, HealthDeclining, HealthOscillating, IsolateCell, JidokaHalt,
+  LayersFailing, LogWarning, LyapunovPositive,
+  ModuleConsecutiveFailures, NoAction, PreventiveCooldown, PredictiveAlert,
+  RecordMilestone, SetCockpitMode, TriggerRunbook,
   type GuardRule, type RuleEvaluation,
 }
 import gleam/list
@@ -18,8 +21,8 @@ import gleeunit/should
 // Rule Catalog
 // ═══════════════════════════════════════════════════════════════
 
-pub fn all_rules_returns_fifteen_test() {
-  guard_rules.rule_count() |> should.equal(15)
+pub fn all_rules_returns_thirty_test() {
+  guard_rules.rule_count() |> should.equal(30)
 }
 
 pub fn all_rules_have_unique_ids_test() {
@@ -27,7 +30,7 @@ pub fn all_rules_have_unique_ids_test() {
     guard_rules.all_rules()
     |> list.map(fn(r: GuardRule) { r.id })
   let unique_count = list.unique(ids) |> list.length()
-  unique_count |> should.equal(15)
+  unique_count |> should.equal(30)
 }
 
 pub fn all_rules_have_non_empty_names_test() {
@@ -54,8 +57,27 @@ pub fn rules_contain_gr003_constitutional_threat_test() {
   |> should.be_true()
 }
 
+pub fn rules_contain_all_new_ids_test() {
+  let ids = guard_rules.all_rules() |> list.map(fn(r: GuardRule) { r.id })
+  list.contains(ids, "GR-016") |> should.be_true()
+  list.contains(ids, "GR-017") |> should.be_true()
+  list.contains(ids, "GR-018") |> should.be_true()
+  list.contains(ids, "GR-019") |> should.be_true()
+  list.contains(ids, "GR-020") |> should.be_true()
+  list.contains(ids, "GR-021") |> should.be_true()
+  list.contains(ids, "GR-022") |> should.be_true()
+  list.contains(ids, "GR-023") |> should.be_true()
+  list.contains(ids, "GR-024") |> should.be_true()
+  list.contains(ids, "GR-025") |> should.be_true()
+  list.contains(ids, "GR-026") |> should.be_true()
+  list.contains(ids, "GR-027") |> should.be_true()
+  list.contains(ids, "GR-028") |> should.be_true()
+  list.contains(ids, "GR-029") |> should.be_true()
+  list.contains(ids, "GR-030") |> should.be_true()
+}
+
 // ═══════════════════════════════════════════════════════════════
-// evaluate_condition — atomic conditions
+// evaluate_condition — atomic conditions (original)
 // ═══════════════════════════════════════════════════════════════
 
 pub fn failure_count_exceeds_fires_at_threshold_test() {
@@ -196,6 +218,141 @@ pub fn module_consecutive_failures_does_not_fire_when_positive_lyapunov_test() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// evaluate_condition — new condition types (GR-016..GR-030)
+// ═══════════════════════════════════════════════════════════════
+
+pub fn consecutive_failures_fires_when_count_exceeded_test() {
+  // failure_count=5 > threshold=3 → fires
+  guard_rules.evaluate_condition(
+    ConsecutiveFailures(module: "nif_bridge", threshold: 3),
+    1.0, 0.0, 0, 5, 0.0,
+  )
+  |> should.be_true()
+}
+
+pub fn consecutive_failures_does_not_fire_at_threshold_test() {
+  // failure_count=3, threshold=3 → 3 > 3 is False
+  guard_rules.evaluate_condition(
+    ConsecutiveFailures(module: "nif_bridge", threshold: 3),
+    1.0, 0.0, 0, 3, 0.0,
+  )
+  |> should.be_false()
+}
+
+pub fn consecutive_failures_does_not_fire_below_threshold_test() {
+  guard_rules.evaluate_condition(
+    ConsecutiveFailures(module: "nif_bridge", threshold: 3),
+    1.0, 0.0, 0, 2, 0.0,
+  )
+  |> should.be_false()
+}
+
+pub fn health_oscillating_fires_when_entropy_above_delta_test() {
+  // entropy=0.5 > delta_threshold=0.2 → oscillation detected
+  guard_rules.evaluate_condition(
+    HealthOscillating(delta_threshold: 0.2),
+    0.7, 0.5, 0, 0, 0.0,
+  )
+  |> should.be_true()
+}
+
+pub fn health_oscillating_does_not_fire_below_delta_test() {
+  guard_rules.evaluate_condition(
+    HealthOscillating(delta_threshold: 0.2),
+    0.7, 0.1, 0, 0, 0.0,
+  )
+  |> should.be_false()
+}
+
+pub fn health_oscillating_does_not_fire_at_delta_threshold_test() {
+  // entropy == delta_threshold (0.2 > 0.2 is False)
+  guard_rules.evaluate_condition(
+    HealthOscillating(delta_threshold: 0.2),
+    0.7, 0.2, 0, 0, 0.0,
+  )
+  |> should.be_false()
+}
+
+pub fn health_declining_fires_when_lyapunov_at_or_below_rate_test() {
+  // lyapunov=-0.15, rate=-0.1 → -0.15 <= -0.1, declining faster than threshold
+  guard_rules.evaluate_condition(
+    HealthDeclining(rate: -0.1),
+    0.6, 0.0, 0, 0, -0.15,
+  )
+  |> should.be_true()
+}
+
+pub fn health_declining_fires_exactly_at_rate_test() {
+  // lyapunov=-0.1, rate=-0.1 → -0.1 <= -0.1 is True
+  guard_rules.evaluate_condition(
+    HealthDeclining(rate: -0.1),
+    0.6, 0.0, 0, 0, -0.1,
+  )
+  |> should.be_true()
+}
+
+pub fn health_declining_does_not_fire_when_stable_test() {
+  // lyapunov=-0.05, rate=-0.1 → -0.05 <= -0.1 is False (declining slower than threshold)
+  guard_rules.evaluate_condition(
+    HealthDeclining(rate: -0.1),
+    0.9, 0.0, 0, 0, -0.05,
+  )
+  |> should.be_false()
+}
+
+pub fn health_declining_does_not_fire_when_lyapunov_positive_test() {
+  // positive lyapunov means health is not declining in this encoding
+  guard_rules.evaluate_condition(
+    HealthDeclining(rate: -0.1),
+    0.8, 0.0, 0, 0, 0.05,
+  )
+  |> should.be_false()
+}
+
+pub fn entropy_increasing_fires_when_cascade_depth_at_cycles_test() {
+  // cascade_depth=3 >= cycles=3 → entropy rising for 3+ cycles
+  guard_rules.evaluate_condition(
+    EntropyIncreasing(cycles: 3),
+    0.8, 1.2, 3, 0, 0.0,
+  )
+  |> should.be_true()
+}
+
+pub fn entropy_increasing_fires_when_cascade_depth_exceeds_cycles_test() {
+  guard_rules.evaluate_condition(
+    EntropyIncreasing(cycles: 3),
+    0.8, 1.2, 5, 0, 0.0,
+  )
+  |> should.be_true()
+}
+
+pub fn entropy_increasing_does_not_fire_below_cycles_test() {
+  guard_rules.evaluate_condition(
+    EntropyIncreasing(cycles: 3),
+    0.8, 1.2, 2, 0, 0.0,
+  )
+  |> should.be_false()
+}
+
+pub fn layers_failing_basic_api_fires_when_failure_count_exceeds_list_size_test() {
+  // layers=["L1","L3"] has length 2; failure_count=3 > 2 → fires
+  guard_rules.evaluate_condition(
+    LayersFailing(layers: ["L1", "L3"]),
+    0.7, 0.5, 1, 3, 0.0,
+  )
+  |> should.be_true()
+}
+
+pub fn layers_failing_basic_api_does_not_fire_when_failure_count_low_test() {
+  // layers=["L1","L3"] has length 2; failure_count=2 → 2 > 2 is False
+  guard_rules.evaluate_condition(
+    LayersFailing(layers: ["L1", "L3"]),
+    0.7, 0.5, 1, 2, 0.0,
+  )
+  |> should.be_false()
+}
+
+// ═══════════════════════════════════════════════════════════════
 // AllOf / AnyOf combinators
 // ═══════════════════════════════════════════════════════════════
 
@@ -272,10 +429,10 @@ pub fn any_of_with_empty_list_is_false_test() {
 // evaluate_all — bulk evaluation with salience ordering
 // ═══════════════════════════════════════════════════════════════
 
-pub fn evaluate_all_returns_fifteen_evaluations_test() {
+pub fn evaluate_all_returns_thirty_evaluations_test() {
   let evals =
     guard_rules.evaluate_all(0.8, 0.5, 0, 0, 0.0)
-  list.length(evals) |> should.equal(15)
+  list.length(evals) |> should.equal(30)
 }
 
 pub fn evaluate_all_sorted_by_salience_descending_test() {
@@ -291,7 +448,7 @@ pub fn evaluate_all_healthy_system_no_critical_rules_fired_test() {
   // Perfect health, low entropy, no cascade, positive lyapunov not set
   let evals = guard_rules.evaluate_all(0.98, 0.1, 0, 0, -0.1)
   let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
-  // Only GR-014 (NormalMode) and GR-015 (AllClear) should fire
+  // Only GR-014 (NormalMode) and similar should fire
   list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-014" })
   |> should.be_true()
 }
@@ -388,6 +545,244 @@ pub fn evaluate_all_with_layers_no_failures_does_not_fire_layer_rules_test() {
   |> should.be_false()
 }
 
+pub fn evaluate_all_with_layers_l1_l3_fires_nif_planning_correlation_test() {
+  // Both L1 and L3 failing → GR-019 NifPlanningCorrelation fires
+  let evals =
+    guard_rules.evaluate_all_with_layers(0.6, 0.8, 1, 2, 0.0, ["L1", "L3"])
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-019" })
+  |> should.be_true()
+}
+
+pub fn evaluate_all_with_layers_l1_only_does_not_fire_gr019_test() {
+  // Only L1 failing → GR-019 requires both L1 and L3
+  let evals =
+    guard_rules.evaluate_all_with_layers(0.7, 0.5, 0, 1, 0.0, ["L1"])
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-019" })
+  |> should.be_false()
+}
+
+pub fn evaluate_all_with_layers_l6_l7_fires_zenoh_fed_correlation_test() {
+  // Both L6 and L7 failing → GR-021 ZenohFedCorrelation fires
+  let evals =
+    guard_rules.evaluate_all_with_layers(0.6, 0.8, 1, 2, 0.0, ["L6", "L7"])
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-021" })
+  |> should.be_true()
+}
+
+pub fn evaluate_all_with_layers_l3_failing_fires_transaction_recovery_test() {
+  // L3 failing → GR-028 TransactionRecovery fires
+  let evals =
+    guard_rules.evaluate_all_with_layers(0.7, 0.4, 0, 1, 0.0, ["L3"])
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-028" })
+  |> should.be_true()
+}
+
+pub fn evaluate_all_with_layers_l2_failing_fires_component_degradation_test() {
+  // L2 failing → GR-027 ComponentDegradation fires
+  let evals =
+    guard_rules.evaluate_all_with_layers(0.75, 0.4, 0, 1, 0.0, ["L2"])
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-027" })
+  |> should.be_true()
+}
+
+pub fn evaluate_all_with_layers_multiple_layer_failures_fires_multiple_rules_test() {
+  let evals =
+    guard_rules.evaluate_all_with_layers(0.4, 0.5, 1, 3, 0.0, ["L1", "L4", "L5"])
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  { list.length(fired) > 2 } |> should.be_true()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// New rule-specific evaluation tests (GR-016..GR-030)
+// ═══════════════════════════════════════════════════════════════
+
+pub fn gr016_recurring_nif_failure_fires_via_basic_api_test() {
+  // failure_count=5 > threshold=3 → GR-016 ConsecutiveFailures fires
+  let evals = guard_rules.evaluate_all(0.7, 0.3, 0, 5, 0.0)
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-016" })
+  |> should.be_true()
+}
+
+pub fn gr017_health_oscillation_fires_when_entropy_high_test() {
+  // entropy=0.5 > delta_threshold=0.2 → GR-017 HealthOscillation fires
+  let evals = guard_rules.evaluate_all(0.7, 0.5, 0, 0, 0.0)
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-017" })
+  |> should.be_true()
+}
+
+pub fn gr018_reliability_streak_fires_when_health_high_test() {
+  // health=0.97 > 0.95 → GR-018 ReliabilityStreak fires
+  let evals = guard_rules.evaluate_all(0.97, 0.1, 0, 0, 0.0)
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-018" })
+  |> should.be_true()
+}
+
+pub fn gr018_reliability_streak_action_is_record_milestone_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-018" })
+  case rule {
+    Ok(r) ->
+      case r.action {
+        RecordMilestone("1h_streak") -> should.be_true(True)
+        _ -> should.be_true(False)
+      }
+    Error(_) -> should.be_true(False)
+  }
+}
+
+pub fn gr020_health_decline_rate_fires_when_lyapunov_steep_test() {
+  // lyapunov=-0.2, rate=-0.1 → -0.2 <= -0.1 → GR-020 fires
+  let evals = guard_rules.evaluate_all(0.6, 0.3, 0, 0, -0.2)
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-020" })
+  |> should.be_true()
+}
+
+pub fn gr020_health_decline_rate_action_is_predictive_alert_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-020" })
+  case rule {
+    Ok(r) ->
+      case r.action {
+        PredictiveAlert(_) -> should.be_true(True)
+        _ -> should.be_true(False)
+      }
+    Error(_) -> should.be_true(False)
+  }
+}
+
+pub fn gr023_entropy_escalation_fires_when_cascade_depth_at_3_test() {
+  // cascade_depth=3 >= cycles=3 → GR-023 EntropyEscalation fires
+  let evals = guard_rules.evaluate_all(0.75, 1.2, 3, 0, 0.0)
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-023" })
+  |> should.be_true()
+}
+
+pub fn gr023_entropy_escalation_action_is_preventive_cooldown_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-023" })
+  case rule {
+    Ok(r) ->
+      case r.action {
+        PreventiveCooldown(_) -> should.be_true(True)
+        _ -> should.be_true(False)
+      }
+    Error(_) -> should.be_true(False)
+  }
+}
+
+pub fn gr024_degraded_classification_fires_when_health_below_06_test() {
+  // health=0.55 < 0.6 → GR-024 DegradedClassification fires
+  let evals = guard_rules.evaluate_all(0.55, 0.3, 0, 0, 0.0)
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-024" })
+  |> should.be_true()
+}
+
+pub fn gr024_degraded_classification_action_is_classify_pattern_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-024" })
+  case rule {
+    Ok(r) ->
+      case r.action {
+        ClassifyPattern("degraded_but_operational") -> should.be_true(True)
+        _ -> should.be_true(False)
+      }
+    Error(_) -> should.be_true(False)
+  }
+}
+
+pub fn gr026_critical_divergence_fires_on_lyapunov_plus_cascade_test() {
+  // lyapunov=0.3 (positive) AND cascade_depth=2 → GR-026 CriticalDivergence fires
+  let evals = guard_rules.evaluate_all(0.6, 0.5, 2, 3, 0.3)
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-026" })
+  |> should.be_true()
+}
+
+pub fn gr026_critical_divergence_does_not_fire_without_cascade_test() {
+  // lyapunov positive but cascade_depth=1 < 2 → GR-026 must NOT fire
+  let evals = guard_rules.evaluate_all(0.7, 0.4, 1, 1, 0.3)
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-026" })
+  |> should.be_false()
+}
+
+pub fn gr026_critical_divergence_action_is_jidoka_halt_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-026" })
+  case rule {
+    Ok(r) ->
+      case r.action {
+        JidokaHalt(_) -> should.be_true(True)
+        _ -> should.be_true(False)
+      }
+    Error(_) -> should.be_true(False)
+  }
+}
+
+pub fn gr029_mass_failure_emergency_fires_when_failures_exceed_8_test() {
+  // failure_count=9 > 8 → GR-029 MassFailureEmergency fires
+  let evals = guard_rules.evaluate_all(0.5, 0.8, 1, 9, 0.0)
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-029" })
+  |> should.be_true()
+}
+
+pub fn gr029_mass_failure_emergency_action_is_set_cockpit_emergency_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-029" })
+  case rule {
+    Ok(r) -> r.action |> should.equal(SetCockpitMode("emergency"))
+    Error(_) -> should.be_true(False)
+  }
+}
+
+pub fn gr030_compound_degradation_fires_with_declining_health_and_entropy_test() {
+  // lyapunov=-0.1 (declining at rate <= -0.05) AND entropy=1.2 > 1.0 → GR-030 fires
+  let evals = guard_rules.evaluate_all(0.6, 1.2, 0, 0, -0.1)
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-030" })
+  |> should.be_true()
+}
+
+pub fn gr030_compound_degradation_does_not_fire_without_entropy_test() {
+  // lyapunov=-0.1 but entropy=0.5 < 1.0 → GR-030 must NOT fire
+  let evals = guard_rules.evaluate_all(0.6, 0.5, 0, 0, -0.1)
+  let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-030" })
+  |> should.be_false()
+}
+
+pub fn gr030_compound_degradation_action_is_escalate_to_operator_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-030" })
+  case rule {
+    Ok(r) ->
+      case r.action {
+        EscalateToOperator(_) -> should.be_true(True)
+        _ -> should.be_true(False)
+      }
+    Error(_) -> should.be_true(False)
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════
 // to_json — serialisation
 // ═══════════════════════════════════════════════════════════════
@@ -412,7 +807,7 @@ pub fn to_json_contains_salience_field_test() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// action_to_string — logging
+// action_to_string — logging (original + new actions)
 // ═══════════════════════════════════════════════════════════════
 
 pub fn action_to_string_no_action_test() {
@@ -462,6 +857,31 @@ pub fn action_to_string_action_sequence_test() {
   string.starts_with(s, "ActionSequence([") |> should.be_true()
 }
 
+pub fn action_to_string_correlate_failures_test() {
+  let s = guard_rules.action_to_string(CorrelateFailures("NIF→Planning"))
+  string.starts_with(s, "CorrelateFailures(") |> should.be_true()
+}
+
+pub fn action_to_string_classify_pattern_test() {
+  guard_rules.action_to_string(ClassifyPattern("isolated_failure"))
+  |> should.equal("ClassifyPattern(isolated_failure)")
+}
+
+pub fn action_to_string_record_milestone_test() {
+  guard_rules.action_to_string(RecordMilestone("1h_streak"))
+  |> should.equal("RecordMilestone(1h_streak)")
+}
+
+pub fn action_to_string_predictive_alert_test() {
+  let s = guard_rules.action_to_string(PredictiveAlert("emergency in ~70s"))
+  string.starts_with(s, "PredictiveAlert(") |> should.be_true()
+}
+
+pub fn action_to_string_preventive_cooldown_test() {
+  let s = guard_rules.action_to_string(PreventiveCooldown("entropy rising"))
+  string.starts_with(s, "PreventiveCooldown(") |> should.be_true()
+}
+
 // ═══════════════════════════════════════════════════════════════
 // Edge cases
 // ═══════════════════════════════════════════════════════════════
@@ -483,9 +903,40 @@ pub fn evaluate_condition_cascade_depth_zero_does_not_fire_test() {
   |> should.be_false()
 }
 
-pub fn evaluate_all_with_multiple_layer_failures_fires_multiple_rules_test() {
+pub fn layers_failing_with_layers_api_all_present_fires_test() {
+  guard_rules.evaluate_condition_with_layers(
+    LayersFailing(layers: ["L1", "L3"]),
+    0.7, 0.5, 1, 2, 0.0,
+    ["L1", "L3", "L4"],
+  )
+  |> should.be_true()
+}
+
+pub fn layers_failing_with_layers_api_partial_match_does_not_fire_test() {
+  // Only L1 in failing_layers, but L3 also required → False
+  guard_rules.evaluate_condition_with_layers(
+    LayersFailing(layers: ["L1", "L3"]),
+    0.7, 0.5, 1, 2, 0.0,
+    ["L1"],
+  )
+  |> should.be_false()
+}
+
+pub fn layers_failing_with_layers_api_empty_layers_vacuously_true_test() {
+  // Empty list of required layers → all() over empty = True
+  guard_rules.evaluate_condition_with_layers(
+    LayersFailing(layers: []),
+    0.7, 0.5, 1, 2, 0.0,
+    [],
+  )
+  |> should.be_true()
+}
+
+pub fn evaluate_all_with_gr019_nif_planning_does_not_fire_single_layer_test() {
+  // Only L1 failing — GR-019 requires both L1 and L3
   let evals =
-    guard_rules.evaluate_all_with_layers(0.4, 0.5, 1, 3, 0.0, ["L1", "L4", "L5"])
+    guard_rules.evaluate_all_with_layers(0.7, 0.5, 0, 1, 0.0, ["L1"])
   let fired = list.filter(evals, fn(e: RuleEvaluation) { e.condition_met })
-  { list.length(fired) > 2 } |> should.be_true()
+  list.any(fired, fn(e: RuleEvaluation) { e.rule_id == "GR-019" })
+  |> should.be_false()
 }

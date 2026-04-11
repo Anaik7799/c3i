@@ -24,6 +24,7 @@
 
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/beam_metrics
+import cepaf_gleam/ha/guard_grid
 import cepaf_gleam/planning/safety_kernel
 import cepaf_gleam/ui/wisp/router
 import gleam/bytes_tree
@@ -336,11 +337,15 @@ fn dash_ws_on_close(_state: DashWsState) -> Nil {
 /// Build comprehensive dashboard snapshot — all fractal layers + supervisors
 /// Data sourced via Zenoh backplane (SC-ZMOF-001)
 /// Sprint 5 (S5-8): BEAM metrics wired into every dashboard push
+/// Sprint 6: Guard grid health wired — तन्त्रिका सक्रिय (Nerves activated)
 fn build_dashboard_snapshot() -> String {
   let status = c3i_nif.plan_status()
   let health = c3i_nif.system_health()
   let dashboard = c3i_nif.system_dashboard()
   let metrics = beam_metrics.snapshot()
+  // Sprint 6: Guard grid activation — 24-cell L0-L7 verdict matrix
+  let grid = guard_grid.init()
+  let grid_health = guard_grid.health_score(grid)
   json.object([
     #("plan_status", json.string(status)),
     #("system_health", json.string(health)),
@@ -349,6 +354,8 @@ fn build_dashboard_snapshot() -> String {
     #("beam_schedulers", json.int(metrics.scheduler_count)),
     #("beam_memory_mb", json.int(metrics.memory_total_mb)),
     #("beam_run_queue", json.int(metrics.run_queue_length)),
+    #("guard_grid_health", json.float(grid_health)),
+    #("guard_grid_cells", json.int(24)),
   ])
   |> json.to_string()
 }

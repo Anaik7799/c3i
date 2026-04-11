@@ -378,6 +378,165 @@ pub fn to_json(grid: GuardGrid) -> String {
   <> "]}"
 }
 
+// ---------------------------------------------------------------------------
+// Wolfram elementary CA — generic + named rules
+// ---------------------------------------------------------------------------
+
+/// Conway's Game of Life pattern classification.
+/// Determined by comparing two successive generations of the 8×3 grid.
+pub type LifePattern {
+  /// Grid is identical to previous — all cells frozen
+  StillLife
+  /// Grid changed but same as a prior state — cyclic pattern
+  Oscillator
+  /// Structured moving pattern (simplified: small non-zero popn, change detected)
+  Glider
+  /// Large unpredictable changes — systemic instability
+  Chaos
+  /// No live cells in either generation
+  Empty
+}
+
+/// Apply a specific Wolfram elementary CA rule (0-255) to the 8-layer failure
+/// states.  The rule number is used as an 8-bit lookup table.
+///
+/// Algorithm:
+///   1. Extract binary layer vector [L0_fail..L7_fail]
+///   2. For each cell i, compute neighborhood = left*4 + self*2 + right (mod 8)
+///   3. Bit at position `neighborhood` in `rule_number` = next state
+///   4. Compare before/after to classify the result
+pub fn apply_wolfram_rule(grid: GuardGrid, rule_number: Int) -> CellularRule {
+  let state = layer_failure_vector(grid)
+  let rule_table = build_rule_table(rule_number)
+  let next_state = evolve_with_table(state, rule_table)
+  classify_rule_110(state, next_state)
+}
+
+/// Apply Rule 30 — chaos / randomness detection.
+/// Rule 30 is known for its pseudo-random, aperiodic output from simple inputs.
+/// In the mesh context: detects unpredictable failure spreading.
+pub fn apply_rule_30(grid: GuardGrid) -> CellularRule {
+  apply_wolfram_rule(grid, 30)
+}
+
+/// Apply Rule 184 — traffic flow / backpressure analysis.
+/// Rule 184 models particle flow: 1s move right when space available.
+/// In the mesh: detects backpressure cascades where failures "flow" downstream.
+pub fn apply_rule_184(grid: GuardGrid) -> CellularRule {
+  apply_wolfram_rule(grid, 184)
+}
+
+/// Apply Rule 90 — fractal / self-similar pattern detection.
+/// Rule 90 generates Sierpiński triangle patterns (XOR of left and right neighbors).
+/// In the mesh: detects fractal failure patterns that repeat across layers.
+pub fn apply_rule_90(grid: GuardGrid) -> CellularRule {
+  apply_wolfram_rule(grid, 90)
+}
+
+/// Apply Rule 54 — oscillation / periodic pattern detection.
+/// Rule 54 produces stable oscillators from simple inputs.
+/// In the mesh: detects periodic failure patterns (ping-pong between layers).
+pub fn apply_rule_54(grid: GuardGrid) -> CellularRule {
+  apply_wolfram_rule(grid, 54)
+}
+
+/// Apply Rule 126 — rapid growth detection.
+/// Rule 126 causes rapid expansion of activated cells.
+/// In the mesh: signals explosive failure growth (high-urgency cascade).
+pub fn apply_rule_126(grid: GuardGrid) -> CellularRule {
+  apply_wolfram_rule(grid, 126)
+}
+
+/// Run all 6 rules (110, 30, 184, 90, 54, 126) and return the consensus pattern.
+/// Returns a list of #(rule_number, CellularRule) tuples.
+pub fn multi_rule_analysis(grid: GuardGrid) -> List(#(Int, CellularRule)) {
+  [
+    #(110, apply_rule_110(grid)),
+    #(30, apply_rule_30(grid)),
+    #(184, apply_rule_184(grid)),
+    #(90, apply_rule_90(grid)),
+    #(54, apply_rule_54(grid)),
+    #(126, apply_rule_126(grid)),
+  ]
+}
+
+// ---------------------------------------------------------------------------
+// Conway's Game of Life on the 8×3 grid
+// ---------------------------------------------------------------------------
+
+/// Conway's Game of Life step on the 8×3 guard grid.
+/// Each cell: failed = alive (1), passed = dead (0).
+/// Rules: B3/S23 — a dead cell with exactly 3 live neighbors is born;
+///         a live cell survives with 2 or 3 live neighbors, else it dies.
+/// Grid topology: rows = layers (0..7), cols = modules (0..2).
+/// Boundary: edges wrap (toroidal).
+pub fn game_of_life_step(grid: GuardGrid) -> GuardGrid {
+  // Build 8×3 binary matrix indexed by (layer_idx, module_idx)
+  let matrix = build_life_matrix(grid)
+  // Apply GoL rules to each cell
+  let next_matrix =
+    list.index_map(matrix, fn(row, row_idx) {
+      list.index_map(row, fn(cell, col_idx) {
+        let neighbors = count_live_neighbors(matrix, row_idx, col_idx)
+        case cell == 1 {
+          // Alive: survives with 2 or 3 neighbors
+          True ->
+            case neighbors == 2 || neighbors == 3 {
+              True -> 1
+              False -> 0
+            }
+          // Dead: born with exactly 3 neighbors
+          False ->
+            case neighbors == 3 {
+              True -> 1
+              False -> 0
+            }
+        }
+      })
+    })
+  // Convert next_matrix back to a GuardGrid by applying verdicts
+  matrix_to_grid(next_matrix)
+}
+
+/// Classify the Conway Game of Life pattern by comparing two grid generations.
+///
+///   Empty     — both grids have no live cells
+///   StillLife — grids are identical (no change)
+///   Oscillator — grids differ but population is the same size
+///   Glider    — small population (≤ 5) that changed position
+///   Chaos     — large-scale unpredictable change (many births + deaths)
+pub fn classify_life_pattern(
+  current: GuardGrid,
+  previous: GuardGrid,
+) -> LifePattern {
+  let prev_alive = previous.failed_cells
+  let curr_alive = current.failed_cells
+  case prev_alive == 0 && curr_alive == 0 {
+    True -> Empty
+    False ->
+      case current.cells == previous.cells {
+        True -> StillLife
+        False -> {
+          let total_cells = current.total_cells
+          case prev_alive == curr_alive {
+            // Same population, different configuration → oscillator
+            True -> Oscillator
+            False ->
+              // Population changed: small moving pattern vs large chaos
+              case curr_alive <= 5 && curr_alive > 0 {
+                True -> Glider
+                False ->
+                  case curr_alive > total_cells / 2 {
+                    True -> Chaos
+                    False -> Oscillator
+                  }
+              }
+          }
+        }
+      }
+  }
+}
+
 /// Human-readable summary line for logging and TUI display.
 pub fn summary(grid: GuardGrid) -> String {
   "GuardGrid: "
@@ -619,6 +778,142 @@ fn get_cell(lst: List(Int), idx: Int) -> Int {
         }
       }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers — generic Wolfram rule evolution
+// ---------------------------------------------------------------------------
+
+/// Build an 8-element rule lookup table from an integer rule number (0-255).
+/// rule_table[i] = bit i of rule_number.
+fn build_rule_table(rule_number: Int) -> List(Int) {
+  [0, 1, 2, 3, 4, 5, 6, 7]
+  |> list.map(fn(bit) {
+    // Extract bit `bit` from rule_number
+    { rule_number / int_pow2(bit) } % 2
+  })
+}
+
+/// 2^n for small non-negative n (used only for rule table extraction).
+fn int_pow2(n: Int) -> Int {
+  case n {
+    0 -> 1
+    1 -> 2
+    2 -> 4
+    3 -> 8
+    4 -> 16
+    5 -> 32
+    6 -> 64
+    7 -> 128
+    _ -> 1
+  }
+}
+
+/// Evolve one generation using the supplied 8-element rule table.
+/// Boundary: toroidal (wrap-around).
+fn evolve_with_table(state: List(Int), rule_table: List(Int)) -> List(Int) {
+  let n = list.length(state)
+  case n == 0 {
+    True -> []
+    False ->
+      list.index_map(state, fn(_cell, i) {
+        let left = get_cell(state, modulo(i - 1 + n, n))
+        let center = get_cell(state, i)
+        let right = get_cell(state, modulo(i + 1, n))
+        let neighborhood = left * 4 + center * 2 + right
+        get_cell(rule_table, neighborhood)
+      })
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers — Conway's Game of Life
+// ---------------------------------------------------------------------------
+
+/// The static list of layer names used as row identifiers (mirrors `layers`).
+const life_layers: List(String) = [
+  "L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7",
+]
+
+/// Build an 8×3 binary matrix from the guard grid.
+/// Row i = layer i, column j = module j.  1 = failed, 0 = passed.
+fn build_life_matrix(grid: GuardGrid) -> List(List(Int)) {
+  list.zip(life_layers, layer_modules)
+  |> list.map(fn(pair) {
+    let #(layer, modules) = pair
+    list.map(modules, fn(mod_name) {
+      case
+        list.any(grid.cells, fn(c) {
+          c.layer == layer && c.module == mod_name && c.verdict != "PASSED"
+        })
+      {
+        True -> 1
+        False -> 0
+      }
+    })
+  })
+}
+
+/// Count the live (=1) neighbors of cell (row, col) in the 8×3 toroidal grid.
+fn count_live_neighbors(
+  matrix: List(List(Int)),
+  row: Int,
+  col: Int,
+) -> Int {
+  let num_rows = list.length(matrix)
+  let num_cols = 3
+  let offsets = [
+    #(-1, -1), #(-1, 0), #(-1, 1),
+    #(0, -1),            #(0, 1),
+    #(1, -1),  #(1, 0),  #(1, 1),
+  ]
+  list.fold(offsets, 0, fn(acc, offset) {
+    let #(dr, dc) = offset
+    let nr = modulo(row + dr + num_rows, num_rows)
+    let nc = modulo(col + dc + num_cols, num_cols)
+    acc + get_cell_2d(matrix, nr, nc)
+  })
+}
+
+/// Safe 2D cell access: get matrix[row][col], returns 0 for any error.
+fn get_cell_2d(matrix: List(List(Int)), row: Int, col: Int) -> Int {
+  matrix
+  |> list.drop(row)
+  |> list.first()
+  |> fn(r) {
+    case r {
+      Ok(row_list) -> get_cell(row_list, col)
+      Error(_) -> 0
+    }
+  }
+}
+
+/// Convert an 8×3 binary matrix back to a GuardGrid.
+/// 1 = FAILED_EMPTY, 0 = PASSED.  All other cell metadata reset.
+fn matrix_to_grid(matrix: List(List(Int))) -> GuardGrid {
+  let cells =
+    list.zip(life_layers, list.zip(layer_modules, matrix))
+    |> list.flat_map(fn(outer) {
+      let #(layer, pair) = outer
+      let #(modules, row) = pair
+      list.zip(modules, row)
+      |> list.map(fn(inner) {
+        let #(mod_name, alive) = inner
+        let verdict = case alive == 1 {
+          True -> "FAILED_EMPTY"
+          False -> "PASSED"
+        }
+        GridCell(
+          layer: layer,
+          module: mod_name,
+          verdict: verdict,
+          failure_count: alive,
+          last_check_timestamp: 0,
+          check_count: 1,
+        )
+      })
+    })
+  build_grid(cells)
 }
 
 // ---------------------------------------------------------------------------
