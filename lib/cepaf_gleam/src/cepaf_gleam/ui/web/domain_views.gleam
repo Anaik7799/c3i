@@ -541,7 +541,7 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
       ),
       element.element(
         "script",
-        [attribute.attribute("src", "/static/planning-grid.js")],
+        [attribute.attribute("src", "/static/planning-grid.js?v=22.6.1")],
         [],
       ),
     ]),

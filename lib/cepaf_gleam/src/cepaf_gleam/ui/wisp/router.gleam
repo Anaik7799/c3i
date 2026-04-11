@@ -1690,7 +1690,7 @@ fn serve_static_file(path: String, content_type: String) -> HttpResponse(String)
       response.new(200)
       |> response.set_body(content)
       |> response.set_header("content-type", content_type)
-      |> response.set_header("cache-control", "public, max-age=3600")
+      |> response.set_header("cache-control", "no-cache, must-revalidate")
     Error(_) ->
       response.new(404)
       |> response.set_body("{\"error\":\"file not found\"}")

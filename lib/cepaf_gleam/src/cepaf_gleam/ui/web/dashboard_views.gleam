@@ -1041,7 +1041,7 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
       // Load comprehensive dashboard JS
       element.element(
         "script",
-        [attribute.attribute("src", "/static/dashboard-grid.js")],
+        [attribute.attribute("src", "/static/dashboard-grid.js?v=22.6.1")],
         [],
       ),
     ]),
@@ -1378,7 +1378,7 @@ pub fn cockpit_view(state: SharedMeshState) -> Element(msg) {
       ]),
       // ── JS loader ──────────────────────────────────────────────────────
       html.script(
-        [attribute.attribute("src", "/static/cockpit-grid.js")],
+        [attribute.attribute("src", "/static/cockpit-grid.js?v=22.6.1")],
         "",
       ),
     ],
