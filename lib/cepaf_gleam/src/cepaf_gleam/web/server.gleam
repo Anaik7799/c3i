@@ -15,6 +15,7 @@
 // `record_connection/2` and `release_connection/1`.  Call `health_check/1`
 // from the /health endpoint or a monitoring loop to surface live metrics.
 
+import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/planning/safety_kernel
 import cepaf_gleam/ui/wisp/router
 import gleam/bytes_tree
@@ -24,7 +25,9 @@ import gleam/http/request
 import gleam/http/response
 import gleam/int
 import gleam/io
+import gleam/json
 import gleam/list
+import gleam/option.{None, Some}
 import gleam/result
 import mist
 
@@ -87,75 +90,192 @@ pub fn shutdown(state: ServerState) -> Nil {
 // Entry point
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// WebSocket types — planning real-time push (SC-GLM-UI-010)
+// ---------------------------------------------------------------------------
+
+/// WebSocket connection state — tracks push count and last status for diff
+pub type WsState {
+  WsState(push_count: Int, last_status: String)
+}
+
+/// No custom messages needed — client drives the 1s poll via "ping" text frames
+pub type WsMsg {
+  NoOp
+}
+
+// ---------------------------------------------------------------------------
+// WebSocket handler — bidirectional planning data channel
+// ---------------------------------------------------------------------------
+
+/// Called when WebSocket connection opens. Sends initial status snapshot.
+fn ws_on_init(
+  conn: mist.WebsocketConnection,
+) -> #(WsState, option.Option(process.Selector(WsMsg))) {
+  let status = c3i_nif.plan_status()
+  let welcome =
+    json.object([
+      #("type", json.string("connected")),
+      #("status", json.string(status)),
+      #("interval_ms", json.int(1000)),
+    ])
+    |> json.to_string()
+  let _ = mist.send_text_frame(conn, welcome)
+  #(WsState(push_count: 0, last_status: status), None)
+}
+
+/// Handle WebSocket messages — client sends "ping" or search queries,
+/// server responds with fresh data. Bidirectional request-response pattern.
+fn ws_handler(
+  state: WsState,
+  msg: mist.WebsocketMessage(WsMsg),
+  conn: mist.WebsocketConnection,
+) -> mist.Next(WsState, WsMsg) {
+  case msg {
+    // Client sends text — either "ping" for status or a search query
+    mist.Text(text) -> {
+      case text {
+        // Ping — respond with fresh status + diff detection
+        "ping" -> {
+          let status = c3i_nif.plan_status()
+          let changed = status != state.last_status
+          case changed {
+            True -> {
+              let active = c3i_nif.plan_list_by_status("in_progress")
+              let blocked = c3i_nif.plan_list_by_status("blocked")
+              let payload =
+                json.object([
+                  #("type", json.string("update")),
+                  #("status", json.string(status)),
+                  #("active", json.string(active)),
+                  #("blocked", json.string(blocked)),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, payload)
+              mist.continue(WsState(
+                push_count: state.push_count + 1,
+                last_status: status,
+              ))
+            }
+            False -> {
+              let hb =
+                json.object([
+                  #("type", json.string("heartbeat")),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, hb)
+              mist.continue(WsState(
+                ..state,
+                push_count: state.push_count + 1,
+              ))
+            }
+          }
+        }
+        // Search query — respond with task search results
+        _ -> {
+          let search_result = c3i_nif.plan_search(text)
+          let resp =
+            json.object([
+              #("type", json.string("search")),
+              #("query", json.string(text)),
+              #("results", json.string(search_result)),
+            ])
+            |> json.to_string()
+          let _ = mist.send_text_frame(conn, resp)
+          mist.continue(state)
+        }
+      }
+    }
+    // Connection closed
+    mist.Closed | mist.Shutdown -> mist.stop()
+    // Binary/Custom — ignore
+    mist.Binary(_) -> mist.continue(state)
+    mist.Custom(_) -> mist.continue(state)
+  }
+}
+
+/// Called when WebSocket connection closes
+fn ws_on_close(_state: WsState) -> Nil {
+  Nil
+}
+
+// ---------------------------------------------------------------------------
+// Entry point
+// ---------------------------------------------------------------------------
+
 pub fn start(port: Int) -> Result(Nil, String) {
-  io.println("  Gleam HTTP on 0.0.0.0:" <> int.to_string(port))
+  io.println("  Gleam HTTP+WS on 0.0.0.0:" <> int.to_string(port))
 
   let handler = fn(req: request.Request(mist.Connection)) {
-    // Phase 2: Bearer Token RBAC Middleware for L5_Operator (GAP-007 / SC-UI-C2-001)
-    let is_authorized = case req.method {
-      http.Post | http.Put | http.Delete | http.Patch -> {
-        let auth_ok = case request.get_header(req, "authorization") {
-          Ok("Bearer " <> _token) -> True
-          _ -> False
-        }
-
-        // Phase 4: L0 Guardian ProofToken validation for mutations
-        let proof_ok = case request.get_header(req, "x-proof-token") {
-          Ok(token) ->
-            safety_kernel.validate_proof_token(
-              token,
-              "mutation",
-              "L5_Operator",
-              "",
-              1000,
-            )
-            |> result.is_ok()
-          _ -> False
-        }
-
-        auth_ok && proof_ok
-      }
-      _ -> True
-      // GET/OPTIONS are read-only L1-L4 telemetry
+    // Check for WebSocket upgrade on /ws/planning path
+    let is_ws_upgrade = case request.get_header(req, "upgrade") {
+      Ok("websocket") -> True
+      _ -> False
     }
+    let is_ws_path = req.path == "/ws/planning"
 
-    case is_authorized {
-      False ->
-        response.new(401)
-        |> response.set_body(
-          mist.Bytes(bytes_tree.from_string(
-            "{\"error\": \"Unauthorized: Missing or invalid token for L5_Operator mutation\"}",
-          )),
+    case is_ws_upgrade && is_ws_path {
+      // WebSocket upgrade — real-time planning push
+      True ->
+        mist.websocket(
+          request: req,
+          handler: ws_handler,
+          on_init: ws_on_init,
+          on_close: ws_on_close,
         )
-        |> response.set_header("content-type", "application/json")
-        |> response.set_header("access-control-allow-origin", "*")
-        |> response.set_header(
-          "access-control-allow-methods",
-          "GET, POST, OPTIONS",
-        )
-      True -> {
-        // We need to convert req: request.Request(mist.Connection) to request.Request(String)
-        // because router.handle_request expects request.Request(String).
-        // Wisp usually expects its own request type or request.Request(String).
-        // Mist usually passes request.Request(mist.Connection).
 
-        let wisp_response = router.handle_request(request.set_body(req, ""))
+      // Normal HTTP request
+      False -> {
+        // Phase 2: Bearer Token RBAC Middleware for L5_Operator
+        let is_authorized = case req.method {
+          http.Post | http.Put | http.Delete | http.Patch -> {
+            let auth_ok = case request.get_header(req, "authorization") {
+              Ok("Bearer " <> _token) -> True
+              _ -> False
+            }
+            let proof_ok = case request.get_header(req, "x-proof-token") {
+              Ok(token) ->
+                safety_kernel.validate_proof_token(
+                  token, "mutation", "L5_Operator", "", 1000,
+                )
+                |> result.is_ok()
+              _ -> False
+            }
+            auth_ok && proof_ok
+          }
+          _ -> True
+        }
 
-        let resp =
-          response.new(wisp_response.status)
-          |> response.set_body(
-            mist.Bytes(bytes_tree.from_string(wisp_response.body)),
-          )
-
-        // Pass through all headers from the router (including content-type)
-        list.fold(wisp_response.headers, resp, fn(acc, header) {
-          response.set_header(acc, header.0, header.1)
-        })
-        |> response.set_header("access-control-allow-origin", "*")
-        |> response.set_header(
-          "access-control-allow-methods",
-          "GET, POST, OPTIONS",
-        )
+        case is_authorized {
+          False ->
+            response.new(401)
+            |> response.set_body(
+              mist.Bytes(bytes_tree.from_string(
+                "{\"error\": \"Unauthorized\"}",
+              )),
+            )
+            |> response.set_header("content-type", "application/json")
+            |> response.set_header("access-control-allow-origin", "*")
+          True -> {
+            let wisp_response =
+              router.handle_request(request.set_body(req, ""))
+            let resp =
+              response.new(wisp_response.status)
+              |> response.set_body(
+                mist.Bytes(bytes_tree.from_string(wisp_response.body)),
+              )
+            list.fold(wisp_response.headers, resp, fn(acc, header) {
+              response.set_header(acc, header.0, header.1)
+            })
+            |> response.set_header("access-control-allow-origin", "*")
+            |> response.set_header(
+              "access-control-allow-methods",
+              "GET, POST, OPTIONS",
+            )
+          }
+        }
       }
     }
   }
