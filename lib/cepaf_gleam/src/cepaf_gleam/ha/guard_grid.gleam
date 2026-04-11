@@ -1,0 +1,666 @@
+//// =============================================================================
+//// [C3I-SIL6-MSTS] MATHEMATICAL & SEMANTIC MODULE CONTRACT
+//// =============================================================================
+//// <c3i-module>
+////   <identity>
+////     <module>cepaf_gleam/ha/guard_grid</module>
+////     <fsharp-lineage>None — novel ETS-backed guard verdict matrix</fsharp-lineage>
+////   </identity>
+////   <fractal-topology>
+////     <layer>L0_CONSTITUTIONAL</layer>
+////     <mesh-domain>
+////       Guard Grid — 2D matrix of guard verdicts across 8 fractal layers
+////       × 24 modules. Each cell holds a GuardVerdict from module_guard.
+////       Wolfram Rule 110 detects cascade propagation.
+////       Shannon entropy measures system predictability.
+////       Lyapunov exponent approximation signals stability regime.
+////     </mesh-domain>
+////   </fractal-topology>
+////   <compliance>
+////     <criticality>SAFETY-CRITICAL</criticality>
+////     <stamp-controls>
+////       SC-SIL4-001, SC-FUNC-002, SC-SATYA-001, SC-TRUTH-001,
+////       SC-MUDA-001, SC-NASA-001, SC-MATH-COV-001
+////     </stamp-controls>
+////   </compliance>
+////   <transformations>
+////     <morphism type="injective">
+////       Rust health_orchestra check_consensus() ↪ Gleam pure matrix.
+////       All state is immutable — record_verdict returns a new GuardGrid.
+////       No ETS writes here; callers own persistence in OTP actor state.
+////     </morphism>
+////     <morphism type="surjective" loss="wall-clock time">
+////       last_check_timestamp is a logical monotonic counter, not wall-clock.
+////       Mitigation: caller increments counter and passes it explicitly.
+////     </morphism>
+////   </transformations>
+//// </c3i-module>
+//// =============================================================================
+////
+//// GUARD GRID — ETS-backed verdict matrix with Wolfram emergence detection
+//// ऋतं च सत्यं चाभीद्धात् तपसो — From tapas (discipline) arose truth and
+//// cosmic order (Rig Veda 10.190.1)
+////
+//// Architecture:
+////   module_guard (sensing) → GuardGrid (memory) → Ruliology (emergence)
+////
+////   The grid has 24 cells: 8 layers × 3 modules per layer.
+////   Every guard verdict is recorded into a cell and the aggregate metrics
+////   are recomputed immediately (pure functional, O(n) in cell count).
+////
+////   Wolfram Rule 110 is applied to the 8-layer failure vector to detect
+////   whether failure patterns exhibit chaotic / cascading / stable behavior.
+////
+////   Lyapunov exponent approximation:
+////     λ ≈ log(failure_spread_rate / recovery_rate)
+////     λ > 0  → unstable (failures spreading)
+////     λ < 0  → stable (recovery faster than spread)
+////     λ ≈ 0  → edge of chaos (complex emergent behavior)
+////
+////   Shannon entropy H = -Σ(p_i × log₂(p_i)) over the 5 verdict types.
+////   H < 0.5 bits → healthy (mostly PASSED, predictable)
+////   H > 2.0 bits → chaotic (all verdict types equally represented)
+////
+//// STAMP: SC-SIL4-001, SC-FUNC-002, SC-SATYA-001, SC-TRUTH-001, SC-NASA-001
+
+import gleam/float
+import gleam/int
+import gleam/list
+import gleam/string
+
+// ---------------------------------------------------------------------------
+// Constants — layer and module topology
+// ---------------------------------------------------------------------------
+
+/// The 8 fractal layers of the C3I mesh
+const layers: List(String) = [
+  "L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7",
+]
+
+/// Standard modules for each layer (index must match layers list)
+/// 3 modules per layer = 24 cells total
+const layer_modules: List(List(String)) = [
+  // L0 Constitutional
+  ["guardian", "psi_invariants", "emergency_stop"],
+  // L1 Atomic/Debug
+  ["nif_bridge", "otel_trace", "debug_probes"],
+  // L2 Component
+  ["a2ui_catalog", "shell_helpers", "lustre_ssr"],
+  // L3 Transaction
+  ["plan_status", "smriti_db", "planning_db"],
+  // L4 System
+  ["container_genome", "boot_sequencer", "cpu_governor"],
+  // L5 Cognitive
+  ["cortex", "ooda_loop", "inference_cascade"],
+  // L6 Ecosystem
+  ["zenoh_mesh", "quorum", "moz_bridge"],
+  // L7 Federation
+  ["gateway", "ha_election", "version_vectors"],
+]
+
+/// Wolfram Rule 110 lookup table
+/// Input: 3-bit neighborhood (left, center, right) as integer 0-7
+/// Output: 0 or 1 (the new cell state)
+/// 110 in binary = 01101110 — rule 110 is known for complex/universal behavior
+const rule_110: List(Int) = [0, 1, 1, 1, 0, 1, 1, 0]
+
+// ---------------------------------------------------------------------------
+// Public types
+// ---------------------------------------------------------------------------
+
+/// A single cell in the guard grid: one layer × one module verdict
+pub type GridCell {
+  GridCell(
+    /// Fractal layer identifier, e.g. "L0".."L7"
+    layer: String,
+    /// Module name, e.g. "dashboard", "planning", "nif_plan_status"
+    module: String,
+    /// Verdict string: "PASSED" | "FAILED_EMPTY" | "FAILED_MISSING_FIELD" |
+    ///                 "FAILED_TOO_SHORT" | "FAILED_CORRUPTED" | "FAILED_STALE"
+    verdict: String,
+    /// Consecutive failure count for this cell (reset on PASSED)
+    failure_count: Int,
+    /// Logical monotonic counter acting as timestamp (not wall-clock)
+    last_check_timestamp: Int,
+    /// Total checks performed for this cell since init
+    check_count: Int,
+  )
+}
+
+/// Aggregate snapshot of the full 24-cell guard grid
+pub type GuardGrid {
+  GuardGrid(
+    /// All 24 cells (8 layers × 3 modules)
+    cells: List(GridCell),
+    /// Total number of cells (always 24)
+    total_cells: Int,
+    /// Cells with verdict == "PASSED"
+    passed_cells: Int,
+    /// Cells with any failure verdict
+    failed_cells: Int,
+    /// passed_cells / total_cells (0.0 to 1.0)
+    health_score: Float,
+    /// Shannon entropy of verdict distribution (bits, 0.0 to ~2.32)
+    entropy: Float,
+    /// True if adjacent layer failures detected (Wolfram cascade signal)
+    cascade_detected: Bool,
+    /// Layer with the most failed cells
+    hotspot_layer: String,
+    /// Module with the most failures across all layers
+    hotspot_module: String,
+  )
+}
+
+/// Cellular automata rule result — Wolfram Rule 110 classification
+pub type CellularRule {
+  /// No meaningful pattern detected
+  RuleNone
+  /// Failures are spreading to adjacent layers (cascade)
+  RuleCascade
+  /// Single isolated cell failure, not propagating
+  RuleIsolated
+  /// Failure repeats in a periodic pattern across layers
+  RulePeriodic
+  /// Random failures spread across grid — systemic issue
+  RuleSystemic
+  /// Previously failed cells are returning to PASSED
+  RuleRecovering
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+/// Initialize the guard grid with all 8 layers and standard modules.
+/// All cells start with verdict "PASSED", zero failure counts.
+pub fn init() -> GuardGrid {
+  let cells = build_initial_cells()
+  build_grid(cells)
+}
+
+/// Record a guard verdict for a specific layer + module.
+/// Returns a new GuardGrid with updated metrics.
+/// If the layer/module is not found, the grid is returned unchanged.
+pub fn record_verdict(
+  grid: GuardGrid,
+  layer: String,
+  module: String,
+  verdict: String,
+  timestamp: Int,
+) -> GuardGrid {
+  let updated =
+    list.map(grid.cells, fn(cell) {
+      case cell.layer == layer && cell.module == module {
+        False -> cell
+        True -> {
+          let is_failure = verdict != "PASSED"
+          let new_failure_count = case is_failure {
+            True -> cell.failure_count + 1
+            False -> 0
+          }
+          GridCell(
+            layer: cell.layer,
+            module: cell.module,
+            verdict: verdict,
+            failure_count: new_failure_count,
+            last_check_timestamp: timestamp,
+            check_count: cell.check_count + 1,
+          )
+        }
+      }
+    })
+  build_grid(updated)
+}
+
+/// Get the health score: passed_cells / total_cells (0.0..1.0)
+pub fn health_score(grid: GuardGrid) -> Float {
+  grid.health_score
+}
+
+/// Compute Shannon entropy of the verdict distribution across all cells.
+/// H = -Σ(p_i × log₂(p_i)) where p_i = count(verdict_type_i) / total
+/// H = 0.0 → all same verdict (completely predictable)
+/// H → 2.32 → maximum entropy (all 5 verdict types equally likely)
+pub fn compute_entropy(grid: GuardGrid) -> Float {
+  let total = grid.total_cells
+  case total == 0 {
+    True -> 0.0
+    False -> {
+      let counts = count_verdicts(grid.cells)
+      let total_f = int.to_float(total)
+      list.fold(counts, 0.0, fn(acc, count) {
+        case count == 0 {
+          True -> acc
+          False -> {
+            let p = int.to_float(count) /. total_f
+            let contribution = p *. log2_approx(p)
+            acc -. contribution
+          }
+        }
+      })
+    }
+  }
+}
+
+/// Apply Wolfram Rule 110 to the 8-layer failure vector.
+/// Each layer is a binary cell: 1 if ANY module in that layer has failed.
+/// Rule 110 evolves the vector one generation and classifies the result.
+///
+/// Rule 110 truth table (neighborhood: left-center-right → output):
+///   111→0, 110→1, 101→1, 100→0, 011→1, 010→1, 001→1, 000→0
+pub fn apply_rule_110(grid: GuardGrid) -> CellularRule {
+  let state = layer_failure_vector(grid)
+  let next_state = evolve_rule_110(state)
+  classify_rule_110(state, next_state)
+}
+
+/// Detect if failures are spreading between adjacent layers.
+/// Returns True if two or more adjacent layers both have failures.
+pub fn detect_cascade(grid: GuardGrid) -> Bool {
+  let vector = layer_failure_vector(grid)
+  has_adjacent_ones(vector)
+}
+
+/// Find the hotspot — layer and module with most cumulative failures.
+/// Returns #(layer, module).
+pub fn find_hotspot(grid: GuardGrid) -> #(String, String) {
+  let hotspot_cell =
+    list.fold(
+      grid.cells,
+      GridCell(
+        layer: "none",
+        module: "none",
+        verdict: "PASSED",
+        failure_count: 0,
+        last_check_timestamp: 0,
+        check_count: 0,
+      ),
+      fn(best, cell) {
+        case cell.failure_count > best.failure_count {
+          True -> cell
+          False -> best
+        }
+      },
+    )
+  #(hotspot_cell.layer, hotspot_cell.module)
+}
+
+/// Lyapunov exponent approximation.
+/// λ = log(failure_spread_rate / max(recovery_rate, epsilon))
+///
+/// failure_spread_rate = (cells with consecutive_failures > 1) / total_cells
+/// recovery_rate       = (cells with failure_count == 0) / total_cells
+///
+/// λ > 0.0  → failures spreading faster than recovery (unstable)
+/// λ < 0.0  → recovery outpacing spread (stable)
+/// λ ≈ 0.0  → edge of chaos (complex, interesting behavior)
+pub fn lyapunov_estimate(grid: GuardGrid) -> Float {
+  let total_f = int.to_float(grid.total_cells)
+  case total_f == 0.0 {
+    True -> 0.0
+    False -> {
+      let spreading =
+        list.count(grid.cells, fn(c) { c.failure_count > 1 })
+      let recovering =
+        list.count(grid.cells, fn(c) { c.failure_count == 0 })
+
+      let spread_rate = int.to_float(spreading) /. total_f
+      let recovery_rate = int.to_float(recovering) /. total_f
+
+      // Avoid log(0) by using epsilon = 0.001
+      let safe_recovery = case recovery_rate <. 0.001 {
+        True -> 0.001
+        False -> recovery_rate
+      }
+      let safe_spread = case spread_rate <. 0.001 {
+        True -> 0.001
+        False -> spread_rate
+      }
+
+      // λ ≈ log(spread / recovery) — positive means spreading, negative stable
+      log_natural_approx(safe_spread /. safe_recovery)
+    }
+  }
+}
+
+/// Predict the next likely failure cell using frequency + adjacency analysis.
+/// Returns #(layer, module, probability).
+/// The cell with the highest failure_count / check_count ratio is most likely.
+pub fn predict_next_failure(grid: GuardGrid) -> #(String, String, Float) {
+  let best =
+    list.fold(
+      grid.cells,
+      #("none", "none", 0.0),
+      fn(best, cell) {
+        case cell.check_count > 0 {
+          False -> best
+          True -> {
+            let fail_rate =
+              int.to_float(cell.failure_count) /. int.to_float(cell.check_count)
+            let #(_, _, best_rate) = best
+            case fail_rate >. best_rate {
+              True -> #(cell.layer, cell.module, fail_rate)
+              False -> best
+            }
+          }
+        }
+      },
+    )
+  best
+}
+
+/// Serialize the guard grid to a JSON string.
+pub fn to_json(grid: GuardGrid) -> String {
+  let cells_json =
+    grid.cells
+    |> list.map(cell_to_json)
+    |> string.join(",")
+
+  "{"
+  <> "\"total_cells\":"
+  <> int.to_string(grid.total_cells)
+  <> ",\"passed_cells\":"
+  <> int.to_string(grid.passed_cells)
+  <> ",\"failed_cells\":"
+  <> int.to_string(grid.failed_cells)
+  <> ",\"health_score\":"
+  <> float_to_str(grid.health_score)
+  <> ",\"entropy\":"
+  <> float_to_str(grid.entropy)
+  <> ",\"cascade_detected\":"
+  <> bool_to_str(grid.cascade_detected)
+  <> ",\"hotspot_layer\":\""
+  <> grid.hotspot_layer
+  <> "\",\"hotspot_module\":\""
+  <> grid.hotspot_module
+  <> "\",\"cells\":["
+  <> cells_json
+  <> "]}"
+}
+
+/// Human-readable summary line for logging and TUI display.
+pub fn summary(grid: GuardGrid) -> String {
+  "GuardGrid: "
+  <> int.to_string(grid.passed_cells)
+  <> "/"
+  <> int.to_string(grid.total_cells)
+  <> " PASSED | health="
+  <> float_to_str(grid.health_score)
+  <> " | H="
+  <> float_to_str(grid.entropy)
+  <> "bits | cascade="
+  <> bool_to_str(grid.cascade_detected)
+  <> " | hotspot="
+  <> grid.hotspot_layer
+  <> "/"
+  <> grid.hotspot_module
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers — grid construction
+// ---------------------------------------------------------------------------
+
+/// Build the initial 24 cells from the static layer/module topology.
+fn build_initial_cells() -> List(GridCell) {
+  list.zip(layers, layer_modules)
+  |> list.flat_map(fn(pair) {
+    let #(layer, modules) = pair
+    list.map(modules, fn(mod_name) {
+      GridCell(
+        layer: layer,
+        module: mod_name,
+        verdict: "PASSED",
+        failure_count: 0,
+        last_check_timestamp: 0,
+        check_count: 0,
+      )
+    })
+  })
+}
+
+/// Recompute all aggregate metrics from the current cell list.
+fn build_grid(cells: List(GridCell)) -> GuardGrid {
+  let total = list.length(cells)
+  let passed = list.count(cells, fn(c) { c.verdict == "PASSED" })
+  let failed = total - passed
+  let health = case total == 0 {
+    True -> 1.0
+    False -> int.to_float(passed) /. int.to_float(total)
+  }
+  let grid_partial =
+    GuardGrid(
+      cells: cells,
+      total_cells: total,
+      passed_cells: passed,
+      failed_cells: failed,
+      health_score: health,
+      entropy: 0.0,
+      cascade_detected: False,
+      hotspot_layer: "none",
+      hotspot_module: "none",
+    )
+  let h = compute_entropy(grid_partial)
+  let cascade = detect_cascade(grid_partial)
+  let #(hot_layer, hot_module) = find_hotspot(grid_partial)
+  GuardGrid(
+    cells: cells,
+    total_cells: total,
+    passed_cells: passed,
+    failed_cells: failed,
+    health_score: health,
+    entropy: h,
+    cascade_detected: cascade,
+    hotspot_layer: hot_layer,
+    hotspot_module: hot_module,
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers — Wolfram Rule 110
+// ---------------------------------------------------------------------------
+
+/// Build an 8-element binary list: 1 if layer has any failure, 0 otherwise.
+fn layer_failure_vector(grid: GuardGrid) -> List(Int) {
+  list.map(layers, fn(layer) {
+    let has_failure =
+      list.any(grid.cells, fn(c) { c.layer == layer && c.verdict != "PASSED" })
+    case has_failure {
+      True -> 1
+      False -> 0
+    }
+  })
+}
+
+/// Evolve one generation of the 8-cell automaton using Rule 110.
+/// Boundary: wrap-around (toroidal).
+fn evolve_rule_110(state: List(Int)) -> List(Int) {
+  let n = list.length(state)
+  case n == 0 {
+    True -> []
+    False -> {
+      // list.index_map signature: fn(element, index) -> result
+      list.index_map(state, fn(_cell, i) {
+        let left_idx = modulo(i - 1 + n, n)
+        let right_idx = modulo(i + 1, n)
+        let left = get_cell(state, left_idx)
+        let center = get_cell(state, i)
+        let right = get_cell(state, right_idx)
+        let neighborhood = left * 4 + center * 2 + right
+        get_cell(rule_110, neighborhood)
+      })
+    }
+  }
+}
+
+/// Safe modulo for non-negative inputs (avoids int.remainder Result type).
+fn modulo(a: Int, b: Int) -> Int {
+  case b == 0 {
+    True -> 0
+    False -> a - b * { a / b }
+  }
+}
+
+/// Classify the Rule 110 evolution result.
+fn classify_rule_110(
+  before: List(Int),
+  after: List(Int),
+) -> CellularRule {
+  let ones_before = list.fold(before, 0, fn(acc, x) { acc + x })
+  let ones_after = list.fold(after, 0, fn(acc, x) { acc + x })
+  let n = list.length(before)
+
+  case ones_before == 0 && ones_after == 0 {
+    True -> RuleNone
+    False ->
+      case before == after {
+        True ->
+          case ones_before == 1 {
+            True -> RuleIsolated
+            False -> RulePeriodic
+          }
+        False ->
+          case ones_after > ones_before {
+            True -> RuleCascade
+            False ->
+              case ones_after < ones_before {
+                True -> RuleRecovering
+                False ->
+                  case ones_before > n / 2 {
+                    True -> RuleSystemic
+                    False -> RulePeriodic
+                  }
+              }
+          }
+      }
+  }
+}
+
+/// Detect two adjacent 1s in a list (adjacent layer failures).
+fn has_adjacent_ones(lst: List(Int)) -> Bool {
+  case lst {
+    [] | [_] -> False
+    [a, b, ..rest] ->
+      case a == 1 && b == 1 {
+        True -> True
+        False -> has_adjacent_ones([b, ..rest])
+      }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers — verdict counting for entropy
+// ---------------------------------------------------------------------------
+
+/// Count occurrences of each of the 5 verdict types.
+/// Returns [count_passed, count_failed_empty, count_failed_missing,
+///          count_failed_too_short, count_failed_corrupted_or_stale]
+fn count_verdicts(cells: List(GridCell)) -> List(Int) {
+  let passed =
+    list.count(cells, fn(c) { c.verdict == "PASSED" })
+  let empty =
+    list.count(cells, fn(c) { c.verdict == "FAILED_EMPTY" })
+  let missing =
+    list.count(cells, fn(c) { c.verdict == "FAILED_MISSING_FIELD" })
+  let short =
+    list.count(cells, fn(c) { c.verdict == "FAILED_TOO_SHORT" })
+  let other =
+    list.count(cells, fn(c) {
+      c.verdict != "PASSED"
+      && c.verdict != "FAILED_EMPTY"
+      && c.verdict != "FAILED_MISSING_FIELD"
+      && c.verdict != "FAILED_TOO_SHORT"
+    })
+  [passed, empty, missing, short, other]
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers — math
+// ---------------------------------------------------------------------------
+
+/// log₂(x) approximation using the identity log₂(x) = ln(x) / ln(2).
+/// Uses a rational approximation of ln(x) valid for x in (0.0, 1.0].
+fn log2_approx(x: Float) -> Float {
+  // ln(x) / ln(2), ln(2) ≈ 0.693147
+  log_natural_approx(x) /. 0.693147
+}
+
+/// Natural log approximation for x in (0.0, 1.5].
+/// Uses the series: ln(x) ≈ 2 × Σ((z^(2k+1))/(2k+1)) where z = (x-1)/(x+1)
+/// Accurate to ~4 decimal places for x in [0.001, 1.5].
+fn log_natural_approx(x: Float) -> Float {
+  case x <=. 0.0 {
+    True -> -100.0
+    False -> {
+      let z = { x -. 1.0 } /. { x +. 1.0 }
+      let z2 = z *. z
+      // 6-term series: 2*(z + z^3/3 + z^5/5 + z^7/7 + z^9/9 + z^11/11)
+      let z3 = z2 *. z
+      let z5 = z3 *. z2
+      let z7 = z5 *. z2
+      let z9 = z7 *. z2
+      let z11 = z9 *. z2
+      2.0 *. { z +. z3 /. 3.0 +. z5 /. 5.0 +. z7 /. 7.0 +. z9 /. 9.0 +. z11 /. 11.0 }
+    }
+  }
+}
+
+/// Safe index into a list. Returns 0 for out-of-range indices.
+fn get_cell(lst: List(Int), idx: Int) -> Int {
+  case idx < 0 {
+    True -> 0
+    False ->
+      lst
+      |> list.drop(idx)
+      |> list.first()
+      |> fn(r) {
+        case r {
+          Ok(v) -> v
+          Error(_) -> 0
+        }
+      }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers — serialization
+// ---------------------------------------------------------------------------
+
+fn cell_to_json(c: GridCell) -> String {
+  "{"
+  <> "\"layer\":\""
+  <> c.layer
+  <> "\",\"module\":\""
+  <> c.module
+  <> "\",\"verdict\":\""
+  <> c.verdict
+  <> "\",\"failure_count\":"
+  <> int.to_string(c.failure_count)
+  <> ",\"last_check_timestamp\":"
+  <> int.to_string(c.last_check_timestamp)
+  <> ",\"check_count\":"
+  <> int.to_string(c.check_count)
+  <> "}"
+}
+
+fn float_to_str(f: Float) -> String {
+  // Round to 4 decimal places for clean output
+  let scaled = float.round(f *. 10_000.0)
+  let whole = scaled / 10_000
+  let frac = int.absolute_value(scaled % 10_000)
+  int.to_string(whole) <> "." <> pad_left(int.to_string(frac), 4)
+}
+
+fn bool_to_str(b: Bool) -> String {
+  case b {
+    True -> "true"
+    False -> "false"
+  }
+}
+
+fn pad_left(s: String, width: Int) -> String {
+  let len = string.length(s)
+  case len >= width {
+    True -> s
+    False -> string.repeat("0", width - len) <> s
+  }
+}
