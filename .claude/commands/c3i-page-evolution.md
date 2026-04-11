@@ -206,4 +206,28 @@ gleam build 2>&1 | grep "warning" | grep -v "test/" | wc -l | grep "^0$"
 
 # 10. STAMP reference check
 grep -c "SC-AGUI-UI" .claude/rules/agentic-ui-responsive-design.md
+
+# 11. Ultrathink alignment (SC-ULTRA-001)
+grep -c "Ultrathink\|Focus Area" .claude/rules/agentic-ui-responsive-design.md
+
+# 12. AG-UI 32-event check
+grep -c "AG-UI\|AGUI" .claude/rules/agentic-ui-responsive-design.md
+
+# 13. Zettelkasten integration check
+grep -c "Zettelkasten\|FTS5\|holon" .claude/rules/agentic-ui-responsive-design.md
+
+# 14. Psi invariant check
+grep -c "Psi-\|Omega-0" .claude/rules/agentic-ui-responsive-design.md
+
+# 15. Allium spec check
+grep -c "Allium\|allium" .claude/rules/agentic-ui-responsive-design.md
+
+# 16. OODA + TPS/Jidoka check
+grep -c "OODA\|Jidoka\|Toyota" .claude/rules/agentic-ui-responsive-design.md
+
+# 17. Mathematical foundations check
+grep -c "Shannon\|PageRank\|Chinese Postman\|FMEA" .claude/rules/agentic-ui-responsive-design.md
+
+# 18. Zenoh + NIF + MoZ check
+grep -c "Zenoh\|NIF\|MoZ" .claude/rules/agentic-ui-responsive-design.md
 ```

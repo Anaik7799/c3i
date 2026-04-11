@@ -400,16 +400,232 @@ User action → JS event → fetch /api/v1/rules/evaluate?context=<json>
 
 ---
 
+---
+
+## 15. Ultrathink Alignment — 10 Focus Areas
+
+Every page evolution MUST trace to at least 3 of the 10 Ultrathink focus areas (SC-ULTRA-001):
+
+| # | Focus Area | UI Mapping | Status |
+|---|-----------|------------|--------|
+| 1 | Decentralized Emergent Ignition | Boot sequence visualization in Timeline view | Active |
+| 2 | Zenoh-Native CRDT State Backplane | WS + SSE transport over Zenoh topics | Active |
+| 3 | Zero-IP Identity Routing | Fractal L6/L7 filter for mesh topology | Planned |
+| 4 | **Homomorphic Tripartite UI** | 4-view + responsive + triple transport | **Primary** |
+| 5 | Continuous Formal Verification | STAMP refs in drill-down, Psi invariant display | Active |
+| 6 | **Embedded SLM Cognitive Kernels** | Gemma 3/4 chat widget, AI analysis | **Primary** |
+| 7 | Cryptographic Event Sourcing | Change log with seq numbers, hash chain | Planned |
+| 8 | Continuous Stochastic Apoptosis | Health score → cockpit mode escalation | Active |
+| 9 | **OpenClaw Ecosystem Integration** | 5 drill-down actions, A2UI components | **Primary** |
+| 10 | **HA Seamless Upgrades** | WebSocket reconnect, polling fallback | **Primary** |
+
+---
+
+## 16. AG-UI 32-Event Protocol Integration
+
+Every page's WebSocket + SSE transport MUST support the full AG-UI event protocol:
+
+| Category | Events | UI Mapping |
+|----------|--------|-----------|
+| Lifecycle (5) | RunStarted, RunFinished, RunError, StepStarted, StepFinished | Status cards + heartbeat |
+| Text (4) | TextMessageStart/Content/End/Chunk | Gemma chat messages |
+| Tool (5) | ToolCallStart/Args/End/Result/Chunk | Drill-down action feedback |
+| State (3) | StateSnapshot, StateDelta (RFC 6902), MessagesSnapshot | Grid data push via WS |
+| Activity (2) | ActivitySnapshot, ActivityDelta | Change log entries |
+| Reasoning (7) | ReasoningStart/MessageStart/Content/End/Chunk/End/Encrypted | AI analysis panel |
+| Special (4) | Raw, Custom, MetaEvent, Heartbeat | WS heartbeat frames |
+
+**A2UI 233 Components**: 233 declarative component types across 22 domains (15 core + 100 wave1 + 118 wave2). Agents propose via JSON — application renders via `a2ui/renderer.gleam`.
+
+---
+
+## 17. Zenoh OTel Span Integration
+
+Every UI state change MUST publish OTel spans via `zenoh_otel.gleam` (SC-GLM-ZEN-001):
+
+```
+UI State Change → zenoh_otel.publish_span(page, operation)
+  → Zenoh topic: indrajaal/otel/spans/{page}/{operation}
+  → Test observer: testing/zenoh_test_observer.gleam validates
+```
+
+**MoZ (MCP-over-Zenoh)**: Actionable features exposed as MoZ tools:
+- `indrajaal/mcp/req/plan_search/{id}` → search request
+- `indrajaal/mcp/res/{id}` → search response
+
+---
+
+## 18. NIF Bridge Architecture
+
+All data flows through the Rust NIF bridge (`c3i_nif.gleam` → `c3i_nif.erl` → `c3i_nif.so`):
+
+| NIF Function | Returns | Used By |
+|-------------|---------|---------|
+| `plan_status()` | JSON counts | Weather bar, status cards, WS diff |
+| `plan_list_by_status(s)` | Task array | Grids, Kanban, Timeline |
+| `plan_search(q)` | Task array (max 100) | AI search, WS search, drill-down |
+| `plan_list_pending()` | Task array | Pending count |
+| `system_health()` | Health JSON | Cockpit mode, rings |
+| `system_immune()` | Immune JSON | Psi invariants |
+
+---
+
+## 19. Zettelkasten Brain Integration
+
+The Zettelkasten knowledge graph (2,060+ holons in Smriti.db FTS5) powers:
+
+| Feature | Zettelkasten Role |
+|---------|-------------------|
+| AI Search | `plan_search()` queries FTS5 index (<1ms) |
+| Knowledge Lookup | Drill-down action searches holon content |
+| Decision Support | "Has this happened before?" → journal RCA sections |
+| Onboarding | Ecosystem zettels → axiom specs → constraints |
+| Drift Detection | Plan cluster entropy scoring (rotting detection) |
+| RAG Pipeline | Holons injected into Gemma system prompt context |
+
+**Levels**: Ecosystem (86), Organism (1,083), Molecular (284), Atomic (607) = 2,060 total.
+
+---
+
+## 20. Mathematical Foundations
+
+### Shannon Entropy Gate (SC-MATH-COV-001)
+```
+H = -Σ(p_i × log2(p_i)) across C1-C8 categories
+Threshold: H ≥ 2.5 bits (ensures test distribution across all 8 categories)
+```
+
+### Coverage Composite Metric (CCM)
+```
+CCM = Σ(w_i × cov_i) / Σ(w_i)
+Weights: C1=1.0, C2=1.5, C3=1.0, C4=0.8, C5=1.2, C6=0.8, C7=1.5, C8=3.0
+Threshold: CCM ≥ 0.90
+```
+
+### PageRank Test Priority
+```
+d=0.85, 30 iterations over navigation digraph G_nav
+Dashboard(0.055) > Cockpit(0.052) > Verification(0.050) > Planning(0.047)
+```
+
+### Chinese Postman Bound
+```
+CPP = |E| + matching_cost(odd_degree_vertices)
+G_nav: CPP ≈ 462 + per-page LTS transitions ≈ 600-700 test cases minimum
+```
+
+### FMEA Composite Score
+```
+RPN = Severity(1-10) × Occurrence(1-10) × Detection(1-10)
+RPN ≥ 200 → immediate action (P0 priority)
+Composite = 0.30×FMEA + 0.25×Criticality + 0.20×Utility + 0.15×Perf + 0.10×A11y
+```
+
+---
+
+## 21. Allium Behavioral Specification
+
+Each evolved page SHOULD have a corresponding Allium spec in `specs/allium/`:
+
+```allium
+-- allium: 3
+
+entity PageState {
+  view_mode: grid | kanban | timeline | analytics
+  fractal_filter: none | l0 | l1 | l2 | l3 | l4 | l5 | l6 | l7
+  ws_connected: Boolean
+  gemma_available: Boolean
+
+  transitions view_mode {
+    grid -> kanban
+    grid -> timeline
+    grid -> analytics
+    kanban -> grid
+    // ... (complete graph — all views reachable from all views)
+    terminal: none  -- no terminal state, always interactive
+  }
+}
+
+rule RefreshOnViewSwitch {
+  when: page: PageState.view_mode transitions_to *
+  ensures: page.data_refreshed = true
+  @guidance Switch view → re-render with current data + fractal filter
+}
+
+invariant DataConsistency {
+  for t in Transports: t.total == http.total
+  @guidance SSE, WS, HTTP must all report identical task counts (DAG Q)
+}
+
+contract GemmaAdvisor {
+  analyze: (query: String, context: TaskStatus) -> String
+  @invariant Timeout15s -- abort after 15 seconds
+  @invariant FallbackChain -- Gemma3 → Gemma4 → NIF search
+}
+```
+
+---
+
+## 22. OODA Loop Integration
+
+Every page follows the OODA cycle for continuous improvement:
+
+| Phase | UI Action | Frequency |
+|-------|-----------|-----------|
+| **Observe** | WS ping → receive status/heartbeat | 1s |
+| **Orient** | Diff-detect changes, classify fractal layer | On each push |
+| **Decide** | Ruliology GRL rules evaluate UI action | On change |
+| **Act** | Update grids, escalate cockpit mode, log mutation | Immediate |
+
+OODA budget: Agent(<30ms), Intelligence(<100ms), Knowledge(<1ms), Cortex(<50ms), Strategy(<1s).
+
+---
+
+## 23. Toyota Production System (TPS) / Jidoka
+
+| TPS Principle | UI Implementation |
+|---------------|-------------------|
+| **Jidoka** (stop on defect) | WS disconnect → red heartbeat → halt auto-refresh → alert |
+| **Andon** (signal board) | Weather bar = system andon. Dark/Dim/Normal/Bright/Emergency |
+| **Kanban** (pull system) | Kanban view = literal kanban board. Pull tasks through stages |
+| **Kaizen** (continuous improvement) | Change log captures every mutation → pattern analysis |
+| **Muda** (waste elimination) | SC-MUDA-001: zero dead code, zero warnings, zero unused imports |
+| **Heijunka** (leveling) | Fractal filter distributes attention across L0-L7 evenly |
+| **Poka-yoke** (error proofing) | 44px touch targets, Esc to undo, auto-reconnect, fallback chain |
+
+---
+
+## 24. Psi Invariants & Constitutional Alignment
+
+Every page MUST display or verify these Psi invariants:
+
+| Invariant | Verification | UI Display |
+|-----------|-------------|------------|
+| Psi-0 (Existence) | System continues to function | Health score > 0 |
+| Psi-1 (Regeneration) | State recoverable from SQLite | DB integrity card |
+| Psi-2 (Reversibility) | All changes reversible | Change log with undo capability |
+| Psi-3 (Verification) | Hash chain maintained | STAMP refs in drill-down |
+| Psi-4 (Alignment) | Human intent preserved | SC-HINT sections inviolable |
+| Psi-5 (Truthfulness) | No deception in outputs | Gemma context = real data only |
+| Omega-0 (Founder) | System serves the founder | All features operator-accessible |
+
+---
+
 ## Reference Implementation
 - **Page**: `/planning` — `https://vm-1.tail55d152.ts.net:4100/planning`
-- **Spec**: `docs/architecture/planning-page-specification.md` (674 lines, 15 sections)
-- **Journal**: `docs/journal/20260411-planning-page-evolution.md` (325 lines, 13 sections)
+- **Spec**: `docs/architecture/planning-page-specification.md` (674 lines)
+- **Journal**: `docs/journal/20260411-planning-page-evolution.md` (325 lines)
+- **Allium**: `specs/allium/ignition.allium` (1,923 lines — add `ui.allium` per page)
 - **JS**: `priv/static/planning-grid.js` (1,545 lines)
 - **Server WS**: `web/server.gleam` WsHandler (323 lines)
 - **Router**: `ui/wisp/router.gleam` SSE + AI + search routes
-- **Gleam tests**: `test/planning_page_comprehensive_test.gleam` (1,270 lines, 106 tests)
+- **NIF bridge**: `c3i/nif.gleam` → `c3i_nif.erl` → `c3i_nif.so` (7 plan NIFs)
+- **Zenoh OTel**: `ui/zenoh_otel.gleam` (span publisher for all pages)
+- **Zettelkasten**: `zettelkasten/*.gleam` (9 modules, 2,060 holons)
+- **Gleam tests**: `test/planning_page_comprehensive_test.gleam` (1,270 lines)
 - **Rust E2E**: `test/planning_e2e_rust.rs` (584+ lines, 179 tests)
-- **Ruliology**: `sub-projects/c3i/native/planning_daemon/src/ruliology.rs` (929 lines)
-- **Rule engine**: `sub-projects/c3i/native/planning_daemon/src/rule_engine.rs` (961 lines, 52 GRL rules)
+- **Ruliology**: `native/planning_daemon/src/ruliology.rs` (929 lines)
+- **Rule engine**: `native/planning_daemon/src/rule_engine.rs` (961 lines, 52 GRL)
 - **Skill**: `.claude/commands/agentic-ui-evolve.md`
+- **Master prompt**: `.claude/commands/c3i-page-evolution.md`
 - **Agent**: `.claude/agents/agentic-ui-designer.md`

@@ -105,5 +105,18 @@ Connect to Rust rule engine for adaptive UI behavior:
 - System preferences: `prefers-reduced-motion`, `prefers-contrast`
 - Performance budget: Mobile first paint <1.5s, Desktop <1s
 
+## Full System Integration (this agent ensures)
+- AG-UI 32-event protocol handlers in page's Lustre Msg ADT
+- A2UI 233 component types available for agent proposals
+- Zenoh OTel spans on all state changes (SC-GLM-ZEN-001)
+- NIF bridge for page data + MoZ tool exposure
+- Zettelkasten FTS5 in AI search and drill-down Knowledge action
+- Allium spec: write `specs/allium/<page>.allium` with entity/rule/invariant/contract
+- OODA loop: Observe(WS 1s)→Orient(diff)→Decide(GRL rules)→Act(DOM update)
+- TPS/Jidoka: red heartbeat = stop + signal, weather bar = andon
+- Psi invariants: health score verifies Psi-0, DB integrity verifies Psi-1
+- Shannon H ≥ 2.5 bits, CCM ≥ 0.90, PageRank test priority
+- Dark cockpit: 5-mode state machine (Dark/Dim/Normal/Bright/Emergency)
+
 ## STAMP Constraints
-SC-AGUI-UI-001..015 (see `.claude/rules/agentic-ui-responsive-design.md`)
+SC-AGUI-UI-001..015 (see `.claude/rules/agentic-ui-responsive-design.md`, 24 sections)

@@ -150,10 +150,35 @@ Focus Areas: #4 (Homomorphic Tripartite UI), #6 (SLM Cognitive Kernels), #9 (Ope
 4. System preferences: `prefers-color-scheme`, `prefers-reduced-motion`, `prefers-contrast`
 5. Performance budget: Mobile first paint <1.5s, Desktop <1s, JS bundle <100KB
 
+## Ultrathink Traceability (per page)
+Every evolved page MUST map to ≥3 of the 10 Ultrathink focus areas:
+- #4 Homomorphic Tripartite UI (4 views + responsive + triple transport)
+- #6 Embedded SLM Cognitive Kernels (Gemma chat + AI analysis)
+- #9 OpenClaw Ecosystem (5 drill-down actions, A2UI 233 components)
+- #10 HA Seamless Upgrades (WS reconnect, polling fallback)
+
+## System Integration Checklist
+- [ ] AG-UI 32-event protocol handlers in Lustre Msg
+- [ ] A2UI 233 component types available via JSON proposals
+- [ ] Zenoh OTel spans published for all state changes (SC-GLM-ZEN-001)
+- [ ] NIF bridge calls for page-specific data
+- [ ] MoZ (MCP-over-Zenoh) tools exposed if actionable
+- [ ] Zettelkasten FTS5 search integrated in AI search + drill-down
+- [ ] Allium behavioral spec written for page state machine
+- [ ] OODA loop: Observe(WS)→Orient(diff)→Decide(rules)→Act(update)
+- [ ] TPS/Jidoka: stop on defect (red heartbeat), andon (weather bar)
+- [ ] Psi invariants displayed or verified (Psi-0..5, Omega-0)
+- [ ] Shannon entropy H ≥ 2.5 bits across C1-C8 test categories
+- [ ] PageRank priority guides test execution order
+- [ ] Dark cockpit: healthy=hidden, critical=emergency mode
+
 ## Reference
-- Rule: `.claude/rules/agentic-ui-responsive-design.md` (14 sections, SC-AGUI-UI-001..015)
+- Rule: `.claude/rules/agentic-ui-responsive-design.md` (24 sections, SC-AGUI-UI-001..015)
+- Master prompt: `.claude/commands/c3i-page-evolution.md` (8 phases)
 - Agent: `.claude/agents/agentic-ui-designer.md`
 - Spec: `docs/architecture/planning-page-specification.md`
 - Journal: `docs/journal/20260411-planning-page-evolution.md`
-- Ruliology: `sub-projects/c3i/native/planning_daemon/src/ruliology.rs` (929 lines)
-- Rule engine: `sub-projects/c3i/native/planning_daemon/src/rule_engine.rs` (961 lines, 52 GRL rules)
+- Allium: `specs/allium/ignition.allium` (add ui.allium per page)
+- Ruliology: `native/planning_daemon/src/ruliology.rs` (929 lines)
+- Rule engine: `native/planning_daemon/src/rule_engine.rs` (961 lines, 52 GRL)
+- Zettelkasten: `zettelkasten/*.gleam` (9 modules, 2,060 holons)
