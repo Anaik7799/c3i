@@ -752,10 +752,10 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
         shell.status_card("DB Integrity", "Healthy", "All OK", "PRAGMA integrity_check"),
       ]),
     ]),
-    // ── All Tasks Data Grid (Tabulator-enhanced) ──
-    shell.section("Task Explorer — Interactive Data Grid", [
+    // ── Task Explorer — Multi-View Agentic Data Grid ──
+    shell.section("Task Explorer — Agentic Data Grid", [
       html.p([attribute.class("sub")], [
-        element.text("Sortable, filterable, searchable. Source: NIF → Rust → SQLite (live). Powered by Tabulator."),
+        element.text("Grid | Kanban | Timeline | Analytics. Live from Smriti.db via NIF. Keys: 1-4 views, Ctrl+K search, R refresh, Esc close."),
       ]),
       // Tabulator CSS + JS from CDN
       element.element("link", [
@@ -765,28 +765,53 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
       element.element("script", [
         attribute.attribute("src", "https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"),
       ], []),
-      // AI Search Bar
+      // ── View Toggle Bar ──
+      html.div([attribute.attribute("style", "display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap")], [
+        html.div([attribute.class("view-toggle")], [
+          html.button([attribute.class("view-btn active"), attribute.attribute("data-view", "grid")], [element.text("Grid")]),
+          html.button([attribute.class("view-btn"), attribute.attribute("data-view", "kanban")], [element.text("Kanban")]),
+          html.button([attribute.class("view-btn"), attribute.attribute("data-view", "timeline")], [element.text("Timeline")]),
+          html.button([attribute.class("view-btn"), attribute.attribute("data-view", "analytics")], [element.text("Analytics")]),
+        ]),
+        // ── Fractal Layer Filter Chips ──
+        html.div([attribute.id("fractal-filter-chips"), attribute.attribute("style", "flex:1")], []),
+      ]),
+      // ── AI Search Bar ──
       html.div([attribute.attribute("style", "display:flex;gap:8px;margin-bottom:12px;align-items:center")], [
         html.input([
           attribute.id("ai-search-input"),
           attribute.type_("text"),
-          attribute.attribute("placeholder", "AI Search — filter tasks + search Zettelkasten knowledge..."),
-          attribute.attribute("style", "flex:1;background:var(--card-bg,#141922);border:1px solid var(--border,#1e2a3a);color:var(--text,#e0e6ed);padding:10px 16px;border-radius:8px;font-size:0.95rem;outline:none"),
+          attribute.attribute("placeholder", "AI Search — filter tasks + search Zettelkasten knowledge... (Ctrl+K)"),
+          attribute.attribute("style", "flex:1;background:rgba(10,14,23,0.6);backdrop-filter:blur(8px);border:1px solid rgba(30,42,58,0.6);color:var(--text,#e0e6ed);padding:11px 18px;border-radius:10px;font-size:0.92rem;outline:none;transition:border-color 0.2s"),
         ]),
       ]),
       html.div([attribute.id("ai-search-results"), attribute.attribute("style", "font-size:0.85rem;padding:0 0 8px;min-height:20px")], []),
-      // Task Detail Panel (shown on row click)
+      // ── Task Detail Panel (shown on row click) ──
       html.div([attribute.id("task-detail-panel")], []),
-      // Status bar + analytics
+      // ── Status bar + analytics badges ──
       html.div([attribute.id("grid-status"), attribute.attribute("style", "color:#f5a623;font-size:0.85rem;padding:4px 0")], [element.text("Loading grids...")]),
       html.div([attribute.id("grid-analytics"), attribute.attribute("style", "font-size:0.85rem;padding:4px 0;margin-bottom:8px")], []),
-      html.div([attribute.id("blocked-grid")], [element.text("Loading blocked tasks...")]),
-      html.h2([], [element.text("In-Progress Tasks")]),
-      html.div([attribute.id("active-grid")], [element.text("Loading active tasks...")]),
-      html.h2([], [element.text("All Tasks (search across 2,710)")]),
-      html.div([attribute.id("all-grid")], [element.text("Loading all tasks...")]),
-      // Fetch task data from Rust Smriti API + initialize Tabulator grids
-      // Static JS file avoids Lustre HTML entity encoding issue
+      // ── Grid View (default) ──
+      html.div([attribute.id("grid-section")], [
+        html.div([attribute.id("grid-minichart")], []),
+        html.div([attribute.id("blocked-grid")], [element.text("Loading blocked tasks...")]),
+        html.h3([attribute.attribute("style", "color:#00d4aa;font-size:0.95rem;margin:16px 0 8px;display:flex;align-items:center;gap:8px")], [
+          element.text("In-Progress Tasks"),
+          html.span([attribute.attribute("style", "font-size:0.72rem;color:#7a8fa6;font-weight:400")], [element.text("(1s refresh)")]),
+        ]),
+        html.div([attribute.id("active-grid")], [element.text("Loading active tasks...")]),
+        html.h3([attribute.attribute("style", "color:#e0e6ed;font-size:0.95rem;margin:16px 0 8px")], [
+          element.text("All Tasks (search across " <> int.to_string(total_count) <> ")"),
+        ]),
+        html.div([attribute.id("all-grid")], [element.text("Loading all tasks...")]),
+      ]),
+      // ── Kanban View (hidden by default) ──
+      html.div([attribute.id("kanban-section"), attribute.attribute("style", "display:none")], []),
+      // ── Timeline View (hidden by default) ──
+      html.div([attribute.id("timeline-section"), attribute.attribute("style", "display:none")], []),
+      // ── Analytics View (hidden by default) ──
+      html.div([attribute.id("analytics-section"), attribute.attribute("style", "display:none")], []),
+      // Load interactive JS (static file avoids Lustre entity encoding)
       element.element("script", [attribute.attribute("src", "/static/planning-grid.js")], []),
     ]),
     // ── Analysis: FMEA × Criticality × Utility ──
@@ -3211,136 +3236,53 @@ pub fn not_found_view(path: String) -> Element(msg) {
 // Private helpers
 // ---------------------------------------------------------------------------
 
-/// Tabulator fetch + init script — avoids & characters (Lustre HTML-encodes them).
-fn tabulator_fetch_init_script() -> String {
-  // NO ampersands allowed — Lustre element.text() HTML-encodes & to &amp;
-  "
-function fetchJSON(url) {
-  return fetch(url).then(function(r) { return r.json(); });
-}
-
-function loadGrids() {
-  if (typeof Tabulator === 'undefined') { setTimeout(loadGrids, 200); return; }
-
-  Promise.all([
-    fetchJSON('/api/v1/plan/list/blocked'),
-    fetchJSON('/api/v1/plan/list/in_progress'),
-    fetchJSON('/api/v1/plan/list/all')
-  ]).then(function(results) {
-    var blockedData = results[0] || [];
-    var activeData = results[1] || [];
-    var allData = results[2] || [];
-
-    " <> tabulator_init_script() <> "
-  }).catch(function(err) {
-    console.log('Grid data fetch failed: ' + err);
-  });
-}
-loadGrids();
-"
-}
-
 /// Enhanced CSS for creative planning page UX.
 fn planning_enhanced_css() -> String {
   "
 .weather-bar {
-  display:flex; align-items:center; gap:12px;
-  background:linear-gradient(90deg, rgba(0,212,170,0.08), rgba(61,214,140,0.04));
-  border:1px solid rgba(0,212,170,0.2); border-radius:8px;
-  padding:12px 20px; margin:0 0 1.5rem; font-size:0.9rem;
+  display:flex; align-items:center; gap:14px;
+  background:linear-gradient(135deg, rgba(0,212,170,0.06), rgba(61,214,140,0.02), rgba(0,180,148,0.04));
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(0,212,170,0.15); border-radius:12px;
+  padding:14px 22px; margin:0 0 1.5rem; font-size:0.9rem;
+  transition:all 0.3s ease;
 }
-.weather-emoji { font-size:1.8rem; }
-.weather-label { flex:1; color:var(--text); }
+.weather-bar:hover { border-color:rgba(0,212,170,0.3); box-shadow:0 4px 20px rgba(0,212,170,0.05); }
+.weather-emoji { font-size:1.8rem; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+.weather-label { flex:1; color:var(--text); line-height:1.4; }
 .weather-score {
-  font-size:1.4rem; font-weight:700; color:var(--accent);
-  background:rgba(0,212,170,0.1); padding:4px 12px; border-radius:6px;
+  font-size:1.5rem; font-weight:800; color:var(--accent);
+  background:linear-gradient(135deg,rgba(0,212,170,0.12),rgba(0,212,170,0.05));
+  padding:6px 16px; border-radius:10px;
+  border:1px solid rgba(0,212,170,0.15);
 }
 .progress-ring-row {
-  display:flex; justify-content:center; gap:2rem;
+  display:flex; justify-content:center; gap:1.5rem;
   margin:0 0 1.5rem; flex-wrap:wrap;
 }
 .ring-item {
   display:flex; flex-direction:column; align-items:center;
-  background:var(--card-bg); border:1px solid var(--border);
-  border-radius:10px; padding:1rem;
+  background:rgba(10,14,23,0.5); backdrop-filter:blur(8px);
+  border:1px solid rgba(30,42,58,0.5); border-radius:12px; padding:1rem 1.2rem;
+  transition:all 0.3s ease;
 }
 .ring-item:hover {
-  border-color:var(--accent); transform:translateY(-2px);
-  transition:all 0.2s ease;
+  border-color:var(--accent); transform:translateY(-3px);
+  box-shadow:0 8px 24px rgba(0,0,0,0.15);
 }
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,170,0); }
-  50% { box-shadow: 0 0 12px 2px rgba(0,212,170,0.15); }
+  50% { box-shadow: 0 0 14px 3px rgba(0,212,170,0.12); }
 }
-.card:hover { border-color:var(--accent); transition:border-color 0.2s; }
+.card { transition:all 0.25s ease; }
+.card:hover { border-color:var(--accent); transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,0,0,0.1); }
 table { border-collapse:collapse; width:100%; }
-table th { position:sticky; top:0; background:var(--nav-bg); z-index:1; }
+table th { position:sticky; top:0; background:rgba(10,14,23,0.95); backdrop-filter:blur(8px); z-index:1; }
+table tr { transition:background 0.15s; }
 table tr:hover { background:rgba(0,212,170,0.04); }
+.section h2, .section h3 { letter-spacing:0.3px; }
+.sub { color:#7a8fa6; font-size:0.82rem; margin-bottom:12px; }
 "
-}
-
-/// Tabulator initialization JavaScript for the planning data grids.
-/// NOTE: No HTML tags or & characters — Lustre element.text() encodes them.
-fn tabulator_init_script() -> String {
-  "
-  var taskColumns = [
-    {title:'ID', field:'id', width:90},
-    {title:'Priority', field:'priority', width:80, headerFilter:'select', headerFilterParams:{values:['P0','P1','P2','P3']}},
-    {title:'Status', field:'status', width:110, headerFilter:'select', headerFilterParams:{values:['pending','in_progress','completed','blocked']}},
-    {title:'Description', field:'title', minWidth:300, headerFilter:'input'},
-    {title:'Created', field:'created', width:120},
-  ];
-
-  // Wait for Tabulator to load
-  function initGrids() {
-    if (typeof Tabulator === 'undefined') { setTimeout(initGrids, 100); return; }
-
-    // Blocked tasks grid (red accent)
-    if (blockedData ? blockedData.length > 0 : false) {
-      new Tabulator('#blocked-grid', {
-        data: blockedData,
-        columns: taskColumns,
-        layout: 'fitColumns',
-        height: Math.min(blockedData.length * 40 + 60, 300),
-        placeholder: 'No blocked tasks',
-        headerSortTristate: true,
-      });
-    } else {
-      document.getElementById('blocked-grid').textContent = 'No blocked tasks';
-    }
-
-    // In-progress grid
-    if (activeData ? activeData.length > 0 : false) {
-      new Tabulator('#active-grid', {
-        data: activeData,
-        columns: taskColumns,
-        layout: 'fitColumns',
-        height: Math.min(activeData.length * 40 + 60, 400),
-        placeholder: 'No active tasks',
-        headerSortTristate: true,
-      });
-    } else {
-      document.getElementById('active-grid').textContent = 'No active tasks';
-    }
-
-    // All tasks grid (full searchable, paginated)
-    if (allData ? allData.length > 0 : false) {
-      new Tabulator('#all-grid', {
-        data: allData,
-        columns: taskColumns,
-        layout: 'fitColumns',
-        height: 500,
-        pagination: 'local',
-        paginationSize: 25,
-        paginationSizeSelector: [10, 25, 50, 100],
-        placeholder: 'No tasks',
-        headerSortTristate: true,
-        initialSort: [{column:'priority', dir:'asc'}],
-      });
-    }
-  }
-  initGrids();
-  "
 }
 
 fn page_header(title: String, subtitle: String) -> Element(msg) {
