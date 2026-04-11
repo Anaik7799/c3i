@@ -615,6 +615,41 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
   let status_raw = c3i_nif.plan_status()
   let pending_raw = c3i_nif.plan_list_pending()
 
+  // Parse live counts from NIF status for dynamic progress rings
+  let pending_count = count_in_json(status_raw, "pending")
+  let completed_count = count_in_json(status_raw, "completed")
+  let total_count = count_in_json(status_raw, "total")
+  let completion_pct = case total_count > 0 {
+    True -> { let f = int.to_float(completed_count) *. 100.0 /. int.to_float(total_count)
+              float.to_string(f) |> string.slice(0, 4) }
+    False -> "0"
+  }
+  // SVG dasharray: circumference = 2*pi*50 ≈ 314
+  let completion_dash = case total_count > 0 {
+    True -> int.to_string(completed_count * 314 / total_count)
+    False -> "0"
+  }
+  let completion_gap = case total_count > 0 {
+    True -> int.to_string(314 - completed_count * 314 / total_count)
+    False -> "314"
+  }
+  // System health score (0-100)
+  let health_score = case state.quorum_healthy {
+    True -> case state.threat_level {
+      "none" -> 92
+      "low" -> 78
+      _ -> 55
+    }
+    False -> 35
+  }
+  let weather_emoji = case health_score >= 80 {
+    True -> "☀️"
+    False -> case health_score >= 60 {
+      True -> "⛅"
+      False -> "🌧️"
+    }
+  }
+
   html.div([attribute.class("w-full")], [
     // ── Enhanced CSS for creative UX ──
     element.element("style", [], [
@@ -622,58 +657,36 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
     ]),
     page_header(
       "Planning & Operations",
-      "Live task management + Zettelkasten knowledge + 77 operational use cases",
+      "Live task management + Zettelkasten knowledge + 77 use cases  |  Ctrl+K search  |  R refresh  |  Esc close",
     ),
     // ── Weather Bar (Indra's Net: system mood at a glance) ──
     html.div([attribute.class("weather-bar")], [
-      html.span([attribute.class("weather-emoji")], [element.text("☀️")]),
-      html.span([attribute.class("weather-label")], [element.text("System Mood: Clear — P0 100% done, 0 critical alerts, knowledge fresh")]),
-      html.span([attribute.class("weather-score")], [element.text("87/100")]),
+      html.span([attribute.class("weather-emoji")], [element.text(weather_emoji)]),
+      html.span([attribute.class("weather-label")], [
+        element.text("System Mood: " <> case health_score >= 80 { True -> "Clear" False -> case health_score >= 60 { True -> "Partly cloudy" False -> "Stormy" } }
+          <> " — P0 100% done, " <> int.to_string(pending_count) <> " pending, "
+          <> int.to_string(completed_count) <> "/" <> int.to_string(total_count) <> " complete"),
+      ]),
+      html.span([attribute.class("weather-score")], [element.text(int.to_string(health_score) <> "/100")]),
     ]),
-    // ── Completion Progress Ring ──
+    // ── Completion Progress Rings (dynamic from NIF) ──
     html.div([attribute.class("progress-ring-row")], [
-      html.div([attribute.class("ring-item")], [
-        element.element("svg", [attribute.attribute("viewBox", "0 0 120 120"), attribute.attribute("width", "120"), attribute.attribute("height", "120")], [
-          element.element("circle", [attribute.attribute("cx", "60"), attribute.attribute("cy", "60"), attribute.attribute("r", "50"), attribute.attribute("fill", "none"), attribute.attribute("stroke", "var(--border)"), attribute.attribute("stroke-width", "8")], []),
-          element.element("circle", [attribute.attribute("cx", "60"), attribute.attribute("cy", "60"), attribute.attribute("r", "50"), attribute.attribute("fill", "none"), attribute.attribute("stroke", "var(--accent)"), attribute.attribute("stroke-width", "8"), attribute.attribute("stroke-dasharray", "106 208"), attribute.attribute("stroke-linecap", "round"), attribute.attribute("transform", "rotate(-90 60 60)")], []),
-          element.element("text", [attribute.attribute("x", "60"), attribute.attribute("y", "55"), attribute.attribute("text-anchor", "middle"), attribute.attribute("fill", "var(--text)"), attribute.attribute("font-size", "22"), attribute.attribute("font-weight", "700")], [element.text("33.8%")]),
-          element.element("text", [attribute.attribute("x", "60"), attribute.attribute("y", "75"), attribute.attribute("text-anchor", "middle"), attribute.attribute("fill", "var(--text)"), attribute.attribute("font-size", "10")], [element.text("Completed")]),
-        ]),
-      ]),
-      html.div([attribute.class("ring-item")], [
-        element.element("svg", [attribute.attribute("viewBox", "0 0 120 120"), attribute.attribute("width", "120"), attribute.attribute("height", "120")], [
-          element.element("circle", [attribute.attribute("cx", "60"), attribute.attribute("cy", "60"), attribute.attribute("r", "50"), attribute.attribute("fill", "none"), attribute.attribute("stroke", "var(--border)"), attribute.attribute("stroke-width", "8")], []),
-          element.element("circle", [attribute.attribute("cx", "60"), attribute.attribute("cy", "60"), attribute.attribute("r", "50"), attribute.attribute("fill", "none"), attribute.attribute("stroke", "#00d4aa"), attribute.attribute("stroke-width", "8"), attribute.attribute("stroke-dasharray", "314 0"), attribute.attribute("stroke-linecap", "round"), attribute.attribute("transform", "rotate(-90 60 60)")], []),
-          element.element("text", [attribute.attribute("x", "60"), attribute.attribute("y", "55"), attribute.attribute("text-anchor", "middle"), attribute.attribute("fill", "var(--text)"), attribute.attribute("font-size", "22"), attribute.attribute("font-weight", "700")], [element.text("100%")]),
-          element.element("text", [attribute.attribute("x", "60"), attribute.attribute("y", "75"), attribute.attribute("text-anchor", "middle"), attribute.attribute("fill", "var(--text)"), attribute.attribute("font-size", "10")], [element.text("P0 Safety")]),
-        ]),
-      ]),
-      html.div([attribute.class("ring-item")], [
-        element.element("svg", [attribute.attribute("viewBox", "0 0 120 120"), attribute.attribute("width", "120"), attribute.attribute("height", "120")], [
-          element.element("circle", [attribute.attribute("cx", "60"), attribute.attribute("cy", "60"), attribute.attribute("r", "50"), attribute.attribute("fill", "none"), attribute.attribute("stroke", "var(--border)"), attribute.attribute("stroke-width", "8")], []),
-          element.element("circle", [attribute.attribute("cx", "60"), attribute.attribute("cy", "60"), attribute.attribute("r", "50"), attribute.attribute("fill", "none"), attribute.attribute("stroke", "#3dd68c"), attribute.attribute("stroke-width", "8"), attribute.attribute("stroke-dasharray", "282 32"), attribute.attribute("stroke-linecap", "round"), attribute.attribute("transform", "rotate(-90 60 60)")], []),
-          element.element("text", [attribute.attribute("x", "60"), attribute.attribute("y", "55"), attribute.attribute("text-anchor", "middle"), attribute.attribute("fill", "var(--text)"), attribute.attribute("font-size", "22"), attribute.attribute("font-weight", "700")], [element.text("3,824")]),
-          element.element("text", [attribute.attribute("x", "60"), attribute.attribute("y", "75"), attribute.attribute("text-anchor", "middle"), attribute.attribute("fill", "var(--text)"), attribute.attribute("font-size", "10")], [element.text("Tests Pass")]),
-        ]),
-      ]),
-      html.div([attribute.class("ring-item")], [
-        element.element("svg", [attribute.attribute("viewBox", "0 0 120 120"), attribute.attribute("width", "120"), attribute.attribute("height", "120")], [
-          element.element("circle", [attribute.attribute("cx", "60"), attribute.attribute("cy", "60"), attribute.attribute("r", "50"), attribute.attribute("fill", "none"), attribute.attribute("stroke", "var(--border)"), attribute.attribute("stroke-width", "8")], []),
-          element.element("circle", [attribute.attribute("cx", "60"), attribute.attribute("cy", "60"), attribute.attribute("r", "50"), attribute.attribute("fill", "none"), attribute.attribute("stroke", "#00d4aa"), attribute.attribute("stroke-width", "8"), attribute.attribute("stroke-dasharray", "290 24"), attribute.attribute("stroke-linecap", "round"), attribute.attribute("transform", "rotate(-90 60 60)")], []),
-          element.element("text", [attribute.attribute("x", "60"), attribute.attribute("y", "55"), attribute.attribute("text-anchor", "middle"), attribute.attribute("fill", "var(--text)"), attribute.attribute("font-size", "22"), attribute.attribute("font-weight", "700")], [element.text("2,060")]),
-          element.element("text", [attribute.attribute("x", "60"), attribute.attribute("y", "75"), attribute.attribute("text-anchor", "middle"), attribute.attribute("fill", "var(--text)"), attribute.attribute("font-size", "10")], [element.text("Holons")]),
-        ]),
-      ]),
+      progress_ring(completion_pct <> "%", "Completed", "var(--accent)", completion_dash, completion_gap),
+      progress_ring("100%", "P0 Safety", "#00d4aa", "314", "0"),
+      progress_ring(int.to_string(state.healthy_count) <> "/" <> int.to_string(state.container_count), "Containers", "#3dd68c", int.to_string(case state.container_count > 0 { True -> state.healthy_count * 314 / state.container_count False -> 0 }), int.to_string(case state.container_count > 0 { True -> 314 - state.healthy_count * 314 / state.container_count False -> 314 })),
+      progress_ring(int.to_string(total_count), "Total Tasks", "#f5a623", "280", "34"),
     ]),
-    // ── Task Summary (live from Smriti.db) ──
+    // ── Mini Chart (stacked bar rendered by JS) ──
+    html.div([attribute.id("grid-minichart")], []),
+    // ── Task Summary (live from Smriti.db via NIF) ──
     shell.section("Task Summary (Live from Smriti.db)", [
       html.div([attribute.class("card-grid")], [
-        shell.status_card("Total Tasks", "Healthy", "2,710", "in Smriti.db"),
-        shell.status_card("Completed", "Healthy", "917", "33.8%"),
-        shell.status_card("Pending", "Degraded", "1,733", "63.9%"),
-        shell.status_card("In Progress", "Healthy", "47", "active"),
-        shell.status_card("Blocked", "Critical", "13", "awaiting action"),
-        shell.status_card("Zettelkasten", "Healthy", "2,060", "holons indexed"),
+        shell.status_card("Total Tasks", "Healthy", int.to_string(total_count), "in Smriti.db"),
+        shell.status_card("Completed", "Healthy", int.to_string(completed_count), completion_pct <> "%"),
+        shell.status_card("Pending", case pending_count > total_count / 2 { True -> "Degraded" False -> "Healthy" }, int.to_string(pending_count), "backlog"),
+        shell.status_card("In Progress", "Healthy", int.to_string(count_in_json(status_raw, "in_progress")), "active"),
+        shell.status_card("Blocked", case count_in_json(status_raw, "blocked") > 0 { True -> "Critical" False -> "Healthy" }, int.to_string(count_in_json(status_raw, "blocked")), "awaiting action"),
+        shell.status_card("Zettelkasten", "Healthy", "2,060+", "holons indexed"),
       ]),
     ]),
     // ── Priority Breakdown ──
@@ -3471,5 +3484,67 @@ fn string_lower(s: String) -> String {
     "L6" -> "l6"
     "L7" -> "l7"
     _ -> s
+  }
+}
+
+/// SVG progress ring component — reusable for all ring metrics.
+fn progress_ring(value: String, label: String, color: String, dash: String, gap: String) -> Element(msg) {
+  html.div([attribute.class("ring-item")], [
+    element.element("svg", [attribute.attribute("viewBox", "0 0 120 120"), attribute.attribute("width", "110"), attribute.attribute("height", "110")], [
+      element.element("circle", [attribute.attribute("cx", "60"), attribute.attribute("cy", "60"), attribute.attribute("r", "50"), attribute.attribute("fill", "none"), attribute.attribute("stroke", "var(--border)"), attribute.attribute("stroke-width", "7")], []),
+      element.element("circle", [attribute.attribute("cx", "60"), attribute.attribute("cy", "60"), attribute.attribute("r", "50"), attribute.attribute("fill", "none"), attribute.attribute("stroke", color), attribute.attribute("stroke-width", "7"), attribute.attribute("stroke-dasharray", dash <> " " <> gap), attribute.attribute("stroke-linecap", "round"), attribute.attribute("transform", "rotate(-90 60 60)")], []),
+      element.element("text", [attribute.attribute("x", "60"), attribute.attribute("y", "55"), attribute.attribute("text-anchor", "middle"), attribute.attribute("fill", "var(--text)"), attribute.attribute("font-size", "18"), attribute.attribute("font-weight", "700")], [element.text(value)]),
+      element.element("text", [attribute.attribute("x", "60"), attribute.attribute("y", "75"), attribute.attribute("text-anchor", "middle"), attribute.attribute("fill", "var(--text)"), attribute.attribute("font-size", "10")], [element.text(label)]),
+    ]),
+  ])
+}
+
+/// Extract a numeric count from NIF JSON status output.
+/// Looks for patterns like "pending: 123" or "\"pending\":123".
+fn count_in_json(json: String, key: String) -> Int {
+  // Try "key: N" pattern first (sa-plan-daemon format)
+  let search = key <> ": "
+  case string.contains(json, search) {
+    True -> {
+      let parts = string.split(json, search)
+      case list.rest(parts) {
+        Ok(rest) -> case list.first(rest) {
+          Ok(after) -> parse_leading_int(after)
+          Error(_) -> 0
+        }
+        Error(_) -> 0
+      }
+    }
+    False -> {
+      // Try JSON format: "key":N
+      let search2 = "\"" <> key <> "\":"
+      case string.contains(json, search2) {
+        True -> {
+          let parts2 = string.split(json, search2)
+          case list.rest(parts2) {
+            Ok(rest2) -> case list.first(rest2) {
+              Ok(after2) -> parse_leading_int(after2)
+              Error(_) -> 0
+            }
+            Error(_) -> 0
+          }
+        }
+        False -> 0
+      }
+    }
+  }
+}
+
+/// Parse leading integer from a string like "123,\n..." or "42 tasks".
+fn parse_leading_int(s: String) -> Int {
+  let digits = string.to_graphemes(s)
+    |> list.take_while(fn(c) {
+      c == "0" || c == "1" || c == "2" || c == "3" || c == "4"
+      || c == "5" || c == "6" || c == "7" || c == "8" || c == "9"
+    })
+    |> string.join("")
+  case int.parse(digits) {
+    Ok(n) -> n
+    Error(_) -> 0
   }
 }
