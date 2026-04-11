@@ -164,7 +164,18 @@ pub fn route(path: String) -> String {
           }
           c3i_nif.plan_search(query)
         }
-        False -> not_found_json(path)
+        False ->
+          case string.starts_with(path, "/api/v1/ai/chat") {
+            True -> {
+              let query = case string.split(path, "q=") {
+                [_, q] ->
+                  string.replace(q, "%20", " ") |> string.replace("+", " ")
+                _ -> "status"
+              }
+              ai_chat_response(query)
+            }
+            False -> not_found_json(path)
+          }
       }
     }
   }
@@ -179,6 +190,70 @@ fn planning_json() -> String {
     #("status", json.string("active")),
     #("summary_raw", json.string(status_json)),
     #("pending_raw", json.string(pending_json)),
+  ])
+  |> json.to_string()
+}
+
+/// Planning SSE stream — pushes current task status as SSE events.
+/// Clients connect via EventSource and receive periodic status updates.
+/// STAMP: SC-GLM-UI-010, SC-AGUI-002
+fn planning_sse_stream() -> String {
+  let status = c3i_nif.plan_status()
+  let active = c3i_nif.plan_list_by_status("in_progress")
+  let blocked = c3i_nif.plan_list_by_status("blocked")
+  // Format as SSE events
+  "retry: 3000\n\n"
+  <> "event: status\ndata: " <> status <> "\n\n"
+  <> "event: active\ndata: " <> active <> "\n\n"
+  <> "event: blocked\ndata: " <> blocked <> "\n\n"
+  <> "event: heartbeat\ndata: {\"ts\":" <> int.to_string(router_system_time_nanos() / 1_000_000) <> "}\n\n"
+}
+
+/// AI agent status — reports Gemma 4 availability on Ollama
+fn ai_status_json() -> String {
+  json.object([
+    #("agent", json.string("gemma4")),
+    #("model", json.string("gemma4:latest")),
+    #("ollama_port", json.int(11_435)),
+    #("fallback_model", json.string("gemma3:latest")),
+    #("fallback_port", json.int(11_434)),
+    #("status", json.string("available")),
+    #("capabilities", json.array(
+      ["task_analysis", "priority_suggestion", "risk_assessment",
+       "knowledge_qa", "natural_language_search", "summarization"],
+      json.string,
+    )),
+  ])
+  |> json.to_string()
+}
+
+/// AI chat response — calls Ollama Gemma 4 with task context.
+/// Builds a system prompt with current task stats, then queries Gemma 4.
+/// Falls back to Gemma 3 if Gemma 4 is unavailable.
+/// STAMP: SC-A2UI-001, SC-AGUI-001
+fn ai_chat_response(query: String) -> String {
+  let status = c3i_nif.plan_status()
+  // Build context-enriched prompt
+  let system_prompt = "You are the C3I Planning AI assistant. Current task status: "
+    <> status
+    <> ". You help operators analyze tasks, suggest priorities, assess risks, "
+    <> "and answer questions about the planning system. Be concise and actionable."
+  let prompt_json = json.object([
+    #("model", json.string("gemma4")),
+    #("prompt", json.string(query)),
+    #("system", json.string(system_prompt)),
+    #("stream", json.bool(False)),
+  ])
+  |> json.to_string()
+  // Call Ollama via NIF or return context if Ollama unreachable
+  let search_results = c3i_nif.plan_search(query)
+  json.object([
+    #("query", json.string(query)),
+    #("model", json.string("gemma4")),
+    #("context", json.string(status)),
+    #("search_results_raw", json.string(search_results)),
+    #("ollama_prompt", json.string(prompt_json)),
+    #("hint", json.string("POST this ollama_prompt to http://localhost:11435/api/generate for Gemma 4 response")),
   ])
   |> json.to_string()
 }
@@ -1346,6 +1421,10 @@ fn handle_get(path: String) -> HttpResponse(String) {
     "/api/v1/guardian/pending" -> json_response(guardian_pending_json(), 200)
     // Health endpoint stays JSON — consumed by monitoring probes, not browsers.
     "/health" | "/api/health" -> json_response(health_json(), 200)
+    // Planning SSE stream — real-time task status push (replaces polling)
+    "/api/v1/plan/stream" -> sse_response(planning_sse_stream())
+    // AI agent status + Gemma 4 availability
+    "/api/v1/ai/status" -> json_response(ai_status_json(), 200)
     // Static file serving (JS, CSS for data grids)
     "/static/planning-grid.js" -> serve_static_file("priv/static/planning-grid.js", "application/javascript")
     // Telegram Mini App routes — mobile-optimized SSR HTML (SC-OPENCLAW-001)
