@@ -1770,6 +1770,15 @@ fn handle_get(path: String) -> HttpResponse(String) {
     // Static file serving (JS, CSS for data grids)
     "/static/planning-grid.js" -> serve_static_file("priv/static/planning-grid.js", "application/javascript")
     "/static/dashboard-grid.js" -> serve_static_file("priv/static/dashboard-grid.js", "application/javascript")
+    // Page-specific agentic JS grids (PageRank top 8 — SC-AGUI-UI-001)
+    "/static/verification-grid.js" -> serve_static_file("priv/static/verification-grid.js", "application/javascript")
+    "/static/immune-grid.js" -> serve_static_file("priv/static/immune-grid.js", "application/javascript")
+    "/static/agents-grid.js" -> serve_static_file("priv/static/agents-grid.js", "application/javascript")
+    "/static/knowledge-grid.js" -> serve_static_file("priv/static/knowledge-grid.js", "application/javascript")
+    "/static/zenoh-grid.js" -> serve_static_file("priv/static/zenoh-grid.js", "application/javascript")
+    "/static/telemetry-grid.js" -> serve_static_file("priv/static/telemetry-grid.js", "application/javascript")
+    "/static/podman-grid.js" -> serve_static_file("priv/static/podman-grid.js", "application/javascript")
+    "/static/substrate-grid.js" -> serve_static_file("priv/static/substrate-grid.js", "application/javascript")
     // Telegram Mini App routes — mobile-optimized SSR HTML (SC-OPENCLAW-001)
     _ ->
       case mini_app_routes.is_mini_app_path(path) {
