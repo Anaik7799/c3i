@@ -753,19 +753,16 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
         attribute.attribute("src", "https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"),
       ], []),
       // Grid containers
-      html.div([attribute.id("blocked-grid")], []),
+      html.div([attribute.id("blocked-grid")], [element.text("Loading blocked tasks...")]),
       html.h2([], [element.text("In-Progress Tasks")]),
-      html.div([attribute.id("active-grid")], []),
+      html.div([attribute.id("active-grid")], [element.text("Loading active tasks...")]),
       html.h2([], [element.text("All Tasks (search across 2,710)")]),
-      html.div([attribute.id("all-grid")], []),
-      // Inject task data as JSON + initialize Tabulator grids
+      html.div([attribute.id("all-grid")], [element.text("Loading all tasks...")]),
+      // Fetch task data from Rust Smriti API + initialize Tabulator grids
+      // NOTE: Lustre HTML-encodes <script> content, so we avoid & characters
+      element.element("script", [attribute.attribute("src", "/api/v1/plan/list/blocked"), attribute.attribute("data-grid", "blocked-grid")], []),
       element.element("script", [], [
-        element.text(
-          "var blockedData = " <> c3i_nif.plan_list_by_status("blocked") <> ";\n"
-          <> "var activeData = " <> c3i_nif.plan_list_by_status("in_progress") <> ";\n"
-          <> "var allData = " <> c3i_nif.plan_list_by_status("all") <> ";\n"
-          <> tabulator_init_script()
-        ),
+        element.text(tabulator_fetch_init_script()),
       ]),
     ]),
     // ── Analysis: FMEA × Criticality × Utility ──
@@ -3190,6 +3187,35 @@ pub fn not_found_view(path: String) -> Element(msg) {
 // Private helpers
 // ---------------------------------------------------------------------------
 
+/// Tabulator fetch + init script — avoids & characters (Lustre HTML-encodes them).
+fn tabulator_fetch_init_script() -> String {
+  // NO ampersands allowed — Lustre element.text() HTML-encodes & to &amp;
+  "
+function fetchJSON(url) {
+  return fetch(url).then(function(r) { return r.json(); });
+}
+
+function loadGrids() {
+  if (typeof Tabulator === 'undefined') { setTimeout(loadGrids, 200); return; }
+
+  Promise.all([
+    fetchJSON('/api/v1/plan/list/blocked'),
+    fetchJSON('/api/v1/plan/list/in_progress'),
+    fetchJSON('/api/v1/plan/list/all')
+  ]).then(function(results) {
+    var blockedData = results[0] || [];
+    var activeData = results[1] || [];
+    var allData = results[2] || [];
+
+    " <> tabulator_init_script() <> "
+  }).catch(function(err) {
+    console.log('Grid data fetch failed: ' + err);
+  });
+}
+loadGrids();
+"
+}
+
 /// Enhanced CSS for creative planning page UX.
 fn planning_enhanced_css() -> String {
   "
@@ -3230,28 +3256,15 @@ table tr:hover { background:rgba(0,212,170,0.04); }
 }
 
 /// Tabulator initialization JavaScript for the planning data grids.
+/// NOTE: No HTML tags or & characters — Lustre element.text() encodes them.
 fn tabulator_init_script() -> String {
   "
-  // Column definitions shared by all grids
   var taskColumns = [
-    {title:'ID', field:'id', width:90, formatter:function(cell){return cell.getValue().substring(0,8);}},
-    {title:'Priority', field:'priority', width:80, headerFilter:'select', headerFilterParams:{values:['P0','P1','P2','P3']},
-     formatter:function(cell){
-       var v = cell.getValue();
-       var color = v=='P0'?'#e05252':v=='P1'?'#f5a623':v=='P2'?'#00d4aa':'#7a8fa6';
-       return '<span style=\"color:'+color+';font-weight:700\">'+v+'</span>';
-     }},
-    {title:'Status', field:'status', width:110, headerFilter:'select', headerFilterParams:{values:['pending','in_progress','completed','blocked']},
-     formatter:function(cell){
-       var v = cell.getValue();
-       var bg = v=='completed'?'rgba(61,214,140,0.2)':v=='blocked'?'rgba(224,82,82,0.2)':v=='in_progress'?'rgba(0,212,170,0.2)':'rgba(122,143,166,0.1)';
-       var color = v=='completed'?'#3dd68c':v=='blocked'?'#e05252':v=='in_progress'?'#00d4aa':'#7a8fa6';
-       return '<span style=\"background:'+bg+';color:'+color+';padding:2px 8px;border-radius:4px;font-size:0.8rem;font-weight:600\">'+v+'</span>';
-     }},
-    {title:'Description', field:'title', minWidth:300, headerFilter:'input', formatter:'textarea'},
-    {title:'Created', field:'created', width:120, formatter:function(cell){
-       var v = cell.getValue(); return v ? v.substring(0,10) : '';
-    }},
+    {title:'ID', field:'id', width:90},
+    {title:'Priority', field:'priority', width:80, headerFilter:'select', headerFilterParams:{values:['P0','P1','P2','P3']}},
+    {title:'Status', field:'status', width:110, headerFilter:'select', headerFilterParams:{values:['pending','in_progress','completed','blocked']}},
+    {title:'Description', field:'title', minWidth:300, headerFilter:'input'},
+    {title:'Created', field:'created', width:120},
   ];
 
   // Wait for Tabulator to load
@@ -3259,7 +3272,7 @@ fn tabulator_init_script() -> String {
     if (typeof Tabulator === 'undefined') { setTimeout(initGrids, 100); return; }
 
     // Blocked tasks grid (red accent)
-    if (blockedData && blockedData.length > 0) {
+    if (blockedData ? blockedData.length > 0 : false) {
       new Tabulator('#blocked-grid', {
         data: blockedData,
         columns: taskColumns,
@@ -3269,11 +3282,11 @@ fn tabulator_init_script() -> String {
         headerSortTristate: true,
       });
     } else {
-      document.getElementById('blocked-grid').innerHTML = '<p style=\"color:#7a8fa6;padding:8px\">No blocked tasks ✓</p>';
+      document.getElementById('blocked-grid').textContent = 'No blocked tasks';
     }
 
     // In-progress grid
-    if (activeData && activeData.length > 0) {
+    if (activeData ? activeData.length > 0 : false) {
       new Tabulator('#active-grid', {
         data: activeData,
         columns: taskColumns,
@@ -3283,11 +3296,11 @@ fn tabulator_init_script() -> String {
         headerSortTristate: true,
       });
     } else {
-      document.getElementById('active-grid').innerHTML = '<p style=\"color:#7a8fa6;padding:8px\">No active tasks</p>';
+      document.getElementById('active-grid').textContent = 'No active tasks';
     }
 
     // All tasks grid (full searchable, paginated)
-    if (allData && allData.length > 0) {
+    if (allData ? allData.length > 0 : false) {
       new Tabulator('#all-grid', {
         data: allData,
         columns: taskColumns,

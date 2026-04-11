@@ -14,7 +14,9 @@
     inference_status/0, trace_recent/1, conversation_history/1,
     cache_stats/0, fmea_report/0, ha_status/0, voice_status/0,
     ruliology_automaton/1, ruliology_multiway/0, ruliology_causal/0,
-    ooda_phase/0
+    ooda_phase/0,
+    %% Zenoh Native (5) — SC-ZENOH-001
+    zenoh_open/1, zenoh_put/2, zenoh_get/1, zenoh_status/0, zenoh_close/0
 ]).
 -on_load(init/0).
 
@@ -62,3 +64,9 @@ ruliology_automaton(_Name) -> <<"{\"name\":\"unknown\",\"current\":\"unknown\",\
 ruliology_multiway() -> <<"{\"nodes\":[],\"node_count\":0}">>.
 ruliology_causal() -> <<"{\"nodes\":[],\"edges\":[],\"node_count\":0,\"edge_count\":0}">>.
 ooda_phase() -> <<"{\"phase\":\"idle\",\"cycle_count\":0,\"target_ms\":100}">>.
+%% Zenoh Native
+zenoh_open(_ConfigJson) -> <<"{\"status\":\"error\",\"error\":\"zenoh_nif_not_loaded\"}">>.
+zenoh_put(_Key, _Payload) -> <<"{\"status\":\"error\",\"error\":\"zenoh_nif_not_loaded\"}">>.
+zenoh_get(_Key) -> <<"[]">>.
+zenoh_status() -> <<"{\"connected\":false,\"endpoint\":\"none\"}">>.
+zenoh_close() -> <<"{\"status\":\"closed\"}">>.

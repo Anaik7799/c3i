@@ -150,3 +150,27 @@ pub fn ruliology_causal() -> String
 /// Current OODA cycle phase and count.
 @external(erlang, "c3i_nif", "ooda_phase")
 pub fn ooda_phase() -> String
+
+// =============================================================================
+// Zenoh Native NIF (SC-ZENOH-001) — Direct BEAM → Rust → Zenoh
+// =============================================================================
+
+/// Open a Zenoh session. Config JSON: "{}" for default localhost:7447.
+@external(erlang, "c3i_nif", "zenoh_open")
+pub fn zenoh_open(config_json: String) -> String
+
+/// Publish data to a Zenoh key expression.
+@external(erlang, "c3i_nif", "zenoh_put")
+pub fn zenoh_put(key: String, payload: String) -> String
+
+/// Get data from a Zenoh key expression.
+@external(erlang, "c3i_nif", "zenoh_get")
+pub fn zenoh_get(key: String) -> String
+
+/// Check Zenoh session connection status.
+@external(erlang, "c3i_nif", "zenoh_status")
+pub fn zenoh_status() -> String
+
+/// Close the Zenoh session.
+@external(erlang, "c3i_nif", "zenoh_close")
+pub fn zenoh_close() -> String
