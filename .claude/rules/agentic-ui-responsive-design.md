@@ -251,6 +251,155 @@ Plus 7 responsive test sections (S-Y): Mobile(12), Tablet(8), Desktop(8), Wide(4
 
 ---
 
+---
+
+## 11. Multidimensional Optimization Framework
+
+Every page component is scored across 5 dimensions. The composite score drives optimization priority.
+
+### Scoring Matrix (per component)
+
+| Dimension | Weight | Formula | Threshold |
+|-----------|--------|---------|-----------|
+| **FMEA Risk** | 0.30 | RPN = Severity × Occurrence × Detection (1-10 each) | RPN ≥ 200 → immediate action |
+| **Criticality** | 0.25 | L0=10, L1=8, L2=6, L3=5, L4=7, L5=8, L6=9, L7=9 (fractal layer weight) | L0/L6/L7 components prioritized |
+| **Utility** | 0.20 | User interaction frequency × task completion impact (0-10) | ≥ 7 = high value |
+| **Performance** | 0.15 | Render time (ms) + data freshness (s) + bandwidth (KB/frame) | Render <100ms, data <2s |
+| **Accessibility** | 0.10 | WCAG 2.1 AA score: contrast ratio + touch size + keyboard nav | AA compliance mandatory |
+
+**Composite Score** = Σ(weight_i × normalized_score_i) → 0.0 to 1.0
+
+### Optimization Priority Order
+```
+Priority = (1 - CompositeScore) × FractalLayerWeight
+```
+Components with lowest composite score and highest fractal layer weight are optimized first.
+
+### Per-Component FMEA Table (template)
+| Component | Failure Mode | Severity | Occurrence | Detection | RPN | Mitigation |
+|-----------|-------------|----------|------------|-----------|-----|------------|
+| WebSocket | Connection drop | 7 | 4 | 3 | 84 | Auto-reconnect + polling fallback |
+| Gemma chat | Timeout/empty | 5 | 5 | 2 | 50 | Dual-model fallback + NIF search |
+| Status cards | Stale data | 6 | 3 | 2 | 36 | 5s refresh + heartbeat indicator |
+| Kanban | Wrong column | 8 | 2 | 3 | 48 | Server-side status validation |
+| Search | No results | 4 | 3 | 2 | 24 | Zettelkasten + grid filter dual mode |
+| Touch target | Misclick | 6 | 5 | 1 | 30 | 44px min + 8px spacing |
+
+---
+
+## 12. Real-Time Update Rules & SLAs
+
+### Latency Budget (per component)
+| Component | Target | Max | Measurement |
+|-----------|--------|-----|-------------|
+| WebSocket round-trip | <50ms | <200ms | ping→heartbeat |
+| Status card update | <100ms | <500ms | WS message→DOM update |
+| Grid row highlight | <16ms | <50ms | Data diff→CSS animation |
+| Gemma chat response | <5s | <15s | Query→first token (Gemma 3) |
+| Search results | <200ms | <1s | Keystroke→grid filter |
+| Page initial load | <2s | <5s | Navigation→first paint |
+| SVG ring update | <100ms | <300ms | Status change→dasharray |
+
+### Bandwidth Budget
+| Transport | Per-frame budget | Frequency | Monthly est. |
+|-----------|-----------------|-----------|-------------|
+| WS heartbeat | <100 bytes | 1/s | ~260 MB |
+| WS update | <50 KB | ~1/30s avg | ~140 MB |
+| WS search | <100 KB | On-demand | Variable |
+| Header refresh | <2 KB | 1/5s (fallback) | ~10 MB |
+
+### Heartbeat Thresholds
+| Indicator | Condition | Color | Action |
+|-----------|-----------|-------|--------|
+| Live | Last message <3s ago | #3dd68c (green) | Normal |
+| Stale | Last message 3-10s ago | #f5a623 (amber) | Show warning |
+| Dead | Last message >10s ago | #ff4757 (red) | Trigger reconnect |
+
+### Diff Detection Rules
+1. Server compares `status_json_string != last_status_json_string` (string equality, fast)
+2. If different → send full update (status + active + blocked)
+3. If same → send heartbeat only (seq counter, <100 bytes)
+4. Client-side: `snapshotData()` → `findChangedIds()` → `highlightChangedRows()`
+5. Changed rows get `row-changed` CSS class (1.8s fadeout animation)
+6. Change log captures: status_change, priority_change, new_task, task_removed, data_diff
+
+---
+
+## 13. Ruliology — Behavioral Rules Engine Integration
+
+The C3I Rust rule engine (`ruliology.rs`, 929 lines, Wolfram-style) drives UI behavior decisions. Rules are evaluated via NIF and control component visibility, refresh rates, and alert levels.
+
+### UI-Specific GRL Rules
+
+| Rule | Domain | Salience | Condition | Action |
+|------|--------|----------|-----------|--------|
+| `UIRefreshRate` | UI Governor | 80 | `active_tasks > 20` | Set refresh to 500ms (double speed) |
+| `UIRefreshSlow` | UI Governor | 70 | `active_tasks == 0` | Set refresh to 5s (power save) |
+| `UICockpitEscalate` | Cockpit Mode | 90 | `blocked_tasks > 10 OR health < 0.5` | Escalate to Bright/Emergency |
+| `UICockpitDark` | Cockpit Mode | 60 | `blocked_tasks == 0 AND health > 0.9` | Dark cockpit (suppress nominal) |
+| `UIKanbanAlert` | Kanban | 75 | `P0_pending > 0` | Flash P0 column header red |
+| `UITimelineStale` | Timeline | 70 | `oldest_active > 30d` | Highlight stale tasks amber |
+| `UISearchBoost` | Search | 65 | `query matches SC-*` | Prioritize STAMP constraint results |
+| `UIGemmaEscalate` | AI Chat | 85 | `user_query contains "emergency"` | Route to Gemma 4 (deep analysis) |
+| `UIWsReconnect` | WebSocket | 95 | `ws_disconnected > 10s` | Force reconnect + alert operator |
+| `UIFractalFocus` | Fractal Filter | 60 | `recent_failures in L0/L4` | Auto-select L0 or L4 filter |
+
+### Ruliology Integration Pattern
+```
+User action → JS event → fetch /api/v1/rules/evaluate?context=<json>
+  → Rust rule_engine NIF → evaluate_decision(context)
+  → Return: { action: "escalate_cockpit", params: { mode: "bright" } }
+  → JS applies action to UI
+```
+
+### Wolfram-Style Cellular Automata Rules (from `ruliology.rs`)
+- Rule 30: Chaos detection — when system entropy exceeds threshold
+- Rule 110: Complexity emergence — when component interactions create unexpected patterns
+- Rule 184: Traffic flow — task queue depth analysis for backpressure decisions
+- Causal graph: Task dependency visualization in Timeline view
+
+---
+
+## 14. Advanced Responsive Design — Device-Specific Patterns
+
+### Viewport Matrix (extended)
+| Device | Width | Height | DPR | Orientation | Special |
+|--------|-------|--------|-----|-------------|---------|
+| iPhone SE | 375px | 667px | 2x | Portrait | Safe area 34px bottom |
+| iPhone 15 Pro | 393px | 852px | 3x | Portrait | Dynamic Island 59px top |
+| iPad Mini | 768px | 1024px | 2x | Portrait/Landscape | Split-screen multitask |
+| iPad Pro 12.9 | 1024px | 1366px | 2x | Landscape | Side-by-side apps |
+| MacBook Air 13 | 1440px | 900px | 2x | Landscape | Primary development |
+| 4K Monitor | 3840px | 2160px | 1x-2x | Landscape | Command center wall |
+
+### Orientation Rules
+- **Portrait**: Stack all sections, 1-col kanban, hide timeline (too narrow)
+- **Landscape**: Side-by-side where possible, show timeline, 2+ col kanban
+- CSS: `@media (orientation: portrait)` and `@media (orientation: landscape)`
+
+### Density-Aware Rendering
+- `@media (-webkit-min-device-pixel-ratio: 2)`: Use 2x SVG assets
+- `@media (-webkit-min-device-pixel-ratio: 3)`: Use 3x for iPhone Pro
+- Progress ring stroke-width: 4px (1x), 3px (2x), 2px (3x) for optical consistency
+
+### Dark Mode System Integration
+```css
+@media (prefers-color-scheme: dark) { /* Already default */ }
+@media (prefers-color-scheme: light) { /* Switch to Solaris theme */ }
+@media (prefers-reduced-motion: reduce) { /* Disable pulse/shimmer animations */ }
+@media (prefers-contrast: more) { /* Increase border contrast, bold text */ }
+```
+
+### Performance Budget per Viewport
+| Viewport | First Paint | Interactive | JS Bundle | CSS |
+|----------|------------|-------------|-----------|-----|
+| Mobile | <1.5s | <3s | <100KB | <20KB |
+| Tablet | <1.5s | <2.5s | <100KB | <20KB |
+| Desktop | <1s | <2s | <100KB | <20KB |
+| 4K | <1s | <1.5s | <100KB | <20KB |
+
+---
+
 ## Reference Implementation
 - **Page**: `/planning` — `https://vm-1.tail55d152.ts.net:4100/planning`
 - **Spec**: `docs/architecture/planning-page-specification.md` (674 lines, 15 sections)
@@ -260,5 +409,7 @@ Plus 7 responsive test sections (S-Y): Mobile(12), Tablet(8), Desktop(8), Wide(4
 - **Router**: `ui/wisp/router.gleam` SSE + AI + search routes
 - **Gleam tests**: `test/planning_page_comprehensive_test.gleam` (1,270 lines, 106 tests)
 - **Rust E2E**: `test/planning_e2e_rust.rs` (584+ lines, 179 tests)
+- **Ruliology**: `sub-projects/c3i/native/planning_daemon/src/ruliology.rs` (929 lines)
+- **Rule engine**: `sub-projects/c3i/native/planning_daemon/src/rule_engine.rs` (961 lines, 52 GRL rules)
 - **Skill**: `.claude/commands/agentic-ui-evolve.md`
 - **Agent**: `.claude/agents/agentic-ui-designer.md`

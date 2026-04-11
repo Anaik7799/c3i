@@ -130,8 +130,30 @@ Focus Areas: #4 (Homomorphic Tripartite UI), #6 (SLM Cognitive Kernels), #9 (Ope
 - [ ] 6 DAG scenarios pass
 - [ ] Mobile + Desktop user journeys pass
 
+## Phase 8: Multidimensional Optimization
+1. Score each component across 5 dimensions: FMEA Risk (0.30), Criticality (0.25), Utility (0.20), Performance (0.15), Accessibility (0.10)
+2. Build FMEA table: Component × Failure Mode × Severity × Occurrence × Detection → RPN
+3. RPN ≥ 200 → immediate remediation. Priority = (1 - CompositeScore) × FractalLayerWeight
+4. Enforce latency SLAs: WS round-trip <50ms, card update <100ms, Gemma <5s, search <200ms, page load <2s
+5. Bandwidth budget: WS heartbeat <100 bytes/frame, WS update <50KB/frame
+
+## Phase 9: Ruliology Integration
+1. Connect to Rust rule engine (`rule_engine.rs`, 52 GRL rules) via NIF for UI behavior decisions
+2. Implement UI-specific GRL rules: UIRefreshRate, UICockpitEscalate, UIKanbanAlert, UITimelineStale, UISearchBoost, UIGemmaEscalate, UIWsReconnect, UIFractalFocus
+3. Rule evaluation flow: JS event → `/api/v1/rules/evaluate?context=<json>` → NIF → action → JS applies
+4. Wolfram cellular automata: Rule 30 (chaos detection), Rule 110 (complexity emergence), Rule 184 (traffic flow)
+
+## Phase 10: Device-Specific Responsive Patterns
+1. Support 6+ device profiles: iPhone SE (375px), iPhone 15 Pro (393px), iPad Mini (768px), iPad Pro (1024px), MacBook (1440px), 4K Monitor (3840px)
+2. Orientation rules: `@media (orientation: portrait)` → stack, hide timeline; `@media (orientation: landscape)` → side-by-side
+3. DPR-aware: `@media (-webkit-min-device-pixel-ratio: 2/3)` → adjust stroke-width for optical consistency
+4. System preferences: `prefers-color-scheme`, `prefers-reduced-motion`, `prefers-contrast`
+5. Performance budget: Mobile first paint <1.5s, Desktop <1s, JS bundle <100KB
+
 ## Reference
-- Rule: `.claude/rules/agentic-ui-responsive-design.md`
+- Rule: `.claude/rules/agentic-ui-responsive-design.md` (14 sections, SC-AGUI-UI-001..015)
 - Agent: `.claude/agents/agentic-ui-designer.md`
 - Spec: `docs/architecture/planning-page-specification.md`
 - Journal: `docs/journal/20260411-planning-page-evolution.md`
+- Ruliology: `sub-projects/c3i/native/planning_daemon/src/ruliology.rs` (929 lines)
+- Rule engine: `sub-projects/c3i/native/planning_daemon/src/rule_engine.rs` (961 lines, 52 GRL rules)

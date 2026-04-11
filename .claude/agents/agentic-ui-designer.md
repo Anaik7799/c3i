@@ -82,5 +82,28 @@ Maps to Focus Areas #4 (Homomorphic Tripartite UI), #6 (Embedded SLM Cognitive K
 | Gleam tests | `test/planning_page_comprehensive_test.gleam` | Adapt Model/Msg |
 | Rust E2E | `test/planning_e2e_rust.rs` | Adapt IDs/APIs/paths |
 
+## Multidimensional Optimization
+After implementation, score every component across 5 dimensions:
+1. **FMEA Risk** (0.30 weight): RPN = Severity × Occurrence × Detection. RPN ≥ 200 → immediate fix
+2. **Criticality** (0.25): Fractal layer weight (L0=10, L5=8, L6=9, L3=5)
+3. **Utility** (0.20): User interaction frequency × task completion impact
+4. **Performance** (0.15): Render <100ms, data freshness <2s, bandwidth <50KB/frame
+5. **Accessibility** (0.10): WCAG 2.1 AA (contrast, touch, keyboard)
+
+## Ruliology Integration
+Connect to Rust rule engine for adaptive UI behavior:
+- `UIRefreshRate`: Speed up refresh when active_tasks > 20
+- `UICockpitEscalate`: Bright/Emergency when blocked > 10 or health < 0.5
+- `UIGemmaEscalate`: Route to Gemma 4 for emergency queries
+- `UIFractalFocus`: Auto-select L0/L4 filter on recent failures
+- Rule evaluation: JS → `/api/v1/rules/evaluate` → NIF → action → JS applies
+
+## Device-Specific Responsive
+- 6 device profiles: iPhone SE/15, iPad Mini/Pro, MacBook, 4K
+- Orientation: portrait = stack, landscape = side-by-side
+- DPR-aware stroke-width for optical consistency
+- System preferences: `prefers-reduced-motion`, `prefers-contrast`
+- Performance budget: Mobile first paint <1.5s, Desktop <1s
+
 ## STAMP Constraints
 SC-AGUI-UI-001..015 (see `.claude/rules/agentic-ui-responsive-design.md`)
