@@ -23,6 +23,7 @@
 // सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज — Surrender all duties, take refuge (Gita 18.66)
 
 import cepaf_gleam/c3i/nif as c3i_nif
+import cepaf_gleam/ha/beam_metrics
 import cepaf_gleam/planning/safety_kernel
 import cepaf_gleam/ui/wisp/router
 import gleam/bytes_tree
@@ -334,14 +335,20 @@ fn dash_ws_on_close(_state: DashWsState) -> Nil {
 
 /// Build comprehensive dashboard snapshot — all fractal layers + supervisors
 /// Data sourced via Zenoh backplane (SC-ZMOF-001)
+/// Sprint 5 (S5-8): BEAM metrics wired into every dashboard push
 fn build_dashboard_snapshot() -> String {
   let status = c3i_nif.plan_status()
   let health = c3i_nif.system_health()
   let dashboard = c3i_nif.system_dashboard()
+  let metrics = beam_metrics.snapshot()
   json.object([
     #("plan_status", json.string(status)),
     #("system_health", json.string(health)),
     #("dashboard", json.string(dashboard)),
+    #("beam_processes", json.int(metrics.process_count)),
+    #("beam_schedulers", json.int(metrics.scheduler_count)),
+    #("beam_memory_mb", json.int(metrics.memory_total_mb)),
+    #("beam_run_queue", json.int(metrics.run_queue_length)),
   ])
   |> json.to_string()
 }

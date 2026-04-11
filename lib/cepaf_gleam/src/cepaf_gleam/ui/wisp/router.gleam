@@ -21,7 +21,9 @@ import cepaf_gleam/agui/state as agui_state
 import cepaf_gleam/agui/tools as agui_tools
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/beam_metrics
+import cepaf_gleam/ha/health_cascade
 import cepaf_gleam/ha/hot_reload
+import cepaf_gleam/ha/invariant_gate
 import cepaf_gleam/ha/slo_tracker
 import cepaf_gleam/fractal/l0_constitutional.{
   type ApprovalRequest, ApprovalRequest, Approved, Critical as ApprovalCritical,
@@ -65,6 +67,8 @@ pub const default_port = 4100
 
 /// Route a request path to the appropriate handler.
 pub fn route(path: String) -> String {
+  // Sprint 5: SLO tracking — each request recorded for error budget (SC-SATYA)
+  // TODO: Wire slo_tracker.record_event() when OTP actor manages state
   case path {
     // Primary API routes
     "/health" | "/api/health" -> health_json()
@@ -88,6 +92,9 @@ pub fn route(path: String) -> String {
     "/api/v1/system/circuits" -> circuit_breaker_json()
     // Data freshness / staleness check (SC-EVO-KPI-003)
     "/api/v1/health/freshness" -> data_freshness_json()
+    // Health cascade across L0-L7 fractal layers (SC-SIL4-001, SC-VER-001, SC-HA-001)
+    "/api/v1/health/cascade" ->
+      health_cascade.check_cascade() |> health_cascade.to_json()
     // Cockpit endpoints (SC-HMI-010 Dark Cockpit)
     "/api/v1/cockpit/alarms" -> cockpit_alarms_json()
     "/api/v1/cockpit/mode" -> cockpit_mode_json()
@@ -1786,151 +1793,154 @@ fn read_file(path: String) -> Result(String, String)
 /// STAMP: SC-GLM-UI-001 (Triple-Interface: browser = Lustre HTML layer)
 fn route_html(path: String) -> String {
   let state = mesh_state.default_state()
+  // Sprint 5: All renders go through invariant gate (SC-SATYA-003)
+  // guard_render checks state invariants BEFORE rendering.
+  // If invariants fail → safe fallback shown instead of wrong data.
+  let guard = fn(page_name: String, render_fn) {
+    invariant_gate.guard_render(state, page_name, render_fn)
+  }
   case path {
     "/" | "/dashboard" ->
-      shell.render_page(
-        "Dashboard",
-        "dashboard",
-        page_views.dashboard_view(state),
-      )
+      shell.render_page("Dashboard", "dashboard", guard("dashboard", page_views.dashboard_view))
     "/planning" ->
-      shell.render_page("Planning", "planning", page_views.planning_view(state))
+      shell.render_page("Planning", "planning", guard("planning", page_views.planning_view))
     "/immune" ->
       shell.render_page(
         "Immune System",
         "immune",
-        page_views.immune_view(state),
+        guard("immune", page_views.immune_view),
       )
     "/knowledge" ->
       shell.render_page(
         "Knowledge Graph",
         "knowledge",
-        page_views.knowledge_view(state),
+        guard("knowledge", page_views.knowledge_view),
       )
     "/zenoh" ->
-      shell.render_page("Zenoh Mesh", "zenoh", page_views.zenoh_view(state))
+      shell.render_page("Zenoh Mesh", "zenoh", guard("zenoh", page_views.zenoh_view))
     "/cockpit" ->
-      shell.render_page("Cockpit", "cockpit", page_views.cockpit_view(state))
+      shell.render_page("Cockpit", "cockpit", guard("cockpit", page_views.cockpit_view))
     "/verification" ->
       shell.render_page(
         "Verification",
         "verification",
-        page_views.verification_view(state),
+        guard("verification", page_views.verification_view),
       )
     "/substrate" ->
       shell.render_page(
         "Substrate",
         "substrate",
-        page_views.substrate_view(state),
+        guard("substrate", page_views.substrate_view),
       )
     "/metabolic" ->
       shell.render_page(
         "Metabolic",
         "metabolic",
-        page_views.metabolic_view(state),
+        guard("metabolic", page_views.metabolic_view),
       )
     "/podman" ->
-      shell.render_page("Podman", "podman", page_views.podman_view(state))
-    "/mcp" -> shell.render_page("MCP Server", "mcp", page_views.mcp_view(state))
+      shell.render_page("Podman", "podman", guard("podman", page_views.podman_view))
+    "/mcp" ->
+      shell.render_page("MCP Server", "mcp", guard("mcp", page_views.mcp_view))
     "/kms" ->
-      shell.render_page("KMS Catalog", "kms", page_views.kms_view(state))
+      shell.render_page("KMS Catalog", "kms", guard("kms", page_views.kms_view))
     "/telemetry" ->
       shell.render_page(
         "Telemetry",
         "telemetry",
-        page_views.telemetry_view(state),
+        guard("telemetry", page_views.telemetry_view),
       )
     "/federation" ->
       shell.render_page(
         "Federation (L7)",
         "federation",
-        page_views.federation_view(state),
+        guard("federation", page_views.federation_view),
       )
     "/health-grid" ->
       shell.render_page(
         "Device Health Grid",
         "health-grid",
-        page_views.health_grid_view(state),
+        guard("health_grid", page_views.health_grid_view),
       )
     "/prajna" ->
       shell.render_page(
         "Prajna Biomorphic",
         "prajna",
-        page_views.prajna_view(state),
+        guard("prajna", page_views.prajna_view),
       )
     "/agents" ->
       shell.render_page(
         "Cybernetic Agents",
         "agents",
-        page_views.agents_view(state),
+        guard("agents", page_views.agents_view),
       )
     "/holon" ->
-      shell.render_page("Holon Identity", "holon", page_views.holon_view(state))
+      shell.render_page("Holon Identity", "holon", guard("holon", page_views.holon_view))
     "/config" ->
       shell.render_page(
         "Mesh Configuration",
         "config",
-        page_views.config_view(state),
+        guard("config", page_views.config_view),
       )
     "/git" ->
-      shell.render_page("Git Intelligence", "git", page_views.git_view(state))
+      shell.render_page("Git Intelligence", "git", guard("git", page_views.git_view))
     "/database" ->
-      shell.render_page("Database", "database", page_views.database_view(state))
+      shell.render_page("Database", "database", guard("database", page_views.database_view))
     "/bridge" ->
-      shell.render_page("Bridge", "bridge", page_views.bridge_view(state))
+      shell.render_page("Bridge", "bridge", guard("bridge", page_views.bridge_view))
     "/smriti" ->
       shell.render_page(
         "Smriti Knowledge",
         "smriti",
-        page_views.smriti_view(state),
+        guard("smriti", page_views.smriti_view),
       )
     "/planning-dashboard" ->
       shell.render_page(
         "Planning Dashboard",
         "planning-dashboard",
-        page_views.planning_dashboard_view(state),
+        guard("planning_dashboard", page_views.planning_dashboard_view),
       )
     "/integrity" ->
       shell.render_page(
         "Mathematical Integrity",
         "integrity",
-        page_views.integrity_view(state),
+        guard("integrity", page_views.integrity_view),
       )
     "/evolution" ->
       shell.render_page(
         "Evolution Vectors",
         "evolution",
-        page_views.evolution_view(state),
+        guard("evolution", page_views.evolution_view),
       )
     "/biomorphic" ->
       shell.render_page(
         "Biomorphic Matrix",
         "biomorphic",
-        page_views.biomorphic_view(state),
+        guard("biomorphic", page_views.biomorphic_view),
       )
     "/homeostasis" ->
       shell.render_page(
         "Homeostasis Controls",
         "homeostasis",
-        page_views.homeostasis_view(state),
+        guard("homeostasis", page_views.homeostasis_view),
       )
     "/bicameral" ->
       shell.render_page(
         "Bicameral Sign-Off",
         "bicameral",
-        page_views.bicameral_view(state),
+        guard("bicameral", page_views.bicameral_view),
       )
     "/singularity" ->
       shell.render_page(
         "Singularity Estimation",
         "singularity",
-        page_views.singularity_view(state),
+        guard("singularity", page_views.singularity_view),
       )
     "/components" ->
       shell.render_page(
         "Component Demo",
         "components",
-        page_views.component_demo_view(state),
+        guard("components", page_views.component_demo_view),
       )
     "/allium" ->
       shell.render_page(
