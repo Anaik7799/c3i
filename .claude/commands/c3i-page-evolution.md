@@ -230,4 +230,22 @@ grep -c "Shannon\|PageRank\|Chinese Postman\|FMEA" .claude/rules/agentic-ui-resp
 
 # 18. Zenoh + NIF + MoZ check
 grep -c "Zenoh\|NIF\|MoZ" .claude/rules/agentic-ui-responsive-design.md
+
+# 19. VSM layer mapping check
+grep -c "S1\|S2\|S3\|S4\|S5" .claude/rules/agentic-ui-responsive-design.md
+
+# 20. Inter-page DAG check
+grep -c "PageRank\|G_nav\|SCC=1" .claude/rules/agentic-ui-responsive-design.md
+
+# 21. SIL-6 checklist check
+grep -c "SIL-6\|SC-SIL4\|fail-safe\|2oo3\|dying gasp" .claude/rules/agentic-ui-responsive-design.md
+
+# 22. SOP check
+grep -c "Pre-Flight\|Post-Flight\|Failure Recovery" .claude/rules/agentic-ui-responsive-design.md
+
+# 23. Zettelkasten ingestion check
+grep -c "zettel ingest\|holon\|Zettelkasten" .claude/rules/agentic-ui-responsive-design.md
+
+# 24. Section count (must be >= 29)
+grep -c "^## " .claude/rules/agentic-ui-responsive-design.md
 ```

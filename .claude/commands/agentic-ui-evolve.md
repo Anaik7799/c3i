@@ -172,13 +172,45 @@ Every evolved page MUST map to ≥3 of the 10 Ultrathink focus areas:
 - [ ] PageRank priority guides test execution order
 - [ ] Dark cockpit: healthy=hidden, critical=emergency mode
 
+## SIL-6 Compliance (per page)
+- [ ] Fail-safe degradation: WS→SSE→polling→static
+- [ ] Dying gasp: WS disconnect captures last state to change log
+- [ ] Heartbeat: 1s ping, 3s stale, 10s dead thresholds
+- [ ] Audit trail: every state change logged with timestamp + seq
+- [ ] State recovery: page reconstructs from NIF on reload (no client state)
+- [ ] Rollback: Esc closes, back button works, all view changes reversible
+
+## VSM Mapping (per page)
+- [ ] S1 Operations: data grids, task cards (1s refresh)
+- [ ] S2 Coordination: view toggle, fractal filter, search
+- [ ] S3 Control: status cards, progress rings, analytics
+- [ ] S3* Audit: state change log, STAMP refs
+- [ ] S4 Intelligence: Gemma chat, AI analysis, knowledge lookup
+- [ ] S5 Policy: weather bar, cockpit mode, Psi invariants
+
+## Post-Evolution SOP
+1. Write spec → `docs/architecture/<page>-specification.md`
+2. Write journal → `docs/journal/YYYYMMDD-<page>-evolution.md`
+3. Write Allium → `specs/allium/<page>.allium`
+4. Commit ICP v2.0 format
+5. Ingest to Zettelkasten: `sa-plan-daemon zettel ingest --file <spec> --level molecular`
+6. Email via SMTP: `sa-plan-daemon send-email`
+7. Run 24 compliance checks from master prompt
+8. Update `sa-plan update <id> completed`
+
+## Evolution Order (by PageRank)
+1. `/planning` — DONE
+2. `/dashboard` — NEXT
+3. `/cockpit` → `/verification` → `/immune` → `/agents` → `/zenoh` → `/knowledge`
+4. Remaining 23 pages by PageRank tier
+
 ## Reference
-- Rule: `.claude/rules/agentic-ui-responsive-design.md` (24 sections, SC-AGUI-UI-001..015)
-- Master prompt: `.claude/commands/c3i-page-evolution.md` (8 phases)
+- Rule: `.claude/rules/agentic-ui-responsive-design.md` (29 sections, SC-AGUI-UI-001..015)
+- Master prompt: `.claude/commands/c3i-page-evolution.md` (8 phases, 24 checks)
 - Agent: `.claude/agents/agentic-ui-designer.md`
 - Spec: `docs/architecture/planning-page-specification.md`
 - Journal: `docs/journal/20260411-planning-page-evolution.md`
 - Allium: `specs/allium/ignition.allium` (add ui.allium per page)
 - Ruliology: `native/planning_daemon/src/ruliology.rs` (929 lines)
 - Rule engine: `native/planning_daemon/src/rule_engine.rs` (961 lines, 52 GRL)
-- Zettelkasten: `zettelkasten/*.gleam` (9 modules, 2,060 holons)
+- Zettelkasten: `zettelkasten/*.gleam` (9 modules, 2,060+ holons)

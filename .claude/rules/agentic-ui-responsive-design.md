@@ -611,8 +611,196 @@ Every page MUST display or verify these Psi invariants:
 
 ---
 
+---
+
+## 25. VSM 7-Layer ↔ UI Component Mapping
+
+Every UI component maps to a Viable System Model layer. This ensures fractal self-similarity from individual widget to full ecosystem.
+
+| VSM Layer | Function | UI Components | Refresh | STAMP |
+|-----------|----------|---------------|---------|-------|
+| **S1 Operations** | Primary activities | Data grids (Tabulator), task cards, kanban cards | 1s WS | SC-GLM-UI-001 |
+| **S2 Coordination** | Conflict resolution | View toggle, fractal filter chips, search bar | User-driven | SC-AGUI-UI-001 |
+| **S3 Control** | Resource allocation | Status cards, progress rings, analytics dashboard | 5s WS | SC-AGUI-UI-008 |
+| **S3* Audit** | Accountability | State change log, STAMP refs in drill-down | On mutation | SC-AGUI-UI-007 |
+| **S4 Intelligence** | Adaptation | Gemma AI chat, AI analysis, knowledge lookup | On demand | SC-AGUI-UI-005 |
+| **S5 Policy** | Identity/direction | Weather bar (system mood), cockpit mode, Psi invariants | 5s WS | SC-HMI-010 |
+| **L0-L7 Fractal** | Self-similarity | Every component exists at every fractal layer | Per layer | SC-FRACTAL-001 |
+
+### VSM Recursion Rule
+Each page is a **viable system in itself**: it has its own S1 (data), S2 (navigation), S3 (status), S4 (AI), S5 (mood). The collection of 31 pages forms the system-level VSM. The 16-container mesh forms the environment-level VSM.
+
+---
+
+## 26. Inter-Page Navigation DAG (31 pages)
+
+The complete navigation digraph G_nav = (V=31, E=930, SCC=1, density=1.0):
+
+```
+Pages grouped by fractal layer:
+  L0: Verification, Immune, Kms (3 pages)
+  L1: Telemetry, Metabolic (2 pages)
+  L2: Mcp, ComponentDemo (2 pages)
+  L3: Planning, PlanningDashboard, Knowledge, Substrate, Database (5 pages)
+  L4: Podman, Config, Git, Holon (4 pages)
+  L5: Dashboard, Cockpit, Agents, Smriti, Prajna (5 pages)
+  L6: Zenoh, Bridge, Federation, Singularity (4 pages)
+  L7: Evolution, Bicameral, Biomorphic, HomeostasisPage, Integrity, HealthGrid (6 pages)
+```
+
+### PageRank Priority (d=0.85, 30 iterations)
+```
+Tier 1 (highest): Dashboard > Cockpit > Verification > Agents > Planning
+Tier 2: Immune > Knowledge > Zenoh > Telemetry > Substrate
+Tier 3: Metabolic > Podman > Mcp > Kms > Smriti > Bridge
+Tier 4: All remaining pages
+```
+
+### Evolution Order (apply /c3i-page-evolution in this order)
+1. `/planning` — DONE (reference implementation, 19 commits)
+2. `/dashboard` — NEXT (highest PageRank, system overview)
+3. `/cockpit` — Operator view, dark cockpit pattern
+4. `/verification` — PROMETHEUS proofs, L0 constitutional
+5. `/immune` — Threat detection, Psi invariants
+6. `/agents` — Agent hierarchy, OODA supervision
+7. `/zenoh` — Mesh topology, Zenoh health
+8. `/knowledge` — Zettelkasten, semantic graph
+9. Remaining 23 pages by PageRank tier
+
+### Cross-Page Data Flow
+```
+Dashboard ←──status──→ Planning ←──tasks──→ PlanningDashboard
+    ↕                     ↕                      ↕
+Cockpit ←──mode──→ Immune ←──threats──→ Verification
+    ↕                     ↕                      ↕
+Agents ←──hierarchy──→ Zenoh ←──mesh──→ Podman
+```
+
+---
+
+## 27. SIL-6 Compliance Checklist (per page)
+
+IEC 61508 SIL-6 Biomorphic compliance for every evolved page:
+
+| # | Requirement | Verification | STAMP |
+|---|------------|-------------|-------|
+| 1 | **Fail-safe state**: Page MUST degrade gracefully (WS→SSE→polling→static) | DAG Q transport test | SC-SIL4-001 |
+| 2 | **2oo3 voting**: Critical actions require Guardian + 2oo3 consensus | HITL approval in drill-down | SC-SIL4-006 |
+| 3 | **Dying gasp**: WS disconnect MUST capture last state to change log | WS onclose handler | SC-SIL4-007 |
+| 4 | **Quorum**: Status cards MUST show quorum health | NIF system_health() | SC-SIL4-011 |
+| 5 | **Split-brain detection**: WS + HTTP MUST agree, divergence = alert | DAG Q test | SC-SIL4-015 |
+| 6 | **Heartbeat**: 1s ping, 3s stale, 10s dead thresholds enforced | WS handler + JS indicator | SC-DMS-001 |
+| 7 | **Emergency stop**: Red button on L0 pages, Guardian-gated | L0 constitutional widget | SC-SAFETY-022 |
+| 8 | **Audit trail**: Every state change logged with timestamp + seq | Change log + Zenoh OTel | SC-LOG-001 |
+| 9 | **PII scrubbing**: No PII in Gemma prompts or search results | NIF-side scrubbing | SC-SEC-003 |
+| 10 | **Immutable register**: Change log entries never modified, append-only | Seq monotonic (DAG N) | SC-FUNC-006 |
+| 11 | **Rollback path**: Every view change reversible (back button, Esc) | Keyboard shortcuts | SC-FUNC-003 |
+| 12 | **State recovery**: Page reconstructs from NIF data on reload | No client-side state persistence | SC-FUNC-004 |
+
+---
+
+## 28. Standard Operating Procedure (SOP) — Page Evolution
+
+### Pre-Flight (before starting)
+1. `./sa-plan list pending` — identify target page task
+2. `./sa-plan update <id> in_progress` — claim task
+3. `git checkout -b multiverse/page-<name> main` — create branch
+4. Read target page: Lustre model, Wisp routes, TUI view, page_views rendering
+5. Read this rule file completely (24+ sections)
+
+### Execution (follow /c3i-page-evolution phases 1-8)
+6. Implement Phase 1-5 (multi-view, WS, responsive, Gemma, FMEA)
+7. `gleam build` — 0 errors
+8. `gleam test` — 0 failures
+9. Restart server: `pkill -f beam.smp; rm -rf build/dev/erlang/cepaf_gleam; gleam build; nohup gleam run -- --serve &`
+10. Write Gleam tests (106+) — C1-C8 gold standard + prime paths
+11. Write Rust E2E (179+) — 25 sections (A-Y) including 6 DAG + 7 responsive
+12. Run Rust E2E: `nix-shell -p openssl.dev pkg-config --run "./target/release/c3i-planning-e2e"`
+13. Verify 179+ tests pass
+
+### Post-Flight (after implementation)
+14. Write 15-section spec in `docs/architecture/<page>-specification.md`
+15. Write 13-section journal in `docs/journal/YYYYMMDD-<page>-evolution.md`
+16. Write Allium spec in `specs/allium/<page>.allium`
+17. Commit with ICP v2.0 format (type(scope): description — context)
+18. `./sa-plan update <id> completed`
+19. `git push origin multiverse/page-<name>`
+20. Email via SMTP: `sa-plan-daemon send-email`
+21. Ingest to Zettelkasten (see §29)
+22. Run 18 compliance checks from master prompt
+
+### Failure Recovery
+| Problem | Action |
+|---------|--------|
+| Gleam build fails | Fix error, do NOT commit broken code |
+| Test fails | Debug with `gleam test 2>&1 \| grep FAIL`, fix, re-run |
+| WS doesn't upgrade | Check `web/server.gleam` path match, restart server |
+| Gemma empty response | Use `/api/chat` not `/api/generate`, check port |
+| BEAM caches old code | `rm -rf build/dev/erlang/cepaf_gleam` before rebuild |
+| Rust E2E won't build | `nix-shell -p openssl.dev pkg-config` for OpenSSL headers |
+
+---
+
+## 29. Zettelkasten Ingestion Protocol
+
+Every page evolution MUST be ingested into the Zettelkasten brain for institutional recall:
+
+### Holon Creation (per page evolution)
+```bash
+# 1. Ingest the specification
+./sub-projects/c3i/target/release/sa-plan-daemon zettel ingest \
+  --file "docs/architecture/<page>-specification.md" \
+  --level "molecular" \
+  --tags "ui,<page>,specification,agentic"
+
+# 2. Ingest the journal
+./sub-projects/c3i/target/release/sa-plan-daemon zettel ingest \
+  --file "docs/journal/YYYYMMDD-<page>-evolution.md" \
+  --level "organism" \
+  --tags "journal,<page>,evolution,patterns"
+
+# 3. Ingest the Allium spec
+./sub-projects/c3i/target/release/sa-plan-daemon zettel ingest \
+  --file "specs/allium/<page>.allium" \
+  --level "molecular" \
+  --tags "allium,<page>,behavioral,spec"
+```
+
+### Zettelkasten Levels
+| Level | Content | Example |
+|-------|---------|---------|
+| **Ecosystem** (86) | Architecture docs, system vision | Planning page spec |
+| **Organism** (1,083) | Journal entries, session narratives | Evolution journal |
+| **Molecular** (284) | Allium specs, plans, TLA+ | Page behavioral spec |
+| **Atomic** (607) | Constraints, code modules | SC-AGUI-UI-* constraints |
+
+### Recall Patterns
+- "How was the planning page built?" → search `level:organism tags:planning`
+- "What's the WebSocket pattern?" → search `tags:websocket pattern`
+- "What failed during evolution?" → search `level:organism tags:rca`
+- "What are the responsive breakpoints?" → search `tags:responsive breakpoint`
+
+---
+
 ## Reference Implementation
 - **Page**: `/planning` — `https://vm-1.tail55d152.ts.net:4100/planning`
+- **Spec**: `docs/architecture/planning-page-specification.md` (674 lines)
+- **Journal**: `docs/journal/20260411-planning-page-evolution.md` (325 lines)
+- **Allium**: `specs/allium/ignition.allium` (1,923 lines — add `ui.allium` per page)
+- **JS**: `priv/static/planning-grid.js` (1,545 lines)
+- **Server WS**: `web/server.gleam` WsHandler (323 lines)
+- **Router**: `ui/wisp/router.gleam` SSE + AI + search routes
+- **NIF bridge**: `c3i/nif.gleam` → `c3i_nif.erl` → `c3i_nif.so` (7 plan NIFs)
+- **Zenoh OTel**: `ui/zenoh_otel.gleam` (span publisher for all pages)
+- **Zettelkasten**: `zettelkasten/*.gleam` (9 modules, 2,060+ holons)
+- **Gleam tests**: `test/planning_page_comprehensive_test.gleam` (1,270 lines)
+- **Rust E2E**: `test/planning_e2e_rust.rs` (584+ lines, 179 tests)
+- **Ruliology**: `native/planning_daemon/src/ruliology.rs` (929 lines)
+- **Rule engine**: `native/planning_daemon/src/rule_engine.rs` (961 lines, 52 GRL)
+- **Skill**: `.claude/commands/agentic-ui-evolve.md`
+- **Master prompt**: `.claude/commands/c3i-page-evolution.md`
+- **Agent**: `.claude/agents/agentic-ui-designer.md`
+- **SOP**: §28 of this rule file
 - **Spec**: `docs/architecture/planning-page-specification.md` (674 lines)
 - **Journal**: `docs/journal/20260411-planning-page-evolution.md` (325 lines)
 - **Allium**: `specs/allium/ignition.allium` (1,923 lines — add `ui.allium` per page)
