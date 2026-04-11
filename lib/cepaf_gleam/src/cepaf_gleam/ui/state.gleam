@@ -27,10 +27,54 @@
 //// All JSON serialisation flows through the typed functions here, never via
 //// raw string concatenation (SC-GLM-UI-003).
 ////
-//// STAMP: SC-GLM-UI-001, SC-GLM-UI-003, SC-GLM-UI-009, SC-MUDA-001
+//// STAMP: SC-GLM-UI-001, SC-GLM-UI-003, SC-GLM-UI-009, SC-MUDA-001, SC-SATYA-006
 
 import gleam/int
 import gleam/json
+
+/// Immune threat level — ADT ensures exhaustive pattern matching (SC-SATYA-006).
+///
+/// Using an ADT instead of String makes the D001 bug class IMPOSSIBLE:
+/// the compiler forces EVERY case to be handled, preventing silent fall-through.
+pub type ThreatLevel {
+  /// System nominal — all healthy. सत्य (truth)
+  ThreatNominal
+  /// No active threats
+  ThreatNone
+  /// Low-level concern
+  ThreatLow
+  /// Elevated — degraded state
+  ThreatElevated
+  /// Critical — immediate attention
+  ThreatCritical
+  /// Severe — emergency
+  ThreatSevere
+}
+
+/// Serialise ThreatLevel to its canonical lowercase string representation.
+pub fn threat_level_to_string(level: ThreatLevel) -> String {
+  case level {
+    ThreatNominal -> "nominal"
+    ThreatNone -> "none"
+    ThreatLow -> "low"
+    ThreatElevated -> "elevated"
+    ThreatCritical -> "critical"
+    ThreatSevere -> "severe"
+  }
+}
+
+/// Parse a string into ThreatLevel. Unknown strings map to ThreatNominal (safe default).
+pub fn threat_level_from_string(s: String) -> ThreatLevel {
+  case s {
+    "nominal" -> ThreatNominal
+    "none" -> ThreatNone
+    "low" -> ThreatLow
+    "elevated" -> ThreatElevated
+    "critical" -> ThreatCritical
+    "severe" -> ThreatSevere
+    _ -> ThreatNominal
+  }
+}
 
 /// Snapshot of live mesh state, shared across all three interfaces.
 ///
@@ -42,8 +86,8 @@ pub type SharedMeshState {
     container_count: Int,
     /// Containers that have passed health consensus.
     healthy_count: Int,
-    /// Immune threat level: "nominal" | "elevated" | "critical"
-    threat_level: String,
+    /// Immune threat level — typed ADT (SC-SATYA-006, prevents D001 recurrence).
+    threat_level: ThreatLevel,
     /// Current OODA phase: "observe" | "orient" | "decide" | "act"
     ooda_phase: String,
     /// Dark-cockpit illumination mode: "dark" | "dim" | "normal" | "bright" | "emergency"
@@ -70,7 +114,7 @@ pub fn default_state() -> SharedMeshState {
   SharedMeshState(
     container_count: 16,
     healthy_count: 16,
-    threat_level: "nominal",
+    threat_level: ThreatNominal,
     ooda_phase: "observe",
     dark_cockpit_mode: "dark",
     zenoh_connected: True,
@@ -118,19 +162,19 @@ pub fn to_health_json(state: SharedMeshState) -> String {
 /// keep the response semantically consistent with the underlying state.
 pub fn to_immune_json(state: SharedMeshState) -> String {
   let antibodies = case state.threat_level {
-    "nominal" -> 0
-    "elevated" -> 3
-    _ -> 12
+    ThreatNominal | ThreatNone -> 0
+    ThreatLow | ThreatElevated -> 3
+    ThreatCritical | ThreatSevere -> 12
   }
   let attacks_blocked = case state.threat_level {
-    "nominal" -> 0
-    "elevated" -> 1
-    _ -> 5
+    ThreatNominal | ThreatNone -> 0
+    ThreatLow | ThreatElevated -> 1
+    ThreatCritical | ThreatSevere -> 5
   }
   json.object([
     #("page", json.string("Immune System")),
     #("status", json.string("active")),
-    #("threat_level", json.string(state.threat_level)),
+    #("threat_level", json.string(threat_level_to_string(state.threat_level))),
     #("antibodies_deployed", json.int(antibodies)),
     #("chaos_attacks_blocked", json.int(attacks_blocked)),
     #("last_scan", json.string("2026-04-02T22:00:00Z")),
@@ -205,7 +249,7 @@ pub fn to_dashboard_json(state: SharedMeshState) -> String {
     #("container_count", json.int(state.container_count)),
     #("healthy_count", json.int(state.healthy_count)),
     #("health_pct", json.float(health_pct)),
-    #("threat_level", json.string(state.threat_level)),
+    #("threat_level", json.string(threat_level_to_string(state.threat_level))),
     #("ooda_phase", json.string(state.ooda_phase)),
     #("dark_cockpit_mode", json.string(state.dark_cockpit_mode)),
     #("zenoh_connected", json.bool(state.zenoh_connected)),

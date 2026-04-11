@@ -14,7 +14,10 @@
 
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/freshness_monitor
-import cepaf_gleam/ui/state as mesh_state
+import cepaf_gleam/ui/state.{
+  ThreatCritical, ThreatElevated, ThreatLow, ThreatNominal, ThreatNone,
+  ThreatSevere,
+} as mesh_state
 import cepaf_gleam/ui/web/domain_views
 import cepaf_gleam/ui/web/page_views
 import cepaf_gleam/web/server
@@ -30,7 +33,7 @@ import gleeunit/should
 pub fn d001_default_threat_is_nominal_test() {
   // default_state() uses "nominal" — this is the canonical value
   mesh_state.default_state().threat_level
-  |> should.equal("nominal")
+  |> should.equal(ThreatNominal)
 }
 
 pub fn d001_nominal_renders_healthy_weather_test() {
@@ -46,20 +49,19 @@ pub fn d001_all_threat_levels_handled_test() {
   // Every possible threat_level must produce a valid view
   let base = mesh_state.default_state()
 
-  // "nominal" — primary healthy state
-  let _e1 = domain_views.planning_view(mesh_state.SharedMeshState(..base, threat_level: "nominal"))
-  // "none" — alternative healthy state
-  let _e2 = domain_views.planning_view(mesh_state.SharedMeshState(..base, threat_level: "none"))
-  // "low" — degraded
-  let _e3 = domain_views.planning_view(mesh_state.SharedMeshState(..base, threat_level: "low"))
-  // "elevated" — degraded
-  let _e4 = domain_views.planning_view(mesh_state.SharedMeshState(..base, threat_level: "elevated"))
-  // "critical" — critical (triggers LOA pruning)
-  let _e5 = domain_views.planning_view(mesh_state.SharedMeshState(..base, threat_level: "critical"))
-  // "severe" — critical (triggers LOA pruning)
-  let _e6 = domain_views.planning_view(mesh_state.SharedMeshState(..base, threat_level: "severe"))
-  // unknown — should not crash
-  let _e7 = domain_views.planning_view(mesh_state.SharedMeshState(..base, threat_level: "unknown"))
+  // ThreatNominal — primary healthy state (ADT: exhaustive match guaranteed)
+  let _e1 = domain_views.planning_view(mesh_state.SharedMeshState(..base, threat_level: ThreatNominal))
+  // ThreatNone — alternative healthy state
+  let _e2 = domain_views.planning_view(mesh_state.SharedMeshState(..base, threat_level: ThreatNone))
+  // ThreatLow — degraded
+  let _e3 = domain_views.planning_view(mesh_state.SharedMeshState(..base, threat_level: ThreatLow))
+  // ThreatElevated — degraded
+  let _e4 = domain_views.planning_view(mesh_state.SharedMeshState(..base, threat_level: ThreatElevated))
+  // ThreatCritical — critical (triggers LOA pruning)
+  let _e5 = domain_views.planning_view(mesh_state.SharedMeshState(..base, threat_level: ThreatCritical))
+  // ThreatSevere — critical (triggers LOA pruning)
+  let _e6 = domain_views.planning_view(mesh_state.SharedMeshState(..base, threat_level: ThreatSevere))
+  // No "unknown" case needed: ADT prevents invalid values at compile time (SC-SATYA-006)
 
   True |> should.be_true()
 }
@@ -212,7 +214,7 @@ pub fn all_views_render_with_degraded_state_test() {
   let state = mesh_state.SharedMeshState(
     ..mesh_state.default_state(),
     healthy_count: 8,
-    threat_level: "elevated",
+    threat_level: ThreatElevated,
     quorum_healthy: True,
   )
   let _d = page_views.dashboard_view(state)
@@ -225,7 +227,7 @@ pub fn all_views_render_with_critical_state_test() {
   let state = mesh_state.SharedMeshState(
     ..mesh_state.default_state(),
     healthy_count: 2,
-    threat_level: "critical",
+    threat_level: ThreatCritical,
     quorum_healthy: False,
     zenoh_connected: False,
   )
@@ -240,7 +242,7 @@ pub fn all_views_render_with_emergency_state_test() {
     ..mesh_state.default_state(),
     healthy_count: 0,
     container_count: 0,
-    threat_level: "severe",
+    threat_level: ThreatSevere,
     quorum_healthy: False,
     zenoh_connected: False,
     dark_cockpit_mode: "emergency",

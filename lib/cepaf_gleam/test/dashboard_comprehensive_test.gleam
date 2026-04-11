@@ -40,7 +40,10 @@ import cepaf_gleam/ui/domain.{
   Critical, Dashboard, Degraded, Healthy,
   Planning, TelemetryPoint, Unknown,
 }
-import cepaf_gleam/ui/state.{SharedMeshState, default_state}
+import cepaf_gleam/ui/state.{
+  SharedMeshState, ThreatCritical, ThreatElevated, ThreatNominal, ThreatSevere,
+  default_state,
+}
 import cepaf_gleam/ui/web/page_views
 import cepaf_gleam/ui/tui/dashboard_view
 import cepaf_gleam/web/server.{
@@ -112,7 +115,7 @@ pub fn c1_default_state_healthy_count_test() {
 // C1.09 — default_state threat level is nominal
 pub fn c1_default_state_threat_nominal_test() {
   let state = default_state()
-  state.threat_level |> should.equal("nominal")
+  state.threat_level |> should.equal(ThreatNominal)
 }
 
 // C1.10 — default_state OODA phase is observe
@@ -243,7 +246,7 @@ pub fn c2_dashboard_view_zenoh_disconnected_state_test() {
   let state = SharedMeshState(
     container_count: 16,
     healthy_count: 16,
-    threat_level: "nominal",
+    threat_level: ThreatNominal,
     ooda_phase: "observe",
     dark_cockpit_mode: "dark",
     zenoh_connected: False,
@@ -259,7 +262,7 @@ pub fn c2_dashboard_view_critical_threat_test() {
   let state = SharedMeshState(
     container_count: 16,
     healthy_count: 5,
-    threat_level: "critical",
+    threat_level: ThreatCritical,
     ooda_phase: "decide",
     dark_cockpit_mode: "emergency",
     zenoh_connected: True,
@@ -766,7 +769,7 @@ pub fn c8_toggle_dark_cockpit_reversible_test() {
 
 // C8.04 — Critical threat level activates LOA pruning branch in dashboard_view
 pub fn c8_critical_threat_loa_pruning_test() {
-  let state = SharedMeshState(..default_state(), threat_level: "critical")
+  let state = SharedMeshState(..default_state(), threat_level: ThreatCritical)
   let _ = page_views.dashboard_view(state)
   // If this renders without panic, the branch is exercised
   should.be_true(True)
@@ -774,14 +777,14 @@ pub fn c8_critical_threat_loa_pruning_test() {
 
 // C8.05 — Severe threat level also activates LOA pruning
 pub fn c8_severe_threat_loa_pruning_test() {
-  let state = SharedMeshState(..default_state(), threat_level: "severe")
+  let state = SharedMeshState(..default_state(), threat_level: ThreatSevere)
   let _ = page_views.dashboard_view(state)
   should.be_true(True)
 }
 
 // C8.06 — Non-critical threat level activates action buttons branch
 pub fn c8_nominal_threat_action_buttons_test() {
-  let state = SharedMeshState(..default_state(), threat_level: "nominal")
+  let state = SharedMeshState(..default_state(), threat_level: ThreatNominal)
   let _ = page_views.dashboard_view(state)
   should.be_true(True)
 }
@@ -817,7 +820,7 @@ pub fn c8_degraded_mesh_below_half_renders_test() {
   let state = SharedMeshState(
     container_count: 16,
     healthy_count: 7,
-    threat_level: "elevated",
+    threat_level: ThreatElevated,
     ooda_phase: "decide",
     dark_cockpit_mode: "bright",
     zenoh_connected: True,

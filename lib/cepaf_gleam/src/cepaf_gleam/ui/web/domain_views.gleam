@@ -29,7 +29,9 @@
 
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ui/lustre/shell
-import cepaf_gleam/ui/state.{type SharedMeshState}
+import cepaf_gleam/ui/state.{
+  type SharedMeshState, ThreatElevated, ThreatLow, ThreatNominal, ThreatNone,
+}
 import gleam/float
 import gleam/int
 import gleam/list
@@ -73,8 +75,8 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
   let health_score = case state.quorum_healthy {
     True ->
       case state.threat_level {
-        "none" | "nominal" -> 92
-        "low" | "elevated" -> 78
+        ThreatNone | ThreatNominal -> 92
+        ThreatLow | ThreatElevated -> 78
         _ -> 55
       }
     False -> 35
@@ -1151,7 +1153,7 @@ fn state_kv_block(state: SharedMeshState) -> Element(msg) {
   html.div([attribute.class("card")], [
     shell.kv_row("Containers", int.to_string(state.container_count)),
     shell.kv_row("Healthy", int.to_string(state.healthy_count)),
-    shell.kv_row("Threat Level", state.threat_level),
+    shell.kv_row("Threat Level", state.threat_level_to_string(state.threat_level)),
     shell.kv_row("OODA Phase", state.ooda_phase),
     shell.kv_row("Dark Cockpit", state.dark_cockpit_mode),
     shell.kv_row("Zenoh", case state.zenoh_connected {

@@ -10,7 +10,7 @@
 
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/hot_reload
-import cepaf_gleam/ui/state as mesh_state
+import cepaf_gleam/ui/state.{ThreatNominal} as mesh_state
 import cepaf_gleam/ui/web/dashboard_views
 import cepaf_gleam/ui/web/domain_views
 import cepaf_gleam/ui/web/page_views
@@ -270,7 +270,7 @@ pub fn default_state_threat_is_nominal_test() {
   let state = mesh_state.default_state()
   // Default threat level MUST be "nominal"
   state.threat_level
-  |> should.equal("nominal")
+  |> should.equal(ThreatNominal)
 }
 
 pub fn default_state_quorum_is_healthy_test() {
@@ -297,7 +297,7 @@ pub fn threat_nominal_equals_none_in_health_test() {
   // Both "nominal" and quorum_healthy=true → health_score should be 92
   // Verify the conditions that produce 92:
   let is_healthy = state.quorum_healthy
-  let is_nominal = state.threat_level == "nominal"
+  let is_nominal = state.threat_level == ThreatNominal
   { is_healthy && is_nominal }
   |> should.be_true()
 }

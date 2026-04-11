@@ -30,7 +30,9 @@
 
 import cepaf_gleam/agui/event_stream_widget
 import cepaf_gleam/ui/lustre/shell
-import cepaf_gleam/ui/state.{type SharedMeshState}
+import cepaf_gleam/ui/state.{
+  type SharedMeshState, ThreatCritical, ThreatSevere,
+}
 import gleam/int
 import gleam/string
 import lustre/attribute
@@ -156,7 +158,7 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
         shell.status_card(
           "3. Threat Level",
           threat_label(state.threat_level),
-          state.threat_level,
+          state.threat_level_to_string(state.threat_level),
           "immune system status",
         ),
         shell.status_card(
@@ -859,7 +861,7 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
     // --- SECTION 9: OPERATIONAL CONTROLS ---
     shell.section("L5 Operational Controls [A2UI Cognitive Projection]", [
       case state.threat_level {
-        "critical" | "severe" ->
+        ThreatCritical | ThreatSevere ->
           html.div([attribute.class("loa-pruned")], [
             html.span(
               [
@@ -1182,7 +1184,7 @@ pub fn cockpit_view(state: SharedMeshState) -> Element(msg) {
           shell.status_card(
             "Threat Level",
             threat_label(state.threat_level),
-            state.threat_level,
+            state.threat_level_to_string(state.threat_level),
             "immune system",
           ),
           shell.status_card(
@@ -1577,12 +1579,11 @@ fn page_header(title: String, subtitle: String) -> Element(msg) {
   ])
 }
 
-fn threat_label(level: String) -> String {
+fn threat_label(level: state.ThreatLevel) -> String {
   case level {
-    "nominal" -> "Healthy"
-    "elevated" -> "Degraded"
-    "critical" -> "Critical"
-    _ -> "Unknown"
+    state.ThreatNominal | state.ThreatNone -> "Healthy"
+    state.ThreatLow | state.ThreatElevated -> "Degraded"
+    state.ThreatCritical | state.ThreatSevere -> "Critical"
   }
 }
 

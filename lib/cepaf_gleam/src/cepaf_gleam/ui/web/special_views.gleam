@@ -29,7 +29,9 @@
 
 import cepaf_gleam/agui/event_stream_widget
 import cepaf_gleam/ui/lustre/shell
-import cepaf_gleam/ui/state.{type SharedMeshState}
+import cepaf_gleam/ui/state.{
+  type SharedMeshState, ThreatElevated, ThreatNominal, ThreatNone,
+}
 import gleam/float
 import gleam/int
 import gleam/list
@@ -502,11 +504,11 @@ pub fn component_demo_view(state: SharedMeshState) -> Element(msg) {
         shell.status_card(
           "Threat Level",
           case state.threat_level {
-            "nominal" -> "Healthy"
-            "elevated" -> "Degraded"
+            ThreatNominal | ThreatNone -> "Healthy"
+            ThreatElevated -> "Degraded"
             _ -> "Critical"
           },
-          state.threat_level,
+          state.threat_level_to_string(state.threat_level),
           "from Smriti.db immune table",
         ),
         shell.status_card(

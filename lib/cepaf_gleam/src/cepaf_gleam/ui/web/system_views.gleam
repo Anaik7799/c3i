@@ -28,7 +28,10 @@
 //// Substrate (L3), MCP (L6).
 
 import cepaf_gleam/ui/lustre/shell
-import cepaf_gleam/ui/state.{type SharedMeshState}
+import cepaf_gleam/ui/state.{
+  type SharedMeshState, ThreatCritical, ThreatElevated, ThreatNominal, ThreatNone,
+  ThreatSevere,
+}
 import gleam/int
 import lustre/attribute
 import lustre/element.{type Element}
@@ -44,20 +47,20 @@ pub fn immune_view(state: SharedMeshState) -> Element(msg) {
       "Immune System",
       "Biomorphic threat detection and antibody deployment",
     ),
-    case state.threat_level == "critical" {
-      True ->
+    case state.threat_level {
+      ThreatCritical | ThreatSevere ->
         shell.alert_banner(
           "critical",
           "THREAT LEVEL CRITICAL — antibodies deployed",
         )
-      False -> html.div([], [])
+      _ -> html.div([], [])
     },
     shell.section("Threat Status", [
       html.div([attribute.class("card-grid")], [
         shell.status_card(
           "Threat Level",
           threat_label(state.threat_level),
-          state.threat_level,
+          state.threat_level_to_string(state.threat_level),
           "current immune assessment",
         ),
         shell.status_card("Antibodies", "Healthy", "0", "deployed active"),
@@ -456,11 +459,11 @@ fn page_header(title: String, subtitle: String) -> Element(msg) {
   ])
 }
 
-fn threat_label(level: String) -> String {
+fn threat_label(level: state.ThreatLevel) -> String {
   case level {
-    "nominal" -> "Healthy"
-    "elevated" -> "Degraded"
-    "critical" -> "Critical"
+    ThreatNominal | ThreatNone -> "Healthy"
+    ThreatElevated -> "Degraded"
+    ThreatCritical | ThreatSevere -> "Critical"
     _ -> "Unknown"
   }
 }
