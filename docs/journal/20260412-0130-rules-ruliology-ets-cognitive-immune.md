@@ -239,3 +239,76 @@ The cognitive immune system transforms the C3I from a **reactive machine** (dete
 The three mathematical constructs — Shannon entropy (disorder), Wolfram Rule 110 (emergence), and Lyapunov exponent (stability) — together provide a complete picture of system health that no single metric can capture.
 
 *ऋतं च सत्यं चाभीद्धात् तपसो — From discipline (tapas) arose both truth (satya) and cosmic order (rita). The guard grid IS the cosmic order. The rules ARE the discipline. The mathematics ARE the truth.*
+
+---
+
+## ADDENDUM: Additional Ruliology Rules & Evolutionary Impact
+## परिशिष्ट: अतिरिक्त नियमविज्ञान नियम एवं विकासात्मक प्रभाव
+
+**Date**: 2026-04-12 01:45 UTC
+
+### 10 Wolfram Cellular Automata Rules for Guard Grid
+
+| Rule | Detects | C3I Use |
+|------|---------|---------|
+| Rule 30 | Chaos — simple input → random output | Single failure creating unpredictable cascades |
+| Rule 110 | Complex emergence (Turing-complete) | Cascade propagation prediction (IMPLEMENTED) |
+| Rule 184 | Traffic flow / queue dynamics | Backpressure propagation, CPU governor decisions |
+| Rule 90 | Fractal self-similar patterns | Same bug repeating at L0, L3, L6 — structural defect |
+| Rule 0 | Total death convergence | System heading toward complete shutdown |
+| Rule 255 | Total saturation | All guards passing falsely (D001 pattern at scale) |
+| Rule 54 | Oscillation / bistability | Module flip-flopping PASSED↔FAILED — intermittent bug |
+| Rule 150 | XOR parity checking | Odd-parity failures = structural dependency violation |
+| Rule 22 | Slow decay | Self-healing in progress, failures shrinking |
+| Rule 126 | Rapid growth | Small failure expanding fast — pre-cascade warning |
+
+### 2D Rules on Full 24-Cell Grid (8×3)
+
+| Rule Type | What It Detects |
+|-----------|-----------------|
+| Conway's Game of Life | Still lifes (permanent bugs), oscillators (intermittent), gliders (moving failures) |
+| Langton's Ant | Exact PATH of failure propagation through the grid |
+| Brian's Brain | 3-state recovery cycle: FAILING→RECOVERING→PASSED — detects stuck recovery |
+
+### 15 Additional RETE-UL Rules (GR-016 to GR-030)
+
+**Temporal rules (require history):**
+- GR-016: Same cell failed 3× in 24h → EscalateToOperator (recurring)
+- GR-017: Health oscillates ±20% in 5min → LogWarning (feedback loop)
+- GR-018: All PASSED for 1 hour → RecordMilestone (SLO tracking)
+- GR-019: Failure at same time daily → PredictiveAlert (cron conflict)
+- GR-020: Recovery time increasing → LogWarning (degrading self-heal)
+
+**Cross-layer correlation:**
+- GR-021: L1+L3 fail within 5s → CorrelateFailures (NIF→Planning)
+- GR-022: L6+L7 fail → CorrelateFailures (Zenoh→Federation)
+- GR-023: L4 fails BUT L5 healthy → LogAnomaly (ghost state)
+- GR-024: L0 healthy BUT others fail → LogAnomaly (guardian lying)
+
+**Mathematical:**
+- GR-025: Entropy increasing 3 cycles → PreventiveCooldown
+- GR-026: Lyapunov crosses 0 → ImmediateAlert (stability boundary)
+- GR-027: Rule 110 ≠ Rule 30 → LogAnomaly (pattern disagreement)
+- GR-028: Poisson distribution → ClassifyAs (random hardware)
+- GR-029: Burst distribution → ClassifyAs (software cascade)
+- GR-030: d(Health)/dt < -0.1 → PreventiveAction (calculus on health)
+
+### Evolutionary Impact (विकासात्मक प्रभाव)
+
+**Rules ARE evolutionary pressure.** The system evolves to avoid triggering them:
+
+| Rule | Selection Pressure | System Evolves Toward |
+|------|-------------------|----------------------|
+| GR-001 (cascade halt) | Don't cascade | Better layer isolation |
+| GR-016 (recurring alert) | Don't recur | Permanent fixes, not patches |
+| GR-026 (stability boundary) | Stay stable | Self-dampening feedback loops |
+| GR-030 (health derivative) | Don't cliff-edge | Smooth graceful degradation |
+
+**Fundamental insight**: What gets measured gets managed. What gets ruled gets evolved.
+The rules ARE the environment. The system IS the organism. Evolution IS inevitable.
+
+With 15 rules: detect cascade, emergency, layer failures.
+With 30 rules: detect ALL above + temporal patterns, correlations, stability transitions, rate of change.
+NEW capability: PREDICTIVE — "health declining at -0.1/cycle, emergency in ~70s. Pre-emptive action NOW."
+
+*नियमः सर्वत्र विकासः — Where there are rules, there is evolution.*
