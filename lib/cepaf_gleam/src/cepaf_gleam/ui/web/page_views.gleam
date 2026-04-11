@@ -826,9 +826,9 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
       ]),
     ]),
     // ── Gemma 4 AI Chat Widget ──
-    shell.section("AI Agent — Gemma 4 Task Intelligence", [
+    shell.section("AI Agent — Gemma Task Intelligence", [
       html.p([attribute.class("sub")], [
-        element.text("Ask Gemma 4 about tasks, priorities, risks, or system status. Powered by Ollama (port 11435). Try: \"What's blocking us?\" or \"Summarize active P0 tasks\""),
+        element.text("Ask Gemma about tasks, priorities, risks, or system status. Gemma 3 (fast) + Gemma 4 (deep). Try: \"What's blocking us?\" or \"Summarize active P0 tasks\""),
       ]),
       html.div([attribute.id("ai-chat-widget"), attribute.attribute("style", "height:360px;background:rgba(10,14,23,0.4);backdrop-filter:blur(8px);border:1px solid rgba(30,42,58,0.4);border-radius:10px;overflow:hidden")], [
         html.div([attribute.attribute("style", "color:#7a8fa6;font-size:0.78rem;padding:40px;text-align:center")], [
