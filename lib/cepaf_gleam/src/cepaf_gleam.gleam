@@ -24,6 +24,7 @@
 //// =============================================================================
 
 import cepaf_gleam/agents/cybernetic
+import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/planning/cli
 import cepaf_gleam/podman/containers
 import cepaf_gleam/podman/domain.{PodmanClientConfig, Rootless}
@@ -128,21 +129,34 @@ pub fn main() {
     Error(_) -> io.println("  ❌ Error listing containers")
   }
 
-  // 3. Zenoh IPC — Open session and publish status
+  // 3. Zenoh IPC — Open session via native NIF first, fallback to FFI
   io.println("\n📡 ZENOH IPC INTEGRATION:")
-  let zenoh_session = case zenoh.open("{\"mode\": \"client\"}") {
-    Ok(session) -> {
-      io.println("  [debug] Session: " <> string.inspect(session))
-      case zenoh.put(session, "indrajaal/cepaf/gleam/status", "online") {
-        Ok(_) -> io.println("  ✅ Zenoh session active & status published.")
-        Error(e) -> io.println("  ❌ Zenoh put failed: " <> e)
+  // Try native NIF first (SC-ZENOH-001)
+  let nif_result = c3i_nif.zenoh_open("{}")
+  let zenoh_session = case string.contains(nif_result, "\"status\":\"connected\"") {
+    True -> {
+      io.println("  ✅ Zenoh NIF connected: " <> nif_result)
+      let _ = c3i_nif.zenoh_put("indrajaal/cepaf/gleam/status", "online")
+      io.println("  ✅ Status published via NIF")
+      // Try the FFI session for backward compat
+      case zenoh.open("{\"mode\": \"client\"}") {
+        Ok(session) -> option.Some(session)
+        Error(_) -> option.None
       }
-      // SC-WIRE-001: Store session for agent AG-UI event emission
-      option.Some(session)
     }
-    Error(e) -> {
-      io.println("  ❌ Zenoh open failed: " <> e)
-      option.None
+    False -> {
+      io.println("  ⚠️ Zenoh NIF: " <> nif_result)
+      // Fallback to FFI
+      case zenoh.open("{\"mode\": \"client\"}") {
+        Ok(session) -> {
+          io.println("  ✅ Zenoh FFI session opened")
+          option.Some(session)
+        }
+        Error(e) -> {
+          io.println("  ❌ Zenoh unavailable: " <> e)
+          option.None
+        }
+      }
     }
   }
   // Log Zenoh session availability for agents

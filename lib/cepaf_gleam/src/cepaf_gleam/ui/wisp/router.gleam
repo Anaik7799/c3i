@@ -1334,6 +1334,8 @@ fn handle_get(path: String) -> HttpResponse(String) {
     "/api/v1/guardian/pending" -> json_response(guardian_pending_json(), 200)
     // Health endpoint stays JSON — consumed by monitoring probes, not browsers.
     "/health" | "/api/health" -> json_response(health_json(), 200)
+    // Static file serving (JS, CSS for data grids)
+    "/static/planning-grid.js" -> serve_static_file("priv/static/planning-grid.js", "application/javascript")
     // Telegram Mini App routes — mobile-optimized SSR HTML (SC-OPENCLAW-001)
     _ ->
       case mini_app_routes.is_mini_app_path(path) {
@@ -1359,6 +1361,24 @@ fn html_response(body: String) -> HttpResponse(String) {
   |> response.set_body(body)
   |> response.set_header("content-type", "text/html; charset=utf-8")
 }
+
+/// Serve a static file from the priv directory.
+fn serve_static_file(path: String, content_type: String) -> HttpResponse(String) {
+  case read_file(path) {
+    Ok(content) ->
+      response.new(200)
+      |> response.set_body(content)
+      |> response.set_header("content-type", content_type)
+      |> response.set_header("cache-control", "public, max-age=3600")
+    Error(_) ->
+      response.new(404)
+      |> response.set_body("{\"error\":\"file not found\"}")
+      |> response.set_header("content-type", "application/json")
+  }
+}
+
+@external(erlang, "cepaf_gleam_ffi", "file_read")
+fn read_file(path: String) -> Result(String, String)
 
 /// Map a URL path to a complete HTML page via shell + page_views.
 ///

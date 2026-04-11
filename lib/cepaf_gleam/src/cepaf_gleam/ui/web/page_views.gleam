@@ -753,17 +753,17 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
         attribute.attribute("src", "https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"),
       ], []),
       // Grid containers
+      // Status bar + analytics
+      html.div([attribute.id("grid-status"), attribute.attribute("style", "color:#f5a623;font-size:0.85rem;padding:4px 0")], [element.text("Loading grids...")]),
+      html.div([attribute.id("grid-analytics"), attribute.attribute("style", "font-size:0.85rem;padding:4px 0;margin-bottom:8px")], []),
       html.div([attribute.id("blocked-grid")], [element.text("Loading blocked tasks...")]),
       html.h2([], [element.text("In-Progress Tasks")]),
       html.div([attribute.id("active-grid")], [element.text("Loading active tasks...")]),
       html.h2([], [element.text("All Tasks (search across 2,710)")]),
       html.div([attribute.id("all-grid")], [element.text("Loading all tasks...")]),
       // Fetch task data from Rust Smriti API + initialize Tabulator grids
-      // NOTE: Lustre HTML-encodes <script> content, so we avoid & characters
-      element.element("script", [attribute.attribute("src", "/api/v1/plan/list/blocked"), attribute.attribute("data-grid", "blocked-grid")], []),
-      element.element("script", [], [
-        element.text(tabulator_fetch_init_script()),
-      ]),
+      // Static JS file avoids Lustre HTML entity encoding issue
+      element.element("script", [attribute.attribute("src", "/static/planning-grid.js")], []),
     ]),
     // ── Analysis: FMEA × Criticality × Utility ──
     shell.section("Multidimensional Analysis — Criticality × FMEA × STAMP × Utility", [
