@@ -3247,52 +3247,116 @@ pub fn not_found_view(path: String) -> Element(msg) {
 // Private helpers
 // ---------------------------------------------------------------------------
 
-/// Enhanced CSS for creative planning page UX.
+/// Enhanced CSS for creative planning page UX — responsive mobile-first design.
 fn planning_enhanced_css() -> String {
   "
+/* === BASE (Mobile-First, <768px) === */
 .weather-bar {
-  display:flex; align-items:center; gap:14px;
-  background:linear-gradient(135deg, rgba(0,212,170,0.06), rgba(61,214,140,0.02), rgba(0,180,148,0.04));
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  background:linear-gradient(135deg, rgba(0,212,170,0.06), rgba(61,214,140,0.02));
   backdrop-filter:blur(12px);
   border:1px solid rgba(0,212,170,0.15); border-radius:12px;
-  padding:14px 22px; margin:0 0 1.5rem; font-size:0.9rem;
+  padding:12px 14px; margin:0 0 1rem; font-size:0.85rem;
   transition:all 0.3s ease;
 }
-.weather-bar:hover { border-color:rgba(0,212,170,0.3); box-shadow:0 4px 20px rgba(0,212,170,0.05); }
-.weather-emoji { font-size:1.8rem; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
-.weather-label { flex:1; color:var(--text); line-height:1.4; }
+.weather-bar:hover { border-color:rgba(0,212,170,0.3); }
+.weather-emoji { font-size:1.5rem; }
+.weather-label { flex:1; color:var(--text); line-height:1.4; min-width:200px; font-size:0.82rem; }
 .weather-score {
-  font-size:1.5rem; font-weight:800; color:var(--accent);
+  font-size:1.3rem; font-weight:800; color:var(--accent);
   background:linear-gradient(135deg,rgba(0,212,170,0.12),rgba(0,212,170,0.05));
-  padding:6px 16px; border-radius:10px;
+  padding:4px 12px; border-radius:10px;
   border:1px solid rgba(0,212,170,0.15);
 }
 .progress-ring-row {
-  display:flex; justify-content:center; gap:1.5rem;
-  margin:0 0 1.5rem; flex-wrap:wrap;
+  display:grid; grid-template-columns:repeat(2,1fr); gap:0.75rem;
+  margin:0 0 1rem;
 }
 .ring-item {
   display:flex; flex-direction:column; align-items:center;
   background:rgba(10,14,23,0.5); backdrop-filter:blur(8px);
-  border:1px solid rgba(30,42,58,0.5); border-radius:12px; padding:1rem 1.2rem;
-  transition:all 0.3s ease;
+  border:1px solid rgba(30,42,58,0.5); border-radius:10px; padding:0.75rem;
+  transition:all 0.3s ease; min-width:0;
 }
 .ring-item:hover {
-  border-color:var(--accent); transform:translateY(-3px);
-  box-shadow:0 8px 24px rgba(0,0,0,0.15);
+  border-color:var(--accent); transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(0,0,0,0.12);
 }
+.ring-item svg { width:70px; height:70px; }
+.ring-value { font-size:1rem; }
+.ring-label { font-size:0.7rem; }
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,170,0); }
   50% { box-shadow: 0 0 14px 3px rgba(0,212,170,0.12); }
 }
 .card { transition:all 0.25s ease; }
 .card:hover { border-color:var(--accent); transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,0,0,0.1); }
-table { border-collapse:collapse; width:100%; }
-table th { position:sticky; top:0; background:rgba(10,14,23,0.95); backdrop-filter:blur(8px); z-index:1; }
+table { border-collapse:collapse; width:100%; font-size:0.82rem; }
+table th { position:sticky; top:0; background:rgba(10,14,23,0.95); backdrop-filter:blur(8px); z-index:1; font-size:0.72rem; padding:6px 8px; }
+table td { padding:5px 8px; }
 table tr { transition:background 0.15s; }
 table tr:hover { background:rgba(0,212,170,0.04); }
 .section h2, .section h3 { letter-spacing:0.3px; }
-.sub { color:#7a8fa6; font-size:0.82rem; margin-bottom:12px; }
+.sub { color:#7a8fa6; font-size:0.8rem; margin-bottom:10px; }
+/* Touch-friendly targets (44px min) */
+.view-btn, .fractal-chip, .detail-action-btn, button { min-height:44px; min-width:44px; }
+/* Responsive card grid — 1 col mobile */
+.card-grid { grid-template-columns:1fr !important; }
+.card-grid-wide { grid-template-columns:1fr !important; }
+/* Responsive tables — horizontal scroll on mobile */
+.section { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+/* View toggle — horizontal scroll on narrow screens */
+.view-toggle { overflow-x:auto; -webkit-overflow-scrolling:touch; white-space:nowrap; }
+/* AI search — full width, large touch target */
+#ai-search-input { font-size:1rem !important; padding:14px 16px !important; min-height:48px; }
+/* Kanban — single column on mobile */
+.kanban-board { grid-template-columns:1fr !important; }
+
+/* === TABLET (768px+) === */
+@media (min-width:768px) {
+  .weather-bar { padding:14px 20px; font-size:0.88rem; gap:14px; flex-wrap:nowrap; }
+  .weather-emoji { font-size:1.8rem; }
+  .weather-label { font-size:0.88rem; }
+  .weather-score { font-size:1.5rem; padding:6px 16px; }
+  .progress-ring-row { grid-template-columns:repeat(4,1fr); gap:1.25rem; }
+  .ring-item { padding:1rem; }
+  .ring-item svg { width:90px; height:90px; }
+  .ring-value { font-size:1.2rem; }
+  .card-grid { grid-template-columns:repeat(2,1fr) !important; }
+  .card-grid-wide { grid-template-columns:repeat(2,1fr) !important; }
+  table { font-size:0.85rem; }
+  table th { font-size:0.75rem; padding:8px; }
+  table td { padding:6px 8px; }
+  .kanban-board { grid-template-columns:repeat(2,1fr) !important; }
+  #ai-search-input { font-size:0.95rem !important; padding:12px 18px !important; }
+}
+
+/* === DESKTOP (1024px+) === */
+@media (min-width:1024px) {
+  .weather-bar { padding:14px 22px; }
+  .progress-ring-row { gap:1.5rem; }
+  .ring-item { padding:1rem 1.2rem; }
+  .ring-item svg { width:100px; height:100px; }
+  .card-grid { grid-template-columns:repeat(auto-fill,minmax(200px,1fr)) !important; }
+  .card-grid-wide { grid-template-columns:repeat(auto-fill,minmax(260px,1fr)) !important; }
+  table { font-size:0.88rem; }
+  .kanban-board { grid-template-columns:repeat(4,1fr) !important; }
+  #ai-search-input { font-size:0.92rem !important; padding:11px 18px !important; }
+}
+
+/* === WIDE DESKTOP (1400px+) === */
+@media (min-width:1400px) {
+  .progress-ring-row { gap:2rem; }
+  .ring-item svg { width:110px; height:110px; }
+  .ring-value { font-size:1.4rem; }
+}
+
+/* === Utility: smooth scroll, safe area, overscroll === */
+html { scroll-behavior:smooth; }
+body { overscroll-behavior:none; }
+@supports (padding: env(safe-area-inset-bottom)) {
+  main { padding-bottom:calc(1.5rem + env(safe-area-inset-bottom)); }
+}
 "
 }
 
