@@ -659,15 +659,15 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
       "Planning & Operations",
       "Live task management + Zettelkasten knowledge + 77 use cases  |  Ctrl+K search  |  R refresh  |  Esc close",
     ),
-    // ── Weather Bar (Indra's Net: system mood at a glance) ──
-    html.div([attribute.class("weather-bar")], [
-      html.span([attribute.class("weather-emoji")], [element.text(weather_emoji)]),
-      html.span([attribute.class("weather-label")], [
+    // ── Weather Bar (Indra's Net: system mood at a glance) — live-updatable IDs ──
+    html.div([attribute.class("weather-bar"), attribute.id("weather-bar")], [
+      html.span([attribute.class("weather-emoji"), attribute.id("weather-emoji")], [element.text(weather_emoji)]),
+      html.span([attribute.class("weather-label"), attribute.id("weather-label")], [
         element.text("System Mood: " <> case health_score >= 80 { True -> "Clear" False -> case health_score >= 60 { True -> "Partly cloudy" False -> "Stormy" } }
           <> " — P0 100% done, " <> int.to_string(pending_count) <> " pending, "
           <> int.to_string(completed_count) <> "/" <> int.to_string(total_count) <> " complete"),
       ]),
-      html.span([attribute.class("weather-score")], [element.text(int.to_string(health_score) <> "/100")]),
+      html.span([attribute.class("weather-score"), attribute.id("weather-score")], [element.text(int.to_string(health_score) <> "/100")]),
     ]),
     // ── Completion Progress Rings (dynamic from NIF) ──
     html.div([attribute.class("progress-ring-row")], [
@@ -678,9 +678,9 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
     ]),
     // ── Mini Chart (stacked bar rendered by JS) ──
     html.div([attribute.id("grid-minichart")], []),
-    // ── Task Summary (live from Smriti.db via NIF) ──
-    shell.section("Task Summary (Live from Smriti.db)", [
-      html.div([attribute.class("card-grid")], [
+    // ── Task Summary (live from Smriti.db via NIF, auto-refreshed by JS) ──
+    shell.section("Task Summary (Live from Smriti.db — auto-refresh 5s)", [
+      html.div([attribute.class("card-grid"), attribute.id("live-status-cards")], [
         shell.status_card("Total Tasks", "Healthy", int.to_string(total_count), "in Smriti.db"),
         shell.status_card("Completed", "Healthy", int.to_string(completed_count), completion_pct <> "%"),
         shell.status_card("Pending", case pending_count > total_count / 2 { True -> "Degraded" False -> "Healthy" }, int.to_string(pending_count), "backlog"),
