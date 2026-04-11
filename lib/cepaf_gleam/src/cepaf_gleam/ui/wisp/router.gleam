@@ -154,7 +154,19 @@ pub fn route(path: String) -> String {
     // AG-UI protocol routes (SSE event streams)
     "/ag-ui/run" | "/ag-ui/events" -> agui_run_json(path)
     "/ag-ui/health" -> agui_sse.health_json()
-    _ -> not_found_json(path)
+    _ -> {
+      // Dynamic route matching for paths with query parameters
+      case string.starts_with(path, "/api/v1/plan/search") {
+        True -> {
+          let query = case string.split(path, "q=") {
+            [_, q] -> string.replace(q, "%20", " ")
+            _ -> ""
+          }
+          c3i_nif.plan_search(query)
+        }
+        False -> not_found_json(path)
+      }
+    }
   }
 }
 

@@ -814,6 +814,17 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
       // Load interactive JS (static file avoids Lustre entity encoding)
       element.element("script", [attribute.attribute("src", "/static/planning-grid.js")], []),
     ]),
+    // ── State Change Event Log (real-time mutation capture) ──
+    shell.section("State Change Log — Real-Time Mutation Monitor", [
+      html.p([attribute.class("sub")], [
+        element.text("Live feed of task status changes, priority mutations, and data diffs. Auto-captured every 1s refresh cycle."),
+      ]),
+      html.div([attribute.id("change-log"), attribute.attribute("style", "max-height:280px;overflow-y:auto;background:rgba(10,14,23,0.4);backdrop-filter:blur(8px);border:1px solid rgba(30,42,58,0.4);border-radius:10px;padding:10px")], [
+        html.div([attribute.attribute("style", "color:#7a8fa6;font-size:0.78rem;padding:8px;text-align:center")], [
+          element.text("Monitoring for state changes..."),
+        ]),
+      ]),
+    ]),
     // ── Analysis: FMEA × Criticality × Utility ──
     shell.section("Multidimensional Analysis — Criticality × FMEA × STAMP × Utility", [
       shell.data_table(
