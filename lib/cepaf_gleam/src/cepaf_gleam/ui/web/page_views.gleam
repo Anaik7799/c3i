@@ -752,7 +752,18 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
       element.element("script", [
         attribute.attribute("src", "https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"),
       ], []),
-      // Grid containers
+      // AI Search Bar
+      html.div([attribute.attribute("style", "display:flex;gap:8px;margin-bottom:12px;align-items:center")], [
+        html.input([
+          attribute.id("ai-search-input"),
+          attribute.type_("text"),
+          attribute.attribute("placeholder", "AI Search — filter tasks + search Zettelkasten knowledge..."),
+          attribute.attribute("style", "flex:1;background:var(--card-bg,#141922);border:1px solid var(--border,#1e2a3a);color:var(--text,#e0e6ed);padding:10px 16px;border-radius:8px;font-size:0.95rem;outline:none"),
+        ]),
+      ]),
+      html.div([attribute.id("ai-search-results"), attribute.attribute("style", "font-size:0.85rem;padding:0 0 8px;min-height:20px")], []),
+      // Task Detail Panel (shown on row click)
+      html.div([attribute.id("task-detail-panel")], []),
       // Status bar + analytics
       html.div([attribute.id("grid-status"), attribute.attribute("style", "color:#f5a623;font-size:0.85rem;padding:4px 0")], [element.text("Loading grids...")]),
       html.div([attribute.id("grid-analytics"), attribute.attribute("style", "font-size:0.85rem;padding:4px 0;margin-bottom:8px")], []),
