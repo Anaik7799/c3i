@@ -68,12 +68,13 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
     True -> int.to_string(314 - completed_count * 314 / total_count)
     False -> "314"
   }
-  // System health score (0-100)
+  // System health score (0-100) — SC-TRUTH-001: must reflect true state
+  // "nominal" and "none" are both healthy states
   let health_score = case state.quorum_healthy {
     True ->
       case state.threat_level {
-        "none" -> 92
-        "low" -> 78
+        "none" | "nominal" -> 92
+        "low" | "elevated" -> 78
         _ -> 55
       }
     False -> 35
