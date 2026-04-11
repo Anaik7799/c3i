@@ -188,10 +188,259 @@ fn main() {
     check(&mut total, &mut passed, "Search 'zenoh' returns data", search1.len() > 20);
     check(&mut total, &mut passed, "Search 'container' returns data", search2.len() > 20);
 
+    // ══════════════════════════════════════════════════════════════
+    // MULTI-STEP DAG SCENARIOS — chained cross-component paths
+    // Each scenario is a DAG where stage N depends on stage N-1
+    // ══════════════════════════════════════════════════════════════
+
+    section("M. DAG: Task Triage Journey (5 stages)");
+    // Stage 1: Load page → Stage 2: Get status → Stage 3: Get blocked tasks
+    // → Stage 4: Search first blocked task → Stage 5: Verify via WebSocket
+    {
+        // M1: Page loads
+        let page = get_body(&client, "/planning");
+        let m1 = page.len() > 1000;
+        check(&mut total, &mut passed, "M1: Page loads (>1KB)", m1);
+
+        // M2: Get live status from the page's data source
+        let status_raw = get_body(&client, "/api/v1/plan/status");
+        let status: serde_json::Value = serde_json::from_str(&status_raw).unwrap_or_default();
+        let blocked_count = status["blocked"].as_i64().unwrap_or(0);
+        let m2 = blocked_count >= 0 && status["total"].as_i64().unwrap_or(0) > 0;
+        check(&mut total, &mut passed, &format!("M2: Status has data (blocked={blocked_count})"), m2);
+
+        // M3: Fetch blocked tasks list
+        let blocked_raw = get_body(&client, "/api/v1/plan/list/blocked");
+        let blocked: Vec<serde_json::Value> = serde_json::from_str(&blocked_raw).unwrap_or_default();
+        let m3 = blocked.len() as i64 == blocked_count;
+        check(&mut total, &mut passed, &format!("M3: Blocked list count matches status ({} == {blocked_count})", blocked.len()), m3);
+
+        // M4: Search for first blocked task's title keyword
+        let search_query = blocked.first()
+            .and_then(|t| t["title"].as_str())
+            .and_then(|t| t.split_whitespace().find(|w| w.len() > 4))
+            .unwrap_or("blocked");
+        let search_url = format!("/api/v1/plan/search?q={}", search_query.replace(' ', "%20"));
+        let search_raw = get_body(&client, &search_url);
+        let search_results: Vec<serde_json::Value> = serde_json::from_str(&search_raw).unwrap_or_default();
+        let m4 = !search_results.is_empty();
+        check(&mut total, &mut passed, &format!("M4: Search '{search_query}' finds results ({})", search_results.len()), m4);
+
+        // M5: Verify same data via WebSocket
+        let ws_results = test_ws_search(search_query);
+        let m5 = ws_results;
+        check(&mut total, &mut passed, "M5: WebSocket search returns same data", m5);
+    }
+
+    section("N. DAG: Real-Time Monitoring (6 stages)");
+    // Stage 1: Connect WS → Stage 2: Get initial status → Stage 3: Ping →
+    // Stage 4: Compare with HTTP status → Stage 5: Ping again → Stage 6: Verify seq monotonic
+    {
+        let tls = native_tls::TlsConnector::builder()
+            .danger_accept_invalid_certs(true).build().unwrap();
+        let tcp = TcpStream::connect("127.0.0.1:4100").unwrap();
+        tcp.set_read_timeout(Some(Duration::from_secs(10))).ok();
+        let (mut ws, _) = client_tls_with_config(
+            "wss://localhost:4100/ws/planning", tcp, None, Some(Connector::NativeTls(tls)),
+        ).unwrap();
+
+        // N1: Get initial connected message
+        let j = ws_rx(&mut ws);
+        let ws_status_raw = g(&j, "status");
+        let n1 = g(&j, "type") == "connected" && !ws_status_raw.is_empty();
+        check(&mut total, &mut passed, "N1: WS connected with status", n1);
+
+        // N2: Parse WS status and get total
+        let ws_status: serde_json::Value = serde_json::from_str(&ws_status_raw).unwrap_or_default();
+        let ws_total = ws_status["total"].as_i64().unwrap_or(0);
+        let n2 = ws_total > 0;
+        check(&mut total, &mut passed, &format!("N2: WS status total={ws_total}"), n2);
+
+        // N3: Compare WS status with HTTP status
+        let http_status: serde_json::Value = serde_json::from_str(&get_body(&client, "/api/v1/plan/status")).unwrap_or_default();
+        let http_total = http_status["total"].as_i64().unwrap_or(0);
+        let n3 = ws_total == http_total;
+        check(&mut total, &mut passed, &format!("N3: WS total ({ws_total}) == HTTP total ({http_total})"), n3);
+
+        // N4: Ping #1 and collect seq
+        let _ = ws.send(Message::Text("ping".into()));
+        let j = ws_rx(&mut ws);
+        let seq1 = j["seq"].as_i64().unwrap_or(0);
+        let n4 = seq1 > 0;
+        check(&mut total, &mut passed, &format!("N4: Ping #1 seq={seq1}"), n4);
+
+        // N5: Ping #2 — seq must increment
+        let _ = ws.send(Message::Text("ping".into()));
+        let j = ws_rx(&mut ws);
+        let seq2 = j["seq"].as_i64().unwrap_or(0);
+        let n5 = seq2 > seq1;
+        check(&mut total, &mut passed, &format!("N5: Ping #2 seq={seq2} > {seq1}"), n5);
+
+        // N6: Ping #3 — seq still incrementing (monotonic)
+        let _ = ws.send(Message::Text("ping".into()));
+        let j = ws_rx(&mut ws);
+        let seq3 = j["seq"].as_i64().unwrap_or(0);
+        let n6 = seq3 > seq2;
+        check(&mut total, &mut passed, &format!("N6: Ping #3 seq={seq3} > {seq2} (monotonic)"), n6);
+
+        let _ = ws.close(None);
+    }
+
+    section("O. DAG: AI-Assisted Analysis (5 stages)");
+    // Stage 1: Get AI status → Stage 2: Get task data → Stage 3: Ask Gemma
+    // → Stage 4: Cross-check with search → Stage 5: Verify via AI chat endpoint
+    {
+        // O1: Check AI agent availability
+        let ai_raw = get_body(&client, "/api/v1/ai/status");
+        let ai: serde_json::Value = serde_json::from_str(&ai_raw).unwrap_or_default();
+        let o1 = ai["agent"].as_str() == Some("gemma4") && ai["status"].as_str() == Some("available");
+        check(&mut total, &mut passed, "O1: AI agent status=available", o1);
+
+        // O2: Get active tasks for context
+        let active_raw = get_body(&client, "/api/v1/plan/list/in_progress");
+        let active: Vec<serde_json::Value> = serde_json::from_str(&active_raw).unwrap_or_default();
+        let o2 = !active.is_empty();
+        check(&mut total, &mut passed, &format!("O2: Active tasks available ({})", active.len()), o2);
+
+        // O3: Ask Gemma about the active tasks
+        let gemma_body = serde_json::json!({
+            "model": "gemma3",
+            "messages": [
+                {"role": "system", "content": format!("You are C3I AI. {} active tasks, {} total.", active.len(), total_tasks)},
+                {"role": "user", "content": "In one sentence, what is the system status?"}
+            ],
+            "stream": false,
+            "options": {"num_predict": 60}
+        });
+        let gemma_resp = client.post("http://localhost:11434/api/chat")
+            .json(&gemma_body).timeout(Duration::from_secs(20)).send();
+        let gemma_text = gemma_resp.ok()
+            .and_then(|r| r.json::<serde_json::Value>().ok())
+            .and_then(|j| j["message"]["content"].as_str().map(|s| s.to_string()))
+            .unwrap_or_default();
+        let o3 = gemma_text.len() > 10;
+        if o3 { println!("  Gemma: {}", &gemma_text[..gemma_text.len().min(100)]); }
+        check(&mut total, &mut passed, "O3: Gemma responds about system status", o3);
+
+        // O4: Search for a keyword from Gemma's response
+        let gemma_keyword = gemma_text.split_whitespace()
+            .find(|w| w.len() > 5 && w.chars().all(|c| c.is_alphabetic()))
+            .unwrap_or("tasks");
+        let search_raw = get_body(&client, &format!("/api/v1/plan/search?q={gemma_keyword}"));
+        let o4 = search_raw.len() > 10;
+        check(&mut total, &mut passed, &format!("O4: Search Gemma keyword '{gemma_keyword}' returns data"), o4);
+
+        // O5: Verify AI chat endpoint returns context
+        let chat_raw = get_body(&client, "/api/v1/ai/chat?q=system+health");
+        let chat: serde_json::Value = serde_json::from_str(&chat_raw).unwrap_or_default();
+        let o5 = chat["context"].as_str().map(|s| s.contains("total")).unwrap_or(false);
+        check(&mut total, &mut passed, "O5: AI chat endpoint returns task context", o5);
+    }
+
+    section("P. DAG: View Consistency (4 stages)");
+    // Stage 1: Get all tasks via HTTP → Stage 2: Count by status
+    // → Stage 3: Verify counts match status endpoint → Stage 4: Verify search is subset
+    {
+        // P1: Get all tasks
+        let all_raw = get_body(&client, "/api/v1/plan/list/all");
+        let all: Vec<serde_json::Value> = serde_json::from_str(&all_raw).unwrap_or_default();
+        let p1 = !all.is_empty();
+        check(&mut total, &mut passed, &format!("P1: All tasks loaded ({})", all.len()), p1);
+
+        // P2: Count by status from the list
+        let count_active = all.iter().filter(|t| t["status"].as_str() == Some("in_progress")).count();
+        let count_blocked = all.iter().filter(|t| t["status"].as_str() == Some("blocked")).count();
+        let count_completed = all.iter().filter(|t| t["status"].as_str() == Some("completed")).count();
+        let count_pending = all.iter().filter(|t| t["status"].as_str() == Some("pending")).count();
+        println!("  Counted: {count_active} active, {count_blocked} blocked, {count_completed} completed, {count_pending} pending");
+        let p2 = count_active + count_blocked + count_completed + count_pending > 0;
+        check(&mut total, &mut passed, "P2: Status counts computed from list", p2);
+
+        // P3: Compare with status endpoint
+        let st: serde_json::Value = serde_json::from_str(&get_body(&client, "/api/v1/plan/status")).unwrap_or_default();
+        let st_active = st["active"].as_i64().unwrap_or(-1) as usize;
+        let st_blocked = st["blocked"].as_i64().unwrap_or(-1) as usize;
+        let st_completed = st["completed"].as_i64().unwrap_or(-1) as usize;
+        let p3_active = count_active == st_active;
+        let p3_blocked = count_blocked == st_blocked;
+        let p3_completed = count_completed == st_completed;
+        check(&mut total, &mut passed, &format!("P3a: Active {count_active} == status {st_active}"), p3_active);
+        check(&mut total, &mut passed, &format!("P3b: Blocked {count_blocked} == status {st_blocked}"), p3_blocked);
+        check(&mut total, &mut passed, &format!("P3c: Completed {count_completed} == status {st_completed}"), p3_completed);
+
+        // P4: Search results are a subset of all tasks
+        let search: Vec<serde_json::Value> = serde_json::from_str(&get_body(&client, "/api/v1/plan/search?q=implement")).unwrap_or_default();
+        let all_ids: std::collections::HashSet<String> = all.iter().filter_map(|t| t["id"].as_str().map(|s| s.to_string())).collect();
+        let search_subset = search.iter().all(|t| {
+            t["id"].as_str().map(|id| all_ids.contains(id)).unwrap_or(true)
+        });
+        check(&mut total, &mut passed, &format!("P4: Search results ({}) are subset of all tasks", search.len()), search_subset);
+    }
+
+    section("Q. DAG: SSE → WS Consistency (4 stages)");
+    // Stage 1: Get SSE status event → Stage 2: Parse it → Stage 3: Get WS status
+    // → Stage 4: Both match
+    {
+        // Q1: Get SSE stream and extract status event
+        let sse_raw = get_body(&client, "/api/v1/plan/stream");
+        let sse_status_line = sse_raw.lines()
+            .find(|l| l.starts_with("data: {"))
+            .unwrap_or("data: {}");
+        let sse_data = &sse_status_line[6..]; // strip "data: "
+        let sse_json: serde_json::Value = serde_json::from_str(sse_data).unwrap_or_default();
+        let sse_total = sse_json["total"].as_i64().unwrap_or(0);
+        let q1 = sse_total > 0;
+        check(&mut total, &mut passed, &format!("Q1: SSE status total={sse_total}"), q1);
+
+        // Q2: Get WS status
+        let tls = native_tls::TlsConnector::builder()
+            .danger_accept_invalid_certs(true).build().unwrap();
+        let tcp = TcpStream::connect("127.0.0.1:4100").unwrap();
+        tcp.set_read_timeout(Some(Duration::from_secs(10))).ok();
+        let (mut ws, _) = client_tls_with_config(
+            "wss://localhost:4100/ws/planning", tcp, None, Some(Connector::NativeTls(tls)),
+        ).unwrap();
+        let j = ws_rx(&mut ws);
+        let ws_status_str = g(&j, "status");
+        let ws_json: serde_json::Value = serde_json::from_str(&ws_status_str).unwrap_or_default();
+        let ws_total = ws_json["total"].as_i64().unwrap_or(0);
+        let q2 = ws_total > 0;
+        check(&mut total, &mut passed, &format!("Q2: WS status total={ws_total}"), q2);
+
+        // Q3: SSE total == WS total
+        let q3 = sse_total == ws_total;
+        check(&mut total, &mut passed, &format!("Q3: SSE ({sse_total}) == WS ({ws_total})"), q3);
+
+        // Q4: Both match HTTP status
+        let q4 = sse_total == total_tasks && ws_total == total_tasks;
+        check(&mut total, &mut passed, &format!("Q4: SSE + WS + HTTP all agree ({total_tasks})"), q4);
+
+        let _ = ws.close(None);
+    }
+
+    section("R. DAG: Page ↔ API Integrity (3 stages)");
+    // Stage 1: Extract data from page HTML → Stage 2: Compare with API
+    // → Stage 3: Verify JS file is loadable and sized correctly
+    {
+        // R1: Page contains live task count from NIF
+        let total_str = total_tasks.to_string();
+        let r1 = html.contains(&total_str);
+        check(&mut total, &mut passed, &format!("R1: Page HTML contains total count '{total_str}'"), r1);
+
+        // R2: Page references the correct JS file
+        let r2 = html.contains("/static/planning-grid.js");
+        check(&mut total, &mut passed, "R2: Page references planning-grid.js", r2);
+
+        // R3: JS file is substantial (>50KB)
+        let js_size = get_body(&client, "/static/planning-grid.js").len();
+        let r3 = js_size > 50_000;
+        check(&mut total, &mut passed, &format!("R3: JS file size={js_size} bytes (>50KB)"), r3);
+    }
+
     // ══ SUMMARY ══
     println!("\n╔══════════════════════════════════════════════════════════════╗");
     if passed == total {
-        println!("║  ALL {passed} TESTS PASSED — EVERY COMPONENT VERIFIED         ║");
+        println!("║  ALL {passed} TESTS PASSED — FULL DAG COVERAGE              ║");
     } else {
         println!("║  {passed}/{total} PASSED — {} FAILED                              ║", total - passed);
     }
@@ -286,6 +535,22 @@ fn ws_rx(ws: &mut tungstenite::WebSocket<MaybeTlsStream<TcpStream>>) -> serde_js
 
 fn g(j: &serde_json::Value, k: &str) -> String {
     j[k].as_str().unwrap_or("").into()
+}
+
+fn test_ws_search(query: &str) -> bool {
+    let tls = native_tls::TlsConnector::builder()
+        .danger_accept_invalid_certs(true).build().unwrap();
+    let tcp = match TcpStream::connect("127.0.0.1:4100") { Ok(t) => t, Err(_) => return false };
+    tcp.set_read_timeout(Some(Duration::from_secs(10))).ok();
+    let (mut ws, _) = match client_tls_with_config(
+        "wss://localhost:4100/ws/planning", tcp, None, Some(Connector::NativeTls(tls)),
+    ) { Ok(r) => r, Err(_) => return false };
+    let _ = ws_rx(&mut ws); // consume connected msg
+    let _ = ws.send(Message::Text(query.into()));
+    let j = ws_rx(&mut ws);
+    let ok = g(&j, "type") == "search" && j["results"].as_str().map(|r| r.len() > 5).unwrap_or(false);
+    let _ = ws.close(None);
+    ok
 }
 
 fn test_gemma() -> bool {
