@@ -32,6 +32,7 @@ import cepaf_gleam/agui/event_stream_widget
 import cepaf_gleam/ui/lustre/shell
 import cepaf_gleam/ui/state.{type SharedMeshState}
 import gleam/int
+import gleam/string
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
@@ -1048,44 +1049,474 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
 }
 
 // ---------------------------------------------------------------------------
-// 6. Cockpit — L5 Cognitive
+// 6. Cockpit — L5 Cognitive  (SC-HMI-010, SC-AGUI-UI-001..015)
+// अन्धकारात् प्रकाशं प्राप्नोति — From darkness one reaches light (Dark Cockpit)
 // ---------------------------------------------------------------------------
 
 pub fn cockpit_view(state: SharedMeshState) -> Element(msg) {
-  html.div([attribute.class("w-full")], [
-    page_header("Cockpit", "Operator view — dark cockpit pattern (SC-HMI-010)"),
-    shell.section("Cockpit Mode", [
-      html.div([attribute.class("card-grid")], [
-        shell.status_card(
-          "Dark Cockpit",
-          "Healthy",
-          state.dark_cockpit_mode,
-          "SC-HMI-010 mode",
+  // Derive cockpit mode from health (SC-HMI-010 5-mode state machine)
+  let mode = cockpit_mode_from_state(state)
+  let mode_color = cockpit_mode_color(mode)
+  let health_pct =
+    int.to_string(
+      case state.healthy_count == 0 && state.container_count == 0 {
+        True -> 100
+        False ->
+          state.healthy_count * 100 / int.max(state.container_count, 1)
+      },
+    )
+  html.div(
+    [
+      attribute.class("w-full cockpit-page cockpit-mode-" <> mode),
+      attribute.attribute("data-cockpit-mode", mode),
+    ],
+    [
+      // ── Header ──────────────────────────────────────────────────────────
+      html.div([attribute.class("page-header cockpit-header")], [
+        html.div([attribute.class("cockpit-header-left")], [
+          html.h1([attribute.class("page-title")], [
+            element.text("Cockpit"),
+          ]),
+          html.div([attribute.class("page-subtitle")], [
+            element.text(
+              "Operator Primary View — Dark Cockpit Pattern (SC-HMI-010)",
+            ),
+          ]),
+        ]),
+        html.div([attribute.class("cockpit-header-right")], [
+          // Mode badge
+          html.div(
+            [
+              attribute.class("cockpit-mode-badge cockpit-badge-" <> mode),
+              attribute.attribute("id", "cockpit-mode-badge"),
+              attribute.attribute("style", "color:" <> mode_color),
+            ],
+            [element.text(string.uppercase(mode))],
+          ),
+          // Heartbeat indicator
+          html.div(
+            [
+              attribute.class("cockpit-heartbeat"),
+              attribute.attribute("id", "cockpit-heartbeat"),
+              attribute.attribute("title", "WebSocket connection status"),
+            ],
+            [
+              html.span(
+                [
+                  attribute.class("heartbeat-dot heartbeat-live"),
+                  attribute.attribute("id", "cockpit-hb-dot"),
+                ],
+                [],
+              ),
+              html.span(
+                [attribute.attribute("id", "cockpit-hb-label")],
+                [element.text("LIVE")],
+              ),
+            ],
+          ),
+        ]),
+      ]),
+      // ── Row 1: Cockpit Mode Status (5-mode display) ──────────────────────
+      shell.section("Dark Cockpit 5-Mode Status (SC-HMI-010)", [
+        html.div([attribute.class("cockpit-mode-strip")], [
+          cockpit_mode_pill("dark", mode, "#3dd68c", "All Nominal"),
+          cockpit_mode_pill("dim", mode, "#f5a623", "Warnings"),
+          cockpit_mode_pill("normal", mode, "#e0e6ed", "Errors"),
+          cockpit_mode_pill("bright", mode, "#ffd93d", "Multiple Errors"),
+          cockpit_mode_pill("emergency", mode, "#ff4757", "Critical"),
+        ]),
+        html.div([attribute.class("card-grid")], [
+          shell.status_card(
+            "Cockpit Mode",
+            case mode {
+              "dark" | "dim" -> "Healthy"
+              "normal" -> "Degraded"
+              _ -> "Critical"
+            },
+            string.uppercase(mode),
+            "SC-HMI-010 active mode",
+          ),
+          shell.status_card(
+            "Health Score",
+            case mode {
+              "dark" -> "Healthy"
+              "dim" -> "Degraded"
+              _ -> "Critical"
+            },
+            health_pct <> "%",
+            int.to_string(state.healthy_count)
+              <> "/"
+              <> int.to_string(state.container_count)
+              <> " healthy",
+          ),
+          shell.status_card(
+            "2oo3 Quorum",
+            bool_status(state.quorum_healthy),
+            case state.quorum_healthy {
+              True -> "Met"
+              False -> "Lost"
+            },
+            "SIL-4 voting (SC-SIL4-006)",
+          ),
+          shell.status_card(
+            "Zenoh Mesh",
+            bool_status(state.zenoh_connected),
+            case state.zenoh_connected {
+              True -> "Connected"
+              False -> "Offline"
+            },
+            "4/4 routers active",
+          ),
+          shell.status_card(
+            "OODA Phase",
+            "Healthy",
+            state.ooda_phase,
+            "cycle < 100ms (SC-OODA)",
+          ),
+          shell.status_card(
+            "CPU Governor",
+            "Healthy",
+            "< 60%",
+            "SC-CPU-GOV active",
+          ),
+          shell.status_card(
+            "Threat Level",
+            threat_label(state.threat_level),
+            state.threat_level,
+            "immune system",
+          ),
+          shell.status_card(
+            "Active Alarms",
+            "Healthy",
+            "0",
+            "all acknowledged",
+          ),
+        ]),
+      ]),
+      // ── Row 2: Alarm Panel (sorted Critical → Advisory) ─────────────────
+      shell.section("Alarm Panel — Critical/Warning/Caution/Advisory", [
+        html.div(
+          [
+            attribute.class("cockpit-alarm-toolbar"),
+            attribute.attribute("id", "cockpit-alarm-toolbar"),
+          ],
+          [
+            html.span([attribute.class("alarm-filter-chips")], [
+              alarm_filter_chip("ALL", True),
+              alarm_filter_chip("CRIT", False),
+              alarm_filter_chip("WARN", False),
+              alarm_filter_chip("CAUT", False),
+              alarm_filter_chip("INFO", False),
+            ]),
+            html.span(
+              [
+                attribute.class("alarm-count mono"),
+                attribute.attribute("id", "alarm-count-label"),
+              ],
+              [element.text("0 active alarms")],
+            ),
+          ],
         ),
-        shell.status_card("Mesh Nodes", "Healthy", "16", "in genome"),
-        shell.status_card("Active Alarms", "Healthy", "0", "acknowledged"),
-        shell.status_card(
-          "2oo3 Quorum",
-          bool_status(state.quorum_healthy),
-          case state.quorum_healthy {
-            True -> "Met"
-            False -> "Lost"
-          },
-          "SIL-4 voting",
+        html.div(
+          [
+            attribute.class("cockpit-alarm-list"),
+            attribute.attribute("id", "cockpit-alarm-list"),
+          ],
+          [
+            // Dark cockpit default: no alarms = empty state (nominal is invisible)
+            html.div([attribute.class("alarm-empty-state")], [
+              html.div([attribute.class("alarm-empty-icon")], [
+                element.text("●"),
+              ]),
+              html.div([attribute.class("alarm-empty-text")], [
+                element.text("Dark Cockpit — All nominal. Nothing to show."),
+              ]),
+            ]),
+          ],
         ),
       ]),
-    ]),
-    shell.section("Node Cluster", [
-      html.div([attribute.class("card-grid")], [
-        shell.container_card("ex-app-1", "running", 0.22, 0.41),
-        shell.container_card("ex-app-2", "running", 0.18, 0.38),
-        shell.container_card("ex-app-3", "running", 0.19, 0.4),
-        shell.container_card("cepaf-bridge", "running", 0.05, 0.15),
-        shell.container_card("cortex", "running", 0.31, 0.55),
-        shell.container_card("chaya", "running", 0.08, 0.2),
+      // ── Row 3: Container Genome Grid (16-cell SIL-6 mesh) ─────────────
+      shell.section("Container Genome Grid — 16-Cell SIL-6 Biomorphic Mesh", [
+        shell.genome_grid([
+          #("zenoh-router", "healthy"),
+          #("db-prod", "healthy"),
+          #("obs-prod", "healthy"),
+          #("zenoh-r-1", "healthy"),
+          #("zenoh-r-2", "healthy"),
+          #("zenoh-r-3", "healthy"),
+          #("ex-app-1", "healthy"),
+          #("ex-app-2", "healthy"),
+          #("ex-app-3", "healthy"),
+          #("chaya", "healthy"),
+          #("cepaf-bridge", "healthy"),
+          #("cortex", "healthy"),
+          #("ollama", "healthy"),
+          #("mojo", "healthy"),
+          #("ml-runner-1", "healthy"),
+          #("ml-runner-2", "healthy"),
+        ]),
       ]),
+      // ── Row 4: OODA Phase Ring + Zenoh Mesh Nodes ──────────────────────
+      html.div([attribute.class("cockpit-dual-panel")], [
+        html.div([attribute.class("cockpit-panel-half")], [
+          shell.section("OODA Phase Ring (5-Tier)", [
+            shell.ooda_5tier(state.ooda_phase),
+            html.div([attribute.class("ooda-meta-row")], [
+              shell.kv_row("Current Phase", state.ooda_phase),
+              shell.kv_row("Cycle SLA", "< 100ms"),
+              shell.kv_row("Budget Used", "42ms"),
+            ]),
+          ]),
+        ]),
+        html.div([attribute.class("cockpit-panel-half")], [
+          shell.section("Node Status — Zenoh Mesh Connectivity", [
+            html.div(
+              [
+                attribute.class("cockpit-node-list"),
+                attribute.attribute("id", "cockpit-node-list"),
+              ],
+              [
+                node_row("zenoh-router-1", "connected", "12.3", "45.2"),
+                node_row("zenoh-router-2", "connected", "8.7", "38.1"),
+                node_row("zenoh-router-3", "connected", "10.1", "41.5"),
+                node_row("zenoh-router-4", "connected", "9.4", "39.8"),
+                node_row("db-prod", "connected", "22.4", "62.8"),
+                node_row("obs-prod", "connected", "15.6", "55.3"),
+                node_row("cortex", "connected", "31.2", "70.1"),
+                node_row("ex-app-1", "connected", "18.9", "48.6"),
+              ],
+            ),
+          ]),
+        ]),
+      ]),
+      // ── Row 5: L0-L7 Fractal Layer Status (condensed for operator) ─────
+      shell.section(
+        "L0-L7 Fractal Layer Health (Operator View — Condensed)",
+        [
+          html.div([attribute.class("fractal-layer-strip")], [
+            fractal_layer_badge("L0", "Constitutional", "Healthy", "#ff6b6b"),
+            fractal_layer_badge("L1", "Atomic/Debug", "Healthy", "#ffd93d"),
+            fractal_layer_badge("L2", "Component", "Healthy", "#6bcb77"),
+            fractal_layer_badge("L3", "Transaction", "Healthy", "#4d96ff"),
+            fractal_layer_badge("L4", "System", "Healthy", "#9b59b6"),
+            fractal_layer_badge("L5", "Cognitive", "Healthy", "#00d4aa"),
+            fractal_layer_badge("L6", "Ecosystem", "Healthy", "#e74c3c"),
+            fractal_layer_badge("L7", "Federation", "Healthy", "#f39c12"),
+          ]),
+        ],
+      ),
+      // ── Row 6: AI Chat + View controls (JS-driven) ────────────────────
+      html.div([attribute.class("cockpit-bottom-strip")], [
+        html.div([attribute.class("cockpit-view-controls")], [
+          html.div([attribute.class("view-toggle"), attribute.attribute("id", "cockpit-view-toggle")], [
+            html.button([attribute.class("view-btn active"), attribute.attribute("data-view", "grid")], [element.text("Grid")]),
+            html.button([attribute.class("view-btn"), attribute.attribute("data-view", "alarms")], [element.text("Alarms")]),
+            html.button([attribute.class("view-btn"), attribute.attribute("data-view", "nodes")], [element.text("Nodes")]),
+            html.button([attribute.class("view-btn"), attribute.attribute("data-view", "genome")], [element.text("Genome")]),
+          ]),
+          html.div([attribute.class("cockpit-search-bar")], [
+            html.input([
+              attribute.class("cockpit-search-input"),
+              attribute.attribute("id", "cockpit-search"),
+              attribute.attribute("placeholder", "Search alarms, nodes… (Ctrl+K)"),
+              attribute.attribute("type", "text"),
+            ]),
+          ]),
+        ]),
+        // Gemma AI chat widget (SC-AGUI-UI-005)
+        html.div(
+          [
+            attribute.class("cockpit-ai-chat"),
+            attribute.attribute("id", "cockpit-ai-panel"),
+          ],
+          [
+            html.div([attribute.class("ai-chat-header")], [
+              html.span([attribute.class("ai-model-label")], [
+                element.text("Gemma 3 AI Advisor"),
+              ]),
+              html.button(
+                [
+                  attribute.class("ai-chat-toggle"),
+                  attribute.attribute("id", "cockpit-ai-toggle"),
+                ],
+                [element.text("Ask AI")],
+              ),
+            ]),
+            html.div(
+              [
+                attribute.class("ai-chat-panel"),
+                attribute.attribute("id", "cockpit-chat-panel"),
+                attribute.attribute("style", "display:none"),
+              ],
+              [
+                html.div(
+                  [
+                    attribute.class("ai-messages"),
+                    attribute.attribute("id", "cockpit-ai-messages"),
+                  ],
+                  [],
+                ),
+                html.div([attribute.class("ai-input-row")], [
+                  html.input([
+                    attribute.class("ai-input"),
+                    attribute.attribute("id", "cockpit-ai-input"),
+                    attribute.attribute("placeholder", "Ask about alarms, nodes…"),
+                    attribute.attribute("type", "text"),
+                  ]),
+                  html.button(
+                    [
+                      attribute.class("ai-send-btn"),
+                      attribute.attribute("id", "cockpit-ai-send"),
+                    ],
+                    [element.text("Send")],
+                  ),
+                ]),
+              ],
+            ),
+          ],
+        ),
+      ]),
+      // ── JS loader ──────────────────────────────────────────────────────
+      html.script(
+        [attribute.attribute("src", "/static/cockpit-grid.js")],
+        "",
+      ),
+    ],
+  )
+}
+
+// Dark Cockpit 5-mode: derive from health state (SC-HMI-010)
+fn cockpit_mode_from_state(state: SharedMeshState) -> String {
+  let total = int.max(state.container_count, 1)
+  let ratio = state.healthy_count * 100 / total
+  case state.quorum_healthy, ratio {
+    False, _ -> "emergency"
+    True, r if r >= 90 -> state.dark_cockpit_mode
+    True, r if r >= 70 -> "dim"
+    True, r if r >= 50 -> "normal"
+    True, r if r >= 30 -> "bright"
+    True, _ -> "emergency"
+  }
+}
+
+fn cockpit_mode_color(mode: String) -> String {
+  case mode {
+    "dark" -> "#3dd68c"
+    "dim" -> "#f5a623"
+    "normal" -> "#e0e6ed"
+    "bright" -> "#ffd93d"
+    "emergency" -> "#ff4757"
+    _ -> "#7a8fa6"
+  }
+}
+
+fn cockpit_mode_pill(
+  name: String,
+  active: String,
+  color: String,
+  label: String,
+) -> Element(msg) {
+  let is_active = name == active
+  let cls = case is_active {
+    True -> "cockpit-mode-pill cockpit-mode-pill-active"
+    False -> "cockpit-mode-pill"
+  }
+  let style = case is_active {
+    True -> "border-color:" <> color <> ";color:" <> color
+    False -> ""
+  }
+  html.div(
+    [
+      attribute.class(cls),
+      attribute.attribute("style", style),
+      attribute.attribute("title", label),
+    ],
+    [
+      html.div(
+        [
+          attribute.class("pill-dot"),
+          attribute.attribute("style", "background:" <> color),
+        ],
+        [],
+      ),
+      element.text(string.uppercase(name)),
+    ],
+  )
+}
+
+fn alarm_filter_chip(label: String, active: Bool) -> Element(msg) {
+  let cls = case active {
+    True -> "alarm-chip alarm-chip-active"
+    False -> "alarm-chip"
+  }
+  html.button([attribute.class(cls)], [element.text(label)])
+}
+
+fn node_row(
+  name: String,
+  status: String,
+  cpu: String,
+  mem: String,
+) -> Element(msg) {
+  let status_color = case status {
+    "connected" -> "var(--accent)"
+    "stale" -> "var(--warn)"
+    "degraded" | "disconnected" -> "var(--crit)"
+    _ -> "#7a8fa6"
+  }
+  html.div([attribute.class("cockpit-node-row")], [
+    html.span(
+      [
+        attribute.class("node-status-dot"),
+        attribute.attribute("style", "background:" <> status_color),
+      ],
+      [],
+    ),
+    html.span([attribute.class("node-name mono")], [element.text(name)]),
+    html.span([attribute.class("node-cpu")], [
+      element.text("CPU " <> cpu <> "%"),
     ]),
+    html.span([attribute.class("node-mem")], [
+      element.text("MEM " <> mem <> "%"),
+    ]),
+    html.span(
+      [
+        attribute.class("node-status-label"),
+        attribute.attribute("style", "color:" <> status_color),
+      ],
+      [element.text(status)],
+    ),
   ])
+}
+
+fn fractal_layer_badge(
+  layer: String,
+  name: String,
+  status: String,
+  color: String,
+) -> Element(msg) {
+  html.div(
+    [
+      attribute.class("fractal-layer-badge"),
+      attribute.attribute("title", name <> " — " <> status),
+    ],
+    [
+      html.div(
+        [
+          attribute.class("flb-layer"),
+          attribute.attribute("style", "color:" <> color),
+        ],
+        [element.text(layer)],
+      ),
+      html.div([attribute.class("flb-name")], [element.text(name)]),
+      html.div(
+        [
+          attribute.class("flb-status flb-" <> string_lower(status)),
+        ],
+        [element.text(status)],
+      ),
+    ],
+  )
 }
 
 // ---------------------------------------------------------------------------

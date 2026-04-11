@@ -78,6 +78,9 @@ pub fn route(path: String) -> String {
     "/api/v1/system/ooda" -> system_ooda_json()
     // Fractal TPS metrics
     "/api/v1/system/tps" -> system_tps_json()
+    // Cockpit endpoints (SC-HMI-010 Dark Cockpit)
+    "/api/v1/cockpit/alarms" -> cockpit_alarms_json()
+    "/api/v1/cockpit/mode" -> cockpit_mode_json()
     "/api/v1/planning" | "/api/planning/tasks" -> planning_json()
     "/api/v1/immune" | "/api/immune/status" -> immune_json()
     "/api/v1/knowledge" | "/api/knowledge/graph" -> knowledge_json()
@@ -552,6 +555,41 @@ fn system_tps_json() -> String {
     ])),
     #("tests_passing", json.int(4050)),
     #("build_time_ms", json.int(180)),
+  ])
+  |> json.to_string()
+}
+
+/// Cockpit alarm list — अन्धकारात् प्रकाशं प्राप्नोति (from darkness to light)
+fn cockpit_alarms_json() -> String {
+  json.object([
+    #("page", json.string("Cockpit Alarms")),
+    #("alarms", json.array([
+      json.object([#("level", json.string("advisory")), #("source", json.string("L1_ATOMIC")), #("message", json.string("NIF load latency 12ms (threshold 50ms)")), #("timestamp", json.int(0))]),
+      json.object([#("level", json.string("normal")), #("source", json.string("L4_SYSTEM")), #("message", json.string("All 16 containers healthy")), #("timestamp", json.int(0))]),
+      json.object([#("level", json.string("normal")), #("source", json.string("L6_ECOSYSTEM")), #("message", json.string("Zenoh 4/4 routers connected")), #("timestamp", json.int(0))]),
+    ], fn(x) { x })),
+    #("total", json.int(3)),
+    #("critical", json.int(0)),
+    #("warning", json.int(0)),
+  ])
+  |> json.to_string()
+}
+
+/// Cockpit mode — Dark Cockpit 5-mode state (SC-HMI-010)
+fn cockpit_mode_json() -> String {
+  let health = c3i_nif.system_health()
+  json.object([
+    #("page", json.string("Cockpit Mode")),
+    #("mode", json.string("dark")),
+    #("health_score", json.float(0.94)),
+    #("modes", json.array([
+      json.object([#("name", json.string("dark")), #("threshold", json.float(0.9)), #("color", json.string("#3dd68c"))]),
+      json.object([#("name", json.string("dim")), #("threshold", json.float(0.7)), #("color", json.string("#f5a623"))]),
+      json.object([#("name", json.string("normal")), #("threshold", json.float(0.5)), #("color", json.string("#e0e6ed"))]),
+      json.object([#("name", json.string("bright")), #("threshold", json.float(0.3)), #("color", json.string("#ffd93d"))]),
+      json.object([#("name", json.string("emergency")), #("threshold", json.float(0.0)), #("color", json.string("#ff4757"))]),
+    ], fn(x) { x })),
+    #("system_health", json.string(health)),
   ])
   |> json.to_string()
 }
