@@ -213,7 +213,7 @@ pub fn verdict(result: GuardResult) -> GuardVerdict {
       case string.contains(reason, "empty") {
         True -> FailedEmpty
         False ->
-          case string.contains(reason, "missing_field") {
+          case string.contains(reason, "missing field") {
             True -> FailedMissingField
             False ->
               case string.contains(reason, "short") {

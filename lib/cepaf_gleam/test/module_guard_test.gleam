@@ -34,7 +34,7 @@ pub fn json_guard_nonempty_passes_test() {
 
 pub fn json_guard_nonempty_fails_empty_test() {
   let result = module_guard.guard_json_nonempty("{}", "test")
-  module_guard.is_passed(result) |> should.be_true()
+  module_guard.is_passed(result) |> should.be_false()
 }
 
 pub fn json_guard_nonempty_fails_truly_empty_test() {
