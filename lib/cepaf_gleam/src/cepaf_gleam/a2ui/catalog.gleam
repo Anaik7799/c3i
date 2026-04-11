@@ -3055,6 +3055,99 @@ pub fn default_catalog() -> Catalog {
         [],
       ),
     ),
+    // ── Data Grid Components (Tabulator-enhanced) ──
+    #(
+      "data_grid",
+      ComponentSpec(
+        "data_grid",
+        L3Transaction,
+        "Interactive data grid — sortable, filterable, paginated (Tabulator 6.3)",
+        [
+          PropSpec("data_source", StringProp, "NIF function name or JSON endpoint"),
+          PropSpec("columns", JsonProp, "Column definitions [{title, field, width, headerFilter}]"),
+          PropSpec("page_size", IntProp, "Rows per page (default 25)"),
+          PropSpec("height", IntProp, "Grid height in pixels"),
+          PropSpec("sortable", BoolProp, "Enable column sorting"),
+          PropSpec("filterable", BoolProp, "Enable header filters"),
+          PropSpec("paginated", BoolProp, "Enable pagination"),
+          PropSpec("theme", EnumProp(["midnight", "simple", "modern"]), "Tabulator CSS theme"),
+        ],
+        [],
+      ),
+    ),
+    #(
+      "task_explorer",
+      ComponentSpec(
+        "task_explorer",
+        L3Transaction,
+        "Planning task explorer — live from Smriti.db via NIF with priority/status filters",
+        [
+          PropSpec("status_filter", EnumProp(["all", "pending", "in_progress", "completed", "blocked"]), "Status filter"),
+          PropSpec("priority_filter", EnumProp(["all", "P0", "P1", "P2", "P3"]), "Priority filter"),
+          PropSpec("page_size", IntProp, "Rows per page"),
+          PropSpec("show_search", BoolProp, "Show global search"),
+        ],
+        [],
+      ),
+    ),
+    #(
+      "knowledge_explorer",
+      ComponentSpec(
+        "knowledge_explorer",
+        L5Cognitive,
+        "Zettelkasten knowledge explorer — holons searchable via FTS5 with trust/entropy filters",
+        [
+          PropSpec("query", StringProp, "FTS5 search query"),
+          PropSpec("level_filter", EnumProp(["all", "atomic", "molecular", "organism", "ecosystem"]), "Holon level"),
+          PropSpec("max_entropy", FloatProp, "Max entropy threshold (0.0-1.0)"),
+          PropSpec("cluster_filter", StringProp, "Knowledge cluster name"),
+          PropSpec("show_trust", BoolProp, "Show trust score column"),
+          PropSpec("show_entropy", BoolProp, "Show entropy column"),
+        ],
+        [],
+      ),
+    ),
+    #(
+      "analysis_matrix",
+      ComponentSpec(
+        "analysis_matrix",
+        L5Cognitive,
+        "Multidimensional analysis matrix — criticality × FMEA × STAMP × utility scoring",
+        [
+          PropSpec("dimensions", JsonProp, "Array of {name, score, threshold, status, action}"),
+          PropSpec("show_status_badges", BoolProp, "Color-coded PASS/FAIL badges"),
+          PropSpec("sortable", BoolProp, "Sort by any column"),
+        ],
+        [],
+      ),
+    ),
+    #(
+      "decision_support",
+      ComponentSpec(
+        "decision_support",
+        L5Cognitive,
+        "Decision support scenarios — operational what-if with Zettelkasten-grounded answers",
+        [
+          PropSpec("scenarios", JsonProp, "Array of {scenario, question, answer, confidence}"),
+          PropSpec("show_confidence", BoolProp, "Show confidence level (Axiom/Evidence/Hypothesis)"),
+        ],
+        [],
+      ),
+    ),
+    #(
+      "pipeline_monitor",
+      ComponentSpec(
+        "pipeline_monitor",
+        L1AtomicDebug,
+        "Pipeline performance monitor — stage latency waterfall from traced intents",
+        [
+          PropSpec("stages", JsonProp, "Array of {stage, avg_ms, count, health}"),
+          PropSpec("show_waterfall", BoolProp, "Show visual latency waterfall bars"),
+          PropSpec("threshold_ms", IntProp, "Warning threshold in milliseconds"),
+        ],
+        [],
+      ),
+    ),
   ]
   Catalog(components: dict.from_list(components))
 }
