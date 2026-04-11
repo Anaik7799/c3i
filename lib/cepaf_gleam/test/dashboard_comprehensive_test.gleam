@@ -41,9 +41,11 @@ import cepaf_gleam/ui/domain.{
   Planning, TelemetryPoint, Unknown,
 }
 import cepaf_gleam/ui/state.{
-  SharedMeshState, ThreatCritical, ThreatElevated, ThreatNominal, ThreatSevere,
-  default_state,
+  CockpitBright, CockpitDark, CockpitEmergency, OodaAct, OodaDecide, OodaObserve,
+  OodaOrient, OodaVerify, SharedMeshState, ThreatCritical, ThreatElevated,
+  ThreatNominal, ThreatSevere, default_state,
 }
+import cepaf_gleam/ui/state as state_types
 import cepaf_gleam/ui/web/page_views
 import cepaf_gleam/ui/tui/dashboard_view
 import cepaf_gleam/web/server.{
@@ -121,13 +123,13 @@ pub fn c1_default_state_threat_nominal_test() {
 // C1.10 — default_state OODA phase is observe
 pub fn c1_default_state_ooda_phase_test() {
   let state = default_state()
-  state.ooda_phase |> should.equal("observe")
+  state.ooda_phase |> should.equal(OodaObserve)
 }
 
 // C1.11 — default_state dark cockpit mode is dark
 pub fn c1_default_state_dark_cockpit_mode_test() {
   let state = default_state()
-  state.dark_cockpit_mode |> should.equal("dark")
+  state.dark_cockpit_mode |> should.equal(CockpitDark)
 }
 
 // C1.12 — default_state zenoh_connected is True
@@ -247,8 +249,8 @@ pub fn c2_dashboard_view_zenoh_disconnected_state_test() {
     container_count: 16,
     healthy_count: 16,
     threat_level: ThreatNominal,
-    ooda_phase: "observe",
-    dark_cockpit_mode: "dark",
+    ooda_phase: OodaObserve,
+    dark_cockpit_mode: CockpitDark,
     zenoh_connected: False,
     quorum_healthy: True,
     last_updated_ms: 0,
@@ -263,8 +265,8 @@ pub fn c2_dashboard_view_critical_threat_test() {
     container_count: 16,
     healthy_count: 5,
     threat_level: ThreatCritical,
-    ooda_phase: "decide",
-    dark_cockpit_mode: "emergency",
+    ooda_phase: OodaDecide,
+    dark_cockpit_mode: CockpitEmergency,
     zenoh_connected: True,
     quorum_healthy: False,
     last_updated_ms: 999,
@@ -384,33 +386,33 @@ pub fn c4_tui_ooda_ring_section_test() {
 // C4.03 — OODA phase "observe" state transitions via default_state
 pub fn c4_default_state_ooda_observe_test() {
   let state = default_state()
-  state.ooda_phase |> should.equal("observe")
+  state.ooda_phase |> should.equal(OodaObserve)
 }
 
 // C4.04 — dashboard_view with orient phase renders
 pub fn c4_dashboard_view_orient_phase_test() {
-  let state = SharedMeshState(..default_state(), ooda_phase: "orient")
+  let state = SharedMeshState(..default_state(), ooda_phase: OodaOrient)
   let _ = page_views.dashboard_view(state)
   should.be_true(True)
 }
 
 // C4.05 — dashboard_view with decide phase renders
 pub fn c4_dashboard_view_decide_phase_test() {
-  let state = SharedMeshState(..default_state(), ooda_phase: "decide")
+  let state = SharedMeshState(..default_state(), ooda_phase: OodaDecide)
   let _ = page_views.dashboard_view(state)
   should.be_true(True)
 }
 
 // C4.06 — dashboard_view with act phase renders
 pub fn c4_dashboard_view_act_phase_test() {
-  let state = SharedMeshState(..default_state(), ooda_phase: "act")
+  let state = SharedMeshState(..default_state(), ooda_phase: OodaAct)
   let _ = page_views.dashboard_view(state)
   should.be_true(True)
 }
 
 // C4.07 — dashboard_view with verify phase renders
 pub fn c4_dashboard_view_verify_phase_test() {
-  let state = SharedMeshState(..default_state(), ooda_phase: "verify")
+  let state = SharedMeshState(..default_state(), ooda_phase: OodaVerify)
   let _ = page_views.dashboard_view(state)
   should.be_true(True)
 }
@@ -821,8 +823,8 @@ pub fn c8_degraded_mesh_below_half_renders_test() {
     container_count: 16,
     healthy_count: 7,
     threat_level: ThreatElevated,
-    ooda_phase: "decide",
-    dark_cockpit_mode: "bright",
+    ooda_phase: OodaDecide,
+    dark_cockpit_mode: CockpitBright,
     zenoh_connected: True,
     quorum_healthy: False,
     last_updated_ms: 1000,

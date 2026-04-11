@@ -31,6 +31,7 @@ import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ui/lustre/shell
 import cepaf_gleam/ui/state.{
   type SharedMeshState, ThreatElevated, ThreatLow, ThreatNominal, ThreatNone,
+  cockpit_mode_to_string, ooda_phase_to_string,
 }
 import gleam/float
 import gleam/int
@@ -816,7 +817,7 @@ pub fn prajna_view(state: SharedMeshState) -> Element(msg) {
         shell.status_card(
           "Dark Cockpit",
           "Healthy",
-          state.dark_cockpit_mode,
+          cockpit_mode_to_string(state.dark_cockpit_mode),
           "5-mode state machine",
         ),
         shell.status_card("LLM Advisory", "Healthy", "active", "OpenRouter"),
@@ -1154,8 +1155,8 @@ fn state_kv_block(state: SharedMeshState) -> Element(msg) {
     shell.kv_row("Containers", int.to_string(state.container_count)),
     shell.kv_row("Healthy", int.to_string(state.healthy_count)),
     shell.kv_row("Threat Level", state.threat_level_to_string(state.threat_level)),
-    shell.kv_row("OODA Phase", state.ooda_phase),
-    shell.kv_row("Dark Cockpit", state.dark_cockpit_mode),
+    shell.kv_row("OODA Phase", ooda_phase_to_string(state.ooda_phase)),
+    shell.kv_row("Dark Cockpit", cockpit_mode_to_string(state.dark_cockpit_mode)),
     shell.kv_row("Zenoh", case state.zenoh_connected {
       True -> "connected"
       False -> "offline"

@@ -31,7 +31,9 @@
 import cepaf_gleam/agui/event_stream_widget
 import cepaf_gleam/ui/lustre/shell
 import cepaf_gleam/ui/state.{
-  type SharedMeshState, ThreatCritical, ThreatSevere,
+  type SharedMeshState, OodaAct, OodaDecide, OodaObserve, OodaOrient,
+  OodaVerify, ThreatCritical, ThreatSevere, cockpit_mode_to_string,
+  ooda_phase_to_string,
 }
 import gleam/int
 import gleam/string
@@ -121,7 +123,7 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
     ]),
     // --- SECTION 0.6: OODA 5-Tier Decision Ring ---
     shell.section("OODA Decision Ring (5-Tier)", [
-      shell.ooda_5tier(state.ooda_phase),
+      shell.ooda_5tier(ooda_phase_to_string(state.ooda_phase)),
     ]),
     // --- SECTION 0.7: Constitutional Proof Chain ---
     shell.section("Constitutional Proof Chain", [
@@ -152,7 +154,7 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
         shell.status_card(
           "2. OODA Phase",
           "Healthy",
-          state.ooda_phase,
+          ooda_phase_to_string(state.ooda_phase),
           "current cycle phase",
         ),
         shell.status_card(
@@ -182,7 +184,7 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
         shell.status_card(
           "6. Cockpit Mode",
           "Healthy",
-          state.dark_cockpit_mode,
+          cockpit_mode_to_string(state.dark_cockpit_mode),
           "dark cockpit state",
         ),
         shell.status_card(
@@ -503,15 +505,15 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
     ]),
     shell.section("OODA Ring [A2UI Continuous Wavefront]", [
       html.div([attribute.class("ooda-phases")], [
-        ooda_phase_pill("Observe", state.ooda_phase == "observe"),
+        ooda_phase_pill("Observe", state.ooda_phase == OodaObserve),
         html.span([attribute.class("ooda-arrow")], [element.text("▶")]),
-        ooda_phase_pill("Orient", state.ooda_phase == "orient"),
+        ooda_phase_pill("Orient", state.ooda_phase == OodaOrient),
         html.span([attribute.class("ooda-arrow")], [element.text("▶")]),
-        ooda_phase_pill("Decide", state.ooda_phase == "decide"),
+        ooda_phase_pill("Decide", state.ooda_phase == OodaDecide),
         html.span([attribute.class("ooda-arrow")], [element.text("▶")]),
-        ooda_phase_pill("Act", state.ooda_phase == "act"),
+        ooda_phase_pill("Act", state.ooda_phase == OodaAct),
         html.span([attribute.class("ooda-arrow")], [element.text("▶")]),
-        ooda_phase_pill("Verify", state.ooda_phase == "verify"),
+        ooda_phase_pill("Verify", state.ooda_phase == OodaVerify),
       ]),
       html.div(
         [
@@ -681,7 +683,7 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
         shell.status_card(
           "L5 OODA Loop",
           "Healthy",
-          state.ooda_phase,
+          ooda_phase_to_string(state.ooda_phase),
           "< 100ms cycle — 5-tier decision ring",
         ),
         shell.status_card(
@@ -1172,7 +1174,7 @@ pub fn cockpit_view(state: SharedMeshState) -> Element(msg) {
           shell.status_card(
             "OODA Phase",
             "Healthy",
-            state.ooda_phase,
+            ooda_phase_to_string(state.ooda_phase),
             "cycle < 100ms (SC-OODA)",
           ),
           shell.status_card(
@@ -1262,9 +1264,9 @@ pub fn cockpit_view(state: SharedMeshState) -> Element(msg) {
       html.div([attribute.class("cockpit-dual-panel")], [
         html.div([attribute.class("cockpit-panel-half")], [
           shell.section("OODA Phase Ring (5-Tier)", [
-            shell.ooda_5tier(state.ooda_phase),
+            shell.ooda_5tier(ooda_phase_to_string(state.ooda_phase)),
             html.div([attribute.class("ooda-meta-row")], [
-              shell.kv_row("Current Phase", state.ooda_phase),
+              shell.kv_row("Current Phase", ooda_phase_to_string(state.ooda_phase)),
               shell.kv_row("Cycle SLA", "< 100ms"),
               shell.kv_row("Budget Used", "42ms"),
             ]),
@@ -1393,7 +1395,7 @@ fn cockpit_mode_from_state(state: SharedMeshState) -> String {
   let ratio = state.healthy_count * 100 / total
   case state.quorum_healthy, ratio {
     False, _ -> "emergency"
-    True, r if r >= 90 -> state.dark_cockpit_mode
+    True, r if r >= 90 -> cockpit_mode_to_string(state.dark_cockpit_mode)
     True, r if r >= 70 -> "dim"
     True, r if r >= 50 -> "normal"
     True, r if r >= 30 -> "bright"

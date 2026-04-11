@@ -31,6 +31,7 @@ import cepaf_gleam/agui/event_stream_widget
 import cepaf_gleam/ui/lustre/shell
 import cepaf_gleam/ui/state.{
   type SharedMeshState, ThreatElevated, ThreatNominal, ThreatNone,
+  cockpit_mode_to_string, ooda_phase_to_string,
 }
 import gleam/float
 import gleam/int
@@ -514,13 +515,13 @@ pub fn component_demo_view(state: SharedMeshState) -> Element(msg) {
         shell.status_card(
           "OODA Phase",
           "Healthy",
-          state.ooda_phase,
+          ooda_phase_to_string(state.ooda_phase),
           "current OODA cycle phase",
         ),
         shell.status_card(
           "Cockpit Mode",
           "Healthy",
-          state.dark_cockpit_mode,
+          cockpit_mode_to_string(state.dark_cockpit_mode),
           "derived from health + threats",
         ),
       ]),

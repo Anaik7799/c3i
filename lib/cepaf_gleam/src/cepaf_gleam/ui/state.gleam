@@ -76,6 +76,88 @@ pub fn threat_level_from_string(s: String) -> ThreatLevel {
   }
 }
 
+/// OODA cycle phase — ADT ensures exhaustive handling (SC-SATYA-006).
+///
+/// Replacing the previous String field eliminates the D002 bug class:
+/// mis-spelled or unrecognised phase strings can no longer reach any
+/// pattern-matching site — the compiler enforces completeness.
+pub type OodaPhase {
+  /// Observation — collecting sensor data from the mesh.
+  OodaObserve
+  /// Orientation — contextualising observations against world model.
+  OodaOrient
+  /// Decision — rule-engine selects best action.
+  OodaDecide
+  /// Act — issuing the selected command.
+  OodaAct
+  /// Verify — checking post-action invariants (Psi-3).
+  OodaVerify
+}
+
+/// Serialise OodaPhase to its canonical lowercase string representation.
+pub fn ooda_phase_to_string(phase: OodaPhase) -> String {
+  case phase {
+    OodaObserve -> "observe"
+    OodaOrient -> "orient"
+    OodaDecide -> "decide"
+    OodaAct -> "act"
+    OodaVerify -> "verify"
+  }
+}
+
+/// Parse a string into OodaPhase. Unknown strings map to OodaObserve (safe default).
+pub fn ooda_phase_from_string(s: String) -> OodaPhase {
+  case s {
+    "observe" -> OodaObserve
+    "orient" -> OodaOrient
+    "decide" -> OodaDecide
+    "act" -> OodaAct
+    "verify" -> OodaVerify
+    _ -> OodaObserve
+  }
+}
+
+/// Dark cockpit illumination mode — 5-mode state machine (SC-HMI-010).
+///
+/// Replacing the previous String field eliminates the D003 bug class:
+/// an invalid mode string can no longer propagate to any downstream
+/// pattern-match site.
+pub type CockpitMode {
+  /// Dark — system nominal, suppress all non-critical panels.
+  CockpitDark
+  /// Dim — minor warnings visible; non-critical panels fade.
+  CockpitDim
+  /// Normal — standard operation; all panels at full brightness.
+  CockpitNormal
+  /// Bright — elevated alerts; high-contrast highlight active.
+  CockpitBright
+  /// Emergency — critical failure; full illumination + flash.
+  CockpitEmergency
+}
+
+/// Serialise CockpitMode to its canonical lowercase string representation.
+pub fn cockpit_mode_to_string(mode: CockpitMode) -> String {
+  case mode {
+    CockpitDark -> "dark"
+    CockpitDim -> "dim"
+    CockpitNormal -> "normal"
+    CockpitBright -> "bright"
+    CockpitEmergency -> "emergency"
+  }
+}
+
+/// Parse a string into CockpitMode. Unknown strings map to CockpitDark (safe default).
+pub fn cockpit_mode_from_string(s: String) -> CockpitMode {
+  case s {
+    "dark" -> CockpitDark
+    "dim" -> CockpitDim
+    "normal" -> CockpitNormal
+    "bright" -> CockpitBright
+    "emergency" -> CockpitEmergency
+    _ -> CockpitDark
+  }
+}
+
 /// Snapshot of live mesh state, shared across all three interfaces.
 ///
 /// Fields are intentionally flat and primitive so they can be sourced
@@ -88,10 +170,10 @@ pub type SharedMeshState {
     healthy_count: Int,
     /// Immune threat level — typed ADT (SC-SATYA-006, prevents D001 recurrence).
     threat_level: ThreatLevel,
-    /// Current OODA phase: "observe" | "orient" | "decide" | "act"
-    ooda_phase: String,
-    /// Dark-cockpit illumination mode: "dark" | "dim" | "normal" | "bright" | "emergency"
-    dark_cockpit_mode: String,
+    /// Current OODA phase — typed ADT (SC-SATYA-006, prevents D002 recurrence).
+    ooda_phase: OodaPhase,
+    /// Dark-cockpit illumination mode — typed ADT (SC-SATYA-006, prevents D003 recurrence).
+    dark_cockpit_mode: CockpitMode,
     /// Whether the Zenoh router is reachable from this node.
     zenoh_connected: Bool,
     /// Whether the 2-of-3 quorum is satisfied across the cluster.
@@ -115,8 +197,8 @@ pub fn default_state() -> SharedMeshState {
     container_count: 16,
     healthy_count: 16,
     threat_level: ThreatNominal,
-    ooda_phase: "observe",
-    dark_cockpit_mode: "dark",
+    ooda_phase: OodaObserve,
+    dark_cockpit_mode: CockpitDark,
     zenoh_connected: True,
     quorum_healthy: True,
     last_updated_ms: 0,
@@ -250,8 +332,8 @@ pub fn to_dashboard_json(state: SharedMeshState) -> String {
     #("healthy_count", json.int(state.healthy_count)),
     #("health_pct", json.float(health_pct)),
     #("threat_level", json.string(threat_level_to_string(state.threat_level))),
-    #("ooda_phase", json.string(state.ooda_phase)),
-    #("dark_cockpit_mode", json.string(state.dark_cockpit_mode)),
+    #("ooda_phase", json.string(ooda_phase_to_string(state.ooda_phase))),
+    #("dark_cockpit_mode", json.string(cockpit_mode_to_string(state.dark_cockpit_mode))),
     #("zenoh_connected", json.bool(state.zenoh_connected)),
     #("quorum_healthy", json.bool(state.quorum_healthy)),
     #("last_updated_ms", json.int(state.last_updated_ms)),

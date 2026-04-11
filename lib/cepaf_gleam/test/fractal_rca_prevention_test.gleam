@@ -15,8 +15,8 @@
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/freshness_monitor
 import cepaf_gleam/ui/state.{
-  ThreatCritical, ThreatElevated, ThreatLow, ThreatNominal, ThreatNone,
-  ThreatSevere,
+  CockpitEmergency, ThreatCritical, ThreatElevated, ThreatLow, ThreatNominal,
+  ThreatNone, ThreatSevere,
 } as mesh_state
 import cepaf_gleam/ui/web/domain_views
 import cepaf_gleam/ui/web/page_views
@@ -245,7 +245,7 @@ pub fn all_views_render_with_emergency_state_test() {
     threat_level: ThreatSevere,
     quorum_healthy: False,
     zenoh_connected: False,
-    dark_cockpit_mode: "emergency",
+    dark_cockpit_mode: CockpitEmergency,
   )
   let _d = page_views.dashboard_view(state)
   let _p = page_views.planning_view(state)
