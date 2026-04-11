@@ -7,18 +7,12 @@
 //// Route prefix: /mini-app/*
 //// All pages wrapped in TeleNative HTML shell with Telegram CSS variables.
 //// STAMP: SC-GLM-UI-001, SC-OPENCLAW-001, SC-SEC-001
-
 import cepaf_gleam/telegram/theme
 import cepaf_gleam/telegram/types.{
-  MiniCockpit, MiniConfig, MiniConversation, MiniDashboard, MiniFederation,
-  MiniFmea, MiniHealthGrid, MiniImmune, MiniInference, MiniPlanning, MiniPodman,
-  MiniTelemetry, MiniVerification, MiniZenohBrowser, TabAlerts, TabDashboard,
-  TabSystem, TabTasks,
+  TabAlerts, TabDashboard, TabSystem, TabTasks,
 }
 import cepaf_gleam/ui/lustre/mini_app
 import gleam/string
-import lustre/element
-
 /// Route a /mini-app/* path to the appropriate handler.
 /// Returns full HTML string ready for HTTP response body.
 pub fn route(path: String) -> String {
@@ -40,7 +34,6 @@ pub fn route(path: String) -> String {
     "/mini-app/zenoh" -> mini_app.zenoh_browser_view()
     _ -> mini_app.dashboard_view()
   }
-
   let active_tab = case path {
     "/mini-app/alerts" | "/mini-app/immune" -> TabAlerts
     "/mini-app/tasks" | "/mini-app/chat" -> TabTasks
@@ -52,20 +45,16 @@ pub fn route(path: String) -> String {
     -> TabSystem
     _ -> TabDashboard
   }
-
   render_shell(page_content, active_tab)
 }
-
 /// Check if a path belongs to the Mini App routes.
 pub fn is_mini_app_path(path: String) -> Bool {
   string.starts_with(path, "/mini-app")
 }
-
 /// Render the TeleNative HTML shell with content and bottom navigation.
 fn render_shell(content: String, active_tab: types.NavTab) -> String {
   let css = theme.mini_app_css()
   let nav = render_nav_bar(active_tab)
-
   "<!DOCTYPE html>
 <html>
 <head>
@@ -106,7 +95,6 @@ document.querySelectorAll('[data-navigate]').forEach(el => {
 </body>
 </html>"
 }
-
 /// Render the 4-tab bottom navigation bar.
 fn render_nav_bar(active: types.NavTab) -> String {
   let dashboard_class = case active {
@@ -125,7 +113,6 @@ fn render_nav_bar(active: types.NavTab) -> String {
     TabSystem -> "tg-nav-item active"
     _ -> "tg-nav-item"
   }
-
   "<nav class=\"tg-nav-bar\">
   <a href=\"/mini-app/dashboard\" class=\""
   <> dashboard_class

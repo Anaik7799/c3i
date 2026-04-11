@@ -7,7 +7,7 @@
 //// Implements the five forms of self-knowledge: Identity, History, Intent, Constraints, Aspiration.
 //// STAMP: SC-SMRITI-131, SC-IKE-001, SC-IKE-002, SC-IKE-003
 
-import gleam/option.{type Option, None, Some}
+import gleam/option.{type Option}
 
 /// Holon knowledge level — fractal hierarchy from atomic fact to ecosystem overview.
 pub type HolonLevel {

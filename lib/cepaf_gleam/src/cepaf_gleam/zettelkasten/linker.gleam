@@ -7,7 +7,7 @@
 //// Extracts SC-* references, module names, file paths → creates edges.
 //// STAMP: SC-SMRITI-141 (lineage chain), SC-IKE-003 (drift detection)
 
-import cepaf_gleam/zettelkasten/types.{type HolonEdge, type LinkType, Backlink, Code, HolonEdge, Wiki}
+import cepaf_gleam/zettelkasten/types.{type HolonEdge, Backlink, Code, HolonEdge, Wiki}
 import gleam/list
 import gleam/string
 

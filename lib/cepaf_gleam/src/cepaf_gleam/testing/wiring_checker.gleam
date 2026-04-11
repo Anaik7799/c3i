@@ -136,7 +136,7 @@ pub fn check_wisp_parity() -> WiringCategory {
   let wisp_pages = pages_with_wisp_api()
   let router_pages = pages_served_by_router()
   let total = list.length(all_pages)
-  let covered = list.length(wisp_pages) + list.length(router_pages)
+  let _covered = list.length(wisp_pages) + list.length(router_pages)
   // Deduplicate and check what's actually missing
   let all_served = list.append(wisp_pages, router_pages) |> list.unique
   let missing_pages = list.filter(all_pages, fn(p) {

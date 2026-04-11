@@ -1,7 +1,5 @@
 import cepaf_gleam/c3i/nif as c3i_nif
-import gleam/dynamic/decode
 import gleam/erlang/process.{type Pid}
-import gleam/json
 import gleam/string
 
 pub type Session

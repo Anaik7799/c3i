@@ -7,9 +7,8 @@
 //// Each function represents one operational enablement use case.
 //// STAMP: SC-IKE-001, SC-SMRITI-131, SC-COG-001
 
-import cepaf_gleam/zettelkasten/entropy
-import cepaf_gleam/zettelkasten/ingestion
 import cepaf_gleam/zettelkasten/linker
+import cepaf_gleam/zettelkasten/ingestion
 import cepaf_gleam/zettelkasten/metrics
 import cepaf_gleam/zettelkasten/rules
 import cepaf_gleam/zettelkasten/search

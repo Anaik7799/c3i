@@ -3319,53 +3319,6 @@ fn tabulator_init_script() -> String {
   "
 }
 
-/// Render a task table from NIF JSON response.
-/// Parses JSON array of task objects into an HTML data table.
-fn render_task_table_from_json(json_str: String) -> Element(msg) {
-  // Parse the JSON array — each item has id, title, status, priority
-  // Simple approach: split on known patterns since we control the JSON format
-  case string.length(json_str) > 10 {
-    True -> {
-      // Extract task entries using string operations
-      let entries = string.split(json_str, "{\"id\":")
-        |> list.filter(fn(s) { string.length(s) > 5 })
-        |> list.map(fn(entry) {
-          let id = extract_json_field(entry, "id")
-          let title = extract_json_field(entry, "title")
-          let status = extract_json_field(entry, "status")
-          let priority = extract_json_field(entry, "priority")
-          [string.slice(id, 0, 8), priority, status, string.slice(title, 0, 70)]
-        })
-        |> list.take(20)
-      case entries {
-        [] -> html.p([attribute.class("sub")], [element.text("No tasks in this category.")])
-        rows -> {
-          html.div([], [
-            shell.data_table(["ID", "Priority", "Status", "Description"], rows),
-            html.p([attribute.class("sub")], [
-              element.text("Showing " <> int.to_string(list.length(rows)) <> " tasks (max 20)"),
-            ]),
-          ])
-        }
-      }
-    }
-    False -> html.p([attribute.class("sub")], [element.text("No tasks in this category.")])
-  }
-}
-
-/// Extract a string value for a key from a JSON fragment.
-fn extract_json_field(fragment: String, key: String) -> String {
-  let search = "\"" <> key <> "\":\""
-  case string.split_once(fragment, search) {
-    Ok(#(_, rest)) ->
-      case string.split_once(rest, "\"") {
-        Ok(#(value, _)) -> value
-        Error(_) -> ""
-      }
-    Error(_) -> ""
-  }
-}
-
 fn page_header(title: String, subtitle: String) -> Element(msg) {
   html.div([attribute.class("page-header")], [
     html.div([], [

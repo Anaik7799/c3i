@@ -34,7 +34,6 @@ pub fn verify_swarm_homeostasis(
           io.println("  [ok] Node Count: 15/15 Active")
           HomeostasisNominal
         }
-        False, _ -> HomeostasisFailure(["zenoh-router-mesh"])
         _, n if n < 10 -> HomeostasisFailure(["substrate-cluster"])
         _, _ -> HomeostasisDegraded("Partial node loss detected")
       }

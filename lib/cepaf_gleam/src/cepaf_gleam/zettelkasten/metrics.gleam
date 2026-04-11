@@ -7,7 +7,7 @@
 //// STAMP: SC-MATH-001 (discipline health), SC-SMRITI-032 (continuous health monitoring)
 
 import cepaf_gleam/zettelkasten/types.{
-  type Holon, type HolonEdge, type HolonLevel, Atomic, Ecosystem, Molecular,
+  type Holon, type HolonEdge, Atomic, Ecosystem, Molecular,
   Organism,
 }
 import gleam/float

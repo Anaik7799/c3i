@@ -6,7 +6,7 @@
 //// FRP OODA Wavefront — continuous stream-processing actor per RETE-UL domain.
 //// Each domain evaluates independently; decision fusion combines outputs.
 
-import cepaf_gleam/rules/engine.{type Fact, type RuleResult, Fact, RuleResult}
+import cepaf_gleam/rules/engine.{type Fact, type RuleResult, RuleResult}
 import gleam/dict.{type Dict}
 import gleam/list
 

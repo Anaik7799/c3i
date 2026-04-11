@@ -8,8 +8,8 @@
 //// STAMP: SC-SMRITI-130 (query results include integrity proofs), SC-SAFETY-014 (truthfulness)
 
 import cepaf_gleam/zettelkasten/types.{
-  type Holon, type RhetoricalFunction, type TrustScore, Anecdote, Axiom,
-  Evidence, Hypothesis, TrustScore,
+  type Holon, type RhetoricalFunction, Anecdote, Axiom,
+  Evidence, Hypothesis,
 }
 
 /// Compute effective trust considering entropy decay.
