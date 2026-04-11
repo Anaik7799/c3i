@@ -1427,6 +1427,7 @@ fn handle_get(path: String) -> HttpResponse(String) {
     "/api/v1/ai/status" -> json_response(ai_status_json(), 200)
     // Static file serving (JS, CSS for data grids)
     "/static/planning-grid.js" -> serve_static_file("priv/static/planning-grid.js", "application/javascript")
+    "/static/dashboard-grid.js" -> serve_static_file("priv/static/dashboard-grid.js", "application/javascript")
     // Telegram Mini App routes — mobile-optimized SSR HTML (SC-OPENCLAW-001)
     _ ->
       case mini_app_routes.is_mini_app_path(path) {

@@ -603,6 +603,28 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
           ])
       },
     ]),
+    // ── Interactive Dashboard: WebSocket + AI Chat + Live Task Summary ──
+    shell.section("Live System Intelligence", [
+      html.p([attribute.class("sub")], [
+        element.text("Real-time task summary + AI chat. WebSocket push, Gemma 3 AI. Updates every 1s."),
+      ]),
+      html.div([attribute.attribute("style", "display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap")], [
+        html.div([attribute.id("dash-ws-status"), attribute.attribute("style", "font-size:0.78rem;color:#7a8fa6")], [
+          element.text("Connecting..."),
+        ]),
+        html.div([attribute.id("dash-task-summary"), attribute.attribute("style", "font-size:0.85rem;flex:1")], [
+          element.text("Loading task summary..."),
+        ]),
+      ]),
+      // AI Chat widget
+      html.div([attribute.id("dash-ai-chat")], [
+        html.div([attribute.attribute("style", "color:#7a8fa6;font-size:0.78rem;padding:20px;text-align:center")], [
+          element.text("Loading AI chat..."),
+        ]),
+      ]),
+      // Load dashboard interactive JS
+      element.element("script", [attribute.attribute("src", "/static/dashboard-grid.js")], []),
+    ]),
   ])
 }
 
