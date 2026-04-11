@@ -242,5 +242,27 @@
     "additionalDirectories": [
       "/home/an/gdrive"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read -r f; case $f in *.gleam) cd /home/an/dev/ver/c3i/lib/cepaf_gleam && gleam build 2>&1 | tail -3 ;; esac; } 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Auto-building Gleam (E4 incremental verification)"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read -r f; case $f in *.gleam) cd /home/an/dev/ver/c3i/lib/cepaf_gleam && gleam test 2>&1 | tail -1 ;; esac; } 2>/dev/null || true",
+            "timeout": 120,
+            "async": true,
+            "statusMessage": "Jidoka: running tests in background"
+          }
+        ]
+      }
+    ]
   }
 }
