@@ -22,6 +22,7 @@ import cepaf_gleam/agui/tools as agui_tools
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/beam_metrics
 import cepaf_gleam/ha/hot_reload
+import cepaf_gleam/ha/slo_tracker
 import cepaf_gleam/fractal/l0_constitutional.{
   type ApprovalRequest, ApprovalRequest, Approved, Critical as ApprovalCritical,
   High as ApprovalHigh, Low as ApprovalLow, Medium as ApprovalMedium, Rejected,
@@ -81,6 +82,8 @@ pub fn route(path: String) -> String {
     "/api/v1/system/tps" -> system_tps_json()
     // F17 BEAM scheduler utilisation monitoring (SC-GLM-UI-001, L1_ATOMIC_DEBUG)
     "/api/v1/system/beam" -> beam_metrics_json()
+    // F02/F29 SLI/SLO Dashboard + Error Budget Tracking (SC-GLM-UI-001, L5_COGNITIVE)
+    "/api/v1/system/slo" -> slo_json()
     // F05 Circuit breaker state visualisation (SC-GLM-UI-001, L5_COGNITIVE)
     "/api/v1/system/circuits" -> circuit_breaker_json()
     // Data freshness / staleness check (SC-EVO-KPI-003)
@@ -571,6 +574,15 @@ fn system_tps_json() -> String {
 fn beam_metrics_json() -> String {
   let m = beam_metrics.snapshot()
   beam_metrics.to_json(m)
+}
+
+/// F02/F29: SLI/SLO Dashboard + Error Budget Tracking — L5_COGNITIVE
+/// Returns initial-state SLO data for the 4 core C3I reliability targets.
+/// Counters start at zero (fresh window); a persistent OTP actor would maintain
+/// the running state across requests in production (SC-GLM-UI-001, SC-GLM-UI-003).
+fn slo_json() -> String {
+  slo_tracker.init()
+  |> slo_tracker.to_json()
 }
 
 /// F05: Circuit breaker state visualisation — L5_COGNITIVE
