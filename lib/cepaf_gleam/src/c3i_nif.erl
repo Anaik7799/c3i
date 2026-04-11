@@ -9,7 +9,12 @@
     %% Knowledge (1)
     knowledge_search/1,
     %% Verification (1)
-    verification_run/0
+    verification_run/0,
+    %% Cortex & Operations (11)
+    inference_status/0, trace_recent/1, conversation_history/1,
+    cache_stats/0, fmea_report/0, ha_status/0, voice_status/0,
+    ruliology_automaton/1, ruliology_multiway/0, ruliology_causal/0,
+    ooda_phase/0
 ]).
 -on_load(init/0).
 
@@ -45,3 +50,15 @@ system_verification() -> <<"{\"page\":\"Verification\",\"status\":\"offline\",\"
 knowledge_search(_Query) -> <<"{\"query\":\"\",\"results\":[],\"total\":0}">>.
 %% Verification
 verification_run() -> <<"{\"ok\":false,\"output\":\"NIF not loaded\",\"warnings\":0,\"errors\":1}">>.
+%% Cortex & Operations
+inference_status() -> <<"{\"tiers\":[],\"total_recent\":0}">>.
+trace_recent(_N) -> <<"{\"traces\":[],\"count\":0}">>.
+conversation_history(_N) -> <<"{\"messages\":[],\"count\":0}">>.
+cache_stats() -> <<"{\"entries\":0,\"total\":0,\"expired\":0,\"hit_rate\":0.0}">>.
+fmea_report() -> <<"{\"failure_modes\":[],\"total_failures\":0,\"failure_rate\":0.0}">>.
+ha_status() -> <<"{\"role\":\"standby\",\"missed_heartbeats\":0,\"lease_ttl_ms\":0}">>.
+voice_status() -> <<"{\"ws_connected\":false,\"active_tier\":\"none\",\"transcription_active\":false}">>.
+ruliology_automaton(_Name) -> <<"{\"name\":\"unknown\",\"current\":\"unknown\",\"states\":[],\"step_count\":0}">>.
+ruliology_multiway() -> <<"{\"nodes\":[],\"node_count\":0}">>.
+ruliology_causal() -> <<"{\"nodes\":[],\"edges\":[],\"node_count\":0,\"edge_count\":0}">>.
+ooda_phase() -> <<"{\"phase\":\"idle\",\"cycle_count\":0,\"target_ms\":100}">>.

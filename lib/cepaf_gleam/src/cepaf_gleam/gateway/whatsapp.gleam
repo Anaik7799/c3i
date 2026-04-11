@@ -12,13 +12,17 @@ pub type Message {
   Stop
 }
 
-pub fn start(token: String, phone: String) -> Result(actor.Started(Subject(Message)), actor.StartError) {
-  let state = telegram.GatewayState(
-    moz: telegram.new_moz_state(),
-    bot_token: token,
-    chat_id: phone
-  )
-  
+pub fn start(
+  token: String,
+  phone: String,
+) -> Result(actor.Started(Subject(Message)), actor.StartError) {
+  let state =
+    telegram.GatewayState(
+      moz: telegram.new_moz_state(),
+      bot_token: token,
+      chat_id: phone,
+    )
+
   actor.new(state)
   |> actor.on_message(fn(state, msg) {
     case msg {

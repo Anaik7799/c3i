@@ -40,23 +40,42 @@ fn render_state(model: IntegrityModel) -> String {
   }
   let verified_line = "  Last Check:   " <> model.last_verified
   let psi_header = "  Psi Invariants:"
-  let psi_table = visuals.render_table(
-    ["Invariant", "Status", "Detail"],
-    list.map(model.psi_results, fn(c) {
-      [c.name, case c.passed { True -> "PASS" False -> "FAIL" }, c.detail]
-    }),
-    [16, 6, 30],
-  )
+  let psi_table =
+    visuals.render_table(
+      ["Invariant", "Status", "Detail"],
+      list.map(model.psi_results, fn(c) {
+        [
+          c.name,
+          case c.passed {
+            True -> "PASS"
+            False -> "FAIL"
+          },
+          c.detail,
+        ]
+      }),
+      [16, 6, 30],
+    )
   let psi_rows =
     model.psi_results
     |> list.map(render_psi_check)
     |> string.join("\n")
   let overall = case integrity.all_psi_passed(model) {
     True -> "  Overall:      " <> visuals.with_color("ALL PASS", "green")
-    False -> "  Overall:      " <> visuals.with_color("VIOLATION DETECTED", "red")
+    False ->
+      "  Overall:      " <> visuals.with_color("VIOLATION DETECTED", "red")
   }
   string.join(
-    [hash_line, chain_line, verified_line, "", psi_header, psi_table, psi_rows, "", overall],
+    [
+      hash_line,
+      chain_line,
+      verified_line,
+      "",
+      psi_header,
+      psi_table,
+      psi_rows,
+      "",
+      overall,
+    ],
     "\n",
   )
 }

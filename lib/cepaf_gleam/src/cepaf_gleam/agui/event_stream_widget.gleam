@@ -27,17 +27,57 @@ pub type StreamEvent {
 /// Create demo events showing a typical AG-UI lifecycle.
 pub fn demo_events() -> List(StreamEvent) {
   [
-    StreamEvent("RunStarted", "01:42:10.496", "thread=c3i-main run=ooda-42", "info"),
+    StreamEvent(
+      "RunStarted",
+      "01:42:10.496",
+      "thread=c3i-main run=ooda-42",
+      "info",
+    ),
     StreamEvent("StepStarted", "01:42:10.497", "phase=observe", "info"),
-    StreamEvent("StateSnapshot", "01:42:10.498", "health=100% containers=16/16", "healthy"),
-    StreamEvent("ToolCallStart", "01:42:10.499", "tool=system_health args={}", "info"),
-    StreamEvent("ToolCallEnd", "01:42:10.501", "result={\"status\":\"ok\"}", "healthy"),
+    StreamEvent(
+      "StateSnapshot",
+      "01:42:10.498",
+      "health=100% containers=16/16",
+      "healthy",
+    ),
+    StreamEvent(
+      "ToolCallStart",
+      "01:42:10.499",
+      "tool=system_health args={}",
+      "info",
+    ),
+    StreamEvent(
+      "ToolCallEnd",
+      "01:42:10.501",
+      "result={\"status\":\"ok\"}",
+      "healthy",
+    ),
     StreamEvent("ReasoningStart", "01:42:10.502", "OODA orient phase", "info"),
-    StreamEvent("TextMessageContent", "01:42:10.505", "No drift detected. Mesh aligned.", "healthy"),
-    StreamEvent("StateDelta", "01:42:10.506", "ooda_phase: observe -> orient", "info"),
-    StreamEvent("StepFinished", "01:42:10.507", "phase=observe duration=11ms", "healthy"),
+    StreamEvent(
+      "TextMessageContent",
+      "01:42:10.505",
+      "No drift detected. Mesh aligned.",
+      "healthy",
+    ),
+    StreamEvent(
+      "StateDelta",
+      "01:42:10.506",
+      "ooda_phase: observe -> orient",
+      "info",
+    ),
+    StreamEvent(
+      "StepFinished",
+      "01:42:10.507",
+      "phase=observe duration=11ms",
+      "healthy",
+    ),
     StreamEvent("Heartbeat", "01:42:10.510", "seq=256 interval=10s", "dim"),
-    StreamEvent("RunFinished", "01:42:10.511", "decision=NoAction reason=aligned", "healthy"),
+    StreamEvent(
+      "RunFinished",
+      "01:42:10.511",
+      "decision=NoAction reason=aligned",
+      "healthy",
+    ),
   ]
 }
 
@@ -50,8 +90,10 @@ pub fn render_html(events: List(StreamEvent), max_events: Int) -> Element(msg) {
     ]),
     html.div(
       [
-        attribute.attribute("style",
-          "max-height:300px;overflow-y:auto;background:#0a0e17;border:1px solid #1e2a3a;border-radius:4px;padding:8px;font-family:monospace;font-size:.78rem;"),
+        attribute.attribute(
+          "style",
+          "max-height:300px;overflow-y:auto;background:#0a0e17;border:1px solid #1e2a3a;border-radius:4px;padding:8px;font-family:monospace;font-size:.78rem;",
+        ),
       ],
       list.map(visible, fn(evt) {
         let color_class = case evt.severity {
@@ -62,20 +104,30 @@ pub fn render_html(events: List(StreamEvent), max_events: Int) -> Element(msg) {
           _ -> ""
         }
         html.div(
-          [attribute.attribute("style", "padding:2px 0;border-bottom:1px solid #0d1420;")],
+          [
+            attribute.attribute(
+              "style",
+              "padding:2px 0;border-bottom:1px solid #0d1420;",
+            ),
+          ],
           [
             html.span(
               [attribute.attribute("style", "color:#7a8fa6;margin-right:8px;")],
               [element.text(evt.timestamp)],
             ),
             html.span(
-              [attribute.class(color_class), attribute.attribute("style", "margin-right:8px;font-weight:600;")],
+              [
+                attribute.class(color_class),
+                attribute.attribute(
+                  "style",
+                  "margin-right:8px;font-weight:600;",
+                ),
+              ],
               [element.text(evt.event_type)],
             ),
-            html.span(
-              [attribute.attribute("style", "color:#a6accd;")],
-              [element.text(evt.preview)],
-            ),
+            html.span([attribute.attribute("style", "color:#a6accd;")], [
+              element.text(evt.preview),
+            ]),
           ],
         )
       }),
@@ -104,10 +156,7 @@ pub fn render_ansi(events: List(StreamEvent), max_events: Int) -> String {
       <> " "
       <> visuals.with_color(evt.timestamp, "dim")
       <> " "
-      <> visuals.with_color(
-        pad_right_simple(evt.event_type, 20),
-        type_color,
-      )
+      <> visuals.with_color(pad_right_simple(evt.event_type, 20), type_color)
       <> " "
       <> evt.preview
     })

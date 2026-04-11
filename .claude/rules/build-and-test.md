@@ -4,20 +4,20 @@
 # Canonical Compile
 ```bash
 NO_TIMEOUT=true PATIENT_MODE=enabled SKIP_ZENOH_NIF=0 WALLABY_ENABLED=true \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 \
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 \
 mix compile --jobs 16
 ```
 # Canonical Test
 ```bash
 SKIP_ZENOH_NIF=0 WALLABY_ENABLED=true NO_TIMEOUT=true PATIENT_MODE=enabled \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" POSTGRES_USER=postgres POSTGRES_PASSWORD=postgres \
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" POSTGRES_USER=postgres POSTGRES_PASSWORD=postgres \
 DATABASE_URL="ecto://postgres:postgres@localhost:5433/indrajaal_test" \
 MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 MIX_ENV=test mix test "$@"
 ```
 # Canonical Wallaby E2E
 ```bash
 WALLABY_ENABLED=true SKIP_ZENOH_NIF=0 NO_TIMEOUT=true PATIENT_MODE=enabled \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" HEALTH_PORT=4051 \
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" HEALTH_PORT=4051 \
 POSTGRES_USER=postgres POSTGRES_PASSWORD=postgres \
 DATABASE_URL="ecto://postgres:postgres@localhost:5433/indrajaal_test" \
 MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 MIX_ENV=test mix test --only wallaby "$@"
@@ -59,11 +59,15 @@ cpu_governor_status       # Dashboard
 # Port Assignments
 | Port | Service |
 |------|---------|
+| 3000 | Grafana (obs-prod, exposed to host) |
 | 4000-4010 | 16-container SIL-6 mesh (RESERVED) |
 | 4050 | Phoenix Wallaby test endpoint |
 | 4051 | FoundationSupervisor health plug (test) -- MUST set HEALTH_PORT=4051 |
 | 4052 | Dashboard monitoring port (test) |
-| 5433 | PostgreSQL |
-| 7447 | Zenoh router |
+| 4317 | OTel gRPC (obs-prod, exposed to host) |
+| 4318 | OTel HTTP (obs-prod, exposed to host — cepaf_gleam exporter uses this) |
+| 5433 | PostgreSQL (db-prod:5432 mapped to host:5433) |
+| 7447 | Zenoh router (exposed to host for cepaf_gleam NIF) |
+| 9090 | Prometheus (obs-prod, exposed to host) |
 **Authoritative source**: `devenv.nix` scripts section. All other files MUST mirror these patterns.
 **SC-CPU-GOV overrides SC-PARALLEL when CPU > 80%**. The 85% hard limit is non-negotiable.

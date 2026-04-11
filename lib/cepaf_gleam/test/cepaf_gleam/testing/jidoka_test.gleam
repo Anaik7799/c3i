@@ -7,9 +7,9 @@ import gleeunit/should
 pub fn jidoka_halt_on_critical_test() {
   let issues = [
     ValidationIssue("SC-CU-001", "CRITICAL", "Arbitrary code on host detected"),
-    ValidationIssue("SC-OTEL-001", "INFO", "Span latency normal")
+    ValidationIssue("SC-OTEL-001", "INFO", "Span latency normal"),
   ]
-  
+
   jidoka.halt_on_error(issues)
   |> should.be_error()
 }
@@ -17,9 +17,9 @@ pub fn jidoka_halt_on_critical_test() {
 pub fn jidoka_pass_on_non_critical_test() {
   let issues = [
     ValidationIssue("SC-OTEL-001", "INFO", "Span latency normal"),
-    ValidationIssue("SC-QUA-001", "WARNING", "Coverage at 94%")
+    ValidationIssue("SC-QUA-001", "WARNING", "Coverage at 94%"),
   ]
-  
+
   jidoka.halt_on_error(issues)
   |> should.be_ok()
 }

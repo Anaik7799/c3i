@@ -24,6 +24,9 @@ pub type CockpitModel {
     biomorphic_data: Option(BiomorphicData),
     cpu_threshold: Float,
     mem_threshold: Float,
+    // SC-WIRE: AG-UI event stream for cockpit display
+    reasoning_buffer: String,
+    agui_event_count: Int,
   )
 }
 
@@ -37,6 +40,9 @@ pub type CockpitMsg {
   RefreshCockpit
   BiomorphicUpdated(BiomorphicData)
   HomeostasisEvent(HomeostasisMsg)
+  // SC-WIRE: AG-UI events received from zenoh_bus
+  ReasoningReceived(String)
+  AgUiEventReceived(String)
 }
 
 pub fn init() -> CockpitModel {
@@ -47,6 +53,8 @@ pub fn init() -> CockpitModel {
     dark_cockpit: True,
     selected_node: None,
     biomorphic_data: None,
+    reasoning_buffer: "",
+    agui_event_count: 0,
     cpu_threshold: 0.85,
     mem_threshold: 0.75,
   )
@@ -86,6 +94,11 @@ pub fn update(model: CockpitModel, msg: CockpitMsg) -> CockpitModel {
         SetThreshold(_, _) -> model
         TriggerEquilibrium -> model
       }
+    // SC-WIRE: AG-UI event handlers (closes broken link 6)
+    ReasoningReceived(content) ->
+      CockpitModel(..model, reasoning_buffer: model.reasoning_buffer <> content)
+    AgUiEventReceived(_event_json) ->
+      CockpitModel(..model, agui_event_count: model.agui_event_count + 1)
   }
 }
 

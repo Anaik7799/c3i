@@ -1,6 +1,7 @@
 // Wave 1 page tests — Lustre MVU init/update + TUI render for all 6 new pages
 // STAMP: SC-GLM-UI-001, SC-UIGT-007, SC-MUDA-001
 
+import cepaf_gleam/planning/nif as planning_nif
 import cepaf_gleam/ui/lustre/bicameral
 import cepaf_gleam/ui/lustre/biomorphic
 import cepaf_gleam/ui/lustre/evolution
@@ -13,7 +14,6 @@ import cepaf_gleam/ui/tui/evolution_view
 import cepaf_gleam/ui/tui/homeostasis_view
 import cepaf_gleam/ui/tui/integrity_view
 import cepaf_gleam/ui/tui/singularity_view
-import cepaf_gleam/planning/nif as planning_nif
 import gleam/option.{Some}
 import gleam/string
 import gleeunit/should
@@ -132,7 +132,10 @@ pub fn evolution_cycle_increments_test() {
       gen: 10,
       timestamp: "t",
     ))
-    |> evolution.update(evolution.CycleCompleted(new_entropy: 2.7, new_fitness: 0.85))
+    |> evolution.update(evolution.CycleCompleted(
+      new_entropy: 2.7,
+      new_fitness: 0.85,
+    ))
   m.cycle_count |> should.equal(11)
   m.generation |> should.equal(11)
   m.entropy |> should.equal(2.7)
@@ -237,9 +240,27 @@ pub fn bicameral_init_no_consensus_test() {
 }
 
 pub fn bicameral_2oo3_consensus_test() {
-  let g = bicameral.Chamber(name: "Guardian", vote: "approve", timestamp: "t1", veto_count: 0)
-  let s = bicameral.Chamber(name: "Sentinel", vote: "approve", timestamp: "t2", veto_count: 0)
-  let c = bicameral.Chamber(name: "Cortex", vote: "reject", timestamp: "t3", veto_count: 1)
+  let g =
+    bicameral.Chamber(
+      name: "Guardian",
+      vote: "approve",
+      timestamp: "t1",
+      veto_count: 0,
+    )
+  let s =
+    bicameral.Chamber(
+      name: "Sentinel",
+      vote: "approve",
+      timestamp: "t2",
+      veto_count: 0,
+    )
+  let c =
+    bicameral.Chamber(
+      name: "Cortex",
+      vote: "reject",
+      timestamp: "t3",
+      veto_count: 1,
+    )
   let m =
     bicameral.init()
     |> bicameral.update(bicameral.StateLoaded(
@@ -254,9 +275,27 @@ pub fn bicameral_2oo3_consensus_test() {
 }
 
 pub fn bicameral_no_consensus_test() {
-  let g = bicameral.Chamber(name: "Guardian", vote: "approve", timestamp: "t1", veto_count: 0)
-  let s = bicameral.Chamber(name: "Sentinel", vote: "reject", timestamp: "t2", veto_count: 1)
-  let c = bicameral.Chamber(name: "Cortex", vote: "reject", timestamp: "t3", veto_count: 1)
+  let g =
+    bicameral.Chamber(
+      name: "Guardian",
+      vote: "approve",
+      timestamp: "t1",
+      veto_count: 0,
+    )
+  let s =
+    bicameral.Chamber(
+      name: "Sentinel",
+      vote: "reject",
+      timestamp: "t2",
+      veto_count: 1,
+    )
+  let c =
+    bicameral.Chamber(
+      name: "Cortex",
+      vote: "reject",
+      timestamp: "t3",
+      veto_count: 1,
+    )
   let m =
     bicameral.init()
     |> bicameral.update(bicameral.StateLoaded(

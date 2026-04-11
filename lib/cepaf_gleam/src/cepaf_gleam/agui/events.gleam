@@ -37,6 +37,10 @@ pub type EventType {
   ReasoningEnd
   ReasoningEncryptedValue
   MetaEvent
+  BiometricStarted
+  BiometricResult
+  ApprovalRequested
+  ApprovalResult
 }
 
 /// Core AG-UI event structure carrying typed payloads over SSE.
@@ -127,7 +131,11 @@ pub fn new_biometric_started(user_id: String) -> AgUiEvent {
 }
 
 /// Create a BIOMETRIC_RESULT event.
-pub fn new_biometric_result(user_id: String, success: Bool, score: Float) -> AgUiEvent {
+pub fn new_biometric_result(
+  user_id: String,
+  success: Bool,
+  score: Float,
+) -> AgUiEvent {
   let id = generate_id()
   AgUiEvent(
     event_type: BiometricResult,
@@ -143,7 +151,10 @@ pub fn new_biometric_result(user_id: String, success: Bool, score: Float) -> AgU
 }
 
 /// Create an APPROVAL_REQUESTED event.
-pub fn new_approval_requested(approval_id: String, description: String) -> AgUiEvent {
+pub fn new_approval_requested(
+  approval_id: String,
+  description: String,
+) -> AgUiEvent {
   let id = generate_id()
   AgUiEvent(
     event_type: ApprovalRequested,
@@ -171,7 +182,6 @@ pub fn new_approval_result(approval_id: String, approved: Bool) -> AgUiEvent {
     ]),
   )
 }
-
 
 // ---------------------------------------------------------------------------
 // Event constructors

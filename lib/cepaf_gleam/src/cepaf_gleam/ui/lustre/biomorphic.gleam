@@ -27,7 +27,13 @@ pub type BiomorphicModel {
 }
 
 pub type BiomorphicMsg {
-  HealthLoaded(bio: SubsystemHealth, neuro: SubsystemHealth, immune: SubsystemHealth, overall: Float, mode: String)
+  HealthLoaded(
+    bio: SubsystemHealth,
+    neuro: SubsystemHealth,
+    immune: SubsystemHealth,
+    overall: Float,
+    mode: String,
+  )
   SubsystemUpdated(name: String, status: String, score: Float)
   RefreshBiomorphic
   ErrorReceived(String)
@@ -35,9 +41,24 @@ pub type BiomorphicMsg {
 
 pub fn init() -> BiomorphicModel {
   BiomorphicModel(
-    bio: SubsystemHealth(name: "Bio", status: "healthy", score: 1.0, detail: "Metabolic homeostasis nominal"),
-    neuro: SubsystemHealth(name: "Neuro", status: "healthy", score: 1.0, detail: "Cortex OODA cycle <30ms"),
-    immune: SubsystemHealth(name: "Immune", status: "healthy", score: 1.0, detail: "Sentinel active, 0 threats"),
+    bio: SubsystemHealth(
+      name: "Bio",
+      status: "healthy",
+      score: 1.0,
+      detail: "Metabolic homeostasis nominal",
+    ),
+    neuro: SubsystemHealth(
+      name: "Neuro",
+      status: "healthy",
+      score: 1.0,
+      detail: "Cortex OODA cycle <30ms",
+    ),
+    immune: SubsystemHealth(
+      name: "Immune",
+      status: "healthy",
+      score: 1.0,
+      detail: "Sentinel active, 0 threats",
+    ),
     overall_score: 1.0,
     mode: "normal",
     loading: True,
@@ -48,12 +69,36 @@ pub fn init() -> BiomorphicModel {
 pub fn update(model: BiomorphicModel, msg: BiomorphicMsg) -> BiomorphicModel {
   case msg {
     HealthLoaded(b, n, i, o, m) ->
-      BiomorphicModel(bio: b, neuro: n, immune: i, overall_score: o, mode: m, loading: False, error: None)
+      BiomorphicModel(
+        bio: b,
+        neuro: n,
+        immune: i,
+        overall_score: o,
+        mode: m,
+        loading: False,
+        error: None,
+      )
     SubsystemUpdated(name, status, score) ->
       case name {
-        "bio" -> BiomorphicModel(..model, bio: SubsystemHealth(..model.bio, status: status, score: score))
-        "neuro" -> BiomorphicModel(..model, neuro: SubsystemHealth(..model.neuro, status: status, score: score))
-        "immune" -> BiomorphicModel(..model, immune: SubsystemHealth(..model.immune, status: status, score: score))
+        "bio" ->
+          BiomorphicModel(
+            ..model,
+            bio: SubsystemHealth(..model.bio, status: status, score: score),
+          )
+        "neuro" ->
+          BiomorphicModel(
+            ..model,
+            neuro: SubsystemHealth(..model.neuro, status: status, score: score),
+          )
+        "immune" ->
+          BiomorphicModel(
+            ..model,
+            immune: SubsystemHealth(
+              ..model.immune,
+              status: status,
+              score: score,
+            ),
+          )
         _ -> model
       }
     RefreshBiomorphic -> BiomorphicModel(..model, loading: True)
@@ -62,5 +107,7 @@ pub fn update(model: BiomorphicModel, msg: BiomorphicMsg) -> BiomorphicModel {
 }
 
 pub fn all_healthy(model: BiomorphicModel) -> Bool {
-  model.bio.status == "healthy" && model.neuro.status == "healthy" && model.immune.status == "healthy"
+  model.bio.status == "healthy"
+  && model.neuro.status == "healthy"
+  && model.immune.status == "healthy"
 }

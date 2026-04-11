@@ -11,9 +11,9 @@ import cepaf_gleam/fractal/l7_federation.{
 }
 import cepaf_gleam/ui/domain
 import cepaf_gleam/ui/lustre/federation.{
-  ErrorReceived, FederationModel, PeerAdded, PeerRemoved, RefreshFederation,
-  StateReceived, VersionIncremented, all_attested_check, connected_count, init,
-  update,
+  ErrorReceived, FederationModel, HaStatus, Standby, PeerAdded, PeerRemoved,
+  RefreshFederation, StateReceived, VersionIncremented, all_attested_check,
+  connected_count, init, update,
 }
 import cepaf_gleam/ui/tui/federation_view
 import cepaf_gleam/ui/wisp/federation_api
@@ -70,14 +70,14 @@ pub fn federation_state_received_sets_state_test() {
 }
 
 pub fn federation_state_received_clears_loading_test() {
-  let m0 = FederationModel(state: None, loading: True, error: None)
+  let m0 = FederationModel(state: None, loading: True, error: None, ha: HaStatus(Standby, 0, 0, 0, 0))
   let state = initial_federation("node-a")
   let m1 = update(m0, StateReceived(state))
   m1.loading |> should.equal(False)
 }
 
 pub fn federation_state_received_clears_error_test() {
-  let m0 = FederationModel(state: None, loading: False, error: Some("prior"))
+  let m0 = FederationModel(state: None, loading: False, error: Some("prior"), ha: HaStatus(Standby, 0, 0, 0, 0))
   let state = initial_federation("node-a")
   let m1 = update(m0, StateReceived(state))
   m1.error |> should.equal(None)
@@ -181,7 +181,7 @@ pub fn federation_error_received_sets_error_test() {
 }
 
 pub fn federation_error_received_clears_loading_test() {
-  let m0 = FederationModel(state: None, loading: True, error: None)
+  let m0 = FederationModel(state: None, loading: True, error: None, ha: HaStatus(Standby, 0, 0, 0, 0))
   let m1 = update(m0, ErrorReceived("timeout"))
   m1.loading |> should.equal(False)
 }

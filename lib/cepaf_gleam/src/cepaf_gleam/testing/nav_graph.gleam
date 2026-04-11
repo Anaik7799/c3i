@@ -5,9 +5,9 @@
 //// Navigation digraph for 30 Gleam pages with PageRank and SCC.
 
 import cepaf_gleam/ui/domain.{
-  type Page, Agents, Bicameral, Biomorphic, Bridge, Cockpit, Config, Dashboard,
-  Database, Evolution, Federation, Git, HealthGrid, Holon, HomeostasisPage,
-  ComponentDemo, Immune, Integrity, Kms, Knowledge, Mcp, Metabolic, Planning,
+  type Page, Agents, Bicameral, Biomorphic, Bridge, Cockpit, ComponentDemo,
+  Config, Dashboard, Database, Evolution, Federation, Git, HealthGrid, Holon,
+  HomeostasisPage, Immune, Integrity, Kms, Knowledge, Mcp, Metabolic, Planning,
   PlanningDashboard, Podman, Prajna, Singularity, Smriti, Substrate, Telemetry,
   Verification, Zenoh,
 }

@@ -379,6 +379,7 @@ pub fn bridge_implementation_percent_calculates_correctly_test() {
       commands_total: 4,
       commands_implemented: 2,
       commands_stub: 2,
+      gateway_history: [],
     )
   bridge.implementation_percent(m)
   |> should.equal(50.0)
@@ -769,6 +770,9 @@ pub fn config_resource_summary_formats_nonzero_test() {
       is_valid: True,
       total_cpu: 16,
       total_memory: 32_768,
+      pii_patterns: [],
+      active_model: "gemini",
+      available_models: [],
     )
   config.resource_summary(m)
   |> should.equal("CPU:16 MEM:32768MB")

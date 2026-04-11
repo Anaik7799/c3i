@@ -26,11 +26,12 @@ pub fn boot_sequence_phases_test() {
 
 pub fn boot_rollback_sim_test() {
   // Test simulation of boot state management
-  let initial = boot.BootState(
-    phase: boot.Foundation,
-    containers_started: ["node-1"],
-    uds: podman.new("/tmp/test.sock"),
-  )
-  
+  let initial =
+    boot.BootState(
+      phase: boot.Foundation,
+      containers_started: ["node-1"],
+      uds: podman.new("/tmp/test.sock"),
+    )
+
   initial.containers_started |> should.equal(["node-1"])
 }

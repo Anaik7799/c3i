@@ -6,13 +6,6 @@
 //// Gleam Podman UDS Client (Biomorphic Motor Control).
 //// Connects directly to /run/podman/podman.sock via Erlang :gen_tcp local.
 
-import gleam/bit_array
-import gleam/dynamic
-import gleam/io
-import gleam/json
-import gleam/option.{None, Some}
-import gleam/result
-
 pub type PodmanConnection {
   PodmanConnection(socket_path: String)
 }
@@ -48,16 +41,25 @@ pub fn list_containers(conn: PodmanConnection) -> Result(String, String) {
 }
 
 /// Start a container by name or ID.
-pub fn start_container(conn: PodmanConnection, name: String) -> Result(String, String) {
+pub fn start_container(
+  conn: PodmanConnection,
+  name: String,
+) -> Result(String, String) {
   request(conn, "POST", "/v5.0.0/libpod/containers/" <> name <> "/start", "")
 }
 
 /// Stop a container by name or ID.
-pub fn stop_container(conn: PodmanConnection, name: String) -> Result(String, String) {
+pub fn stop_container(
+  conn: PodmanConnection,
+  name: String,
+) -> Result(String, String) {
   request(conn, "POST", "/v5.0.0/libpod/containers/" <> name <> "/stop", "")
 }
 
 /// Inspect a container.
-pub fn inspect_container(conn: PodmanConnection, name: String) -> Result(String, String) {
+pub fn inspect_container(
+  conn: PodmanConnection,
+  name: String,
+) -> Result(String, String) {
   request(conn, "GET", "/v5.0.0/libpod/containers/" <> name <> "/json", "")
 }

@@ -22,22 +22,26 @@ pub fn render(model: VerificationModel) -> String {
   let proof = render_proof(model)
   let checks = render_graph_checks(model)
   let dag = render_dag_stats(model)
-  let heatmap = visuals.render_fractal_heatmap([
-    #("L0 Constitutional", case model.last_report {
-      Some(r) -> case r.total_containers > 0 {
-        True -> int.to_float(r.healthy_containers) /. int.to_float(r.total_containers)
-        False -> 0.0
-      }
-      None -> 0.0
-    }),
-    #("L1 Atomic", 0.95),
-    #("L2 Component", 0.92),
-    #("L3 Transaction", 0.88),
-    #("L4 System", 0.90),
-    #("L5 Cognitive", 0.85),
-    #("L6 Ecosystem", 0.78),
-    #("L7 Federation", 0.65),
-  ])
+  let heatmap =
+    visuals.render_fractal_heatmap([
+      #("L0 Constitutional", case model.last_report {
+        Some(r) ->
+          case r.total_containers > 0 {
+            True ->
+              int.to_float(r.healthy_containers)
+              /. int.to_float(r.total_containers)
+            False -> 0.0
+          }
+        None -> 0.0
+      }),
+      #("L1 Atomic", 0.95),
+      #("L2 Component", 0.92),
+      #("L3 Transaction", 0.88),
+      #("L4 System", 0.9),
+      #("L5 Cognitive", 0.85),
+      #("L6 Ecosystem", 0.78),
+      #("L7 Federation", 0.65),
+    ])
   string.join(
     [header, status, "", report, "", proof, "", heatmap, "", checks, "", dag],
     "\n",

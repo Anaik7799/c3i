@@ -9,6 +9,10 @@ pub type TelemetryModel {
     metrics: List(Metric),
     log_level: LogLevel,
     active_traces: Int,
+    // P3-4: Rate limiting display
+    rate_limit_remaining: Int,
+    rate_limit_max: Int,
+    rate_limit_reset_s: Int,
   )
 }
 
@@ -41,7 +45,8 @@ pub type TelemetryMsg {
 }
 
 pub fn init() -> TelemetryModel {
-  TelemetryModel(spans: [], metrics: [], log_level: Info, active_traces: 0)
+  TelemetryModel(spans: [], metrics: [], log_level: Info, active_traces: 0,
+    rate_limit_remaining: 20, rate_limit_max: 20, rate_limit_reset_s: 60)
 }
 
 pub fn update(model: TelemetryModel, msg: TelemetryMsg) -> TelemetryModel {

@@ -36,17 +36,17 @@
 
 import cepaf_gleam/agui/events
 import cepaf_gleam/testing/nav_graph
-import gleam/json
 import cepaf_gleam/ui/domain.{
   Agents, Bicameral, Biomorphic, Bridge, Cockpit, ComponentDemo, Config,
-  Dashboard, Database, Degraded, Evolution, Federation, Git, HealthGrid,
-  Healthy, HomeostasisPage, Holon, Immune, Integrity, Kms, Knowledge, Mcp,
-  Metabolic, Planning, PlanningDashboard, Podman, Prajna, RenderContext,
-  Singularity, Smriti, Substrate, Telemetry, Verification, Zenoh,
+  Dashboard, Database, Degraded, Evolution, Federation, Git, HealthGrid, Healthy,
+  Holon, HomeostasisPage, Immune, Integrity, Kms, Knowledge, Mcp, Metabolic,
+  Planning, PlanningDashboard, Podman, Prajna, RenderContext, Singularity,
+  Smriti, Substrate, Telemetry, Verification, Zenoh,
 }
 import cepaf_gleam/ui/tui/renderer
 import cepaf_gleam/ui/wisp/router
 import cepaf_gleam/ui/zenoh_otel
+import gleam/json
 import gleam/list
 import gleam/string
 import gleeunit/should
@@ -808,7 +808,8 @@ pub fn bdd_l5_mcp_degraded_test() {
 }
 
 pub fn bdd_l6_mcp_agui_obs_test() {
-  let event = events.new_tool_call_result("result-mcp", "ok", "{\"status\":\"ok\"}")
+  let event =
+    events.new_tool_call_result("result-mcp", "ok", "{\"status\":\"ok\"}")
   events.event_type_to_string(event.event_type)
   |> should.equal("TOOL_CALL_RESULT")
 }
@@ -1567,7 +1568,8 @@ pub fn bdd_l5_bridge_degraded_test() {
 }
 
 pub fn bdd_l6_bridge_agui_obs_test() {
-  let event = events.new_tool_call_result("result-bridge", "ok", "{\"dispatched\":true}")
+  let event =
+    events.new_tool_call_result("result-bridge", "ok", "{\"dispatched\":true}")
   events.event_type_to_string(event.event_type)
   |> should.equal("TOOL_CALL_RESULT")
 }

@@ -1,4 +1,4 @@
-# C3I Agent System — UI Development & Testing Agents (v22.4.0-VOICE)
+# C3I Agent System — UI Development & Testing Agents (v22.5.0-CORTEX)
 
 **Master Architecture Matrix**: See `docs/architecture/FRACTAL_SYSTEM_VOICE_CHAT_OBSERVABILITY_MATRIX.md` for comprehensive mapping of offline voice, chat components, Zenoh, observability, logging, and formal specs across all L0-L7 fractal layers.
 
@@ -392,7 +392,7 @@ If any gate fails, return to step 3 or 4 with the audit report as input.
 
 ---
 
-**Version**: 21.6.0-GLM
-**Last Updated**: 2026-04-04
-**Agent count**: 28 definitions in `.claude/agents/` (4 UI-specialist, 9 UI-supporting, 15 other)
+**Version**: 22.5.0-CORTEX
+**Last Updated**: 2026-04-10
+**Agent count**: 29 definitions in `.claude/agents/` (4 UI-specialist, 9 UI-supporting, 16 other)
 **Test metrics**: 1,559 tests passed, 0 failures | H=2.67 bits | CCM=0.770 | ITQS=0.736 | 100% tab coverage

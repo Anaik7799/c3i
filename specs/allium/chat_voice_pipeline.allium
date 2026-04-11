@@ -1,0 +1,153 @@
+-- allium: 3
+-- C3I Chat & Voice Pipeline Behavioral Specification
+-- Version: 22.5.0-CORTEX
+-- Date: 2026-04-10
+
+entity ChatPipeline {
+  stage: received | classified | ack_sent | inference_started | rag | inference_complete | delivered
+  model_used: String
+  total_latency_ms: Integer
+  tiers_tried: Integer
+  tiers_skipped: Integer
+
+  transitions stage {
+    received -> classified
+    classified -> ack_sent
+    ack_sent -> inference_started
+    inference_started -> rag
+    rag -> inference_complete
+    inference_complete -> delivered
+    terminal: delivered
+  }
+}
+
+entity InferenceTier {
+  tier: Integer
+  name: String
+  model: String
+  circuit_state: closed | open | half_open
+  latency_ms: Integer
+
+  transitions circuit_state {
+    closed -> open
+    open -> half_open
+    half_open -> closed
+    half_open -> open
+    terminal: none
+  }
+}
+
+entity VoicePipeline {
+  tier: gemini_live_ws | gemini_rest_25 | gemini_rest_31 | whisper_cpp | rule_ack
+  ws_connected: Boolean
+  transcription_active: Boolean
+}
+
+entity PipelineTracer {
+  intent_id: String
+  stages: List<StageEvent>
+  total_ms: Integer
+  status: active | complete | failed
+}
+
+entity AgUiEvent {
+  event_type: lifecycle | text | tool | state | activity | reasoning | special
+  timestamp: Integer
+  thread_id: String
+  run_id: String
+}
+
+rule HedgedRequest {
+  when: InferenceTier.tier == 1 && InferenceTier.circuit_state != open
+  requires: InferenceTier(tier: 2).circuit_state != open
+  ensures: both tiers fire via tokio::join!
+  @guidance Fire Gemini Direct and OpenRouter simultaneously. First success wins.
+}
+
+rule CircuitBreakerTrip {
+  when: InferenceTier.consecutive_failures >= 3
+  ensures: InferenceTier.circuit_state = open
+  @guidance 60-second cooldown before half-open retry
+}
+
+rule HitlApproval {
+  when: ToolCallState.requires_approval == true
+  requires: operator approval within 30 seconds
+  ensures: tool dispatched only after approval
+  @guidance SC-AGUI-004: L0 operations require Guardian approval
+}
+
+rule ReasoningEmission {
+  when: CortexState.reasoning.active == true
+  ensures: AG-UI ReasoningStart/Content/End events emitted via zenoh_bus
+  @guidance SC-AGUI-006: Operator sees chain-of-thought in real-time
+}
+
+rule NoBlackhole {
+  when: true
+  ensures: every inbound message produces a visible response
+  @guidance 7 independent mechanisms: hedged cloud, Ollama x2, RETE-UL rules, static ack, retry, error message
+}
+
+contract InferenceEngine {
+  hedged_request: (prompt: String) -> Option<(String, String)>
+  @invariant First-success semantics
+  @invariant Circuit breaker prevents wasted timeouts
+}
+
+contract PipelineTracerContract {
+  stage: (name: String, detail: String) -> Nil
+  finish: () -> Nil
+  @invariant Zero DB writes during hot path
+  @invariant Single batch write on finish()
+}
+
+invariant PipelineCompletes {
+  for p in ChatPipeline: p.stage eventually reaches delivered
+}
+
+invariant InferenceLatency {
+  for t in InferenceTier: t.latency_ms < 8000
+}
+
+config {
+  tier_timeout_secs: Integer = 8
+  circuit_breaker_threshold: Integer = 3
+  circuit_breaker_cooldown_secs: Integer = 60
+  keepalive_interval_secs: Integer = 30
+  rate_limit_per_minute: Integer = 20
+  conversation_window: Integer = 50
+  semantic_cache_ttl_hours: Integer = 24
+
+  -- Host port mappings (SC-WIRE: cepaf_gleam connectivity)
+  zenoh_port: Integer = 7447
+  postgres_external_port: Integer = 5433
+  postgres_internal_port: Integer = 5432
+  otel_grpc_port: Integer = 4317
+  otel_http_port: Integer = 4318
+  prometheus_port: Integer = 9090
+  grafana_port: Integer = 3000
+  phoenix_port: Integer = 4000
+  bridge_port: Integer = 9876
+
+  -- OTel exporter endpoint
+  otel_collector_url: String = "http://localhost:4318/v1/traces"
+  zenoh_router_endpoint: String = "tcp/localhost:7447"
+}
+
+surface ChatOperatorDashboard {
+  -- Inference tier status with circuit breakers
+  -- Pipeline trace waterfall with P50/P95/P99
+  -- Conversation history viewer
+  -- Voice pipeline status
+  -- FMEA report with RPN scoring
+}
+
+surface ObservabilityStack {
+  -- OTel Collector: localhost:4317 (gRPC) / localhost:4318 (HTTP)
+  -- Prometheus: localhost:9090
+  -- Grafana: localhost:3000
+  -- Zenoh mesh: localhost:7447
+  -- PostgreSQL: localhost:5433
+  -- All exposed to host by ignition launch.rs -p flags
+}

@@ -4,7 +4,7 @@
 //
 // DuckDB Semantic Storage Wrapper and SPO/POS/OSP Indexing.
 
-import cepaf_gleam/knowledge/semantic.{type Triple, type RdfTerm}
+import cepaf_gleam/knowledge/semantic.{type RdfTerm, type Triple}
 import gleam/dict.{type Dict}
 
 /// Represents the semantic triple store.
@@ -31,7 +31,8 @@ fn term_to_string(term: RdfTerm) -> String {
   case term {
     semantic.Iri(i) -> "<" <> i <> ">"
     semantic.Blank(b) -> "_:" <> b
-    semantic.Literal(v, lang, datatype) -> "\"" <> v <> "\"@" <> lang <> "^^" <> datatype
+    semantic.Literal(v, lang, datatype) ->
+      "\"" <> v <> "\"@" <> lang <> "^^" <> datatype
   }
 }
 

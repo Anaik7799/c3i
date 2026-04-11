@@ -252,4 +252,3 @@ pub fn nav_graph_density_is_1_test() {
 pub fn nav_graph_scc_is_1_test() {
   nav_graph.scc_count() |> should.equal(1)
 }
-

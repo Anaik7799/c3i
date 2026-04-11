@@ -53,11 +53,7 @@ pub type TabKpi {
 
 /// Pre-flight check result.
 pub type PreflightResult {
-  PreflightResult(
-    check: String,
-    passed: Bool,
-    detail: String,
-  )
+  PreflightResult(check: String, passed: Bool, detail: String)
 }
 
 /// Full test run state for split-screen dashboard.
@@ -96,13 +92,9 @@ pub fn run_preflight() -> List(PreflightResult) {
       string.contains(result, "\"status\"")
     }),
     // Check 3: Nav graph has 31 pages
-    preflight_check("nav_graph_31_pages", fn() {
-      nav_graph.page_count() == 31
-    }),
+    preflight_check("nav_graph_31_pages", fn() { nav_graph.page_count() == 31 }),
     // Check 4: Nav graph is fully connected (SCC=1)
-    preflight_check("nav_graph_scc_1", fn() {
-      nav_graph.scc_count() == 1
-    }),
+    preflight_check("nav_graph_scc_1", fn() { nav_graph.scc_count() == 1 }),
     // Check 5: All page routes return non-empty response
     preflight_check("all_routes_respond", fn() {
       let pages = nav_graph.all_pages()
@@ -124,22 +116,16 @@ pub fn run_preflight() -> List(PreflightResult) {
       string.length(result) > 10
     }),
     // Check 8: Coverage math functions available
-    preflight_check("coverage_math_ready", fn() {
-      True
-    }),
+    preflight_check("coverage_math_ready", fn() { True }),
   ]
 }
 
 fn preflight_check(name: String, check: fn() -> Bool) -> PreflightResult {
   let passed = check()
-  PreflightResult(
-    check: name,
-    passed: passed,
-    detail: case passed {
-      True -> "OK"
-      False -> "FAILED — Jidoka: halt and investigate"
-    },
-  )
+  PreflightResult(check: name, passed: passed, detail: case passed {
+    True -> "OK"
+    False -> "FAILED — Jidoka: halt and investigate"
+  })
 }
 
 /// Check if all preflight checks passed. If not, return Jidoka RCA.
@@ -156,10 +142,16 @@ pub fn jidoka_rca(results: List(PreflightResult)) -> String {
       let header = visuals.with_color("JIDOKA — STOP AND INVESTIGATE", "red")
       let lines =
         list.map(failed, fn(r) {
-          "  " <> visuals.with_color("[FAIL]", "red") <> " " <> r.check <> ": " <> r.detail
+          "  "
+          <> visuals.with_color("[FAIL]", "red")
+          <> " "
+          <> r.check
+          <> ": "
+          <> r.detail
         })
         |> string.join("\n")
-      let rca = "\n  Root Cause Analysis (5-Why):"
+      let rca =
+        "\n  Root Cause Analysis (5-Why):"
         <> "\n    1. Why failed? — Pre-flight check returned False"
         <> "\n    2. Why False? — Required subsystem not available"
         <> "\n    3. Why not available? — NIF not loaded or service not running"
@@ -195,7 +187,12 @@ pub fn element_test(
     corrective_action: case passed {
       True -> "None"
       False ->
-        "Fix " <> element <> " at L" <> int.to_string(bdd_level) <> " on " <> page_to_label(page)
+        "Fix "
+        <> element
+        <> " at L"
+        <> int.to_string(bdd_level)
+        <> " on "
+        <> page_to_label(page)
     },
   )
 }
@@ -210,8 +207,7 @@ pub fn compute_tab_kpi(page: Page, results: List(ElementResult)) -> TabKpi {
     list.filter(results, fn(r) { r.page == page_to_label(page) })
   let total = list.length(page_results)
   let passed = list.length(list.filter(page_results, fn(r) { r.passed }))
-  let total_ms =
-    list.fold(page_results, 0, fn(acc, r) { acc + r.duration_ms })
+  let total_ms = list.fold(page_results, 0, fn(acc, r) { acc + r.duration_ms })
   let coverage = case total {
     0 -> 0.0
     _ -> int.to_float(passed) /. int.to_float(total) *. 100.0
@@ -282,8 +278,7 @@ fn ln_approx(x: Float) -> Float {
 
 /// Render the test monitoring dashboard (bottom half of split-screen).
 pub fn render_test_dashboard(state: TestRunState) -> String {
-  let header =
-    visuals.with_color("╔═══ TEST MONITORING DASHBOARD ═══╗", "cyan")
+  let header = visuals.with_color("╔═══ TEST MONITORING DASHBOARD ═══╗", "cyan")
   let phase_line =
     "  Phase: "
     <> visuals.with_color(state.phase, "yellow")
@@ -298,9 +293,9 @@ pub fn render_test_dashboard(state: TestRunState) -> String {
     <> visuals.render_progress_bar(
       int.to_float(state.completed_pages)
         /. int.to_float(case state.total_pages {
-          0 -> 1
-          n -> n
-        }),
+        0 -> 1
+        n -> n
+      }),
       20,
     )
   let results_line =
@@ -367,11 +362,23 @@ pub fn render_test_dashboard(state: TestRunState) -> String {
     })
     |> string.join("\n")
 
-  let footer = visuals.with_color("╚══════════════════════════════════╝", "cyan")
+  let footer =
+    visuals.with_color("╚══════════════════════════════════╝", "cyan")
 
   string.join(
-    [header, phase_line, progress, results_line, "", kpi_header, kpi_table, "",
-     recent_header, recent, footer],
+    [
+      header,
+      phase_line,
+      progress,
+      results_line,
+      "",
+      kpi_header,
+      kpi_table,
+      "",
+      recent_header,
+      recent,
+      footer,
+    ],
     "\n",
   )
 }
@@ -402,10 +409,7 @@ pub fn record_preflight(
   state: TestRunState,
   result: PreflightResult,
 ) -> TestRunState {
-  TestRunState(
-    ..state,
-    preflight_results: [result, ..state.preflight_results],
-  )
+  TestRunState(..state, preflight_results: [result, ..state.preflight_results])
 }
 
 /// Record an element result and update counters.
@@ -432,11 +436,10 @@ pub fn record_element(
 /// Mark a page as completed and compute its KPI.
 pub fn complete_page(state: TestRunState, page: Page) -> TestRunState {
   let kpi = compute_tab_kpi(page, state.element_results)
-  TestRunState(
-    ..state,
-    completed_pages: state.completed_pages + 1,
-    tab_kpis: [kpi, ..state.tab_kpis],
-  )
+  TestRunState(..state, completed_pages: state.completed_pages + 1, tab_kpis: [
+    kpi,
+    ..state.tab_kpis
+  ])
 }
 
 /// Transition OODA phase.

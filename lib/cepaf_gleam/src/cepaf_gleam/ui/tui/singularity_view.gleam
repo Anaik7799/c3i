@@ -6,7 +6,9 @@
 //// </c3i-module>
 
 import cepaf_gleam/cockpit/visuals
-import cepaf_gleam/ui/lustre/singularity.{type CapabilityMetric, type SingularityModel}
+import cepaf_gleam/ui/lustre/singularity.{
+  type CapabilityMetric, type SingularityModel,
+}
 import gleam/float
 import gleam/list
 import gleam/option.{None, Some}

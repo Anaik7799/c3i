@@ -1,5 +1,5 @@
 # GEMINI.md — Indrajaal c3i Multi-Language System Spec (Root)
-**Version**: 22.2.0-VOICE | **Status**: ACTIVE | **Primary Language**: Gleam (BEAM) / Rust (Daemon) | **Date**: 2026-04-09
+**Version**: 22.5.0-CORTEX | **Status**: ACTIVE | **Primary Language**: Gleam (BEAM) / Rust (Daemon) | **Date**: 2026-04-10
 
 **Master Architecture Matrix**: See `docs/architecture/FRACTAL_SYSTEM_VOICE_CHAT_OBSERVABILITY_MATRIX.md` for comprehensive mapping of offline voice, chat components, Zenoh, and observability across all L0-L7 fractal layers.
 
@@ -7,7 +7,7 @@
 | Language | Role | Build Command | Constraint |
 |:---|:---|:---|:---|
 | **Gleam** | Primary c3i language — all new logic | `gleam build` / `gleam test` / `gleam format` | SC-GLM-CMP-001 to SC-GLM-CMP-005 |
-| **Rust** | Ignition daemon (authoritative), NIF boundary (Zenoh FFI), sa-plan-daemon | `cargo build --release` / `cargo test` | SC-NIF-001 to SC-NIF-006, SC-GLM-NIF-001 to SC-GLM-NIF-005, SC-ARCH-SPLIT-001 |
+| **Rust** | Planning daemon (31 modules, 9,104 LOC) — cortex, 6-tier inference, voice, RAG, PipelineTracer, FMEA, HA election, NIF boundary (Zenoh FFI) | `cargo build --release` / `cargo test` | SC-NIF-001 to SC-NIF-006, SC-COG-001, SC-ARCH-SPLIT-001 |
 | **Elixir** | Web portal (Phoenix LiveView, OTP) | `mix compile --jobs 16` / `mix test` | SC-ENV-COMPILE-001 to SC-ENV-COMPILE-008 |
 | **F#** | Legacy bridge/cognitive only (cepaf-bridge is REDUNDANT — Rust ignition daemon is authoritative) | `dotnet build` / `dotnet test` | SC-FSH-003 to SC-FSH-122, SC-GLM-MIG-003 |
 
@@ -28,7 +28,7 @@ Rust NIFs → Gleam → Elixir → F# (if needed)
 | AOR-TOOL-002 | `sa-gleam` must maintain a 2-tier fallback (NIF -> CLI) for all critical data operations (SQLite, Podman). | Resilience testing |
 
 ## Canonical GEMINI.md Location
-Full spec: `dev/ver/c3i/GEMINI.md` (v21.6.0-GLM)
+Full spec: `dev/ver/c3i/GEMINI.md` (v22.5.0-CORTEX)
 
 ---
 
@@ -193,7 +193,29 @@ The Rust ignition daemon (`native/ignition_daemon/`) is the SOLE authoritative r
 - DAG boot sequencing (topological sort, wave-parallel tiers)
 - Zenoh telemetry checkpoints and state vector
 
-**F# cepaf-bridge status**: LEGACY / REDUNDANT — do not add new operational logic to F#. All orchestration responsibilities have migrated to the Rust ignition daemon. F# is retained only for cognitive substrate (Phase 6 gate per SC-GLM-MIG-004) until Gleam cognitive layers are verified.
+**F# cepaf-bridge status**: LEGACY / REDUNDANT — do not add new operational logic to F#. All orchestration responsibilities have migrated to the Rust planning daemon. F# is retained only for constraint sync engine (no Rust replacement).
+
+### Rust Cognitive Cortex (v22.5.0-CORTEX, 31 modules, 9,104 LOC)
+
+The `sa-plan-daemon` has evolved into a full **neuromorphic cortex**:
+
+| Capability | Module | Lines | STAMP |
+|-----------|--------|-------|-------|
+| Chat intent processing | cortex.rs | 1,567 | SC-COG-001 |
+| 6-tier hedged inference | mcp_inference.rs | 663 | SC-COG-001 |
+| Voice (Gemini Live WS) | gemini_live.rs | 307 | SC-OPENCLAW-001 |
+| Transaction tracing | trace.rs | 242 | SC-XHOLON-001 |
+| RAG context injection | rag.rs | 87 | SC-SEC-003 |
+| PII scrubber | pii.rs | 91 | SC-LOG-003 |
+| Gateway broadcast | gateway.rs | 198 | SC-GATEWAY-001 |
+| Dark Cockpit polling | ingress_polling.rs | 331 | SC-ZMOF-001 |
+| Ruliology engine | ruliology.rs | 929 | SC-FRACTAL-001 |
+| 400-scenario simulator | simulator.rs | 349 | SC-SIM-001 |
+| Gmail OAuth2 | mcp_gworkspace.rs | 380 | SC-MCP-001 |
+| FMEA automation | fmea.rs | 79 | SC-FMEA-001 |
+| HA leader election | ha_election.rs | 81 | SC-HA-001 |
+
+**Key architecture**: Hedged parallel (Gemini Direct || OpenRouter via `tokio::join!`), 4 circuit breakers, persistent HTTP client (`OnceLock`), semantic cache (24h TTL), PipelineTracer (zero-write hot path).
 
 ### MCP+Zenoh Operational Control (SC-ZMOF-005)
 

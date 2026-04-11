@@ -225,7 +225,15 @@ pub fn render_mesh_topology(
   let containers_per_row = 8
   let row1 =
     "    "
-    <> render_container_row(0, containers_per_row, healthy_count, container_count, alive, dead, wire)
+    <> render_container_row(
+      0,
+      containers_per_row,
+      healthy_count,
+      container_count,
+      alive,
+      dead,
+      wire,
+    )
   let row2 = case container_count > containers_per_row {
     True ->
       "    "
@@ -297,9 +305,7 @@ fn build_range(start: Int, end: Int) -> List(Int) {
 
 /// Render a fractal layer heatmap (L0-L7) showing health per layer.
 /// Uses Unicode blocks: ████ for healthy, ░░░░ for degraded, .... for missing.
-pub fn render_fractal_heatmap(
-  layers: List(#(String, Float)),
-) -> String {
+pub fn render_fractal_heatmap(layers: List(#(String, Float))) -> String {
   let header = with_color("  FRACTAL HEATMAP (L0─L7)", "cyan")
   let rows =
     list.map(layers, fn(entry) {

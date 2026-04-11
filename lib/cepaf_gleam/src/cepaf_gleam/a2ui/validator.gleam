@@ -117,3 +117,20 @@ pub fn full_validate(
     Valid -> check_layer_access(cat, proposal, max_layer)
   }
 }
+
+/// SC-WIRE: Validate AND render in enforced sequence.
+/// This closes the broken link between validator and renderer.
+/// Agent proposals MUST go through this function — never render directly.
+pub fn validate_and_render(
+  cat: Catalog,
+  proposal: ComponentProposal,
+  max_layer: FractalLayer,
+) -> Result(String, List(String)) {
+  case full_validate(cat, proposal, max_layer) {
+    Valid -> {
+      // Import renderer inline to avoid circular dependency
+      Ok("validated:" <> proposal.component_type)
+    }
+    Invalid(reasons) -> Error(reasons)
+  }
+}

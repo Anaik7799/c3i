@@ -11,7 +11,8 @@ import cepaf_gleam/core/types
 import cepaf_gleam/db/sqlite
 import cepaf_gleam/moz/client as moz_client
 import cepaf_gleam/planning/domain.{
-  type PlanningError, type Task, InvalidTransition, RemoteError, Task, TaskNotFound,
+  type PlanningError, type Task, InvalidTransition, RemoteError, Task,
+  TaskNotFound,
 }
 import cepaf_gleam/planning/parser
 import cepaf_gleam/planning/repository
@@ -49,8 +50,16 @@ fn parse_mcp_task_list(payload: String) -> Result(List(Task), String) {
     use title <- decode.field("title", decode.string)
     use status <- decode.field("status", decode.string)
     use priority <- decode.field("priority", decode.string)
-    use parent_id <- decode.optional_field("parent_id", None, decode.optional(decode.string))
-    use owner <- decode.optional_field("owner", None, decode.optional(decode.string))
+    use parent_id <- decode.optional_field(
+      "parent_id",
+      None,
+      decode.optional(decode.string),
+    )
+    use owner <- decode.optional_field(
+      "owner",
+      None,
+      decode.optional(decode.string),
+    )
     use created <- decode.field("created", decode.string)
 
     decode.success(Task(
@@ -205,7 +214,9 @@ pub fn update_task_remote(id: String, status: String) -> Result(Nil, String) {
 /// Synchronizes the PROJECT_TODOLIST.md file remotely via the daemon.
 pub fn sync_todolist_remote() -> Result(Nil, String) {
   let moz_state = moz_client.new()
-  case moz_client.send_request(moz_state, "plan", "plan_sync", json.object([])) {
+  case
+    moz_client.send_request(moz_state, "plan", "plan_sync", json.object([]))
+  {
     #(_, Ok(_)) -> Ok(Nil)
     #(_, Error(e)) -> Error("Remote sync failed: " <> e)
   }
@@ -246,7 +257,10 @@ pub fn create_task(
 }
 
 /// Creates a new task remotely via the authoritative sa-plan-daemon.
-pub fn add_task_remote(title: String, priority: String) -> Result(String, String) {
+pub fn add_task_remote(
+  title: String,
+  priority: String,
+) -> Result(String, String) {
   let moz_state = moz_client.new()
   let params =
     json.object([

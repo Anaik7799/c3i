@@ -92,7 +92,6 @@ pub type Action {
   BiometricVerify(embedding_b64: String)
 }
 
-
 /// Rendering context — carries session state for all 3 interfaces.
 pub type RenderContext {
   RenderContext(

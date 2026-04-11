@@ -4,9 +4,9 @@
 import cepaf_gleam/cockpit/visuals
 import cepaf_gleam/mcp/server as mcp_server
 import cepaf_gleam/ui/domain.{Critical, Degraded, Healthy, Unknown}
-import cepaf_gleam/ui/zenoh_otel
 import cepaf_gleam/ui/state as mesh_state
 import cepaf_gleam/ui/tui/renderer.{Bright, Dark, Dim, Emergency, Normal}
+import cepaf_gleam/ui/zenoh_otel
 import gleam/option.{Some}
 import gleam/string
 import gleeunit/should
@@ -96,7 +96,11 @@ pub fn with_color_bold_test() {
 
 pub fn system_health_tool_returns_json_test() {
   let result =
-    mcp_server.handle_request("tools/call", Some("1"), "{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"name\":\"system_health\",\"arguments\":{}},\"id\":\"1\"}")
+    mcp_server.handle_request(
+      "tools/call",
+      Some("1"),
+      "{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"name\":\"system_health\",\"arguments\":{}},\"id\":\"1\"}",
+    )
   case result {
     Some(r) -> string.contains(r, "container_count") |> should.be_true()
     _ -> should.fail()
@@ -105,7 +109,11 @@ pub fn system_health_tool_returns_json_test() {
 
 pub fn system_dashboard_tool_returns_json_test() {
   let result =
-    mcp_server.handle_request("tools/call", Some("2"), "{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"name\":\"system_dashboard\",\"arguments\":{}},\"id\":\"2\"}")
+    mcp_server.handle_request(
+      "tools/call",
+      Some("2"),
+      "{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"name\":\"system_dashboard\",\"arguments\":{}},\"id\":\"2\"}",
+    )
   case result {
     Some(r) -> string.contains(r, "Dashboard") |> should.be_true()
     _ -> should.fail()
@@ -114,7 +122,11 @@ pub fn system_dashboard_tool_returns_json_test() {
 
 pub fn system_verification_tool_returns_json_test() {
   let result =
-    mcp_server.handle_request("tools/call", Some("3"), "{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"name\":\"system_verification\",\"arguments\":{}},\"id\":\"3\"}")
+    mcp_server.handle_request(
+      "tools/call",
+      Some("3"),
+      "{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"name\":\"system_verification\",\"arguments\":{}},\"id\":\"3\"}",
+    )
   case result {
     Some(r) -> string.contains(r, "Verification") |> should.be_true()
     _ -> should.fail()

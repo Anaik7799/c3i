@@ -15,11 +15,11 @@
 ///
 /// STAMP: SC-GLM-CORE-001, SC-GLM-CORE-002, SC-GLM-CORE-003, SC-ZENOH-001
 import cepaf_gleam/ui/domain.{
-  type Page, Cockpit, Dashboard, Federation, HealthGrid, Immune, Kms, Knowledge,
-  Mcp, Metabolic, Planning, Podman, Substrate, Telemetry, Verification, Zenoh,
-  Prajna, Agents, Holon, Config, Git, Database, Bridge, Smriti, PlanningDashboard,
-  Integrity, Evolution, Biomorphic, HomeostasisPage, Bicameral, Singularity,
-  ComponentDemo, page_to_path,
+  type Page, Agents, Bicameral, Biomorphic, Bridge, Cockpit, ComponentDemo,
+  Config, Dashboard, Database, Evolution, Federation, Git, HealthGrid, Holon,
+  HomeostasisPage, Immune, Integrity, Kms, Knowledge, Mcp, Metabolic, Planning,
+  PlanningDashboard, Podman, Prajna, Singularity, Smriti, Substrate, Telemetry,
+  Verification, Zenoh, page_to_path,
 }
 import cepaf_gleam/zenoh/client
 import gleam/json

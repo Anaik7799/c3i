@@ -43,7 +43,16 @@ pub type HomeostasisMsg {
 
 pub fn init() -> HomeostasisModel {
   HomeostasisModel(
-    pid: PidState(setpoint: 1.0, actual: 0.0, error: 1.0, output: 0.0, kp: 1.0, ki: 0.1, kd: 0.05, integral: 0.0),
+    pid: PidState(
+      setpoint: 1.0,
+      actual: 0.0,
+      error: 1.0,
+      output: 0.0,
+      kp: 1.0,
+      ki: 0.1,
+      kd: 0.05,
+      integral: 0.0,
+    ),
     stable: False,
     convergence_pct: 0.0,
     sample_count: 0,
@@ -55,7 +64,14 @@ pub fn init() -> HomeostasisModel {
 pub fn update(model: HomeostasisModel, msg: HomeostasisMsg) -> HomeostasisModel {
   case msg {
     PidLoaded(p, s, c, n) ->
-      HomeostasisModel(pid: p, stable: s, convergence_pct: c, sample_count: n, loading: False, error: None)
+      HomeostasisModel(
+        pid: p,
+        stable: s,
+        convergence_pct: c,
+        sample_count: n,
+        loading: False,
+        error: None,
+      )
     PidUpdated(a, e, o) ->
       HomeostasisModel(
         ..model,
@@ -63,6 +79,7 @@ pub fn update(model: HomeostasisModel, msg: HomeostasisMsg) -> HomeostasisModel 
         sample_count: model.sample_count + 1,
       )
     RefreshHomeostasis -> HomeostasisModel(..model, loading: True)
-    ErrorReceived(e) -> HomeostasisModel(..model, error: Some(e), loading: False)
+    ErrorReceived(e) ->
+      HomeostasisModel(..model, error: Some(e), loading: False)
   }
 }

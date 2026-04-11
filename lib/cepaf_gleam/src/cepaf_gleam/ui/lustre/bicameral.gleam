@@ -28,7 +28,13 @@ pub type BicameralModel {
 }
 
 pub type BicameralMsg {
-  StateLoaded(guardian: Chamber, sentinel: Chamber, cortex: Chamber, decisions: Int, vetoes: Int)
+  StateLoaded(
+    guardian: Chamber,
+    sentinel: Chamber,
+    cortex: Chamber,
+    decisions: Int,
+    vetoes: Int,
+  )
   VoteReceived(chamber: String, vote: String, timestamp: String)
   ConsensusReached(Bool)
   RefreshBicameral
@@ -37,9 +43,24 @@ pub type BicameralMsg {
 
 pub fn init() -> BicameralModel {
   BicameralModel(
-    guardian: Chamber(name: "Guardian", vote: "pending", timestamp: "", veto_count: 0),
-    sentinel: Chamber(name: "Sentinel", vote: "pending", timestamp: "", veto_count: 0),
-    cortex: Chamber(name: "Cortex", vote: "pending", timestamp: "", veto_count: 0),
+    guardian: Chamber(
+      name: "Guardian",
+      vote: "pending",
+      timestamp: "",
+      veto_count: 0,
+    ),
+    sentinel: Chamber(
+      name: "Sentinel",
+      vote: "pending",
+      timestamp: "",
+      veto_count: 0,
+    ),
+    cortex: Chamber(
+      name: "Cortex",
+      vote: "pending",
+      timestamp: "",
+      veto_count: 0,
+    ),
     consensus_reached: False,
     total_decisions: 0,
     total_vetoes: 0,
@@ -51,15 +72,39 @@ pub fn init() -> BicameralModel {
 pub fn update(model: BicameralModel, msg: BicameralMsg) -> BicameralModel {
   case msg {
     StateLoaded(g, s, c, d, v) ->
-      BicameralModel(guardian: g, sentinel: s, cortex: c, consensus_reached: check_consensus(g, s, c), total_decisions: d, total_vetoes: v, loading: False, error: None)
+      BicameralModel(
+        guardian: g,
+        sentinel: s,
+        cortex: c,
+        consensus_reached: check_consensus(g, s, c),
+        total_decisions: d,
+        total_vetoes: v,
+        loading: False,
+        error: None,
+      )
     VoteReceived(chamber, vote, ts) -> {
       let m = case chamber {
-        "guardian" -> BicameralModel(..model, guardian: Chamber(..model.guardian, vote: vote, timestamp: ts))
-        "sentinel" -> BicameralModel(..model, sentinel: Chamber(..model.sentinel, vote: vote, timestamp: ts))
-        "cortex" -> BicameralModel(..model, cortex: Chamber(..model.cortex, vote: vote, timestamp: ts))
+        "guardian" ->
+          BicameralModel(
+            ..model,
+            guardian: Chamber(..model.guardian, vote: vote, timestamp: ts),
+          )
+        "sentinel" ->
+          BicameralModel(
+            ..model,
+            sentinel: Chamber(..model.sentinel, vote: vote, timestamp: ts),
+          )
+        "cortex" ->
+          BicameralModel(
+            ..model,
+            cortex: Chamber(..model.cortex, vote: vote, timestamp: ts),
+          )
         _ -> model
       }
-      BicameralModel(..m, consensus_reached: check_consensus(m.guardian, m.sentinel, m.cortex))
+      BicameralModel(
+        ..m,
+        consensus_reached: check_consensus(m.guardian, m.sentinel, m.cortex),
+      )
     }
     ConsensusReached(v) -> BicameralModel(..model, consensus_reached: v)
     RefreshBicameral -> BicameralModel(..model, loading: True)

@@ -21,3 +21,12 @@ Every action, bug fix, code generation, and analysis MUST trace directly back to
 10. **High Availability Seamless Upgrades** (Zero-downtime, Rust/Zenoh Leader Election)
 # 3. Agent Enforcement
 If you are Claude, OpenCode, or Gemini, you must begin your reasoning by mapping your current task to one of the 10 focus areas above. If the task does not map, you must alert the user of a SC-ULTRA-001 violation and refuse to proceed until the task is realigned with the evolutionary mandate.
+
+# 4. Dynamic Wiring Guard (SC-WIRE-001)
+**MANDATORY**: After ANY Model type or Msg variant change:
+1. Update `testing/wiring_guard.gleam` in the SAME commit
+2. Run `gleam test` — wiring_guard_test catches ALL constructor breaks
+3. Use `init()` functions in tests, NOT direct Model() constructors
+4. See `.claude/rules/wiring-guard.md` for full protocol
+
+**WHY**: AI agents (Claude, Gemini) repeatedly break dynamic wiring by adding fields without updating all 70+ test files. The wiring guard catches this at ONE file instead of scattered across the codebase.

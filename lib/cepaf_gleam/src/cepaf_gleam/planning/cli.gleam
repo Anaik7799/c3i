@@ -155,7 +155,9 @@ fn add_task(title: String, priority_str: String) {
       case manager.create_task(title, priority) {
         Ok(task) -> {
           let _ = manager.upsert_task(task)
-          io.println("✅ Task created (local): " <> ids.task_id_to_string(task.id))
+          io.println(
+            "✅ Task created (local): " <> ids.task_id_to_string(task.id),
+          )
         }
         Error(e) -> io.println("❌ Error creating task: " <> e)
       }

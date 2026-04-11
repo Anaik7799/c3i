@@ -33,7 +33,17 @@ pub fn render(model: ImmuneModel) -> String {
   let antibodies = render_antibodies(model.antibodies)
   let events = render_events(model.recent_events)
   string.join(
-    [header, threat, mara, status_strip, attack_spark, "", antibodies, "", events],
+    [
+      header,
+      threat,
+      mara,
+      status_strip,
+      attack_spark,
+      "",
+      antibodies,
+      "",
+      events,
+    ],
     "\n",
   )
 }

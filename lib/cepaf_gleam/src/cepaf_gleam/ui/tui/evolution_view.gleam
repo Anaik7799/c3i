@@ -32,11 +32,23 @@ fn render_state(model: EvolutionModel) -> String {
   }
   let entropy_line =
     "  Shannon H:     "
-    <> visuals.with_color(float.to_string(model.entropy) <> " bits", entropy_color)
+    <> visuals.with_color(
+      float.to_string(model.entropy) <> " bits",
+      entropy_color,
+    )
     <> " (gate: >= 2.5)"
   let entropy_spark =
     "  Entropy Trend: "
-    <> visuals.render_sparkline([1.8, 2.0, 2.2, 2.3, 2.4, 2.5, 2.6, model.entropy])
+    <> visuals.render_sparkline([
+      1.8,
+      2.0,
+      2.2,
+      2.3,
+      2.4,
+      2.5,
+      2.6,
+      model.entropy,
+    ])
   let fitness_bar =
     "  Fitness:       "
     <> visuals.render_progress_bar(model.fitness_score, 20)
@@ -44,10 +56,19 @@ fn render_state(model: EvolutionModel) -> String {
     <> float.to_string(model.fitness_score)
   let cycle_line = "  Cycles:        " <> int.to_string(model.cycle_count)
   let gen_line = "  Generation:    " <> int.to_string(model.generation)
-  let mutation_line = "  Mutation Rate: " <> float.to_string(model.mutation_rate)
+  let mutation_line =
+    "  Mutation Rate: " <> float.to_string(model.mutation_rate)
   let last_line = "  Last Cycle:    " <> model.last_cycle
   string.join(
-    [entropy_line, entropy_spark, fitness_bar, cycle_line, gen_line, mutation_line, last_line],
+    [
+      entropy_line,
+      entropy_spark,
+      fitness_bar,
+      cycle_line,
+      gen_line,
+      mutation_line,
+      last_line,
+    ],
     "\n",
   )
 }

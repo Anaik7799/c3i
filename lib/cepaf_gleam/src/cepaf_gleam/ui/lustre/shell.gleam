@@ -932,7 +932,10 @@ pub fn proof_chain(proofs: List(#(String, Bool))) -> Element(msg) {
       let block = html.div([attribute.class(cls)], [element.text(hash)])
       case idx == 0 {
         True -> [block]
-        False -> [html.span([attribute.class("proof-arrow")], [element.text("▶")]), block]
+        False -> [
+          html.span([attribute.class("proof-arrow")], [element.text("▶")]),
+          block,
+        ]
       }
     })
     |> list.flatten

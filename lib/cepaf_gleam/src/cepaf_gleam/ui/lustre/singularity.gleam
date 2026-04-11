@@ -27,7 +27,13 @@ pub type SingularityModel {
 }
 
 pub type SingularityMsg {
-  EstimationLoaded(convergence: Float, safety: Float, capability: Float, caps: List(CapabilityMetric), horizon: String)
+  EstimationLoaded(
+    convergence: Float,
+    safety: Float,
+    capability: Float,
+    caps: List(CapabilityMetric),
+    horizon: String,
+  )
   CapabilityUpdated(name: String, score: Float, trend: String)
   RefreshSingularity
   ErrorReceived(String)
@@ -48,20 +54,40 @@ pub fn init() -> SingularityModel {
 pub fn update(model: SingularityModel, msg: SingularityMsg) -> SingularityModel {
   case msg {
     EstimationLoaded(c, s, cap, caps, h) ->
-      SingularityModel(convergence_pct: c, safety_margin: s, capability_score: cap, capabilities: caps, estimation_horizon: h, loading: False, error: None)
+      SingularityModel(
+        convergence_pct: c,
+        safety_margin: s,
+        capability_score: cap,
+        capabilities: caps,
+        estimation_horizon: h,
+        loading: False,
+        error: None,
+      )
     CapabilityUpdated(name, score, trend) ->
-      SingularityModel(..model, capabilities: update_capability(model.capabilities, name, score, trend))
+      SingularityModel(
+        ..model,
+        capabilities: update_capability(model.capabilities, name, score, trend),
+      )
     RefreshSingularity -> SingularityModel(..model, loading: True)
-    ErrorReceived(e) -> SingularityModel(..model, error: Some(e), loading: False)
+    ErrorReceived(e) ->
+      SingularityModel(..model, error: Some(e), loading: False)
   }
 }
 
-fn update_capability(caps: List(CapabilityMetric), name: String, score: Float, trend: String) -> List(CapabilityMetric) {
+fn update_capability(
+  caps: List(CapabilityMetric),
+  name: String,
+  score: Float,
+  trend: String,
+) -> List(CapabilityMetric) {
   case caps {
     [] -> [CapabilityMetric(name: name, score: score, trend: trend)]
     [c, ..rest] ->
       case c.name == name {
-        True -> [CapabilityMetric(name: name, score: score, trend: trend), ..rest]
+        True -> [
+          CapabilityMetric(name: name, score: score, trend: trend),
+          ..rest
+        ]
         False -> [c, ..update_capability(rest, name, score, trend)]
       }
   }

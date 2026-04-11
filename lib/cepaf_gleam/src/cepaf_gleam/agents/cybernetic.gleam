@@ -2,19 +2,19 @@
 ////   <fsharp-lineage>Cepaf.Agents.Cybernetic</fsharp-lineage></identity>
 ////   <fractal-topology><layer>L7_FEDERATION</layer></fractal-topology></c3i-module>
 
-import gleam/erlang/process.{type Subject}
-import gleam/otp/actor
-import gleam/otp/supervision
-import gleam/otp/static_supervisor as supervisor
-import gleam/io
+import cepaf_gleam/agents/briefing
+import cepaf_gleam/agents/cortex
+import cepaf_gleam/agents/leadership
+import cepaf_gleam/agents/skill_loader
+import cepaf_gleam/agents/workspace
 import gleam/dict.{type Dict}
+import gleam/erlang/process.{type Subject}
+import gleam/io
 import gleam/list
 import gleam/option.{type Option}
-import cepaf_gleam/agents/cortex
-import cepaf_gleam/agents/briefing
-import cepaf_gleam/agents/workspace
-import cepaf_gleam/agents/skill_loader
-import cepaf_gleam/agents/leadership
+import gleam/otp/actor
+import gleam/otp/static_supervisor as supervisor
+import gleam/otp/supervision
 
 // =============================================================================
 // Type Definitions — Autonomous Agents
@@ -64,7 +64,8 @@ pub type Message {
 // Agent Registry (Executive L5/L6)
 // =============================================================================
 
-pub type AgentRegistry = Dict(String, Subject(Message))
+pub type AgentRegistry =
+  Dict(String, Subject(Message))
 
 pub fn monitor_hierarchy(registry: AgentRegistry) -> Nil {
   list.each(dict.to_list(registry), fn(pair) {
@@ -83,21 +84,25 @@ pub fn start_worker(
   domain: String,
   role: ServiceRole,
 ) -> Result(actor.Started(Subject(Message)), actor.StartError) {
-  let initial_state = AgentState(
-    id: id,
-    name: name,
-    level: Worker,
-    role: role,
-    domain: domain,
-    status: Idle,
-  )
+  let initial_state =
+    AgentState(
+      id: id,
+      name: name,
+      level: Worker,
+      role: role,
+      domain: domain,
+      status: Idle,
+    )
 
   actor.new(initial_state)
   |> actor.on_message(handle_message)
   |> actor.start()
 }
 
-fn handle_message(state: AgentState, msg: Message) -> actor.Next(AgentState, Message) {
+fn handle_message(
+  state: AgentState,
+  msg: Message,
+) -> actor.Next(AgentState, Message) {
   case msg {
     UpdateStatus(status) -> actor.continue(AgentState(..state, status: status))
     GetState(reply_to) -> {
@@ -130,7 +135,10 @@ fn add_workers(
   int_range_fold(1, count, builder, fn(acc, i) {
     let id = domain <> "-worker-" <> int_to_string(i)
     let name = domain <> " Service Worker " <> int_to_string(i)
-    supervisor.add(acc, supervision.worker(fn() { start_worker(id, name, domain, role) }))
+    supervisor.add(
+      acc,
+      supervision.worker(fn() { start_worker(id, name, domain, role) }),
+    )
   })
 }
 
@@ -148,19 +156,45 @@ fn int_to_string(i: Int) -> String
 // Executive Supervisor (L5/L6)
 // =============================================================================
 
-pub fn start_executive_supervisor() -> Result(actor.Started(supervisor.Supervisor), actor.StartError) {
+pub fn start_executive_supervisor() -> Result(
+  actor.Started(supervisor.Supervisor),
+  actor.StartError,
+) {
   supervisor.new(supervisor.OneForAll)
   |> supervisor.add(supervision.worker(fn() { cortex.start("Cortex-Alpha") }))
-  |> supervisor.add(supervision.worker(fn() { briefing.start("Briefing-Alpha") }))
-  |> supervisor.add(supervision.worker(fn() { workspace.start("Workspace-Alpha", "abhijit.naik@boutytek.com") }))
-  |> supervisor.add(supervision.worker(fn() { skill_loader.start("SkillLoader-Alpha") }))
-  |> supervisor.add(supervision.worker(fn() { leadership.start("Leadership-Monitor") }))
-  |> supervisor.add(supervision.supervisor(fn() { start_domain_supervisor("Prajna", Prajna, 3) }))
-
-  |> supervisor.add(supervision.supervisor(fn() { start_domain_supervisor("CEPAF", CEPAF, 3) }))
-  |> supervisor.add(supervision.supervisor(fn() { start_domain_supervisor("Planning", Planning, 3) }))
-  |> supervisor.add(supervision.supervisor(fn() { start_domain_supervisor("Chaya", Chaya, 3) }))
-  |> supervisor.add(supervision.supervisor(fn() { start_domain_supervisor("Guardian", Guardian, 1) }))
+  |> supervisor.add(
+    supervision.worker(fn() { briefing.start("Briefing-Alpha") }),
+  )
+  |> supervisor.add(
+    supervision.worker(fn() {
+      workspace.start("Workspace-Alpha", "abhijit.naik@boutytek.com")
+    }),
+  )
+  |> supervisor.add(
+    supervision.worker(fn() { skill_loader.start("SkillLoader-Alpha") }),
+  )
+  |> supervisor.add(
+    supervision.worker(fn() { leadership.start("Leadership-Monitor") }),
+  )
+  |> supervisor.add(
+    supervision.supervisor(fn() { start_domain_supervisor("Prajna", Prajna, 3) }),
+  )
+  |> supervisor.add(
+    supervision.supervisor(fn() { start_domain_supervisor("CEPAF", CEPAF, 3) }),
+  )
+  |> supervisor.add(
+    supervision.supervisor(fn() {
+      start_domain_supervisor("Planning", Planning, 3)
+    }),
+  )
+  |> supervisor.add(
+    supervision.supervisor(fn() { start_domain_supervisor("Chaya", Chaya, 3) }),
+  )
+  |> supervisor.add(
+    supervision.supervisor(fn() {
+      start_domain_supervisor("Guardian", Guardian, 1)
+    }),
+  )
   |> supervisor.start()
 }
 

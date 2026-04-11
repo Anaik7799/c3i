@@ -1,7 +1,7 @@
 # C3I Gleam-First System — UI Development & Testing Master Prompt
 
 **Status**: AUTHORITATIVE / SIL-6 / GOLD-STANDARD
-**Version**: 22.3.0-GLM
+**Version**: 22.5.0-CORTEX
 **Scope**: All future UI development, refactoring, and testing by AI Agents across the C3I Biomorphic Mesh.
 **Date**: 2026-04-07
 

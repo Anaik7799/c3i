@@ -8,8 +8,6 @@
 
 import cepaf_gleam/podman/uds_client as podman
 import gleam/io
-import gleam/list
-import gleam/result
 
 pub type HomeostasisStatus {
   HomeostasisNominal
@@ -18,16 +16,18 @@ pub type HomeostasisStatus {
 }
 
 /// Verify the current homeostasis of the 15-container swarm.
-pub fn verify_swarm_homeostasis(uds: podman.PodmanConnection) -> HomeostasisStatus {
+pub fn verify_swarm_homeostasis(
+  uds: podman.PodmanConnection,
+) -> HomeostasisStatus {
   io.println("💊 Running SIL-6 Swarm Homeostasis Audit...")
-  
+
   case podman.list_containers(uds) {
     Ok(_) -> {
       // Logic to parse actual container list and assert 15/15
       // and 3/3 Zenoh routers
-      let routers_healthy = True
+      let routers_healthy: Bool = True
       let nodes_healthy = 15
-      
+
       case routers_healthy, nodes_healthy {
         True, 15 -> {
           io.println("  [ok] 2oo3 Quorum: Stable")

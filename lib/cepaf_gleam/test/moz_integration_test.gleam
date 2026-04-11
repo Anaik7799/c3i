@@ -182,14 +182,16 @@ pub fn moz_client_circuit_status_open_test() {
 // =============================================================================
 
 pub fn moz_client_build_request_topic_test() {
-  let topic = moz_client.build_request_topic("ignition", "launch", "req-abc-123")
+  let topic =
+    moz_client.build_request_topic("ignition", "launch", "req-abc-123")
 
   topic
   |> should.equal("indrajaal/l5/cog/mcp/req/ignition/launch/req-abc-123")
 }
 
 pub fn moz_client_build_request_topic_restart_test() {
-  let topic = moz_client.build_request_topic("ignition", "restart", "req-xyz-456")
+  let topic =
+    moz_client.build_request_topic("ignition", "restart", "req-xyz-456")
 
   string.starts_with(topic, "indrajaal/l5/cog/mcp/req/ignition/restart/")
   |> should.be_true()

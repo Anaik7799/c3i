@@ -6,8 +6,6 @@
 //// Automated Quality & Coverage Audit (SIL-6 Compliance).
 //// Targets 95% line coverage and 100% branch coverage for P0 modules.
 
-import gleam/float
-import gleam/int
 import gleam/io
 
 pub type QualityMetrics {
@@ -23,11 +21,11 @@ pub type QualityMetrics {
 pub fn check_coverage_compliance(metrics: QualityMetrics) -> Bool {
   let line_target = 0.95
   let branch_target = 1.0
-  
-  let is_compliant = 
-    metrics.line_coverage >=. line_target && 
-    metrics.branch_coverage >=. branch_target
-    
+
+  let is_compliant =
+    metrics.line_coverage >=. line_target
+    && metrics.branch_coverage >=. branch_target
+
   case is_compliant {
     True -> {
       io.println("✅ SIL-6 Quality Audit: PASS")
@@ -42,5 +40,8 @@ pub fn check_coverage_compliance(metrics: QualityMetrics) -> Bool {
 
 /// Calculate the overall homeostasis stability score.
 pub fn calculate_stability(metrics: QualityMetrics) -> Float {
-  { metrics.line_coverage +. metrics.branch_coverage +. metrics.msts_compliance } /. 3.0
+  {
+    metrics.line_coverage +. metrics.branch_coverage +. metrics.msts_compliance
+  }
+  /. 3.0
 }

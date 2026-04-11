@@ -54,7 +54,18 @@ fn render_state(model: HomeostasisModel) -> String {
     <> " Kd="
     <> float.to_string(pid.kd)
   string.join(
-    [stable_line, convergence_line, samples_line, "", pid_header, setpoint_line, actual_line, error_line, output_line, gains_line],
+    [
+      stable_line,
+      convergence_line,
+      samples_line,
+      "",
+      pid_header,
+      setpoint_line,
+      actual_line,
+      error_line,
+      output_line,
+      gains_line,
+    ],
     "\n",
   )
 }

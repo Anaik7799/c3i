@@ -87,16 +87,17 @@ pub fn render_frame(ctx: RenderContext) -> String {
       #("Immune", "healthy"),
     ])
   let telemetry = render_telemetry(ctx.telemetry)
-  let heatmap = visuals.render_fractal_heatmap([
-    #("L0 Constitutional", 1.0),
-    #("L1 Atomic/Debug", 0.95),
-    #("L2 Component", 0.92),
-    #("L3 Transaction", 0.88),
-    #("L4 System", 0.90),
-    #("L5 Cognitive", 0.85),
-    #("L6 Ecosystem", 0.78),
-    #("L7 Federation", 0.65),
-  ])
+  let heatmap =
+    visuals.render_fractal_heatmap([
+      #("L0 Constitutional", 1.0),
+      #("L1 Atomic/Debug", 0.95),
+      #("L2 Component", 0.92),
+      #("L3 Transaction", 0.88),
+      #("L4 System", 0.9),
+      #("L5 Cognitive", 0.85),
+      #("L6 Ecosystem", 0.78),
+      #("L7 Federation", 0.65),
+    ])
   let nav = render_navigation(ctx.page)
 
   string.join(
@@ -171,8 +172,8 @@ fn render_navigation(current: Page) -> String {
   ]
   let row2 = [
     domain.Mcp, domain.Kms, domain.Telemetry, domain.Federation,
-    domain.HealthGrid, domain.Prajna, domain.Agents, domain.Holon,
-    domain.Config, domain.Git,
+    domain.HealthGrid, domain.Prajna, domain.Agents, domain.Holon, domain.Config,
+    domain.Git,
   ]
   let row3 = [
     domain.Database, domain.Bridge, domain.Smriti, domain.PlanningDashboard,
@@ -190,8 +191,5 @@ fn render_navigation(current: Page) -> String {
       })
     "  " <> string.join(tabs, "|")
   }
-  string.join(
-    [render_row(row1), render_row(row2), render_row(row3)],
-    "\n",
-  )
+  string.join([render_row(row1), render_row(row2), render_row(row3)], "\n")
 }

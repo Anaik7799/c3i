@@ -34,6 +34,7 @@
 //// STAMP: SC-GLM-UI-001, SC-GLM-UI-002, SC-GLM-UI-008, SC-GLM-UI-009, SC-MUDA-001
 
 import cepaf_gleam/agui/event_stream_widget
+
 import cepaf_gleam/ui/lustre/shell
 import cepaf_gleam/ui/state.{type SharedMeshState}
 import gleam/float
@@ -105,14 +106,22 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
     // --- SECTION 0.5: CONTAINER GENOME GRID (16-cell SIL-6 Biomorphic Mesh) ---
     shell.section("Container Genome (SIL-6 Biomorphic Mesh)", [
       shell.genome_grid([
-        #("zenoh-router", "healthy"), #("db-prod", "healthy"),
-        #("obs-prod", "healthy"), #("zenoh-r-1", "healthy"),
-        #("zenoh-r-2", "healthy"), #("zenoh-r-3", "healthy"),
-        #("ex-app-1", "healthy"), #("ex-app-2", "healthy"),
-        #("ex-app-3", "healthy"), #("chaya", "healthy"),
-        #("cepaf-bridge", "healthy"), #("cortex", "healthy"),
-        #("ollama", "healthy"), #("mojo", "healthy"),
-        #("ml-runner-1", "healthy"), #("ml-runner-2", "healthy"),
+        #("zenoh-router", "healthy"),
+        #("db-prod", "healthy"),
+        #("obs-prod", "healthy"),
+        #("zenoh-r-1", "healthy"),
+        #("zenoh-r-2", "healthy"),
+        #("zenoh-r-3", "healthy"),
+        #("ex-app-1", "healthy"),
+        #("ex-app-2", "healthy"),
+        #("ex-app-3", "healthy"),
+        #("chaya", "healthy"),
+        #("cepaf-bridge", "healthy"),
+        #("cortex", "healthy"),
+        #("ollama", "healthy"),
+        #("mojo", "healthy"),
+        #("ml-runner-1", "healthy"),
+        #("ml-runner-2", "healthy"),
       ]),
     ]),
     // --- SECTION 0.6: OODA 5-Tier Decision Ring ---
@@ -122,9 +131,14 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
     // --- SECTION 0.7: Constitutional Proof Chain ---
     shell.section("Constitutional Proof Chain", [
       shell.proof_chain([
-        #("e3b0c4", True), #("a1f2d3", True), #("b7c8e9", True),
-        #("d4e5f6", True), #("f0a1b2", True), #("c3d4e5", True),
-        #("98a7b6", True), #("latest", True),
+        #("e3b0c4", True),
+        #("a1f2d3", True),
+        #("b7c8e9", True),
+        #("d4e5f6", True),
+        #("f0a1b2", True),
+        #("c3d4e5", True),
+        #("98a7b6", True),
+        #("latest", True),
       ]),
     ]),
     // --- SECTION 0.8: AG-UI Event Stream (live agent activity) ---
@@ -1634,9 +1648,24 @@ pub fn integrity_view(_state: SharedMeshState) -> Element(msg) {
     ),
     shell.section("Constitution & Hash Chain", [
       html.div([attribute.class("card-grid")], [
-        shell.status_card("Hash Chain", "Healthy", "VALID", "256 blocks verified"),
-        shell.status_card("Constitution Hash", "Healthy", "e3b0c44298fc1c14", "sha256 canonical"),
-        shell.status_card("Last Verification", "Healthy", "2026-04-07T01:30Z", "automated cycle"),
+        shell.status_card(
+          "Hash Chain",
+          "Healthy",
+          "VALID",
+          "256 blocks verified",
+        ),
+        shell.status_card(
+          "Constitution Hash",
+          "Healthy",
+          "e3b0c44298fc1c14",
+          "sha256 canonical",
+        ),
+        shell.status_card(
+          "Last Verification",
+          "Healthy",
+          "2026-04-07T01:30Z",
+          "automated cycle",
+        ),
         shell.status_card("Chain Length", "Healthy", "256", "immutable blocks"),
       ]),
     ]),
@@ -1651,13 +1680,55 @@ pub fn integrity_view(_state: SharedMeshState) -> Element(msg) {
           ]),
         ]),
         html.tbody([], [
-          psi_row("Psi-0", "Existence", "PASS", "System must exist and be alive", "2026-04-07"),
-          psi_row("Psi-1", "Regeneration", "PASS", "State recoverable from SQLite/DuckDB", "2026-04-07"),
-          psi_row("Psi-2", "History", "PASS", "Append-only log preserved, no truncation", "2026-04-07"),
-          psi_row("Psi-3", "Verification", "PASS", "Hash chain intact, no tampering", "2026-04-07"),
-          psi_row("Psi-4", "Alignment", "PASS", "Founder directive compliance verified", "2026-04-07"),
-          psi_row("Psi-5", "Truthfulness", "PASS", "No deception in agent responses", "2026-04-07"),
-          psi_row("Omega-0", "Symbiotic", "PASS", "Human-AI survival mandate active", "2026-04-07"),
+          psi_row(
+            "Psi-0",
+            "Existence",
+            "PASS",
+            "System must exist and be alive",
+            "2026-04-07",
+          ),
+          psi_row(
+            "Psi-1",
+            "Regeneration",
+            "PASS",
+            "State recoverable from SQLite/DuckDB",
+            "2026-04-07",
+          ),
+          psi_row(
+            "Psi-2",
+            "History",
+            "PASS",
+            "Append-only log preserved, no truncation",
+            "2026-04-07",
+          ),
+          psi_row(
+            "Psi-3",
+            "Verification",
+            "PASS",
+            "Hash chain intact, no tampering",
+            "2026-04-07",
+          ),
+          psi_row(
+            "Psi-4",
+            "Alignment",
+            "PASS",
+            "Founder directive compliance verified",
+            "2026-04-07",
+          ),
+          psi_row(
+            "Psi-5",
+            "Truthfulness",
+            "PASS",
+            "No deception in agent responses",
+            "2026-04-07",
+          ),
+          psi_row(
+            "Omega-0",
+            "Symbiotic",
+            "PASS",
+            "Human-AI survival mandate active",
+            "2026-04-07",
+          ),
         ]),
       ]),
     ]),
@@ -1684,17 +1755,37 @@ pub fn evolution_view(_state: SharedMeshState) -> Element(msg) {
     ),
     shell.section("Mathematical Gates", [
       html.div([attribute.class("card-grid")], [
-        shell.status_card("Shannon H", "Healthy", "2.67 bits", ">= 2.5 gate: PASS"),
+        shell.status_card(
+          "Shannon H",
+          "Healthy",
+          "2.67 bits",
+          ">= 2.5 gate: PASS",
+        ),
         shell.status_card("CCM", "Degraded", "0.770", ">= 0.90 gate: IMPROVING"),
-        shell.status_card("ITQS", "Degraded", "0.736", ">= 0.85 gate: IMPROVING"),
+        shell.status_card(
+          "ITQS",
+          "Degraded",
+          "0.736",
+          ">= 0.85 gate: IMPROVING",
+        ),
         shell.status_card("D_EA", "Healthy", "0.08", "<= 0.10 gate: PASS"),
       ]),
     ]),
     shell.section("Fitness & Adaptation", [
       html.div([attribute.class("card-grid")], [
-        shell.status_card("Fitness Score", "Healthy", "0.92", "composite metric"),
+        shell.status_card(
+          "Fitness Score",
+          "Healthy",
+          "0.92",
+          "composite metric",
+        ),
         shell.status_card("Mutation Rate", "Healthy", "0.03", "per cycle"),
-        shell.status_card("Adaptability", "Healthy", "0.90", "response to change"),
+        shell.status_card(
+          "Adaptability",
+          "Healthy",
+          "0.90",
+          "response to change",
+        ),
         shell.status_card("Resilience", "Healthy", "0.80", "recovery speed"),
       ]),
     ]),
@@ -1726,7 +1817,12 @@ pub fn evolution_view(_state: SharedMeshState) -> Element(msg) {
         shell.status_card("Total Cycles", "Healthy", "42", "completed"),
         shell.status_card("Generation", "Healthy", "88", "current"),
         shell.status_card("Peak Entropy", "Healthy", "2.72", "at gen 79"),
-        shell.status_card("Last Cycle", "Healthy", "2026-04-07T01:30Z", "automated"),
+        shell.status_card(
+          "Last Cycle",
+          "Healthy",
+          "2026-04-07T01:30Z",
+          "automated",
+        ),
       ]),
     ]),
   ])
@@ -1932,16 +2028,24 @@ pub fn component_demo_view(state: SharedMeshState) -> Element(msg) {
     // --- LIVE RUNTIME DATA (from NIF) ---
     shell.section("Live Runtime Data (c3i_nif)", [
       html.p([attribute.class("card-detail")], [
-        element.text("These values come directly from the unified Rust NIF — not hardcoded. Containers via podman, Zenoh via TCP probe, tasks from Smriti.db."),
+        element.text(
+          "These values come directly from the unified Rust NIF — not hardcoded. Containers via podman, Zenoh via TCP probe, tasks from Smriti.db.",
+        ),
       ]),
       html.p([], [
         html.a(
-          [attribute.href("/allium/ignition"), attribute.class("badge badge-healthy")],
+          [
+            attribute.href("/allium/ignition"),
+            attribute.class("badge badge-healthy"),
+          ],
           [element.text("Allium: ignition.allium")],
         ),
         element.text(" "),
         html.a(
-          [attribute.href("/allium/gleam_webui_comprehensive"), attribute.class("badge badge-healthy")],
+          [
+            attribute.href("/allium/gleam_webui_comprehensive"),
+            attribute.class("badge badge-healthy"),
+          ],
           [element.text("Allium: gleam_webui_comprehensive.allium")],
         ),
         element.text(" "),
@@ -1953,25 +2057,43 @@ pub fn component_demo_view(state: SharedMeshState) -> Element(msg) {
       html.div([attribute.class("card-grid")], [
         shell.status_card(
           "Containers",
-          case state.healthy_count == state.container_count { True -> "Healthy" False -> "Degraded" },
-          int.to_string(state.healthy_count) <> "/" <> int.to_string(state.container_count),
+          case state.healthy_count == state.container_count {
+            True -> "Healthy"
+            False -> "Degraded"
+          },
+          int.to_string(state.healthy_count)
+            <> "/"
+            <> int.to_string(state.container_count),
           "podman ps via NIF",
         ),
         shell.status_card(
           "Health",
-          case health_pct >=. 90.0 { True -> "Healthy" False -> "Degraded" },
+          case health_pct >=. 90.0 {
+            True -> "Healthy"
+            False -> "Degraded"
+          },
           float.to_string(health_pct) <> "%",
           "derived from container ratio",
         ),
         shell.status_card(
           "Zenoh",
-          case state.zenoh_connected { True -> "Healthy" False -> "Critical" },
-          case state.zenoh_connected { True -> "Connected" False -> "Disconnected" },
+          case state.zenoh_connected {
+            True -> "Healthy"
+            False -> "Critical"
+          },
+          case state.zenoh_connected {
+            True -> "Connected"
+            False -> "Disconnected"
+          },
           "TCP probe to 7447/7448/7449",
         ),
         shell.status_card(
           "Threat Level",
-          case state.threat_level { "nominal" -> "Healthy" "elevated" -> "Degraded" _ -> "Critical" },
+          case state.threat_level {
+            "nominal" -> "Healthy"
+            "elevated" -> "Degraded"
+            _ -> "Critical"
+          },
           state.threat_level,
           "from Smriti.db immune table",
         ),
@@ -1990,36 +2112,96 @@ pub fn component_demo_view(state: SharedMeshState) -> Element(msg) {
       ]),
     ]),
     // --- USE CASE 1: Container Fleet Monitoring ---
-    shell.section("Use Case: Container Fleet (genome_grid + container_status_dot)", [
-      html.p([attribute.class("card-detail")], [
-        element.text("The genome grid shows all 16 SIL-6 containers at a glance. Each cell has an LED indicator (green=healthy, yellow=degraded, red=critical). Used on Dashboard and Podman pages. Allium entity: Container."),
-      ]),
-      shell.genome_grid([
-        #("zenoh-router", "healthy"), #("db-prod", "healthy"),
-        #("obs-prod", "healthy"), #("zenoh-r-1", "healthy"),
-        #("zenoh-r-2", "healthy"), #("zenoh-r-3", "healthy"),
-        #("ex-app-1", "healthy"), #("ex-app-2", "healthy"),
-        #("ex-app-3", "healthy"), #("chaya", "healthy"),
-        #("cepaf-bridge", "healthy"), #("cortex", "degraded"),
-        #("ollama", "healthy"), #("mojo", "healthy"),
-        #("ml-runner-1", "healthy"), #("ml-runner-2", "critical"),
-      ]),
-    ]),
+    shell.section(
+      "Use Case: Container Fleet (genome_grid + container_status_dot)",
+      [
+        html.p([attribute.class("card-detail")], [
+          element.text(
+            "The genome grid shows all 16 SIL-6 containers at a glance. Each cell has an LED indicator (green=healthy, yellow=degraded, red=critical). Used on Dashboard and Podman pages. Allium entity: Container.",
+          ),
+        ]),
+        shell.genome_grid([
+          #("zenoh-router", "healthy"),
+          #("db-prod", "healthy"),
+          #("obs-prod", "healthy"),
+          #("zenoh-r-1", "healthy"),
+          #("zenoh-r-2", "healthy"),
+          #("zenoh-r-3", "healthy"),
+          #("ex-app-1", "healthy"),
+          #("ex-app-2", "healthy"),
+          #("ex-app-3", "healthy"),
+          #("chaya", "healthy"),
+          #("cepaf-bridge", "healthy"),
+          #("cortex", "degraded"),
+          #("ollama", "healthy"),
+          #("mojo", "healthy"),
+          #("ml-runner-1", "healthy"),
+          #("ml-runner-2", "critical"),
+        ]),
+      ],
+    ),
     // --- CATEGORY 1: STATUS COMPONENTS ---
     shell.section("Status Components (18 types)", [
       html.p([attribute.class("card-detail")], [
-        element.text("Indicators showing system health, connection state, compliance, and operational modes."),
+        element.text(
+          "Indicators showing system health, connection state, compliance, and operational modes.",
+        ),
       ]),
       html.div([attribute.class("card-grid-wide")], [
-        shell.status_card("health_indicator", "Healthy", "●", "Colored health dot"),
-        shell.status_card("connection_status", "Healthy", "Connected", "Zenoh mesh link"),
-        shell.status_card("cockpit_mode_badge", "Healthy", "DARK", "5-mode state machine"),
-        shell.status_card("quorum_indicator", "Healthy", "3/3", "Federation quorum"),
-        shell.status_card("threat_level_bar", "Healthy", "NOMINAL", "Immune threat level"),
-        shell.status_card("sil_compliance_badge", "Healthy", "SIL-6", "IEC 61508 verified"),
-        shell.status_card("circuit_breaker_status", "Healthy", "CLOSED", "MoZ circuit breaker"),
-        shell.status_card("entropy_score", "Healthy", "2.67 bits", "Shannon H gate"),
-        shell.status_card("mesh_mode_indicator", "Healthy", "CLUSTERED", "Mesh operating mode"),
+        shell.status_card(
+          "health_indicator",
+          "Healthy",
+          "●",
+          "Colored health dot",
+        ),
+        shell.status_card(
+          "connection_status",
+          "Healthy",
+          "Connected",
+          "Zenoh mesh link",
+        ),
+        shell.status_card(
+          "cockpit_mode_badge",
+          "Healthy",
+          "DARK",
+          "5-mode state machine",
+        ),
+        shell.status_card(
+          "quorum_indicator",
+          "Healthy",
+          "3/3",
+          "Federation quorum",
+        ),
+        shell.status_card(
+          "threat_level_bar",
+          "Healthy",
+          "NOMINAL",
+          "Immune threat level",
+        ),
+        shell.status_card(
+          "sil_compliance_badge",
+          "Healthy",
+          "SIL-6",
+          "IEC 61508 verified",
+        ),
+        shell.status_card(
+          "circuit_breaker_status",
+          "Healthy",
+          "CLOSED",
+          "MoZ circuit breaker",
+        ),
+        shell.status_card(
+          "entropy_score",
+          "Healthy",
+          "2.67 bits",
+          "Shannon H gate",
+        ),
+        shell.status_card(
+          "mesh_mode_indicator",
+          "Healthy",
+          "CLUSTERED",
+          "Mesh operating mode",
+        ),
       ]),
     ]),
     // --- CATEGORY 2: DATA COMPONENTS ---
@@ -2037,187 +2219,561 @@ pub fn component_demo_view(state: SharedMeshState) -> Element(msg) {
           ]),
         ]),
         html.tbody([], [
-          demo_row("kv_table", "Data", "key: value pairs", "Multi-row key-value display"),
-          demo_row("log_stream", "Data", "INFO 01:42:10 Mesh aligned", "Scrolling severity-colored log"),
-          demo_row("json_tree", "Data", "{\"status\": \"ok\"}", "Collapsible JSON viewer"),
-          demo_row("triple_row", "Data", "(System)-(has)-(Health)", "SPO knowledge triple"),
-          demo_row("diff_viewer", "Data", "+added -removed ~changed", "RFC 6902 JSON patch diff"),
-          demo_row("metric_counter", "Data", "▲ 2,873", "Large numeric with delta arrow"),
-          demo_row("latency_gauge", "Data", "2ms / 30ms budget", "Color-banded latency display"),
-          demo_row("resource_usage_row", "Data", "CPU 45% | MEM 62%", "Per-container resource usage"),
-          demo_row("hash_display", "Data", "e3b0c44298fc1c14...", "Truncated hash with validity"),
-          demo_row("proof_token_card", "Data", "Verified @ cycle 256", "Verification proof token"),
+          demo_row(
+            "kv_table",
+            "Data",
+            "key: value pairs",
+            "Multi-row key-value display",
+          ),
+          demo_row(
+            "log_stream",
+            "Data",
+            "INFO 01:42:10 Mesh aligned",
+            "Scrolling severity-colored log",
+          ),
+          demo_row(
+            "json_tree",
+            "Data",
+            "{\"status\": \"ok\"}",
+            "Collapsible JSON viewer",
+          ),
+          demo_row(
+            "triple_row",
+            "Data",
+            "(System)-(has)-(Health)",
+            "SPO knowledge triple",
+          ),
+          demo_row(
+            "diff_viewer",
+            "Data",
+            "+added -removed ~changed",
+            "RFC 6902 JSON patch diff",
+          ),
+          demo_row(
+            "metric_counter",
+            "Data",
+            "▲ 2,873",
+            "Large numeric with delta arrow",
+          ),
+          demo_row(
+            "latency_gauge",
+            "Data",
+            "2ms / 30ms budget",
+            "Color-banded latency display",
+          ),
+          demo_row(
+            "resource_usage_row",
+            "Data",
+            "CPU 45% | MEM 62%",
+            "Per-container resource usage",
+          ),
+          demo_row(
+            "hash_display",
+            "Data",
+            "e3b0c44298fc1c14...",
+            "Truncated hash with validity",
+          ),
+          demo_row(
+            "proof_token_card",
+            "Data",
+            "Verified @ cycle 256",
+            "Verification proof token",
+          ),
         ]),
       ]),
     ]),
     // --- CATEGORY 3: VISUALIZATION COMPONENTS ---
     shell.section("Visualization Components (20 types)", [
       html.p([attribute.class("card-detail")], [
-        element.text("Charts, graphs, grids, and real-time data visualizations."),
+        element.text(
+          "Charts, graphs, grids, and real-time data visualizations.",
+        ),
       ]),
       html.div([attribute.class("card-grid-wide")], [
-        shell.status_card("sparkline", "Healthy", "▂▃▄▅▆▇█▅", "Time series mini-chart"),
-        shell.status_card("progress", "Healthy", "[========  ] 80%", "Progress bar indicator"),
-        shell.status_card("ooda_ring", "Healthy", "●obs → ○ori → ○dec → ○act", "OODA phase ring"),
+        shell.status_card(
+          "sparkline",
+          "Healthy",
+          "▂▃▄▅▆▇█▅",
+          "Time series mini-chart",
+        ),
+        shell.status_card(
+          "progress",
+          "Healthy",
+          "[========  ] 80%",
+          "Progress bar indicator",
+        ),
+        shell.status_card(
+          "ooda_ring",
+          "Healthy",
+          "●obs → ○ori → ○dec → ○act",
+          "OODA phase ring",
+        ),
         shell.status_card("topology", "Healthy", "◆─◆─◆", "Mesh topology graph"),
       ]),
       // Container Genome Grid (live)
       shell.genome_grid([
-        #("zenoh-router", "healthy"), #("db-prod", "healthy"),
-        #("obs-prod", "healthy"), #("zenoh-r-1", "healthy"),
-        #("zenoh-r-2", "healthy"), #("zenoh-r-3", "healthy"),
-        #("ex-app-1", "healthy"), #("ex-app-2", "healthy"),
-        #("ex-app-3", "healthy"), #("chaya", "healthy"),
-        #("cepaf-bridge", "healthy"), #("cortex", "degraded"),
-        #("ollama", "healthy"), #("mojo", "healthy"),
-        #("ml-runner-1", "healthy"), #("ml-runner-2", "critical"),
+        #("zenoh-router", "healthy"),
+        #("db-prod", "healthy"),
+        #("obs-prod", "healthy"),
+        #("zenoh-r-1", "healthy"),
+        #("zenoh-r-2", "healthy"),
+        #("zenoh-r-3", "healthy"),
+        #("ex-app-1", "healthy"),
+        #("ex-app-2", "healthy"),
+        #("ex-app-3", "healthy"),
+        #("chaya", "healthy"),
+        #("cepaf-bridge", "healthy"),
+        #("cortex", "degraded"),
+        #("ollama", "healthy"),
+        #("mojo", "healthy"),
+        #("ml-runner-1", "healthy"),
+        #("ml-runner-2", "critical"),
       ]),
     ]),
     // --- CATEGORY 4: INTERACTIVE COMPONENTS ---
     shell.section("Interactive Components (16 types)", [
       html.p([attribute.class("card-detail")], [
-        element.text("Buttons, filters, toggles, sliders, and user input controls."),
+        element.text(
+          "Buttons, filters, toggles, sliders, and user input controls.",
+        ),
       ]),
       html.div([attribute.class("card-grid-wide")], [
-        shell.status_card("filter_bar", "Healthy", "[all] [active] [pending]", "Horizontal filter chips"),
-        shell.status_card("search_input", "Healthy", "🔍 Type to search...", "Debounced search"),
+        shell.status_card(
+          "filter_bar",
+          "Healthy",
+          "[all] [active] [pending]",
+          "Horizontal filter chips",
+        ),
+        shell.status_card(
+          "search_input",
+          "Healthy",
+          "🔍 Type to search...",
+          "Debounced search",
+        ),
         shell.status_card("toggle_switch", "Healthy", "◉ ON", "Boolean toggle"),
-        shell.status_card("dropdown_select", "Healthy", "▼ Select status...", "Single-value dropdown"),
-        shell.status_card("threshold_slider", "Healthy", "◄━━●━━━━►", "Numeric range slider"),
-        shell.status_card("copy_button", "Healthy", "📋 Click to copy", "Copy to clipboard"),
-        shell.status_card("refresh_button", "Healthy", "↻ Refresh", "Manual data refresh"),
-        shell.status_card("time_range_picker", "Healthy", "⏰ Last 1h", "Temporal window selector"),
+        shell.status_card(
+          "dropdown_select",
+          "Healthy",
+          "▼ Select status...",
+          "Single-value dropdown",
+        ),
+        shell.status_card(
+          "threshold_slider",
+          "Healthy",
+          "◄━━●━━━━►",
+          "Numeric range slider",
+        ),
+        shell.status_card(
+          "copy_button",
+          "Healthy",
+          "📋 Click to copy",
+          "Copy to clipboard",
+        ),
+        shell.status_card(
+          "refresh_button",
+          "Healthy",
+          "↻ Refresh",
+          "Manual data refresh",
+        ),
+        shell.status_card(
+          "time_range_picker",
+          "Healthy",
+          "⏰ Last 1h",
+          "Temporal window selector",
+        ),
       ]),
     ]),
     // --- CATEGORY 5: OODA & DECISION ---
     shell.section("OODA Decision Brain (5-Tier)", [
       html.p([attribute.class("card-detail")], [
-        element.text("Live RETE-UL rule engine evaluation. 7 GRL rules against mesh state."),
+        element.text(
+          "Live RETE-UL rule engine evaluation. 7 GRL rules against mesh state.",
+        ),
       ]),
       shell.ooda_5tier("observe"),
     ]),
     // --- CATEGORY 6: CONSTITUTIONAL & SAFETY ---
     shell.section("Safety Components (6 types)", [
       html.p([attribute.class("card-detail")], [
-        element.text("Guardian approval, Psi invariants, emergency controls, SIL-6 compliance."),
+        element.text(
+          "Guardian approval, Psi invariants, emergency controls, SIL-6 compliance.",
+        ),
       ]),
       shell.proof_chain([
-        #("e3b0c4", True), #("a1f2d3", True), #("b7c8e9", True),
-        #("d4e5f6", True), #("f0a1b2", True), #("latest", True),
+        #("e3b0c4", True),
+        #("a1f2d3", True),
+        #("b7c8e9", True),
+        #("d4e5f6", True),
+        #("f0a1b2", True),
+        #("latest", True),
       ]),
       html.div([attribute.class("card-grid")], [
-        shell.status_card("guardian_approval_panel", "Healthy", "2/3 consensus", "Full Guardian workflow"),
-        shell.status_card("psi_invariant_dashboard", "Healthy", "7/7 PASS", "All Psi axioms grid"),
-        shell.status_card("emergency_banner", "Critical", "EMERGENCY", "Full-width red alert"),
-        shell.status_card("audit_trail_log", "Healthy", "256 entries", "Immutable audit log"),
-        shell.status_card("sil6_compliance_matrix", "Healthy", "100%", "STAMP control matrix"),
+        shell.status_card(
+          "guardian_approval_panel",
+          "Healthy",
+          "2/3 consensus",
+          "Full Guardian workflow",
+        ),
+        shell.status_card(
+          "psi_invariant_dashboard",
+          "Healthy",
+          "7/7 PASS",
+          "All Psi axioms grid",
+        ),
+        shell.status_card(
+          "emergency_banner",
+          "Critical",
+          "EMERGENCY",
+          "Full-width red alert",
+        ),
+        shell.status_card(
+          "audit_trail_log",
+          "Healthy",
+          "256 entries",
+          "Immutable audit log",
+        ),
+        shell.status_card(
+          "sil6_compliance_matrix",
+          "Healthy",
+          "100%",
+          "STAMP control matrix",
+        ),
       ]),
     ]),
     // --- CATEGORY 7: AGENT COMPONENTS ---
     shell.section("Agent Components (10 types)", [
       html.p([attribute.class("card-detail")], [
-        element.text("AG-UI 32-event protocol: runs, tool calls, reasoning, HITL, state inspection."),
+        element.text(
+          "AG-UI 32-event protocol: runs, tool calls, reasoning, HITL, state inspection.",
+        ),
       ]),
       event_stream_widget.render_html(event_stream_widget.demo_events(), 6),
       html.div([attribute.class("card-grid")], [
-        shell.status_card("agent_run_card", "Healthy", "▶ run:ooda-42", "Active agent run"),
-        shell.status_card("tool_call_panel", "Healthy", "🔧 system_health", "In-flight tool call"),
-        shell.status_card("reasoning_stream", "Healthy", "💭 Analyzing...", "Real-time reasoning"),
-        shell.status_card("hitl_pending_queue", "Healthy", "0 pending", "HITL approval queue"),
-        shell.status_card("agent_hierarchy_tree", "Healthy", "1+4+20=25", "5-tier agent hierarchy"),
+        shell.status_card(
+          "agent_run_card",
+          "Healthy",
+          "▶ run:ooda-42",
+          "Active agent run",
+        ),
+        shell.status_card(
+          "tool_call_panel",
+          "Healthy",
+          "🔧 system_health",
+          "In-flight tool call",
+        ),
+        shell.status_card(
+          "reasoning_stream",
+          "Healthy",
+          "💭 Analyzing...",
+          "Real-time reasoning",
+        ),
+        shell.status_card(
+          "hitl_pending_queue",
+          "Healthy",
+          "0 pending",
+          "HITL approval queue",
+        ),
+        shell.status_card(
+          "agent_hierarchy_tree",
+          "Healthy",
+          "1+4+20=25",
+          "5-tier agent hierarchy",
+        ),
       ]),
     ]),
     // --- CATEGORY 8: LAYOUT COMPONENTS ---
     shell.section("Layout Components (14 types)", [
       html.p([attribute.class("card-detail")], [
-        element.text("Structural containers: panels, grids, tabs, modals, accordions, breadcrumbs."),
+        element.text(
+          "Structural containers: panels, grids, tabs, modals, accordions, breadcrumbs.",
+        ),
       ]),
       html.div([attribute.class("card-grid-wide")], [
-        shell.status_card("split_pane", "Healthy", "╟ A | B ╢", "Resizable two-panel layout"),
-        shell.status_card("tab_strip", "Healthy", "┌─┐┌─┐┌─┐", "Horizontal tab selector"),
-        shell.status_card("collapsible_panel", "Healthy", "▸ Expand", "Expandable/collapsible"),
-        shell.status_card("fractal_breadcrumb", "Healthy", "L0 › L3 › L5", "Fractal hierarchy trail"),
-        shell.status_card("modal_overlay", "Healthy", "█▓▒░", "Focus-trapping overlay"),
-        shell.status_card("layer_accordion", "Healthy", "▼ L0-L7", "Layer-grouped accordion"),
-        shell.status_card("empty_state", "Healthy", "◌ No data", "Empty state placeholder"),
+        shell.status_card(
+          "split_pane",
+          "Healthy",
+          "╟ A | B ╢",
+          "Resizable two-panel layout",
+        ),
+        shell.status_card(
+          "tab_strip",
+          "Healthy",
+          "┌─┐┌─┐┌─┐",
+          "Horizontal tab selector",
+        ),
+        shell.status_card(
+          "collapsible_panel",
+          "Healthy",
+          "▸ Expand",
+          "Expandable/collapsible",
+        ),
+        shell.status_card(
+          "fractal_breadcrumb",
+          "Healthy",
+          "L0 › L3 › L5",
+          "Fractal hierarchy trail",
+        ),
+        shell.status_card(
+          "modal_overlay",
+          "Healthy",
+          "█▓▒░",
+          "Focus-trapping overlay",
+        ),
+        shell.status_card(
+          "layer_accordion",
+          "Healthy",
+          "▼ L0-L7",
+          "Layer-grouped accordion",
+        ),
+        shell.status_card(
+          "empty_state",
+          "Healthy",
+          "◌ No data",
+          "Empty state placeholder",
+        ),
       ]),
     ]),
     // --- USE CASE 2: Real-Time Monitoring ---
     shell.section("Use Case: Real-Time Monitors (15 new domain components)", [
       html.p([attribute.class("card-detail")], [
-        element.text("Wave 2 components for infrastructure monitoring: CPU governor, BEAM schedulers, NIF latency, SQLite WAL, GC pressure. Each backed by real system data via c3i_nif."),
+        element.text(
+          "Wave 2 components for infrastructure monitoring: CPU governor, BEAM schedulers, NIF latency, SQLite WAL, GC pressure. Each backed by real system data via c3i_nif.",
+        ),
       ]),
       html.div([attribute.class("card-grid-wide")], [
-        shell.status_card("cpu_governor_gauge", "Healthy", "45% (<85% limit)", "SC-CPU-GOV adaptive parallelism"),
-        shell.status_card("beam_scheduler_load", "Healthy", "16 schedulers", "ELIXIR_ERL_OPTIONS +S 16:16"),
-        shell.status_card("nif_latency_histogram", "Healthy", "p50=0.2ms p95=1.1ms", "DirtyCpu schedule latency"),
-        shell.status_card("sqlite_wal_status", "Healthy", "WAL mode, 5s timeout", "Smriti.db exponential backoff"),
-        shell.status_card("process_count_gauge", "Healthy", "~2000 procs", "BEAM process count"),
-        shell.status_card("dirty_scheduler_load", "Healthy", "DirtyCPU 12%", "NIF blocking work"),
+        shell.status_card(
+          "cpu_governor_gauge",
+          "Healthy",
+          "45% (<85% limit)",
+          "SC-CPU-GOV adaptive parallelism",
+        ),
+        shell.status_card(
+          "beam_scheduler_load",
+          "Healthy",
+          "16 schedulers",
+          "ELIXIR_ERL_OPTIONS +S 16:16",
+        ),
+        shell.status_card(
+          "nif_latency_histogram",
+          "Healthy",
+          "p50=0.2ms p95=1.1ms",
+          "DirtyCpu schedule latency",
+        ),
+        shell.status_card(
+          "sqlite_wal_status",
+          "Healthy",
+          "WAL mode, 5s timeout",
+          "Smriti.db exponential backoff",
+        ),
+        shell.status_card(
+          "process_count_gauge",
+          "Healthy",
+          "~2000 procs",
+          "BEAM process count",
+        ),
+        shell.status_card(
+          "dirty_scheduler_load",
+          "Healthy",
+          "DirtyCPU 12%",
+          "NIF blocking work",
+        ),
       ]),
     ]),
     // --- USE CASE 3: Zenoh Mesh ---
     shell.section("Use Case: Zenoh Mesh (10 new components)", [
       html.p([attribute.class("card-detail")], [
-        element.text("Zenoh-specific components for pub/sub monitoring: key expressions, topic trees, session health, router failover, QoS priorities. Allium contract: ZenohMeshBus."),
+        element.text(
+          "Zenoh-specific components for pub/sub monitoring: key expressions, topic trees, session health, router failover, QoS priorities. Allium contract: ZenohMeshBus.",
+        ),
       ]),
       html.div([attribute.class("card-grid-wide")], [
-        shell.status_card("key_expression_viewer", "Healthy", "indrajaal/otel/spans/**", "Zenoh key expression tree"),
-        shell.status_card("pub_sub_flow", "Healthy", "3 pub → 5 sub", "Publisher-subscriber flow"),
-        shell.status_card("zenoh_session_card", "Healthy", "session-abc123", "Per-session detail"),
-        shell.status_card("router_health_strip", "Healthy", "●●●", "3-router failover strip"),
-        shell.status_card("topic_tree", "Healthy", "indrajaal/l0..l7/**", "Hierarchical namespace"),
+        shell.status_card(
+          "key_expression_viewer",
+          "Healthy",
+          "indrajaal/otel/spans/**",
+          "Zenoh key expression tree",
+        ),
+        shell.status_card(
+          "pub_sub_flow",
+          "Healthy",
+          "3 pub → 5 sub",
+          "Publisher-subscriber flow",
+        ),
+        shell.status_card(
+          "zenoh_session_card",
+          "Healthy",
+          "session-abc123",
+          "Per-session detail",
+        ),
+        shell.status_card(
+          "router_health_strip",
+          "Healthy",
+          "●●●",
+          "3-router failover strip",
+        ),
+        shell.status_card(
+          "topic_tree",
+          "Healthy",
+          "indrajaal/l0..l7/**",
+          "Hierarchical namespace",
+        ),
       ]),
     ]),
     // --- USE CASE 4: Rule Engine Decision ---
     shell.section("Use Case: Rule Engine (8 decision components)", [
       html.p([attribute.class("card-detail")], [
-        element.text("GRL rule visualization: individual rules with salience, fact tables, fire logs, decision trees. Allium rules map to rust-rule-engine 1.20.1 RETE-UL. 52 GRL rules across 13 domains."),
+        element.text(
+          "GRL rule visualization: individual rules with salience, fact tables, fire logs, decision trees. Allium rules map to rust-rule-engine 1.20.1 RETE-UL. 52 GRL rules across 13 domains.",
+        ),
       ]),
       html.div([attribute.class("card-grid-wide")], [
-        shell.status_card("grl_rule_card", "Healthy", "Emergency Stop (sal:100)", "when MissingCritical → EmergencyStop"),
-        shell.status_card("fact_table", "Healthy", "System.MeshRunning=true", "Current fact base"),
-        shell.status_card("rule_fire_log", "Healthy", "NoAction fired", "Last rule execution"),
-        shell.status_card("domain_selector", "Healthy", "13 domains", "OODA/Preflight/Recovery/..."),
-        shell.status_card("hysteresis_band", "Healthy", "0.8-0.9 band", "Threshold dead-zone"),
+        shell.status_card(
+          "grl_rule_card",
+          "Healthy",
+          "Emergency Stop (sal:100)",
+          "when MissingCritical → EmergencyStop",
+        ),
+        shell.status_card(
+          "fact_table",
+          "Healthy",
+          "System.MeshRunning=true",
+          "Current fact base",
+        ),
+        shell.status_card(
+          "rule_fire_log",
+          "Healthy",
+          "NoAction fired",
+          "Last rule execution",
+        ),
+        shell.status_card(
+          "domain_selector",
+          "Healthy",
+          "13 domains",
+          "OODA/Preflight/Recovery/...",
+        ),
+        shell.status_card(
+          "hysteresis_band",
+          "Healthy",
+          "0.8-0.9 band",
+          "Threshold dead-zone",
+        ),
       ]),
     ]),
     // --- USE CASE 5: Planning & Tasks ---
     shell.section("Use Case: Planning (10 task components)", [
       html.p([attribute.class("card-detail")], [
-        element.text("Task management UI: priority pills, status flows, burndown charts, dependency DAGs, critical path. Data from sa-plan-daemon via c3i_nif. Allium entity: Task."),
+        element.text(
+          "Task management UI: priority pills, status flows, burndown charts, dependency DAGs, critical path. Data from sa-plan-daemon via c3i_nif. Allium entity: Task.",
+        ),
       ]),
       html.div([attribute.class("card-grid-wide")], [
-        shell.status_card("task_priority_pill", "Healthy", "P0 P1 P2 P3", "Color-coded pills"),
-        shell.status_card("task_status_flow", "Healthy", "pending→active→done", "Status state machine"),
-        shell.status_card("task_burndown_chart", "Healthy", "850/880 done", "Sprint burndown"),
-        shell.status_card("critical_path_highlight", "Healthy", "CPM optimization", "Slack time analysis"),
-        shell.status_card("parent_child_tree", "Healthy", "Hierarchical tasks", "Task decomposition"),
+        shell.status_card(
+          "task_priority_pill",
+          "Healthy",
+          "P0 P1 P2 P3",
+          "Color-coded pills",
+        ),
+        shell.status_card(
+          "task_status_flow",
+          "Healthy",
+          "pending→active→done",
+          "Status state machine",
+        ),
+        shell.status_card(
+          "task_burndown_chart",
+          "Healthy",
+          "850/880 done",
+          "Sprint burndown",
+        ),
+        shell.status_card(
+          "critical_path_highlight",
+          "Healthy",
+          "CPM optimization",
+          "Slack time analysis",
+        ),
+        shell.status_card(
+          "parent_child_tree",
+          "Healthy",
+          "Hierarchical tasks",
+          "Task decomposition",
+        ),
       ]),
     ]),
     // --- USE CASE 6: Recovery & Resilience ---
     shell.section("Use Case: Recovery (8 resilience components)", [
       html.p([attribute.class("card-detail")], [
-        element.text("FMEA recovery playbooks, cascade containment, partition fencing, dying gasp. SIL-6 safety-critical patterns. Allium invariant: QuorumMaintained."),
+        element.text(
+          "FMEA recovery playbooks, cascade containment, partition fencing, dying gasp. SIL-6 safety-critical patterns. Allium invariant: QuorumMaintained.",
+        ),
       ]),
       html.div([attribute.class("card-grid-wide")], [
-        shell.status_card("recovery_playbook_card", "Healthy", "RPN < 200", "15 FMEA playbooks"),
-        shell.status_card("cascade_containment", "Healthy", "depth=0", "Failure isolation boundary"),
-        shell.status_card("apoptosis_countdown", "Healthy", "5s grace", "Dying gasp protocol"),
-        shell.status_card("self_heal_timeline", "Healthy", "98% success", "Auto-healing history"),
+        shell.status_card(
+          "recovery_playbook_card",
+          "Healthy",
+          "RPN < 200",
+          "15 FMEA playbooks",
+        ),
+        shell.status_card(
+          "cascade_containment",
+          "Healthy",
+          "depth=0",
+          "Failure isolation boundary",
+        ),
+        shell.status_card(
+          "apoptosis_countdown",
+          "Healthy",
+          "5s grace",
+          "Dying gasp protocol",
+        ),
+        shell.status_card(
+          "self_heal_timeline",
+          "Healthy",
+          "98% success",
+          "Auto-healing history",
+        ),
       ]),
     ]),
     // --- SUMMARY ---
     shell.section("Catalog Summary", [
       html.div([attribute.class("card-grid")], [
-        shell.status_card("Total Components", "Healthy", "233", "registered in A2UI catalog"),
-        shell.status_card("Isomorphic", "Healthy", "226", "render to HTML + ANSI"),
+        shell.status_card(
+          "Total Components",
+          "Healthy",
+          "233",
+          "registered in A2UI catalog",
+        ),
+        shell.status_card(
+          "Isomorphic",
+          "Healthy",
+          "226",
+          "render to HTML + ANSI",
+        ),
         shell.status_card("HTML Only", "Healthy", "7", "browser-specific"),
         shell.status_card("Render Targets", "Healthy", "3", "HTML, JSON, ANSI"),
-        shell.status_card("Domains", "Healthy", "10+", "core/monitors/zenoh/containers/planning/rules/recovery/..."),
-        shell.status_card("MCP Tools", "Healthy", "26", "NIF-backed via c3i_nif"),
-        shell.status_card("Fractal Layers", "Healthy", "L0-L7", "all 8 layers covered"),
-        shell.status_card("Tests", "Healthy", "3,354+", "gleeunit + 113 Playwright"),
+        shell.status_card(
+          "Domains",
+          "Healthy",
+          "10+",
+          "core/monitors/zenoh/containers/planning/rules/recovery/...",
+        ),
+        shell.status_card(
+          "MCP Tools",
+          "Healthy",
+          "26",
+          "NIF-backed via c3i_nif",
+        ),
+        shell.status_card(
+          "Fractal Layers",
+          "Healthy",
+          "L0-L7",
+          "all 8 layers covered",
+        ),
+        shell.status_card(
+          "Tests",
+          "Healthy",
+          "3,354+",
+          "gleeunit + 113 Playwright",
+        ),
       ]),
     ]),
   ])
@@ -2235,7 +2791,11 @@ pub fn component_demo_view(state: SharedMeshState) -> Element(msg) {
 pub fn allium_index_view() -> Element(msg) {
   let specs = [
     #("ignition", "16-container genome, boot, OODA, rules, health", "2,241"),
-    #("gleam_webui_comprehensive", "Full Gleam WebUI behavioral specification", "1,116"),
+    #(
+      "gleam_webui_comprehensive",
+      "Full Gleam WebUI behavioral specification",
+      "1,116",
+    ),
     #("webui_evolution_plan", "WebUI evolution roadmap and phases", "940"),
     #("webui_operational_control", "Operational control patterns", "761"),
     #("webui_full_system_robustness", "System robustness and hardening", "631"),
@@ -2250,7 +2810,11 @@ pub fn allium_index_view() -> Element(msg) {
     #("ambient_epistemic_hmi", "Ambient epistemic interface patterns", "142"),
     #("20260405-features", "Feature specifications 2026-04-05", "131"),
     #("ui_testing_framework", "UI testing framework specification", "126"),
-    #("ultrathink_evolutionary_ui_hardening", "Evolutionary UI hardening", "144"),
+    #(
+      "ultrathink_evolutionary_ui_hardening",
+      "Evolutionary UI hardening",
+      "144",
+    ),
     #("ultrathink_hmi_ergonomics", "HMI ergonomics deep analysis", "168"),
     #("dashboard_50_improvements", "50 dashboard cybernetic enhancements", "99"),
     #("zmof", "Zenoh-MCP-OTel Fractal backplane", "95"),
@@ -2268,7 +2832,9 @@ pub fn allium_index_view() -> Element(msg) {
     ),
     shell.section("Specification Catalog", [
       html.p([attribute.class("card-detail")], [
-        element.text("Click any spec to view its full content. Allium v3 captures intent (what the system SHOULD do) separately from implementation (what the code DOES). Divergence = information."),
+        element.text(
+          "Click any spec to view its full content. Allium v3 captures intent (what the system SHOULD do) separately from implementation (what the code DOES). Divergence = information.",
+        ),
       ]),
       html.table([], [
         html.thead([], [
@@ -2279,32 +2845,52 @@ pub fn allium_index_view() -> Element(msg) {
             html.th([], [element.text("View")]),
           ]),
         ]),
-        html.tbody([], list.map(specs, fn(s) {
-          let #(name, desc, lines) = s
-          html.tr([], [
-            html.td([], [
-              html.a(
-                [attribute.href("/allium/" <> name)],
-                [element.text(name)],
-              ),
-            ]),
-            html.td([], [element.text(desc)]),
-            html.td([], [element.text(lines)]),
-            html.td([], [
-              html.a(
-                [attribute.href("/allium/" <> name), attribute.class("badge badge-healthy")],
-                [element.text("View")],
-              ),
-            ]),
-          ])
-        })),
+        html.tbody(
+          [],
+          list.map(specs, fn(s) {
+            let #(name, desc, lines) = s
+            html.tr([], [
+              html.td([], [
+                html.a([attribute.href("/allium/" <> name)], [
+                  element.text(name),
+                ]),
+              ]),
+              html.td([], [element.text(desc)]),
+              html.td([], [element.text(lines)]),
+              html.td([], [
+                html.a(
+                  [
+                    attribute.href("/allium/" <> name),
+                    attribute.class("badge badge-healthy"),
+                  ],
+                  [element.text("View")],
+                ),
+              ]),
+            ])
+          }),
+        ),
       ]),
     ]),
     shell.section("API Access", [
       html.div([attribute.class("card-grid")], [
-        shell.status_card("List All", "Healthy", "/api/v1/allium", "JSON spec catalog"),
-        shell.status_card("View Spec", "Healthy", "/api/v1/allium/{name}", "JSON spec content"),
-        shell.status_card("HTML Viewer", "Healthy", "/allium/{name}", "Browser-rendered view"),
+        shell.status_card(
+          "List All",
+          "Healthy",
+          "/api/v1/allium",
+          "JSON spec catalog",
+        ),
+        shell.status_card(
+          "View Spec",
+          "Healthy",
+          "/api/v1/allium/{name}",
+          "JSON spec content",
+        ),
+        shell.status_card(
+          "HTML Viewer",
+          "Healthy",
+          "/allium/{name}",
+          "Browser-rendered view",
+        ),
       ]),
     ]),
   ])
@@ -2320,19 +2906,44 @@ pub fn allium_spec_view(name: String) -> Element(msg) {
     shell.section("Navigation", [
       html.div([attribute.class("card-grid")], [
         shell.status_card("Back", "Healthy", "← All Specs", "allium index"),
-        shell.status_card("API", "Healthy", "/api/v1/allium/" <> name, "JSON endpoint"),
-        shell.status_card("File", "Healthy", "specs/allium/" <> name <> ".allium", "source path"),
+        shell.status_card(
+          "API",
+          "Healthy",
+          "/api/v1/allium/" <> name,
+          "JSON endpoint",
+        ),
+        shell.status_card(
+          "File",
+          "Healthy",
+          "specs/allium/" <> name <> ".allium",
+          "source path",
+        ),
       ]),
       html.p([], [
-        html.a([attribute.href("/allium")], [element.text("← Back to Allium Index")]),
+        html.a([attribute.href("/allium")], [
+          element.text("← Back to Allium Index"),
+        ]),
       ]),
     ]),
     shell.section("Specification Content", [
       html.div(
-        [attribute.attribute("style", "background:#0a0e17;border:1px solid #1e2a3a;border-radius:6px;padding:1rem;font-family:monospace;font-size:.82rem;white-space:pre-wrap;overflow-x:auto;max-height:80vh;overflow-y:auto;color:#a6accd;line-height:1.5;"),
-         attribute.attribute("id", "allium-content"),
-         attribute.attribute("data-spec", name)],
-        [element.text("Loading " <> name <> ".allium... (fetched via JS from /api/v1/allium/" <> name <> ")")],
+        [
+          attribute.attribute(
+            "style",
+            "background:#0a0e17;border:1px solid #1e2a3a;border-radius:6px;padding:1rem;font-family:monospace;font-size:.82rem;white-space:pre-wrap;overflow-x:auto;max-height:80vh;overflow-y:auto;color:#a6accd;line-height:1.5;",
+          ),
+          attribute.attribute("id", "allium-content"),
+          attribute.attribute("data-spec", name),
+        ],
+        [
+          element.text(
+            "Loading "
+            <> name
+            <> ".allium... (fetched via JS from /api/v1/allium/"
+            <> name
+            <> ")",
+          ),
+        ],
       ),
       html.script([], "
         fetch('/api/v1/allium/" <> name <> "')

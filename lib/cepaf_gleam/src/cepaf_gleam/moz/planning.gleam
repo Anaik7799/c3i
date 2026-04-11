@@ -51,7 +51,9 @@ pub fn dispatch(tool_name: String, args: json.Json) -> String {
       c3i_nif.plan_search(query)
     }
     _ ->
-      json.object([#("error", json.string("Unknown planning tool: " <> tool_name))])
+      json.object([
+        #("error", json.string("Unknown planning tool: " <> tool_name)),
+      ])
       |> json.to_string()
   }
 }

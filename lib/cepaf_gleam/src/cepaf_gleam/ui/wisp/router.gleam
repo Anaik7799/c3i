@@ -19,6 +19,7 @@ import cepaf_gleam/agui/sse as agui_sse
 import cepaf_gleam/agui/sse_stream
 import cepaf_gleam/agui/state as agui_state
 import cepaf_gleam/agui/tools as agui_tools
+import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/fractal/l0_constitutional.{
   type ApprovalRequest, ApprovalRequest, Approved, Critical as ApprovalCritical,
   High as ApprovalHigh, Low as ApprovalLow, Medium as ApprovalMedium, Rejected,
@@ -26,22 +27,23 @@ import cepaf_gleam/fractal/l0_constitutional.{
   resolve_request, trigger_emergency,
 }
 import cepaf_gleam/moz/client as moz_client
-import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/rules/engine as rule_engine
 import cepaf_gleam/ui/domain.{
-  type HealthStatus, Cockpit, Critical, Dashboard, Degraded, Healthy, Immune,
-  Kms, Knowledge, Mcp, Metabolic, Planning, Podman, Substrate, Telemetry,
-  Unknown, Verification, Zenoh, Federation, HealthGrid, Prajna, Agents, Holon, 
-  Config, Git, Database, Bridge, Smriti, PlanningDashboard, Integrity, Evolution, 
-  Biomorphic, HomeostasisPage, Bicameral, Singularity, ComponentDemo,
-  page_to_label, page_to_path,
+  type HealthStatus, Agents, Bicameral, Biomorphic, Bridge, Cockpit,
+  ComponentDemo, Config, Critical, Dashboard, Database, Degraded, Evolution,
+  Federation, Git, HealthGrid, Healthy, Holon, HomeostasisPage, Immune,
+  Integrity, Kms, Knowledge, Mcp, Metabolic, Planning, PlanningDashboard, Podman,
+  Prajna, Singularity, Smriti, Substrate, Telemetry, Unknown, Verification,
+  Zenoh, page_to_label, page_to_path,
 }
 import cepaf_gleam/ui/state as mesh_state
 import cepaf_gleam/ui/web/page_views
+import cepaf_gleam/ui/wisp/mini_app_routes
 import cepaf_gleam/ui/web/shell
 import cepaf_gleam/ui/wisp/auth
 import cepaf_gleam/ui/wisp/federation_api
 import cepaf_gleam/ui/wisp/podman_api
+import gleam/bit_array
 import gleam/crypto
 import gleam/dynamic/decode
 import gleam/http.{Get, Post}
@@ -50,7 +52,6 @@ import gleam/http/response.{type Response as HttpResponse}
 import gleam/int
 import gleam/json
 import gleam/list
-import gleam/bit_array
 import gleam/string
 
 @external(erlang, "cepaf_gleam_ffi", "system_time_nanos")
@@ -89,18 +90,28 @@ pub fn route(path: String) -> String {
     "/api/v1/components" -> component_demo_json()
     "/api/v1/allium" -> allium_list_json()
     "/api/v1/allium/ignition" -> allium_spec_json("ignition")
-    "/api/v1/allium/gleam_webui_comprehensive" -> allium_spec_json("gleam_webui_comprehensive")
-    "/api/v1/allium/fractal_agentic_ui" -> allium_spec_json("fractal_agentic_ui")
-    "/api/v1/allium/control_center_operator_interface" -> allium_spec_json("control_center_operator_interface")
-    "/api/v1/allium/webui_evolution_plan" -> allium_spec_json("webui_evolution_plan")
-    "/api/v1/allium/webui_operational_control" -> allium_spec_json("webui_operational_control")
-    "/api/v1/allium/webui_production_hardening" -> allium_spec_json("webui_production_hardening")
-    "/api/v1/allium/testing_architecture" -> allium_spec_json("testing_architecture")
-    "/api/v1/allium/ui_testing_framework" -> allium_spec_json("ui_testing_framework")
+    "/api/v1/allium/gleam_webui_comprehensive" ->
+      allium_spec_json("gleam_webui_comprehensive")
+    "/api/v1/allium/fractal_agentic_ui" ->
+      allium_spec_json("fractal_agentic_ui")
+    "/api/v1/allium/control_center_operator_interface" ->
+      allium_spec_json("control_center_operator_interface")
+    "/api/v1/allium/webui_evolution_plan" ->
+      allium_spec_json("webui_evolution_plan")
+    "/api/v1/allium/webui_operational_control" ->
+      allium_spec_json("webui_operational_control")
+    "/api/v1/allium/webui_production_hardening" ->
+      allium_spec_json("webui_production_hardening")
+    "/api/v1/allium/testing_architecture" ->
+      allium_spec_json("testing_architecture")
+    "/api/v1/allium/ui_testing_framework" ->
+      allium_spec_json("ui_testing_framework")
     "/api/v1/allium/zmof" -> allium_spec_json("zmof")
     "/api/v1/allium/zenoh_ffi" -> allium_spec_json("zenoh_ffi")
-    "/api/v1/allium/dashboard_50_improvements" -> allium_spec_json("dashboard_50_improvements")
-    "/api/v1/allium/operator_hmi_standards" -> allium_spec_json("operator_hmi_standards")
+    "/api/v1/allium/dashboard_50_improvements" ->
+      allium_spec_json("dashboard_50_improvements")
+    "/api/v1/allium/operator_hmi_standards" ->
+      allium_spec_json("operator_hmi_standards")
     // Safety and Enforcer (Planning Panels 3 & 4)
     "/api/safety/status" | "/api/v1/safety" -> safety_json()
     "/api/enforcer/status" | "/api/v1/enforcer" -> enforcer_json()
@@ -135,7 +146,8 @@ pub fn route(path: String) -> String {
     "/api/v1/plan/status" -> c3i_nif.plan_status()
     "/api/v1/plan/pending" -> c3i_nif.plan_list_pending()
     "/api/v1/plan/list/pending" -> c3i_nif.plan_list_by_status("pending")
-    "/api/v1/plan/list/in_progress" -> c3i_nif.plan_list_by_status("in_progress")
+    "/api/v1/plan/list/in_progress" ->
+      c3i_nif.plan_list_by_status("in_progress")
     "/api/v1/plan/list/completed" -> c3i_nif.plan_list_by_status("completed")
     "/api/v1/plan/list/blocked" -> c3i_nif.plan_list_by_status("blocked")
     "/api/v1/plan/list/all" -> c3i_nif.plan_list_by_status("all")
@@ -269,11 +281,10 @@ fn health_json() -> String {
 fn pages_json() -> String {
   let pages = [
     Dashboard, Planning, Immune, Knowledge, Zenoh, Cockpit, Verification,
-    Substrate, Metabolic, Podman, Mcp, Kms, Telemetry,
-    Federation, HealthGrid, Prajna, Agents, Holon, Config, Git,
-    Database, Bridge, Smriti, PlanningDashboard, Integrity,
-    Evolution, Biomorphic, HomeostasisPage, Bicameral, Singularity,
-    ComponentDemo,
+    Substrate, Metabolic, Podman, Mcp, Kms, Telemetry, Federation, HealthGrid,
+    Prajna, Agents, Holon, Config, Git, Database, Bridge, Smriti,
+    PlanningDashboard, Integrity, Evolution, Biomorphic, HomeostasisPage,
+    Bicameral, Singularity, ComponentDemo,
   ]
   json.object([
     #(
@@ -380,15 +391,42 @@ fn integrity_json() -> String {
     #("constitution_hash", json.string("sha256:e3b0c44298fc1c14...")),
     #("chain_valid", json.bool(True)),
     #("last_verified", json.string("2026-04-07T01:30:00Z")),
-    #("psi_checks", json.array([
-      json.object([#("name", json.string("Psi-0 Existence")), #("passed", json.bool(True))]),
-      json.object([#("name", json.string("Psi-1 Regeneration")), #("passed", json.bool(True))]),
-      json.object([#("name", json.string("Psi-2 History")), #("passed", json.bool(True))]),
-      json.object([#("name", json.string("Psi-3 Verification")), #("passed", json.bool(True))]),
-      json.object([#("name", json.string("Psi-4 Alignment")), #("passed", json.bool(True))]),
-      json.object([#("name", json.string("Psi-5 Truthfulness")), #("passed", json.bool(True))]),
-      json.object([#("name", json.string("Omega-0 Symbiotic")), #("passed", json.bool(True))]),
-    ], of: fn(x) { x })),
+    #(
+      "psi_checks",
+      json.array(
+        [
+          json.object([
+            #("name", json.string("Psi-0 Existence")),
+            #("passed", json.bool(True)),
+          ]),
+          json.object([
+            #("name", json.string("Psi-1 Regeneration")),
+            #("passed", json.bool(True)),
+          ]),
+          json.object([
+            #("name", json.string("Psi-2 History")),
+            #("passed", json.bool(True)),
+          ]),
+          json.object([
+            #("name", json.string("Psi-3 Verification")),
+            #("passed", json.bool(True)),
+          ]),
+          json.object([
+            #("name", json.string("Psi-4 Alignment")),
+            #("passed", json.bool(True)),
+          ]),
+          json.object([
+            #("name", json.string("Psi-5 Truthfulness")),
+            #("passed", json.bool(True)),
+          ]),
+          json.object([
+            #("name", json.string("Omega-0 Symbiotic")),
+            #("passed", json.bool(True)),
+          ]),
+        ],
+        of: fn(x) { x },
+      ),
+    ),
   ])
   |> json.to_string()
 }
@@ -413,11 +451,29 @@ fn biomorphic_json() -> String {
     #("layer", json.string("L5_COGNITIVE")),
     #("mode", json.string("normal")),
     #("overall_score", json.float(0.95)),
-    #("subsystems", json.array([
-      json.object([#("name", json.string("Bio")), #("status", json.string("healthy")), #("score", json.float(0.97))]),
-      json.object([#("name", json.string("Neuro")), #("status", json.string("healthy")), #("score", json.float(0.94))]),
-      json.object([#("name", json.string("Immune")), #("status", json.string("healthy")), #("score", json.float(0.96))]),
-    ], of: fn(x) { x })),
+    #(
+      "subsystems",
+      json.array(
+        [
+          json.object([
+            #("name", json.string("Bio")),
+            #("status", json.string("healthy")),
+            #("score", json.float(0.97)),
+          ]),
+          json.object([
+            #("name", json.string("Neuro")),
+            #("status", json.string("healthy")),
+            #("score", json.float(0.94)),
+          ]),
+          json.object([
+            #("name", json.string("Immune")),
+            #("status", json.string("healthy")),
+            #("score", json.float(0.96)),
+          ]),
+        ],
+        of: fn(x) { x },
+      ),
+    ),
   ])
   |> json.to_string()
 }
@@ -429,15 +485,18 @@ fn homeostasis_json() -> String {
     #("stable", json.bool(True)),
     #("convergence_pct", json.float(98.5)),
     #("sample_count", json.int(1024)),
-    #("pid", json.object([
-      #("setpoint", json.float(1.0)),
-      #("actual", json.float(0.985)),
-      #("error", json.float(0.015)),
-      #("output", json.float(0.12)),
-      #("kp", json.float(1.0)),
-      #("ki", json.float(0.1)),
-      #("kd", json.float(0.05)),
-    ])),
+    #(
+      "pid",
+      json.object([
+        #("setpoint", json.float(1.0)),
+        #("actual", json.float(0.985)),
+        #("error", json.float(0.015)),
+        #("output", json.float(0.12)),
+        #("kp", json.float(1.0)),
+        #("ki", json.float(0.1)),
+        #("kd", json.float(0.05)),
+      ]),
+    ),
   ])
   |> json.to_string()
 }
@@ -449,11 +508,29 @@ fn bicameral_json() -> String {
     #("consensus_reached", json.bool(True)),
     #("total_decisions", json.int(156)),
     #("total_vetoes", json.int(3)),
-    #("chambers", json.array([
-      json.object([#("name", json.string("Guardian")), #("vote", json.string("approve")), #("veto_count", json.int(1))]),
-      json.object([#("name", json.string("Sentinel")), #("vote", json.string("approve")), #("veto_count", json.int(2))]),
-      json.object([#("name", json.string("Cortex")), #("vote", json.string("approve")), #("veto_count", json.int(0))]),
-    ], of: fn(x) { x })),
+    #(
+      "chambers",
+      json.array(
+        [
+          json.object([
+            #("name", json.string("Guardian")),
+            #("vote", json.string("approve")),
+            #("veto_count", json.int(1)),
+          ]),
+          json.object([
+            #("name", json.string("Sentinel")),
+            #("vote", json.string("approve")),
+            #("veto_count", json.int(2)),
+          ]),
+          json.object([
+            #("name", json.string("Cortex")),
+            #("vote", json.string("approve")),
+            #("veto_count", json.int(0)),
+          ]),
+        ],
+        of: fn(x) { x },
+      ),
+    ),
   ])
   |> json.to_string()
 }
@@ -466,11 +543,29 @@ fn singularity_json() -> String {
     #("safety_margin", json.float(0.87)),
     #("capability_score", json.float(0.45)),
     #("estimation_horizon", json.string("indeterminate")),
-    #("capabilities", json.array([
-      json.object([#("name", json.string("Reasoning")), #("score", json.float(0.72)), #("trend", json.string("up"))]),
-      json.object([#("name", json.string("Self-Repair")), #("score", json.float(0.55)), #("trend", json.string("up"))]),
-      json.object([#("name", json.string("Autonomy")), #("score", json.float(0.31)), #("trend", json.string("stable"))]),
-    ], of: fn(x) { x })),
+    #(
+      "capabilities",
+      json.array(
+        [
+          json.object([
+            #("name", json.string("Reasoning")),
+            #("score", json.float(0.72)),
+            #("trend", json.string("up")),
+          ]),
+          json.object([
+            #("name", json.string("Self-Repair")),
+            #("score", json.float(0.55)),
+            #("trend", json.string("up")),
+          ]),
+          json.object([
+            #("name", json.string("Autonomy")),
+            #("score", json.float(0.31)),
+            #("trend", json.string("stable")),
+          ]),
+        ],
+        of: fn(x) { x },
+      ),
+    ),
   ])
   |> json.to_string()
 }
@@ -481,35 +576,44 @@ fn component_demo_json() -> String {
   json.object([
     #("page", json.string("Component Demo")),
     #("total_components", json.int(233)),
-    #("categories", json.object([
-      #("core", json.int(15)),
-      #("layout", json.int(14)),
-      #("data", json.int(16)),
-      #("status", json.int(18)),
-      #("interactive", json.int(16)),
-      #("visualization", json.int(20)),
-      #("agent", json.int(10)),
-      #("safety", json.int(6)),
-      #("real_time_monitors", json.int(15)),
-      #("zenoh_mesh", json.int(10)),
-      #("container_lifecycle", json.int(10)),
-      #("planning_task", json.int(10)),
-      #("knowledge_semantic", json.int(8)),
-      #("rule_engine", json.int(8)),
-      #("recovery_resilience", json.int(8)),
-      #("observability", json.int(8)),
-      #("biomorphic", json.int(8)),
-      #("federation_l7", json.int(8)),
-      #("accessibility", json.int(8)),
-      #("security_crypto", json.int(7)),
-      #("allium_spec", json.int(5)),
-      #("notification", json.int(5)),
-    ])),
-    #("render_targets", json.array([
-      json.string("HTML (Lustre SSR)"),
-      json.string("JSON (Wisp API)"),
-      json.string("ANSI (TUI Terminal)"),
-    ], of: fn(x) { x })),
+    #(
+      "categories",
+      json.object([
+        #("core", json.int(15)),
+        #("layout", json.int(14)),
+        #("data", json.int(16)),
+        #("status", json.int(18)),
+        #("interactive", json.int(16)),
+        #("visualization", json.int(20)),
+        #("agent", json.int(10)),
+        #("safety", json.int(6)),
+        #("real_time_monitors", json.int(15)),
+        #("zenoh_mesh", json.int(10)),
+        #("container_lifecycle", json.int(10)),
+        #("planning_task", json.int(10)),
+        #("knowledge_semantic", json.int(8)),
+        #("rule_engine", json.int(8)),
+        #("recovery_resilience", json.int(8)),
+        #("observability", json.int(8)),
+        #("biomorphic", json.int(8)),
+        #("federation_l7", json.int(8)),
+        #("accessibility", json.int(8)),
+        #("security_crypto", json.int(7)),
+        #("allium_spec", json.int(5)),
+        #("notification", json.int(5)),
+      ]),
+    ),
+    #(
+      "render_targets",
+      json.array(
+        [
+          json.string("HTML (Lustre SSR)"),
+          json.string("JSON (Wisp API)"),
+          json.string("ANSI (TUI Terminal)"),
+        ],
+        of: fn(x) { x },
+      ),
+    ),
     #("isomorphic_count", json.int(226)),
     #("html_only_count", json.int(7)),
     #("live_system_health", json.string(health)),
@@ -539,16 +643,19 @@ fn allium_list_json() -> String {
     #("page", json.string("Allium Specifications")),
     #("total_specs", json.int(36)),
     #("total_lines", json.int(9841)),
-    #("specs", json.array(specs, fn(s) {
-      let #(name, desc, lines) = s
-      json.object([
-        #("name", json.string(name)),
-        #("description", json.string(desc)),
-        #("lines", json.int(lines)),
-        #("url", json.string("/allium/" <> name)),
-        #("api_url", json.string("/api/v1/allium/" <> name)),
-      ])
-    })),
+    #(
+      "specs",
+      json.array(specs, fn(s) {
+        let #(name, desc, lines) = s
+        json.object([
+          #("name", json.string(name)),
+          #("description", json.string(desc)),
+          #("lines", json.int(lines)),
+          #("url", json.string("/allium/" <> name)),
+          #("api_url", json.string("/api/v1/allium/" <> name)),
+        ])
+      }),
+    ),
   ])
   |> json.to_string()
 }
@@ -673,9 +780,15 @@ fn ooda_decide_json() -> String {
   let healthy = !string.contains(health_json, "\"threat_level\":\"critical\"")
 
   let facts = [
-    rule_engine.Fact("System.MeshRunning", case connected { True -> "true" False -> "false" }),
+    rule_engine.Fact("System.MeshRunning", case connected {
+      True -> "true"
+      False -> "false"
+    }),
     rule_engine.Fact("System.MissingCriticalNodes", "false"),
-    rule_engine.Fact("System.DriftDetected", case healthy { True -> "false" False -> "true" }),
+    rule_engine.Fact("System.DriftDetected", case healthy {
+      True -> "false"
+      False -> "true"
+    }),
     rule_engine.Fact("System.MultiDrift", "false"),
     rule_engine.Fact("System.HighDriftCount", "false"),
   ]
@@ -684,11 +797,22 @@ fn ooda_decide_json() -> String {
 
   // Also evaluate preflight
   let preflight_facts = [
-    rule_engine.Fact("Preflight.InfraHealthy", case connected { True -> "true" False -> "false" }),
-    rule_engine.Fact("Preflight.ZenohQuorum", case connected { True -> "true" False -> "false" }),
+    rule_engine.Fact("Preflight.InfraHealthy", case connected {
+      True -> "true"
+      False -> "false"
+    }),
+    rule_engine.Fact("Preflight.ZenohQuorum", case connected {
+      True -> "true"
+      False -> "false"
+    }),
     rule_engine.Fact("Preflight.SubstrateClean", "true"),
   ]
-  let preflight = rule_engine.evaluate("Preflight", rule_engine.preflight_rules(), preflight_facts)
+  let preflight =
+    rule_engine.evaluate(
+      "Preflight",
+      rule_engine.preflight_rules(),
+      preflight_facts,
+    )
 
   json.object([
     #("page", json.string("OODA Decision Brain")),
@@ -697,13 +821,46 @@ fn ooda_decide_json() -> String {
     #("ooda_reason", json.string(result.reason)),
     #("preflight_decision", json.string(preflight.decision)),
     #("preflight_reason", json.string(preflight.reason)),
-    #("tiers", json.object([
-      #("agent", json.object([#("budget_ms", json.int(30)), #("status", json.string("active"))])),
-      #("intelligence", json.object([#("budget_ms", json.int(100)), #("status", json.string("active"))])),
-      #("knowledge", json.object([#("budget_ms", json.int(1)), #("status", json.string("active"))])),
-      #("cortex", json.object([#("budget_ms", json.int(50)), #("status", json.string("active"))])),
-      #("strategy", json.object([#("budget_ms", json.int(1000)), #("status", json.string("active"))])),
-    ])),
+    #(
+      "tiers",
+      json.object([
+        #(
+          "agent",
+          json.object([
+            #("budget_ms", json.int(30)),
+            #("status", json.string("active")),
+          ]),
+        ),
+        #(
+          "intelligence",
+          json.object([
+            #("budget_ms", json.int(100)),
+            #("status", json.string("active")),
+          ]),
+        ),
+        #(
+          "knowledge",
+          json.object([
+            #("budget_ms", json.int(1)),
+            #("status", json.string("active")),
+          ]),
+        ),
+        #(
+          "cortex",
+          json.object([
+            #("budget_ms", json.int(50)),
+            #("status", json.string("active")),
+          ]),
+        ),
+        #(
+          "strategy",
+          json.object([
+            #("budget_ms", json.int(1000)),
+            #("status", json.string("active")),
+          ]),
+        ),
+      ]),
+    ),
     #("rules_evaluated", json.int(7)),
     #("domains_available", json.int(13)),
   ])
@@ -1177,11 +1334,15 @@ fn handle_get(path: String) -> HttpResponse(String) {
     "/api/v1/guardian/pending" -> json_response(guardian_pending_json(), 200)
     // Health endpoint stays JSON — consumed by monitoring probes, not browsers.
     "/health" | "/api/health" -> json_response(health_json(), 200)
-    // All other paths: HTML for browser requests, JSON for /api/* paths.
+    // Telegram Mini App routes — mobile-optimized SSR HTML (SC-OPENCLAW-001)
     _ ->
-      case is_api_path(path) {
-        True -> json_response(route(path), 200)
-        False -> html_response(route_html(path))
+      case mini_app_routes.is_mini_app_path(path) {
+        True -> html_response(mini_app_routes.route(path))
+        False ->
+          case is_api_path(path) {
+            True -> json_response(route(path), 200)
+            False -> html_response(route_html(path))
+          }
       }
   }
 }
@@ -1371,7 +1532,8 @@ fn route_html(path: String) -> String {
             page_views.allium_spec_view(spec_name),
           )
         }
-        False -> shell.render_page("Not Found", "", page_views.not_found_view(path))
+        False ->
+          shell.render_page("Not Found", "", page_views.not_found_view(path))
       }
     }
   }

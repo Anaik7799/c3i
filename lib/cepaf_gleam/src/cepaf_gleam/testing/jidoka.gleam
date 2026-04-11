@@ -8,7 +8,6 @@
 
 import gleam/io
 import gleam/list
-import gleam/result
 
 pub type ValidationIssue {
   ValidationIssue(id: String, severity: String, description: String)
@@ -16,16 +15,20 @@ pub type ValidationIssue {
 
 /// Enforce Jidoka gate: halt if any critical issues are found.
 pub fn halt_on_error(issues: List(ValidationIssue)) -> Result(Nil, String) {
-  let critical_issues = 
+  let critical_issues =
     list.filter(issues, fn(issue) { issue.severity == "CRITICAL" })
-    
+
   case list.length(critical_issues) {
     0 -> {
       io.println("✅ Jidoka Gate: All invariants maintained.")
       Ok(Nil)
     }
     n -> {
-      io.println("🛑 Jidoka Halt: " <> int_to_string(n) <> " critical violations detected!")
+      io.println(
+        "🛑 Jidoka Halt: "
+        <> int_to_string(n)
+        <> " critical violations detected!",
+      )
       Error("SIL-6 Safety Violation: System halted via Jidoka.")
     }
   }

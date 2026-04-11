@@ -54,7 +54,7 @@ Every line of code committed has been paired with rigorous architectural documen
 3.  **Comprehensive Journals**: 
     - Full record of architectural decisions spanning `docs/journal/20260408-*`.
 4.  **Root Specifications**: 
-    - `GEMINI.md` and `CLAUDE.md` accurately reflect version `22.3.0-GLM`, including the HA, OpenClaw, and ZMOF mandates.
+    - `GEMINI.md` and `CLAUDE.md` accurately reflect version `22.5.0-CORTEX`, including HA, OpenClaw, ZMOF, 31-module Rust cortex (9,104 LOC), 6-tier hedged inference, and 5-tier voice cascade.
 
 ## 5. Synthesis
 The Indrajaal C3I system has achieved 100% fractal layer integration. There are no "blind spots" in the architecture. From the highest level of User Intention (Telegram) down to the physical execution of arbitrary Python code in an isolated container, every transaction is mathematically bound, observable, and fail-safe.

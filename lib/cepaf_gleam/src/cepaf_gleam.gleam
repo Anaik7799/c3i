@@ -36,6 +36,7 @@ import gleam/erlang/process
 import gleam/int
 import gleam/io
 import gleam/list
+import gleam/option
 import gleam/string
 
 @external(erlang, "cepaf_gleam_ffi", "get_uid")
@@ -57,7 +58,9 @@ pub fn main() {
   }
 
   // 0.1 Start Biomorphic Agent Hierarchy (L7-L0)
-  let _ = case list.contains(args, "--serve") || list.contains(args, "--daemon") {
+  let _ = case
+    list.contains(args, "--serve") || list.contains(args, "--daemon")
+  {
     True -> {
       io.println("  [agents] Starting 3-layer autonomous hierarchy...")
       let _ = cybernetic.start_executive_supervisor()
@@ -125,17 +128,27 @@ pub fn main() {
     Error(_) -> io.println("  ❌ Error listing containers")
   }
 
-  // 3. Zenoh IPC Test
+  // 3. Zenoh IPC — Open session and publish status
   io.println("\n📡 ZENOH IPC INTEGRATION:")
-  case zenoh.open("{\"mode\": \"client\"}") {
+  let zenoh_session = case zenoh.open("{\"mode\": \"client\"}") {
     Ok(session) -> {
       io.println("  [debug] Session: " <> string.inspect(session))
       case zenoh.put(session, "indrajaal/cepaf/gleam/status", "online") {
         Ok(_) -> io.println("  ✅ Zenoh session active & status published.")
         Error(e) -> io.println("  ❌ Zenoh put failed: " <> e)
       }
+      // SC-WIRE-001: Store session for agent AG-UI event emission
+      option.Some(session)
     }
-    Error(e) -> io.println("  ❌ Zenoh open failed: " <> e)
+    Error(e) -> {
+      io.println("  ❌ Zenoh open failed: " <> e)
+      option.None
+    }
+  }
+  // Log Zenoh session availability for agents
+  case zenoh_session {
+    option.Some(_) -> io.println("  [agents] Zenoh session available for AG-UI events")
+    option.None -> io.println("  [agents] Zenoh unavailable — AG-UI events will no-op")
   }
 
   // 4. Runtime Mode Selection

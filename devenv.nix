@@ -9,8 +9,14 @@
     NO_TIMEOUT = "true";
     PATIENT_MODE = "enabled";
     INFINITE_PATIENCE = "true";
-    ELIXIR_ERL_OPTIONS = "+S 16:16 +SDio 16";
+    ELIXIR_ERL_OPTIONS = "+fnu +S 16:16 +SDio 16";
     MIX_OS_DEPS_COMPILE_PARTITION_COUNT = "8";
+
+    # Zenoh NIF (MANDATORY — SC-ZENOH-001, SC-ENV-COMPILE-002)
+    SKIP_ZENOH_NIF = "0";
+
+    # Wallaby E2E (SC-ENV-COMPILE-003)
+    WALLABY_ENABLED = "true";
 
     # Container settings
     PODMAN_ROOTLESS = "true";

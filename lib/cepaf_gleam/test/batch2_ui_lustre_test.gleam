@@ -332,6 +332,8 @@ pub fn cockpit_visible_nodes_dark_cockpit_filters_connected_test() {
       biomorphic_data: None,
       cpu_threshold: 0.85,
       mem_threshold: 0.75,
+      reasoning_buffer: "",
+      agui_event_count: 0,
     )
   let visible = cockpit_view.visible_nodes(model)
   // Dark cockpit hides Connected nodes — only non-Connected show
@@ -353,6 +355,8 @@ pub fn cockpit_visible_nodes_normal_mode_shows_all_test() {
       biomorphic_data: None,
       cpu_threshold: 0.85,
       mem_threshold: 0.75,
+      reasoning_buffer: "",
+      agui_event_count: 0,
     )
   let visible = cockpit_view.visible_nodes(model)
   list.length(visible) |> should.equal(2)
@@ -401,6 +405,8 @@ pub fn cockpit_active_alarms_filters_normal_test() {
       biomorphic_data: None,
       cpu_threshold: 0.85,
       mem_threshold: 0.75,
+      reasoning_buffer: "",
+      agui_event_count: 0,
     )
   let active = cockpit_view.active_alarms(model)
   // Normal alarm filtered out, so 2 remain
@@ -423,6 +429,8 @@ pub fn cockpit_active_alarms_sorted_critical_first_test() {
       biomorphic_data: None,
       cpu_threshold: 0.85,
       mem_threshold: 0.75,
+      reasoning_buffer: "",
+      agui_event_count: 0,
     )
   let active = cockpit_view.active_alarms(model)
   // First alarm should be Critical (highest severity)
@@ -447,6 +455,8 @@ pub fn cockpit_active_alarms_empty_when_all_normal_test() {
       biomorphic_data: None,
       cpu_threshold: 0.85,
       mem_threshold: 0.75,
+      reasoning_buffer: "",
+      agui_event_count: 0,
     )
   cockpit_view.active_alarms(model) |> should.equal([])
 }

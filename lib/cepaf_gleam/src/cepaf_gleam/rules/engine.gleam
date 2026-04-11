@@ -377,6 +377,240 @@ pub fn evaluate_rca(error: String) -> RuleResult {
   ])
 }
 
+// =============================================================================
+// Missing Evaluators: build, apoptosis, hysteresis, partition (13/13 parity)
+// =============================================================================
+
+pub fn build_rules() -> String {
+  "
+    rule \"Rebuild P0\" salience 100 {
+      when Build.AgeHours >= 72 && Build.IsCritical == true
+      then Build.Decision = \"Rebuild\"; Build.Reason = \"P0 stale >72h\";
+    }
+    rule \"Rebuild Standard\" salience 50 {
+      when Build.AgeHours >= 168 && Build.IsCritical == false
+      then Build.Decision = \"Rebuild\"; Build.Reason = \"Standard stale >168h\";
+    }
+    rule \"Skip\" salience 10 {
+      when Build.AgeHours < 72
+      then Build.Decision = \"Skip\"; Build.Reason = \"Image fresh\";
+    }
+  "
+}
+
+pub fn apoptosis_rules() -> String {
+  "
+    rule \"Immediate\" salience 100 {
+      when Apoptosis.Severity == true && Apoptosis.DataCorrupt == true
+      then Apoptosis.Decision = \"Immediate\"; Apoptosis.Reason = \"Data corrupt\";
+    }
+    rule \"Fast 2s\" salience 80 {
+      when Apoptosis.Severity == true && Apoptosis.DataCorrupt == false
+      then Apoptosis.Decision = \"Fast2s\"; Apoptosis.Reason = \"Critical no corruption\";
+    }
+    rule \"Graceful 10s\" salience 50 {
+      when Apoptosis.Severity == false && Apoptosis.ActiveConnections == true
+      then Apoptosis.Decision = \"Graceful10s\"; Apoptosis.Reason = \"Drain connections\";
+    }
+    rule \"Default 5s\" salience 10 {
+      when Apoptosis.Severity == false && Apoptosis.ActiveConnections == false
+      then Apoptosis.Decision = \"Default5s\"; Apoptosis.Reason = \"Standard shutdown\";
+    }
+  "
+}
+
+pub fn hysteresis_rules() -> String {
+  "
+    rule \"Aggressive\" salience 80 {
+      when Hysteresis.HighVolatility == true
+      then Hysteresis.Decision = \"Aggressive\"; Hysteresis.Reason = \"High volatility\";
+    }
+    rule \"Conservative\" salience 50 {
+      when Hysteresis.LowVolatility == true && Hysteresis.HighVolatility == false
+      then Hysteresis.Decision = \"Conservative\"; Hysteresis.Reason = \"Low volatility\";
+    }
+    rule \"Default\" salience 10 {
+      when Hysteresis.HighVolatility == false && Hysteresis.LowVolatility == false
+      then Hysteresis.Decision = \"Default\"; Hysteresis.Reason = \"Normal volatility\";
+    }
+  "
+}
+
+pub fn partition_rules() -> String {
+  "
+    rule \"Fence Minority\" salience 100 {
+      when Partition.Detected == true && Partition.DbInMinority == true
+      then Partition.Decision = \"FenceMinority\"; Partition.Reason = \"DB in minority partition\";
+    }
+    rule \"Preserve Data\" salience 70 {
+      when Partition.Detected == true && Partition.DbInMinority == false
+      then Partition.Decision = \"PreserveData\"; Partition.Reason = \"DB in majority\";
+    }
+    rule \"No Action\" salience 10 {
+      when Partition.Detected == false
+      then Partition.Decision = \"NoAction\"; Partition.Reason = \"No partition\";
+    }
+  "
+}
+
+pub fn evaluate_build(age_hours: Int, is_critical: Bool) -> RuleResult {
+  evaluate("Build", build_rules(), [
+    Fact("Build.AgeHours", int_to_str(age_hours)),
+    Fact("Build.IsCritical", bool_str(is_critical)),
+  ])
+}
+
+pub fn evaluate_apoptosis(severity: Bool, data_corrupt: Bool, active_connections: Bool) -> RuleResult {
+  evaluate("Apoptosis", apoptosis_rules(), [
+    Fact("Apoptosis.Severity", bool_str(severity)),
+    Fact("Apoptosis.DataCorrupt", bool_str(data_corrupt)),
+    Fact("Apoptosis.ActiveConnections", bool_str(active_connections)),
+  ])
+}
+
+pub fn evaluate_hysteresis(high_volatility: Bool, low_volatility: Bool) -> RuleResult {
+  evaluate("Hysteresis", hysteresis_rules(), [
+    Fact("Hysteresis.HighVolatility", bool_str(high_volatility)),
+    Fact("Hysteresis.LowVolatility", bool_str(low_volatility)),
+  ])
+}
+
+pub fn evaluate_partition(detected: Bool, db_in_minority: Bool) -> RuleResult {
+  evaluate("Partition", partition_rules(), [
+    Fact("Partition.Detected", bool_str(detected)),
+    Fact("Partition.DbInMinority", bool_str(db_in_minority)),
+  ])
+}
+
+// =============================================================================
+// Per-Layer RETE-UL UI Rules (SC-WIRE-001: fractal display governance)
+// =============================================================================
+
+/// L0 Constitutional UI rules — emergency visibility
+pub fn l0_ui_rules() -> String {
+  "
+    rule \"Emergency Mode\" salience 100 {
+      when L0.EmergencyActive == true
+      then L0.Display = \"FullIllumination\"; L0.Reason = \"Emergency active\";
+    }
+    rule \"Guardian Pending\" salience 80 {
+      when L0.PendingApprovals > 0
+      then L0.Display = \"ShowApprovalPanel\"; L0.Reason = \"HITL approvals pending\";
+    }
+    rule \"Constitutional OK\" salience 10 {
+      when L0.EmergencyActive == false && L0.PendingApprovals == 0
+      then L0.Display = \"DarkCockpit\"; L0.Reason = \"All clear\";
+    }
+  "
+}
+
+/// L1 Telemetry UI rules — display thresholds
+pub fn l1_ui_rules() -> String {
+  "
+    rule \"High Latency\" salience 80 {
+      when L1.AvgLatencyMs > 5000
+      then L1.Display = \"RedAlert\"; L1.Reason = \"Latency > 5s\";
+    }
+    rule \"Elevated Latency\" salience 50 {
+      when L1.AvgLatencyMs > 2000 && L1.AvgLatencyMs <= 5000
+      then L1.Display = \"YellowWarning\"; L1.Reason = \"Latency 2-5s\";
+    }
+    rule \"Normal\" salience 10 {
+      when L1.AvgLatencyMs <= 2000
+      then L1.Display = \"Green\"; L1.Reason = \"Latency normal\";
+    }
+  "
+}
+
+/// L4 System UI rules — container health coloring
+pub fn l4_ui_rules() -> String {
+  "
+    rule \"Critical Containers\" salience 80 {
+      when L4.UnhealthyCount > 3
+      then L4.Display = \"RedGrid\"; L4.Reason = \"Multiple unhealthy\";
+    }
+    rule \"Degraded\" salience 50 {
+      when L4.UnhealthyCount > 0 && L4.UnhealthyCount <= 3
+      then L4.Display = \"YellowGrid\"; L4.Reason = \"Some unhealthy\";
+    }
+    rule \"All Healthy\" salience 10 {
+      when L4.UnhealthyCount == 0
+      then L4.Display = \"GreenGrid\"; L4.Reason = \"All healthy\";
+    }
+  "
+}
+
+/// L5 Cognitive UI rules — reasoning display
+pub fn l5_ui_rules() -> String {
+  "
+    rule \"Reasoning Active\" salience 80 {
+      when L5.ReasoningActive == true
+      then L5.Display = \"ShowStream\"; L5.Reason = \"Reasoning in progress\";
+    }
+    rule \"OODA Slow\" salience 60 {
+      when L5.OodaLatencyMs > 100
+      then L5.Display = \"OodaWarning\"; L5.Reason = \"OODA > 100ms target\";
+    }
+    rule \"Idle\" salience 10 {
+      when L5.ReasoningActive == false
+      then L5.Display = \"Compact\"; L5.Reason = \"No active reasoning\";
+    }
+  "
+}
+
+/// L6 Ecosystem UI rules — mesh topology visibility
+pub fn l6_ui_rules() -> String {
+  "
+    rule \"Partition Detected\" salience 100 {
+      when L6.PartitionDetected == true
+      then L6.Display = \"FullTopology\"; L6.Reason = \"Network partition\";
+    }
+    rule \"Quorum Lost\" salience 90 {
+      when L6.QuorumMet == false
+      then L6.Display = \"QuorumAlert\"; L6.Reason = \"Quorum not met\";
+    }
+    rule \"Mesh Healthy\" salience 10 {
+      when L6.PartitionDetected == false && L6.QuorumMet == true
+      then L6.Display = \"MiniTopology\"; L6.Reason = \"Mesh healthy\";
+    }
+  "
+}
+
+/// L7 Federation UI rules — attestation
+pub fn l7_ui_rules() -> String {
+  "
+    rule \"Attestation Expired\" salience 80 {
+      when L7.AllAttested == false
+      then L7.Display = \"ShowAttestationWarning\"; L7.Reason = \"Peer attestation expired\";
+    }
+    rule \"Version Mismatch\" salience 60 {
+      when L7.VersionMismatch == true
+      then L7.Display = \"ShowVersionDiff\"; L7.Reason = \"Peer version mismatch\";
+    }
+    rule \"Federation OK\" salience 10 {
+      when L7.AllAttested == true && L7.VersionMismatch == false
+      then L7.Display = \"Compact\"; L7.Reason = \"Federation aligned\";
+    }
+  "
+}
+
+/// Evaluate UI display rule for a fractal layer
+pub fn evaluate_layer_ui(layer: String, facts: List(Fact)) -> RuleResult {
+  let rules = case layer {
+    "L0" -> l0_ui_rules()
+    "L1" -> l1_ui_rules()
+    "L4" -> l4_ui_rules()
+    "L5" -> l5_ui_rules()
+    "L6" -> l6_ui_rules()
+    "L7" -> l7_ui_rules()
+    _ -> "rule \"Default\" salience 1 { when true then Display = \"Normal\"; Reason = \"Default\"; }"
+  }
+  evaluate(layer, rules, facts)
+}
+
+@external(erlang, "erlang", "integer_to_binary")
+fn int_to_str(i: Int) -> String
+
 fn bool_str(b: Bool) -> String {
   case b {
     True -> "true"

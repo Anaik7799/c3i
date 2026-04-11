@@ -42,15 +42,18 @@ pub fn generate_rca_template(error_id: String, summary: String) -> RcaTemplate {
 
 /// Emit the RCA template as a formatted diagnostic block.
 pub fn format_rca(template: RcaTemplate) -> String {
-  string.join([
-    "--- FRACTAL RCA: " <> template.error_id <> " ---",
-    "L1: " <> template.level1,
-    "L2: " <> template.level2,
-    "L3: " <> template.level3,
-    "L4: " <> template.level4,
-    "L5: " <> template.level5,
-    "-----------------------------------"
-  ], "\n")
+  string.join(
+    [
+      "--- FRACTAL RCA: " <> template.error_id <> " ---",
+      "L1: " <> template.level1,
+      "L2: " <> template.level2,
+      "L3: " <> template.level3,
+      "L4: " <> template.level4,
+      "L5: " <> template.level5,
+      "-----------------------------------",
+    ],
+    "\n",
+  )
 }
 
 /// Log the RCA to standard output for the TUI dashboard.

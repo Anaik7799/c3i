@@ -6,7 +6,9 @@
 //// </c3i-module>
 
 import cepaf_gleam/cockpit/visuals
-import cepaf_gleam/ui/lustre/biomorphic.{type BiomorphicModel, type SubsystemHealth}
+import cepaf_gleam/ui/lustre/biomorphic.{
+  type BiomorphicModel, type SubsystemHealth,
+}
 import gleam/float
 import gleam/option.{None, Some}
 import gleam/string
@@ -28,7 +30,10 @@ fn render_state(model: BiomorphicModel) -> String {
   let mode_line = "  Mode: " <> visuals.with_color(model.mode, "white")
   let overall_line =
     "  Overall: "
-    <> visuals.with_color(float.to_string(model.overall_score), score_color(model.overall_score))
+    <> visuals.with_color(
+      float.to_string(model.overall_score),
+      score_color(model.overall_score),
+    )
   let bio_line = render_subsystem(model.bio)
   let neuro_line = render_subsystem(model.neuro)
   let immune_line = render_subsystem(model.immune)
@@ -36,7 +41,10 @@ fn render_state(model: BiomorphicModel) -> String {
     True -> "  Status: " <> visuals.with_color("ALL NOMINAL", "green")
     False -> "  Status: " <> visuals.with_color("DEGRADED", "yellow")
   }
-  string.join([mode_line, overall_line, "", bio_line, neuro_line, immune_line, "", status], "\n")
+  string.join(
+    [mode_line, overall_line, "", bio_line, neuro_line, immune_line, "", status],
+    "\n",
+  )
 }
 
 fn render_subsystem(s: SubsystemHealth) -> String {

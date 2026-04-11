@@ -15,12 +15,33 @@ import cepaf_gleam/fractal/l7_federation.{
 }
 import gleam/option.{type Option, None, Some}
 
+/// HA election role (P2-5: SC-HA-001)
+pub type HaRole {
+  Primary
+  Backup
+  Standby
+  Draining
+}
+
+/// HA election status widget (P2-5)
+pub type HaStatus {
+  HaStatus(
+    role: HaRole,
+    lease_ttl_ms: Int,
+    last_heartbeat_ms: Int,
+    missed_heartbeats: Int,
+    peer_count: Int,
+  )
+}
+
 /// Lustre model for the Federation page.
 pub type FederationModel {
   FederationModel(
     state: Option(FederationState),
     loading: Bool,
     error: Option(String),
+    // P2-5: HA election status
+    ha: HaStatus,
   )
 }
 
@@ -32,18 +53,25 @@ pub type FederationMsg {
   VersionIncremented
   RefreshFederation
   ErrorReceived(String)
+  // P2-5: HA status update
+  HaStatusUpdated(HaStatus)
 }
 
 /// Initial model — no state loaded yet.
 pub fn init() -> FederationModel {
-  FederationModel(state: None, loading: False, error: None)
+  FederationModel(
+    state: None,
+    loading: False,
+    error: None,
+    ha: HaStatus(Standby, 0, 0, 0, 0),
+  )
 }
 
 /// Pure update function — deterministic, no side effects.
 pub fn update(model: FederationModel, msg: FederationMsg) -> FederationModel {
   case msg {
     StateReceived(s) ->
-      FederationModel(state: Some(s), loading: False, error: None)
+      FederationModel(..model, state: Some(s), loading: False, error: None)
 
     PeerAdded(peer) ->
       case model.state {
@@ -67,6 +95,16 @@ pub fn update(model: FederationModel, msg: FederationMsg) -> FederationModel {
 
     ErrorReceived(err) ->
       FederationModel(..model, error: Some(err), loading: False)
+    HaStatusUpdated(ha) -> FederationModel(..model, ha: ha)
+  }
+}
+
+pub fn ha_role_label(role: HaRole) -> String {
+  case role {
+    Primary -> "PRIMARY"
+    Backup -> "BACKUP"
+    Standby -> "STANDBY"
+    Draining -> "DRAINING"
   }
 }
 
@@ -104,4 +142,40 @@ fn list_length_acc(lst: List(a), acc: Int) -> Int {
     [] -> acc
     [_, ..rest] -> list_length_acc(rest, acc + 1)
   }
+}
+
+// =============================================================================
+// NIF-backed data loading (SC-WIRE-001: real ops data)
+// =============================================================================
+
+import cepaf_gleam/c3i/nif
+import gleam/dynamic/decode
+import gleam/json
+
+/// Load real HA status from NIF → Rust → UserPreferences
+pub fn load_ha_from_nif() -> HaStatus {
+  let raw = nif.ha_status()
+  let decoder = {
+    use role <- decode.field("role", decode.string)
+    use missed <- decode.field("missed_heartbeats", decode.int)
+    use ttl <- decode.field("lease_ttl_ms", decode.int)
+    decode.success(#(role, missed, ttl))
+  }
+  case json.parse(raw, decoder) {
+    Ok(#(role_str, missed, ttl)) -> {
+      let role = case role_str {
+        "primary" -> Primary
+        "backup" -> Backup
+        "draining" -> Draining
+        _ -> Standby
+      }
+      HaStatus(role, ttl, 0, missed, 0)
+    }
+    Error(_) -> HaStatus(Standby, 0, 0, 0, 0)
+  }
+}
+
+/// Load real OODA phase from NIF
+pub fn load_ooda_from_nif() -> String {
+  nif.ooda_phase()
 }

@@ -12,6 +12,7 @@
 //! STAMP: SC-MCP-001, SC-TODO-001, SC-ARCH-SPLIT-003, SC-NIF-001, SC-ZMOF-005
 
 mod db;
+mod cortex;
 mod knowledge;
 mod planning;
 mod system;

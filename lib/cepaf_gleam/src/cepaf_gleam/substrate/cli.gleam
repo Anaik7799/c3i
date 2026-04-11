@@ -6,10 +6,9 @@
 //// Substrate Management CLI (sa-up, sa-down, sa-status in Gleam).
 //// Direct biomorphic motor control via Podman UDS.
 
-import cepaf_gleam/substrate/boot
 import cepaf_gleam/podman/uds_client as podman
+import cepaf_gleam/substrate/boot
 import gleam/io
-import gleam/list
 
 /// Port of sa-up: Triggers the 5-stage biomorphic boot.
 pub fn up() {
@@ -23,7 +22,6 @@ pub fn up() {
 /// Port of sa-down: Graceful drain of the biomorphic swarm.
 pub fn down() {
   io.println("⬇️ Swarm Quiescence (Gleam Native)")
-  let uds = podman.new("/run/podman/podman.sock")
   // In production, fetch list of containers and stop them
   io.println("  [ok] Initiating graceful drain wavefront.")
   io.println("✅ All biomorphic cells entering dormant state.")
@@ -33,7 +31,7 @@ pub fn down() {
 pub fn status() {
   io.println("📋 Swarm Homeostasis Status")
   let uds = podman.new("/run/podman/podman.sock")
-  
+
   case podman.list_containers(uds) {
     Ok(_) -> {
       io.println("💊 SIL-6 Health Verification: NOMINAL")

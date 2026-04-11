@@ -6,7 +6,6 @@
 //// Bounding Box Reasoning & Visual HMI Auditor.
 //// Enables autonomous visual interaction via pixel-coordinate inference.
 
-import gleam/int
 import gleam/io
 import gleam/list
 

@@ -1,4 +1,4 @@
-# C3I Gleam-First System — Claude Guidance (v22.4.0-VOICE)
+# C3I Gleam-First System — Claude Guidance (v22.5.0-CORTEX)
 
 **Master Architecture Matrix**: See `docs/architecture/FRACTAL_SYSTEM_VOICE_CHAT_OBSERVABILITY_MATRIX.md` for comprehensive mapping of offline voice, chat components, Zenoh, observability, logging, and formal specs across all L0-L7 fractal layers.
 
@@ -101,7 +101,7 @@ NO_TIMEOUT=true \
 PATIENT_MODE=enabled \
 SKIP_ZENOH_NIF=0 \
 WALLABY_ENABLED=true \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" \
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" \
 MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 \
 mix compile --jobs 16
 ```
@@ -131,7 +131,7 @@ WALLABY_ENABLED=true \
 SKIP_ZENOH_NIF=0 \
 NO_TIMEOUT=true \
 PATIENT_MODE=enabled \
-ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" \
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" \
 HEALTH_PORT=4051 \
 MIX_ENV=test mix test --only wallaby
 ```
@@ -269,8 +269,13 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 | Zenoh Test Observer | 1 | — | `lib/cepaf_gleam/src/cepaf_gleam/testing/zenoh_test_observer.gleam` (30 pages) |
 | Test Dashboard | 1 | — | `lib/cepaf_gleam/src/cepaf_gleam/testing/test_dashboard.gleam` |
 | Verification | 4 | 383 | `lib/cepaf_gleam/src/cepaf_gleam/verification/*.gleam` |
-| **Test suite** | **67** | **18,000+** | `lib/cepaf_gleam/test/*_test.gleam` |
-| **TOTAL** | **225+** | **~26,000+** | — |
+| **Test suite** | **70** | **18,000+** | `lib/cepaf_gleam/test/*_test.gleam` |
+| Rust Cortex Daemon | 31 | 9,104 | `sub-projects/c3i/native/planning_daemon/src/*.rs` |
+| Gleam Cortex | 1 | ~300 | `lib/cepaf_gleam/src/cepaf_gleam/agents/cortex.gleam` |
+| Gleam Gateway | 3 | 183 | `lib/cepaf_gleam/src/cepaf_gleam/gateway/*.gleam` |
+| Planning modules | 16 | 5,483 | `lib/cepaf_gleam/src/cepaf_gleam/planning/*.gleam` |
+| Podman modules | 7 | 1,304 | `lib/cepaf_gleam/src/cepaf_gleam/podman/*.gleam` |
+| **TOTAL** | **283+** | **~42,000+** | — |
 
 ---
 
@@ -280,7 +285,22 @@ Full constraint registry (2,257 SC-* / 480 AOR-* at parity): `.claude/rules/cons
 
 Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6) SC-HMI(80) SC-VER(79) SC-FRACTAL(8) SC-PROM(7) SC-GLM-ZEN(3) SC-GLM-TST(2)
 
-### New STAMP Constraints (v21.6.0-GLM)
+### Wiring Guard Protocol (SC-WIRE — MANDATORY)
+
+**ALL Model type changes MUST update `testing/wiring_guard.gleam` FIRST.**
+
+| ID | Constraint | Severity |
+|----|-----------|----------|
+| SC-WIRE-001 | wiring_guard.gleam MUST compile before any test | CRITICAL |
+| SC-WIRE-002 | Adding a Model field MUST update wiring_guard.gleam in SAME commit | CRITICAL |
+| SC-WIRE-003 | Adding a Msg variant MUST update update() in SAME commit | CRITICAL |
+| SC-WIRE-007 | Tests MUST use init() constructors, NOT direct Model() constructors | HIGH |
+
+**Verified connections**: 95 (33 page inits + 32 events + 6 models + 21 roundtrips + 3 strict invariants)
+**File**: `testing/wiring_guard.gleam` | **Tests**: `test/wiring_guard_test.gleam` (13 tests)
+**Rule**: `.claude/rules/wiring-guard.md`
+
+### New STAMP Constraints (v22.5.0-CORTEX)
 
 | ID | Constraint | Severity |
 |----|------------|----------|
@@ -392,6 +412,135 @@ All updates to `PROJECT_TODOLIST.md`, task status transitions (Pending -> Active
 
 ---
 
-**Version**: 22.3.0-GLM
-**Last Updated**: 2026-04-08
-**Status**: Gleam-first platform operational (unified c3i_nif, 73 MCP tools, 233 A2UI components, ZMOF active, Muda enforced, sa-plan-daemon authoritative, OpenClaw & HA integrated)
+## §15.0 Chat Processing Pipeline (SC-COG-001)
+
+**Mandate**: SC-COG-001 — The Rust `sa-plan-daemon` cortex processes all chat intents via a 6-tier hedged inference cascade with full transaction tracing.
+
+**Source**: `sub-projects/c3i/native/planning_daemon/src/` (31 files, 9,104 LOC)
+
+### Pipeline Architecture
+
+```
+Telegram/GChat → long-poll → Zenoh intent → CLASSIFY
+  │ simple? → direct DB reply (<1ms)
+  │ complex? → ack("⏳") → HEDGE(Gemini Direct || OpenRouter)
+  │   → fallback: Ollama gemma4 → gemma3 → RETE-UL rules
+  └→ GATEWAY broadcast → Telegram + GChat (retry x1)
+```
+
+### 6-Tier Inference Cascade
+
+| Tier | Model | Latency | Cost | Transport |
+|------|-------|---------|------|-----------|
+| 1 | Gemini Direct (gemini-3.1-flash-lite-preview) | ~900ms | Free | HTTPS |
+| 2 | OpenRouter (gemini-3-flash-preview) | ~1.1s | $0.000009 | HTTPS |
+| 3 | Ollama gemma4 (port 11435) | ~4s | Free | HTTP |
+| 4 | Ollama gemma3 (port 11434) | ~10s | Free | HTTP |
+| 5 | RETE-UL rule engine | <1ms | Free | In-process |
+| 6 | Static ack | <1ms | Free | In-process |
+
+**Hedged Parallel**: Tiers 1+2 fire simultaneously via `tokio::join!`. First success wins.
+**Circuit Breakers**: 4 independent `CircuitBreaker` instances (3 failures → 60s cooldown).
+**Persistent HTTP**: `OnceLock<reqwest::Client>` with 30s keepalive pinger eliminates TLS cold-start.
+**No-Blackhole Guarantee**: 7 mechanisms ensure every message gets a response.
+
+### Key Modules
+
+| Module | Lines | Purpose |
+|--------|-------|---------|
+| `cortex.rs` | 1,567 | Intent processing, classify, ack, RAG, dispatch |
+| `db.rs` | 1,000 | SQLite backend, task CRUD, trace schema, cache |
+| `ruliology.rs` | 929 | Wolfram-style computational rule analysis |
+| `types.rs` | 850 | Domain types (genome, tiers, health, FSM) |
+| `mcp_inference.rs` | 663 | Hedged inference, circuit breakers, HTTP client |
+| `mcp_gworkspace.rs` | 380 | Gmail OAuth2 send, Workspace MCP tool |
+| `simulator.rs` | 349 | 400 test scenarios (20 categories × 10 × 2 channels) |
+| `ingress_polling.rs` | 331 | Dark Cockpit secure outbound polling |
+| `gemini_live.rs` | 307 | WebSocket voice (Gemini Live 3.1 Flash) |
+| `cli.rs` | 261 | CLI status/add/update commands |
+| `trace.rs` | 242 | PipelineTracer: zero-write hot path, batch finish |
+| `main.rs` | 237 | Entry point, Zenoh session, tokio runtime |
+| `errors.rs` | 226 | SIL-4 fail-safe error types |
+| `gateway.rs` | 198 | Parallel broadcast to Telegram/GChat with retry |
+| `smoke_test.rs` | 171 | Wave 3 smoke test publisher |
+| `tui.rs` | 148 | Ratatui terminal dashboard |
+| `markdown.rs` | 124 | PROJECT_TODOLIST.md generator |
+| `supervisor.rs` | 111 | Agent supervision tree (L4-System) |
+| `audit_log.rs` | 100 | Immutable audit trail |
+| `zenoh_telemetry.rs` | 91 | Boot state vector, checkpoints |
+| `pii.rs` | 91 | PII scrubber (email, phone, CC, SSN, IP) |
+| `rag.rs` | 87 | RAG context from Smriti FTS5 |
+| `ha_election.rs` | 81 | Leader election (Primary/Backup/Standby) |
+| `fmea.rs` | 79 | Automated FMEA from trace data |
+| `command_verifier.rs` | 61 | Command execution verification |
+| `mcp_file.rs` | 59 | OpenClaw File IO (workspace-constrained) |
+| `math_monitor.rs` | 57 | 17 mathematical disciplines health |
+| `mcp_sys.rs` | 49 | OpenClaw sandboxed exec |
+| `mcp_web.rs` | 45 | OpenClaw web fetch + semantic extraction |
+| `heartbeat.rs` | 30 | 10-minute cron for proactive OODA |
+| `mcp_browser.rs` | 28 | Playwright/CDP browser tool |
+| **TOTAL** | **9,104** | **31 modules** |
+
+### PipelineTracer (SC-COG-001, SC-XHOLON-001)
+
+Every intent is traced end-to-end via `PipelineTracer`:
+- Zero DB writes during processing (in-memory `Vec<TraceStage>`)
+- Single batch write on `finish_with_zenoh()` to SQLite + Zenoh
+- Compact footer: `Pipeline: recv(0ms) > class(1ms) > ack(2ms) > infer(1200ms) > delivered(1400ms)`
+- Dual output: `TransactionTrace` + `TransactionSummary` tables + `indrajaal/l5/cog/trace/{id}`
+
+### Additional Capabilities
+
+- **Semantic Cache**: 24h TTL, SQLite-backed, skips inference on cache hit
+- **Conversation History**: 50-message sliding window per chat
+- **Rate Limiting**: 20 messages/minute per user
+- **RAG Pipeline**: Smriti FTS5 context injection (~4ms)
+- **PII Scrubber**: Regex-based redaction (SC-SEC-003, SC-LOG-003)
+- **SMTP Email**: lettre crate, attachments, app password in Smriti
+- **Multilingual Detection**: Auto-detect input language
+- **Conversation Summarization**: Periodic context compression
+
+---
+
+## §16.0 Voice Processing Pipeline (SC-OPENCLAW-001)
+
+**Mandate**: SC-OPENCLAW-001 — 5-tier voice cascade from real-time WebSocket to offline transcription.
+
+### 5-Tier Voice Cascade
+
+| Tier | Model | Latency | Method |
+|------|-------|---------|--------|
+| 1 | Gemini Live 3.1 Flash | ~250ms | WebSocket (real-time) |
+| 2 | Gemini REST 2.5 | ~900ms | Multimodal audio REST |
+| 3 | Gemini REST 3.1 | ~1.1s | Multimodal audio REST |
+| 4 | Whisper.cpp (ggml-tiny) | ~2s | Local offline (75MB model) |
+| 5 | Rule-based ack | <1ms | Static response |
+
+**2-Stage Voice**: Transcribe → text pipeline with full SYSTEM_PROMPT context.
+**Module**: `gemini_live.rs` (307 lines) — WebSocket client, OGG→PCM via ffmpeg, 3-tier fallback.
+
+---
+
+## §17.0 Gleam Cortex & Gateway (SC-COG-001, SC-ZMOF-001)
+
+### Cortex ReAct Loop (`agents/cortex.gleam`)
+- **Layer**: L5_COGNITIVE
+- **Types**: `CortexState` (OODA cycle, MoZ client, active intent, memory, span context)
+- **Messages**: ProcessIntent, ObserveToolResult, OodaTick
+- **Functions**: start/1, handle_message/2, decide_next_action/2, fetch_context/1
+
+### MoZ Protocol (`moz/client.gleam`, `moz/planning.gleam`, `moz/system.gleam`)
+- 497 lines implementing MCP-over-Zenoh
+- Tool request/response via Zenoh Pub/Sub
+- Used by cortex.gleam for MCP tool invocation
+
+### Gateway Bridges (`gateway/telegram.gleam`, `gateway/gchat.gleam`, `gateway/whatsapp.gleam`)
+- **Layer**: L7_FEDERATION
+- Actor-based Zenoh subscribers on `indrajaal/otel/span/critical`
+- Route critical OTel spans to chat platforms
+
+---
+
+**Version**: 22.5.0-CORTEX
+**Last Updated**: 2026-04-10
+**Status**: Gleam-first platform operational — unified c3i_nif (14 NIFs), 73 MCP tools, 233 A2UI components, 31-module Rust cortex (9,104 LOC), 6-tier hedged inference, 5-tier voice cascade, PipelineTracer, RAG, semantic cache, ZMOF active, Muda enforced, sa-plan-daemon authoritative, OpenClaw & HA integrated

@@ -1342,6 +1342,8 @@ pub fn cockpit_c2_health_class_mapping_test() {
       biomorphic_data: None,
       cpu_threshold: 0.85,
       mem_threshold: 0.75,
+      reasoning_buffer: "",
+      agui_event_count: 0,
     )
   let visible = cockpit_view.visible_nodes(model)
   list.length(visible) |> should.equal(1)
@@ -1363,6 +1365,8 @@ pub fn cockpit_c2_severity_indicators_correct_test() {
       biomorphic_data: None,
       cpu_threshold: 0.85,
       mem_threshold: 0.75,
+      reasoning_buffer: "",
+      agui_event_count: 0,
     )
   let active = cockpit_view.active_alarms(model)
   list.length(active) |> should.equal(3)
@@ -1478,6 +1482,8 @@ pub fn cockpit_c7_performance_under_load_test() {
       biomorphic_data: None,
       cpu_threshold: 0.85,
       mem_threshold: 0.75,
+      reasoning_buffer: "",
+      agui_event_count: 0,
     )
   cockpit_view.visible_nodes(model) |> list.length |> should.equal(100)
 }
@@ -2978,7 +2984,7 @@ pub fn federation_c2_health_class_mapping_test() {
   ]
   let state = make_federation_state(peers)
   let model =
-    federation.FederationModel(state: Some(state), loading: False, error: None)
+    federation.FederationModel(state: Some(state), loading: False, error: None, ha: federation.HaStatus(federation.Standby, 0, 0, 0, 0))
   federation.connected_count(model) |> should.equal(2)
 }
 
@@ -2986,7 +2992,7 @@ pub fn federation_c2_severity_indicators_correct_test() {
   let peers = [make_federation_peer("p1", fed_domain.PeerConnected)]
   let state = make_federation_state(peers)
   let model =
-    federation.FederationModel(state: Some(state), loading: False, error: None)
+    federation.FederationModel(state: Some(state), loading: False, error: None, ha: federation.HaStatus(federation.Standby, 0, 0, 0, 0))
   federation.all_attested_check(model) |> should.be_true()
 }
 
@@ -3099,7 +3105,7 @@ pub fn federation_c7_reasoning_state_tracking_test() {
   ]
   let state = make_federation_state(peers)
   let model =
-    federation.FederationModel(state: Some(state), loading: False, error: None)
+    federation.FederationModel(state: Some(state), loading: False, error: None, ha: federation.HaStatus(federation.Standby, 0, 0, 0, 0))
   federation.total_peer_count(model) |> should.equal(2)
 }
 
@@ -3111,7 +3117,7 @@ pub fn federation_c7_performance_under_load_test() {
     })
   let state = make_federation_state(peers)
   let model =
-    federation.FederationModel(state: Some(state), loading: False, error: None)
+    federation.FederationModel(state: Some(state), loading: False, error: None, ha: federation.HaStatus(federation.Standby, 0, 0, 0, 0))
   federation.total_peer_count(model) |> should.equal(50)
 }
 
@@ -3158,7 +3164,7 @@ pub fn federation_monitoring_no_memory_leak_detected_test() {
     })
   let state = make_federation_state(peers)
   let model =
-    federation.FederationModel(state: Some(state), loading: False, error: None)
+    federation.FederationModel(state: Some(state), loading: False, error: None, ha: federation.HaStatus(federation.Standby, 0, 0, 0, 0))
   federation.total_peer_count(model) |> should.equal(100)
 }
 

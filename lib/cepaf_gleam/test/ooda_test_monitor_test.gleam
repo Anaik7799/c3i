@@ -47,7 +47,9 @@ pub fn jidoka_rca_on_all_pass_test() {
 }
 
 pub fn jidoka_rca_on_failure_test() {
-  let failed = [PreflightResult(check: "test_fail", passed: False, detail: "FAILED")]
+  let failed = [
+    PreflightResult(check: "test_fail", passed: False, detail: "FAILED"),
+  ]
   let rca = ooda_test_monitor.jidoka_rca(failed)
   rca |> string.contains("JIDOKA") |> should.be_true()
   rca |> string.contains("Root Cause Analysis") |> should.be_true()
@@ -58,17 +60,31 @@ pub fn jidoka_rca_on_failure_test() {
 // =============================================================================
 
 pub fn element_test_passing_test() {
-  let result = ooda_test_monitor.element_test(
-    Dashboard, "health_card", 0, True, 15, "renders", "rendered",
-  )
+  let result =
+    ooda_test_monitor.element_test(
+      Dashboard,
+      "health_card",
+      0,
+      True,
+      15,
+      "renders",
+      "rendered",
+    )
   result.passed |> should.be_true()
   result.corrective_action |> should.equal("None")
 }
 
 pub fn element_test_failing_test() {
-  let result = ooda_test_monitor.element_test(
-    Dashboard, "broken_widget", 2, False, 50, "click works", "no response",
-  )
+  let result =
+    ooda_test_monitor.element_test(
+      Dashboard,
+      "broken_widget",
+      2,
+      False,
+      50,
+      "click works",
+      "no response",
+    )
   result.passed |> should.be_false()
   result.corrective_action
   |> string.contains("Fix broken_widget")
@@ -133,9 +149,8 @@ pub fn new_run_has_31_pages_test() {
 
 pub fn record_element_updates_counters_test() {
   let state = ooda_test_monitor.new_run("run-002")
-  let result = ooda_test_monitor.element_test(
-    Dashboard, "card", 0, True, 10, "", "",
-  )
+  let result =
+    ooda_test_monitor.element_test(Dashboard, "card", 0, True, 10, "", "")
   let state2 = ooda_test_monitor.record_element(state, result)
   state2.total_passed |> should.equal(1)
   list.length(state2.element_results) |> should.equal(1)
@@ -173,9 +188,8 @@ pub fn dashboard_shows_progress_test() {
 
 pub fn dashboard_shows_results_test() {
   let state = ooda_test_monitor.new_run("run-007")
-  let result = ooda_test_monitor.element_test(
-    Verification, "proof", 0, True, 5, "", "",
-  )
+  let result =
+    ooda_test_monitor.element_test(Verification, "proof", 0, True, 5, "", "")
   let state2 = ooda_test_monitor.record_element(state, result)
   let output = ooda_test_monitor.render_test_dashboard(state2)
   output |> string.contains("1 passed") |> should.be_true()
@@ -187,20 +201,25 @@ pub fn dashboard_shows_results_test() {
 
 pub fn full_run_5_pages_test() {
   let pages = [Dashboard, Planning, Immune, Verification, Zenoh]
-  let state = ooda_test_monitor.new_run("integration-001")
+  let state =
+    ooda_test_monitor.new_run("integration-001")
     |> ooda_test_monitor.set_phase("testing")
     |> ooda_test_monitor.set_ooda_phase("observe")
 
-  let final_state = list.fold(pages, state, fn(s, page) {
-    let r1 = ooda_test_monitor.element_test(page, "render", 0, True, 10, "", "")
-    let r2 = ooda_test_monitor.element_test(page, "state", 1, True, 15, "", "")
-    let r3 = ooda_test_monitor.element_test(page, "interact", 2, True, 20, "", "")
-    s
-    |> ooda_test_monitor.record_element(r1)
-    |> ooda_test_monitor.record_element(r2)
-    |> ooda_test_monitor.record_element(r3)
-    |> ooda_test_monitor.complete_page(page)
-  })
+  let final_state =
+    list.fold(pages, state, fn(s, page) {
+      let r1 =
+        ooda_test_monitor.element_test(page, "render", 0, True, 10, "", "")
+      let r2 =
+        ooda_test_monitor.element_test(page, "state", 1, True, 15, "", "")
+      let r3 =
+        ooda_test_monitor.element_test(page, "interact", 2, True, 20, "", "")
+      s
+      |> ooda_test_monitor.record_element(r1)
+      |> ooda_test_monitor.record_element(r2)
+      |> ooda_test_monitor.record_element(r3)
+      |> ooda_test_monitor.complete_page(page)
+    })
 
   final_state.completed_pages |> should.equal(5)
   final_state.total_passed |> should.equal(15)

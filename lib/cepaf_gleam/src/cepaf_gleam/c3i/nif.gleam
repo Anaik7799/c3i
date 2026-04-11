@@ -102,3 +102,51 @@ pub fn knowledge_search(query: String) -> String
 /// Run gleam check and return result.
 @external(erlang, "c3i_nif", "verification_run")
 pub fn verification_run() -> String
+
+// ---------------------------------------------------------------------------
+// Cortex & Operations NIFs (11) — Real operational data
+// ---------------------------------------------------------------------------
+
+/// Inference tier status: active model, latency, circuit breakers.
+@external(erlang, "c3i_nif", "inference_status")
+pub fn inference_status() -> String
+
+/// Last N pipeline traces from TransactionSummary.
+@external(erlang, "c3i_nif", "trace_recent")
+pub fn trace_recent(limit: Int) -> String
+
+/// Last N conversation messages with role.
+@external(erlang, "c3i_nif", "conversation_history")
+pub fn conversation_history(limit: Int) -> String
+
+/// Semantic cache hit rate and entry count.
+@external(erlang, "c3i_nif", "cache_stats")
+pub fn cache_stats() -> String
+
+/// FMEA failure modes derived from TransactionSummary.
+@external(erlang, "c3i_nif", "fmea_report")
+pub fn fmea_report() -> String
+
+/// HA election role, missed heartbeats, lease TTL.
+@external(erlang, "c3i_nif", "ha_status")
+pub fn ha_status() -> String
+
+/// Voice pipeline: WS connected, active tier, transcription.
+@external(erlang, "c3i_nif", "voice_status")
+pub fn voice_status() -> String
+
+/// Ruliology: cellular automaton by name.
+@external(erlang, "c3i_nif", "ruliology_automaton")
+pub fn ruliology_automaton(name: String) -> String
+
+/// Ruliology: multiway system (inference cascade).
+@external(erlang, "c3i_nif", "ruliology_multiway")
+pub fn ruliology_multiway() -> String
+
+/// Ruliology: causal graph (pipeline DAG).
+@external(erlang, "c3i_nif", "ruliology_causal")
+pub fn ruliology_causal() -> String
+
+/// Current OODA cycle phase and count.
+@external(erlang, "c3i_nif", "ooda_phase")
+pub fn ooda_phase() -> String

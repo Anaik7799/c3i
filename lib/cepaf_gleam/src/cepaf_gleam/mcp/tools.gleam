@@ -62,10 +62,7 @@ pub fn get_tool_definitions() -> List(ToolDefinition) {
             ),
           ]),
         ),
-        #(
-          "required",
-          json.array([json.string("status")], of: fn(x) { x }),
-        ),
+        #("required", json.array([json.string("status")], of: fn(x) { x })),
       ]),
     ),
     ToolDefinition(
@@ -126,9 +123,7 @@ pub fn get_tool_definitions() -> List(ToolDefinition) {
         ),
         #(
           "required",
-          json.array([json.string("title"), json.string("priority")], of: fn(
-            x,
-          ) {
+          json.array([json.string("title"), json.string("priority")], of: fn(x) {
             x
           }),
         ),
@@ -177,9 +172,7 @@ pub fn get_tool_definitions() -> List(ToolDefinition) {
         ),
         #(
           "required",
-          json.array([json.string("id"), json.string("status")], of: fn(x) {
-            x
-          }),
+          json.array([json.string("id"), json.string("status")], of: fn(x) { x }),
         ),
       ]),
     ),
@@ -203,10 +196,7 @@ pub fn get_tool_definitions() -> List(ToolDefinition) {
             ),
           ]),
         ),
-        #(
-          "required",
-          json.array([json.string("query")], of: fn(x) { x }),
-        ),
+        #("required", json.array([json.string("query")], of: fn(x) { x })),
       ]),
     ),
     // -- System data tools (mesh state) --
@@ -268,10 +258,7 @@ pub fn get_tool_definitions() -> List(ToolDefinition) {
             ),
           ]),
         ),
-        #(
-          "required",
-          json.array([json.string("query")], of: fn(x) { x }),
-        ),
+        #("required", json.array([json.string("query")], of: fn(x) { x })),
       ]),
     ),
     ToolDefinition(
@@ -299,10 +286,7 @@ pub fn get_tool_definitions() -> List(ToolDefinition) {
             ),
           ]),
         ),
-        #(
-          "required",
-          json.array([json.string("path")], of: fn(x) { x }),
-        ),
+        #("required", json.array([json.string("path")], of: fn(x) { x })),
       ]),
     ),
     // -- Domain-specific page tools (per-page MCP access) --

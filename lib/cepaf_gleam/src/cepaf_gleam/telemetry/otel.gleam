@@ -155,7 +155,11 @@ pub fn generate_context(parent: Option(SpanContext)) -> SpanContext {
     Some(p) -> p.span_id
     None -> ""
   }
-  SpanContext(trace_id: trace_id, span_id: generate_id(), parent_span_id: parent_id)
+  SpanContext(
+    trace_id: trace_id,
+    span_id: generate_id(),
+    parent_span_id: parent_id,
+  )
 }
 
 @external(erlang, "cepaf_gleam_ffi", "generate_id")

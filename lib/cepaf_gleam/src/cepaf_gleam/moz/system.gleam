@@ -31,7 +31,9 @@ pub fn dispatch(tool_name: String) -> String {
     "knowledge_search" -> c3i_nif.knowledge_search("")
     "verification_run" -> c3i_nif.verification_run()
     _ ->
-      json.object([#("error", json.string("Unknown system tool: " <> tool_name))])
+      json.object([
+        #("error", json.string("Unknown system tool: " <> tool_name)),
+      ])
       |> json.to_string()
   }
 }
@@ -39,7 +41,10 @@ pub fn dispatch(tool_name: String) -> String {
 /// List all available system MoZ tools with their descriptions.
 pub fn available_tools() -> List(#(String, String)) {
   [
-    #("system_health", "Live mesh health: containers, threats, OODA, cockpit mode"),
+    #(
+      "system_health",
+      "Live mesh health: containers, threats, OODA, cockpit mode",
+    ),
     #("system_dashboard", "Dashboard data: health %, zenoh, quorum"),
     #("system_immune", "Immune system: threat level, antibodies, chaos attacks"),
     #("system_zenoh", "Zenoh mesh: connected, routers, endpoints"),

@@ -18,47 +18,55 @@ pub type SkillMessage {
 }
 
 pub type SkillState {
-  SkillState(
-    id: String,
-    moz: moz.MoZClientState,
-  )
+  SkillState(id: String, moz: moz.MoZClientState)
 }
 
 /// Start the Skill Loader Agent as a supervised worker.
-pub fn start(id: String) -> Result(actor.Started(Subject(SkillMessage)), actor.StartError) {
-  let initial = SkillState(
-    id: id,
-    moz: moz.new(),
-  )
-  
+pub fn start(
+  id: String,
+) -> Result(actor.Started(Subject(SkillMessage)), actor.StartError) {
+  let initial = SkillState(id: id, moz: moz.new())
+
   actor.new(initial)
   |> actor.on_message(handle_message)
   |> actor.start()
 }
 
-fn handle_message(state: SkillState, msg: SkillMessage) -> actor.Next(SkillState, SkillMessage) {
+fn handle_message(
+  state: SkillState,
+  msg: SkillMessage,
+) -> actor.Next(SkillState, SkillMessage) {
   case msg {
     LoadSkill(name, reply_to) -> {
-      io.println("🧠 SkillLoader [" <> state.id <> "]: Loading cognitive skill -> " <> name)
-      
+      io.println(
+        "🧠 SkillLoader ["
+        <> state.id
+        <> "]: Loading cognitive skill -> "
+        <> name,
+      )
+
       let skill_path = ".agents/skills/" <> name <> "/SKILL.md"
       let params = json.object([#("path", json.string(skill_path))])
-      
+
       // Use the newly reified File IO motor tool to read the skill securely
-      let #(_new_moz, result) = moz.send_request(state.moz, "plan", "read_file", params)
-      
+      let #(_new_moz, result) =
+        moz.send_request(state.moz, "plan", "read_file", params)
+
       case result {
         Ok(_) -> {
-           // SC-OPENCLAW-003: Mandatory prefix injection
-           let formatted_skill = "[SYSTEM SKILL DIRECTIVE]\nApplying Skill: " <> name <> "\n(Content loaded successfully)"
-           process.send(reply_to, Ok(formatted_skill))
+          // SC-OPENCLAW-003: Mandatory prefix injection
+          let formatted_skill =
+            "[SYSTEM SKILL DIRECTIVE]\nApplying Skill: "
+            <> name
+            <> "\n(Content loaded successfully)"
+          process.send(reply_to, Ok(formatted_skill))
         }
         Error(e) -> {
-           io.println("  [!] Failed to load skill: " <> e)
-           process.send(reply_to, Error("Skill not found or inaccessible."))
+          io.println("  [!] Failed to load skill: " <> e)
+          process.send(reply_to, Error("Skill not found or inaccessible."))
         }
       }
-      
+
       actor.continue(state)
     }
     Stop -> actor.stop()

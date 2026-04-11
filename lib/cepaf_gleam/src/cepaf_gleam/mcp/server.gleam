@@ -10,9 +10,9 @@
 // 5. Logs diagnostics to stderr
 // 6. Zenoh transport via bridge/zenoh_mcp.gleam (handle_request_raw)
 
+import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/mcp/protocol.{type ToolDefinition}
 import cepaf_gleam/mcp/tools
-import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ui/wisp/router as wisp_router
 import gleam/dynamic
 import gleam/dynamic/decode
@@ -244,10 +244,7 @@ fn tool_plan_list_pending(id: Option(String)) -> String {
 
 fn tool_plan_list(id: Option(String), raw_line: String) -> String {
   let status_decoder = {
-    use s <- decode.subfield(
-      ["params", "arguments", "status"],
-      decode.string,
-    )
+    use s <- decode.subfield(["params", "arguments", "status"], decode.string)
     decode.success(s)
   }
   let status = case json.parse(raw_line, status_decoder) {
@@ -294,10 +291,7 @@ fn tool_plan_add(id: Option(String), raw_line: String) -> String {
 
 fn tool_plan_update(id: Option(String), raw_line: String) -> String {
   let decoder = {
-    use task_id <- decode.subfield(
-      ["params", "arguments", "id"],
-      decode.string,
-    )
+    use task_id <- decode.subfield(["params", "arguments", "id"], decode.string)
     use status <- decode.subfield(
       ["params", "arguments", "status"],
       decode.string,
@@ -318,10 +312,7 @@ fn tool_plan_update(id: Option(String), raw_line: String) -> String {
 
 fn tool_plan_search(id: Option(String), raw_line: String) -> String {
   let query_decoder = {
-    use q <- decode.subfield(
-      ["params", "arguments", "query"],
-      decode.string,
-    )
+    use q <- decode.subfield(["params", "arguments", "query"], decode.string)
     decode.success(q)
   }
   case json.parse(raw_line, query_decoder) {
@@ -360,10 +351,7 @@ fn tool_system_verification(id: Option(String)) -> String {
 
 fn tool_knowledge_search(id: Option(String), raw_line: String) -> String {
   let query_decoder = {
-    use q <- decode.subfield(
-      ["params", "arguments", "query"],
-      decode.string,
-    )
+    use q <- decode.subfield(["params", "arguments", "query"], decode.string)
     decode.success(q)
   }
   let query = case json.parse(raw_line, query_decoder) {

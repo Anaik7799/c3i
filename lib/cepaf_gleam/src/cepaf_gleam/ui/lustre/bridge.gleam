@@ -4,12 +4,18 @@
 import gleam/int
 import gleam/list
 
+pub type GatewayDispatch {
+  GatewayDispatch(channel: String, text: String, timestamp: String, status: String)
+}
+
 pub type BridgeModel {
   BridgeModel(
     jsonrpc_methods: List(String),
     commands_total: Int,
     commands_implemented: Int,
     commands_stub: Int,
+    // P3-7: Gateway approval dispatch history
+    gateway_history: List(GatewayDispatch),
   )
 }
 
@@ -23,6 +29,7 @@ pub fn init() -> BridgeModel {
   BridgeModel(
     jsonrpc_methods: [],
     commands_total: 0,
+    gateway_history: [],
     commands_implemented: 0,
     commands_stub: 0,
   )
