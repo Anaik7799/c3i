@@ -468,6 +468,11 @@ pub fn telemetry_view(_state: SharedMeshState) -> Element(msg) {
         ["indrajaal/otel/spans/immune/**", "threat_scan", "6", "< 10ms"],
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/telemetry-grid.js?v=22.10.0")],
+      [],
+    ),
   ])
 }
 

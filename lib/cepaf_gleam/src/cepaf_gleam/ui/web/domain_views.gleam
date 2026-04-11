@@ -797,6 +797,11 @@ pub fn knowledge_view(_state: SharedMeshState) -> Element(msg) {
         ["agent:", "https://indrajaal.dev/ontology/agent#"],
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/knowledge-grid.js?v=22.10.0")],
+      [],
+    ),
   ])
 }
 
@@ -955,6 +960,11 @@ pub fn agents_view(_state: SharedMeshState) -> Element(msg) {
         ),
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/agents-grid.js?v=22.10.0")],
+      [],
+    ),
   ])
 }
 
