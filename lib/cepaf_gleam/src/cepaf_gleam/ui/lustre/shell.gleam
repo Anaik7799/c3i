@@ -497,6 +497,8 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const connectSSE = () => {
+    // SSE removed — WebSocket /ws/dashboard is the primary real-time channel
+    return;
     const sse = new EventSource('/api/v1/sse/mesh');
     sse.onmessage = (ev) => {
       try {
