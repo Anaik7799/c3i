@@ -155,13 +155,33 @@ td{padding:.4rem .6rem;border-bottom:1px solid var(--border);color:var(--text);}
 .proof-block.pending{border-color:var(--warn);color:var(--warn);}
 .proof-arrow{color:#7a8fa6;padding:0 2px;font-size:.7rem;}
 @media(max-width:768px){nav{padding:.25rem;}.card-grid,.card-grid-wide{grid-template-columns:1fr;}main{padding:.75rem;} .test-btn{margin-left:0; width:100%;}}
+/* Optimized Navigation — Mobile-First Grouped */
+.nav-container{display:flex;align-items:center;gap:4px;width:100%;}
+.nav-brand{display:flex;align-items:center;gap:6px;font-weight:800;font-size:.95rem;color:var(--accent);letter-spacing:1px;white-space:nowrap;padding:0 .5rem;text-decoration:none;}
+.nav-brand-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);}
+.nav-groups{display:flex;flex-wrap:wrap;gap:1px;flex:1;align-items:center;}
+.nav-group{position:relative;}
+.nav-group-btn{padding:6px 10px;font-size:.72rem;font-weight:700;color:#7a8fa6;cursor:pointer;border-radius:4px;transition:all 0.15s;letter-spacing:.3px;text-transform:uppercase;min-height:36px;display:flex;align-items:center;gap:4px;border:none;background:none;font-family:inherit;}
+.nav-group-btn:hover{background:rgba(0,212,170,0.08);color:var(--accent);}
+.nav-group-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.nav-dropdown{display:none;position:absolute;top:100%;left:0;background:var(--nav-bg);border:1px solid var(--border);border-radius:6px;padding:4px;min-width:150px;z-index:1001;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+.nav-group:hover .nav-dropdown{display:block;}
+.nav-dropdown a{display:block;padding:8px 12px;border-radius:4px;font-size:.8rem;color:var(--text);min-height:40px;line-height:40px;}
+.nav-dropdown a:hover{background:rgba(0,212,170,0.1);color:var(--accent);}
+.nav-dropdown a.active{background:var(--border);color:var(--accent);font-weight:600;}
+.nav-top{display:flex;gap:1px;align-items:center;}
+.nav-top a{padding:6px 10px;font-size:.82rem;border-radius:4px;min-height:36px;display:flex;align-items:center;}
+.nav-right{display:flex;align-items:center;gap:6px;margin-left:auto;}
+.nav-hamburger{display:none;padding:8px;cursor:pointer;color:var(--text);font-size:1.3rem;min-height:44px;min-width:44px;align-items:center;justify-content:center;border:none;background:none;}
+.nav-groups.nav-open,.nav-top.nav-open{display:flex!important;flex-direction:column;width:100%;background:var(--nav-bg);padding:.5rem 0;}
+@media(max-width:768px){.nav-groups,.nav-top{display:none;}.nav-hamburger{display:flex;}.nav-right .theme-selector,.nav-right .test-btn{display:none;}.nav-dropdown{position:static;display:block;box-shadow:none;border:none;padding:0 0 0 16px;min-width:auto;}}
 "
 
 // ---------------------------------------------------------------------------
 // Navigation pages (order matches the cockpit tab bar)
 // ---------------------------------------------------------------------------
 
-const nav_pages: List(#(String, String)) = [
+const nav_pages_legacy: List(#(String, String)) = [
   // Core (15 original)
   #("/dashboard", "Dashboard"),
   #("/planning", "Planning"),
@@ -590,19 +610,105 @@ pub fn render_page(
   "<!doctype html>" <> element.to_string(doc)
 }
 
-/// Render the horizontal navigation bar.
+/// Render the grouped navigation bar (mobile-first, fractal layer groups).
 fn render_nav(active_path: String) -> Element(msg) {
-  let links =
-    list.map(nav_pages, fn(pair) {
-      let #(path, label) = pair
-      let cls = case path == active_path {
-        True -> "active"
-        False -> ""
-      }
-      html.a([attribute.href(path), attribute.class(cls)], [
+  let nav_link = fn(path: String, label: String) {
+    let cls = case path == active_path {
+      True -> "active"
+      False -> ""
+    }
+    html.a([attribute.href(path), attribute.class(cls)], [element.text(label)])
+  }
+
+  let brand =
+    html.a([attribute.href("/dashboard"), attribute.class("nav-brand")], [
+      html.span([attribute.class("nav-brand-dot")], []),
+      element.text("C3I"),
+    ])
+
+  let top_links =
+    html.div([attribute.class("nav-top")], [
+      nav_link("/dashboard", "Dashboard"),
+      nav_link("/planning", "Planning"),
+      nav_link("/cockpit", "Cockpit"),
+    ])
+
+  let make_group = fn(
+    label: String,
+    color: String,
+    pages: List(#(String, String)),
+  ) {
+    html.div([attribute.class("nav-group")], [
+      html.button([attribute.class("nav-group-btn")], [
+        html.span(
+          [
+            attribute.class("nav-group-dot"),
+            attribute.attribute("style", "background:" <> color),
+          ],
+          [],
+        ),
         element.text(label),
-      ])
-    })
+        element.text(" \u{25be}"),
+      ]),
+      html.div(
+        [attribute.class("nav-dropdown")],
+        list.map(pages, fn(p) { nav_link(p.0, p.1) }),
+      ),
+    ])
+  }
+
+  let groups =
+    html.div([attribute.class("nav-groups")], [
+      make_group("Safety", "#ff6b6b", [
+        #("/immune", "Immune"),
+        #("/verification", "Verification"),
+        #("/kms", "KMS"),
+        #("/integrity", "Integrity"),
+        #("/bicameral", "Bicameral"),
+      ]),
+      make_group("System", "#9b59b6", [
+        #("/substrate", "Substrate"),
+        #("/metabolic", "Metabolic"),
+        #("/podman", "Podman"),
+        #("/config", "Config"),
+        #("/database", "Database"),
+        #("/git", "Git"),
+      ]),
+      make_group("Intelligence", "#00d4aa", [
+        #("/knowledge", "Knowledge"),
+        #("/zenoh", "Zenoh"),
+        #("/mcp", "MCP"),
+        #("/telemetry", "Telemetry"),
+        #("/agents", "Agents"),
+        #("/prajna", "Prajna"),
+        #("/planning-dashboard", "OODA"),
+      ]),
+      make_group("Evolution", "#f39c12", [
+        #("/federation", "Federation"),
+        #("/bridge", "Bridge"),
+        #("/smriti", "Smriti"),
+        #("/holon", "Holon"),
+        #("/evolution", "Evolution"),
+        #("/biomorphic", "Biomorphic"),
+        #("/homeostasis", "Homeostasis"),
+        #("/singularity", "Singularity"),
+        #("/health-grid", "Health Grid"),
+        #("/components", "Components"),
+      ]),
+    ])
+
+  let hamburger =
+    html.button(
+      [
+        attribute.class("nav-hamburger"),
+        attribute.attribute(
+          "onclick",
+          "document.querySelector('.nav-groups').classList.toggle('nav-open');document.querySelector('.nav-top').classList.toggle('nav-open')",
+        ),
+        attribute.attribute("aria-label", "Menu"),
+      ],
+      [element.text("\u{2630}")],
+    )
 
   let theme_dots =
     html.div([attribute.class("theme-selector")], [
@@ -672,7 +778,18 @@ fn render_nav(active_path: String) -> Element(msg) {
       ],
     )
 
-  html.nav([], list.append(links, [theme_dots, test_btn]))
+  let nav_right =
+    html.div([attribute.class("nav-right")], [theme_dots, test_btn])
+
+  html.nav([], [
+    html.div([attribute.class("nav-container")], [
+      brand,
+      hamburger,
+      top_links,
+      groups,
+      nav_right,
+    ]),
+  ])
 }
 
 /// A card showing a status value with title, value, and detail text.
