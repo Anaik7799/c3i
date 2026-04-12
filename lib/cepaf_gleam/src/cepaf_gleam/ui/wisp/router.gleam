@@ -21,6 +21,7 @@ import cepaf_gleam/agui/state as agui_state
 import cepaf_gleam/agui/tools as agui_tools
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/beam_metrics
+import cepaf_gleam/ha/fitness_gate
 import cepaf_gleam/ha/guard_grid
 import cepaf_gleam/substrate/beam_cache
 import cepaf_gleam/ha/health_cascade
@@ -109,6 +110,9 @@ pub fn route(path: String) -> String {
     // तन्त्रिका सक्रिय — Nerves activated
     "/api/v1/system/guard-grid" ->
       module_guard.unwrap(module_guard.guard_json(guard_grid_json(), "system/guard-grid", "total_cells"))
+    // Fitness-gated commit score — गुणपरीक्षा (SC-HA-001, SC-MUDA-001, SC-CMP-025)
+    "/api/v1/system/fitness" ->
+      module_guard.unwrap(module_guard.guard_json(fitness_json(), "system/fitness", "composite"))
     // Data freshness / staleness check (SC-EVO-KPI-003)
     "/api/v1/health/freshness" ->
       module_guard.unwrap(module_guard.guard_json(data_freshness_json(), "health/freshness", "staleness"))
@@ -727,6 +731,17 @@ fn circuit_breaker_json() -> String {
 fn guard_grid_json() -> String {
   let grid = guard_grid.init()
   guard_grid.to_json(grid)
+}
+
+/// Fitness-gated commit score — गुणपरीक्षा (Quality Examination)
+/// Returns the default fitness score using current system baselines.
+/// A live implementation would run `gleam test` and capture the results;
+/// within a request cycle we expose the stable baseline snapshot instead.
+/// STAMP: SC-HA-001, SC-MUDA-001, SC-FUNC-006, SC-CMP-025
+fn fitness_json() -> String {
+  let s = fitness_gate.default_score()
+  let d = fitness_gate.gate_decision(s, s.composite)
+  fitness_gate.decision_to_json(d)
 }
 
 /// Data freshness check — components report staleness (SC-EVO-KPI-003)
