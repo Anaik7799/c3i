@@ -8,6 +8,10 @@
         "GLEAM_PROJECT": "/home/an/dev/ver/c3i/lib/cepaf_gleam",
         "SA_PLAN_DAEMON": "/home/an/dev/ver/c3i/sub-projects/c3i/target/release/sa-plan-daemon"
       }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--headless", "--ignore-https-errors", "--executable-path", "/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/chromium"]
     }
   }
 }

@@ -1,0 +1,30 @@
+[      31ms] [LOG] [C3I] Live data system active. Press ? for keyboard shortcuts. @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:483
+[      49ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:410
+[      74ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[      74ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[      74ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[      90ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[      90ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[      90ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     107ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     108ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     108ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     140ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:394
+[    5054ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:410
+[   10068ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:410
+[   10068ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:394
+[   15071ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:410
+[   20068ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:394
+[   20073ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:410
+[   25076ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:410
+[   30071ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:394
+[   30080ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:410
+[   35083ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:410
+[   40064ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:394
+[   40087ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:410
+[   45090ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:410
+[   50079ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:394
+[   50093ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:410
+[   55096ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:410
+[   60079ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:394
+[   60100ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning?nocache=1:410

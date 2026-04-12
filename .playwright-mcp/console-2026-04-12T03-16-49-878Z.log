@@ -1,0 +1,42 @@
+[      49ms] [LOG] [C3I] Live data system active. Press ? for keyboard shortcuts. @ http://vm-1.tail55d152.ts.net:4101/planning:483
+[      62ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[     101ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     102ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     102ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     119ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     119ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     120ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     133ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     134ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     134ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     201ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[    5064ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   10081ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   10082ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[   15084ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   20084ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[   20086ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   25090ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   26850ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/list/in_progress:0
+[   27449ms] [ERROR] WebSocket connection to 'ws://vm-1.tail55d152.ts.net:4101/ws/planning' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/static/planning-grid.js?v=22.6.1:1176
+[   27850ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/list/in_progress:0
+[   28851ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/list/in_progress:0
+[   29452ms] [ERROR] WebSocket connection to 'ws://vm-1.tail55d152.ts.net:4101/ws/planning' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/static/planning-grid.js?v=22.6.1:1176
+[   29849ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/list/in_progress:0
+[   29852ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/list/in_progress:0
+[   30052ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/dashboard:0
+[   30103ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   30103ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/sse/mesh:0
+[   30852ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/list/blocked:0
+[   30853ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/list/in_progress:0
+[   30855ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/list/all:0
+[   30855ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/list/in_progress:0
+[   30855ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/status:0
+[   30855ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/list/in_progress:0
+[   31850ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/list/in_progress:0
+[   31852ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/list/in_progress:0
+[   31856ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://vm-1.tail55d152.ts.net:4101/api/v1/plan/list/all:0
+[   35108ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   40086ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[   40111ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   45115ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410

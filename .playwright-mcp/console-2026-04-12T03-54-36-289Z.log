@@ -1,0 +1,23 @@
+[      29ms] [LOG] [C3I] Live data system active. Press ? for keyboard shortcuts. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:485
+[      83ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[      84ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[      84ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     100ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     100ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     101ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     118ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     118ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     118ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     195ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:394
+[   10064ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:394
+[   20066ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:394
+[   30062ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:394
+[   40063ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:394
+[   50067ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:394
+[   60066ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:394
+[   70061ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:394
+[   80072ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:394
+[   90085ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:394
+[  100063ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:394
+[  110067ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:394
+[  120064ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning?v=58:394

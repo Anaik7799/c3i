@@ -1,0 +1,102 @@
+[     120ms] [LOG] [C3I] Live data system active. Press ? for keyboard shortcuts. @ http://vm-1.tail55d152.ts.net:4101/planning:483
+[     130ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[     182ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     183ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     183ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     201ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     202ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     202ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     219ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     219ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     219ms] [WARNING] Filter Error - Cannot build header filter, No such editor found:  undefined @ https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js:1
+[     300ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[    5134ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   10155ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   10156ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[   15159ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   20156ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[   20161ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   25165ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   30154ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[   30167ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   35172ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   40164ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[   40174ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   45178ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   50152ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[   50181ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   55184ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   60152ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[   60187ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   65191ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   70156ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[   70194ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   75197ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   80151ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[   80200ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   85203ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   90156ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[   90207ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[   95210ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  100174ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  100214ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  105218ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  110163ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  110222ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  115225ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  120170ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  120228ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  125232ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  130159ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  130235ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  135238ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  140151ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  140241ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  145244ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  150153ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  150247ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  155250ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  160158ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  160254ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  165257ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  170158ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  170260ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  175264ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  180154ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  180267ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  185271ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  190160ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  190274ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  195278ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  200157ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  200281ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  205284ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  210155ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  210288ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  215291ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  220154ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  220294ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  225297ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  230162ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  230301ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  235306ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  240155ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  240309ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  245312ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  250155ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  250315ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  255319ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  260153ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  260321ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  265325ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  270156ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  270328ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  275332ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  280156ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  280335ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  285339ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  290162ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  290343ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  295348ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410
+[  300159ms] [LOG] [Dashboard] Heartbeat update received. @ http://vm-1.tail55d152.ts.net:4101/planning:394
+[  300351ms] [WARNING] [SSE] Connection lost. Re-orienting... @ http://vm-1.tail55d152.ts.net:4101/planning:410

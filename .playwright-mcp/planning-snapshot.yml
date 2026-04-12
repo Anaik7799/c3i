@@ -1,0 +1,94 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "C3I" [ref=e4] [cursor=pointer]:
+        - /url: /dashboard
+        - text: C3I
+      - generic [ref=e6]:
+        - link "Dashboard" [ref=e7] [cursor=pointer]:
+          - /url: /dashboard
+        - link "Planning" [ref=e8] [cursor=pointer]:
+          - /url: /planning
+        - link "Cockpit" [ref=e9] [cursor=pointer]:
+          - /url: /cockpit
+      - generic [ref=e10]:
+        - button "Safety ▾" [ref=e12] [cursor=pointer]: Safety ▾
+        - button "System ▾" [ref=e15] [cursor=pointer]: System ▾
+        - button "Intelligence ▾" [ref=e18] [cursor=pointer]: Intelligence ▾
+        - button "Evolution ▾" [ref=e21] [cursor=pointer]: Evolution ▾
+      - generic [ref=e23]:
+        - generic [ref=e24]
+        - button "TEST CYCLE" [ref=e29] [cursor=pointer]
+  - main [ref=e32]:
+    - generic [ref=e33]:
+      - generic [ref=e35]:
+        - heading "Planning & Operations" [level=1] [ref=e36]
+        - generic [ref=e37]: Live task management + Zettelkasten knowledge + 77 use cases | Ctrl+K search | R refresh | Esc close
+      - generic [ref=e38]:
+        - generic [ref=e39]: ☀️
+        - generic [ref=e40]: "System Mood: Clear — P0 100% done, 1733 pending, 917/2710 complete"
+        - generic [ref=e41]: 92/100
+      - generic [ref=e42]:
+        - img [ref=e44]
+        - img [ref=e50]
+        - img [ref=e56]
+        - img [ref=e62]
+      - generic [ref=e1741]:
+        - 'generic "Done: 33.8%" [ref=e1742]'
+        - 'generic "Active: 1.7%" [ref=e1743]'
+        - 'generic "Blocked: 0.5%" [ref=e1744]'
+        - 'generic "Pending: 63.9%" [ref=e1745]'
+      - generic [ref=e73]:
+        - paragraph [ref=e74]: Task Explorer — Agentic Data Grid
+        - paragraph [ref=e75]: "Grid | Kanban | Timeline | Analytics. Live from Smriti.db via NIF. Keys: 1-4 views, Ctrl+K search, R refresh, Esc close."
+        - generic [ref=e76]
+        - textbox "AI Search — filter tasks + search Zettelkasten knowledge... (Ctrl+K)" [ref=e83]
+        - generic [ref=e1747]: 13 blocked | 47 active | 2710 total · 5:24:05 AM · 0s ago
+        - generic [ref=e1748]
+        - generic [ref=e106]
+      - generic [ref=e1156]:
+        - paragraph [ref=e1157]: State Change Log — Real-Time Mutation Monitor
+        - paragraph [ref=e1158]: Live feed of task status changes, priority mutations, and data diffs. Auto-captured every 1s refresh cycle.
+        - generic [ref=e1731]
+      - generic [ref=e1161]:
+        - paragraph [ref=e1162]: AI Agent — Gemma Task Intelligence
+        - paragraph [ref=e1163]: "Ask Gemma about tasks, priorities, risks, or system status. Gemma 3 (fast) + Gemma 4 (deep). Try: \"What's blocking us?\" or \"Summarize active P0 tasks\""
+        - generic [ref=e1735]
+      - generic [ref=e1166]:
+        - paragraph [ref=e1167]: Priority Breakdown + OODA Phase
+        - textbox "Filter table..." [ref=e1168]
+        - table [ref=e1169]
+        - generic [ref=e1197]
+      - generic [ref=e1219]:
+        - paragraph [ref=e1220]: Knowledge Health
+        - generic [ref=e1221]
+        - textbox "Filter table..." [ref=e1238]
+        - table [ref=e1239]
+      - generic [ref=e1262]:
+        - paragraph [ref=e1263]: Survivability
+        - generic [ref=e1264]
+      - generic [ref=e1281]:
+        - paragraph [ref=e1282]: Operational Use Cases — 77 Enabled by Zettelkasten
+        - generic [ref=e1283]
+      - generic [ref=e1308]:
+        - paragraph [ref=e1309]: Session Activity — v22.6.0-BRAIN
+        - textbox "Filter table..." [ref=e1310]
+        - table [ref=e1311]
+      - generic [ref=e1358]:
+        - paragraph [ref=e1359]: Multidimensional Analysis — Criticality × FMEA × STAMP × Utility
+        - textbox "Filter table..." [ref=e1360]
+        - table [ref=e1361]
+      - generic [ref=e1430]:
+        - paragraph [ref=e1431]: Decision Support — Operational Scenarios
+        - textbox "Filter table..." [ref=e1432]
+        - table [ref=e1433]
+      - generic [ref=e1481]:
+        - paragraph [ref=e1482]: Pipeline Performance (from 85 traced intents)
+        - textbox "Filter table..." [ref=e1483]
+        - table [ref=e1484]
+      - generic [ref=e1532]:
+        - paragraph [ref=e1533]: Raw NIF Data (Debug)
+        - group [ref=e1534]
+  - slider "4D State Projection Slider (SC-HMI-410)" [ref=e1536]: "0"
+  - generic "Mesh heartbeat" [ref=e1537]
+  - generic "Agent activity" [ref=e1538]
