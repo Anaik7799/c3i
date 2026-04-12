@@ -537,6 +537,188 @@ pub fn classify_life_pattern(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Brian's Brain — 3-state cellular automaton
+// ---------------------------------------------------------------------------
+// अनन्तं विश्वम् — The universe is infinite
+
+/// Brian's Brain state — 3 states for recovery cycle modeling.
+/// Models the failure-recovery lifecycle of mesh nodes:
+///   Off       = healthy (quiescent)
+///   Firing    = actively failing (anomaly detected)
+///   Recovering = refractory period (just recovered, not yet trusted)
+pub type BrainState {
+  BrainOff
+  BrainFiring
+  BrainRecovering
+}
+
+/// Apply one Brian's Brain generation to a list of 24 BrainState values.
+/// Rules (hard-wired, no configuration):
+///   Off + exactly 2 Firing neighbors → Firing
+///   Firing → Recovering (unconditional)
+///   Recovering → Off (unconditional)
+/// The list is treated as a flat 24-element 1D ring (toroidal boundary).
+/// This maps naturally to the 24 guard-grid cells in linear order.
+pub fn brians_brain_step(states: List(BrainState)) -> List(BrainState) {
+  let n = list.length(states)
+  case n == 0 {
+    True -> []
+    False ->
+      list.index_map(states, fn(state, i) {
+        case state {
+          // Firing → Recovering (unconditional)
+          BrainFiring -> BrainRecovering
+          // Recovering → Off (unconditional)
+          BrainRecovering -> BrainOff
+          // Off → Firing only if exactly 2 neighbors are Firing
+          BrainOff -> {
+            let left = get_brain_cell(states, modulo(i - 1 + n, n))
+            let right = get_brain_cell(states, modulo(i + 1, n))
+            let firing_neighbors =
+              brain_firing_count([left, right])
+            case firing_neighbors == 2 {
+              True -> BrainFiring
+              False -> BrainOff
+            }
+          }
+        }
+      })
+  }
+}
+
+/// Check if any cells are stuck in Recovering state.
+/// A cell that lingers in Recovering indicates a slow-recovery hotspot —
+/// a node that fired but has not yet returned to Off (trusted baseline).
+/// In guard-grid terms: FAILED cells that have acknowledged the fault but
+/// are not yet re-verified as PASSED.
+pub fn has_stuck_recovery(states: List(BrainState)) -> Bool {
+  list.any(states, fn(s) { s == BrainRecovering })
+}
+
+/// Count Firing cells in a BrainState list.
+pub fn count_firing(states: List(BrainState)) -> Int {
+  list.count(states, fn(s) { s == BrainFiring })
+}
+
+/// Convert a GuardGrid to a Brian's Brain initial state.
+/// PASSED → BrainOff, any failure verdict → BrainFiring.
+/// Useful for seeding the automaton from real grid state.
+pub fn grid_to_brain_states(grid: GuardGrid) -> List(BrainState) {
+  list.map(grid.cells, fn(c) {
+    case c.verdict == "PASSED" {
+      True -> BrainOff
+      False -> BrainFiring
+    }
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Langton's Ant — failure-propagation trace
+// ---------------------------------------------------------------------------
+
+/// Direction the ant faces on the 8×3 guard grid.
+pub type AntDirection {
+  AntUp
+  AntDown
+  AntLeft
+  AntRight
+}
+
+/// Langton's Ant state — position + orientation + path history.
+/// The ant moves across the 24-cell guard grid and its path traces
+/// how failures (marked cells) propagate through the system topology.
+pub type AntState {
+  AntState(
+    /// 0-23: cell index in row-major order (row = layer, col = module).
+    position: Int,
+    /// Current facing direction.
+    direction: AntDirection,
+    /// Total steps taken so far.
+    steps: Int,
+    /// Ordered list of cells visited (head = most recently visited).
+    path: List(Int),
+  )
+}
+
+/// Initialize the ant at the center of the 8×3 grid (position 12 = L4/col1).
+pub fn init_ant() -> AntState {
+  AntState(position: 12, direction: AntUp, steps: 0, path: [])
+}
+
+/// Take one Langton's Ant step.
+/// On a PASSED cell (False in grid_states): turn right, mark cell FAILED (True), move forward.
+/// On a FAILED cell (True in grid_states): turn left, mark cell PASSED (False), move forward.
+/// Returns the new ant state and the updated grid state list.
+pub fn ant_step(
+  ant: AntState,
+  grid_states: List(Bool),
+) -> #(AntState, List(Bool)) {
+  let pos = ant.position
+  let n = list.length(grid_states)
+  let is_failed = get_bool_cell(grid_states, pos)
+  // Determine new direction and flip cell
+  let new_dir = case is_failed {
+    // On FAILED cell → turn left
+    True -> turn_left(ant.direction)
+    // On PASSED cell → turn right
+    False -> turn_right(ant.direction)
+  }
+  let flipped = set_bool_cell(grid_states, pos, !is_failed)
+  // Move forward one step in the new direction (toroidal 8×3 grid)
+  let new_pos = move_ant(pos, new_dir, n)
+  let new_ant =
+    AntState(
+      position: new_pos,
+      direction: new_dir,
+      steps: ant.steps + 1,
+      path: [pos, ..ant.path],
+    )
+  #(new_ant, flipped)
+}
+
+/// Run the ant for `steps` iterations and return the ordered cell-visit path.
+/// Path head = first visited, path tail = last visited.
+pub fn ant_trace(grid_states: List(Bool), steps: Int) -> List(Int) {
+  let ant = init_ant()
+  let #(final_ant, _) = run_ant_steps(ant, grid_states, steps)
+  list.reverse(final_ant.path)
+}
+
+// ---------------------------------------------------------------------------
+// Totalistic 1D CA — density-of-failure detection
+// ---------------------------------------------------------------------------
+
+/// Apply a totalistic 1D CA rule to the guard grid's layer failure vector.
+/// The next state of each cell depends only on the SUM of its neighborhood
+/// (itself + left + right) — i.e., the density of failures in a window of 3.
+///
+/// `threshold` is the minimum sum that produces a 1 (failure) in the next
+/// generation.  Values 0-3 are meaningful:
+///   0 → always fires (all outputs 1)
+///   1 → fires if ANY neighbor or self is failing
+///   2 → fires only if 2+ in neighborhood are failing (majority rule)
+///   3 → fires only if ALL three in neighborhood are failing
+///
+/// Returns a CellularRule classifying the resulting pattern, identical in
+/// semantics to the Wolfram rules above but derived from density, not position.
+pub fn apply_totalistic_rule(grid: GuardGrid, threshold: Int) -> CellularRule {
+  let state = layer_failure_vector(grid)
+  let n = list.length(state)
+  let next_state =
+    list.index_map(state, fn(_cell, i) {
+      let left = get_cell(state, modulo(i - 1 + n, n))
+      let center = get_cell(state, i)
+      let right = get_cell(state, modulo(i + 1, n))
+      let sum = left + center + right
+      case sum >= threshold {
+        True -> 1
+        False -> 0
+      }
+    })
+  classify_rule_110(state, next_state)
+}
+
 /// Human-readable summary line for logging and TUI display.
 pub fn summary(grid: GuardGrid) -> String {
   "GuardGrid: "
@@ -957,5 +1139,115 @@ fn pad_left(s: String, width: Int) -> String {
   case len >= width {
     True -> s
     False -> string.repeat("0", width - len) <> s
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers — Brian's Brain
+// ---------------------------------------------------------------------------
+
+/// Count the number of BrainFiring entries in a list.
+fn brain_firing_count(states: List(BrainState)) -> Int {
+  list.count(states, fn(s) { s == BrainFiring })
+}
+
+/// Safe index into a BrainState list. Returns BrainOff for out-of-range.
+fn get_brain_cell(lst: List(BrainState), idx: Int) -> BrainState {
+  case idx < 0 {
+    True -> BrainOff
+    False ->
+      lst
+      |> list.drop(idx)
+      |> list.first()
+      |> fn(r) {
+        case r {
+          Ok(v) -> v
+          Error(_) -> BrainOff
+        }
+      }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers — Langton's Ant
+// ---------------------------------------------------------------------------
+
+/// Turn right from the current direction (clockwise 90°).
+fn turn_right(dir: AntDirection) -> AntDirection {
+  case dir {
+    AntUp -> AntRight
+    AntRight -> AntDown
+    AntDown -> AntLeft
+    AntLeft -> AntUp
+  }
+}
+
+/// Turn left from the current direction (counter-clockwise 90°).
+fn turn_left(dir: AntDirection) -> AntDirection {
+  case dir {
+    AntUp -> AntLeft
+    AntLeft -> AntDown
+    AntDown -> AntRight
+    AntRight -> AntUp
+  }
+}
+
+/// Move position forward by one step on the toroidal 8×3 grid.
+/// Row = pos / 3, Col = pos % 3.  Rows 0-7 (L0..L7), Cols 0-2.
+fn move_ant(pos: Int, dir: AntDirection, n: Int) -> Int {
+  let rows = 8
+  let cols = 3
+  let row = pos / cols
+  let col = pos % cols
+  let #(new_row, new_col) = case dir {
+    AntUp -> #(modulo(row - 1 + rows, rows), col)
+    AntDown -> #(modulo(row + 1, rows), col)
+    AntLeft -> #(row, modulo(col - 1 + cols, cols))
+    AntRight -> #(row, modulo(col + 1, cols))
+  }
+  new_row * cols + new_col
+  // Clamp to valid range just in case
+  |> fn(p) { modulo(p + n, n) }
+}
+
+/// Safe index into a Bool list. Returns False for out-of-range.
+fn get_bool_cell(lst: List(Bool), idx: Int) -> Bool {
+  case idx < 0 {
+    True -> False
+    False ->
+      lst
+      |> list.drop(idx)
+      |> list.first()
+      |> fn(r) {
+        case r {
+          Ok(v) -> v
+          Error(_) -> False
+        }
+      }
+  }
+}
+
+/// Return a new Bool list with element at `idx` replaced by `value`.
+fn set_bool_cell(lst: List(Bool), idx: Int, value: Bool) -> List(Bool) {
+  list.index_map(lst, fn(cell, i) {
+    case i == idx {
+      True -> value
+      False -> cell
+    }
+  })
+}
+
+/// Recursively run the ant for `steps` steps.
+fn run_ant_steps(
+  ant: AntState,
+  grid: List(Bool),
+  steps: Int,
+) -> #(AntState, List(Bool)) {
+  case steps <= 0 {
+    True -> #(ant, grid)
+    False -> {
+      let #(next_ant, next_grid) = ant_step(ant, grid)
+      run_ant_steps(next_ant, next_grid, steps - 1)
+    }
   }
 }

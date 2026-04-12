@@ -19,12 +19,16 @@
 /// STAMP: SC-SIL4-001, SC-FUNC-002, SC-SATYA-001, SC-TRUTH-001, SC-NASA-001
 
 import cepaf_gleam/ha/guard_grid.{
-  Chaos, Empty, Glider, Oscillator, RuleCascade, RuleIsolated, RuleNone,
-  RulePeriodic, RuleRecovering, RuleSystemic, StillLife, apply_rule_110,
-  apply_rule_126, apply_rule_184, apply_rule_30, apply_rule_54, apply_rule_90,
-  apply_wolfram_rule, classify_life_pattern, compute_entropy, detect_cascade,
-  find_hotspot, game_of_life_step, health_score, init, lyapunov_estimate,
-  multi_rule_analysis, predict_next_failure, record_verdict, summary, to_json,
+  AntLeft, AntRight, AntState, AntUp, BrainFiring, BrainOff,
+  BrainRecovering, Chaos, Empty, Glider, Oscillator, RuleCascade, RuleIsolated,
+  RuleNone, RulePeriodic, RuleRecovering, RuleSystemic, StillLife,
+  ant_step, ant_trace, apply_rule_110, apply_rule_126, apply_rule_184,
+  apply_rule_30, apply_rule_54, apply_rule_90, apply_totalistic_rule,
+  apply_wolfram_rule, brians_brain_step, classify_life_pattern, compute_entropy,
+  count_firing, detect_cascade, find_hotspot, game_of_life_step,
+  grid_to_brain_states, has_stuck_recovery, health_score, init, init_ant,
+  lyapunov_estimate, multi_rule_analysis, predict_next_failure, record_verdict,
+  summary, to_json,
 }
 import gleam/list
 import gleam/string
@@ -938,4 +942,223 @@ pub fn classify_chaos_when_large_population_and_changed_test() {
     })
   curr.failed_cells |> should.equal(13)
   classify_life_pattern(curr, prev) |> should.equal(Chaos)
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Brian's Brain — 3-state CA
+// अनन्तं विश्वम् — The universe is infinite
+// ═══════════════════════════════════════════════════════════════
+
+pub fn brians_brain_firing_transitions_to_recovering_test() {
+  // A single Firing cell with no Firing neighbors stays Firing→Recovering.
+  let states = [BrainFiring, BrainOff, BrainOff]
+  let next = brians_brain_step(states)
+  // Firing → Recovering unconditionally
+  list.first(next) |> should.equal(Ok(BrainRecovering))
+}
+
+pub fn brians_brain_recovering_transitions_to_off_test() {
+  let states = [BrainRecovering, BrainOff, BrainOff]
+  let next = brians_brain_step(states)
+  list.first(next) |> should.equal(Ok(BrainOff))
+}
+
+pub fn brians_brain_off_with_two_firing_neighbors_becomes_firing_test() {
+  // Center cell is Off, left and right are Firing → exactly 2 firing neighbors
+  let states = [BrainFiring, BrainOff, BrainFiring]
+  let next = brians_brain_step(states)
+  // Index 1 (center) should become Firing
+  let center = list.drop(next, 1) |> list.first()
+  center |> should.equal(Ok(BrainFiring))
+}
+
+pub fn brians_brain_off_with_one_firing_neighbor_stays_off_test() {
+  let states = [BrainFiring, BrainOff, BrainOff]
+  let next = brians_brain_step(states)
+  let center = list.drop(next, 1) |> list.first()
+  center |> should.equal(Ok(BrainOff))
+}
+
+pub fn brians_brain_all_off_stays_all_off_test() {
+  let states = [BrainOff, BrainOff, BrainOff, BrainOff]
+  let next = brians_brain_step(states)
+  let all_off = list.all(next, fn(s) { s == BrainOff })
+  all_off |> should.be_true()
+}
+
+pub fn brians_brain_step_preserves_length_test() {
+  let states = [
+    BrainOff, BrainFiring, BrainRecovering, BrainOff, BrainFiring, BrainOff,
+  ]
+  let next = brians_brain_step(states)
+  list.length(next) |> should.equal(list.length(states))
+}
+
+pub fn has_stuck_recovery_true_when_recovering_present_test() {
+  let states = [BrainOff, BrainRecovering, BrainOff]
+  has_stuck_recovery(states) |> should.be_true()
+}
+
+pub fn has_stuck_recovery_false_when_no_recovering_test() {
+  let states = [BrainOff, BrainFiring, BrainOff]
+  has_stuck_recovery(states) |> should.be_false()
+}
+
+pub fn has_stuck_recovery_empty_list_is_false_test() {
+  has_stuck_recovery([]) |> should.be_false()
+}
+
+pub fn count_firing_counts_firing_cells_test() {
+  let states = [BrainFiring, BrainOff, BrainFiring, BrainRecovering]
+  count_firing(states) |> should.equal(2)
+}
+
+pub fn count_firing_zero_when_none_firing_test() {
+  let states = [BrainOff, BrainRecovering, BrainOff]
+  count_firing(states) |> should.equal(0)
+}
+
+pub fn grid_to_brain_states_passed_becomes_off_test() {
+  let brain = grid_to_brain_states(init())
+  let all_off = list.all(brain, fn(s) { s == BrainOff })
+  all_off |> should.be_true()
+}
+
+pub fn grid_to_brain_states_failed_becomes_firing_test() {
+  let grid = init() |> record_verdict("L0", "guardian", "FAILED_EMPTY", 1)
+  let brain = grid_to_brain_states(grid)
+  // There must be exactly 1 Firing cell
+  count_firing(brain) |> should.equal(1)
+}
+
+pub fn grid_to_brain_states_length_is_24_test() {
+  let brain = grid_to_brain_states(init())
+  list.length(brain) |> should.equal(24)
+}
+
+pub fn brians_brain_empty_list_returns_empty_test() {
+  brians_brain_step([]) |> should.equal([])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Langton's Ant
+// ═══════════════════════════════════════════════════════════════
+
+pub fn init_ant_position_is_12_test() {
+  init_ant().position |> should.equal(12)
+}
+
+pub fn init_ant_direction_is_up_test() {
+  init_ant().direction |> should.equal(AntUp)
+}
+
+pub fn init_ant_steps_is_zero_test() {
+  init_ant().steps |> should.equal(0)
+}
+
+pub fn init_ant_path_is_empty_test() {
+  init_ant().path |> should.equal([])
+}
+
+pub fn ant_step_increments_steps_test() {
+  let grid = list.repeat(False, 24)
+  let #(next_ant, _) = ant_step(init_ant(), grid)
+  next_ant.steps |> should.equal(1)
+}
+
+pub fn ant_step_records_visited_cell_in_path_test() {
+  let grid = list.repeat(False, 24)
+  let #(next_ant, _) = ant_step(init_ant(), grid)
+  // Original position (12) is pushed onto path
+  list.contains(next_ant.path, 12) |> should.be_true()
+}
+
+pub fn ant_step_flips_passed_cell_to_failed_test() {
+  // Starting on a False (PASSED) cell → flip to True (FAILED)
+  let grid = list.repeat(False, 24)
+  let #(_, next_grid) = ant_step(init_ant(), grid)
+  let cell_12 = list.drop(next_grid, 12) |> list.first()
+  cell_12 |> should.equal(Ok(True))
+}
+
+pub fn ant_step_flips_failed_cell_to_passed_test() {
+  // Ant on a True (FAILED) cell → flip to False (PASSED)
+  let grid = list.index_map(list.repeat(False, 24), fn(_v, i) { i == 12 })
+  let #(_, next_grid) = ant_step(init_ant(), grid)
+  let cell_12 = list.drop(next_grid, 12) |> list.first()
+  cell_12 |> should.equal(Ok(False))
+}
+
+pub fn ant_step_on_passed_cell_turns_right_test() {
+  // On PASSED cell: ant facing Up → turns Right
+  let grid = list.repeat(False, 24)
+  let ant = AntState(position: 12, direction: AntUp, steps: 0, path: [])
+  let #(next_ant, _) = ant_step(ant, grid)
+  next_ant.direction |> should.equal(AntRight)
+}
+
+pub fn ant_step_on_failed_cell_turns_left_test() {
+  // On FAILED cell: ant facing Up → turns Left
+  let grid = list.index_map(list.repeat(False, 24), fn(_v, i) { i == 12 })
+  let ant = AntState(position: 12, direction: AntUp, steps: 0, path: [])
+  let #(next_ant, _) = ant_step(ant, grid)
+  next_ant.direction |> should.equal(AntLeft)
+}
+
+pub fn ant_trace_returns_list_of_visited_cells_test() {
+  let grid = list.repeat(False, 24)
+  let path = ant_trace(grid, 5)
+  // 5 steps → 5 cells in path
+  list.length(path) |> should.equal(5)
+}
+
+pub fn ant_trace_zero_steps_returns_empty_path_test() {
+  let grid = list.repeat(False, 24)
+  let path = ant_trace(grid, 0)
+  path |> should.equal([])
+}
+
+pub fn ant_trace_all_positions_in_range_test() {
+  let grid = list.repeat(False, 24)
+  let path = ant_trace(grid, 10)
+  let all_valid = list.all(path, fn(p) { p >= 0 && p <= 23 })
+  all_valid |> should.be_true()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// apply_totalistic_rule — density-based 1D CA
+// ═══════════════════════════════════════════════════════════════
+
+pub fn totalistic_threshold_0_all_healthy_returns_cascade_test() {
+  // Threshold 0: every cell fires regardless of neighbors.
+  // All-zero input → all-one output → ones increased → Cascade.
+  let result = apply_totalistic_rule(init(), 0)
+  result |> should.equal(RuleCascade)
+}
+
+pub fn totalistic_threshold_3_all_healthy_returns_none_test() {
+  // Threshold 3: sum must be 3 to fire. All-zero state → sums all 0 < 3 → none fire.
+  // Before all 0, after all 0 → RuleNone.
+  let result = apply_totalistic_rule(init(), 3)
+  result |> should.equal(RuleNone)
+}
+
+pub fn totalistic_threshold_2_single_failure_produces_valid_rule_test() {
+  let grid = init() |> record_verdict("L3", "plan_status", "FAILED_EMPTY", 1)
+  let result = apply_totalistic_rule(grid, 2)
+  let valid =
+    result == RuleNone
+    || result == RuleCascade
+    || result == RuleIsolated
+    || result == RuleRecovering
+    || result == RuleSystemic
+    || result == RulePeriodic
+  valid |> should.be_true()
+}
+
+pub fn totalistic_returns_none_on_healthy_grid_for_high_threshold_test() {
+  // Any threshold >= 1 on an all-PASSED grid: layer vector is all-zero,
+  // sums are all 0 → no cell fires → next state all-zero → RuleNone.
+  apply_totalistic_rule(init(), 1) |> should.equal(RuleNone)
+  apply_totalistic_rule(init(), 2) |> should.equal(RuleNone)
 }
