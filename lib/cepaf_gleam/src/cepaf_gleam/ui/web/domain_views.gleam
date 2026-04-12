@@ -137,6 +137,43 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
         ),
       ],
     ),
+    // ── Vega-Lite Task Status Distribution Chart (SC-AGUI-UI-001, SC-A2UI-001) ──
+    // data-spec carries a Vega-Lite v5 JSON spec; JS reads it and calls vegaEmbed.
+    // Falls back gracefully when vega-embed CDN is not loaded.
+    // Uses status counts from plan_status() NIF (pending/active/completed/blocked).
+    html.div(
+      [
+        attribute.id("vega-chart"),
+        attribute.attribute(
+          "data-spec",
+          "{\"$schema\":\"https://vega.github.io/schema/vega-lite/v5.json\","
+            <> "\"title\":{\"text\":\"Task Status Distribution\",\"color\":\"#e0e6ed\"},"
+            <> "\"width\":\"container\",\"height\":140,"
+            <> "\"background\":\"transparent\","
+            <> "\"data\":{\"values\":["
+            <> "{\"status\":\"Pending\",\"count\":"
+            <> int.to_string(count_in_json(status_raw, "pending"))
+            <> "},{\"status\":\"Active\",\"count\":"
+            <> int.to_string(count_in_json(status_raw, "active"))
+            <> "},{\"status\":\"Completed\",\"count\":"
+            <> int.to_string(count_in_json(status_raw, "completed"))
+            <> "},{\"status\":\"Blocked\",\"count\":"
+            <> int.to_string(count_in_json(status_raw, "blocked"))
+            <> "}]},"
+            <> "\"mark\":\"bar\","
+            <> "\"encoding\":{"
+            <> "\"x\":{\"field\":\"status\",\"type\":\"nominal\","
+            <> "\"axis\":{\"labelColor\":\"#e0e6ed\",\"titleColor\":\"#e0e6ed\",\"title\":\"Status\"}},"
+            <> "\"y\":{\"field\":\"count\",\"type\":\"quantitative\","
+            <> "\"axis\":{\"labelColor\":\"#e0e6ed\",\"titleColor\":\"#e0e6ed\",\"title\":\"Count\"}},"
+            <> "\"color\":{\"field\":\"status\",\"type\":\"nominal\","
+            <> "\"scale\":{\"domain\":[\"Pending\",\"Active\",\"Completed\",\"Blocked\"],"
+            <> "\"range\":[\"#f5a623\",\"#00d4aa\",\"#3dd68c\",\"#ff4757\"]},"
+            <> "\"legend\":{\"labelColor\":\"#e0e6ed\",\"titleColor\":\"#e0e6ed\"}}}}",
+        ),
+      ],
+      [],
+    ),
     // ── Completion Progress Rings (dynamic from NIF) ──
     html.div([attribute.class("progress-ring-row")], [
       progress_ring(

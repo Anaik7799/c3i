@@ -2,55 +2,71 @@
 # सत्र प्रारम्भ प्रोतोकॉल
 
 ## Mandate (आदेश)
-**Every Claude session MUST bootstrap in ≤ 10 seconds.** No redundant file reads, no full codebase scans. Memory-first, verify-second.
+**Every Claude session MUST bootstrap with Zettelkasten recall + Gleam compute verification.**
+Memory-first, Zettelkasten-second, compute-third, act-fourth.
 
 ## STAMP Constraints
 | ID | Constraint | Severity |
 |----|------------|----------|
 | SC-BOOTSTRAP-001 | Session MUST check memory BEFORE reading any code files | HIGH |
-| SC-BOOTSTRAP-002 | Session MUST verify `gleam build` passes in first 30 seconds | HIGH |
-| SC-BOOTSTRAP-003 | Session MUST NOT re-read CLAUDE.md sections already in rules/ | MEDIUM |
-| SC-BOOTSTRAP-004 | Session MUST check server status via /health before restart | MEDIUM |
+| SC-BOOTSTRAP-002 | Session MUST search Zettelkasten for task-relevant prior patterns | CRITICAL |
+| SC-BOOTSTRAP-003 | Session MUST verify `gleam build` passes before any code change | HIGH |
+| SC-BOOTSTRAP-004 | Session MUST use Gleam NIF compute for graph/math, NOT manual reasoning | CRITICAL |
+| SC-BOOTSTRAP-005 | Session MUST ingest new documents to Zettelkasten before ending | CRITICAL |
 
-## Fast Bootstrap Sequence (त्वरित प्रारम्भ अनुक्रम)
+## Bootstrap Sequence
 
-### Second 0-3: Memory Check (स्मृति जाँच)
-```
-1. Read MEMORY.md — understand prior session context
-2. Check for active tasks: `./sa-plan status`
-3. Check git status: any uncommitted changes?
-```
-
-### Second 3-7: System Status (तन्त्र स्थिति)
-```
-4. curl -s https://localhost:4100/health — is server running?
-5. gleam build 2>&1 | tail -3 — does code compile?
-6. If server down + build passes → start (don't ask)
+### Phase 1: Recall (0-5s)
+```bash
+# 1. Read MEMORY.md — prior session context
+# 2. MANDATORY: Search Zettelkasten for task context
+sa-plan-daemon knowledge-search "<user request keywords>"
+# 3. Check active tasks
+sa-plan-daemon status
 ```
 
-### Second 7-10: Orient (अभिविन्यास)
+### Phase 2: Verify (5-10s)
+```bash
+# 4. Build check
+cd lib/cepaf_gleam && gleam build
+# 5. Nav graph health via Gleam NIF
+gleam run -m cepaf_gleam/claude_compute
+# Output: SCC=1 (all pages reachable), PageRank, boot DAG
 ```
-7. Map user's request to SC-ULTRA-001 focus areas
-8. Check Zettelkasten for prior patterns
-9. Begin execution — no preamble, no "let me read the codebase"
+
+### Phase 3: Orient (10-15s)
 ```
+# 6. Map request to Zettelkasten recall results
+# 7. If prior pattern exists -> follow it, don't reinvent
+# 8. If anti-pattern exists -> explicitly avoid it
+# 9. Begin execution
+```
+
+### Phase 4: Session End
+```bash
+# 10. Ingest all new/modified documents
+sa-plan-daemon ingest-docs
+# 11. Email summary
+sa-plan-daemon send-email --to Abhijit.Naik@bountytek.com ...
+# 12. Update memory with session learnings
+```
+
+## Compute Rules — USE NIF, NOT MANUAL REASONING
+| Task | WRONG | RIGHT |
+|------|-------|-------|
+| Graph reachability | "All 31 pages form a complete graph so SCC=1" | `graphene_scc_typed(pages, edges)` |
+| Test priority | "Dashboard is most important because..." | `graphene_pagerank_typed(pages, edges, 0.85, 30)` |
+| Critical path | "T005 blocks T003 which blocks T015" | `petgraph_dijkstra(nodes, edges, 0)` |
+| Boot order | "Zenoh must start before DB" | `petgraph_toposort(containers, deps)` |
+| Color check | "This looks accessible enough" | `bevy_color_srgba_to_oklch()` -> verify L* diff |
+| State diagram | Draw ASCII art | `skia_render_machine()` -> PNG |
+| Architecture diagram | Describe in text | `mermaid_render()` -> SVG |
+| Chart | "Here's a table of values" | `vega_lite_preset()` -> JSON spec |
 
 ## Anti-Patterns (दोष निवारण)
-- ❌ Reading the entire CLAUDE.md (it's 40K+ tokens — rules/ already loaded)
-- ❌ Listing all files in the repository
-- ❌ Reading files "just to understand the structure"
-- ❌ Asking "what would you like me to do?" (read the request, act)
-- ❌ Summarizing what you're about to do (just do it — Gita protocol)
-
-## Mathematical Optimization
-```
-T_bootstrap = T_memory + T_verify + T_orient
-Target: T_bootstrap ≤ 10s
-Current: T_bootstrap ≈ 60s (reading CLAUDE.md + scanning files)
-Improvement: 6x faster startup
-
-Context savings per session:
-  Before: ~80K tokens consumed on bootstrap reads
-  After: ~15K tokens (memory + rules only)
-  Savings: 65K tokens/session = 32.5% of 200K budget
-```
+- ❌ Reading the entire CLAUDE.md (rules/ already loaded)
+- ❌ Skipping Zettelkasten search ("I'll figure it out from scratch")
+- ❌ Manual graph reasoning when NIF functions exist
+- ❌ ASCII art diagrams when skia/mermaid can render PNGs/SVGs
+- ❌ Forgetting to ingest documents at session end
+- ❌ Not checking prior anti-patterns before proposing solutions

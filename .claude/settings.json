@@ -237,13 +237,60 @@
       "Bash(./sa-plan set-pref:*)",
       "Bash(./sa-plan gateway:*)",
       "Bash(./sa-plan send-email:*)",
-      "Bash(./sa-plan list-prefs:*)"
+      "Bash(./sa-plan list-prefs:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_resize",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_tabs",
+      "mcp__playwright__browser_close"
     ],
     "additionalDirectories": [
       "/home/an/gdrive"
     ]
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/an/dev/ver/c3i && STATUS=$(./sub-projects/c3i/target/release/sa-plan-daemon status 2>&1 | grep -E 'Active:|Pending:|Completed:' | head -3 | tr '\\n' ' ') && HEALTH=$(cd lib/cepaf_gleam && gleam run -m cepaf_gleam/claude_compute 2>&1 | grep -E 'SCC:|Pages:' | tr '\\n' ' ') && echo \"{\\\"systemMessage\\\":\\\"C3I SYSTEM STATUS: $STATUS | $HEALTH\\\"}\"",
+            "timeout": 15,
+            "statusMessage": "C3I system health check + task status..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/an/dev/ver/c3i && QUERY=$(jq -r '.prompt // empty' | head -c 200 | tr '\\n' ' ') && if [ -n \"$QUERY\" ]; then RESULTS=$(./sub-projects/c3i/target/release/sa-plan-daemon knowledge-search \"$QUERY\" 2>&1 | grep '^\\[zk-' | head -5) && if [ -n \"$RESULTS\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"ZETTELKASTEN RECALL (SC-ZK-CLAUDE-001):\\n$RESULTS\\n\\nUse these prior patterns to inform your approach. Do NOT repeat past anti-patterns.\\\"}}\"; fi; fi",
+            "timeout": 8,
+            "statusMessage": "Zettelkasten recall + system health check..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/an/dev/ver/c3i && ./sub-projects/c3i/target/release/sa-plan-daemon ingest-docs 2>/dev/null && echo '{\"systemMessage\":\"Zettelkasten ingested. Holons updated.\"}'",
+            "timeout": 30,
+            "async": true,
+            "statusMessage": "Ingesting session learnings to Zettelkasten..."
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
