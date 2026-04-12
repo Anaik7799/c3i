@@ -9,6 +9,7 @@
          mermaid_render/2, mermaid_render_to_file/2,
          kurbo_affine_op/2, kurbo_geometry_op/2, kurbo_bezier_op/2,
          mermaid_render_with_options/2, skia_draw_to_png/4,
+         resvg_render_svg_to_png/3, resvg_render_file/3, plotters_chart/2, plotters_chart_to_file/3,
          vega_lite_spec/2, vega_lite_layered/1, vega_lite_preset/2,
          petgraph_op/4, grafana_dashboard_json/2, grafana_panel_preset/2]).
 -on_load(init/0).
@@ -59,3 +60,9 @@ vega_lite_preset(_Preset, _DataJson) -> {error, <<"NIF not loaded">>}.
 petgraph_op(_Op, _Nodes, _Edges, _Params) -> {error, <<"NIF not loaded">>}.
 grafana_dashboard_json(_Title, _PanelsJson) -> {error, <<"NIF not loaded">>}.
 grafana_panel_preset(_Preset, _ParamsJson) -> {error, <<"NIF not loaded">>}.
+resvg_render_svg_to_png(_Svg, _Path, _Width) -> {error, <<"NIF not loaded">>}.
+resvg_render_file(_SvgPath, _PngPath, _Width) -> {error, <<"NIF not loaded">>}.
+plotters_chart(_Type, _Params) -> {error, <<"NIF not loaded">>}.
+plotters_chart_to_file(_Type, _Params, _Path) -> {error, <<"NIF not loaded">>}.
+do_resvg_render(_Svg, _Path, _Width) -> {error, <<"NIF not loaded">>}.
+do_plotters_chart(_Type, _Params) -> {error, <<"NIF not loaded">>}.

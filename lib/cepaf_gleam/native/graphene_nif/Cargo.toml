@@ -34,10 +34,16 @@ vega_lite_4 = "0.9"
 
 # Petgraph — production graph library (adjacency list/matrix, algos, dot export)
 petgraph = "0.8"
+# resvg — Production SVG renderer (full CSS text, fonts, gradients, filters)
+resvg = { version = "0.47", default-features = false }
+# plotters — Production chart library (line, bar, scatter, histogram → SVG/PNG)
+plotters = { version = "0.3", default-features = false, features = ["svg_backend", "line_series", "area_series"] }
 # Grafana — JSON spec builder (no crate needed, just serde_json)
 
 # NOTE: Full Graphite Editor at native/graphite-editor/ (reference)
 # NOTE: Full Bevy Engine at native/bevy-engine/ (reference, 58 crates)
+
+fontdb = "0.23"
 
 [[bin]]
 name = "graphene-render"

@@ -2921,7 +2921,150 @@ fn grafana_panel_preset(preset: String, params_json: String) -> Result<String, S
 }
 
 // ═══════════════════════════════════════════════════════════════
-// NIF registration — ALL 35 functions
+// 12. RESVG — Production SVG→PNG Renderer (full text + fonts)
+// ═══════════════════════════════════════════════════════════════
+
+/// Render SVG string to PNG file using resvg (full CSS text, system fonts).
+/// This is the production renderer — replaces ImageMagick.
+#[rustler::nif(schedule = "DirtyCpu")]
+fn resvg_render_svg_to_png(svg_string: String, output_path: String, width: u32) -> Result<String, String> {
+    do_resvg_render(svg_string, output_path, width)
+}
+
+fn do_resvg_render(svg_string: String, output_path: String, width: u32) -> Result<String, String> {
+    let mut opts = resvg::usvg::Options::default();
+    let tree = resvg::usvg::Tree::from_str(&svg_string, &opts)
+        .map_err(|e| format!("SVG parse: {}", e))?;
+
+    let size = tree.size();
+    let scale = width as f32 / size.width();
+    let height = (size.height() * scale) as u32;
+
+    let mut pixmap = tiny_skia::Pixmap::new(width, height)
+        .ok_or("Failed to create pixmap")?;
+
+    let transform = tiny_skia::Transform::from_scale(scale, scale);
+    resvg::render(&tree, transform, &mut pixmap.as_mut());
+
+    pixmap.save_png(&output_path)
+        .map_err(|e| format!("Save PNG: {}", e))?;
+
+    Ok(serde_json::json!({
+        "path": output_path,
+        "width": width,
+        "height": height,
+        "svg_size": svg_string.len(),
+        "png_bytes": std::fs::metadata(&output_path).map(|m| m.len()).unwrap_or(0),
+    }).to_string())
+}
+
+/// Render SVG file to PNG file using resvg.
+#[rustler::nif(schedule = "DirtyCpu")]
+fn resvg_render_file(svg_path: String, png_path: String, width: u32) -> Result<String, String> {
+    let svg_string = std::fs::read_to_string(&svg_path)
+        .map_err(|e| format!("Read SVG: {}", e))?;
+    do_resvg_render(svg_string, png_path, width)
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 13. PLOTTERS — Production Chart Library (→ SVG output)
+// ═══════════════════════════════════════════════════════════════
+
+/// Generate a chart as SVG string using plotters.
+/// chart_type: "line", "bar", "scatter", "histogram", "area"
+#[rustler::nif]
+fn plotters_chart(chart_type: String, params_json: String) -> Result<String, String> {
+    do_plotters_chart(chart_type, params_json)
+}
+
+fn do_plotters_chart(chart_type: String, params_json: String) -> Result<String, String> {
+    use plotters::prelude::*;
+
+    let p: serde_json::Value = serde_json::from_str(&params_json)
+        .map_err(|e| format!("Parse: {}", e))?;
+
+    let title = p["title"].as_str().unwrap_or("Chart");
+    let width = p["width"].as_u64().unwrap_or(800) as u32;
+    let height = p["height"].as_u64().unwrap_or(400) as u32;
+
+    let tmp_path = format!("/tmp/c3i_plotters_{}.svg", std::process::id());
+    {
+        let root = SVGBackend::new(&tmp_path, (width, height)).into_drawing_area();
+        root.fill(&RGBColor(10, 14, 23)).map_err(|e| format!("{}", e))?;
+
+        let empty_vec = vec![]; let data_arr = p["data"].as_array().unwrap_or(&empty_vec);
+        let values: Vec<(f64, f64)> = data_arr.iter().enumerate().map(|(i, v)| {
+            let x = v["x"].as_f64().unwrap_or(i as f64);
+            let y = v["y"].as_f64().unwrap_or(v.as_f64().unwrap_or(0.0));
+            (x, y)
+        }).collect();
+
+        if values.is_empty() {
+            return Ok(serde_json::json!({"svg": "", "error": "no data"}).to_string());
+        }
+
+        let x_min = values.iter().map(|v| v.0).fold(f64::INFINITY, f64::min);
+        let x_max = values.iter().map(|v| v.0).fold(f64::NEG_INFINITY, f64::max);
+        let y_min = values.iter().map(|v| v.1).fold(f64::INFINITY, f64::min);
+        let y_max = values.iter().map(|v| v.1).fold(f64::NEG_INFINITY, f64::max);
+
+        let mut chart = ChartBuilder::on(&root)
+            .caption(title, ("sans-serif", 20).into_font().color(&RGBColor(224, 230, 237)))
+            .margin(20)
+            .x_label_area_size(30)
+            .y_label_area_size(40)
+            .build_cartesian_2d(x_min..x_max, y_min..(y_max * 1.1))
+            .map_err(|e| format!("{}", e))?;
+
+        chart.configure_mesh()
+            .axis_style(RGBColor(30, 42, 58))
+            .label_style(("sans-serif", 12).into_font().color(&RGBColor(122, 143, 166)))
+            .draw()
+            .map_err(|e| format!("{}", e))?;
+
+        match chart_type.as_str() {
+            "line" => {
+                chart.draw_series(plotters::prelude::LineSeries::new(values.clone(), &RGBColor(0, 212, 170)))
+                    .map_err(|e| format!("{}", e))?;
+            }
+            "scatter" | "point" => {
+                chart.draw_series(values.iter().map(|(x, y)| {
+                    Circle::new((*x, *y), 4, RGBColor(0, 212, 170).filled())
+                })).map_err(|e| format!("{}", e))?;
+            }
+            "area" => {
+                chart.draw_series(plotters::prelude::AreaSeries::new(values.clone(), y_min, RGBColor(0, 212, 170).mix(0.3)))
+                    .map_err(|e| format!("{}", e))?;
+                chart.draw_series(plotters::prelude::LineSeries::new(values.clone(), &RGBColor(0, 212, 170)))
+                    .map_err(|e| format!("{}", e))?;
+            }
+            _ => {
+                // Default: line
+                chart.draw_series(plotters::prelude::LineSeries::new(values.clone(), &RGBColor(0, 212, 170)))
+                    .map_err(|e| format!("{}", e))?;
+            }
+        }
+
+        root.present().map_err(|e| format!("{}", e))?;
+    }
+
+    let svg_string = std::fs::read_to_string(&tmp_path).unwrap_or_default();
+    let _ = std::fs::remove_file(&tmp_path);
+    Ok(serde_json::json!({"svg": svg_string, "width": width, "height": height, "type": chart_type}).to_string())
+}
+
+/// Save a plotters chart to SVG file.
+#[rustler::nif]
+fn plotters_chart_to_file(chart_type: String, params_json: String, output_path: String) -> Result<String, String> {
+    let result = do_plotters_chart(chart_type, params_json)?;
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap_or_default();
+    let svg = parsed["svg"].as_str().unwrap_or("");
+    std::fs::write(&output_path, svg).map_err(|e| format!("Write: {}", e))?;
+    Ok(serde_json::json!({"path": output_path, "svg_bytes": svg.len()}).to_string())
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NIF registration — ALL 40 functions
 // ═══════════════════════════════════════════════════════════════
 
 rustler::init!("graphene_nif");
