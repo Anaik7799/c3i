@@ -307,6 +307,11 @@ pub fn metabolic_view(_state: SharedMeshState) -> Element(msg) {
         ),
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/metabolic-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -418,6 +423,11 @@ pub fn mcp_view(_state: SharedMeshState) -> Element(msg) {
         ["emergency_stop", "L0", "Yes", "Emergency halt (SC-SAFETY-022)"],
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/mcp-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -443,6 +453,11 @@ pub fn kms_view(_state: SharedMeshState) -> Element(msg) {
         ["kms-master", "AES-256-CBC", "KMS master key", "never"],
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/kms-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 

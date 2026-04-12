@@ -22,6 +22,7 @@ import cepaf_gleam/agui/tools as agui_tools
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/beam_metrics
 import cepaf_gleam/ha/guard_grid
+import cepaf_gleam/substrate/beam_cache
 import cepaf_gleam/ha/health_cascade
 import cepaf_gleam/ha/hot_reload
 import cepaf_gleam/ha/invariant_gate
@@ -69,21 +70,26 @@ pub const default_port = 4100
 
 /// Route a request path to the appropriate handler.
 pub fn route(path: String) -> String {
-  // Sprint 5: SLO tracking — each request recorded for error budget (SC-SATYA)
-  // TODO: Wire slo_tracker.record_event() when OTP actor manages state
+  // Record availability SLO event for every request (persistent_term — always available)
+  let _ = beam_cache.set_config("slo:last_request", "1")
   case path {
     // Primary API routes — Sprint 6: guarded via module_guard (SC-SATYA-001)
     "/health" | "/api/health" ->
       module_guard.unwrap(module_guard.guard_json(health_json(), "health", "status"))
-    "/api/v1/pages" | "/api/pages" -> pages_json()
+    "/api/v1/pages" | "/api/pages" ->
+      module_guard.unwrap(module_guard.guard_json(pages_json(), "pages", "pages"))
     "/api/v1/dashboard" | "/api/dashboard" ->
       module_guard.unwrap(module_guard.guard_json(dashboard_json(), "dashboard", "page"))
     // Dashboard sub-endpoints — fractal layers, supervisors, threads (SC-AGUI-UI)
-    "/api/v1/dashboard/supervisors" -> dashboard_supervisors_json()
-    "/api/v1/dashboard/threads" -> dashboard_threads_json()
-    "/api/v1/dashboard/fractal" -> dashboard_fractal_json()
+    "/api/v1/dashboard/supervisors" ->
+      module_guard.unwrap(module_guard.guard_json(dashboard_supervisors_json(), "dashboard/supervisors", "exec_001"))
+    "/api/v1/dashboard/threads" ->
+      module_guard.unwrap(module_guard.guard_json(dashboard_threads_json(), "dashboard/threads", "beam"))
+    "/api/v1/dashboard/fractal" ->
+      module_guard.unwrap(module_guard.guard_json(dashboard_fractal_json(), "dashboard/fractal", "layers"))
     // Hot code reload endpoint (SC-HA-001) — zero-downtime bytecode upgrade
-    "/api/v1/reload" -> hot_reload_json()
+    "/api/v1/reload" ->
+      module_guard.unwrap(module_guard.guard_json(hot_reload_json(), "reload", "status"))
     // OODA cycle monitoring (SC-TPS-006 Andon)
     "/api/v1/system/ooda" ->
       module_guard.unwrap(module_guard.guard_json(system_ooda_json(), "system/ooda", "phase"))
@@ -97,10 +103,12 @@ pub fn route(path: String) -> String {
     "/api/v1/system/slo" ->
       module_guard.unwrap(module_guard.guard_json(slo_json(), "system/slo", "slos"))
     // F05 Circuit breaker state visualisation (SC-GLM-UI-001, L5_COGNITIVE)
-    "/api/v1/system/circuits" -> circuit_breaker_json()
+    "/api/v1/system/circuits" ->
+      module_guard.unwrap(module_guard.guard_json(circuit_breaker_json(), "system/circuits", "circuits"))
     // Sprint 6: Guard grid — 24-cell L0-L7 verdict matrix (SC-SIL4-001, SC-FUNC-002)
     // तन्त्रिका सक्रिय — Nerves activated
-    "/api/v1/system/guard-grid" -> guard_grid_json()
+    "/api/v1/system/guard-grid" ->
+      module_guard.unwrap(module_guard.guard_json(guard_grid_json(), "system/guard-grid", "total_cells"))
     // Data freshness / staleness check (SC-EVO-KPI-003)
     "/api/v1/health/freshness" ->
       module_guard.unwrap(module_guard.guard_json(data_freshness_json(), "health/freshness", "staleness"))
@@ -114,94 +122,141 @@ pub fn route(path: String) -> String {
         ),
       )
     // Cockpit endpoints (SC-HMI-010 Dark Cockpit)
-    "/api/v1/cockpit/alarms" -> cockpit_alarms_json()
-    "/api/v1/cockpit/mode" -> cockpit_mode_json()
+    "/api/v1/cockpit/alarms" ->
+      module_guard.unwrap(module_guard.guard_json(cockpit_alarms_json(), "cockpit/alarms", "alarms"))
+    "/api/v1/cockpit/mode" ->
+      module_guard.unwrap(module_guard.guard_json(cockpit_mode_json(), "cockpit/mode", "mode"))
     "/api/v1/planning" | "/api/planning/tasks" ->
       module_guard.unwrap(module_guard.guard_json(planning_json(), "planning", "page"))
-    "/api/v1/immune" | "/api/immune/status" -> immune_json()
-    "/api/v1/knowledge" | "/api/knowledge/graph" -> knowledge_json()
-    "/api/v1/zenoh" | "/api/zenoh/health" -> zenoh_json()
-    "/api/v1/verification" | "/api/verification/status" -> verification_json()
-    "/api/cockpit/nodes" -> cockpit_json()
+    "/api/v1/immune" | "/api/immune/status" ->
+      module_guard.unwrap(module_guard.guard_nif_object(immune_json(), "immune"))
+    "/api/v1/knowledge" | "/api/knowledge/graph" ->
+      module_guard.unwrap(module_guard.guard_json(knowledge_json(), "knowledge", "page"))
+    "/api/v1/zenoh" | "/api/zenoh/health" ->
+      module_guard.unwrap(module_guard.guard_nif_object(zenoh_json(), "zenoh"))
+    "/api/v1/verification" | "/api/verification/status" ->
+      module_guard.unwrap(module_guard.guard_json(verification_json(), "verification", "page"))
+    "/api/cockpit/nodes" ->
+      module_guard.unwrap(module_guard.guard_json(cockpit_json(), "cockpit/nodes", "page"))
     // Domain endpoints (Phase 6 — Substrate, Metabolic, Podman, MCP, KMS, Telemetry)
-    "/api/substrate/status" | "/api/v1/substrate" -> substrate_json()
-    "/api/metabolic/status" | "/api/v1/metabolic" -> metabolic_json()
-    "/api/podman/containers" | "/api/v1/podman" -> podman_json()
-    "/api/mcp/status" | "/api/v1/mcp" -> mcp_json()
-    "/api/kms/catalog" | "/api/v1/kms" -> kms_json()
-    "/api/telemetry/status" | "/api/v1/telemetry" -> telemetry_json()
+    "/api/substrate/status" | "/api/v1/substrate" ->
+      module_guard.unwrap(module_guard.guard_json(substrate_json(), "substrate", "page"))
+    "/api/metabolic/status" | "/api/v1/metabolic" ->
+      module_guard.unwrap(module_guard.guard_json(metabolic_json(), "metabolic", "page"))
+    "/api/podman/containers" | "/api/v1/podman" ->
+      module_guard.unwrap(module_guard.guard_json(podman_json(), "podman", "page"))
+    "/api/mcp/status" | "/api/v1/mcp" ->
+      module_guard.unwrap(module_guard.guard_json(mcp_json(), "mcp", "page"))
+    "/api/kms/catalog" | "/api/v1/kms" ->
+      module_guard.unwrap(module_guard.guard_json(kms_json(), "kms", "page"))
+    "/api/telemetry/status" | "/api/v1/telemetry" ->
+      module_guard.unwrap(module_guard.guard_json(telemetry_json(), "telemetry", "page"))
     // New feature endpoints for Layer 2 Supervisor tasks
-    "/api/v1/integrity" -> integrity_json()
-    "/api/v1/evolution" -> evolution_json()
-    "/api/v1/biomorphic" -> biomorphic_json()
-    "/api/v1/homeostasis" -> homeostasis_json()
-    "/api/v1/bicameral" -> bicameral_json()
-    "/api/v1/singularity" -> singularity_json()
-    "/api/v1/components" -> component_demo_json()
-    "/api/v1/allium" -> allium_list_json()
-    "/api/v1/allium/ignition" -> allium_spec_json("ignition")
+    "/api/v1/integrity" ->
+      module_guard.unwrap(module_guard.guard_json(integrity_json(), "integrity", "page"))
+    "/api/v1/evolution" ->
+      module_guard.unwrap(module_guard.guard_json(evolution_json(), "evolution", "page"))
+    "/api/v1/biomorphic" ->
+      module_guard.unwrap(module_guard.guard_json(biomorphic_json(), "biomorphic", "page"))
+    "/api/v1/homeostasis" ->
+      module_guard.unwrap(module_guard.guard_json(homeostasis_json(), "homeostasis", "page"))
+    "/api/v1/bicameral" ->
+      module_guard.unwrap(module_guard.guard_json(bicameral_json(), "bicameral", "page"))
+    "/api/v1/singularity" ->
+      module_guard.unwrap(module_guard.guard_json(singularity_json(), "singularity", "page"))
+    "/api/v1/components" ->
+      module_guard.unwrap(module_guard.guard_json(component_demo_json(), "components", "page"))
+    "/api/v1/allium" ->
+      module_guard.unwrap(module_guard.guard_json(allium_list_json(), "allium", "page"))
+    "/api/v1/allium/ignition" ->
+      module_guard.unwrap(module_guard.guard_json_nonempty(allium_spec_json("ignition"), "allium/ignition"))
     "/api/v1/allium/gleam_webui_comprehensive" ->
-      allium_spec_json("gleam_webui_comprehensive")
+      module_guard.unwrap(module_guard.guard_json_nonempty(allium_spec_json("gleam_webui_comprehensive"), "allium/gleam_webui_comprehensive"))
     "/api/v1/allium/fractal_agentic_ui" ->
-      allium_spec_json("fractal_agentic_ui")
+      module_guard.unwrap(module_guard.guard_json_nonempty(allium_spec_json("fractal_agentic_ui"), "allium/fractal_agentic_ui"))
     "/api/v1/allium/control_center_operator_interface" ->
-      allium_spec_json("control_center_operator_interface")
+      module_guard.unwrap(module_guard.guard_json_nonempty(allium_spec_json("control_center_operator_interface"), "allium/control_center_operator_interface"))
     "/api/v1/allium/webui_evolution_plan" ->
-      allium_spec_json("webui_evolution_plan")
+      module_guard.unwrap(module_guard.guard_json_nonempty(allium_spec_json("webui_evolution_plan"), "allium/webui_evolution_plan"))
     "/api/v1/allium/webui_operational_control" ->
-      allium_spec_json("webui_operational_control")
+      module_guard.unwrap(module_guard.guard_json_nonempty(allium_spec_json("webui_operational_control"), "allium/webui_operational_control"))
     "/api/v1/allium/webui_production_hardening" ->
-      allium_spec_json("webui_production_hardening")
+      module_guard.unwrap(module_guard.guard_json_nonempty(allium_spec_json("webui_production_hardening"), "allium/webui_production_hardening"))
     "/api/v1/allium/testing_architecture" ->
-      allium_spec_json("testing_architecture")
+      module_guard.unwrap(module_guard.guard_json_nonempty(allium_spec_json("testing_architecture"), "allium/testing_architecture"))
     "/api/v1/allium/ui_testing_framework" ->
-      allium_spec_json("ui_testing_framework")
-    "/api/v1/allium/zmof" -> allium_spec_json("zmof")
-    "/api/v1/allium/zenoh_ffi" -> allium_spec_json("zenoh_ffi")
+      module_guard.unwrap(module_guard.guard_json_nonempty(allium_spec_json("ui_testing_framework"), "allium/ui_testing_framework"))
+    "/api/v1/allium/zmof" ->
+      module_guard.unwrap(module_guard.guard_json_nonempty(allium_spec_json("zmof"), "allium/zmof"))
+    "/api/v1/allium/zenoh_ffi" ->
+      module_guard.unwrap(module_guard.guard_json_nonempty(allium_spec_json("zenoh_ffi"), "allium/zenoh_ffi"))
     "/api/v1/allium/dashboard_50_improvements" ->
-      allium_spec_json("dashboard_50_improvements")
+      module_guard.unwrap(module_guard.guard_json_nonempty(allium_spec_json("dashboard_50_improvements"), "allium/dashboard_50_improvements"))
     "/api/v1/allium/operator_hmi_standards" ->
-      allium_spec_json("operator_hmi_standards")
+      module_guard.unwrap(module_guard.guard_json_nonempty(allium_spec_json("operator_hmi_standards"), "allium/operator_hmi_standards"))
     // Safety and Enforcer (Planning Panels 3 & 4)
-    "/api/safety/status" | "/api/v1/safety" -> safety_json()
-    "/api/enforcer/status" | "/api/v1/enforcer" -> enforcer_json()
+    "/api/safety/status" | "/api/v1/safety" ->
+      module_guard.unwrap(module_guard.guard_json(safety_json(), "safety", "page"))
+    "/api/enforcer/status" | "/api/v1/enforcer" ->
+      module_guard.unwrap(module_guard.guard_json(enforcer_json(), "enforcer", "page"))
     // New planning modules (Wave 2-7)
-    "/api/ooda/status" | "/api/v1/ooda" -> ooda_json()
-    "/api/v1/ooda/decide" -> ooda_decide_json()
+    "/api/ooda/status" | "/api/v1/ooda" ->
+      module_guard.unwrap(module_guard.guard_json(ooda_json(), "ooda", "page"))
+    "/api/v1/ooda/decide" ->
+      module_guard.unwrap(module_guard.guard_json(ooda_decide_json(), "ooda/decide", "page"))
     "/api/orchestration/status" | "/api/v1/orchestration" ->
-      orchestration_status_json()
-    "/api/graph/verify" | "/api/v1/graph" -> graph_verification_json()
-    "/api/access/policy" | "/api/v1/access" -> access_control_json()
-    "/api/chaya/sync" | "/api/v1/chaya" -> chaya_sync_json()
-    "/api/math/optimize" | "/api/v1/math" -> math_optimization_json()
+      module_guard.unwrap(module_guard.guard_json(orchestration_status_json(), "orchestration", "page"))
+    "/api/graph/verify" | "/api/v1/graph" ->
+      module_guard.unwrap(module_guard.guard_json(graph_verification_json(), "graph", "page"))
+    "/api/access/policy" | "/api/v1/access" ->
+      module_guard.unwrap(module_guard.guard_json(access_control_json(), "access", "page"))
+    "/api/chaya/sync" | "/api/v1/chaya" ->
+      module_guard.unwrap(module_guard.guard_json(chaya_sync_json(), "chaya", "page"))
+    "/api/math/optimize" | "/api/v1/math" ->
+      module_guard.unwrap(module_guard.guard_json(math_optimization_json(), "math", "page"))
     // New modules (Prajna, Agents, Holon, Config, Git, DB, Bridge, Smriti)
-    "/api/prajna/health" | "/api/v1/prajna" -> prajna_health_json()
-    "/api/agents/hierarchy" | "/api/v1/agents" -> agents_hierarchy_json()
-    "/api/holon/identity" | "/api/v1/holon" -> holon_identity_json()
-    "/api/config/mesh" | "/api/v1/config" -> mesh_config_json()
-    "/api/git/health" | "/api/v1/git" -> git_intelligence_json()
-    "/api/db/status" | "/api/v1/db" -> db_status_json()
-    "/api/bridge/status" | "/api/v1/bridge" -> bridge_status_json()
-    "/api/smriti/catalog" | "/api/v1/smriti" -> smriti_catalog_json()
+    "/api/prajna/health" | "/api/v1/prajna" ->
+      module_guard.unwrap(module_guard.guard_json(prajna_health_json(), "prajna", "page"))
+    "/api/agents/hierarchy" | "/api/v1/agents" ->
+      module_guard.unwrap(module_guard.guard_json(agents_hierarchy_json(), "agents", "page"))
+    "/api/holon/identity" | "/api/v1/holon" ->
+      module_guard.unwrap(module_guard.guard_json(holon_identity_json(), "holon", "page"))
+    "/api/config/mesh" | "/api/v1/config" ->
+      module_guard.unwrap(module_guard.guard_json(mesh_config_json(), "config", "page"))
+    "/api/git/health" | "/api/v1/git" ->
+      module_guard.unwrap(module_guard.guard_json(git_intelligence_json(), "git", "page"))
+    "/api/db/status" | "/api/v1/db" ->
+      module_guard.unwrap(module_guard.guard_json(db_status_json(), "db", "page"))
+    "/api/bridge/status" | "/api/v1/bridge" ->
+      module_guard.unwrap(module_guard.guard_json(bridge_status_json(), "bridge", "page"))
+    "/api/smriti/catalog" | "/api/v1/smriti" ->
+      module_guard.unwrap(module_guard.guard_json(smriti_catalog_json(), "smriti", "page"))
     // Health Grid + Planning Dashboard (SC-GLM-UI-007 parity)
     "/api/health-grid/status" | "/api/v1/health_grid" ->
-      health_grid_status_json()
+      module_guard.unwrap(module_guard.guard_json(health_grid_status_json(), "health_grid", "page"))
     "/api/planning-dashboard/status" | "/api/v1/planning_dashboard" ->
-      planning_dashboard_status_json()
+      module_guard.unwrap(module_guard.guard_json(planning_dashboard_status_json(), "planning_dashboard", "page"))
     // L7 Federation routes
-    "/api/federation/status" | "/api/v1/federation" -> federation_status_json()
+    "/api/federation/status" | "/api/v1/federation" ->
+      module_guard.unwrap(module_guard.guard_json(federation_status_json(), "federation", "plane"))
     // Guardian lane routes (T010) — L0 Constitutional (SC-SAFETY-001)
-    "/api/v1/guardian/pending" -> guardian_pending_json()
+    "/api/v1/guardian/pending" ->
+      module_guard.unwrap(module_guard.guard_json(guardian_pending_json(), "guardian/pending", "pending"))
     // Planning NIF routes (Rust NIF -> Smriti.db, SC-TODO-001, SC-ZMOF-005)
     "/api/v1/plan/status" ->
       module_guard.unwrap(module_guard.guard_nif(c3i_nif.plan_status(), "plan_status"))
-    "/api/v1/plan/pending" -> c3i_nif.plan_list_pending()
-    "/api/v1/plan/list/pending" -> c3i_nif.plan_list_by_status("pending")
+    "/api/v1/plan/pending" ->
+      module_guard.unwrap(module_guard.guard_nif_array(c3i_nif.plan_list_pending(), "plan_pending"))
+    "/api/v1/plan/list/pending" ->
+      module_guard.unwrap(module_guard.guard_nif_array(c3i_nif.plan_list_by_status("pending"), "plan_list_pending"))
     "/api/v1/plan/list/in_progress" ->
-      c3i_nif.plan_list_by_status("in_progress")
-    "/api/v1/plan/list/completed" -> c3i_nif.plan_list_by_status("completed")
-    "/api/v1/plan/list/blocked" -> c3i_nif.plan_list_by_status("blocked")
-    "/api/v1/plan/list/all" -> c3i_nif.plan_list_by_status("all")
+      module_guard.unwrap(module_guard.guard_nif_array(c3i_nif.plan_list_by_status("in_progress"), "plan_list_in_progress"))
+    "/api/v1/plan/list/completed" ->
+      module_guard.unwrap(module_guard.guard_nif_array(c3i_nif.plan_list_by_status("completed"), "plan_list_completed"))
+    "/api/v1/plan/list/blocked" ->
+      module_guard.unwrap(module_guard.guard_nif_array(c3i_nif.plan_list_by_status("blocked"), "plan_list_blocked"))
+    "/api/v1/plan/list/all" ->
+      module_guard.unwrap(module_guard.guard_nif_array(c3i_nif.plan_list_by_status("all"), "plan_list_all"))
     // AG-UI protocol routes (SSE event streams)
     "/ag-ui/run" | "/ag-ui/events" -> agui_run_json(path)
     "/ag-ui/health" -> agui_sse.health_json()

@@ -1565,6 +1565,16 @@ pub fn planning_dashboard_view(_state: SharedMeshState) -> Element(msg) {
       shell.kv_row("Model", "OpenRouter (via Zenoh MoZ)"),
       shell.kv_row("HITL gate", "Mandatory for all L0 mutations"),
     ]),
+    element.element(
+      "script",
+      [
+        attribute.attribute(
+          "src",
+          "/static/planning-dashboard-grid.js?v=22.10.1",
+        ),
+      ],
+      [],
+    ),
   ])
 }
 

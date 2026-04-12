@@ -838,6 +838,11 @@ pub fn prajna_view(state: SharedMeshState) -> Element(msg) {
         ["Emergency", "Critical", "Full illumination", "Red dominant"],
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/prajna-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -1003,6 +1008,11 @@ pub fn holon_view(_state: SharedMeshState) -> Element(msg) {
         ["ML Runner", "2", "ml-runner-1/2"],
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/holon-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -1029,6 +1039,11 @@ pub fn config_view(_state: SharedMeshState) -> Element(msg) {
         ["9090", "Prometheus", "Metrics scrape"],
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/config-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -1056,6 +1071,11 @@ pub fn git_view(_state: SharedMeshState) -> Element(msg) {
       shell.kv_row("Feature branches", "multiverse/<agent-id>-<scope>"),
       shell.kv_row("Merge strategy", "ff-only after Guardian approval"),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/git-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -1087,6 +1107,11 @@ pub fn database_view(_state: SharedMeshState) -> Element(msg) {
       shell.kv_row("Conflict resolution", "LastWriterWins (OCC)"),
       shell.kv_row("WAL mode", "Required for all SQLite databases"),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/database-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -1120,6 +1145,11 @@ pub fn bridge_view(_state: SharedMeshState) -> Element(msg) {
         ["Ignition commands", "./sa-up CLI", "Gleam TUI → Shell → Rust"],
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/bridge-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -1144,6 +1174,11 @@ pub fn smriti_view(_state: SharedMeshState) -> Element(msg) {
         ["normalize/1", "Vector → Vector", "active"],
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/smriti-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 

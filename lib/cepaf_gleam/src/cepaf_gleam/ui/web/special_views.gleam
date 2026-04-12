@@ -144,6 +144,11 @@ pub fn integrity_view(_state: SharedMeshState) -> Element(msg) {
         shell.status_card("Streak", "Healthy", "256 cycles", "zero violations"),
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/integrity-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -229,6 +234,11 @@ pub fn evolution_view(_state: SharedMeshState) -> Element(msg) {
         ),
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/evolution-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -256,6 +266,11 @@ pub fn biomorphic_view(_state: SharedMeshState) -> Element(msg) {
         shell.status_card("Status", "Healthy", "ALL NOMINAL", "3/3 healthy"),
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/biomorphic-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -287,6 +302,11 @@ pub fn homeostasis_view(_state: SharedMeshState) -> Element(msg) {
         shell.status_card("Kd", "Healthy", "0.05", "derivative"),
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/homeostasis-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -314,6 +334,11 @@ pub fn bicameral_view(_state: SharedMeshState) -> Element(msg) {
         shell.status_card("Total Vetoes", "Healthy", "3", "historical"),
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/bicameral-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -342,6 +367,11 @@ pub fn singularity_view(_state: SharedMeshState) -> Element(msg) {
         shell.status_card("Autonomy", "Healthy", "0.31", "trend: stable"),
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/singularity-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -392,6 +422,11 @@ pub fn federation_view(_state: SharedMeshState) -> Element(msg) {
         ),
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/federation-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -423,6 +458,11 @@ pub fn health_grid_view(_state: SharedMeshState) -> Element(msg) {
         device_health_card("sensor-01", 0.72, "sensor"),
       ]),
     ]),
+    element.element(
+      "script",
+      [attribute.attribute("src", "/static/health-grid-grid.js?v=22.10.1")],
+      [],
+    ),
   ])
 }
 
@@ -1191,6 +1231,16 @@ pub fn component_demo_view(state: SharedMeshState) -> Element(msg) {
         ),
       ]),
     ]),
+    element.element(
+      "script",
+      [
+        attribute.attribute(
+          "src",
+          "/static/component-demo-grid.js?v=22.10.1",
+        ),
+      ],
+      [],
+    ),
   ])
 }
 
