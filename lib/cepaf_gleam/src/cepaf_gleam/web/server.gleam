@@ -505,44 +505,50 @@ pub fn start(port: Int) -> Result(Nil, String) {
     }
   }
 
-  // Try HTTPS first (TLS cert at priv/ssl/), fall back to HTTP
+  // Start BOTH HTTP and HTTPS for maximum accessibility
   let cert_path = "priv/ssl/cert.pem"
   let key_path = "priv/ssl/key.pem"
+  let http_port = port + 1
 
-  let builder =
+  // HTTP server on port+1 (4101) — no TLS, accessible from any browser
+  let http_builder =
+    mist.new(handler)
+    |> mist.port(http_port)
+    |> mist.bind("0.0.0.0")
+
+  case mist.start(http_builder) {
+    Ok(_) ->
+      io.println(
+        "  HTTP server running on http://0.0.0.0:" <> int.to_string(http_port),
+      )
+    Error(_) ->
+      io.println("  [http] HTTP server failed on port " <> int.to_string(http_port))
+  }
+
+  // HTTPS server on primary port (4100) — TLS with self-signed cert
+  let https_builder =
     mist.new(handler)
     |> mist.port(port)
     |> mist.bind("0.0.0.0")
 
-  // Attempt TLS — if cert files exist, serve HTTPS; otherwise plain HTTP
   let tls_builder =
-    mist.with_tls(builder, certfile: cert_path, keyfile: key_path)
+    mist.with_tls(https_builder, certfile: cert_path, keyfile: key_path)
 
   case mist.start(tls_builder) {
     Ok(_) -> {
       io.println(
         "  HTTPS server running on https://0.0.0.0:" <> int.to_string(port),
       )
+      io.println(
+        "  Both HTTP (:" <> int.to_string(http_port) <> ") and HTTPS (:" <> int.to_string(port) <> ") available",
+      )
       process.sleep_forever()
       Ok(Nil)
     }
     Error(_) -> {
-      io.println("  [tls] TLS failed, falling back to HTTP...")
-      case mist.start(builder) {
-        Ok(_) -> {
-          io.println(
-            "  HTTP server running on http://0.0.0.0:"
-            <> int.to_string(port),
-          )
-          process.sleep_forever()
-          Ok(Nil)
-        }
-        Error(_) -> {
-          Error(
-            "Failed to start HTTP server on port " <> int.to_string(port),
-          )
-        }
-      }
+      io.println("  [tls] TLS failed, HTTP-only mode on port " <> int.to_string(http_port))
+      process.sleep_forever()
+      Ok(Nil)
     }
   }
 }
