@@ -52,15 +52,15 @@ body{margin:0;font-family:system-ui,sans-serif;background:var(--bg,#0a0e17);colo
 a{color:var(--primary);text-decoration:none;}
 a:hover{color:var(--accent);}
 nav{background:var(--nav-bg);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;flex-wrap:wrap;gap:.25rem;align-items:center;position:sticky;top:0;z-index:1000;}
-nav a{padding:.5rem .75rem;border-radius:4px;font-size:.85rem;color:var(--text);}
+nav a{padding:.5rem .75rem;border-radius:4px;font-size:.95rem;color:var(--text);}
 nav a.active{background:var(--border);color:var(--accent);}
-.test-btn{background:var(--accent);color:var(--bg);border:none;padding:.3rem .8rem;border-radius:4px;font-weight:700;cursor:pointer;font-size:.75rem;margin-left:auto;display:flex;align-items:center;gap:4px;}
+.test-btn{background:var(--accent);color:var(--bg);border:none;padding:.3rem .8rem;border-radius:4px;font-weight:700;cursor:pointer;font-size:.88rem;margin-left:auto;display:flex;align-items:center;gap:4px;}
 .theme-selector{display:flex;gap:4px;margin-left:1rem;}
 .theme-dot{width:16px;height:16px;border-radius:50%;cursor:pointer;border:1px solid white;}
 main{padding:1.5rem;max-width:1400px;margin:0 auto;}
 h1{font-size:1.4rem;margin:.5rem 0 .25rem;color:var(--text);}
 h2{font-size:1.1rem;margin:1rem 0 .5rem;color:#7a8fa6;}
-p.sub{font-size:.85rem;color:#7a8fa6;margin:0 0 1rem;}
+p.sub{font-size:.95rem;color:#7a8fa6;margin:0 0 1rem;}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin:.75rem 0;}
 .card-grid-wide{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin:.75rem 0;}
 .card{background:var(--card-bg);border:1px solid var(--border);border-radius:6px;padding:1rem;position:relative;overflow:hidden;}
@@ -71,18 +71,18 @@ p.sub{font-size:.85rem;color:#7a8fa6;margin:0 0 1rem;}
 .status-degraded{color:var(--warn);}
 .status-critical{color:var(--crit);}
 .status-unknown{color:#7a8fa6;}
-.badge{display:inline-block;padding:.15rem .5rem;border-radius:3px;font-size:.75rem;font-weight:600;}
+.badge{display:inline-block;padding:.15rem .5rem;border-radius:3px;font-size:.88rem;font-weight:600;}
 .badge-healthy{background:rgba(61,214,140,0.2);color:var(--accent);}
 .badge-degraded{background:rgba(245,166,35,0.2);color:var(--warn);}
 .badge-critical{background:rgba(224,82,82,0.2);color:var(--crit);}
 .section{margin:1.25rem 0;}
-.section-title{font-size:.85rem;color:#7a8fa6;text-transform:uppercase;margin:0 0 .5rem;border-bottom:1px solid var(--border);padding-bottom:.35rem;}
+.section-title{font-size:.95rem;color:#7a8fa6;text-transform:uppercase;margin:0 0 .5rem;border-bottom:1px solid var(--border);padding-bottom:.35rem;}
 .alert{padding:.75rem 1rem;border-radius:4px;margin:.5rem 0;font-size:.9rem;}
 .alert-critical{background:rgba(224,82,82,0.1);border:1px solid var(--crit);color:var(--crit);}
 .alert-warning{background:rgba(245,166,35,0.1);border:1px solid var(--warn);color:var(--warn);}
 .alert-info{background:rgba(0,212,170,0.1);border:1px solid var(--primary);color:var(--primary);}
 table{width:100%;border-collapse:collapse;font-size:.88rem;}
-th{text-align:left;padding:.4rem .6rem;background:var(--nav-bg);color:#7a8fa6;font-size:.78rem;text-transform:uppercase;}
+th{text-align:left;padding:.4rem .6rem;background:var(--nav-bg);color:#7a8fa6;font-size:.9rem;text-transform:uppercase;}
 td{padding:.4rem .6rem;border-bottom:1px solid var(--border);color:var(--text);}
 .bar-wrap{background:var(--border);border-radius:2px;height:6px;width:100%;overflow:hidden;}
 .bar-fill{height:100%;border-radius:2px;background:var(--accent);}
@@ -134,9 +134,9 @@ td{padding:.4rem .6rem;border-bottom:1px solid var(--border);color:var(--text);}
 .cockpit-emergency .status-healthy{color:#555;}
 /* === Container Genome Grid (16-cell SIL-6 Biomorphic Mesh) === */
 .genome-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:.75rem 0;}
-.genome-cell{background:var(--card-bg);border:1px solid var(--border);border-radius:4px;padding:8px;text-align:center;font-size:.75rem;position:relative;transition:all 0.3s;}
+.genome-cell{background:var(--card-bg);border:1px solid var(--border);border-radius:4px;padding:8px;text-align:center;font-size:.88rem;position:relative;transition:all 0.3s;}
 .genome-cell .genome-name{font-weight:600;color:var(--text);margin-bottom:2px;}
-.genome-cell .genome-status{font-size:.65rem;color:#7a8fa6;}
+.genome-cell .genome-status{font-size:.82rem;color:#7a8fa6;}
 .genome-cell .genome-led{position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;}
 .genome-cell.genome-healthy{border-color:rgba(61,214,140,0.3);}.genome-cell.genome-healthy .genome-led{background:var(--accent);box-shadow:0 0 6px var(--accent);}
 .genome-cell.genome-degraded{border-color:rgba(245,166,35,0.3);}.genome-cell.genome-degraded .genome-led{background:var(--warn);box-shadow:0 0 6px var(--warn);}
@@ -145,15 +145,15 @@ td{padding:.4rem .6rem;border-bottom:1px solid var(--border);color:var(--text);}
 .ooda-5tier{display:flex;flex-direction:column;gap:4px;margin:.5rem 0;}
 .ooda-tier{display:flex;align-items:center;gap:.5rem;padding:4px 8px;border-radius:4px;font-size:.8rem;color:var(--text);}
 .ooda-tier.active{background:rgba(61,214,140,0.1);border:1px solid var(--accent);}
-.ooda-tier .ooda-budget{color:#7a8fa6;font-size:.7rem;margin-left:auto;}
+.ooda-tier .ooda-budget{color:#7a8fa6;font-size:.85rem;margin-left:auto;}
 .ooda-tier .ooda-dot{width:8px;height:8px;border-radius:50%;background:#7a8fa6;}
 .ooda-tier.active .ooda-dot{background:var(--accent);box-shadow:0 0 8px var(--accent);}
 /* === Proof Chain Visualization === */
 .proof-chain{display:flex;align-items:center;gap:0;margin:.5rem 0;overflow-x:auto;}
-.proof-block{background:var(--card-bg);border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-size:.7rem;font-family:monospace;white-space:nowrap;color:var(--text);}
+.proof-block{background:var(--card-bg);border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-size:.85rem;font-family:monospace;white-space:nowrap;color:var(--text);}
 .proof-block.verified{border-color:var(--accent);color:var(--accent);}
 .proof-block.pending{border-color:var(--warn);color:var(--warn);}
-.proof-arrow{color:#7a8fa6;padding:0 2px;font-size:.7rem;}
+.proof-arrow{color:#7a8fa6;padding:0 2px;font-size:.85rem;}
 @media(max-width:768px){nav{padding:.25rem;}.card-grid,.card-grid-wide{grid-template-columns:1fr;}main{padding:.75rem;} .test-btn{margin-left:0; width:100%;}}
 /* Optimized Navigation — Mobile-First Grouped */
 .nav-container{display:flex;align-items:center;gap:4px;width:100%;}
@@ -531,7 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Keyboard shortcut help overlay
   const helpDiv = document.createElement('div');
   helpDiv.id = 'c3i-help';
-  helpDiv.style.cssText = 'display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#0d1420;border:1px solid #1e2a3a;border-radius:8px;padding:1.5rem;z-index:300;color:#e0e6ed;font-family:monospace;font-size:.85rem;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,0.6);';
+  helpDiv.style.cssText = 'display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#0d1420;border:1px solid #1e2a3a;border-radius:8px;padding:1.5rem;z-index:300;color:#e0e6ed;font-family:monospace;font-size:.95rem;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,0.6);';
   helpDiv.innerHTML = '<div style=\"color:#3dd68c;font-weight:bold;margin-bottom:.75rem\">⌨ Keyboard Shortcuts</div>'
     + '<div style=\"display:grid;grid-template-columns:60px 1fr;gap:4px\">'
     + '<span style=\"color:#7a8fa6\">j/k</span><span>Scroll down/up</span>'
@@ -540,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
     + '<span style=\"color:#7a8fa6\">/</span><span>Focus search filter</span>'
     + '<span style=\"color:#7a8fa6\">?</span><span>Toggle this help</span>'
     + '<span style=\"color:#7a8fa6\">Alt+Shift</span><span>Merkle proof overlay</span>'
-    + '</div><div style=\"margin-top:.75rem;color:#7a8fa6;font-size:.75rem\">Press ? to close</div>';
+    + '</div><div style=\"margin-top:.75rem;color:#7a8fa6;font-size:.88rem\">Press ? to close</div>';
   document.body.appendChild(helpDiv);
 
   // Keyboard navigation (j/k scroll, 1-9 page switch, / search, ? help)
