@@ -1179,8 +1179,8 @@ fn progress_ring(
       "svg",
       [
         attribute.attribute("viewBox", "0 0 120 120"),
-        attribute.attribute("width", "110"),
-        attribute.attribute("height", "110"),
+        attribute.attribute("width", "80"),
+        attribute.attribute("height", "80"),
       ],
       [
         element.element(
