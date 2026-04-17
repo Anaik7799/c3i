@@ -608,7 +608,7 @@ pub fn render_page(
           "link",
           [
             attribute.attribute("rel", "stylesheet"),
-            attribute.attribute("href", "/static/material.css"),
+            attribute.attribute("href", "/static/material.css?v=22.10.4"),
           ],
           [],
         ),
@@ -940,10 +940,15 @@ pub fn data_table(
         list.map(row, fn(cell) { html.td([], [element.text(cell)]) })
       html.tr([], td_cells)
     })
-  html.table([], [
-    html.thead([], [html.tr([], th_cells)]),
-    html.tbody([], tr_rows),
-  ])
+  html.div(
+    [attribute.attribute("style", "overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%")],
+    [
+      html.table([], [
+        html.thead([], [html.tr([], th_cells)]),
+        html.tbody([], tr_rows),
+      ]),
+    ],
+  )
 }
 
 /// Action button that performs an API call via JS fetch.
