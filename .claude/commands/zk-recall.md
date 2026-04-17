@@ -1,22 +1,30 @@
-# Zettelkasten Recall — Search brain before acting
+# Zettelkasten Recall — Search BOTH brains before acting
 
-Before starting work on "$ARGUMENTS", search the Zettelkasten knowledge base for:
-1. Prior patterns related to this task
-2. Anti-patterns to avoid
-3. Related journal entries with RCA findings
-4. STAMP constraints that apply
+Before starting work on "$ARGUMENTS", search BOTH Zettelkasten databases:
 
-Run these searches:
+## 1. C3I Zettelkasten (engineering, architecture, code patterns)
 ```bash
 sa-plan-daemon knowledge-search "$ARGUMENTS"
 sa-plan-daemon knowledge-search "$ARGUMENTS anti-pattern"
 sa-plan-daemon knowledge-search "$ARGUMENTS journal RCA"
 ```
 
-Then:
-- Summarize what the Zettelkasten knows about this topic
+## 2. FY27 Zettelkasten (sales, accounts, contacts, competitive intel)
+```bash
+ZK=/home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten
+$ZK search "$ARGUMENTS"
+$ZK contacts "$ARGUMENTS"
+```
+
+## 3. Synthesize
+- Summarize what BOTH Zettelkasten know about this topic
 - List any anti-patterns to avoid
 - Identify which prior decisions are still relevant
+- For sales/account queries: activate abhi-sales-agent mode
+- For engineering queries: use Gleam NIF compute
+- Apply SC-AVP verification to any analysis output
 - Only then proceed with the task
 
 This is SC-ZK-CLAUDE-001: Claude MUST search Zettelkasten BEFORE starting ANY task.
+
+$ARGUMENTS

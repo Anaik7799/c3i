@@ -43,6 +43,8 @@ import lustre/element/svg
 // CSS — intentionally minimal: no animations, no gradients, no sparklines.
 // ---------------------------------------------------------------------------
 
+// Material Design 3 CSS loaded from /static/material.css (external)
+// Legacy inline CSS retained as fallback for environments without static serving.
 const css: String = "
 body{margin:0;font-family:system-ui,sans-serif;background:var(--bg,#0a0e17);color:var(--text,#e0e6ed);transition:all 0.5s ease;}
 :root{--bg:#0a0e17;--text:#e0e6ed;--primary:#00d4aa;--accent:#3dd68c;--nav-bg:#0d1420;--card-bg:#141922;--border:#1e2a3a;--warn:#f5a623;--crit:#e05252;}
@@ -601,6 +603,16 @@ pub fn render_page(
           attribute.attribute("content", "width=device-width,initial-scale=1"),
         ]),
         html.title([], "C3I — " <> title),
+        // Material Design 3 CSS (default design language)
+        element.element(
+          "link",
+          [
+            attribute.attribute("rel", "stylesheet"),
+            attribute.attribute("href", "/static/material.css"),
+          ],
+          [],
+        ),
+        // Legacy inline fallback
         html.style([], css),
         html.script([], neuromorphic_script),
       ]),

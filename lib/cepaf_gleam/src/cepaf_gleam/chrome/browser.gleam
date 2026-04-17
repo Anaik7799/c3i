@@ -52,7 +52,7 @@ pub type ScreenshotConfig {
 /// Default screenshot config for planning page.
 pub fn planning_screenshot() -> ScreenshotConfig {
   ScreenshotConfig(
-    url: "https://vm-1.tail55d152.ts.net:4100/planning",
+    url: "https://vm-1.tail55d152.ts.net:4101/planning",
     width: 1400,
     height: 900,
     full_page: True,
@@ -64,7 +64,7 @@ pub fn planning_screenshot() -> ScreenshotConfig {
 /// Default screenshot config for any C3I page.
 pub fn page_screenshot(path: String) -> ScreenshotConfig {
   ScreenshotConfig(
-    url: "https://vm-1.tail55d152.ts.net:4100" <> path,
+    url: "https://vm-1.tail55d152.ts.net:4101" <> path,
     width: 1400,
     height: 900,
     full_page: False,

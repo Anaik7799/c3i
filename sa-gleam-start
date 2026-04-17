@@ -72,7 +72,7 @@ if [[ "${1:-}" == "-d" || "${1:-}" == "--daemon" ]]; then
 
     # Wait for port to be ready
     for i in $(seq 1 10); do
-        if curl -sf http://localhost:$PORT/health &>/dev/null; then
+        if curl -sf http://localhost:4101/health &>/dev/null; then
             echo -e "${GREEN}  ✓ Health check passed${NC}"
             echo -e "${DIM}  http://localhost:$PORT${NC}"
             exit 0

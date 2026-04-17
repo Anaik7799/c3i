@@ -508,27 +508,27 @@ pub fn start(port: Int) -> Result(Nil, String) {
   // Start BOTH HTTP and HTTPS for maximum accessibility
   let cert_path = "priv/ssl/cert.pem"
   let key_path = "priv/ssl/key.pem"
-  let http_port = port + 1
+  let https_port = port + 1
 
-  // HTTP server on port+1 (4101) — no TLS, accessible from any browser
+  // HTTP server on primary port (4100) — no TLS, accessible from any browser
   let http_builder =
     mist.new(handler)
-    |> mist.port(http_port)
+    |> mist.port(port)
     |> mist.bind("0.0.0.0")
 
   case mist.start(http_builder) {
     Ok(_) ->
       io.println(
-        "  HTTP server running on http://0.0.0.0:" <> int.to_string(http_port),
+        "  HTTP server running on http://0.0.0.0:" <> int.to_string(port),
       )
     Error(_) ->
-      io.println("  [http] HTTP server failed on port " <> int.to_string(http_port))
+      io.println("  [http] HTTP server failed on port " <> int.to_string(port))
   }
 
-  // HTTPS server on primary port (4100) — TLS with self-signed cert
+  // HTTPS server on port+1 (4101) — TLS with self-signed cert
   let https_builder =
     mist.new(handler)
-    |> mist.port(port)
+    |> mist.port(https_port)
     |> mist.bind("0.0.0.0")
 
   let tls_builder =
@@ -537,16 +537,16 @@ pub fn start(port: Int) -> Result(Nil, String) {
   case mist.start(tls_builder) {
     Ok(_) -> {
       io.println(
-        "  HTTPS server running on https://0.0.0.0:" <> int.to_string(port),
+        "  HTTPS server running on https://0.0.0.0:" <> int.to_string(https_port),
       )
       io.println(
-        "  Both HTTP (:" <> int.to_string(http_port) <> ") and HTTPS (:" <> int.to_string(port) <> ") available",
+        "  Both HTTP (:" <> int.to_string(port) <> ") and HTTPS (:" <> int.to_string(https_port) <> ") available",
       )
       process.sleep_forever()
       Ok(Nil)
     }
     Error(_) -> {
-      io.println("  [tls] TLS failed, HTTP-only mode on port " <> int.to_string(http_port))
+      io.println("  [tls] TLS failed, HTTP-only mode on port " <> int.to_string(port))
       process.sleep_forever()
       Ok(Nil)
     }
