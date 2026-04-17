@@ -1,5 +1,7 @@
 import gleam/dict.{type Dict}
+import gleam/list
 import gleam/option.{type Option}
+import gleam/string
 
 // ============================================================================
 // Container Types
@@ -120,6 +122,18 @@ pub type ContainerSummary {
     mounts: List(Mount),
     networks: List(String),
   )
+}
+
+/// Determine if a container is stateful based on its mounts.
+/// SC-LIFECYCLE-001: Stateful containers must not be force-removed.
+/// A container is stateful if it has a mount targeting PostgreSQL data,
+/// MySQL data, or other persistent storage directories.
+pub fn is_stateful(container: ContainerSummary) -> Bool {
+  list.any(container.mounts, fn(m) {
+    string.contains(m.target, "postgresql")
+    || string.contains(m.target, "mysql")
+    || string.contains(m.target, "/data/db")
+  })
 }
 
 pub type HealthCheckLog {

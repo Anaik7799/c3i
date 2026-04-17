@@ -36,7 +36,7 @@ import gleeunit/should
 
 pub fn run_preflight_returns_flight_result_test() {
   let result: FlightResult = run_preflight()
-  check_count(result) |> should.equal(8)
+  check_count(result) |> should.equal(10)
 }
 
 // ---------------------------------------------------------------------------
@@ -109,7 +109,7 @@ pub fn passed_count_on_full_pass_result_test() {
 
 pub fn check_count_returns_eight_test() {
   let result = run_preflight()
-  check_count(result) |> should.equal(8)
+  check_count(result) |> should.equal(10)
 }
 
 // ---------------------------------------------------------------------------

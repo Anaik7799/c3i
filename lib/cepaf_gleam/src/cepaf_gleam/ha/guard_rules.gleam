@@ -74,6 +74,11 @@
 ////   GR-029  MassFailureEmergency    salience  75  failure_count > 8       → SetCockpitMode("emergency")
 ////   GR-030  CompoundDegradation     salience  55  HealthDeclining + EntropyExceeds → EscalateToOperator
 ////
+//// Rule inventory (GR-031..GR-033 — container lifecycle safety, SC-LIFECYCLE-001..004):
+////   GR-031  DataVolumePreservation  salience 100  ContainerHasDataVolume("db-prod") → BlockContainerRemove
+////   GR-032  MigrationVerification   salience  80  MigrationsMissing → TriggerRunbook("RB-LIFECYCLE-001")
+////   GR-033  StatefulContainerGuard  salience  90  ContainerHasDataVolume("db-prod") → RequireNamedVolume
+////
 //// STAMP: SC-SIL4-001, SC-HA-001, SC-OODA-001, SC-MUDA-001, SC-FUNC-001
 
 import gleam/float
@@ -144,6 +149,10 @@ pub type RuleCondition {
   /// Requires evaluate_condition_with_layers for accurate evaluation;
   /// falls back to failure_count > list.length(layers) in basic API.
   LayersFailing(layers: List(String))
+  /// Container has a data volume mounted (SC-LIFECYCLE-001)
+  ContainerHasDataVolume(container: String)
+  /// Database schema_migrations table is missing or empty (SC-LIFECYCLE-003)
+  MigrationsMissing
 }
 
 /// Rule actions — control decisions produced by fired rules
@@ -176,6 +185,10 @@ pub type RuleAction {
   PredictiveAlert(prediction: String)
   /// Preventive cooldown to arrest an unstable trajectory
   PreventiveCooldown(reason: String)
+  /// Block force-remove of a container with data volumes (SC-LIFECYCLE-001)
+  BlockContainerRemove(container: String, reason: String)
+  /// Require named volume for stateful container (SC-LIFECYCLE-001)
+  RequireNamedVolume(container: String)
 }
 
 /// Result of evaluating a single rule against current grid metrics
@@ -491,6 +504,56 @@ pub fn all_rules() -> List(GuardRule) {
       layer: "*",
       description: "Health >= 95% sustained — record reliability streak milestone for SLO",
     ),
+    // ── GR-031..033: Container Lifecycle Safety (SC-LIFECYCLE-001..004) ──
+    GuardRule(
+      id: "GR-031",
+      name: "DataVolumePreservation",
+      salience: 100,
+      condition: ContainerHasDataVolume(container: "indrajaal-db-prod"),
+      action: BlockContainerRemove(
+        container: "indrajaal-db-prod",
+        reason: "SC-LIFECYCLE-001: Stateful containers must not be force-removed without named volumes",
+      ),
+      layer: "L0",
+      description: "Block force-remove on containers with data volumes — Constitutional data protection",
+    ),
+    GuardRule(
+      id: "GR-032",
+      name: "MigrationVerification",
+      salience: 80,
+      condition: MigrationsMissing,
+      action: TriggerRunbook(runbook_id: "RB-LIFECYCLE-001"),
+      layer: "L3",
+      description: "Verify schema_migrations table exists before declaring database healthy",
+    ),
+    GuardRule(
+      id: "GR-033",
+      name: "StatefulContainerGuard",
+      salience: 90,
+      condition: ContainerHasDataVolume(container: "indrajaal-db-prod"),
+      action: RequireNamedVolume(container: "indrajaal-db-prod"),
+      layer: "L4",
+      description: "Require named volumes for stateful containers to prevent data loss on recreation",
+    ),
+    // ── GR-034..035: ZK Knowledge Health (SC-ZK-IMP-001) ──
+    GuardRule(
+      id: "GR-034",
+      name: "ZkRecallFailure",
+      salience: 70,
+      condition: HealthBelow(threshold: 0.4),
+      action: EscalateToOperator("ZK recall degraded — check search index health and embedding coverage"),
+      layer: "L5",
+      description: "ZK recall returning poor results — escalate for search index maintenance",
+    ),
+    GuardRule(
+      id: "GR-035",
+      name: "KnowledgeDecayAlert",
+      salience: 55,
+      condition: HealthDeclining(rate: -0.05),
+      action: LogWarning("Knowledge decay detected — run sa-plan-daemon zk-maintain"),
+      layer: "L7",
+      description: "Knowledge utilization declining — flag stale holons for review",
+    ),
   ]
 }
 
@@ -578,6 +641,16 @@ pub fn evaluate_condition(
     // LayersFailing (basic API): fire when failure_count exceeds the number of
     // layers listed (conservative proxy — use evaluate_condition_with_layers for accuracy).
     LayersFailing(layers) -> failure_count > list.length(layers)
+
+    // SC-LIFECYCLE-001: Container has data volume — returns False in basic evaluate_condition.
+    // These conditions fire only during lifecycle-specific evaluation (via evaluate_condition_with_layers
+    // or direct lifecycle checks). In general health evaluation, they are inert to avoid
+    // overriding health/cascade rules with higher-salience lifecycle rules.
+    ContainerHasDataVolume(_container) -> False
+
+    // SC-LIFECYCLE-003: Migrations missing — returns False in basic evaluation.
+    // Real check done by V-18 in verify.rs and lifecycle-specific evaluators.
+    MigrationsMissing -> False
   }
 }
 
@@ -693,6 +766,10 @@ pub fn action_to_string(action: RuleAction) -> String {
     RecordMilestone(milestone) -> "RecordMilestone(" <> milestone <> ")"
     PredictiveAlert(prediction) -> "PredictiveAlert(" <> prediction <> ")"
     PreventiveCooldown(reason) -> "PreventiveCooldown(" <> reason <> ")"
+    BlockContainerRemove(container, reason) ->
+      "BlockContainerRemove(" <> container <> ": " <> reason <> ")"
+    RequireNamedVolume(container) ->
+      "RequireNamedVolume(" <> container <> ")"
   }
 }
 

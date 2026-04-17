@@ -374,11 +374,28 @@ contract PodmanOperations {
     stop_container: (name: String, timeout: Integer) -> Boolean
     build_image: (name: String, dockerfile: String) -> BuildResult
     pull_image: (name: String, registry: String) -> BuildResult
+    safe_remove: (name: String) -> RemoveAction
 
     @invariant IdempotentStart
         -- Starting an already-running container is a no-op.
     @invariant GracefulStop
         -- Stop sends SIGTERM first, SIGKILL after timeout.
+    @invariant StatefulProtection
+        -- SC-LIFECYCLE-001: Containers with data volumes MUST NOT be force-removed
+        -- without named volume backup. safe_remove() consults RETE-UL Domain 14.
+}
+
+enum RemoveAction { removed | blocked | reused }
+
+entity DataVolume {
+    name: String
+    container: String
+    persistence: named | anonymous
+
+    transitions persistence {
+        anonymous -> named  -- upgrade to named volume (SC-LIFECYCLE-001)
+        terminal: named     -- named volumes are the stable equilibrium
+    }
 }
 
 contract HealthOrchestra {

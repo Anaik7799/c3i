@@ -207,9 +207,9 @@ pub fn render_frame_contains_newlines_test() {
 // §4 — Flight Check: Preflight and Core Helpers (12 tests)
 // =============================================================================
 
-pub fn run_preflight_returns_8_checks_test() {
+pub fn run_preflight_returns_10_checks_test() {
   let result = flight_check.run_preflight()
-  list.length(result.checks) |> should.equal(8)
+  list.length(result.checks) |> should.equal(10)
 }
 
 pub fn run_preflight_passed_is_true_test() {

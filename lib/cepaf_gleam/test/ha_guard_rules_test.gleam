@@ -22,7 +22,7 @@ import gleeunit/should
 // ═══════════════════════════════════════════════════════════════
 
 pub fn all_rules_returns_thirty_test() {
-  guard_rules.rule_count() |> should.equal(30)
+  guard_rules.rule_count() |> should.equal(35)
 }
 
 pub fn all_rules_have_unique_ids_test() {
@@ -30,7 +30,7 @@ pub fn all_rules_have_unique_ids_test() {
     guard_rules.all_rules()
     |> list.map(fn(r: GuardRule) { r.id })
   let unique_count = list.unique(ids) |> list.length()
-  unique_count |> should.equal(30)
+  unique_count |> should.equal(35)
 }
 
 pub fn all_rules_have_non_empty_names_test() {
@@ -432,7 +432,7 @@ pub fn any_of_with_empty_list_is_false_test() {
 pub fn evaluate_all_returns_thirty_evaluations_test() {
   let evals =
     guard_rules.evaluate_all(0.8, 0.5, 0, 0, 0.0)
-  list.length(evals) |> should.equal(30)
+  list.length(evals) |> should.equal(35)
 }
 
 pub fn evaluate_all_sorted_by_salience_descending_test() {

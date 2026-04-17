@@ -472,6 +472,12 @@ fn execute_action(
         execute_action(a, health, entropy, lyapunov, cascade)
       })
     }
+
+    guard_rules.BlockContainerRemove(container, reason) ->
+      io.println("[GUARD-GRID] BLOCK REMOVE: " <> container <> " — " <> reason <> summary)
+
+    guard_rules.RequireNamedVolume(container) ->
+      io.println("[GUARD-GRID] REQUIRE NAMED VOLUME: " <> container <> summary)
   }
 }
 

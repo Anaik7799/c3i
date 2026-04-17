@@ -1,8 +1,10 @@
 # Zettelkasten + Gleam Agent Integration for Claude (SC-ZK-CLAUDE)
 # HIGHEST PRIORITY REQUIREMENT
+# CROSS-REF: `.claude/rules/zk-imperative-recall.md` (SC-ZK-IMP — mandatory citation protocol)
 
 ## SUPREME MANDATE
 **Claude MUST use the Zettelkasten for memory and Gleam NIF functions for computation. Every session. No exceptions.**
+**Claude MUST CITE holon IDs from ZK recall in every response. See SC-ZK-IMP-001..006.**
 
 ## STAMP Constraints
 | ID | Constraint | Severity |
@@ -14,16 +16,34 @@
 | SC-ZK-CLAUDE-005 | Claude MUST check prior patterns in Zettelkasten before proposing solutions | HIGH |
 | SC-ZK-CLAUDE-006 | Claude MUST use coverage_math for test quality assessment | HIGH |
 
+## Dual Zettelkasten Architecture
+The system operates TWO Zettelkasten databases in parallel:
+
+| ZK | Database | Binary | Content | Holons |
+|----|----------|--------|---------|--------|
+| **C3I-ZK** | `data/kms/smriti.db` | `sa-plan-daemon knowledge-search` | Engineering: code patterns, architecture, journals, constraints | 2,600+ |
+| **FY27-ZK** | `sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten/fy27-plan.db` | `sub-projects/work/fy27-zk-build/release/fy27-zettelkasten search` | Sales: accounts, contacts, rate cards, proposals, competitive intel | 475+ |
+
+Both are searched on every `UserPromptSubmit` hook. Both are ingested on every `Stop` hook.
+
+For sales/account/ARM/Nokia/pipeline queries → FY27-ZK has the data.
+For engineering/Gleam/Rust/architecture queries → C3I-ZK has the data.
+
 ## Session Start Protocol
 ```bash
-# 1. Search Zettelkasten for context on current task
+# 1. Search BOTH Zettelkasten for context on current task
 sa-plan-daemon knowledge-search "<task keywords>"
+ZK=/home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten
+$ZK search "<task keywords>"
 
 # 2. Check system health
 sa-plan-daemon status
 
 # 3. Check gleam builds
 cd lib/cepaf_gleam && gleam build
+
+# 4. Check FY27 ZK health
+$ZK stats
 ```
 
 ## During Work Protocol
@@ -47,8 +67,9 @@ cd lib/cepaf_gleam && gleam build
 
 ## Session End Protocol
 ```bash
-# 1. Ingest all new documents
+# 1. Ingest all new documents to BOTH Zettelkasten
 sa-plan-daemon ingest-docs
+cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && $ZK import ..
 
 # 2. Email summary
 sa-plan-daemon send-email --to Abhijit.Naik@bountytek.com --subject "Session Summary" --body "..."

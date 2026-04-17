@@ -19,6 +19,7 @@
 ////
 //// STAMP: SC-OODA-003 (decide phase), SC-ALLIUM-001
 
+import gleam/int
 import gleam/list
 import gleam/string
 
@@ -479,6 +480,84 @@ pub fn evaluate_partition(detected: Bool, db_in_minority: Bool) -> RuleResult {
   evaluate("Partition", partition_rules(), [
     Fact("Partition.Detected", bool_str(detected)),
     Fact("Partition.DbInMinority", bool_str(db_in_minority)),
+  ])
+}
+
+// =============================================================================
+// Domain 14: Container Lifecycle Safety (SC-LIFECYCLE-001..004)
+// =============================================================================
+
+/// Container lifecycle GRL rules — gates destructive container operations.
+pub fn lifecycle_rules() -> String {
+  "
+    rule \"Block Stateful Remove\" salience 100 {
+      when Lifecycle.HasDataVolume == true && Lifecycle.ForceRemove == true && Lifecycle.NamedVolume == false
+      then Lifecycle.Decision = \"BlockStatefulRemove\"; Lifecycle.Reason = \"SC-LIFECYCLE-001: Stateful with anonymous volume\";
+    }
+    rule \"Warn Anonymous Volume\" salience 90 {
+      when Lifecycle.HasDataVolume == true && Lifecycle.NamedVolume == false && Lifecycle.ForceRemove == false
+      then Lifecycle.Decision = \"WarnAnonymousVolume\"; Lifecycle.Reason = \"Upgrade to named volume recommended\";
+    }
+    rule \"Allow Stateless Remove\" salience 50 {
+      when Lifecycle.HasDataVolume == false
+      then Lifecycle.Decision = \"AllowStatelessRemove\"; Lifecycle.Reason = \"Stateless container safe to remove\";
+    }
+    rule \"Allow Named Volume Remove\" salience 40 {
+      when Lifecycle.HasDataVolume == true && Lifecycle.NamedVolume == true
+      then Lifecycle.Decision = \"AllowNamedVolumeRemove\"; Lifecycle.Reason = \"Named volume persists\";
+    }
+  "
+}
+
+/// Evaluate container lifecycle safety.
+pub fn evaluate_lifecycle(
+  has_data_volume: Bool,
+  has_named_volume: Bool,
+  force_remove: Bool,
+) -> RuleResult {
+  evaluate("Lifecycle", lifecycle_rules(), [
+    Fact("Lifecycle.HasDataVolume", bool_str(has_data_volume)),
+    Fact("Lifecycle.NamedVolume", bool_str(has_named_volume)),
+    Fact("Lifecycle.ForceRemove", bool_str(force_remove)),
+  ])
+}
+
+// =============================================================================
+// Domain 15: ZK Context — Knowledge-Aware Decision Rules (SC-ZK-IMP-001)
+// =============================================================================
+
+/// ZK Context rules — govern how Claude should use ZK recall results.
+pub fn zk_context_rules() -> String {
+  "
+    rule \"Deep Read Anti-Pattern\" salience 100 {
+      when ZK.AntiPatternDetected == true
+      then ZK.Decision = \"DeepRead\"; ZK.Reason = \"Anti-pattern in recall — read full holon\";
+    }
+    rule \"Follow Proven Pattern\" salience 80 {
+      when ZK.ProvenPatternMatch == true && ZK.PatternAgeDays < 30
+      then ZK.Decision = \"FollowPattern\"; ZK.Reason = \"Recent proven pattern — reuse\";
+    }
+    rule \"Verify Stale Pattern\" salience 70 {
+      when ZK.ProvenPatternMatch == true && ZK.PatternAgeDays >= 30
+      then ZK.Decision = \"VerifyFirst\"; ZK.Reason = \"Pattern stale — verify first\";
+    }
+    rule \"First Principles\" salience 10 {
+      when ZK.ProvenPatternMatch == false && ZK.AntiPatternDetected == false
+      then ZK.Decision = \"FirstPrinciples\"; ZK.Reason = \"No prior art\";
+    }
+  "
+}
+
+/// Evaluate ZK context for knowledge-aware decision making.
+pub fn evaluate_zk_context(
+  anti_pattern: Bool,
+  proven_match: Bool,
+  age_days: Int,
+) -> RuleResult {
+  evaluate("ZK", zk_context_rules(), [
+    Fact("ZK.AntiPatternDetected", bool_str(anti_pattern)),
+    Fact("ZK.ProvenPatternMatch", bool_str(proven_match)),
+    Fact("ZK.PatternAgeDays", int.to_string(age_days)),
   ])
 }
 

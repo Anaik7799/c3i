@@ -259,9 +259,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/an/dev/ver/c3i && STATUS=$(./sub-projects/c3i/target/release/sa-plan-daemon status 2>&1 | grep -E 'Active:|Pending:|Completed:' | head -3 | tr '\\n' ' ') && HEALTH=$(cd lib/cepaf_gleam && gleam run -m cepaf_gleam/claude_compute 2>&1 | grep -E 'SCC:|Pages:' | tr '\\n' ' ') && echo \"{\\\"systemMessage\\\":\\\"C3I SYSTEM STATUS: $STATUS | $HEALTH\\\"}\"",
+            "command": "cd /home/an/dev/ver/c3i && STATUS=$(./sub-projects/c3i/target/release/sa-plan-daemon status 2>&1 | grep -E 'Active:|Pending:|Completed:' | head -3 | tr '\\n' ' ') && C3I_COUNT=$(./sub-projects/c3i/target/release/sa-plan-daemon knowledge-search 'stats' 2>&1 | grep -oE '[0-9]+ holons' | head -1) && FY27=$(cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten stats 2>&1 | head -3 | tr '\\n' ' ') && echo \"{\\\"systemMessage\\\":\\\"C3I BOOTSTRAP: $STATUS | C3I-ZK: $C3I_COUNT | FY27-ZK: $FY27 | MANDATE: You MUST cite ZK holon IDs in every response. You MUST search ZK before proposing solutions. ZK recall fires on every prompt — READ and USE the results.\\\"}\"",
             "timeout": 15,
-            "statusMessage": "C3I system health check + task status..."
+            "statusMessage": "C3I + FY27 bootstrap + ZK mandate..."
           }
         ]
       }
@@ -271,9 +271,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/an/dev/ver/c3i && QUERY=$(jq -r '.prompt // empty' | head -c 200 | tr '\\n' ' ') && if [ -n \"$QUERY\" ]; then RESULTS=$(./sub-projects/c3i/target/release/sa-plan-daemon knowledge-search \"$QUERY\" 2>&1 | grep '^\\[zk-' | head -5) && if [ -n \"$RESULTS\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"ZETTELKASTEN RECALL (SC-ZK-CLAUDE-001):\\n$RESULTS\\n\\nUse these prior patterns to inform your approach. Do NOT repeat past anti-patterns.\\\"}}\"; fi; fi",
-            "timeout": 8,
-            "statusMessage": "Zettelkasten recall + system health check..."
+            "command": "cd /home/an/dev/ver/c3i && QUERY=$(jq -r '.prompt // empty' | head -c 500 | tr '\\n' ' ') && if [ -n \"$QUERY\" ]; then C3I=$(./sub-projects/c3i/target/release/sa-plan-daemon zk-recall \"$QUERY\" --session-id $$ --limit 15 2>/dev/null | grep -v '\\[2026\\|╔\\|║\\|╚\\|Planning\\|SIL-6') && FY27=$(cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten search \"$QUERY\" 2>&1 | grep -E '^  \\[zk-|^  Path:|^  .*»' | head -10) && ALL=\"$C3I\" && if [ -n \"$FY27\" ]; then ALL=\"$ALL\\nFY27-ZK RECALL (sales/accounts):\\n$FY27\"; fi && if [ -n \"$ALL\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"$ALL\\\"}}\"; fi; fi",
+            "timeout": 12,
+            "statusMessage": "ZK-RAG recall pipeline (C3I + FY27)..."
           }
         ]
       }
@@ -283,10 +283,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/an/dev/ver/c3i && ./sub-projects/c3i/target/release/sa-plan-daemon ingest-docs 2>/dev/null && echo '{\"systemMessage\":\"Zettelkasten ingested. Holons updated.\"}'",
-            "timeout": 30,
+            "command": "cd /home/an/dev/ver/c3i && ./sub-projects/c3i/target/release/sa-plan-daemon ingest-docs 2>/dev/null && cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten import .. 2>/dev/null && echo '{\"systemMessage\":\"Dual Zettelkasten ingested. C3I + FY27 holons updated.\"}'",
+            "timeout": 60,
             "async": true,
-            "statusMessage": "Ingesting session learnings to Zettelkasten..."
+            "statusMessage": "Ingesting to dual Zettelkasten (C3I + FY27)..."
           }
         ]
       }
