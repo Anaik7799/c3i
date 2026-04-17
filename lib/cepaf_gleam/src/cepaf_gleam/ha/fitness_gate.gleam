@@ -59,6 +59,7 @@
 ////
 //// STAMP: SC-HA-001, SC-MUDA-001, SC-FUNC-003, SC-FUNC-006, SC-CMP-025
 
+import cepaf_gleam/c3i/nif as c3i_nif
 import gleam/float
 import gleam/int
 import gleam/list
@@ -363,6 +364,107 @@ pub fn default_score() -> FitnessScore {
     endpoints: 31,
     warnings: 0,
   )
+}
+
+// ---------------------------------------------------------------------------
+// FitnessGate — simplified pre-commit health gate (SC-HA-001)
+// ---------------------------------------------------------------------------
+
+/// Default threshold for the health-based commit gate.
+/// Set to 0.4 — lenient, only blocks truly broken states.
+pub const default_threshold = 0.4
+
+/// Simplified fitness gate backed directly by system_health() NIF.
+///
+/// Complements FitnessScore (multi-signal) with a lightweight, single-call
+/// gate suitable for use in pre-commit hooks and CI pipelines.
+pub type FitnessGate {
+  FitnessGate(
+    /// The minimum acceptable health score (0.0-1.0).
+    threshold: Float,
+    /// Current health score derived from system_health() (0.0-1.0).
+    current_score: Float,
+    /// True when current_score >= threshold.
+    passed: Bool,
+  )
+}
+
+/// Derive a 0.0-1.0 health score from the system_health() JSON string.
+///
+/// Maps status field values:
+///   "ok"       → 1.0 (all containers healthy)
+///   "degraded" → 0.6 (majority healthy, quorum maintained)
+///   "critical" → 0.1 (majority unhealthy)
+///   (other)    → 0.5 (unknown, conservative middle)
+pub fn score_from_health_json(health_json: String) -> Float {
+  case string.contains(health_json, "\"status\":\"ok\"") {
+    True -> 1.0
+    False ->
+      case string.contains(health_json, "\"status\":\"degraded\"") {
+        True -> 0.6
+        False ->
+          case string.contains(health_json, "\"status\":\"critical\"") {
+            True -> 0.1
+            False -> 0.5
+          }
+      }
+  }
+}
+
+/// Query system_health() NIF and construct a FitnessGate.
+///
+/// [C3I-SIL6] ATOMIC CONTRACT
+/// <c3i-atomic>
+///   <morphism type="injective">Float threshold ↪ FitnessGate ADT</morphism>
+///   <formal-proof>
+///     <P> Pre: threshold in [0.0, 1.0] </P>
+///     <C> check(threshold) </C>
+///     <Q> Post: FitnessGate.current_score in [0.0, 1.0];
+///         FitnessGate.passed = current_score >= threshold </Q>
+///   </formal-proof>
+/// </c3i-atomic>
+pub fn check(threshold: Float) -> FitnessGate {
+  let health_json = c3i_nif.system_health()
+  let score = score_from_health_json(health_json)
+  FitnessGate(threshold: threshold, current_score: score, passed: score >=. threshold)
+}
+
+/// Gate a commit based on live system health.
+///
+/// Returns Ok(Nil) when the health score meets the threshold, or
+/// Error(reason) with a human-readable explanation when it does not.
+///
+/// Default threshold (0.4) is intentionally lenient — only truly broken
+/// states (all containers down or critical) will block a commit.
+///
+/// [C3I-SIL6] ATOMIC CONTRACT
+/// <c3i-atomic>
+///   <morphism type="injective">Float threshold ↪ Result(Nil, String)</morphism>
+///   <formal-proof>
+///     <P> Pre: threshold in [0.0, 1.0] </P>
+///     <C> gate_commit(threshold) </C>
+///     <Q> Post: Ok(Nil) iff system health score >= threshold;
+///         Error(String) otherwise with score and threshold in message </Q>
+///   </formal-proof>
+/// </c3i-atomic>
+pub fn gate_commit(threshold: Float) -> Result(Nil, String) {
+  let gate = check(threshold)
+  case gate.passed {
+    True -> Ok(Nil)
+    False ->
+      Error(
+        "Fitness gate blocked: health score "
+        <> float_str(gate.current_score)
+        <> " is below threshold "
+        <> float_str(gate.threshold)
+        <> " — system may be in a degraded or critical state",
+      )
+  }
+}
+
+/// Convenience wrapper: gate_commit with the default 0.4 threshold.
+pub fn gate_commit_default() -> Result(Nil, String) {
+  gate_commit(default_threshold)
 }
 
 // ---------------------------------------------------------------------------
