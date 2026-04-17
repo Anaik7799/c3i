@@ -57,6 +57,252 @@ import gleam/int
 import gleam/list
 import gleam/string
 
+// ===========================================================================
+// FederationNode API — multi-region node-level mesh types (F26b)
+// Extends the region-level API above with per-node types used by the
+// federated OODA loop and leader-election subsystem.
+// STAMP: SC-FED-001, SC-HA-001, SC-SIL4-011, SC-ZMOF-001
+// ===========================================================================
+
+/// Role of a node in the federated Zenoh mesh (mirrors Rust ha_election.rs).
+pub type NodeRole {
+  Primary
+  Backup
+  Standby
+  Observer
+}
+
+/// A single node in the federated Zenoh mesh.
+pub type FederationNode {
+  FederationNode(
+    /// Unique node identifier (e.g. "eu-node-1").
+    node_id: String,
+    /// GCP/AWS region code this node belongs to (e.g. "europe-north1").
+    region: String,
+    /// Zenoh TCP endpoint for this node (e.g. "tcp/10.0.1.5:7447").
+    endpoint: String,
+    /// Current role in the mesh.
+    role: NodeRole,
+    /// Normalised health score in [0.0, 1.0].
+    health: Float,
+    /// Unix epoch milliseconds of last observed heartbeat.
+    last_seen_ms: Int,
+    /// Lamport vector clock: list of #(node_id, counter) pairs.
+    version_vector: List(#(String, Int)),
+  )
+}
+
+/// Aggregate node-level federation state.
+pub type NodeFederationState {
+  NodeFederationState(
+    /// This node's own identifier.
+    local_node: String,
+    /// Region this node belongs to.
+    local_region: String,
+    /// All known mesh nodes.
+    nodes: List(FederationNode),
+    /// Quorum threshold: floor(|nodes|/2) + 1.
+    quorum_size: Int,
+    /// True when a network partition has been detected.
+    partition_detected: Bool,
+  )
+}
+
+/// Events emitted by the federation state machine.
+pub type FederationEvent {
+  NodeJoined(node_id: String, region: String)
+  NodeLeft(node_id: String, reason: String)
+  PartitionDetected(groups: List(List(String)))
+  PartitionHealed
+  LeaderElected(node_id: String)
+  QuorumLost(available: Int, required: Int)
+  QuorumRestored
+}
+
+// ---------------------------------------------------------------------------
+// NodeFederationState construction
+// ---------------------------------------------------------------------------
+
+/// Construct an empty federation state for the given local node + region.
+///
+/// [C3I-SIL6] ATOMIC CONTRACT
+/// <c3i-atomic>
+///   <morphism type="injective">Bootstrap ↪ pure NodeFederationState value</morphism>
+///   <formal-proof>
+///     <P> local_id and region are non-empty Strings </P>
+///     <C> node_init(local_id, region) </C>
+///     <Q> NodeFederationState with empty nodes list; quorum_size = 1;
+///         partition_detected = False. </Q>
+///   </formal-proof>
+/// </c3i-atomic>
+pub fn node_init(local_id: String, region: String) -> NodeFederationState {
+  NodeFederationState(
+    local_node: local_id,
+    local_region: region,
+    nodes: [],
+    quorum_size: 1,
+    partition_detected: False,
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Node management
+// ---------------------------------------------------------------------------
+
+/// Add a node to the state, recomputing the quorum size.
+pub fn add_node(
+  state: NodeFederationState,
+  node: FederationNode,
+) -> NodeFederationState {
+  let nodes = list.append(state.nodes, [node])
+  let qs = list.length(nodes) / 2 + 1
+  NodeFederationState(..state, nodes: nodes, quorum_size: qs)
+}
+
+/// Remove a node by ID, recomputing the quorum size.
+pub fn remove_node(
+  state: NodeFederationState,
+  node_id: String,
+) -> NodeFederationState {
+  let nodes = list.filter(state.nodes, fn(n) { n.node_id != node_id })
+  let qs = list.length(nodes) / 2 + 1
+  NodeFederationState(..state, nodes: nodes, quorum_size: qs)
+}
+
+/// Update the health score for a node identified by `node_id`.
+pub fn update_node_health(
+  state: NodeFederationState,
+  node_id: String,
+  health: Float,
+) -> NodeFederationState {
+  let nodes =
+    list.map(state.nodes, fn(n) {
+      case n.node_id == node_id {
+        True -> FederationNode(..n, health: health)
+        False -> n
+      }
+    })
+  NodeFederationState(..state, nodes: nodes)
+}
+
+// ---------------------------------------------------------------------------
+// Quorum
+// ---------------------------------------------------------------------------
+
+/// Returns True when the count of healthy nodes (health > 0.5) meets quorum.
+/// Quorum rule: healthy >= floor(|nodes|/2) + 1  (SC-SIL4-011).
+pub fn check_quorum(state: NodeFederationState) -> Bool {
+  let healthy_count =
+    list.filter(state.nodes, fn(n) { n.health >. 0.5 }) |> list.length()
+  healthy_count >= state.quorum_size
+}
+
+// ---------------------------------------------------------------------------
+// Healthy-node filter
+// ---------------------------------------------------------------------------
+
+/// Return only the nodes whose health score exceeds 0.5.
+pub fn healthy_nodes(state: NodeFederationState) -> List(FederationNode) {
+  list.filter(state.nodes, fn(n) { n.health >. 0.5 })
+}
+
+// ---------------------------------------------------------------------------
+// Partition detection
+// ---------------------------------------------------------------------------
+
+/// Classify nodes as reachable/unreachable based on `last_seen_ms` vs
+/// `now_ms - timeout_ms`.  Returns a `PartitionDetected` event when two
+/// non-empty groups are found, or an empty list otherwise.
+pub fn detect_partition(
+  state: NodeFederationState,
+  timeout_ms: Int,
+  now_ms: Int,
+) -> List(FederationEvent) {
+  let cutoff = now_ms - timeout_ms
+  let reachable =
+    state.nodes
+    |> list.filter(fn(n) { n.last_seen_ms >= cutoff })
+    |> list.map(fn(n) { n.node_id })
+  let unreachable =
+    state.nodes
+    |> list.filter(fn(n) { n.last_seen_ms < cutoff })
+    |> list.map(fn(n) { n.node_id })
+  case reachable, unreachable {
+    [], _ -> []
+    _, [] -> []
+    r, u -> [PartitionDetected(groups: [r, u])]
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Leader election
+// ---------------------------------------------------------------------------
+
+/// Elect the leader from healthy nodes: lexicographically smallest node_id
+/// among nodes with `role == Primary` OR (if none) among all healthy nodes.
+/// Returns `Error("no_quorum")` when fewer than `quorum_size` nodes are healthy.
+pub fn elect_leader(state: NodeFederationState) -> Result(String, String) {
+  case check_quorum(state) {
+    False -> Error("no_quorum")
+    True -> {
+      let h = healthy_nodes(state)
+      // Prefer Primary-role nodes first.
+      let primaries =
+        list.filter(h, fn(n) { n.role == Primary }) |> list.map(fn(n) { n.node_id })
+      let candidates = case primaries {
+        [] -> list.map(h, fn(n) { n.node_id })
+        ps -> ps
+      }
+      case list.sort(candidates, string.compare) {
+        [first, ..] -> Ok(first)
+        [] -> Error("no_candidates")
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Summary
+// ---------------------------------------------------------------------------
+
+/// One-line summary of the node-level federation state for logs and TUI.
+pub fn node_summary(state: NodeFederationState) -> String {
+  let hc = list.filter(state.nodes, fn(n) { n.health >. 0.5 }) |> list.length()
+  "NodeFederation local="
+  <> state.local_node
+  <> "@"
+  <> state.local_region
+  <> " nodes="
+  <> int.to_string(list.length(state.nodes))
+  <> " healthy="
+  <> int.to_string(hc)
+  <> " quorum_size="
+  <> int.to_string(state.quorum_size)
+  <> " partition="
+  <> case state.partition_detected {
+    True -> "yes"
+    False -> "no"
+  }
+  <> " quorum="
+  <> case check_quorum(state) {
+    True -> "met"
+    False -> "lost"
+  }
+}
+
+// ---------------------------------------------------------------------------
+// NodeRole helpers
+// ---------------------------------------------------------------------------
+
+fn node_role_to_string(role: NodeRole) -> String {
+  case role {
+    Primary -> "Primary"
+    Backup -> "Backup"
+    Standby -> "Standby"
+    Observer -> "Observer"
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
