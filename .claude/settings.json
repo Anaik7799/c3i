@@ -303,7 +303,7 @@
           },
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path' | { read -r f; case $f in *.gleam) cd /home/an/dev/ver/c3i/lib/cepaf_gleam && gleam test 2>&1 | tail -1 ;; esac; } 2>/dev/null || true",
+            "command": "jq -r '.tool_input.file_path' | { read -r f; case $f in *.gleam) cd /home/an/dev/ver/c3i/lib/cepaf_gleam && OUTPUT=$(gleam test 2>&1) && SUMMARY=$(echo \"$OUTPUT\" | sed 's/\\x1b\\[[0-9;]*m//g' | tail -1) && FAILS=$(echo \"$OUTPUT\" | sed 's/\\x1b\\[[0-9;]*m//g' | grep -B2 'panic\\|FAIL' | head -10) && if [ -n \"$FAILS\" ]; then echo \"$SUMMARY\" && echo \"FAILURES:\" && echo \"$FAILS\"; else echo \"$SUMMARY\"; fi ;; esac; } 2>/dev/null || true",
             "timeout": 120,
             "async": true,
             "statusMessage": "Jidoka: running tests in background"
