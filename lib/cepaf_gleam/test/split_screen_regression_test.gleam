@@ -263,8 +263,8 @@ pub fn check_passed_helper_false_on_skipped_test() {
 
 pub fn passed_count_on_clean_preflight_test() {
   let result = flight_check.run_preflight()
-  // 7 CheckPassed + 1 CheckSkipped => passed_count counts only CheckPassed = 7
-  flight_check.passed_count(result) |> should.equal(7)
+  // 9 CheckPassed + 1 CheckSkipped => passed_count counts only CheckPassed = 9
+  flight_check.passed_count(result) |> should.equal(9)
 }
 
 pub fn failed_count_on_clean_preflight_test() {

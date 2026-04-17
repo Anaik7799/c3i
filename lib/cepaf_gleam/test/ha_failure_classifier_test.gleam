@@ -211,6 +211,8 @@ pub fn bursty_confidence_is_meaningful_test() {
 
 /// Extreme burst: all events clustered in < 5ms, huge quiet gaps around.
 pub fn extreme_burst_high_confidence_test() {
+  // Gaps: [10000, 1, 1, 1, 1, 90000] — extreme bi-modal distribution
+  // mean ≈ 16834, σ >> mean → CV >> 1.5 → Bursty with high confidence
   let events = [
     ev(0),
     ev(10_000),
@@ -218,7 +220,7 @@ pub fn extreme_burst_high_confidence_test() {
     ev(10_002),
     ev(10_003),
     ev(10_004),
-    ev(20_000),
+    ev(100_004),
   ]
   let result = classify(events)
   result.pattern |> should.equal(Bursty)

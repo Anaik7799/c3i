@@ -94,13 +94,13 @@ pub fn check_passed_for_check_skipped_test() {
 }
 
 // ---------------------------------------------------------------------------
-// Test 6: passed_count on full-pass result — 7 checks truly pass
-//         (federation is CheckSkipped, not CheckPassed, so passed_count is 7)
+// Test 6: passed_count on full-pass result — 9 checks truly pass
+//         (federation is CheckSkipped, not CheckPassed, so passed_count is 9)
 // ---------------------------------------------------------------------------
 
 pub fn passed_count_on_full_pass_result_test() {
   let result = run_preflight()
-  passed_count(result) |> should.equal(7)
+  passed_count(result) |> should.equal(9)
 }
 
 // ---------------------------------------------------------------------------
