@@ -25,6 +25,7 @@
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/beam_metrics
 import cepaf_gleam/ha/guard_grid
+import cepaf_gleam/otp_app
 import cepaf_gleam/planning/safety_kernel
 import cepaf_gleam/ui/wisp/router
 import gleam/bytes_tree
@@ -504,6 +505,10 @@ pub fn start(port: Int) -> Result(Nil, String) {
       }
     }
   }
+
+  // Start OTP actors (freshness monitor 10s loop, observer, guard grid)
+  let _app_state = otp_app.start()
+  io.println("  OTP actors started (freshness monitor, observer, guard grid)")
 
   // Start BOTH HTTP and HTTPS for maximum accessibility
   let cert_path = "priv/ssl/cert.pem"

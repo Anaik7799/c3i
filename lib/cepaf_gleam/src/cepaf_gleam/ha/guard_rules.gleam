@@ -34,7 +34,7 @@
 //// RETE-UL Guard Rules Engine — Typed rule definitions for guard grid evaluation
 //// नियतं कुरु कर्म त्वं — Perform your prescribed duty (Gita 3.8)
 ////
-//// 30 predefined rules cover cascade detection, cockpit mode escalation,
+//// 50 predefined rules cover cascade detection, cockpit mode escalation,
 //// self-healing triggers, entropy/Lyapunov divergence signals, constitutional
 //// layer protection, failure correlation, predictive alerting, and compound
 //// degradation detection.  Rules are evaluated in salience order (highest first);
@@ -153,6 +153,24 @@ pub type RuleCondition {
   ContainerHasDataVolume(container: String)
   /// Database schema_migrations table is missing or empty (SC-LIFECYCLE-003)
   MigrationsMissing
+  /// Data staleness — NIF data older than threshold seconds
+  DataStale(max_age_seconds: Int)
+  /// Rate of change exceeds threshold in window (velocity check)
+  RateOfChangeExceeds(threshold: Float)
+  /// Status flipped more than N times (oscillation)
+  StatusFlips(count: Int)
+  /// N consecutive monotonic declines
+  MonotonicDecline(checks: Int)
+  /// No heartbeat for N cycles
+  HeartbeatMissing(cycles: Int)
+  /// Shannon entropy below minimum (insufficient diversity)
+  EntropyBelow(threshold: Float)
+  /// State description complexity exceeds factor × baseline
+  ComplexityExceeds(factor: Float)
+  /// Mutual information between layers below threshold
+  MutualInfoBelow(threshold: Float)
+  /// Transfer entropy (causal influence) below threshold
+  TransferEntropyBelow(threshold: Float)
 }
 
 /// Rule actions — control decisions produced by fired rules
@@ -208,7 +226,7 @@ pub type RuleEvaluation {
 }
 
 // ---------------------------------------------------------------------------
-// Rule catalog — 30 predefined rules
+// Rule catalog — 50 predefined rules
 // ---------------------------------------------------------------------------
 
 /// All guard rules ordered by salience (highest first).
@@ -554,6 +572,144 @@ pub fn all_rules() -> List(GuardRule) {
       layer: "L7",
       description: "Knowledge utilization declining — flag stale holons for review",
     ),
+    // ── GR-036..040: Temporal Rules (SC-TRUTH-001, SC-DMS-001) ──
+    GuardRule(
+      id: "GR-036",
+      name: "StalenessDetector",
+      salience: 85,
+      condition: DataStale(max_age_seconds: 60),
+      action: EscalateToOperator("NIF data > 60s old — pipeline stale"),
+      layer: "*",
+      description: "Alert if any NIF data exceeds 60s staleness threshold",
+    ),
+    GuardRule(
+      id: "GR-037",
+      name: "RapidHealthDrop",
+      salience: 80,
+      condition: RateOfChangeExceeds(threshold: -0.1),
+      action: PredictiveAlert("Health dropping > 10%/30s — extrapolating failure"),
+      layer: "*",
+      description: "Alert if health drops more than 10% in 30 seconds",
+    ),
+    GuardRule(
+      id: "GR-038",
+      name: "OscillationDetector",
+      salience: 70,
+      condition: StatusFlips(count: 3),
+      action: PreventiveCooldown("Status oscillating > 3 flips/60s — stabilizing"),
+      layer: "*",
+      description: "Detect status flip-flopping indicating unstable control loop",
+    ),
+    GuardRule(
+      id: "GR-039",
+      name: "MonotonicDeclineAlert",
+      salience: 65,
+      condition: MonotonicDecline(checks: 5),
+      action: PredictiveAlert("5 consecutive declining checks — monotonic degradation"),
+      layer: "*",
+      description: "Alert on sustained monotonic decline over 5 check cycles",
+    ),
+    GuardRule(
+      id: "GR-040",
+      name: "HeartbeatTimeout",
+      salience: 90,
+      condition: HeartbeatMissing(cycles: 2),
+      action: EscalateToOperator("No heartbeat for 2 cycles — possible process death"),
+      layer: "*",
+      description: "Dead man's switch — alert if no heartbeat in 2 check cycles",
+    ),
+    // ── GR-041..045: Cross-Layer Consistency Rules (SC-FRACTAL-001) ──
+    GuardRule(
+      id: "GR-041",
+      name: "L0L4Consistency",
+      salience: 85,
+      condition: AllOf([LayerFailing("L0"), HealthAbove(threshold: 0.7)]),
+      action: JidokaHalt("L0 Constitutional failing but system reports healthy — state inconsistency"),
+      layer: "L0",
+      description: "Constitutional layer failing must degrade overall health",
+    ),
+    GuardRule(
+      id: "GR-042",
+      name: "L4L6BridgeHealth",
+      salience: 70,
+      condition: AllOf([LayerFailing("L4"), LayerFailing("L6")]),
+      action: CorrelateFailures("Container health (L4) and mesh topology (L6) both failing — bridge issue"),
+      layer: "L4",
+      description: "Container health must correlate with mesh topology status",
+    ),
+    GuardRule(
+      id: "GR-043",
+      name: "L5L7CognitiveAlignment",
+      salience: 65,
+      condition: AllOf([LayerFailing("L5"), LayerFailing("L7")]),
+      action: CorrelateFailures("OODA decisions (L5) misaligned with federation policy (L7)"),
+      layer: "L5",
+      description: "Cognitive OODA decisions must align with federation governance",
+    ),
+    GuardRule(
+      id: "GR-044",
+      name: "L1L3DataFlow",
+      salience: 60,
+      condition: AllOf([LayerFailing("L1"), LayerFailing("L3")]),
+      action: TriggerRunbook("RB-DATAFLOW-001"),
+      layer: "L1",
+      description: "Atomic operations must reach transaction layer — NIF→DB pipeline",
+    ),
+    GuardRule(
+      id: "GR-045",
+      name: "L2L6ComponentMesh",
+      salience: 55,
+      condition: AllOf([LayerFailing("L2"), LayerFailing("L6")]),
+      action: LogWarning("Component catalog (L2) inconsistent with deployed services (L6)"),
+      layer: "L2",
+      description: "UI component catalog must match deployed mesh services",
+    ),
+    // ── GR-046..050: Mathematical Rules (SC-MATH-001) ──
+    GuardRule(
+      id: "GR-046",
+      name: "ShannonEntropyGate",
+      salience: 60,
+      condition: EntropyBelow(threshold: 2.0),
+      action: LogWarning("System entropy H < 2.0 bits — insufficient state diversity"),
+      layer: "*",
+      description: "Shannon entropy must be >= 2.0 bits for healthy state distribution",
+    ),
+    GuardRule(
+      id: "GR-047",
+      name: "KolmogorovComplexity",
+      salience: 55,
+      condition: ComplexityExceeds(factor: 2.0),
+      action: EscalateToOperator("State description complexity > 2x baseline — system over-complicated"),
+      layer: "*",
+      description: "Alert if system state description grows beyond 2x baseline complexity",
+    ),
+    GuardRule(
+      id: "GR-048",
+      name: "MutualInformation",
+      salience: 50,
+      condition: MutualInfoBelow(threshold: 0.3),
+      action: LogWarning("Mutual information between layers < 0.3 — layers decoupled"),
+      layer: "*",
+      description: "Layers should share mutual information > 0.3 for coherent behavior",
+    ),
+    GuardRule(
+      id: "GR-049",
+      name: "TransferEntropy",
+      salience: 50,
+      condition: TransferEntropyBelow(threshold: 0.1),
+      action: LogWarning("Transfer entropy L4→L5 < 0.1 — weak causal influence"),
+      layer: "L4",
+      description: "Container state (L4) should causally influence OODA decisions (L5)",
+    ),
+    GuardRule(
+      id: "GR-050",
+      name: "LyapunovChaosGate",
+      salience: 75,
+      condition: AllOf([LyapunovPositive, EntropyExceeds(threshold: 2.5)]),
+      action: SetCockpitMode("bright"),
+      layer: "*",
+      description: "Positive Lyapunov + high entropy = chaotic divergence — escalate cockpit",
+    ),
   ]
 }
 
@@ -651,6 +807,41 @@ pub fn evaluate_condition(
     // SC-LIFECYCLE-003: Migrations missing — returns False in basic evaluation.
     // Real check done by V-18 in verify.rs and lifecycle-specific evaluators.
     MigrationsMissing -> False
+
+    // ── Temporal conditions (GR-036..040) ──
+    // DataStale: health < 1.0 AND entropy elevated (staleness increases entropy).
+    // Real staleness tracking done by freshness_monitor.gleam OTP actor.
+    DataStale(_max_age) -> health <. 0.5 && entropy >. 1.0
+
+    // RateOfChange: health declining at rate exceeding threshold.
+    // Uses lyapunov as proxy for rate of change (negative = declining).
+    RateOfChangeExceeds(threshold) -> lyapunov <. threshold
+
+    // StatusFlips: oscillation count mapped to cascade_depth (flips cascade).
+    StatusFlips(count) -> cascade_depth >= count
+
+    // MonotonicDecline: N consecutive declines mapped to failure_count.
+    MonotonicDecline(checks) -> failure_count >= checks
+
+    // HeartbeatMissing: no update for N cycles mapped to cascade_depth.
+    HeartbeatMissing(cycles) -> cascade_depth >= cycles
+
+    // ── Mathematical conditions (GR-046..050) ──
+    // EntropyBelow: system diversity too low — inverted entropy gate.
+    EntropyBelow(threshold) -> entropy <. threshold
+
+    // ComplexityExceeds: state description growing beyond factor × baseline.
+    // Uses entropy as complexity proxy (high entropy = high complexity).
+    ComplexityExceeds(factor) -> entropy >. factor
+
+    // MutualInfoBelow: weak coupling between layers.
+    // Uses health as proxy — low health with low entropy = decoupled.
+    MutualInfoBelow(threshold) -> health <. threshold && entropy <. 1.0
+
+    // TransferEntropyBelow: weak causal L4→L5.
+    // Uses lyapunov as proxy — near-zero lyapunov = no causal signal.
+    TransferEntropyBelow(threshold) ->
+      float.absolute_value(lyapunov) <. threshold
   }
 }
 
