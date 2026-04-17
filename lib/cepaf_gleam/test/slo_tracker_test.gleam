@@ -22,8 +22,10 @@
 //// Layer: L5_COGNITIVE
 
 import cepaf_gleam/ha/slo_tracker.{
-  SLOMet, SLOViolated,
-  budget_remaining, check_budgets, init, record_event, summary, to_json,
+  SLOMet, SLOViolated, SloMetric,
+  availability_sli, budget_remaining, budget_summary, check_budgets,
+  error_budget_remaining, init, init_budget, latency_sli, record,
+  record_event, summary, to_json,
 }
 import gleam/list
 import gleam/string
@@ -293,4 +295,87 @@ pub fn total_checks_equals_event_count_test() {
     |> record_event("latency_slo", True)
     |> record_event("truth_slo", False)
   state.total_checks |> should.equal(5)
+}
+
+// ---------------------------------------------------------------------------
+// Section 11 — SloBudget / SloMetric pipeline API (8 tests)
+// ---------------------------------------------------------------------------
+
+/// Helper: build a fast, successful SloMetric for the given endpoint.
+fn fast_ok_metric(endpoint: String) {
+  SloMetric(endpoint: endpoint, latency_ms: 10, status_code: 200, timestamp_ms: 0)
+}
+
+/// Helper: build a slow, successful SloMetric.
+fn slow_ok_metric(endpoint: String) {
+  SloMetric(endpoint: endpoint, latency_ms: 1000, status_code: 200, timestamp_ms: 0)
+}
+
+/// Helper: build a fast, server-error SloMetric.
+fn fast_err_metric(endpoint: String) {
+  SloMetric(endpoint: endpoint, latency_ms: 10, status_code: 500, timestamp_ms: 0)
+}
+
+pub fn init_budget_zero_requests_test() {
+  // init_budget() must start with zero counters
+  let b = init_budget()
+  b.total_requests |> should.equal(0)
+  b.fast_requests   |> should.equal(0)
+  b.successful_requests |> should.equal(0)
+}
+
+pub fn init_budget_latency_sli_100_when_empty_test() {
+  // No requests → assume healthy → 100.0%
+  latency_sli(init_budget()) |> should.equal(100.0)
+}
+
+pub fn init_budget_availability_sli_100_when_empty_test() {
+  availability_sli(init_budget()) |> should.equal(100.0)
+}
+
+pub fn init_budget_error_budget_full_when_empty_test() {
+  error_budget_remaining(init_budget()) |> should.equal(1.0)
+}
+
+pub fn record_fast_request_increments_fast_count_test() {
+  let b = init_budget() |> record(fast_ok_metric("/health"))
+  b.total_requests |> should.equal(1)
+  b.fast_requests  |> should.equal(1)
+}
+
+pub fn record_slow_request_does_not_increment_fast_count_test() {
+  let b = init_budget() |> record(slow_ok_metric("/api/v1/plan/status"))
+  b.total_requests |> should.equal(1)
+  b.fast_requests  |> should.equal(0)
+}
+
+pub fn record_5xx_decrements_availability_sli_test() {
+  let b = init_budget() |> record(fast_err_metric("/api/v1/immune"))
+  // 0 successful out of 1 total → availability_sli = 0.0%
+  availability_sli(b) |> should.equal(0.0)
+  b.successful_requests |> should.equal(0)
+}
+
+pub fn budget_summary_non_empty_test() {
+  let b = init_budget() |> record(fast_ok_metric("/health"))
+  { string.length(budget_summary(b)) > 0 } |> should.be_true()
+}
+
+pub fn error_budget_decreases_after_slow_requests_test() {
+  let before = error_budget_remaining(init_budget())
+  // Record one slow request — error budget must decrease
+  let b = init_budget() |> record(slow_ok_metric("/api/v1/dashboard"))
+  let after = error_budget_remaining(b)
+  { after <. before } |> should.be_true()
+}
+
+pub fn record_multiple_requests_total_accumulates_test() {
+  let b =
+    init_budget()
+    |> record(fast_ok_metric("/health"))
+    |> record(slow_ok_metric("/api/v1/dashboard"))
+    |> record(fast_err_metric("/api/v1/immune"))
+  b.total_requests      |> should.equal(3)
+  b.fast_requests       |> should.equal(2)
+  b.successful_requests |> should.equal(2)
 }

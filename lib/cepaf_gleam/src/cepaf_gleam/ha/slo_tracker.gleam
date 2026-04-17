@@ -68,6 +68,44 @@ import gleam/list
 import gleam/string
 
 // ---------------------------------------------------------------------------
+// Pipeline-oriented types (request-level SLO tracking)
+// ---------------------------------------------------------------------------
+
+/// A single HTTP request measurement captured in the pipeline.
+///
+/// endpoint    — path or route label (e.g. "/api/v1/health")
+/// latency_ms  — elapsed wall-clock milliseconds for the request
+/// status_code — HTTP response status code (200, 404, 500, …)
+/// timestamp_ms — Unix epoch in milliseconds at request arrival
+pub type SloMetric {
+  SloMetric(
+    endpoint: String,
+    latency_ms: Int,
+    status_code: Int,
+    timestamp_ms: Int,
+  )
+}
+
+/// Accumulated pipeline SLO budget — pure value, caller owns persistence.
+///
+/// latency_target_ms     — target: requests faster than this count as "fast"
+/// latency_slo_percent   — objective, e.g. 99.9 means 99.9 % must be fast
+/// availability_slo_percent — objective, e.g. 99.5 means 99.5 % must be non-5xx
+/// total_requests        — total events observed
+/// fast_requests         — requests that met the latency target
+/// successful_requests   — requests with status_code < 500
+pub type SloBudget {
+  SloBudget(
+    latency_target_ms: Int,
+    latency_slo_percent: Float,
+    availability_slo_percent: Float,
+    total_requests: Int,
+    fast_requests: Int,
+    successful_requests: Int,
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
 
@@ -320,6 +358,138 @@ pub fn summary(state: SLOTrackerState) -> String {
     <> int.to_string(state.total_checks)
     <> " checks recorded"
   string.join([header, ..lines], "\n")
+}
+
+// ---------------------------------------------------------------------------
+// Pipeline-oriented API (SloBudget / SloMetric)
+// ---------------------------------------------------------------------------
+
+/// Initialise a fresh SloBudget with C3I defaults.
+///
+/// Defaults:
+///   latency_target_ms     = 500  (Google SRE p99 guideline for internal APIs)
+///   latency_slo_percent   = 99.9 (three-nines)
+///   availability_slo_percent = 99.5
+///   all counters          = 0
+pub fn init_budget() -> SloBudget {
+  SloBudget(
+    latency_target_ms: 500,
+    latency_slo_percent: 99.9,
+    availability_slo_percent: 99.5,
+    total_requests: 0,
+    fast_requests: 0,
+    successful_requests: 0,
+  )
+}
+
+/// Record one HTTP request observation into the budget.
+///
+/// A request is "fast" if metric.latency_ms <= budget.latency_target_ms.
+/// A request is "successful" if metric.status_code < 500.
+pub fn record(budget: SloBudget, metric: SloMetric) -> SloBudget {
+  let is_fast = metric.latency_ms <= budget.latency_target_ms
+  let is_successful = metric.status_code < 500
+  SloBudget(
+    ..budget,
+    total_requests: budget.total_requests + 1,
+    fast_requests: case is_fast {
+      True -> budget.fast_requests + 1
+      False -> budget.fast_requests
+    },
+    successful_requests: case is_successful {
+      True -> budget.successful_requests + 1
+      False -> budget.successful_requests
+    },
+  )
+}
+
+/// Current latency SLI as a percentage (0.0–100.0).
+///
+/// Returns 100.0 when no requests have been recorded (assume healthy).
+pub fn latency_sli(budget: SloBudget) -> Float {
+  case budget.total_requests {
+    0 -> 100.0
+    _ -> {
+      let fast_f = int.to_float(budget.fast_requests)
+      let total_f = int.to_float(budget.total_requests)
+      clamp01(
+        float.divide(fast_f, total_f)
+        |> result_to_float(),
+      )
+      *. 100.0
+    }
+  }
+}
+
+/// Current availability SLI as a percentage (0.0–100.0).
+///
+/// Returns 100.0 when no requests have been recorded (assume healthy).
+pub fn availability_sli(budget: SloBudget) -> Float {
+  case budget.total_requests {
+    0 -> 100.0
+    _ -> {
+      let ok_f = int.to_float(budget.successful_requests)
+      let total_f = int.to_float(budget.total_requests)
+      clamp01(
+        float.divide(ok_f, total_f)
+        |> result_to_float(),
+      )
+      *. 100.0
+    }
+  }
+}
+
+/// Remaining error budget as a fraction in [0.0, 1.0].
+///
+/// Uses the latency SLO as the primary budget signal.
+/// 1.0 = full budget remaining; 0.0 = budget fully exhausted.
+///
+/// Formula (Google SRE §4):
+///   allowed_errors = total * (1 - latency_slo_percent / 100)
+///   bad_requests   = total - fast_requests
+///   consumed       = bad_requests / allowed_errors   clamped to [0, 1]
+///   remaining      = 1 - consumed
+pub fn error_budget_remaining(budget: SloBudget) -> Float {
+  case budget.total_requests {
+    0 -> 1.0
+    _ -> {
+      let target = budget.latency_slo_percent /. 100.0
+      let total_f = int.to_float(budget.total_requests)
+      let allowed = total_f *. { 1.0 -. target }
+      let bad = int.to_float(budget.total_requests - budget.fast_requests)
+      case allowed <=. 0.0 {
+        True ->
+          case bad >. 0.0 {
+            True -> 0.0
+            False -> 1.0
+          }
+        False ->
+          clamp01(
+            1.0
+            -. clamp01(
+              float.divide(bad, allowed)
+              |> result_to_float(),
+            ),
+          )
+      }
+    }
+  }
+}
+
+/// Human-readable summary of the pipeline SloBudget.
+pub fn budget_summary(budget: SloBudget) -> String {
+  let lat = float_to_pct_string(latency_sli(budget) /. 100.0)
+  let avail = float_to_pct_string(availability_sli(budget) /. 100.0)
+  let eb =
+    float_to_pct_string(error_budget_remaining(budget))
+  "Pipeline SLO — "
+  <> int.to_string(budget.total_requests)
+  <> " requests  |  latency SLI: "
+  <> lat
+  <> "  |  availability SLI: "
+  <> avail
+  <> "  |  error budget remaining: "
+  <> eb
 }
 
 // ---------------------------------------------------------------------------
