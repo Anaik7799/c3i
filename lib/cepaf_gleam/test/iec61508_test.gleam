@@ -6,8 +6,7 @@ import cepaf_gleam/ha/iec61508.{
   type EvidenceItem,
   Complete, FormalVerification, IntegrationTesting, Missing, NotApplicable,
   Partial, RequirementsSpec, SIL1, SIL2, SIL3, SIL4,
-  Inspection,
-  EvidenceItem,
+  Inspection, EvidenceItem,
   add_evidence, c3i_evidence_package, count_by_status, coverage_percent,
   evidence_by_category, evidence_for_sil, init_safety_case, is_certifiable,
   item_summary, missing_evidence, partial_evidence, pfd_for_sil, sil_to_string,
@@ -22,40 +21,33 @@ import gleeunit/should
 // ---------------------------------------------------------------------------
 
 pub fn init_creates_empty_evidence_list_test() {
-  init_safety_case("TestSys", SIL4)
-  |> fn(c) { c.evidence }
-  |> list.length()
-  |> should.equal(0)
+  let c = init_safety_case("TestSys", SIL4)
+  list.length(c.evidence) |> should.equal(0)
 }
 
 pub fn init_sets_system_name_test() {
-  init_safety_case("MySafetySystem", SIL3)
-  |> fn(c) { c.system_name }
-  |> should.equal("MySafetySystem")
+  let c = init_safety_case("MySafetySystem", SIL3)
+  c.system_name |> should.equal("MySafetySystem")
 }
 
 pub fn init_sets_target_sil_test() {
-  init_safety_case("Sys", SIL4)
-  |> fn(c) { c.target_sil }
-  |> should.equal(SIL4)
+  let c = init_safety_case("Sys", SIL4)
+  c.target_sil |> should.equal(SIL4)
 }
 
 pub fn init_sets_pfd_target_for_sil4_test() {
-  init_safety_case("Sys", SIL4)
-  |> fn(c) { c.pfd_target }
-  |> should.equal(1.0e-4)
+  let c = init_safety_case("Sys", SIL4)
+  c.pfd_target |> should.equal(1.0e-4)
 }
 
 pub fn init_sets_hft_2_for_sil4_test() {
-  init_safety_case("Sys", SIL4)
-  |> fn(c) { c.hft }
-  |> should.equal(2)
+  let c = init_safety_case("Sys", SIL4)
+  c.hft |> should.equal(2)
 }
 
 pub fn init_sets_sff_99_for_sil4_test() {
-  init_safety_case("Sys", SIL4)
-  |> fn(c) { c.sff_percent }
-  |> should.equal(99.0)
+  let c = init_safety_case("Sys", SIL4)
+  c.sff_percent |> should.equal(99.0)
 }
 
 // ---------------------------------------------------------------------------
@@ -125,10 +117,10 @@ fn make_item(id: String, status: iec61508.EvidenceStatus) -> EvidenceItem {
 }
 
 pub fn add_evidence_appends_item_test() {
-  init_safety_case("Sys", SIL4)
-  |> add_evidence(make_item("EV-001", Complete))
-  |> fn(c) { list.length(c.evidence) }
-  |> should.equal(1)
+  let c =
+    init_safety_case("Sys", SIL4)
+    |> add_evidence(make_item("EV-001", Complete))
+  list.length(c.evidence) |> should.equal(1)
 }
 
 pub fn add_evidence_preserves_order_test() {
@@ -279,64 +271,52 @@ pub fn count_by_status_complete_test() {
 // ---------------------------------------------------------------------------
 
 pub fn c3i_package_has_15_evidence_items_test() {
-  c3i_evidence_package()
-  |> fn(c) { list.length(c.evidence) }
-  |> should.equal(15)
+  let c = c3i_evidence_package()
+  list.length(c.evidence) |> should.equal(15)
 }
 
 pub fn c3i_package_targets_sil4_test() {
-  c3i_evidence_package()
-  |> fn(c) { c.target_sil }
-  |> should.equal(SIL4)
+  let c = c3i_evidence_package()
+  c.target_sil |> should.equal(SIL4)
 }
 
 pub fn c3i_package_system_name_set_test() {
-  c3i_evidence_package()
-  |> fn(c) { string.length(c.system_name) > 0 }
-  |> should.be_true()
+  let c = c3i_evidence_package()
+  { string.length(c.system_name) > 0 } |> should.be_true()
 }
 
 pub fn c3i_package_all_items_have_non_empty_id_test() {
-  c3i_evidence_package()
-  |> fn(c) { c.evidence }
-  |> list.all(fn(e) { string.length(e.id) > 0 })
+  let c = c3i_evidence_package()
+  list.all(c.evidence, fn(e) { string.length(e.id) > 0 })
   |> should.be_true()
 }
 
 pub fn c3i_package_all_items_have_non_empty_title_test() {
-  c3i_evidence_package()
-  |> fn(c) { c.evidence }
-  |> list.all(fn(e) { string.length(e.title) > 0 })
+  let c = c3i_evidence_package()
+  list.all(c.evidence, fn(e) { string.length(e.title) > 0 })
   |> should.be_true()
 }
 
 pub fn c3i_package_all_items_have_non_empty_artifact_path_test() {
-  c3i_evidence_package()
-  |> fn(c) { c.evidence }
-  |> list.all(fn(e) { string.length(e.artifact_path) > 0 })
+  let c = c3i_evidence_package()
+  list.all(c.evidence, fn(e) { string.length(e.artifact_path) > 0 })
   |> should.be_true()
 }
 
 pub fn c3i_package_has_formal_verification_evidence_test() {
-  c3i_evidence_package()
-  |> evidence_by_category(_, FormalVerification)
-  |> list.length()
-  |> fn(n) { n >= 2 }
+  let c = c3i_evidence_package()
+  { list.length(evidence_by_category(c, FormalVerification)) >= 2 }
   |> should.be_true()
 }
 
 pub fn c3i_package_has_requirements_spec_evidence_test() {
-  c3i_evidence_package()
-  |> evidence_by_category(_, RequirementsSpec)
-  |> list.length()
-  |> fn(n) { n >= 1 }
+  let c = c3i_evidence_package()
+  { list.length(evidence_by_category(c, RequirementsSpec)) >= 1 }
   |> should.be_true()
 }
 
 pub fn c3i_package_coverage_above_75_percent_test() {
-  c3i_evidence_package()
-  |> coverage_percent()
-  |> fn(cov) { cov >. 75.0 }
+  { coverage_percent(c3i_evidence_package()) >. 75.0 }
   |> should.be_true()
 }
 
@@ -348,15 +328,13 @@ pub fn c3i_package_has_no_missing_evidence_test() {
 }
 
 pub fn c3i_package_pfd_is_1e_minus_4_test() {
-  c3i_evidence_package()
-  |> fn(c) { c.pfd_target }
-  |> should.equal(1.0e-4)
+  let c = c3i_evidence_package()
+  c.pfd_target |> should.equal(1.0e-4)
 }
 
 pub fn c3i_package_hft_is_2_test() {
-  c3i_evidence_package()
-  |> fn(c) { c.hft }
-  |> should.equal(2)
+  let c = c3i_evidence_package()
+  c.hft |> should.equal(2)
 }
 
 // ---------------------------------------------------------------------------
@@ -364,22 +342,22 @@ pub fn c3i_package_hft_is_2_test() {
 // ---------------------------------------------------------------------------
 
 pub fn summary_contains_system_name_test() {
-  let s = c3i_evidence_package() |> summary()
+  let s = summary(c3i_evidence_package())
   string.contains(s, "C3I") |> should.be_true()
 }
 
 pub fn summary_contains_sil4_test() {
-  let s = c3i_evidence_package() |> summary()
+  let s = summary(c3i_evidence_package())
   string.contains(s, "SIL-4") |> should.be_true()
 }
 
 pub fn summary_contains_coverage_test() {
-  let s = c3i_evidence_package() |> summary()
+  let s = summary(c3i_evidence_package())
   string.contains(s, "Coverage") |> should.be_true()
 }
 
 pub fn summary_contains_certifiable_test() {
-  let s = c3i_evidence_package() |> summary()
+  let s = summary(c3i_evidence_package())
   string.contains(s, "Certifiable") |> should.be_true()
 }
 
@@ -417,16 +395,16 @@ pub fn evidence_for_sil_filters_by_level_test() {
 // ---------------------------------------------------------------------------
 
 pub fn all_c3i_items_have_description_test() {
-  c3i_evidence_package()
-  |> fn(c) { c.evidence }
-  |> list.all(fn(e) { string.length(e.description) > 10 })
+  let c = c3i_evidence_package()
+  list.all(c.evidence, fn(e) { string.length(e.description) > 10 })
   |> should.be_true()
 }
 
 pub fn integration_testing_evidence_is_partial_test() {
   // EV-007 (Wallaby) is intentionally Partial — verify the package is honest
-  c3i_evidence_package()
-  |> evidence_by_category(_, IntegrationTesting)
-  |> list.any(fn(e) { e.status == Partial })
+  let c = c3i_evidence_package()
+  list.any(evidence_by_category(c, IntegrationTesting), fn(e) {
+    e.status == Partial
+  })
   |> should.be_true()
 }

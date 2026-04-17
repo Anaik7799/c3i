@@ -10,8 +10,7 @@
 //// Layer: L7_FEDERATION
 
 import cepaf_gleam/ha/zenoh_federation.{
-  type FederationEvent, type FederationNode, type NodeRole, Backup,
-  FederationNode, NodeJoined, NodeLeft, Observer, PartitionDetected,
+  Backup, FederationNode, NodeJoined, NodeLeft, Observer, PartitionDetected,
   PartitionHealed, Primary, QuorumLost, QuorumRestored, Standby, add_node,
   check_quorum, detect_partition, elect_leader, healthy_nodes, node_init,
   node_summary, node_to_json, remove_node, update_node_health,
@@ -439,45 +438,31 @@ pub fn node_to_json_is_non_empty_test() {
 // 9. FederationEvent constructors — smoke tests
 // ---------------------------------------------------------------------------
 
-pub fn federation_event_node_joined_test() {
-  let ev = NodeJoined(node_id: "new-node", region: "eu-west1")
-  case ev {
-    NodeJoined(node_id: id, region: r) -> {
-      id |> should.equal("new-node")
-      r |> should.equal("eu-west1")
-    }
-    _ -> should.fail()
-  }
+pub fn federation_event_node_joined_fields_test() {
+  let NodeJoined(node_id: id, region: r) =
+    NodeJoined(node_id: "new-node", region: "eu-west1")
+  id |> should.equal("new-node")
+  r |> should.equal("eu-west1")
 }
 
-pub fn federation_event_node_left_test() {
-  let ev = NodeLeft(node_id: "old-node", reason: "timeout")
-  case ev {
-    NodeLeft(node_id: id, reason: r) -> {
-      id |> should.equal("old-node")
-      r |> should.equal("timeout")
-    }
-    _ -> should.fail()
-  }
+pub fn federation_event_node_left_fields_test() {
+  let NodeLeft(node_id: id, reason: r) =
+    NodeLeft(node_id: "old-node", reason: "timeout")
+  id |> should.equal("old-node")
+  r |> should.equal("timeout")
 }
 
 pub fn federation_event_partition_healed_test() {
-  let ev: FederationEvent = PartitionHealed
-  ev |> should.equal(PartitionHealed)
+  PartitionHealed |> should.equal(PartitionHealed)
 }
 
-pub fn federation_event_quorum_lost_test() {
-  let ev = QuorumLost(available: 1, required: 2)
-  case ev {
-    QuorumLost(available: a, required: r) -> {
-      a |> should.equal(1)
-      r |> should.equal(2)
-    }
-    _ -> should.fail()
-  }
+pub fn federation_event_quorum_lost_fields_test() {
+  let QuorumLost(available: a, required: r) =
+    QuorumLost(available: 1, required: 2)
+  a |> should.equal(1)
+  r |> should.equal(2)
 }
 
 pub fn federation_event_quorum_restored_test() {
-  let ev: FederationEvent = QuorumRestored
-  ev |> should.equal(QuorumRestored)
+  QuorumRestored |> should.equal(QuorumRestored)
 }
