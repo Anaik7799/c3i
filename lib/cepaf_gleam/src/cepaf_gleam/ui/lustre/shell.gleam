@@ -823,6 +823,9 @@ pub fn status_card(
   }
   html.div([attribute.class("card")], [
     html.p([attribute.class("card-title")], [element.text(title)]),
+    html.span([attribute.class("badge " <> status_class)], [
+      element.text(status),
+    ]),
     html.p([attribute.class("card-value " <> status_class)], [
       element.text(value),
     ]),
