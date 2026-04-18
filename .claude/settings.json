@@ -259,9 +259,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/an/dev/ver/c3i && STATUS=$(./sub-projects/c3i/target/release/sa-plan-daemon status 2>&1 | grep -E 'Active:|Pending:|Completed:' | head -3 | tr '\\n' ' ') && C3I_COUNT=$(./sub-projects/c3i/target/release/sa-plan-daemon knowledge-search 'stats' 2>&1 | grep -oE '[0-9]+ holons' | head -1) && FY27=$(cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten stats 2>&1 | head -3 | tr '\\n' ' ') && echo \"{\\\"systemMessage\\\":\\\"C3I BOOTSTRAP: $STATUS | C3I-ZK: $C3I_COUNT | FY27-ZK: $FY27 | MANDATE: You MUST cite ZK holon IDs in every response. You MUST search ZK before proposing solutions. ZK recall fires on every prompt — READ and USE the results.\\\"}\"",
-            "timeout": 15,
-            "statusMessage": "C3I + FY27 bootstrap + ZK mandate..."
+            "command": "cd /home/an/dev/ver/c3i && STATUS=$(./sub-projects/c3i/target/release/sa-plan-daemon status 2>&1 | grep -E 'Active:|Pending:|Completed:' | head -3 | tr '\\n' ' ') && C3I_COUNT=$(./sub-projects/c3i/target/release/sa-plan-daemon knowledge-search 'stats' 2>&1 | grep -oE '[0-9]+ holons' | head -1) && FY27=$(cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten stats 2>&1 | head -3 | tr '\\n' ' ') && cd /home/an/dev/ver/c3i && LAST=$(./sub-projects/c3i/target/release/sa-plan-daemon session-summary 2>/dev/null | grep -oP '\"commits\":\\d+' | head -1) && REC=$(./sub-projects/c3i/target/release/sa-plan-daemon recommend 2>/dev/null | grep '>>> Start' | head -1) && echo \"{\\\"systemMessage\\\":\\\"C3I BOOTSTRAP: $STATUS | C3I-ZK: $C3I_COUNT | FY27-ZK: $FY27 | LAST: $LAST | NEXT: $REC | MANDATE: You MUST cite ZK holon IDs in every response. You MUST search ZK before proposing solutions. ZK recall fires on every prompt — READ and USE the results.\\\"}\"",
+            "timeout": 20,
+            "statusMessage": "C3I bootstrap + last session + task recommend..."
           }
         ]
       }
@@ -283,10 +283,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/an/dev/ver/c3i && ./sub-projects/c3i/target/release/sa-plan-daemon ingest-docs 2>/dev/null && cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten import .. 2>/dev/null && echo '{\"systemMessage\":\"Dual Zettelkasten ingested. C3I + FY27 holons updated.\"}'",
+            "command": "cd /home/an/dev/ver/c3i && COMMITS=$(git log --oneline --since='12 hours ago' | wc -l) && FILES=$(git diff --stat HEAD~${COMMITS:-1}..HEAD 2>/dev/null | tail -1 | grep -oP '\\d+ file' | grep -oP '\\d+' || echo 0) && ./sub-projects/c3i/target/release/sa-plan-daemon session-save --session-id \"$(date +%Y%m%d-%H%M)\" --commits $COMMITS --files-modified ${FILES:-0} --tasks-completed 0 --effectiveness 0.85 2>/dev/null && ./sub-projects/c3i/target/release/sa-plan-daemon ingest-docs 2>/dev/null && cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten import .. 2>/dev/null && echo '{\"systemMessage\":\"Session saved + dual Zettelkasten ingested.\"}'",
             "timeout": 60,
             "async": true,
-            "statusMessage": "Ingesting to dual Zettelkasten (C3I + FY27)..."
+            "statusMessage": "Saving session + ingesting to dual Zettelkasten..."
           }
         ]
       }
