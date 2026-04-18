@@ -11,7 +11,7 @@
 import cepaf_gleam/a2ui/bindings
 import cepaf_gleam/a2ui/catalog
 import cepaf_gleam/a2ui/schema.{
-  BoolProp, ComponentProposal, ComponentSpec, DataBinding, EnumProp, FloatProp,
+  BoolProp, ComponentProposal, DataBinding, EnumProp, FloatProp,
   IntProp, JsonProp, L0Constitutional, L1AtomicDebug, L2Component, L3Transaction,
   L4System, L5Cognitive, L6Ecosystem, L7Federation, ListProp, PropSpec,
   StringProp, layer_to_string, proposal_to_json,
@@ -339,13 +339,13 @@ pub fn catalog_unknown_type_not_registered_test() {
 pub fn catalog_components_for_l0_test() {
   let cat = catalog.default_catalog()
   let l0_components = catalog.components_for_layer(cat, L0Constitutional)
-  { list.length(l0_components) > 0 } |> should.be_true
+  { l0_components != [] } |> should.be_true
 }
 
 pub fn catalog_components_for_l2_test() {
   let cat = catalog.default_catalog()
   let l2_components = catalog.components_for_layer(cat, L2Component)
-  { list.length(l2_components) > 0 } |> should.be_true
+  { l2_components != [] } |> should.be_true
 }
 
 pub fn catalog_lookup_badge_returns_ok_test() {
@@ -510,7 +510,7 @@ pub fn validate_and_render_invalid_returns_error_test() {
       binding: None,
     )
   case validator.validate_and_render(cat, proposal, L7Federation) {
-    Error(reasons) -> { list.length(reasons) > 0 } |> should.be_true
+    Error(reasons) -> { reasons != [] } |> should.be_true
     Ok(_) -> should.fail()
   }
 }

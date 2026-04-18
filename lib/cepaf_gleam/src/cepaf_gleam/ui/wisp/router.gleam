@@ -21,10 +21,8 @@ import cepaf_gleam/agui/state as agui_state
 import cepaf_gleam/agui/tools as agui_tools
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/beam_metrics
-import cepaf_gleam/ha/failure_classifier
 import cepaf_gleam/ha/fitness_gate
 import cepaf_gleam/ha/guard_grid
-import cepaf_gleam/ha/health_derivative
 import cepaf_gleam/ha/request_guard
 import cepaf_gleam/substrate/beam_cache
 import cepaf_gleam/ha/health_cascade

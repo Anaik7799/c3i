@@ -16,8 +16,6 @@ import cepaf_gleam/fractal/l5_cognitive.{
   type OodaCycleState, type ReasoningState, Act, Decide, Observe, Orient,
 }
 import cepaf_gleam/moz/client as moz
-import cepaf_gleam/moz/planning as moz_planning
-import cepaf_gleam/moz/system as moz_system
 import cepaf_gleam/telemetry/otel.{type SpanContext}
 import cepaf_gleam/zenoh/client as zenoh
 import gleam/dict

@@ -187,42 +187,7 @@ td{padding:.4rem .6rem;border-bottom:1px solid var(--border);color:var(--text);}
 // Navigation pages (order matches the cockpit tab bar)
 // ---------------------------------------------------------------------------
 
-const nav_pages_legacy: List(#(String, String)) = [
-  // Core (15 original)
-  #("/dashboard", "Dashboard"),
-  #("/planning", "Planning"),
-  #("/immune", "Immune"),
-  #("/knowledge", "Knowledge"),
-  #("/zenoh", "Zenoh"),
-  #("/cockpit", "Cockpit"),
-  #("/verification", "Verification"),
-  #("/substrate", "Substrate"),
-  #("/metabolic", "Metabolic"),
-  #("/podman", "Podman"),
-  #("/mcp", "MCP"),
-  #("/kms", "KMS"),
-  #("/telemetry", "Telemetry"),
-  #("/federation", "Federation"),
-  #("/health-grid", "Health Grid"),
-  // Extended (9 existing)
-  #("/prajna", "Prajna"),
-  #("/agents", "Agents"),
-  #("/holon", "Holon"),
-  #("/config", "Config"),
-  #("/git", "Git"),
-  #("/database", "Database"),
-  #("/bridge", "Bridge"),
-  #("/smriti", "Smriti"),
-  #("/planning-dashboard", "OODA"),
-  // Wave 1 (6 new)
-  #("/integrity", "Integrity"),
-  #("/evolution", "Evolution"),
-  #("/biomorphic", "Biomorphic"),
-  #("/homeostasis", "Homeostasis"),
-  #("/bicameral", "Bicameral"),
-  #("/singularity", "Singularity"),
-  #("/components", "Components"),
-]
+// nav_pages_legacy removed — superseded by domain.all_pages() (SC-MUDA-001)
 
 // ---------------------------------------------------------------------------
 // Public API
