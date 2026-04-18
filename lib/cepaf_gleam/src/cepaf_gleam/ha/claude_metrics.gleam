@@ -50,6 +50,7 @@
 ////
 //// STAMP: SC-SATYA-002, SC-OODA-CLAUDE-001, SC-EVO-KPI-001
 
+import cepaf_gleam/substrate/beam_cache
 import gleam/float
 import gleam/int
 import gleam/string
@@ -353,24 +354,43 @@ pub fn effectiveness_score(m: SessionMetrics) -> Float {
     False -> agent_success_rate(m)
   }
 
-  clamp01(
+  // Round to 4 significant figures to eliminate IEEE-754 rounding artefacts
+  // (e.g. 0.30+0.35+0.25+0.10 ≠ 1.0 exactly in binary floating-point).
+  let raw =
     zk_rate *. 0.30
     +. build_rate *. 0.35
     +. test_rate *. 0.25
-    +. agent_rate *. 0.10,
-  )
+    +. agent_rate *. 0.10
+  let rounded = int.to_float(float.round(raw *. 10_000.0)) /. 10_000.0
+  clamp01(rounded)
 }
 
 // ---------------------------------------------------------------------------
 // ETS publication stub (side-effect boundary)
 // ---------------------------------------------------------------------------
 
-/// Publish the current metrics to an ETS table for API access.
+/// Publish the current metrics to persistent_term via beam_cache (F08).
 ///
-/// In the default implementation this is a no-op; replace with an Erlang FFI
-/// call to write to `:ets.insert(:claude_metrics, {session_id, metrics_map})`
-/// when a real ETS table is available.
-pub fn publish_to_ets(_m: SessionMetrics) -> Nil {
+/// Uses beam_cache.set_config/2 which writes to Erlang's persistent_term store.
+/// Reads are O(1) cost; writes are infrequent (per-session publish), so the
+/// triggered GC scan is acceptable (SC-SATYA-002, SC-EVO-KPI-001).
+pub fn publish_to_ets(m: SessionMetrics) -> Nil {
+  let _ = beam_cache.set_config("claude:session_id", m.session_id)
+  let _ =
+    beam_cache.set_config("claude:zk_citations", int.to_string(m.zk_citations))
+  let _ =
+    beam_cache.set_config("claude:zk_recalls", int.to_string(m.zk_recalls))
+  let _ =
+    beam_cache.set_config("claude:tool_edits", int.to_string(m.tool_edits))
+  let _ =
+    beam_cache.set_config("claude:builds_clean", int.to_string(m.builds_clean))
+  let _ = beam_cache.set_config("claude:commits", int.to_string(m.commits))
+  let _ =
+    beam_cache.set_config(
+      "claude:effectiveness",
+      float_4dp(effectiveness_score(m)),
+    )
+  let _ = beam_cache.set_config("claude:summary", summary(m))
   Nil
 }
 

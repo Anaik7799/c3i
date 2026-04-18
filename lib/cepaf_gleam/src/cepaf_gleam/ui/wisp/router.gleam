@@ -21,6 +21,7 @@ import cepaf_gleam/agui/state as agui_state
 import cepaf_gleam/agui/tools as agui_tools
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/beam_metrics
+import cepaf_gleam/ha/claude_metrics
 import cepaf_gleam/ha/fitness_gate
 import cepaf_gleam/ha/guard_grid
 import cepaf_gleam/ha/request_guard
@@ -123,6 +124,13 @@ fn route_internal(path: String) -> String {
     // Fitness-gated commit score — गुणपरीक्षा (SC-HA-001, SC-MUDA-001, SC-CMP-025)
     "/api/v1/system/fitness" ->
       module_guard.unwrap(module_guard.guard_json(fitness_json(), "system/fitness", "composite"))
+    // System snapshot — all subsystems in one response (SC-OODA-ACCEL-001)
+    // सर्वज्ञानं एकत्र — All knowledge in one place
+    "/api/v1/system/snapshot" ->
+      module_guard.unwrap(module_guard.guard_json(system_snapshot_json(), "system/snapshot", "snapshot"))
+    // Claude session self-observation metrics (SC-SATYA-002, SC-EVO-KPI-001)
+    "/api/v1/claude/session" ->
+      module_guard.unwrap(module_guard.guard_json(claude_session_json(), "claude/session", "session_id"))
     // Data freshness / staleness check (SC-EVO-KPI-003)
     "/api/v1/health/freshness" ->
       module_guard.unwrap(module_guard.guard_json(data_freshness_json(), "health/freshness", "staleness"))
@@ -672,6 +680,57 @@ fn beam_metrics_json() -> String {
   beam_metrics.to_json(m)
 }
 
+/// Claude session self-observation endpoint (SC-SATYA-002, SC-EVO-KPI-001).
+/// Reads the persistent_term store written by claude_metrics.publish_to_ets/1
+/// and returns a flat JSON object for the operator dashboard.
+fn claude_session_json() -> String {
+  let sid = case beam_cache.get_config("claude:session_id") {
+    Ok(v) -> v
+    Error(_) -> "unknown"
+  }
+  let cites = case beam_cache.get_config("claude:zk_citations") {
+    Ok(v) -> v
+    Error(_) -> "0"
+  }
+  let recalls = case beam_cache.get_config("claude:zk_recalls") {
+    Ok(v) -> v
+    Error(_) -> "0"
+  }
+  let edits = case beam_cache.get_config("claude:tool_edits") {
+    Ok(v) -> v
+    Error(_) -> "0"
+  }
+  let builds = case beam_cache.get_config("claude:builds_clean") {
+    Ok(v) -> v
+    Error(_) -> "0"
+  }
+  let commits = case beam_cache.get_config("claude:commits") {
+    Ok(v) -> v
+    Error(_) -> "0"
+  }
+  let eff = case beam_cache.get_config("claude:effectiveness") {
+    Ok(v) -> v
+    Error(_) -> "0.0000"
+  }
+  let sum = case beam_cache.get_config("claude:summary") {
+    Ok(v) -> string.replace(v, "\"", "'")
+    Error(_) -> "no session published"
+  }
+  // Use json module for type-safe output (SC-GLM-UI-003)
+  json.object([
+    #("session_id", json.string(sid)),
+    #("zk_citations", json.string(cites)),
+    #("zk_recalls", json.string(recalls)),
+    #("tool_edits", json.string(edits)),
+    #("builds_clean", json.string(builds)),
+    #("commits", json.string(commits)),
+    #("effectiveness", json.string(eff)),
+    #("summary", json.string(sum)),
+    #("source", json.string("persistent_term/claude_metrics.publish_to_ets")),
+  ])
+  |> json.to_string()
+}
+
 /// F02/F29: SLI/SLO Dashboard + Error Budget Tracking — L5_COGNITIVE
 /// Returns initial-state SLO data for the 4 core C3I reliability targets.
 /// Counters start at zero (fresh window); a persistent OTP actor would maintain
@@ -752,6 +811,36 @@ fn fitness_json() -> String {
   let s = fitness_gate.default_score()
   let d = fitness_gate.gate_decision(s, s.composite)
   fitness_gate.decision_to_json(d)
+}
+
+/// System snapshot — combines ALL subsystem state into one JSON response (SC-OODA-ACCEL-001).
+/// सर्वज्ञानं एकत्र — All knowledge in one place.
+/// Enables OODA observe phase to complete in a single HTTP round-trip.
+fn system_snapshot_json() -> String {
+  let health = c3i_nif.system_health()
+  let dashboard = c3i_nif.system_dashboard()
+  let plan = c3i_nif.plan_status()
+  // Inline freshness check — reuse the same NIF calls
+  let has_plan_data = string.length(plan) > 2
+  let has_health_data = string.length(health) > 2
+  let freshness = json.object([
+    #("nif_plan_status", json.bool(has_plan_data)),
+    #("nif_system_health", json.bool(has_health_data)),
+    #("staleness", json.string(case has_plan_data && has_health_data {
+      True -> "fresh"
+      False -> "stale"
+    })),
+  ])
+  |> json.to_string()
+  "{\"snapshot\":{\"health\":"
+  <> health
+  <> ",\"dashboard\":"
+  <> dashboard
+  <> ",\"planning\":"
+  <> plan
+  <> ",\"freshness\":"
+  <> freshness
+  <> "}}"
 }
 
 /// Data freshness check — components report staleness (SC-EVO-KPI-003)
