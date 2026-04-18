@@ -9,6 +9,7 @@
 ///   JSON serialisation for all three subsystems
 
 import cepaf_gleam/ha/workflow_execution.{FanPending, RetryPolicy}
+import gleam/list
 import gleam/string
 import gleeunit/should
 
@@ -429,8 +430,3 @@ pub fn fan_out_summary_format_test() {
   string.contains(summary, "1 failed") |> should.equal(True)
 }
 
-// ---------------------------------------------------------------------------
-// Private import needed for children status comparison
-// ---------------------------------------------------------------------------
-
-import gleam/list

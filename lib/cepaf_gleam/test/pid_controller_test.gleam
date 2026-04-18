@@ -7,6 +7,7 @@
 /// STAMP: SC-MATH-001, SC-OODA-001
 
 import cepaf_gleam/ha/pid_controller
+import gleam/float
 import gleam/string
 import gleeunit/should
 
@@ -43,9 +44,13 @@ pub fn default_health_pid_sensible_defaults_test() {
 // ---------------------------------------------------------------------------
 pub fn error_returns_difference_test() {
   let pid = pid_controller.init(1.0, 0.0, 0.0, 0.8)
-  should.equal(pid_controller.error(pid, 0.6), 0.2)
-  should.equal(pid_controller.error(pid, 0.9), -0.1)
-  should.equal(pid_controller.error(pid, 0.8), 0.0)
+  // Use approximate comparison for IEEE 754 results
+  let e1 = pid_controller.error(pid, 0.6)
+  should.be_true(float.absolute_value(e1 -. 0.2) <. 1.0e-9)
+  let e2 = pid_controller.error(pid, 0.9)
+  should.be_true(float.absolute_value(e2 -. { -0.1 }) <. 1.0e-9)
+  let e3 = pid_controller.error(pid, 0.8)
+  should.equal(e3, 0.0)
 }
 
 // ---------------------------------------------------------------------------
@@ -154,16 +159,29 @@ pub fn reset_integral_zeros_accumulator_test() {
 
 // ---------------------------------------------------------------------------
 // T13  recommend_action returns correct strings for all bands
+//
+// Boundary semantics (strict >. comparisons in impl):
+//   output > 0.5                   → "critical_recovery"
+//   output > 0.2 (and <= 0.5)      → "gradual_recovery"
+//   output > -0.2 (and <= 0.2)     → "maintain"
+//   output > -0.5 (and <= -0.2)    → "gradual_reduction"
+//   output <= -0.5                 → "emergency_reduction"
 // ---------------------------------------------------------------------------
 pub fn recommend_action_all_bands_test() {
+  // strictly above 0.5 → critical_recovery
   should.equal(pid_controller.recommend_action(0.8), "critical_recovery")
-  should.equal(pid_controller.recommend_action(0.5), "critical_recovery")
+  should.equal(pid_controller.recommend_action(1.0), "critical_recovery")
+  // exactly 0.5 is NOT > 0.5 → gradual_recovery
+  should.equal(pid_controller.recommend_action(0.5), "gradual_recovery")
   should.equal(pid_controller.recommend_action(0.35), "gradual_recovery")
-  should.equal(pid_controller.recommend_action(0.2), "gradual_recovery")
+  // exactly 0.2 is NOT > 0.2 → maintain
+  should.equal(pid_controller.recommend_action(0.2), "maintain")
   should.equal(pid_controller.recommend_action(0.0), "maintain")
   should.equal(pid_controller.recommend_action(-0.1), "maintain")
-  should.equal(pid_controller.recommend_action(-0.2), "maintain")
+  // exactly -0.2 is NOT > -0.2 → gradual_reduction
+  should.equal(pid_controller.recommend_action(-0.2), "gradual_reduction")
   should.equal(pid_controller.recommend_action(-0.35), "gradual_reduction")
+  // exactly -0.5 is NOT > -0.5 → emergency_reduction
   should.equal(pid_controller.recommend_action(-0.5), "emergency_reduction")
   should.equal(pid_controller.recommend_action(-1.0), "emergency_reduction")
 }
