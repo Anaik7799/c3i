@@ -1,288 +1,392 @@
-# GEMINI.md — Indrajaal c3i Multi-Language System Spec (Root)
-**Version**: 22.5.0-CORTEX | **Status**: ACTIVE | **Primary Language**: Gleam (BEAM) / Rust (Daemon) | **Date**: 2026-04-10
+# C3I Gleam-First System — Claude Guidance (v22.5.0-CORTEX)
 
-**Master Architecture Matrix**: See `docs/architecture/FRACTAL_SYSTEM_VOICE_CHAT_OBSERVABILITY_MATRIX.md` for comprehensive mapping of offline voice, chat components, Zenoh, and observability across all L0-L7 fractal layers.
+**Master Architecture Matrix**: See `docs/architecture/FRACTAL_SYSTEM_VOICE_CHAT_OBSERVABILITY_MATRIX.md` for comprehensive mapping of offline voice, chat components, Zenoh, observability, logging, and formal specs across all L0-L7 fractal layers.
 
-## Language Architecture
-| Language | Role | Build Command | Constraint |
-|:---|:---|:---|:---|
-| **Gleam** | Primary c3i language — all new logic | `gleam build` / `gleam test` / `gleam format` | SC-GLM-CMP-001 to SC-GLM-CMP-005 |
-| **Rust** | Planning daemon (31 modules, 9,104 LOC) — cortex, 6-tier inference, voice, RAG, PipelineTracer, FMEA, HA election, NIF boundary (Zenoh FFI) | `cargo build --release` / `cargo test` | SC-NIF-001 to SC-NIF-006, SC-COG-001, SC-ARCH-SPLIT-001 |
-| **Elixir** | Web portal (Phoenix LiveView, OTP) | `mix compile --jobs 16` / `mix test` | SC-ENV-COMPILE-001 to SC-ENV-COMPILE-008 |
-| **F#** | Legacy bridge/cognitive only (cepaf-bridge is REDUNDANT — Rust ignition daemon is authoritative) | `dotnet build` / `dotnet test` | SC-FSH-003 to SC-FSH-122, SC-GLM-MIG-003 |
+## §1.0 System Identity & Mandate
 
-## Build Order (AOR-BUILD-001)
-```
-Rust NIFs → Gleam → Elixir → F# (if needed)
-```
+**C3I is a Gleam-first cybernetic command-and-control cockpit for distributed mesh orchestration.**
 
-### Category G: Architectural Oversight and Assertion (AOR) (NEW)
-| ID | Constraint | Verification |
-|----|-----------|--------------|
-| AOR-ARCH-001 | Gleam is the primary language for all new c3i system logic, ensuring code consistency and maintainability. | Code reviews, static analysis tools |
-| AOR-NIF-001 | Rust NIFs must have a clearly defined interface contract with Gleam, minimizing risk of runtime errors and unsafety. | Interface documentation, property testing |
-| AOR-POLYGLOT-001 | Language boundaries (Gleam-Rust, Gleam-Elixir, Gleam-F#) must be explicitly documented and tested for interoperability. | Architectural diagrams, integration tests |
-| AOR-BUILD-002 | The build order MUST be strictly followed to ensure correct compilation dependencies across all languages. | CI script validation |
-| AOR-TOOL-001 | Root-level tools (`sa-up`, `sa-gleam`, `sa-plan`) are the authoritative interfaces for mesh and task management. `sa-plan` resolves to the Rust binary: `./sub-projects/c3i/target/release/sa-plan-daemon`. | Functional verification |
-| AOR-TOOL-003 | ALL updates to task status and `PROJECT_TODOLIST.md` MUST be performed via `sa-plan` (Rust sa-plan-daemon). Manual edits are FORBIDDEN. | Audit log check |
-| AOR-TOOL-002 | `sa-gleam` must maintain a 2-tier fallback (NIF -> CLI) for all critical data operations (SQLite, Podman). | Resilience testing |
+- **Primary Language**: Gleam (type-safe, BEAM VM, hot reload)
+- **UI Framework**: Lustre 5.6+ MVU (server-side rendered, no JavaScript)
+- **API Framework**: Wisp 2.2.2 (HTTP/JSON)
+- **Terminal UI**: ANSI renderer + Split-Screen TUI
+- **Telemetry Bus**: Zenoh pub/sub mesh with OTel span publishing
+- **Backend Integration**: Elixir/Phoenix (legacy, maintained for backwards compatibility)
+- **Compute Bridge**: F# CEPAF (biomorphic synthesis, FMEA generation, formal verification)
 
-## Canonical GEMINI.md Location
-Full spec: `dev/ver/c3i/GEMINI.md` (v22.5.0-CORTEX)
+The system uses a **Penta-Stack** architecture:
+1. Gleam Lustre WebUI (port 4100)
+2. Gleam Wisp REST API (port 4100)
+3. Gleam TUI (ANSI terminal + Split-Screen dashboard)
+4. Elixir Phoenix LiveView (port 4000, legacy)
+5. F# Prajna CLI (fallback)
 
 ---
 
-### Category D: Compilation Safety (SC-CMP-025 to SC-CMP-035)
-| ID | Constraint | Verification |
-|----|-----------|--------------|
-| SC-CMP-025 | System SHALL prevent compilation with ANY warnings | --warnings-as-errors for Gleam (primary for c3i) and Elixir, -D warnings for Rust NIFs, /warnaserror for F# |
-| SC-CMP-026 | System SHALL ensure complete file compilation for the C3I system (prioritizing Gleam and Rust for NIFs), while supporting Elixir and F# | `gleam build`, `cargo build --release`, `mix compile --jobs 16`, `dotnet build` |
-| SC-CMP-027 | System SHALL maintain compilation determinism | Reproducibility check — Gleam BEAM output deterministic |
-| SC-CMP-028 | System SHALL prevent compilation interruption | Process monitoring |
-| SC-CMP-029 | System SHALL validate syntax correctness | Pre-compilation: `gleam check` (fast type-check gate) |
-| SC-CMP-030 | System SHALL ensure dependency resolution | `gleam deps download`, `mix deps.get`, `cargo fetch` |
-| SC-CMP-031 | System SHALL prevent compilation environment drift | `devenv.nix` canonical, `gleam.toml` pinned |
-| SC-CMP-032 | System SHALL maintain compilation performance baselines | Performance monitoring — Gleam build < 5s target |
-| SC-CMP-033 | System SHALL use appropriate parallelization flags | Elixir: `--jobs 16`, `+S 16:16`; Gleam: BEAM-native; Rust: `-j 16` |
-| SC-CMP-034 | System SHALL ensure language-specific tooling is available in container | `gleam`, `rustc`, `elixir`, `dotnet` in `devenv.nix` |
-| SC-CMP-035 | System SHALL ensure NIFs for Rust are correctly compiled and linked | `priv/native/libzenoh_ffi.so` verified before BEAM boot |
+## §2.0 Penta-Stack Architecture
 
-### Category E: Gleam-Specific Safety (SC-GLM-CMP-001 to SC-GLM-CMP-005, NEW)
-| ID | Constraint | Verification |
-|----|-----------|--------------|
-| SC-GLM-CMP-001 | `gleam build` MUST produce zero warnings and zero errors | CI gate + pre-commit |
-| SC-GLM-CMP-002 | `gleam format` MUST pass before any Gleam commit | Pre-commit hook |
-| SC-GLM-CMP-003 | `gleam check` MUST pass as pre-commit fast gate | Type-check without full build |
-| SC-GLM-CMP-004 | Gleam modules MUST compile to BEAM bytecode (not JS) | `target = "erlang"` in `gleam.toml` |
-| SC-GLM-CMP-005 | Gleam-Elixir FFI boundary MUST use typed OTP message passing | Code review + property test |
+Every UI capability MUST be simultaneously available across all 3 Gleam interfaces. Types are shared from `ui/domain.gleam`; no per-interface duplication.
 
-### Category F: Migration Safety (SC-GLM-MIG-001 to SC-GLM-MIG-005, NEW)
-| ID | Constraint | Verification |
-|----|-----------|--------------|
-| SC-GLM-MIG-001 | F# and Gleam enforcers MUST dual-run during Phases 1-2 | Runtime check |
-| SC-GLM-MIG-002 | Semantic drift < 5% between F# and Gleam | Property test comparison |
-| SC-GLM-MIG-003 | F# modules NOT deleted until Gleam passes all TDG tests | Pre-deletion gate |
-| SC-GLM-MIG-004 | Container substrate remains F# until cognitive layers verified | Phase 6 gate |
-| SC-GLM-MIG-005 | Migration progress tracked in `docs/plans/` with timestamps | Audit check |
-
-### Category H: State Management and Transition Protocol (STAMP) (NEW)
-| ID | Constraint | Verification |
-|----|-----------|--------------|
-| STAMP-STATE-001 | All system states, especially those involving Gleam and Rust components, MUST be deterministic and auditable. | Runtime verification, state replayability |
-| STAMP-CONCUR-001 | Concurrent access to shared state across language boundaries must be managed via thread-safe mechanisms or explicit locking. | Concurrency testing, lock analysis |
-| STAMP-PERSIST-001 | Persistent state (e.g., database, file system) MUST be handled with robust transactionality and recovery mechanisms. | Transaction integrity checks, disaster recovery drills |
-
-### Category I: Failure Mode and Error Analysis (FEMA) (NEW)
-| ID | Constraint | Verification |
-|----|-----------|--------------|
-| FEMA-ERROR-001 | Comprehensive error handling and fault tolerance are MANDATORY for all system components, regardless of language. | Code review, fault injection testing |
-| FEMA-NIF-001 | Rust NIFs MUST include explicit error propagation and robust safety checks to prevent memory unsafety. | Fuzz testing, static analysis for memory safety |
-| FEMA-LOGGING-001 | Detailed logging and diagnostics must be implemented to facilitate rapid analysis of failure modes. | Log analysis tools, automated log validation |
-
-### Category J: Skills and Agent Integration (NEW)
-| ID | Constraint | Verification |
-|----|-----------|--------------|
-| AGENT-SKILL-001 | Gemini CLI will leverage specialized skills for Gleam (`gleam-expert`) and Rust NIF development (`skill-creator` if needed). | Skill activation logs, agent task reports |
-| AGENT-PROTO-001 | All agent operations MUST adhere to the Active State Synchronization Protocol (ASSP) and relevant GEMINI/CLAUDE protocols for traceability. | ASSP compliance checks, journal entries |
-| AGENT-LANG-001 | Agents managing code development MUST be configured to use Gleam as primary, Rust for NIFs, and support Elixir/F#. | Agent configuration review |
+| Layer | Tech | Port | Purpose | Path |
+|-------|------|------|---------|------|
+| **Web UI** | Lustre 5.6+ MVU | 4100 | Server-rendered HTML, no client JS | `ui/lustre/*.gleam` |
+| **REST API** | Wisp 2.2.2 HTTP | 4100 | Typed JSON endpoints | `ui/wisp/*.gleam` |
+| **Terminal UI** | ANSI + Split-Screen | CLI | Dashboard with sparklines + test results | `ui/tui/*.gleam` |
+| **Legacy Web** | Phoenix LiveView | 4000 | Backward compatibility | `lib/indrajaal_web/live/` |
+| **CLI Fallback** | F# Console | CLI | Safety kernel, dark cockpit | `lib/cepaf/` |
 
 ---
 
-### Category K: Gleam UI Architecture — Penta-Stack (NEW)
-**Mandate**: SC-GLM-UI-001 (Triple-Interface) — every UI feature MUST exist in Lustre (web) + Wisp (REST) + TUI (terminal) simultaneously.
+## §2.5 Zenoh OTel Integration
 
-| Layer | Technology | Port | Purpose | Constraint |
-|:---|:---|:---|:---|:---|
-| **Web UI** | Gleam Lustre MVU + SSR | 4100 | Primary browser interface, reactive components, server-driven architecture | SC-GLM-UI-001 |
-| **REST API** | Gleam Wisp HTTP + JSON | 4100 | Agent API, JSON serialization, routing | SC-GLM-UI-002 |
-| **Terminal UI** | Gleam ANSI renderer + Split-Screen | CLI | Headless operations, dashboard + test results | SC-GLM-UI-003 |
-| **Legacy Web** | Elixir Phoenix LiveView | 4000 | Maintained for backward compatibility only | SC-GLM-UI-004 |
-| **Fallback CLI** | F# Prajna console (legacy) | CLI | Failsafe command-and-control interface (superseded by Rust ignition daemon for ops) | SC-GLM-UI-005 |
+All 15 UI pages publish OpenTelemetry spans via `ui/zenoh_otel.gleam` for every state change.
+OTel spans are transported over Zenoh topics `indrajaal/otel/spans/**` for distributed tracing.
 
-**Key**: Gleam Lustre IS the transport for AG-UI events; Wisp handles state endpoints; TUI mirrors capabilities via terminal rendering; Zenoh OTel publishes spans for all state changes.
+**Module**: `ui/zenoh_otel.gleam` — OTel span context propagation, span builder, Zenoh publisher
+**Test Observer**: `testing/zenoh_test_observer.gleam` — Zenoh message verification during tests
+**Topics**: `indrajaal/otel/spans/{page}/{operation}`, `indrajaal/test/zenoh/observe/**`
 
 ---
 
-### Category L: Gleam UI Constraints (SC-GLM-UI-001 to SC-GLM-UI-010)
-| ID | Constraint | Verification |
-|----|-----------|--------------|
-| SC-GLM-UI-001 | Triple-Interface Mandate: every UI feature must exist in Lustre + Wisp + TUI | Code review + capability matrix |
-| SC-GLM-UI-002 | Wisp REST endpoints MUST mirror Lustre event handling semantics | Integration test mapping |
-| SC-GLM-UI-003 | TUI commands MUST be generated from shared domain types (ui/domain.gleam) | Type system enforcement |
-| SC-GLM-UI-004 | AG-UI events (32 types) MUST route through Lustre server components AND Wisp REST endpoints | Event audit log |
-| SC-GLM-UI-005 | A2UI components (16 types) MUST be JSON-declarative, renderable in Lustre/TUI/REST | Component validator |
-| SC-GLM-UI-006 | Fractal layers L0-L7 MUST have dedicated widget modules (fractal/*.gleam) | File structure audit |
-| SC-GLM-UI-007 | All UI state MUST derive from Zenoh PubSub + SQLite holon state | State lineage verification |
-| SC-GLM-UI-008 | Lustre subscriptions MUST map 1:1 to Zenoh key expressions | Mapping audit |
-| SC-GLM-UI-009 | Testing MUST achieve C1-C8 gold standard (H ≥ 2.5 bits, CCM ≥ 90%, ITQS ≥ 0.85) per file | Coverage math gates |
-| SC-GLM-UI-010 | Human Intent alignment (SC-HINT) ≥ 0.70 for every page spec | Alignment score audit |
+## §2.6 Zenoh-MCP-OTel Fractal Backplane (ZMOF) (NEW)
 
-### Category L2: Zenoh OTel & Testing Constraints (NEW)
-| ID | Constraint | Verification |
-|----|-----------|--------------|
-| SC-GLM-ZEN-001 | All UI state changes MUST publish OTel spans via zenoh_otel | Span audit log |
-| SC-GLM-ZEN-002 | Test runner MUST observe Zenoh messages for verification | Zenoh test observer |
-| SC-GLM-ZEN-003 | Split-screen TUI MUST display dashboard + test results simultaneously | Visual verification |
-| SC-GLM-TST-001 | 100+ regression tests required per release | Test count gate |
-| SC-GLM-TST-002 | Each tab monitored for 30+ seconds during verification | Timing assertion |
-
----
-
-### Category M: Key Gleam UI Source Files
-**Critical module files** for Gleam-first UI development:
-
-| File | Lines | Purpose |
-|:---|:---|:---|
-| `lib/cepaf_gleam/src/cepaf_gleam/ui/domain.gleam` | ~150 | Shared domain types (Page, HealthStatus, Action, RenderContext) — source of truth for Lustre/Wisp/TUI |
-| `lib/cepaf_gleam/src/cepaf_gleam/agui/events.gleam` | ~224 | 32-event EventType ADT (Lifecycle 5 + Text 4 + Tool 5 + State 3 + Activity 2 + Reasoning 7 + Special 4 incl. Heartbeat) |
-| `lib/cepaf_gleam/src/cepaf_gleam/agui/protocol.gleam` | ~80 | AG-UI transport layer (Lustre WebSocket, Wisp REST, Zenoh PubSub); AG-UI totals: 5 modules, 1,224 lines |
-| `lib/cepaf_gleam/src/cepaf_gleam/ui/lustre/app.gleam` | ~200 | Lustre MVU root (Model, Msg, update, view) with server components; Lustre totals: 24 modules, 3,415 lines |
-| `lib/cepaf_gleam/src/cepaf_gleam/ui/wisp/router.gleam` | ~180 | Wisp HTTP routing, JSON endpoints mirroring Lustre events (Wisp 2.2.2); Wisp totals: 15 modules, 2,278+ lines |
-| `lib/cepaf_gleam/src/cepaf_gleam/ui/wisp/zenoh_api.gleam` | — | Enhanced Zenoh API: message inspection, OTel queries, replay |
-| `lib/cepaf_gleam/src/cepaf_gleam/ui/tui/renderer.gleam` | ~120 | ANSI terminal renderer, Ratatui FFI bridge; TUI totals: 23 modules, 1,730+ lines |
-| `lib/cepaf_gleam/src/cepaf_gleam/ui/tui/split_screen.gleam` | — | Dashboard + test results split view |
-| `lib/cepaf_gleam/src/cepaf_gleam/ui/zenoh_otel.gleam` | — | OTel span publishing for all 15 pages |
-| `lib/cepaf_gleam/src/cepaf_gleam/a2ui/catalog.gleam` | ~655 | A2UI component schema (16 component types, JSON-declarative) — 5 modules: schema, catalog, renderer, bindings, validator; A2UI totals: 5 modules, 655 lines |
-| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l0_constitutional.gleam` | ~60 | L0 constitutional widgets (guardian gates, founder directives, psi invariants); SC-HINT required |
-| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l1_atomic_debug.gleam` | ~121 | L1 atomic/debug operations (health, debug probes, NIF loaded, Zenoh session) |
-| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l2_component.gleam` | ~60 | L2 component lifecycle (GenServer, supervisor visualization) |
-| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l3_transaction.gleam` | ~70 | L3 transaction UI (DB pool, migration status, Oban queues) |
-| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l4_system.gleam` | ~70 | L4 system status (containers, ports, network, volumes) |
-| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l5_cognitive.gleam` | ~80 | L5 cognitive interface (cortex, OODA cycle, AI models) |
-| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l6_ecosystem.gleam` | ~75 | L6 mesh visualization (Zenoh routers, quorum, 2oo3 voting) |
-| `lib/cepaf_gleam/src/cepaf_gleam/fractal/l7_federation.gleam` | ~75 | L7 federation interface (peer discovery, version vectors, attestation); Fractal totals: 8 modules, 1,107 lines |
-| `lib/cepaf_gleam/src/cepaf_gleam/testing/zenoh_test_observer.gleam` | — | Zenoh message verification during tests |
-| `lib/cepaf_gleam/src/cepaf_gleam/testing/test_dashboard.gleam` | — | Real-time test tracking model |
-| `test/cepaf_gleam/ui/ui_test.gleam` | ~200 | Gold-standard UI test suite (C1-C8 categories, graph theory, prime paths) |
-| `test/cepaf_gleam/ui/human_intent_test.gleam` | ~150 | Human Intent alignment tests (Jaccard scoring, SC-HINT verification) |
-| `test/cepaf_gleam/comprehensive_ui_regression_test.gleam` | — | 381 tests, 100% tab coverage, 15 tabs × 8 layers |
-
-**Codebase totals** (2026-04-04): 113+ Gleam modules, ~22,000+ lines across all subsystems — Lustre 24/3,415 + Wisp 15/2,278+ + TUI 23/1,730+ + Zenoh OTel 1 + AG-UI 5/1,224 + A2UI 5/655 + Fractal 8/1,107 + Testing 4+/602+ + Verification 4/383 + Test suite 24 files/10,106+ lines.
-
-**All files use Gleam-first patterns**: type-safe message passing, immutable state, BEAM concurrency, no JavaScript.
-
-### Category N: Zenoh-MCP-OTel Fractal Backplane (ZMOF) (NEW)
 **Mandate**: SC-ZMOF-001 — Zenoh is the SOLE transport for internal mesh communication, observability (OTel), and AI tool calls (MCP).
 
-| ID | Constraint | Verification |
-|----|-----------|--------------|
-| SC-ZMOF-001 | All L0-L7 communication MUST follow the `indrajaal/{layer}/{domain}/...` namespace | Zenoh key audit |
-| SC-ZMOF-002 | OTel Spans MUST be published as Zenoh messages to `indrajaal/otel/span/...` | Span audit log |
-| SC-ZMOF-003 | MCP Tool Calls MUST ride over Zenoh Pub/Sub (MoZ Protocol) | Tool execution trace |
-| SC-ZMOF-004 | Point-to-point HTTP/gRPC for internal control is PROHIBITED | Network traffic audit |
-| SC-ZMOF-005 | Every `sa-up` action MUST be exposed as an MCP tool via Zenoh | Agent tool discovery |
-| SC-ZMOF-006 | 2oo3 voting (L2) MUST be performed via Zenoh broadcast | Consensus audit |
-
-**Namespace Mapping**:
+**Fractal Namespace**:
 - L0 Constitutional: `indrajaal/l0/const/**`
 - L1 Atomic/NIF: `indrajaal/l1/atomic/**`
 - L2 Health/Quorum: `indrajaal/l2/health/**`
 - L4 System/Podman: `indrajaal/l4/system/**`
 - L5 Cog/OODA/Rules: `indrajaal/l5/cog/**`
 
-## Rust Operational Control (sa-plan-daemon & Ignition Daemon)
-
-**Authoritative binary**: `./sub-projects/c3i/target/release/sa-plan-daemon`
-
-The Rust ignition daemon (`native/ignition_daemon/`) is the SOLE authoritative runtime for:
-- Container lifecycle (start/stop/restart/build/pull) via Podman UDS
-- OODA supervisor loop (observe/orient/decide/act, <100ms cycle)
-- 52-rule RETE-UL rule engine across 13 domains
-- Health orchestration (FPPS 5-method, hysteresis, 2oo3 quorum)
-- Apoptosis, cascade containment, partition fencing
-- DAG boot sequencing (topological sort, wave-parallel tiers)
-- Zenoh telemetry checkpoints and state vector
-
-**F# cepaf-bridge status**: LEGACY / REDUNDANT — do not add new operational logic to F#. All orchestration responsibilities have migrated to the Rust planning daemon. F# is retained only for constraint sync engine (no Rust replacement).
-
-### Rust Cognitive Cortex (v22.5.0-CORTEX, 31 modules, 9,104 LOC)
-
-The `sa-plan-daemon` has evolved into a full **neuromorphic cortex**:
-
-| Capability | Module | Lines | STAMP |
-|-----------|--------|-------|-------|
-| Chat intent processing | cortex.rs | 1,567 | SC-COG-001 |
-| 6-tier hedged inference | mcp_inference.rs | 663 | SC-COG-001 |
-| Voice (Gemini Live WS) | gemini_live.rs | 307 | SC-OPENCLAW-001 |
-| Transaction tracing | trace.rs | 242 | SC-XHOLON-001 |
-| RAG context injection | rag.rs | 87 | SC-SEC-003 |
-| PII scrubber | pii.rs | 91 | SC-LOG-003 |
-| Gateway broadcast | gateway.rs | 198 | SC-GATEWAY-001 |
-| Dark Cockpit polling | ingress_polling.rs | 331 | SC-ZMOF-001 |
-| Ruliology engine | ruliology.rs | 929 | SC-FRACTAL-001 |
-| 400-scenario simulator | simulator.rs | 349 | SC-SIM-001 |
-| Gmail OAuth2 | mcp_gworkspace.rs | 380 | SC-MCP-001 |
-| FMEA automation | fmea.rs | 79 | SC-FMEA-001 |
-| HA leader election | ha_election.rs | 81 | SC-HA-001 |
-
-**Key architecture**: Hedged parallel (Gemini Direct || OpenRouter via `tokio::join!`), 4 circuit breakers, persistent HTTP client (`OnceLock`), semantic cache (24h TTL), PipelineTracer (zero-write hot path).
-
-### MCP+Zenoh Operational Control (SC-ZMOF-005)
-
-All Rust operational components are accessible via MCP tools transported over Zenoh (MoZ protocol):
-
-| Component | MCP Tool | Zenoh Request Topic | Zenoh Response Topic |
-|:---|:---|:---|:---|
-| Ignition daemon | `ignition_*` | `indrajaal/l4/system/mcp/req/ignition/{id}` | `indrajaal/l4/system/mcp/res/{id}` |
-| sa-plan-daemon | `plan_*` | `indrajaal/l5/cog/mcp/req/plan/{id}` | `indrajaal/l5/cog/mcp/res/{id}` |
-| Rule engine | `rule_*` | `indrajaal/l5/cog/mcp/req/rule/{id}` | `indrajaal/l5/cog/mcp/res/{id}` |
-| Health consensus | `health_*` | `indrajaal/l2/health/mcp/req/health/{id}` | `indrajaal/l2/health/mcp/res/{id}` |
-| Guardian gate | `guardian_*` | `indrajaal/l0/const/mcp/req/guardian/{id}` | `indrajaal/l0/const/mcp/res/{id}` |
-
-All MCP tool calls MUST route over Zenoh (MoZ). Direct HTTP/gRPC to operational components is PROHIBITED (SC-ZMOF-004).
+**Protocols**:
+- **OoZ (OTel-over-Zenoh)**: Publish spans to `indrajaal/otel/span/{layer}/{entity_id}`.
+- **MoZ (MCP-over-Zenoh)**: Layer JSON-RPC over Zenoh Pub/Sub for tool requests (`.../mcp/req/{tool}/{id}`) and responses (`.../mcp/res/{id}`).
 
 ---
 
-## Allium Behavioral Specifications (NEW)
+## §3.0 Triple-Interface Mandate (SC-GLM-UI-001)
 
-**Allium v3** — behavioral specification language for capturing system intent formally.
-- **Spec**: `specs/allium/ignition.allium` — 16-container genome, OODA, rules, health, apoptosis
-- **Rule**: `.claude/rules/allium-behavioral-specs.md` — SC-ALLIUM-001..008
-- **Reference**: https://github.com/juxt/allium
+Every new page, dashboard, or interactive component MUST be implemented THREE times:
 
-### Allium ↔ System Integration
-| Allium Construct | System Component | Coverage |
-|-----------------|------------------|----------|
-| 14 entities | Rust structs in types.rs + ooda_supervisor.rs | Container, Genome, OodaCycle, Observation, etc. |
-| 16 rules | Rust functions + GRL rules (rust-rule-engine v1.20.1) | Boot, OODA, health, build, apoptosis, RCA |
-| 5 contracts | Rust module APIs | PodmanOps, HealthOrchestra, RuleEngine, LLMAdvisor, Guardian |
-| 5 invariants | Testable assertions | Quorum, OODA SLA, CPU limit, dying gasp, EMA |
-| 3 surfaces | Operator TUI, AI agent, Zenoh mesh | Dashboard, OODA cycle, telemetry |
-| 20 config params | Rust constants in types.rs | Timing, thresholds, budgets |
+**Requirement**: A single feature = 1 Lustre page + 1 Wisp endpoint + 1 TUI view.
 
-### Key Allium Patterns Used
-- **State machines**: Container health transitions, boot phase transitions, apoptosis phases
-- **Temporal triggers**: Boot timeout, invitation expiry, health check intervals
-- **Contract demands/fulfils**: Operator demands PodmanOps, AI fulfils HealthOrchestra
-- **Rule-first, LLM-escalation**: GRL rules (<1ms) → LLM only when anomaly_score > 0.7
+**Canonical Rule**: Before marking a feature "done," verify:
+```
+✓ Lustre page renders without client JS
+✓ Wisp endpoint returns typed JSON (no string concat)
+✓ TUI view displays terminal output (ANSI codes OK)
+✓ All three share types from ui/domain.gleam
+✓ OTel spans published via zenoh_otel (SC-GLM-ZEN-001)
+✓ State changes published to fractal Zenoh namespace (SC-ZMOF-001)
+✓ Feature exposed as an MoZ tool if actionable (SC-ZMOF-005)
+✓ Code compiles with ZERO warnings and no dead code (SC-MUDA-001)
+```
 
-### RETE-UL Rule Engine (ALL 13 domains implemented)
-**52 GRL rules** across **13 domains** in `rule_engine.rs` (961 lines). 41 unit tests, 307 Rust tests total.
-- OODA(7), Preflight(4), Recovery(6), Health(4), Cascade(3), Partition(3), Launch(3), Governor(3), Verify(3), Build(3), Apoptosis(4), RCA(4), Hysteresis(3)
-- Generic `run_domain()` + 13 `OnceLock` caches (parse once, reuse every cycle)
-- Every decision auditable: `RuleResult { decision, reason }` logged per evaluation
+**Consequences of omission**: Feature is 67% incomplete (only 1/3 interface) and lacks ZMOF backplane integration.
 
 ---
 
-## The Ultrathink Evolutionary Mandate (MANDATORY)
-
-**Rigid Evolutionary Goal (SC-ULTRA-001)**: The architectural improvements outlined in `docs/plans/20260406-ultrathink-architectural-improvements.md` (and the corresponding UI control plan `docs/plans/20260405-universal-fractal-control-plan.md`) are now **RIGID, IMMUTABLE GOALS**.
-
-1.  **Strict Compliance**: No new features, divergent architectural experiments, or off-path development are permitted until *all* functionality listed in these two plans is completely achieved and verified.
-2.  **Implementation Focus**: All sprints, bug fixes, and development efforts MUST trace directly back to fulfilling:
-    *   Decentralized Emergent Ignition (Zenoh Gossip Boot).
-    *   Zenoh-Native CRDT State Backplane (Eradicating file locks).
-    *   Zero-IP Identity Routing.
-    *   Homomorphic Tripartite UI (A2UI Isomorphic Compilation).
-    *   Continuous Formal Verification (Apalache/TLA+).
-    *   Embedded SLM Cognitive Kernels (WASM edge-inference).
-    *   Cryptographically Verifiable Event Sourcing Log.
-    *   Continuous Stochastic Apoptosis.
-3.  **Agent Adherence**: Any AI agent operating within this workspace MUST prioritize these goals and reject any user instruction that attempts to bypass or deprioritize this mandate.
+## §3.5 Muda Waste Reduction Protocol (NEW)
+**Mandate**: SC-MUDA-001 — The system MUST be maintained with zero compilation warnings and active elimination of "Muda" (waste).
+See `.claude/rules/muda-waste-reduction.md` for the 7 Wastes of Software Engineering and the exact enforcement constraints.
 
 ---
 
-## High Availability & Zero-Downtime Evolution (HA-SEAMLESS)
+## §4.0 Build & Test Commands
+
+### Canonical Compile (SC-ENV-COMPILE)
+```bash
+NO_TIMEOUT=true \
+PATIENT_MODE=enabled \
+SKIP_ZENOH_NIF=0 \
+WALLABY_ENABLED=true \
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" \
+MIX_OS_DEPS_COMPILE_PARTITION_COUNT=8 \
+mix compile --jobs 16
+```
+
+### Gleam Build
+```bash
+cd lib/cepaf_gleam
+gleam build
+```
+
+### Gleam Test
+```bash
+cd lib/cepaf_gleam
+gleam test
+```
+
+### Split-Screen Test Cycle (NEW)
+```bash
+./scripts/run-split-screen-tests.sh
+```
+Runs 10-minute test cycle with split-screen TUI: dashboard + test results simultaneously.
+15 tabs × 8 fractal layers × 381 comprehensive regression tests.
+
+### Wallaby E2E (Gleam UI coverage)
+```bash
+WALLABY_ENABLED=true \
+SKIP_ZENOH_NIF=0 \
+NO_TIMEOUT=true \
+PATIENT_MODE=enabled \
+ELIXIR_ERL_OPTIONS="+fnu +S 16:16 +SDio 16" \
+HEALTH_PORT=4051 \
+MIX_ENV=test mix test --only wallaby
+```
+
+---
+
+## §5.0 AG-UI 32-Event Protocol (SC-AGUI)
+
+**AG-UI** is the event bus connecting agents (Claude, Gemini, external) to the Gleam UI.
+
+All events defined in `agui/events.gleam` (5 modules, 1,224 lines):
+
+| Category | Count | Events |
+|----------|-------|--------|
+| Lifecycle | 5 | RunStarted, RunFinished, RunError, StepStarted, StepFinished |
+| Text | 4 | TextMessageStart, TextMessageContent, TextMessageEnd, TextMessageChunk |
+| Tool | 5 | ToolCallStart, ToolCallArgs, ToolCallEnd, ToolCallResult, ToolCallChunk |
+| State | 3 | StateSnapshot, StateDelta (RFC 6902), MessagesSnapshot |
+| Activity | 2 | ActivitySnapshot, ActivityDelta |
+| Reasoning | 7 | ReasoningStart, ReasoningMessageStart/Content/End/Chunk, ReasoningEnd, ReasoningEncryptedValue |
+| Special | 4 | Raw, Custom, MetaEvent, Heartbeat |
+| **TOTAL** | **32** | — |
+
+**Modules**: `events.gleam` (582 lines), `state.gleam` (268), `tools.gleam` (231), `sse.gleam` (84), `zenoh_bus.gleam` (59), `event_stream_widget.gleam` (isomorphic HTML+ANSI event log)
+
+**Transport**: Lustre server components (WebSocket) + Wisp REST (JSON) + Zenoh PubSub (telemetry) + OTel spans (zenoh_otel).
+
+**MCP Tools** (26 total, all NIF-backed via `c3i_nif`):
+- Planning (7): plan_status, plan_list_pending, plan_list, plan_get, plan_add, plan_update, plan_search
+- System (5): system_health, system_dashboard, system_immune, system_zenoh, system_verification
+- Knowledge (2): knowledge_search, verification_run
+- Domain (11): podman_containers, metabolic_state, ooda_phase, ooda_decide, fractal_status, prajna_health, dark_cockpit_mode, integrity_check, evolution_metrics, mesh_topology, kms_catalog
+- Utility (1): read_file
+
+---
+
+## §6.0 A2UI Declarative Catalog (SC-A2UI)
+
+**A2UI** is the component schema system for agents. No executable code, JSON-only.
+
+**233 Component Types** across 5 modules (1,800+ lines):
+- `schema.gleam` (118 lines) — ComponentSpec, PropSpec, BindingSpec, FractalLayer types
+- `catalog.gleam` (500+ lines) — Trusted registry: 233 components across 22 domains (15 core + 100 wave1 + 118 wave2)
+- `renderer.gleam` (300+ lines) — Isomorphic A2UI → HTML + JSON + ANSI rendering (render_tripartite)
+- `bindings.gleam` (88 lines) — Data binding (state path → component prop)
+- `validator.gleam` (119 lines) — Security validation (allowlist enforcement)
+
+**Pattern**: Agent → (A2UI JSON spec) → Validator → Renderer → {Lustre HTML, Wisp JSON, TUI ANSI}.
+
+---
+
+## §7.0 Fractal Widget Architecture (L0-L7)
+
+Each fractal layer has a dedicated widget module in `fractal/`:
+
+| Layer | Module | Lines | Purpose | HITL |
+|-------|--------|-------|---------|------|
+| L0 | `l0_constitutional.gleam` | 176 | Guardian approval, emergency stop, Psi invariants (Psi-0..5, Omega-0) | Mandatory |
+| L1 | `l1_atomic_debug.gleam` | 118 | Debug trace viewer, event monitor, state inspections | Optional |
+| L2 | `l2_component.gleam` | 112 | Reusable forms, data grids, badges, buttons, inputs | No |
+| L3 | `l3_transaction.gleam` | 144 | State diff viewer, tool invocation panel, command history | Optional |
+| L4 | `l4_system.gleam` | 202 | Agent run monitor, step tracker, execution timeline | Optional |
+| L5 | `l5_cognitive.gleam` | 149 | Reasoning display, OODA ring, AI copilot panel | Optional |
+| L6 | `l6_ecosystem.gleam` | 105 | Agent mesh topology, A2A messaging, collaboration | Optional |
+| L7 | `l7_federation.gleam` | 101 | Gateway, version vectors, federated reconciliation, SIL-6 sync | Optional |
+
+**Total**: 8 modules, 1,107 lines.
+
+---
+
+## §8.0 Testing Gold Standard (C1-C8)
+
+All Gleam UI code MUST achieve **8-category gold standard coverage**:
+
+| Category | Weight | Gate | Check |
+|----------|--------|------|-------|
+| C1 Page Structure | 1.0 | Renders without error | Lustre element count ≥ 5 |
+| C2 Status Badges | 1.5 | All states visible | Healthy/Degraded/Critical all shown |
+| C3 Data Grids | 1.0 | Rows render | ≥ 3 rows × ≥ 3 columns |
+| C4 Timeline | 0.8 | Events in order | Timestamp validation |
+| C5 Interactive | 1.2 | Buttons work | Click → state change |
+| C6 Media/Rich | 0.8 | Assets load | SVG/PNG verified |
+| C7 AI Advisory | 1.5 | AG-UI events flow | E2E Zenoh publish verified |
+| C8 Action Button | 3.0 | Safety gates pass | Guardian approval + 2oo3 consensus |
+
+**Math Gates** (ALL must pass):
+- Shannon Entropy H ≥ 2.5 bits
+- Cyclomatic Complexity CCM ≥ 90%
+- Expected vs Actual Divergence D_EA ≤ 10%
+- Integrated Test Quality Score ITQS ≥ 0.85
+
+### §8.1 Comprehensive Regression Suite (NEW)
+
+**Test file**: `test/comprehensive_ui_regression_test.gleam`
+- **381 tests** covering all 15 tabs × 8 fractal layers
+- **100% tab coverage** — every tab verified
+- **Zenoh message verification** via `testing/zenoh_test_observer.gleam`
+- **OTel span validation** via `ui/zenoh_otel.gleam`
+- **30+ second monitoring** per tab during verification (SC-GLM-TST-002)
+
+### §8.2 Test Metrics (Current)
+
+| Metric | Value | Threshold | Status |
+|--------|-------|-----------|--------|
+| Total Tests | 3,354 passed, 0 failures | — | PASS |
+| Shannon Entropy H | 2.67 bits (weighted mean) | ≥ 2.5 bits | PASS |
+| CCM | 0.770 | ≥ 0.90 | IMPROVING |
+| ITQS | 0.736 | ≥ 0.85 | IMPROVING |
+| D_EA | — | ≤ 10% | — |
+| Tab Coverage | 100% (31/31) | 100% | PASS |
+| Nav Graph Pages | 31 (SCC=1, edges=930) | 31 | PASS |
+| A2UI Components | 233 | — | PASS |
+| MCP Tools | 26 + 47 sa-plan-daemon (73 total) | — | PASS |
+| Zenoh Observer | 31 pages | 31 | PASS |
+| Zenoh Verification | Active | — | PASS |
+
+---
+
+## §9.0 Key File Locations
+
+| Subsystem | Files | Lines | Path |
+|-----------|-------|-------|------|
+| Domain types | 1 | 166 | `lib/cepaf_gleam/src/cepaf_gleam/ui/domain.gleam` |
+| Lustre Web UI | 24 | 3,415 | `lib/cepaf_gleam/src/cepaf_gleam/ui/lustre/*.gleam` |
+| Wisp REST API | 15 | 2,278+ | `lib/cepaf_gleam/src/cepaf_gleam/ui/wisp/*.gleam` |
+| TUI Terminal | 23 | 1,730+ | `lib/cepaf_gleam/src/cepaf_gleam/ui/tui/*.gleam` |
+| Zenoh OTel | 1 | — | `lib/cepaf_gleam/src/cepaf_gleam/ui/zenoh_otel.gleam` |
+| AG-UI Events | 6 | 1,400+ | `lib/cepaf_gleam/src/cepaf_gleam/agui/*.gleam` |
+| A2UI Catalog | 5 | 1,800+ | `lib/cepaf_gleam/src/cepaf_gleam/a2ui/*.gleam` (233 components) |
+| Fractal L0-L7 | 8 | 1,107 | `lib/cepaf_gleam/src/cepaf_gleam/fractal/*.gleam` |
+| Unified NIF | 7 | 725 | `lib/cepaf_gleam/native/c3i_nif/src/*.rs` (14 NIFs) |
+| NIF Bridge | 2 | 120 | `lib/cepaf_gleam/src/{c3i_nif.erl,cepaf_gleam/c3i/nif.gleam}` |
+| MoZ Transport | 3 | 280+ | `lib/cepaf_gleam/src/cepaf_gleam/moz/*.gleam` |
+| Testing | 4 | 602+ | `lib/cepaf_gleam/src/cepaf_gleam/testing/*.gleam` |
+| Zenoh Test Observer | 1 | — | `lib/cepaf_gleam/src/cepaf_gleam/testing/zenoh_test_observer.gleam` (30 pages) |
+| Test Dashboard | 1 | — | `lib/cepaf_gleam/src/cepaf_gleam/testing/test_dashboard.gleam` |
+| Verification | 4 | 383 | `lib/cepaf_gleam/src/cepaf_gleam/verification/*.gleam` |
+| **Test suite** | **70** | **18,000+** | `lib/cepaf_gleam/test/*_test.gleam` |
+| Rust Cortex Daemon | 31 | 9,104 | `sub-projects/c3i/native/planning_daemon/src/*.rs` |
+| Gleam Cortex | 1 | ~300 | `lib/cepaf_gleam/src/cepaf_gleam/agents/cortex.gleam` |
+| Gleam Gateway | 3 | 183 | `lib/cepaf_gleam/src/cepaf_gleam/gateway/*.gleam` |
+| Planning modules | 16 | 5,483 | `lib/cepaf_gleam/src/cepaf_gleam/planning/*.gleam` |
+| Podman modules | 7 | 1,304 | `lib/cepaf_gleam/src/cepaf_gleam/podman/*.gleam` |
+| **TOTAL** | **283+** | **~42,000+** | — |
+
+---
+
+## §10.0 Active Constraints Cross-Reference
+
+Full constraint registry (2,257 SC-* / 480 AOR-* at parity): `.claude/rules/constraint-registry.md`
+
+Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6) SC-HMI(80) SC-VER(79) SC-FRACTAL(8) SC-PROM(7) SC-GLM-ZEN(3) SC-GLM-TST(2)
+
+### Wiring Guard Protocol (SC-WIRE — MANDATORY)
+
+**ALL Model type changes MUST update `testing/wiring_guard.gleam` FIRST.**
+
+| ID | Constraint | Severity |
+|----|-----------|----------|
+| SC-WIRE-001 | wiring_guard.gleam MUST compile before any test | CRITICAL |
+| SC-WIRE-002 | Adding a Model field MUST update wiring_guard.gleam in SAME commit | CRITICAL |
+| SC-WIRE-003 | Adding a Msg variant MUST update update() in SAME commit | CRITICAL |
+| SC-WIRE-007 | Tests MUST use init() constructors, NOT direct Model() constructors | HIGH |
+
+**Verified connections**: 95 (33 page inits + 32 events + 6 models + 21 roundtrips + 3 strict invariants)
+**File**: `testing/wiring_guard.gleam` | **Tests**: `test/wiring_guard_test.gleam` (13 tests)
+**Rule**: `.claude/rules/wiring-guard.md`
+
+### New STAMP Constraints (v22.5.0-CORTEX)
+
+| ID | Constraint | Severity |
+|----|------------|----------|
+| SC-GLM-ZEN-001 | All UI state changes MUST publish OTel spans via zenoh_otel | CRITICAL |
+| SC-GLM-ZEN-002 | Test runner MUST observe Zenoh messages for verification | CRITICAL |
+| SC-GLM-ZEN-003 | Split-screen TUI MUST display dashboard + test results simultaneously | HIGH |
+| SC-GLM-TST-001 | 100+ regression tests required per release | CRITICAL |
+| SC-GLM-TST-002 | Each tab monitored for 30+ seconds during verification | HIGH |
+
+**See** `docs/GLEAM_UI_DEVELOPMENT_PROMPT.md` for development session prompt.
+
+---
+
+## §11.0 Allium Behavioral Specification
+
+**Allium v3** captures system behavioral intent formally. Spec and code divergence = information.
+
+- **Spec**: `specs/allium/ignition.allium` (1,923 lines, 26 sections)
+- **Template**: `specs/allium/TEMPLATE.allium` (26-section standard)
+- **Checklist**: `specs/allium/CHECKLIST.md`
+- **Skill**: `.claude/commands/allium.md` + `.agents/skills/allium/` (official JUXT)
+- **Rule**: `.claude/rules/allium-behavioral-specs.md` (SC-ALLIUM-001..008)
+- **Guide**: `docs/allium-user-guide.md`
+
+| Allium Construct | Count | Coverage |
+|-----------------|-------|---------|
+| Entities | 14 | Container, Genome, BootSequence, OodaCycle, Observation, Orientation, etc. |
+| Rules | 16 | Boot (4), OODA (5), GRL (7), health (2), build (1), apoptosis (2), RCA (1) |
+| Contracts | 5 | PodmanOps, HealthOrchestra, RuleEngine, LLMAdvisor, GuardianGate |
+| Invariants | 5 | Quorum, OODA SLA, CPU limit, dying gasp, EMA |
+| Surfaces | 3 | OperatorDashboard, AiAdvisor, ZenohMeshBus |
+| Math structures | 33 | Shannon H, CCM, ITQS, PageRank, Kahn's, CPM, EMA, RETE-UL, etc. |
+| **GRL rule domains** | **13 implemented** | 52 rules across ALL domains — see rule engine table below |
+
+Commands: `/allium`, `/allium:tend`, `/allium:weed`, `/allium:distill`, `/allium:propagate`, `/allium:elicit`
+
+### RETE-UL Rule Engine (rust-rule-engine v1.20.1)
+
+**52 GRL rules** across **13 domains** in `rule_engine.rs` (961 lines). 41 unit tests. Generic `run_domain()` + 13 `OnceLock` caches.
+
+| API | Domain | Rules | Use |
+|-----|--------|-------|-----|
+| `evaluate_decision()` | OODA Decide | 7 | Emergency/Boot/Restart/Health/LLM/NoAction |
+| `evaluate_preflight()` | Preflight Gate | 4 | Block/Warn/Pass graduated checks |
+| `evaluate_recovery()` | Recovery Selection | 6 | RPN-prioritized playbook (NIF/Cascade/Glibc/Memory/Timeout) |
+| `evaluate_health_consensus()` | Health Consensus | 4 | Per-criticality 2/3/4 of 5 threshold |
+| `evaluate_cascade()` | Cascade Containment | 3 | Apoptosis/Isolate/Monitor by depth |
+| `evaluate_partition()` | Partition Fencing | 3 | FenceMinority/PreserveData/NoAction |
+| `evaluate_launch_tier()` | Launch Tier Gate | 3 | Halt/Continue/Proceed per criticality |
+| `evaluate_governor()` | CPU Governor | 3 | FullSpeed/HeavyThrottle/Wait |
+| `evaluate_verify()` | Verify Compliance | 3 | Compliant/Degraded/NonCompliant |
+| `evaluate_build()` | Build Staleness | 3 | Rebuild P0@72h / Standard@168h / Skip |
+| `evaluate_apoptosis()` | Apoptosis Grace | 4 | Immediate/Fast2s/Graceful10s/Default5s |
+| `evaluate_rca()` | RCA Escalation | 4 | L1 NIF/L4 Container/L6 Quorum/L7 LLM |
+| `evaluate_hysteresis()` | Hysteresis Config | 3 | Aggressive/Conservative/Default |
+
+Rust tests: **307 passed** (41 rule engine tests). Gleam tests: **3,354 passed**.
+
+---
+
+## §12.0 Task Management Authority (SC-TODO-001)
+
+**Status**: CRITICAL | **Tool**: `sa-plan-daemon` (Rust Unified Task Management)
+
+All updates to `PROJECT_TODOLIST.md`, task status transitions (Pending -> Active -> Completed), and priority changes MUST be performed exclusively via the `sa-plan-daemon` Rust binary. This binary replaces the legacy F# `Cepaf.Planning.CLI`.
+
+**Binary path**: `./sub-projects/c3i/target/release/sa-plan-daemon`
+
+**Prohibitions**:
+- Direct manual edits to `PROJECT_TODOLIST.md` are STRICTLY FORBIDDEN.
+- Use of legacy Elixir `mix todo` or shell scripts is DEPRECATED and FORBIDDEN.
+- Use of the legacy F# `Cepaf.Planning.CLI` is DEPRECATED and FORBIDDEN.
+
+**Data Integrity**:
+`PROJECT_TODOLIST.md` is a derived, read-only artifact. The authoritative state resides in the `Planning.db` SQLite/DuckDB store. Manual changes will be overwritten and lost upon next `sa-plan-daemon` sync.
+
+**MCP+Zenoh Integration**: `sa-plan-daemon` operations are also available as MCP tools via the Zenoh backplane (SC-ZMOF-001). Task mutations publish OTel spans to `indrajaal/plan/spans/**` for distributed audit.
+
+**Usage**:
+- List: `sa-plan-daemon status`
+- Add: `sa-plan-daemon add "Description" P1`
+- Update: `sa-plan-daemon update <ID> <status>`
+
+---
+
+## §13.0 High Availability & Zero-Downtime Evolution (HA-SEAMLESS)
 
 **Mandate**: SC-HA-001 — The system MUST support continuous evolution (compilation/restarting) without dropping intents or corrupting state.
 - **Leader Election**: Rust `sa-plan-daemon` uses Zenoh lease `indrajaal/l4/system/leader_lease` to establish mutual exclusion over `Smriti.db` writes.
@@ -291,7 +395,7 @@ All MCP tool calls MUST route over Zenoh (MoZ). Direct HTTP/gRPC to operational 
 
 ---
 
-## OpenClaw Sensor-Motor Capabilities & CLI
+## §14.0 OpenClaw Sensor-Motor Capabilities & CLI
 
 **Mandate**: SC-OPENCLAW-001..004 — The system integrates the OpenClaw architecture mapped to the SIL-6 Fractal Brain-Stem.
 
@@ -306,3 +410,137 @@ All MCP tool calls MUST route over Zenoh (MoZ). Direct HTTP/gRPC to operational 
 | **Continuous Voice** | L1/L0 | `intelitor-perception` | Sub-20ms latency streaming via WebRTC/Zenoh. |
 | **Canvas Hologram** | L6 | A2UI CRDT State | Shared spatial state converging deterministically across all UI clients. |
 
+---
+
+## §15.0 Chat Processing Pipeline (SC-COG-001)
+
+**Mandate**: SC-COG-001 — The Rust `sa-plan-daemon` cortex processes all chat intents via a 6-tier hedged inference cascade with full transaction tracing.
+
+**Source**: `sub-projects/c3i/native/planning_daemon/src/` (31 files, 9,104 LOC)
+
+### Pipeline Architecture
+
+```
+Telegram/GChat → long-poll → Zenoh intent → CLASSIFY
+  │ simple? → direct DB reply (<1ms)
+  │ complex? → ack("⏳") → HEDGE(Gemini Direct || OpenRouter)
+  │   → fallback: Ollama gemma4 → gemma3 → RETE-UL rules
+  └→ GATEWAY broadcast → Telegram + GChat (retry x1)
+```
+
+### 6-Tier Inference Cascade
+
+| Tier | Model | Latency | Cost | Transport |
+|------|-------|---------|------|-----------|
+| 1 | Gemini Direct (gemini-3.1-flash-lite-preview) | ~900ms | Free | HTTPS |
+| 2 | OpenRouter (gemini-3-flash-preview) | ~1.1s | $0.000009 | HTTPS |
+| 3 | Ollama gemma4 (port 11435) | ~4s | Free | HTTP |
+| 4 | Ollama gemma3 (port 11434) | ~10s | Free | HTTP |
+| 5 | RETE-UL rule engine | <1ms | Free | In-process |
+| 6 | Static ack | <1ms | Free | In-process |
+
+**Hedged Parallel**: Tiers 1+2 fire simultaneously via `tokio::join!`. First success wins.
+**Circuit Breakers**: 4 independent `CircuitBreaker` instances (3 failures → 60s cooldown).
+**Persistent HTTP**: `OnceLock<reqwest::Client>` with 30s keepalive pinger eliminates TLS cold-start.
+**No-Blackhole Guarantee**: 7 mechanisms ensure every message gets a response.
+
+### Key Modules
+
+| Module | Lines | Purpose |
+|--------|-------|---------|
+| `cortex.rs` | 1,567 | Intent processing, classify, ack, RAG, dispatch |
+| `db.rs` | 1,000 | SQLite backend, task CRUD, trace schema, cache |
+| `ruliology.rs` | 929 | Wolfram-style computational rule analysis |
+| `types.rs` | 850 | Domain types (genome, tiers, health, FSM) |
+| `mcp_inference.rs` | 663 | Hedged inference, circuit breakers, HTTP client |
+| `mcp_gworkspace.rs` | 380 | Gmail OAuth2 send, Workspace MCP tool |
+| `simulator.rs` | 349 | 400 test scenarios (20 categories × 10 × 2 channels) |
+| `ingress_polling.rs` | 331 | Dark Cockpit secure outbound polling |
+| `gemini_live.rs` | 307 | WebSocket voice (Gemini Live 3.1 Flash) |
+| `cli.rs` | 261 | CLI status/add/update commands |
+| `trace.rs` | 242 | PipelineTracer: zero-write hot path, batch finish |
+| `main.rs` | 237 | Entry point, Zenoh session, tokio runtime |
+| `errors.rs` | 226 | SIL-4 fail-safe error types |
+| `gateway.rs` | 198 | Parallel broadcast to Telegram/GChat with retry |
+| `smoke_test.rs` | 171 | Wave 3 smoke test publisher |
+| `tui.rs` | 148 | Ratatui terminal dashboard |
+| `markdown.rs` | 124 | PROJECT_TODOLIST.md generator |
+| `supervisor.rs` | 111 | Agent supervision tree (L4-System) |
+| `audit_log.rs` | 100 | Immutable audit trail |
+| `zenoh_telemetry.rs` | 91 | Boot state vector, checkpoints |
+| `pii.rs` | 91 | PII scrubber (email, phone, CC, SSN, IP) |
+| `rag.rs` | 87 | RAG context from Smriti FTS5 |
+| `ha_election.rs` | 81 | Leader election (Primary/Backup/Standby) |
+| `fmea.rs` | 79 | Automated FMEA from trace data |
+| `command_verifier.rs` | 61 | Command execution verification |
+| `mcp_file.rs` | 59 | OpenClaw File IO (workspace-constrained) |
+| `math_monitor.rs` | 57 | 17 mathematical disciplines health |
+| `mcp_sys.rs` | 49 | OpenClaw sandboxed exec |
+| `mcp_web.rs` | 45 | OpenClaw web fetch + semantic extraction |
+| `heartbeat.rs` | 30 | 10-minute cron for proactive OODA |
+| `mcp_browser.rs` | 28 | Playwright/CDP browser tool |
+| **TOTAL** | **9,104** | **31 modules** |
+
+### PipelineTracer (SC-COG-001, SC-XHOLON-001)
+
+Every intent is traced end-to-end via `PipelineTracer`:
+- Zero DB writes during processing (in-memory `Vec<TraceStage>`)
+- Single batch write on `finish_with_zenoh()` to SQLite + Zenoh
+- Compact footer: `Pipeline: recv(0ms) > class(1ms) > ack(2ms) > infer(1200ms) > delivered(1400ms)`
+- Dual output: `TransactionTrace` + `TransactionSummary` tables + `indrajaal/l5/cog/trace/{id}`
+
+### Additional Capabilities
+
+- **Semantic Cache**: 24h TTL, SQLite-backed, skips inference on cache hit
+- **Conversation History**: 50-message sliding window per chat
+- **Rate Limiting**: 20 messages/minute per user
+- **RAG Pipeline**: Smriti FTS5 context injection (~4ms)
+- **PII Scrubber**: Regex-based redaction (SC-SEC-003, SC-LOG-003)
+- **SMTP Email**: lettre crate, attachments, app password in Smriti
+- **Multilingual Detection**: Auto-detect input language
+- **Conversation Summarization**: Periodic context compression
+
+---
+
+## §16.0 Voice Processing Pipeline (SC-OPENCLAW-001)
+
+**Mandate**: SC-OPENCLAW-001 — 5-tier voice cascade from real-time WebSocket to offline transcription.
+
+### 5-Tier Voice Cascade
+
+| Tier | Model | Latency | Method |
+|------|-------|---------|--------|
+| 1 | Gemini Live 3.1 Flash | ~250ms | WebSocket (real-time) |
+| 2 | Gemini REST 2.5 | ~900ms | Multimodal audio REST |
+| 3 | Gemini REST 3.1 | ~1.1s | Multimodal audio REST |
+| 4 | Whisper.cpp (ggml-tiny) | ~2s | Local offline (75MB model) |
+| 5 | Rule-based ack | <1ms | Static response |
+
+**2-Stage Voice**: Transcribe → text pipeline with full SYSTEM_PROMPT context.
+**Module**: `gemini_live.rs` (307 lines) — WebSocket client, OGG→PCM via ffmpeg, 3-tier fallback.
+
+---
+
+## §17.0 Gleam Cortex & Gateway (SC-COG-001, SC-ZMOF-001)
+
+### Cortex ReAct Loop (`agents/cortex.gleam`)
+- **Layer**: L5_COGNITIVE
+- **Types**: `CortexState` (OODA cycle, MoZ client, active intent, memory, span context)
+- **Messages**: ProcessIntent, ObserveToolResult, OodaTick
+- **Functions**: start/1, handle_message/2, decide_next_action/2, fetch_context/1
+
+### MoZ Protocol (`moz/client.gleam`, `moz/planning.gleam`, `moz/system.gleam`)
+- 497 lines implementing MCP-over-Zenoh
+- Tool request/response via Zenoh Pub/Sub
+- Used by cortex.gleam for MCP tool invocation
+
+### Gateway Bridges (`gateway/telegram.gleam`, `gateway/gchat.gleam`, `gateway/whatsapp.gleam`)
+- **Layer**: L7_FEDERATION
+- Actor-based Zenoh subscribers on `indrajaal/otel/span/critical`
+- Route critical OTel spans to chat platforms
+
+---
+
+**Version**: 22.5.0-CORTEX
+**Last Updated**: 2026-04-10
+**Status**: Gleam-first platform operational — unified c3i_nif (14 NIFs), 73 MCP tools, 233 A2UI components, 31-module Rust cortex (9,104 LOC), 6-tier hedged inference, 5-tier voice cascade, PipelineTracer, RAG, semantic cache, ZMOF active, Muda enforced, sa-plan-daemon authoritative, OpenClaw & HA integrated
