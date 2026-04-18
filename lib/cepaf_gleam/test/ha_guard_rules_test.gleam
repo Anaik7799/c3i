@@ -4,13 +4,18 @@
 //// नियतं कुरु कर्म त्वं — Perform your prescribed duty (Gita 3.8)
 
 import cepaf_gleam/ha/guard_rules.{
-  ActionSequence, AllOf, AnyOf, AttemptHotReload, CascadeDepth,
-  ClassifyPattern, ConsecutiveFailures, CorrelateFailures, EntropyExceeds,
-  EntropyIncreasing, EscalateToOperator, FailureCountExceeds, HealthAbove,
-  HealthBelow, HealthDeclining, HealthOscillating, IsolateCell, JidokaHalt,
-  LayersFailing, LogWarning, LyapunovPositive,
-  ModuleConsecutiveFailures, NoAction, PreventiveCooldown, PredictiveAlert,
-  RecordMilestone, SetCockpitMode, TriggerRunbook,
+  ActionSequence, AllOf, AnyOf, AttemptHotReload, BootWithoutDagValidation,
+  BuildFailed, CascadeDepth, ClassifyPattern, CompileWarningsExist,
+  ConsecutiveFailures, CoreServiceDegraded, CorrelateFailures,
+  DataStalenessExceeds, EntropyExceeds, EntropyIncreasing, EscalateToOperator,
+  FailureCountExceeds, HealthAbove, HealthBelow, HealthDeclining,
+  HealthOscillating, InternalHttpDetected, IsolateCell, JidokaHalt,
+  L0ActionWithoutConsensus, LargeFileDetected, LayersFailing, LogWarning,
+  LyapunovPositive, MockDataInProduction, ModuleConsecutiveFailures,
+  MultipleContainersDown, NoAction, PartitionDetected, PreventiveCooldown,
+  PredictiveAlert, QuorumLost, RecordMilestone, SessionNoHolonProduced,
+  SetCockpitMode, ShutdownWithoutCheckpoint, TaskWithoutZkSearch,
+  TriggerRunbook, ZenohDisconnected, ZkNoCitation, ZkRecallIgnored,
   type GuardRule, type RuleEvaluation,
 }
 import gleam/list
@@ -22,7 +27,7 @@ import gleeunit/should
 // ═══════════════════════════════════════════════════════════════
 
 pub fn all_rules_returns_thirty_test() {
-  guard_rules.rule_count() |> should.equal(50)
+  guard_rules.rule_count() |> should.equal(85)
 }
 
 pub fn all_rules_have_unique_ids_test() {
@@ -30,7 +35,7 @@ pub fn all_rules_have_unique_ids_test() {
     guard_rules.all_rules()
     |> list.map(fn(r: GuardRule) { r.id })
   let unique_count = list.unique(ids) |> list.length()
-  unique_count |> should.equal(50)
+  unique_count |> should.equal(85)
 }
 
 pub fn all_rules_have_non_empty_names_test() {
@@ -74,6 +79,361 @@ pub fn rules_contain_all_new_ids_test() {
   list.contains(ids, "GR-028") |> should.be_true()
   list.contains(ids, "GR-029") |> should.be_true()
   list.contains(ids, "GR-030") |> should.be_true()
+}
+
+pub fn rules_contain_stamp_guard_ids_gr051_to_gr070_test() {
+  let ids = guard_rules.all_rules() |> list.map(fn(r: GuardRule) { r.id })
+  // SC-FUNC rules
+  list.contains(ids, "GR-051") |> should.be_true()
+  list.contains(ids, "GR-052") |> should.be_true()
+  list.contains(ids, "GR-053") |> should.be_true()
+  list.contains(ids, "GR-054") |> should.be_true()
+  // SC-TRUTH rules
+  list.contains(ids, "GR-055") |> should.be_true()
+  list.contains(ids, "GR-056") |> should.be_true()
+  list.contains(ids, "GR-057") |> should.be_true()
+  list.contains(ids, "GR-058") |> should.be_true()
+  // SC-SIL4 rules
+  list.contains(ids, "GR-059") |> should.be_true()
+  list.contains(ids, "GR-060") |> should.be_true()
+  list.contains(ids, "GR-061") |> should.be_true()
+  list.contains(ids, "GR-062") |> should.be_true()
+  list.contains(ids, "GR-063") |> should.be_true()
+  // SC-MUDA rules
+  list.contains(ids, "GR-064") |> should.be_true()
+  list.contains(ids, "GR-065") |> should.be_true()
+  list.contains(ids, "GR-066") |> should.be_true()
+  // SC-ZK rules
+  list.contains(ids, "GR-067") |> should.be_true()
+  list.contains(ids, "GR-068") |> should.be_true()
+  list.contains(ids, "GR-069") |> should.be_true()
+  list.contains(ids, "GR-070") |> should.be_true()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STAMP guard rule conditions (GR-051..GR-070)
+// ═══════════════════════════════════════════════════════════════
+
+// SC-FUNC-001: BuildFailed fires when failure_count > 0
+pub fn gr051_build_failed_fires_when_failure_count_positive_test() {
+  guard_rules.evaluate_condition(BuildFailed, 1.0, 0.0, 0, 1, 0.0)
+  |> should.be_true()
+}
+
+pub fn gr051_build_failed_does_not_fire_when_no_failures_test() {
+  guard_rules.evaluate_condition(BuildFailed, 1.0, 0.0, 0, 0, 0.0)
+  |> should.be_false()
+}
+
+pub fn gr051_build_failed_action_is_jidoka_halt_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-051" })
+  case rule {
+    Ok(r) ->
+      case r.action {
+        JidokaHalt(_) -> should.be_true(True)
+        _ -> should.be_true(False)
+      }
+    Error(_) -> should.be_true(False)
+  }
+}
+
+// SC-FUNC-002: CoreServiceDegraded fires when health < 0.5 AND failures >= min
+pub fn gr052_core_service_degraded_fires_test() {
+  guard_rules.evaluate_condition(
+    CoreServiceDegraded(min_failures: 3),
+    0.4, 0.0, 0, 4, 0.0,
+  )
+  |> should.be_true()
+}
+
+pub fn gr052_core_service_degraded_does_not_fire_when_health_ok_test() {
+  guard_rules.evaluate_condition(
+    CoreServiceDegraded(min_failures: 3),
+    0.7, 0.0, 0, 4, 0.0,
+  )
+  |> should.be_false()
+}
+
+pub fn gr052_core_service_degraded_does_not_fire_below_min_failures_test() {
+  guard_rules.evaluate_condition(
+    CoreServiceDegraded(min_failures: 3),
+    0.4, 0.0, 0, 2, 0.0,
+  )
+  |> should.be_false()
+}
+
+// SC-FUNC-005: MultipleContainersDown fires when failure_count > threshold
+pub fn gr053_multiple_containers_down_fires_test() {
+  guard_rules.evaluate_condition(
+    MultipleContainersDown(threshold: 1),
+    0.6, 0.0, 0, 2, 0.0,
+  )
+  |> should.be_true()
+}
+
+pub fn gr053_multiple_containers_down_does_not_fire_at_threshold_test() {
+  // failure_count=1, threshold=1 → 1 > 1 is False
+  guard_rules.evaluate_condition(
+    MultipleContainersDown(threshold: 1),
+    0.6, 0.0, 0, 1, 0.0,
+  )
+  |> should.be_false()
+}
+
+pub fn gr053_container_auto_heal_action_is_trigger_runbook_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-053" })
+  case rule {
+    Ok(r) ->
+      case r.action {
+        TriggerRunbook("RB-HEAL") -> should.be_true(True)
+        _ -> should.be_true(False)
+      }
+    Error(_) -> should.be_true(False)
+  }
+}
+
+// SC-FUNC-007: ZenohDisconnected fires when entropy < 0.0
+pub fn gr054_zenoh_disconnected_fires_when_entropy_negative_test() {
+  guard_rules.evaluate_condition(ZenohDisconnected, 0.8, -1.0, 0, 0, 0.0)
+  |> should.be_true()
+}
+
+pub fn gr054_zenoh_disconnected_does_not_fire_when_entropy_zero_test() {
+  guard_rules.evaluate_condition(ZenohDisconnected, 0.8, 0.0, 0, 0, 0.0)
+  |> should.be_false()
+}
+
+// SC-TRUTH-001: DataStalenessExceeds(60) fires when cascade_depth >= 60
+pub fn gr055_data_stale_warn_fires_when_cascade_depth_60_test() {
+  guard_rules.evaluate_condition(DataStalenessExceeds(seconds: 60), 0.8, 0.0, 60, 0, 0.0)
+  |> should.be_true()
+}
+
+pub fn gr055_data_stale_warn_does_not_fire_below_60_test() {
+  guard_rules.evaluate_condition(DataStalenessExceeds(seconds: 60), 0.8, 0.0, 59, 0, 0.0)
+  |> should.be_false()
+}
+
+// SC-TRUTH-010: MockDataInProduction fires when lyapunov <= -99.0
+pub fn gr058_mock_data_halt_fires_when_lyapunov_minus99_test() {
+  guard_rules.evaluate_condition(MockDataInProduction, 0.8, 0.0, 0, 0, -99.0)
+  |> should.be_true()
+}
+
+pub fn gr058_mock_data_halt_fires_when_lyapunov_below_minus99_test() {
+  guard_rules.evaluate_condition(MockDataInProduction, 0.8, 0.0, 0, 0, -100.0)
+  |> should.be_true()
+}
+
+pub fn gr058_mock_data_halt_does_not_fire_for_normal_lyapunov_test() {
+  guard_rules.evaluate_condition(MockDataInProduction, 0.8, 0.0, 0, 0, -0.5)
+  |> should.be_false()
+}
+
+pub fn gr058_mock_data_action_is_jidoka_halt_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-058" })
+  case rule {
+    Ok(r) ->
+      case r.action {
+        JidokaHalt(_) -> should.be_true(True)
+        _ -> should.be_true(False)
+      }
+    Error(_) -> should.be_true(False)
+  }
+}
+
+// SC-SIL4-006: L0ActionWithoutConsensus fires when lyapunov in (-99, -50]
+pub fn gr059_l0_action_no_consensus_fires_test() {
+  guard_rules.evaluate_condition(L0ActionWithoutConsensus, 0.8, 0.0, 0, 0, -50.0)
+  |> should.be_true()
+}
+
+pub fn gr059_l0_action_no_consensus_does_not_fire_for_normal_lyapunov_test() {
+  guard_rules.evaluate_condition(L0ActionWithoutConsensus, 0.8, 0.0, 0, 0, -0.5)
+  |> should.be_false()
+}
+
+// SC-SIL4-007: ShutdownWithoutCheckpoint fires when cascade_depth >= 10
+pub fn gr060_shutdown_no_checkpoint_fires_test() {
+  guard_rules.evaluate_condition(ShutdownWithoutCheckpoint, 0.8, 0.0, 10, 0, 0.0)
+  |> should.be_true()
+}
+
+pub fn gr060_shutdown_no_checkpoint_does_not_fire_below_10_test() {
+  guard_rules.evaluate_condition(ShutdownWithoutCheckpoint, 0.8, 0.0, 9, 0, 0.0)
+  |> should.be_false()
+}
+
+// SC-SIL4-010: BootWithoutDagValidation fires when failure_count >= 100
+pub fn gr061_boot_no_dag_fires_when_failure_count_100_test() {
+  guard_rules.evaluate_condition(BootWithoutDagValidation, 0.8, 0.0, 0, 100, 0.0)
+  |> should.be_true()
+}
+
+pub fn gr061_boot_no_dag_does_not_fire_below_100_test() {
+  guard_rules.evaluate_condition(BootWithoutDagValidation, 0.8, 0.0, 0, 99, 0.0)
+  |> should.be_false()
+}
+
+pub fn gr061_boot_no_dag_action_is_jidoka_halt_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-061" })
+  case rule {
+    Ok(r) ->
+      case r.action {
+        JidokaHalt(_) -> should.be_true(True)
+        _ -> should.be_true(False)
+      }
+    Error(_) -> should.be_true(False)
+  }
+}
+
+// SC-SIL4-011: QuorumLost fires when health < 0.4 AND failure_count >= 3
+pub fn gr062_quorum_lost_fires_test() {
+  guard_rules.evaluate_condition(QuorumLost, 0.3, 0.0, 0, 4, 0.0)
+  |> should.be_true()
+}
+
+pub fn gr062_quorum_lost_does_not_fire_when_health_ok_test() {
+  guard_rules.evaluate_condition(QuorumLost, 0.6, 0.0, 0, 4, 0.0)
+  |> should.be_false()
+}
+
+// SC-SIL4-015: PartitionDetected fires when lyapunov in (-50, -20]
+pub fn gr063_partition_detected_fires_test() {
+  guard_rules.evaluate_condition(PartitionDetected, 0.8, 0.0, 0, 0, -20.0)
+  |> should.be_true()
+}
+
+pub fn gr063_partition_detected_does_not_fire_for_normal_lyapunov_test() {
+  guard_rules.evaluate_condition(PartitionDetected, 0.8, 0.0, 0, 0, -0.5)
+  |> should.be_false()
+}
+
+pub fn gr063_split_brain_action_is_jidoka_halt_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-063" })
+  case rule {
+    Ok(r) ->
+      case r.action {
+        JidokaHalt(_) -> should.be_true(True)
+        _ -> should.be_true(False)
+      }
+    Error(_) -> should.be_true(False)
+  }
+}
+
+// SC-MUDA-001: CompileWarningsExist fires when failure_count > 0 AND entropy < 0.1
+pub fn gr064_compile_warnings_fires_test() {
+  guard_rules.evaluate_condition(CompileWarningsExist, 0.9, 0.05, 0, 2, 0.0)
+  |> should.be_true()
+}
+
+pub fn gr064_compile_warnings_does_not_fire_when_no_failures_test() {
+  guard_rules.evaluate_condition(CompileWarningsExist, 0.9, 0.05, 0, 0, 0.0)
+  |> should.be_false()
+}
+
+pub fn gr064_compile_warnings_action_is_log_warning_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-064" })
+  case rule {
+    Ok(r) ->
+      case r.action {
+        LogWarning(_) -> should.be_true(True)
+        _ -> should.be_true(False)
+      }
+    Error(_) -> should.be_true(False)
+  }
+}
+
+// SC-MUDA-F-003: LargeFileDetected fires when failure_count > 0 AND entropy in [0.1, 0.5)
+pub fn gr065_large_file_fires_test() {
+  guard_rules.evaluate_condition(LargeFileDetected, 0.9, 0.2, 0, 1, 0.0)
+  |> should.be_true()
+}
+
+pub fn gr065_large_file_does_not_fire_when_entropy_below_01_test() {
+  guard_rules.evaluate_condition(LargeFileDetected, 0.9, 0.05, 0, 1, 0.0)
+  |> should.be_false()
+}
+
+// SC-MUDA-F-005: InternalHttpDetected fires when failure_count > 0 AND entropy in [0.5, 1.0) AND cascade = 0
+pub fn gr066_internal_http_fires_test() {
+  guard_rules.evaluate_condition(InternalHttpDetected, 0.9, 0.6, 0, 1, 0.0)
+  |> should.be_true()
+}
+
+pub fn gr066_internal_http_does_not_fire_when_cascade_nonzero_test() {
+  guard_rules.evaluate_condition(InternalHttpDetected, 0.9, 0.6, 1, 1, 0.0)
+  |> should.be_false()
+}
+
+// SC-ZK-IMP-001: ZkRecallIgnored fires when lyapunov in (-10.0, -5.0)
+pub fn gr067_zk_recall_ignored_fires_test() {
+  guard_rules.evaluate_condition(ZkRecallIgnored, 0.9, 0.0, 0, 0, -7.0)
+  |> should.be_true()
+}
+
+pub fn gr067_zk_recall_ignored_does_not_fire_for_normal_lyapunov_test() {
+  guard_rules.evaluate_condition(ZkRecallIgnored, 0.9, 0.0, 0, 0, -0.5)
+  |> should.be_false()
+}
+
+// SC-ZK-IMP-002: ZkNoCitation fires when lyapunov in (-5.0, -3.0)
+pub fn gr068_zk_no_citation_fires_test() {
+  guard_rules.evaluate_condition(ZkNoCitation, 0.9, 0.0, 0, 0, -4.0)
+  |> should.be_true()
+}
+
+pub fn gr068_zk_no_citation_does_not_fire_outside_range_test() {
+  guard_rules.evaluate_condition(ZkNoCitation, 0.9, 0.0, 0, 0, -7.0)
+  |> should.be_false()
+}
+
+// SC-ZETTEL-001: SessionNoHolonProduced fires when lyapunov in (-3.0, -2.0)
+pub fn gr069_session_no_holon_fires_test() {
+  guard_rules.evaluate_condition(SessionNoHolonProduced, 0.9, 0.0, 0, 0, -2.5)
+  |> should.be_true()
+}
+
+pub fn gr069_session_no_holon_does_not_fire_outside_range_test() {
+  guard_rules.evaluate_condition(SessionNoHolonProduced, 0.9, 0.0, 0, 0, -4.0)
+  |> should.be_false()
+}
+
+// SC-ZK-CLAUDE-001: TaskWithoutZkSearch fires when lyapunov in (-2.0, -1.0)
+pub fn gr070_task_without_zk_search_fires_test() {
+  guard_rules.evaluate_condition(TaskWithoutZkSearch, 0.9, 0.0, 0, 0, -1.5)
+  |> should.be_true()
+}
+
+pub fn gr070_task_without_zk_search_does_not_fire_outside_range_test() {
+  guard_rules.evaluate_condition(TaskWithoutZkSearch, 0.9, 0.0, 0, 0, -2.5)
+  |> should.be_false()
+}
+
+pub fn gr070_task_without_zk_search_action_is_log_warning_test() {
+  let rule =
+    guard_rules.all_rules()
+    |> list.find(fn(r: GuardRule) { r.id == "GR-070" })
+  case rule {
+    Ok(r) ->
+      case r.action {
+        LogWarning(_) -> should.be_true(True)
+        _ -> should.be_true(False)
+      }
+    Error(_) -> should.be_true(False)
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -432,7 +792,7 @@ pub fn any_of_with_empty_list_is_false_test() {
 pub fn evaluate_all_returns_thirty_evaluations_test() {
   let evals =
     guard_rules.evaluate_all(0.8, 0.5, 0, 0, 0.0)
-  list.length(evals) |> should.equal(50)
+  list.length(evals) |> should.equal(85)
 }
 
 pub fn evaluate_all_sorted_by_salience_descending_test() {
@@ -496,10 +856,11 @@ pub fn highest_priority_action_returns_jidoka_halt_on_cascade_test() {
 }
 
 pub fn highest_priority_action_emergency_mode_on_low_health_test() {
-  // health=0.2, no cascade, no layer-specific failure
-  let evals = guard_rules.evaluate_all(0.2, 0.5, 0, 2, 0.0)
+  // health=0.2, no cascade, no layer-specific failure, failure_count=0 (no compile errors)
+  // GR-051 BuildFailed (salience 100) must NOT fire (failure_count=0)
+  // GR-002 EmergencyMode (salience 95) fires — health < 0.3
+  let evals = guard_rules.evaluate_all(0.2, 0.5, 0, 0, 0.0)
   let action = guard_rules.highest_priority_action(evals)
-  // GR-002 EmergencyMode (salience 95) should fire — health < 0.3
   action |> should.equal(SetCockpitMode("emergency"))
 }
 
