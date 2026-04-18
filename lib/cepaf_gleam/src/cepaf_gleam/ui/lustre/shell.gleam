@@ -1648,6 +1648,322 @@ pub fn cockpit_mode_switch() -> Element(msg) {
 }
 
 // ---------------------------------------------------------------------------
+// CA9: ZK Search Bar (SC-ZK-CLAUDE-001, Knowledge + Smriti pages)
+// GET /api/v1/knowledge/search?q=<query> — delegates to knowledge_search NIF.
+// Full-width teal-accented form, 44px min touch target.
+// STAMP: SC-ZK-CLAUDE-001, SC-GLM-UI-001
+// ---------------------------------------------------------------------------
+
+/// ZK search bar — GET form POSTing to /api/v1/knowledge/search (SC-ZK-CLAUDE-001).
+/// Renders a styled search input for querying Zettelkasten holons.
+/// STAMP: SC-ZK-CLAUDE-001, SC-GLM-UI-001
+pub fn zk_search_bar() -> Element(msg) {
+  element.element(
+    "form",
+    [
+      attribute.attribute("method", "GET"),
+      attribute.attribute("action", "/api/v1/knowledge/search"),
+      attribute.attribute(
+        "style",
+        "display:flex;gap:.5rem;padding:.75rem 1rem;background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.25);border-radius:8px;",
+      ),
+    ],
+    [
+      element.element(
+        "input",
+        [
+          attribute.attribute("type", "text"),
+          attribute.attribute("name", "q"),
+          attribute.attribute("placeholder", "Search Zettelkasten holons..."),
+          attribute.attribute(
+            "style",
+            "flex:1;padding:8px 12px;background:#141922;border:1px solid #1e2a3a;border-radius:6px;color:#e0e6ed;",
+          ),
+        ],
+        [],
+      ),
+      html.button(
+        [
+          attribute.attribute("type", "submit"),
+          attribute.attribute(
+            "style",
+            "background:#00d4aa;color:#0a0e17;padding:8px 16px;border:none;border-radius:6px;font-weight:600;cursor:pointer;min-height:44px;",
+          ),
+        ],
+        [element.text("Search")],
+      ),
+    ],
+  )
+}
+
+// ---------------------------------------------------------------------------
+// CA10: Alarm Acknowledge Button (SC-HMI-010, Cockpit page)
+// POST /api/v1/cockpit/alarm/acknowledge — acknowledges all active alarms.
+// Confirm dialog required for HITL safety.
+// STAMP: SC-HMI-010, SC-GLM-UI-001
+// ---------------------------------------------------------------------------
+
+/// Alarm acknowledge button — POST to /api/v1/cockpit/alarm/acknowledge (SC-HMI-010).
+/// Clears all active alarms from the cockpit alarm panel after operator confirmation.
+/// STAMP: SC-HMI-010, SC-GLM-UI-001
+pub fn alarm_acknowledge_button() -> Element(msg) {
+  element.element(
+    "form",
+    [
+      attribute.attribute("method", "POST"),
+      attribute.attribute("action", "/api/v1/cockpit/alarm/acknowledge"),
+      attribute.attribute(
+        "onsubmit",
+        "return confirm('Acknowledge all active alarms?')",
+      ),
+      attribute.attribute("style", "margin:0;display:inline-block;"),
+    ],
+    [
+      html.button(
+        [
+          attribute.attribute("type", "submit"),
+          attribute.attribute(
+            "style",
+            "background:#3dd68c;color:#0a0e17;padding:8px 16px;border:none;border-radius:6px;font-weight:600;cursor:pointer;min-height:44px;",
+          ),
+        ],
+        [element.text("Acknowledge Alarms")],
+      ),
+    ],
+  )
+}
+
+// ---------------------------------------------------------------------------
+// DB1-DB5, MO2, MO3 — Stub data visualization panels (SC-GLM-ZEN-001)
+// Real data arrives via WebSocket push on /ws/{page}. Each panel is a
+// placeholder that is populated client-side once the WS delivers live state.
+// ---------------------------------------------------------------------------
+
+/// DB1: BEAM scheduler metrics panel (telemetry_view, metabolic_view)
+pub fn beam_scheduler_panel() -> Element(msg) {
+  html.div(
+    [
+      attribute.class("dashboard-panel"),
+      attribute.attribute(
+        "style",
+        "padding:1rem;background:#141922;border:1px solid #1e2a3a;border-radius:8px;",
+      ),
+    ],
+    [
+      html.h4(
+        [
+          attribute.attribute(
+            "style",
+            "margin:0 0 .5rem;color:#00d4aa;font-size:.85rem;",
+          ),
+        ],
+        [element.text("BEAM Scheduler Metrics")],
+      ),
+      html.p(
+        [attribute.attribute("style", "color:#7a8fa6;font-size:.8rem;")],
+        [
+          element.text(
+            "Schedulers: 16 | Dirty IO: 16 | Reduction count: live via /ws/telemetry",
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
+/// DB2: Guard grid 24-cell drill-down (health_grid_view, verification_view)
+pub fn guard_grid_drilldown() -> Element(msg) {
+  html.div(
+    [
+      attribute.class("dashboard-panel"),
+      attribute.attribute(
+        "style",
+        "padding:1rem;background:#141922;border:1px solid #1e2a3a;border-radius:8px;",
+      ),
+    ],
+    [
+      html.h4(
+        [
+          attribute.attribute(
+            "style",
+            "margin:0 0 .5rem;color:#f5a623;font-size:.85rem;",
+          ),
+        ],
+        [element.text("Guard Grid \u{2014} 24 Cells \u{d7} 85 Rules")],
+      ),
+      html.p(
+        [attribute.attribute("style", "color:#7a8fa6;font-size:.8rem;")],
+        [
+          element.text(
+            "Cell verdicts, Wolfram CA state, Shannon entropy, Lyapunov exponent \u{2014} live via /ws/health-grid",
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
+/// DB3: OODA cycle trace viewer (agents_view, prajna_view)
+pub fn ooda_trace_viewer() -> Element(msg) {
+  html.div(
+    [
+      attribute.class("dashboard-panel"),
+      attribute.attribute(
+        "style",
+        "padding:1rem;background:#141922;border:1px solid #1e2a3a;border-radius:8px;",
+      ),
+    ],
+    [
+      html.h4(
+        [
+          attribute.attribute(
+            "style",
+            "margin:0 0 .5rem;color:#9b59b6;font-size:.85rem;",
+          ),
+        ],
+        [element.text("OODA Cycle Trace")],
+      ),
+      html.p(
+        [attribute.attribute("style", "color:#7a8fa6;font-size:.8rem;")],
+        [
+          element.text(
+            "Observe \u{2192} Orient \u{2192} Decide \u{2192} Act timing per cycle \u{2014} live via /ws/agents",
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
+/// DB4: NIF call latency display (telemetry_view, substrate_view)
+pub fn nif_latency_panel() -> Element(msg) {
+  html.div(
+    [
+      attribute.class("dashboard-panel"),
+      attribute.attribute(
+        "style",
+        "padding:1rem;background:#141922;border:1px solid #1e2a3a;border-radius:8px;",
+      ),
+    ],
+    [
+      html.h4(
+        [
+          attribute.attribute(
+            "style",
+            "margin:0 0 .5rem;color:#4d96ff;font-size:.85rem;",
+          ),
+        ],
+        [element.text("NIF Call Latency")],
+      ),
+      html.p(
+        [attribute.attribute("style", "color:#7a8fa6;font-size:.8rem;")],
+        [
+          element.text(
+            "plan_status, system_health, system_dashboard \u{2014} latency per call (ms)",
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
+/// DB5: Zenoh message inspector (zenoh_view)
+pub fn zenoh_inspector_panel() -> Element(msg) {
+  html.div(
+    [
+      attribute.class("dashboard-panel"),
+      attribute.attribute(
+        "style",
+        "padding:1rem;background:#141922;border:1px solid #1e2a3a;border-radius:8px;",
+      ),
+    ],
+    [
+      html.h4(
+        [
+          attribute.attribute(
+            "style",
+            "margin:0 0 .5rem;color:#00d4aa;font-size:.85rem;",
+          ),
+        ],
+        [element.text("Zenoh Message Inspector")],
+      ),
+      html.p(
+        [attribute.attribute("style", "color:#7a8fa6;font-size:.8rem;")],
+        [
+          element.text(
+            "Live message feed from indrajaal/** topics \u{2014} via /ws/zenoh",
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
+/// MO2: OTel span viewer (telemetry_view)
+pub fn otel_span_viewer() -> Element(msg) {
+  html.div(
+    [
+      attribute.class("dashboard-panel"),
+      attribute.attribute(
+        "style",
+        "padding:1rem;background:#141922;border:1px solid #1e2a3a;border-radius:8px;",
+      ),
+    ],
+    [
+      html.h4(
+        [
+          attribute.attribute(
+            "style",
+            "margin:0 0 .5rem;color:#e74c3c;font-size:.85rem;",
+          ),
+        ],
+        [element.text("OTel Span Viewer")],
+      ),
+      html.p(
+        [attribute.attribute("style", "color:#7a8fa6;font-size:.8rem;")],
+        [
+          element.text(
+            "OpenTelemetry spans from indrajaal/otel/spans/** \u{2014} distributed tracing",
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
+/// MO3: Health cascade tree (health_grid_view)
+pub fn health_cascade_tree() -> Element(msg) {
+  html.div(
+    [
+      attribute.class("dashboard-panel"),
+      attribute.attribute(
+        "style",
+        "padding:1rem;background:#141922;border:1px solid #1e2a3a;border-radius:8px;",
+      ),
+    ],
+    [
+      html.h4(
+        [
+          attribute.attribute(
+            "style",
+            "margin:0 0 .5rem;color:#3dd68c;font-size:.85rem;",
+          ),
+        ],
+        [element.text("Health Cascade Tree")],
+      ),
+      html.p(
+        [attribute.attribute("style", "color:#7a8fa6;font-size:.8rem;")],
+        [
+          element.text(
+            "Hierarchical health rollup: container \u{2192} service \u{2192} layer \u{2192} system",
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Emergency Stop Button (SC-SAFETY-022, L0 Constitutional)
 // HITL confirmation dialog mandatory (SC-AGUI-004).
 // POST /api/v1/emergency/trigger requires Guardian 2oo3 consensus.

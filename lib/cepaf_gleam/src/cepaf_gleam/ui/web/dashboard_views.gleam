@@ -1768,6 +1768,8 @@ pub fn cockpit_view(state: SharedMeshState) -> Element(msg) {
       shell.section("OODA Controls", [shell.ooda_trigger_button()]),
       // ── CA8: Cockpit Mode Override (SC-HMI-010) ─────────────────────────
       shell.section("Cockpit Mode Override", [shell.cockpit_mode_switch()]),
+      // ── CA10: Alarm Acknowledge (SC-HMI-010) ────────────────────────────
+      shell.section("Alarm Acknowledge", [shell.alarm_acknowledge_button()]),
       // ── System Controls — Hot Reload (SC-HA-RELOAD-001) ────────────────
       shell.section("System Controls", [shell.hot_reload_button()]),
       // ── L0 Emergency Stop (SC-SAFETY-022) ──────────────────────────────

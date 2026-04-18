@@ -812,6 +812,8 @@ pub fn knowledge_view(_state: SharedMeshState) -> Element(msg) {
         ["agent:", "https://indrajaal.dev/ontology/agent#"],
       ]),
     ]),
+    // ── CA9: ZK Search Bar (SC-ZK-CLAUDE-001) ────────────────────────────
+    shell.section("Search Zettelkasten", [shell.zk_search_bar()]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/knowledge-grid.js?v=22.10.0")],
@@ -864,6 +866,7 @@ pub fn prajna_view(state: SharedMeshState) -> Element(msg) {
         ["Emergency", "Critical", "Full illumination", "Red dominant"],
       ]),
     ]),
+    shell.section("DB3 — OODA Cycle Trace", [shell.ooda_trace_viewer()]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/prajna-grid.js?v=22.10.1")],
@@ -1006,6 +1009,7 @@ pub fn agents_view(_state: SharedMeshState) -> Element(msg) {
         ),
       ]),
     ]),
+    shell.section("DB3 — OODA Cycle Trace", [shell.ooda_trace_viewer()]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/agents-grid.js?v=22.10.0")],
@@ -1368,6 +1372,8 @@ pub fn smriti_view(_state: SharedMeshState) -> Element(msg) {
         ["normalize/1", "Vector → Vector", "active"],
       ]),
     ]),
+    // ── CA9: ZK Search Bar (SC-ZK-CLAUDE-001) ────────────────────────────
+    shell.section("Search Zettelkasten", [shell.zk_search_bar()]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/smriti-grid.js?v=22.10.1")],
