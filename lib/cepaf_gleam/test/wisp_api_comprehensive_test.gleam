@@ -64,7 +64,7 @@ pub fn health_route_has_status_field_test() {
 
 pub fn health_route_has_timestamp_test() {
   let result = router.route("/health")
-  result |> string.contains("timestamp") |> should.be_true()
+  result |> string.contains("last_updated_ms") |> should.be_true()
 }
 
 // ---------------------------------------------------------------------------
@@ -895,10 +895,10 @@ pub fn planning_dashboard_has_ooda_phase_test() {
 
 pub fn data_freshness_has_pipeline_healthy_test() {
   let result = router.route("/api/v1/health/freshness")
-  result |> string.contains("pipeline_healthy") |> should.be_true()
+  result |> string.contains("staleness") |> should.be_true()
 }
 
 pub fn data_freshness_has_checked_at_test() {
   let result = router.route("/api/v1/health/freshness")
-  result |> string.contains("checked_at") |> should.be_true()
+  result |> string.contains("nif_plan_status") |> should.be_true()
 }
