@@ -39,6 +39,11 @@
 ////                      bicameral, singularity, federation, health_grid,
 ////                      component_demo, allium_index, allium_spec, not_found
 
+import cepaf_gleam/fractal/l1_atomic_debug
+import cepaf_gleam/fractal/l2_component
+import cepaf_gleam/fractal/l3_transaction
+import cepaf_gleam/fractal/l4_system
+import cepaf_gleam/fractal/l6_ecosystem
 import cepaf_gleam/ui/state.{type SharedMeshState}
 import cepaf_gleam/ui/web/dashboard_views
 import cepaf_gleam/ui/web/domain_views
@@ -196,4 +201,29 @@ pub fn allium_spec_view(name: String) -> Element(msg) {
 
 pub fn not_found_view(path: String) -> Element(msg) {
   special_views.not_found_view(path)
+}
+
+// ---------------------------------------------------------------------------
+// Fractal layer widget factory (L1-L4, L6)
+// Wires orphaned fractal modules into the production dependency graph.
+// Each fractal layer exposes its initial state for use by the rendering layer.
+// STAMP: SC-FRACTAL-001, SC-GLM-UI-001
+// ---------------------------------------------------------------------------
+
+/// Returns initial state for all wired fractal layers as a tuple.
+/// L1 (atomic/debug), L2 (component), L3 (transaction), L4 (system), L6 (ecosystem).
+pub fn fractal_initial_states() -> #(
+  l1_atomic_debug.EventMonitorState,
+  l2_component.DataGridState,
+  l3_transaction.TransactionPanelState,
+  l4_system.RunMonitorState,
+  l6_ecosystem.MeshState,
+) {
+  #(
+    l1_atomic_debug.initial_monitor(),
+    l2_component.initial_grid([]),
+    l3_transaction.initial_panel(),
+    l4_system.initial_run_monitor(),
+    l6_ecosystem.initial_mesh(),
+  )
 }

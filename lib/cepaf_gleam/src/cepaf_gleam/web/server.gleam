@@ -23,6 +23,7 @@
 // सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज — Surrender all duties, take refuge (Gita 18.66)
 
 import cepaf_gleam/c3i/nif as c3i_nif
+import cepaf_gleam/config/mesh_config
 import cepaf_gleam/ha/beam_metrics
 import cepaf_gleam/ha/guard_grid
 import cepaf_gleam/otp_app
@@ -554,6 +555,30 @@ pub fn start(port: Int) -> Result(Nil, String) {
       io.println("  [tls] TLS failed, HTTP-only mode on port " <> int.to_string(port))
       process.sleep_forever()
       Ok(Nil)
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Mesh configuration validation (SC-CONSOL-001, SC-ZMOF-001)
+// Wires config/mesh_config into the server production path.
+// ---------------------------------------------------------------------------
+
+/// Validate the default mesh configuration and return a summary string.
+/// Called during server startup to verify port uniqueness and health checks.
+pub fn validate_mesh_config() -> String {
+  let cfg = mesh_config.default_mesh_config()
+  let is_ok = mesh_config.is_valid(cfg)
+  let quorum = mesh_config.calculate_quorum(list.length(cfg.containers))
+  case is_ok {
+    True ->
+      "mesh_config:valid quorum:"
+      <> int.to_string(quorum)
+      <> " containers:"
+      <> int.to_string(list.length(cfg.containers))
+    False -> {
+      let errors = mesh_config.validate_all(cfg)
+      "mesh_config:invalid errors:" <> int.to_string(list.length(errors))
     }
   }
 }

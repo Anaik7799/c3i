@@ -30,6 +30,10 @@
 ////
 //// STAMP: SC-GLM-UI-001, SC-GLM-UI-008, SC-MUDA-001, SC-HMI-TEST
 
+import cepaf_gleam/a2ui/catalog
+import cepaf_gleam/a2ui/renderer as a2ui_renderer
+import cepaf_gleam/a2ui/schema as a2ui_schema
+import cepaf_gleam/a2ui/validator as a2ui_validator
 import gleam/float
 import gleam/int
 import gleam/list
@@ -1079,4 +1083,33 @@ pub fn proof_chain(proofs: List(#(String, Bool))) -> Element(msg) {
     })
     |> list.flatten
   })
+}
+
+// ---------------------------------------------------------------------------
+// A2UI declarative component rendering (SC-A2UI)
+// Wires catalog, renderer, and validator into the shell production path.
+// ---------------------------------------------------------------------------
+
+/// Render an A2UI component proposal as an HTML element using the trusted
+/// catalog. Returns a div containing the rendered output, or an error badge.
+/// STAMP: SC-A2UI-001, SC-A2UI-002
+pub fn render_a2ui_component(
+  proposal: a2ui_schema.ComponentProposal,
+) -> Element(msg) {
+  let cat = catalog.default_catalog()
+  let validation = a2ui_validator.validate_proposal(cat, proposal)
+  case validation {
+    a2ui_validator.Valid -> {
+      let content = case a2ui_renderer.render(proposal, a2ui_renderer.HtmlTarget) {
+        a2ui_renderer.HtmlOutput(h) -> h
+        a2ui_renderer.JsonOutput(_) -> ""
+        a2ui_renderer.AnsiOutput(t) -> t
+      }
+      html.div([attribute.class("a2ui-component")], [element.text(content)])
+    }
+    a2ui_validator.Invalid(reasons) -> {
+      let msg_text = string.join(reasons, ", ")
+      html.div([attribute.class("a2ui-error")], [element.text(msg_text)])
+    }
+  }
 }

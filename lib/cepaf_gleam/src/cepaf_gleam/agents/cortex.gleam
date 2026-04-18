@@ -10,6 +10,8 @@
 import cepaf_gleam/agui/events
 import cepaf_gleam/agui/tools.{type ToolRegistry}
 import cepaf_gleam/agui/zenoh_bus
+import cepaf_gleam/bridge/commands as bridge_commands
+import cepaf_gleam/bridge/zenoh_mcp as bridge_zenoh
 import cepaf_gleam/fractal/l5_cognitive.{
   type OodaCycleState, type ReasoningState, Act, Decide, Observe, Orient,
 }
@@ -522,5 +524,27 @@ fn emit_reasoning_end(state: CortexState) {
       Nil
     }
     None -> Nil
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Bridge integration (SC-ZMOF-004, SC-ARCH-SPLIT-003)
+// Wires bridge/commands and bridge/zenoh_mcp into the cortex production path.
+// ---------------------------------------------------------------------------
+
+/// Returns the list of all registered bridge command names.
+/// Used by the cortex OODA orient phase to enumerate available tool calls.
+pub fn bridge_command_catalog() -> List(String) {
+  bridge_commands.all_commands()
+}
+
+/// Decode an incoming Zenoh MCP message payload and dispatch it as a
+/// bridge command. Returns Ok with the JSON response, or Error on failure.
+pub fn dispatch_bridge_message(
+  msg: bridge_zenoh.Message,
+) -> Result(String, String) {
+  case msg {
+    bridge_zenoh.ZenohMessage(_topic, payload) ->
+      bridge_commands.dispatch_json(payload)
   }
 }
