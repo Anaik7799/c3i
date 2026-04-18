@@ -57,7 +57,14 @@
 import cepaf_gleam/actors/freshness_actor
 import cepaf_gleam/actors/guard_grid_actor
 import cepaf_gleam/actors/observer_actor
+import cepaf_gleam/ha/crdt
+import cepaf_gleam/ha/failure_classifier
+import cepaf_gleam/ha/health_derivative
+import cepaf_gleam/ha/iec61508
+import cepaf_gleam/ha/request_guard
+import cepaf_gleam/ha/zenoh_federation
 import cepaf_gleam/substrate/beam_cache
+import gleam/float
 import gleam/int
 import gleam/io
 
@@ -125,6 +132,43 @@ pub fn start() -> AppState {
   // 4. Guard-grid OODA actor — first OODA tick runs inside init/0.
   let grid = guard_grid_actor.init()
   io.println("[C3I] Guard grid OODA actor initialised (10 s cycle)")
+
+  // 5. Wire HA subsystems — publish initial state to ETS for API access
+  let health_d = health_derivative.init(1.0)
+  let _ = beam_cache.set_config("ha:health_velocity", "0.0")
+  let _ = beam_cache.set_config("ha:health_acceleration", "0.0")
+  let _ = beam_cache.set_config("ha:health_alert", health_derivative.alert_to_string(health_d.alert))
+  io.println("[C3I] Health derivative tracker initialised (d(H)/dt)")
+
+  // 6. Request guard — verify system healthy enough to serve requests
+  let guard_result = request_guard.check()
+  let _ = case guard_result {
+    request_guard.Proceed -> beam_cache.set_config("ha:request_guard", "proceed")
+    request_guard.Block(reason) -> beam_cache.set_config("ha:request_guard", reason)
+  }
+  io.println("[C3I] Request guard initialised (threshold: " <> "0.3)")
+
+  // 7. Failure classifier — ready for event stream classification
+  let _ = beam_cache.set_config("ha:failure_pattern", "unknown")
+  io.println("[C3I] Failure classifier ready (Poisson/Bursty/Periodic)")
+
+  // 8. Federation — initialise local node
+  let _fed = zenoh_federation.node_init("c3i-primary", "europe-north1")
+  io.println("[C3I] Zenoh federation initialised (europe-north1)")
+
+  // 9. CRDT — initialise version vector for this node
+  let _vv = crdt.vv_increment(crdt.vv_new(), "c3i-primary")
+  io.println("[C3I] CRDT version vector initialised (c3i-primary)")
+
+  // 10. IEC 61508 — load safety case and cache coverage
+  let safety_case = iec61508.c3i_evidence_package()
+  let coverage = iec61508.coverage_percent(safety_case)
+  let _ = beam_cache.set_config("ha:iec61508_coverage", int.to_string(float.truncate(coverage)))
+  let _ = beam_cache.set_config("ha:iec61508_certifiable", case iec61508.is_certifiable(safety_case) {
+    True -> "true"
+    False -> "false"
+  })
+  io.println("[C3I] IEC 61508 evidence loaded (coverage: " <> int.to_string(float.truncate(coverage)) <> "%)")
 
   io.println("[C3I] All subsystems started. System is ALIVE.")
 

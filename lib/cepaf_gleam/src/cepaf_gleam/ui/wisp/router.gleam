@@ -21,8 +21,11 @@ import cepaf_gleam/agui/state as agui_state
 import cepaf_gleam/agui/tools as agui_tools
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/beam_metrics
+import cepaf_gleam/ha/failure_classifier
 import cepaf_gleam/ha/fitness_gate
 import cepaf_gleam/ha/guard_grid
+import cepaf_gleam/ha/health_derivative
+import cepaf_gleam/ha/request_guard
 import cepaf_gleam/substrate/beam_cache
 import cepaf_gleam/ha/health_cascade
 import cepaf_gleam/ha/hot_reload
@@ -73,6 +76,15 @@ pub const default_port = 4100
 pub fn route(path: String) -> String {
   // Record availability SLO event for every request (persistent_term — always available)
   let _ = beam_cache.set_config("slo:last_request", "1")
+  // Request guard gate — reject if system health critical (SC-SIL4-001)
+  case request_guard.check() {
+    request_guard.Block(reason) -> "{\"error\":\"service_unavailable\",\"reason\":\"" <> reason <> "\"}"
+    request_guard.Proceed -> route_internal(path)
+  }
+}
+
+/// Internal router — only reached if request_guard passes.
+fn route_internal(path: String) -> String {
   case path {
     // Primary API routes — Sprint 6: guarded via module_guard (SC-SATYA-001)
     "/health" | "/api/health" ->

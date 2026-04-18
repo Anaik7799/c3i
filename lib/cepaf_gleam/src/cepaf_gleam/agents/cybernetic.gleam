@@ -5,6 +5,8 @@
 import cepaf_gleam/agents/briefing
 import cepaf_gleam/agents/cortex
 import cepaf_gleam/agents/leadership
+import cepaf_gleam/agents/ooda_fsm
+import cepaf_gleam/agents/shell_runner
 import cepaf_gleam/agents/skill_loader
 import cepaf_gleam/agents/workspace
 import gleam/dict.{type Dict}

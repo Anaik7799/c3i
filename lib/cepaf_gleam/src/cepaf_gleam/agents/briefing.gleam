@@ -8,7 +8,9 @@
 
 import cepaf_gleam/agui/events
 import cepaf_gleam/agui/zenoh_bus
+import cepaf_gleam/gateway/gchat
 import cepaf_gleam/gateway/telegram
+import cepaf_gleam/gateway/whatsapp
 import cepaf_gleam/moz/client as moz
 import cepaf_gleam/zenoh/client as zenoh
 import gleam/erlang/process.{type Subject}
