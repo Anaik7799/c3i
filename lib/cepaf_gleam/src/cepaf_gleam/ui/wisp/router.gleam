@@ -416,20 +416,9 @@ fn zenoh_json() -> String {
   c3i_nif.system_zenoh()
 }
 
-/// Verification status endpoint
+/// Verification status endpoint — NIF-backed live data (SC-GLM-UI-003)
 fn verification_json() -> String {
-  json.object([
-    #("page", json.string("Verification")),
-    #("status", json.string("active")),
-    #("sil_level", json.string("SIL-6")),
-    #("tests_total", json.int(266)),
-    #("tests_passed", json.int(266)),
-    #("tests_failed", json.int(0)),
-    #("compliance_percent", json.float(100.0)),
-    #("msts_directives", json.int(900)),
-    #("fractal_layers_verified", json.int(8)),
-  ])
-  |> json.to_string()
+  c3i_nif.system_verification()
 }
 
 /// Cockpit nodes endpoint

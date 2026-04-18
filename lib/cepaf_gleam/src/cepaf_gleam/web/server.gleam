@@ -16,8 +16,11 @@
 // from the /health endpoint or a monitoring loop to surface live metrics.
 //
 // WebSocket Endpoints:
-//   /ws/planning  — Planning data push (task status, search)
-//   /ws/dashboard — Comprehensive system monitoring (L0-L7, supervisors, threads)
+//   /ws/planning     — Planning data push (task status, search)
+//   /ws/dashboard    — Comprehensive system monitoring (L0-L7, supervisors, threads)
+//   /ws/immune       — Immune system / threat data push (system_immune NIF)
+//   /ws/zenoh        — Live Zenoh mesh topology (system_zenoh NIF)
+//   /ws/verification — Live PROMETHEUS / SIL-6 compliance data (system_verification NIF)
 //
 // धर्मक्षेत्रे कुरुक्षेत्रे — The field of dharma, the field of action (Gita 1.1)
 // सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज — Surrender all duties, take refuge (Gita 18.66)
@@ -408,7 +411,289 @@ fn get_thread_data() -> String {
 }
 
 // ---------------------------------------------------------------------------
-// Entry point — HTTP + dual WebSocket (planning + dashboard)
+// Immune WebSocket — live immune system / threat data (SC-AGUI-UI-006)
+// प्रतिरक्षा तन्त्र — immune system real-time monitoring (Gita 2.14)
+// ---------------------------------------------------------------------------
+
+/// Immune WS state — tracks immune snapshot for diff detection
+pub type ImmuneWsState {
+  ImmuneWsState(push_count: Int, last_snapshot: String)
+}
+
+/// Immune WS init — send initial immune system snapshot
+fn immune_ws_on_init(
+  conn: mist.WebsocketConnection,
+) -> #(ImmuneWsState, option.Option(process.Selector(WsMsg))) {
+  let snapshot = c3i_nif.system_immune()
+  let welcome =
+    json.object([
+      #("type", json.string("connected")),
+      #("page", json.string("immune")),
+      #("snapshot", json.string(snapshot)),
+      #("interval_ms", json.int(1000)),
+    ])
+    |> json.to_string()
+  let _ = mist.send_text_frame(conn, welcome)
+  #(ImmuneWsState(push_count: 0, last_snapshot: snapshot), None)
+}
+
+/// Immune WS handler — on "ping" calls system_immune(), diff-detects, sends update or heartbeat
+fn immune_ws_handler(
+  state: ImmuneWsState,
+  msg: mist.WebsocketMessage(WsMsg),
+  conn: mist.WebsocketConnection,
+) -> mist.Next(ImmuneWsState, WsMsg) {
+  case msg {
+    mist.Text(text) -> {
+      case text {
+        "ping" -> {
+          let snapshot = c3i_nif.system_immune()
+          let changed = snapshot != state.last_snapshot
+          case changed {
+            True -> {
+              let payload =
+                json.object([
+                  #("type", json.string("update")),
+                  #("snapshot", json.string(snapshot)),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, payload)
+              mist.continue(ImmuneWsState(
+                push_count: state.push_count + 1,
+                last_snapshot: snapshot,
+              ))
+            }
+            False -> {
+              let hb =
+                json.object([
+                  #("type", json.string("heartbeat")),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, hb)
+              mist.continue(ImmuneWsState(
+                ..state,
+                push_count: state.push_count + 1,
+              ))
+            }
+          }
+        }
+        _ -> {
+          let search_result = c3i_nif.plan_search(text)
+          let resp =
+            json.object([
+              #("type", json.string("search")),
+              #("query", json.string(text)),
+              #("results", json.string(search_result)),
+            ])
+            |> json.to_string()
+          let _ = mist.send_text_frame(conn, resp)
+          mist.continue(state)
+        }
+      }
+    }
+    mist.Closed | mist.Shutdown -> mist.stop()
+    mist.Binary(_) -> mist.continue(state)
+    mist.Custom(_) -> mist.continue(state)
+  }
+}
+
+/// Called when immune WebSocket closes
+fn immune_ws_on_close(_state: ImmuneWsState) -> Nil {
+  Nil
+}
+
+// ---------------------------------------------------------------------------
+// Zenoh WebSocket — live mesh topology monitoring (SC-ZMOF-001)
+// जालव्यूह — The net of Indra: every node reflects every other (Atharva Veda)
+// ---------------------------------------------------------------------------
+
+/// Zenoh WS state — tracks mesh snapshot for diff detection
+pub type ZenohWsState {
+  ZenohWsState(push_count: Int, last_snapshot: String)
+}
+
+/// Zenoh WS init — send initial mesh topology snapshot
+fn zenoh_ws_on_init(
+  conn: mist.WebsocketConnection,
+) -> #(ZenohWsState, option.Option(process.Selector(WsMsg))) {
+  let snapshot = c3i_nif.system_zenoh()
+  let welcome =
+    json.object([
+      #("type", json.string("connected")),
+      #("page", json.string("zenoh")),
+      #("snapshot", json.string(snapshot)),
+      #("interval_ms", json.int(1000)),
+    ])
+    |> json.to_string()
+  let _ = mist.send_text_frame(conn, welcome)
+  #(ZenohWsState(push_count: 0, last_snapshot: snapshot), None)
+}
+
+/// Zenoh WS handler — on "ping" calls system_zenoh(), diff-detects, sends update or heartbeat
+fn zenoh_ws_handler(
+  state: ZenohWsState,
+  msg: mist.WebsocketMessage(WsMsg),
+  conn: mist.WebsocketConnection,
+) -> mist.Next(ZenohWsState, WsMsg) {
+  case msg {
+    mist.Text(text) -> {
+      case text {
+        "ping" -> {
+          let snapshot = c3i_nif.system_zenoh()
+          let changed = snapshot != state.last_snapshot
+          case changed {
+            True -> {
+              let payload =
+                json.object([
+                  #("type", json.string("update")),
+                  #("snapshot", json.string(snapshot)),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, payload)
+              mist.continue(ZenohWsState(
+                push_count: state.push_count + 1,
+                last_snapshot: snapshot,
+              ))
+            }
+            False -> {
+              let hb =
+                json.object([
+                  #("type", json.string("heartbeat")),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, hb)
+              mist.continue(ZenohWsState(
+                ..state,
+                push_count: state.push_count + 1,
+              ))
+            }
+          }
+        }
+        _ -> {
+          let search_result = c3i_nif.plan_search(text)
+          let resp =
+            json.object([
+              #("type", json.string("search")),
+              #("query", json.string(text)),
+              #("results", json.string(search_result)),
+            ])
+            |> json.to_string()
+          let _ = mist.send_text_frame(conn, resp)
+          mist.continue(state)
+        }
+      }
+    }
+    mist.Closed | mist.Shutdown -> mist.stop()
+    mist.Binary(_) -> mist.continue(state)
+    mist.Custom(_) -> mist.continue(state)
+  }
+}
+
+/// Called when Zenoh WebSocket closes
+fn zenoh_ws_on_close(_state: ZenohWsState) -> Nil {
+  Nil
+}
+
+// ---------------------------------------------------------------------------
+// Verification WebSocket — live PROMETHEUS / SIL-6 compliance data (SC-VER-001)
+// प्रमाणीकरण WebSocket — जीवित PROMETHEUS डेटा (Gita 2.20)
+// ---------------------------------------------------------------------------
+
+/// Verification WS state — tracks verification snapshot for diff detection
+pub type VerificationWsState {
+  VerificationWsState(push_count: Int, last_snapshot: String)
+}
+
+/// Verification WS init — send current verification snapshot
+fn verification_ws_on_init(
+  conn: mist.WebsocketConnection,
+) -> #(VerificationWsState, option.Option(process.Selector(WsMsg))) {
+  let snapshot = c3i_nif.system_verification()
+  let welcome =
+    json.object([
+      #("type", json.string("connected")),
+      #("page", json.string("verification")),
+      #("snapshot", json.string(snapshot)),
+      #("interval_ms", json.int(1000)),
+    ])
+    |> json.to_string()
+  let _ = mist.send_text_frame(conn, welcome)
+  #(VerificationWsState(push_count: 0, last_snapshot: snapshot), None)
+}
+
+/// Verification WS handler — diff-detected push on "ping"
+fn verification_ws_handler(
+  state: VerificationWsState,
+  msg: mist.WebsocketMessage(WsMsg),
+  conn: mist.WebsocketConnection,
+) -> mist.Next(VerificationWsState, WsMsg) {
+  case msg {
+    mist.Text(text) -> {
+      case text {
+        "ping" -> {
+          let snapshot = c3i_nif.system_verification()
+          let changed = snapshot != state.last_snapshot
+          case changed {
+            True -> {
+              let payload =
+                json.object([
+                  #("type", json.string("update")),
+                  #("snapshot", json.string(snapshot)),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, payload)
+              mist.continue(VerificationWsState(
+                push_count: state.push_count + 1,
+                last_snapshot: snapshot,
+              ))
+            }
+            False -> {
+              let hb =
+                json.object([
+                  #("type", json.string("heartbeat")),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, hb)
+              mist.continue(VerificationWsState(
+                ..state,
+                push_count: state.push_count + 1,
+              ))
+            }
+          }
+        }
+        _ -> {
+          let search_result = c3i_nif.plan_search(text)
+          let resp =
+            json.object([
+              #("type", json.string("search")),
+              #("query", json.string(text)),
+              #("results", json.string(search_result)),
+            ])
+            |> json.to_string()
+          let _ = mist.send_text_frame(conn, resp)
+          mist.continue(state)
+        }
+      }
+    }
+    mist.Closed | mist.Shutdown -> mist.stop()
+    mist.Binary(_) -> mist.continue(state)
+    mist.Custom(_) -> mist.continue(state)
+  }
+}
+
+/// Called when verification WebSocket closes
+fn verification_ws_on_close(_state: VerificationWsState) -> Nil {
+  Nil
+}
+
+// ---------------------------------------------------------------------------
+// Entry point — HTTP + penta WebSocket (planning + dashboard + immune + zenoh + verification)
 // ---------------------------------------------------------------------------
 
 pub fn start(port: Int) -> Result(Nil, String) {
@@ -441,6 +726,30 @@ pub fn start(port: Int) -> Result(Nil, String) {
               handler: dash_ws_handler,
               on_init: dash_ws_on_init,
               on_close: dash_ws_on_close,
+            )
+          // Immune WS — live immune system / threat monitoring
+          "/ws/immune" ->
+            mist.websocket(
+              request: req,
+              handler: immune_ws_handler,
+              on_init: immune_ws_on_init,
+              on_close: immune_ws_on_close,
+            )
+          // Zenoh WS — live mesh topology monitoring (SC-ZMOF-001)
+          "/ws/zenoh" ->
+            mist.websocket(
+              request: req,
+              handler: zenoh_ws_handler,
+              on_init: zenoh_ws_on_init,
+              on_close: zenoh_ws_on_close,
+            )
+          // Verification WS — live PROMETHEUS / SIL-6 compliance data (SC-VER-001)
+          "/ws/verification" ->
+            mist.websocket(
+              request: req,
+              handler: verification_ws_handler,
+              on_init: verification_ws_on_init,
+              on_close: verification_ws_on_close,
             )
           // Unknown WS path — reject with 404
           _ ->
