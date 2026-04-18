@@ -158,6 +158,9 @@ pub fn zenoh_view(state: SharedMeshState) -> Element(msg) {
     ]),
     // ── CA6: Zenoh Publish (SC-ZMOF-COMMS-001) ──────────────────────────
     shell.section("Zenoh Publish", [shell.zenoh_publish_form()]),
+    shell.section("DB5 — Zenoh Message Inspector", [
+      shell.zenoh_inspector_panel(),
+    ]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/zenoh-grid.js?v=22.10.0")],
@@ -244,6 +247,9 @@ pub fn verification_view(state: SharedMeshState) -> Element(msg) {
         ["Tab coverage (15/15)", "100%", "PASS"],
       ]),
     ]),
+    shell.section("DB2 — Guard Grid Drill-Down", [
+      shell.guard_grid_drilldown(),
+    ]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/verification-grid.js?v=22.10.0")],
@@ -305,6 +311,7 @@ pub fn substrate_view(_state: SharedMeshState) -> Element(msg) {
         ],
       ]),
     ]),
+    shell.section("DB4 — NIF Call Latency", [shell.nif_latency_panel()]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/substrate-grid.js?v=22.10.0")],
@@ -369,6 +376,9 @@ pub fn metabolic_view(_state: SharedMeshState) -> Element(msg) {
           "{\\\"verb\\\": \\\"clean\\\", \\\"container\\\": \\\"all\\\", \\\"reason\\\": \\\"Maintenance\\\"}",
         ),
       ]),
+    ]),
+    shell.section("DB1 — BEAM Scheduler Metrics", [
+      shell.beam_scheduler_panel(),
     ]),
     element.element(
       "script",
@@ -599,6 +609,11 @@ pub fn telemetry_view(_state: SharedMeshState) -> Element(msg) {
         ["indrajaal/otel/spans/immune/**", "threat_scan", "6", "< 10ms"],
       ]),
     ]),
+    shell.section("DB1 — BEAM Scheduler Metrics", [
+      shell.beam_scheduler_panel(),
+    ]),
+    shell.section("DB4 — NIF Call Latency", [shell.nif_latency_panel()]),
+    shell.section("MO2 — OTel Span Viewer", [shell.otel_span_viewer()]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/telemetry-grid.js?v=22.10.0")],

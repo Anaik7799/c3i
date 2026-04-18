@@ -657,6 +657,10 @@ pub fn health_grid_view(state: SharedMeshState) -> Element(msg) {
         ],
       ),
     ]),
+    shell.section("DB2 — Guard Grid Drill-Down", [
+      shell.guard_grid_drilldown(),
+    ]),
+    shell.section("MO3 — Health Cascade Tree", [shell.health_cascade_tree()]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/health-grid-grid.js?v=22.10.1")],
