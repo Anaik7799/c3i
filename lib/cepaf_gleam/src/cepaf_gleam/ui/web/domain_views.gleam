@@ -413,6 +413,8 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
         [],
       ),
     ]),
+    // ── Create Task Form (CA4, SC-TODO-001) ──
+    shell.section("Create Task", [shell.task_create_form()]),
     // ── State Change Event Log ──
     shell.section("State Change Log — Real-Time Mutation Monitor", [
       html.p([attribute.class("sub")], [
@@ -1128,6 +1130,8 @@ pub fn config_view(state: SharedMeshState) -> Element(msg) {
         ["9090", "Prometheus", "Metrics scrape"],
       ]),
     ]),
+    // System Controls — Hot Reload (SC-HA-RELOAD-001)
+    shell.section("System Controls", [shell.hot_reload_button()]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/config-grid.js?v=22.10.1")],

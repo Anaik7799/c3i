@@ -1080,6 +1080,219 @@ pub fn render_a2ui_component(
 }
 
 // ---------------------------------------------------------------------------
+// Container Action Buttons (L4 System — Podman page)
+// POST form with confirm dialog, matching emergency_stop_button pattern.
+// STAMP: SC-GLM-UI-001, SC-HMI-010
+// ---------------------------------------------------------------------------
+
+/// Render container restart/stop action buttons for the podman page.
+/// Uses POST forms with browser confirm() dialogs for HITL safety.
+/// STAMP: SC-GLM-UI-001, SC-HMI-010
+pub fn container_action_buttons() -> Element(msg) {
+  html.div(
+    [
+      attribute.class("container-actions"),
+      attribute.attribute(
+        "style",
+        "display:flex;gap:.5rem;flex-wrap:wrap;padding:.75rem 1rem;background:rgba(77,150,255,0.08);border:1px solid rgba(77,150,255,0.25);border-radius:8px;",
+      ),
+    ],
+    [
+      element.element(
+        "form",
+        [
+          attribute.attribute("method", "POST"),
+          attribute.attribute("action", "/api/v1/podman/restart"),
+          attribute.attribute(
+            "onsubmit",
+            "return confirm('Restart all containers? This will briefly interrupt services.')",
+          ),
+          attribute.attribute("style", "margin:0;"),
+        ],
+        [
+          html.button(
+            [
+              attribute.attribute("type", "submit"),
+              attribute.attribute(
+                "style",
+                "background:#4d96ff;color:white;padding:8px 16px;border:none;border-radius:6px;font-weight:600;cursor:pointer;min-height:44px;",
+              ),
+            ],
+            [element.text("Restart Containers")],
+          ),
+        ],
+      ),
+      element.element(
+        "form",
+        [
+          attribute.attribute("method", "POST"),
+          attribute.attribute("action", "/api/v1/podman/stop"),
+          attribute.attribute(
+            "onsubmit",
+            "return confirm('Stop all containers? This will take the mesh offline.')",
+          ),
+          attribute.attribute("style", "margin:0;"),
+        ],
+        [
+          html.button(
+            [
+              attribute.attribute("type", "submit"),
+              attribute.attribute(
+                "style",
+                "background:#f5a623;color:white;padding:8px 16px;border:none;border-radius:6px;font-weight:600;cursor:pointer;min-height:44px;",
+              ),
+            ],
+            [element.text("Stop Containers")],
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Hot Reload Button (SC-HA-RELOAD-001)
+// Triggers BEAM bytecode swap without dropping WebSocket connections.
+// POST /api/v1/reload — non-destructive, no Guardian approval required.
+// ---------------------------------------------------------------------------
+
+/// Hot reload button — triggers BEAM code swap via /api/v1/reload (SC-HA-RELOAD-001).
+/// Zero-downtime code upgrade: BEAM soft_purge + load_file, WS connections survive.
+/// STAMP: SC-HA-RELOAD-001, SC-HA-RELOAD-005
+pub fn hot_reload_button() -> Element(msg) {
+  element.element(
+    "form",
+    [
+      attribute.attribute("method", "POST"),
+      attribute.attribute("action", "/api/v1/reload"),
+      attribute.attribute(
+        "onsubmit",
+        "return confirm('Hot reload — swap BEAM bytecode without dropping connections?')",
+      ),
+      attribute.attribute("style", "margin:0;display:inline-block;"),
+    ],
+    [
+      html.button(
+        [
+          attribute.attribute("type", "submit"),
+          attribute.attribute(
+            "style",
+            "background:#00d4aa;color:#0a0e17;padding:8px 16px;border:none;border-radius:6px;font-weight:600;cursor:pointer;min-height:44px;",
+          ),
+        ],
+        [element.text("Hot Reload")],
+      ),
+    ],
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Task Creation Form (SC-TODO-001, Planning page)
+// POST /api/v1/planning/add — delegates to sa-plan-daemon.
+// ---------------------------------------------------------------------------
+
+/// Task creation form — POST to /api/v1/planning/add (SC-TODO-001).
+/// Renders a styled inline form for adding a new task with description and priority.
+/// STAMP: SC-TODO-001, SC-GLM-UI-001
+pub fn task_create_form() -> Element(msg) {
+  element.element(
+    "form",
+    [
+      attribute.attribute("method", "POST"),
+      attribute.attribute("action", "/api/v1/planning/add"),
+      attribute.attribute(
+        "style",
+        "display:flex;gap:.5rem;align-items:end;padding:.75rem 1rem;background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.25);border-radius:8px;flex-wrap:wrap;",
+      ),
+    ],
+    [
+      html.div(
+        [attribute.attribute("style", "flex:1;min-width:200px;")],
+        [
+          html.label(
+            [
+              attribute.attribute(
+                "style",
+                "display:block;font-size:.75rem;color:#7a8fa6;margin-bottom:4px;",
+              ),
+            ],
+            [element.text("Task Description")],
+          ),
+          element.element(
+            "input",
+            [
+              attribute.attribute("type", "text"),
+              attribute.attribute("name", "title"),
+              attribute.attribute("placeholder", "Enter task description..."),
+              attribute.attribute("required", "true"),
+              attribute.attribute(
+                "style",
+                "width:100%;padding:8px 12px;background:#141922;border:1px solid #1e2a3a;border-radius:6px;color:#e0e6ed;font-size:14px;",
+              ),
+            ],
+            [],
+          ),
+        ],
+      ),
+      html.div(
+        [attribute.attribute("style", "min-width:80px;")],
+        [
+          html.label(
+            [
+              attribute.attribute(
+                "style",
+                "display:block;font-size:.75rem;color:#7a8fa6;margin-bottom:4px;",
+              ),
+            ],
+            [element.text("Priority")],
+          ),
+          element.element(
+            "select",
+            [
+              attribute.attribute("name", "priority"),
+              attribute.attribute(
+                "style",
+                "padding:8px 12px;background:#141922;border:1px solid #1e2a3a;border-radius:6px;color:#e0e6ed;",
+              ),
+            ],
+            [
+              element.element(
+                "option",
+                [attribute.attribute("value", "P1")],
+                [element.text("P1")],
+              ),
+              element.element(
+                "option",
+                [
+                  attribute.attribute("value", "P2"),
+                  attribute.attribute("selected", "true"),
+                ],
+                [element.text("P2")],
+              ),
+              element.element(
+                "option",
+                [attribute.attribute("value", "P3")],
+                [element.text("P3")],
+              ),
+            ],
+          ),
+        ],
+      ),
+      html.button(
+        [
+          attribute.attribute("type", "submit"),
+          attribute.attribute(
+            "style",
+            "background:#00d4aa;color:#0a0e17;padding:8px 16px;border:none;border-radius:6px;font-weight:600;cursor:pointer;min-height:44px;",
+          ),
+        ],
+        [element.text("Add Task")],
+      ),
+    ],
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Emergency Stop Button (SC-SAFETY-022, L0 Constitutional)
 // HITL confirmation dialog mandatory (SC-AGUI-004).
 // POST /api/v1/emergency/trigger requires Guardian 2oo3 consensus.

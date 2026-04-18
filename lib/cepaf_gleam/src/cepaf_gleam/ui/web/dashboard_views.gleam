@@ -1411,6 +1411,8 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
           ["5433", "PostgreSQL (db-prod)", "active"],
         ]),
       ]),
+      // System Controls — Hot Reload (SC-HA-RELOAD-001)
+      shell.section("System Controls", [shell.hot_reload_button()]),
       // L0 Emergency Stop (SC-SAFETY-022)
       shell.section("Emergency Controls (L0 Constitutional)", [
         shell.emergency_stop_button(),
@@ -1762,6 +1764,8 @@ pub fn cockpit_view(state: SharedMeshState) -> Element(msg) {
           ["22:30:00", "INFO", "Health", "All 16 containers passing"],
         ]),
       ]),
+      // ── System Controls — Hot Reload (SC-HA-RELOAD-001) ────────────────
+      shell.section("System Controls", [shell.hot_reload_button()]),
       // ── L0 Emergency Stop (SC-SAFETY-022) ──────────────────────────────
       shell.section("Emergency Controls (L0 Constitutional)", [
         shell.emergency_stop_button(),

@@ -456,6 +456,7 @@ pub fn podman_view(state: SharedMeshState) -> Element(msg) {
         ["obs-prod", "Observability", "running"],
       ]),
     ]),
+    shell.section("Container Controls", [shell.container_action_buttons()]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/podman-grid.js?v=22.10.0")],
