@@ -53,6 +53,7 @@
 //// STAMP: SC-FED-001, SC-FED-006, SC-HA-001, SC-SIL4-011, SC-ZENOH-001,
 ////        SC-ZMOF-001, SC-MUDA-001, SC-FUNC-001
 
+import gleam/float
 import gleam/int
 import gleam/list
 import gleam/string
@@ -291,7 +292,7 @@ pub fn node_summary(state: NodeFederationState) -> String {
 }
 
 // ---------------------------------------------------------------------------
-// NodeRole helpers
+// NodeRole helpers & JSON serialisation
 // ---------------------------------------------------------------------------
 
 fn node_role_to_string(role: NodeRole) -> String {
@@ -301,6 +302,29 @@ fn node_role_to_string(role: NodeRole) -> String {
     Standby -> "Standby"
     Observer -> "Observer"
   }
+}
+
+/// Serialise a FederationNode to compact JSON.
+pub fn node_to_json(n: FederationNode) -> String {
+  "{"
+  <> "\"node_id\":\""
+  <> n.node_id
+  <> "\","
+  <> "\"region\":\""
+  <> n.region
+  <> "\","
+  <> "\"endpoint\":\""
+  <> n.endpoint
+  <> "\","
+  <> "\"role\":\""
+  <> node_role_to_string(n.role)
+  <> "\","
+  <> "\"health\":"
+  <> float.to_string(n.health)
+  <> ","
+  <> "\"last_seen_ms\":"
+  <> int.to_string(n.last_seen_ms)
+  <> "}"
 }
 
 // ---------------------------------------------------------------------------

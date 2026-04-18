@@ -10,9 +10,9 @@
 ////     <layer>L7_FEDERATION</layer>
 ////     <mesh-domain>
 ////       CRDT Foundation for distributed state synchronization over Zenoh pub/sub.
-////       Implements G-Counter, PN-Counter, LWW-Register, and OR-Set with provably
-////       correct mathematical properties: commutativity, associativity, idempotency.
-////       SC-ULTRA-001 Focus 2: Zenoh-Native CRDT State Backplane.
+////       Implements G-Counter, PN-Counter, LWW-Register, OR-Set, and Version Vector
+////       with provably correct mathematical properties: commutativity, associativity,
+////       idempotency. SC-ULTRA-001 Focus 2: Zenoh-Native CRDT State Backplane.
 ////     </mesh-domain>
 ////   </fractal-topology>
 ////   <compliance>
@@ -31,15 +31,16 @@
 //// </c3i-module>
 //// =============================================================================
 ////
-//// CRDT FOUNDATION — CONFLICT-FREE REPLICATED DATA TYPES
+//// CRDT STATE SYNCHRONIZATION — CONFLICT-FREE REPLICATED DATA TYPES
 //// एकत्वं बहुत्वे — Unity in multiplicity (Sanskrit: Indrajaal L7 inscription)
 ////
-//// Four fundamental CRDTs for distributed state over Zenoh pub/sub:
+//// Five fundamental CRDTs for distributed state over Zenoh pub/sub:
 ////
-////   1. GCounter   — Grow-only counter for distributed metrics
-////   2. PNCounter  — Positive-Negative counter for up/down metrics
-////   3. LWWRegister — Last-Writer-Wins register for distributed config
-////   4. ORSet      — Observed-Remove Set for distributed guard verdicts
+////   1. GCounter      — Grow-only counter (one entry per node)
+////   2. PNCounter     — Positive-negative counter (increment + decrement)
+////   3. LWWRegister   — Last-writer-wins register with timestamp
+////   4. ORSet         — Observed-remove set (add-wins semantics)
+////   5. VersionVector — Causal ordering across nodes
 ////
 //// Mathematical properties proven by the merge operations:
 ////
@@ -47,16 +48,14 @@
 ////   Associativity:  merge(merge(a,b), c) = merge(a, merge(b,c))
 ////   Idempotency:    merge(a, a) = a
 ////
+//// Storage: List(#(String, Int)) association lists for pure functional style.
 //// All types are pure values — no side effects, no mutable state.
-//// Callers own persistence and Zenoh publishing (SC-ARCH-SPLIT-002).
 ////
 //// STAMP: SC-ULTRA-001 (Focus 2), SC-XHOLON-006, SC-HA-001
 
-import gleam/dict.{type Dict}
 import gleam/int
 import gleam/list
 import gleam/order
-import gleam/result
 import gleam/string
 
 // =============================================================================
@@ -67,57 +66,55 @@ import gleam/string
 // The global value is the sum of all per-node counts.
 // Merge takes the max per-node — this is the lattice join on (ℤ≥0, max).
 //
+// Storage: association list of (node_id, count) pairs.
+//
 // Lattice proof:
 //   Commutativity: max(a,b) = max(b,a)               ✓
 //   Associativity: max(max(a,b),c) = max(a,max(b,c)) ✓
 //   Idempotency:   max(a,a) = a                       ✓
 
-/// G-Counter (Grow-only Counter) — for distributed metrics.
+/// G-Counter — grow-only counter, one entry per node.
 ///
-/// `node_id` is the identity of the local node that owns this replica.
-/// `counts` maps every known node_id to its current count.
+/// `counts` is an association list of (node_id, count) pairs.
+/// Each node only increments its own entry; merge takes the per-node maximum.
 pub type GCounter {
-  GCounter(node_id: String, counts: Dict(String, Int))
+  GCounter(counts: List(#(String, Int)))
 }
 
-/// Create a new G-Counter for the given node.
+/// Create a new empty G-Counter.
 ///
 /// [C3I-SIL6] ATOMIC CONTRACT
 /// <c3i-atomic>
 ///   <morphism type="isomorphic">Bootstrap ↔ GCounter with empty lattice</morphism>
 ///   <formal-proof>
-///     <P> Pre: node_id is a non-empty String </P>
-///     <C> gcounter_new(node_id) </C>
+///     <P> Pre: none </P>
+///     <C> gcounter_new() </C>
 ///     <Q> Post: gcounter_value(result) = 0 </Q>
 ///   </formal-proof>
 /// </c3i-atomic>
-pub fn gcounter_new(node_id: String) -> GCounter {
-  GCounter(node_id: node_id, counts: dict.new())
+pub fn gcounter_new() -> GCounter {
+  GCounter(counts: [])
 }
 
-/// Increment this node's counter by 1.
+/// Increment the given node's count by 1.
 ///
 /// [C3I-SIL6] ATOMIC CONTRACT
 /// <c3i-atomic>
 ///   <morphism type="isomorphic">GCounter ↔ GCounter (node count + 1)</morphism>
 ///   <formal-proof>
-///     <P> Pre: counter is a valid GCounter </P>
-///     <C> gcounter_increment(counter) </C>
+///     <P> Pre: counter is a valid GCounter, node_id is non-empty </P>
+///     <C> gcounter_increment(counter, node_id) </C>
 ///     <Q> Post: gcounter_value(result) = gcounter_value(counter) + 1 </Q>
 ///   </formal-proof>
 /// </c3i-atomic>
-pub fn gcounter_increment(counter: GCounter) -> GCounter {
-  let current =
-    dict.get(counter.counts, counter.node_id) |> result.unwrap(0)
-  GCounter(
-    ..counter,
-    counts: dict.insert(counter.counts, counter.node_id, current + 1),
-  )
+pub fn gcounter_increment(counter: GCounter, node_id: String) -> GCounter {
+  let current = alist_get(counter.counts, node_id, 0)
+  GCounter(counts: alist_set(counter.counts, node_id, current + 1))
 }
 
 /// Get the global value — sum of all node counts.
 pub fn gcounter_value(counter: GCounter) -> Int {
-  dict.fold(counter.counts, 0, fn(acc, _k, v) { acc + v })
+  list.fold(counter.counts, 0, fn(acc, pair) { acc + pair.1 })
 }
 
 /// Merge two G-Counters — take the per-node maximum (lattice join ⊔).
@@ -127,16 +124,7 @@ pub fn gcounter_value(counter: GCounter) -> Int {
 ///   Associativity: max(max(a,b),c) = max(a,max(b,c)) for all k
 ///   Idempotency:   max(a[k], a[k]) = a[k] for all k
 pub fn gcounter_merge(a: GCounter, b: GCounter) -> GCounter {
-  let all_keys =
-    list.append(dict.keys(a.counts), dict.keys(b.counts)) |> list.unique
-  let merged =
-    list.fold(all_keys, dict.new(), fn(acc, key) {
-      let va = dict.get(a.counts, key) |> result.unwrap(0)
-      let vb = dict.get(b.counts, key) |> result.unwrap(0)
-      dict.insert(acc, key, int.max(va, vb))
-    })
-  // Preserve the local node_id from 'a' (the receiver)
-  GCounter(node_id: a.node_id, counts: merged)
+  GCounter(counts: alist_merge_max(a.counts, b.counts))
 }
 
 // =============================================================================
@@ -147,27 +135,30 @@ pub fn gcounter_merge(a: GCounter, b: GCounter) -> GCounter {
 // Value = sum(positive) - sum(negative).
 // Merge delegates to gcounter_merge for each sub-counter.
 
-/// PN-Counter (Positive-Negative Counter) — for up/down distributed metrics.
+/// PN-Counter — positive-negative counter for increment + decrement.
 pub type PNCounter {
   PNCounter(positive: GCounter, negative: GCounter)
 }
 
 /// Create a new PN-Counter with both sub-counters at zero.
-pub fn pncounter_new(node_id: String) -> PNCounter {
+pub fn pncounter_new() -> PNCounter {
+  PNCounter(positive: gcounter_new(), negative: gcounter_new())
+}
+
+/// Increment the PN-Counter on the given node by 1.
+pub fn pncounter_increment(counter: PNCounter, node_id: String) -> PNCounter {
   PNCounter(
-    positive: gcounter_new(node_id),
-    negative: gcounter_new(node_id),
+    ..counter,
+    positive: gcounter_increment(counter.positive, node_id),
   )
 }
 
-/// Increment the PN-Counter by 1 on the local node.
-pub fn pncounter_increment(counter: PNCounter) -> PNCounter {
-  PNCounter(..counter, positive: gcounter_increment(counter.positive))
-}
-
-/// Decrement the PN-Counter by 1 on the local node.
-pub fn pncounter_decrement(counter: PNCounter) -> PNCounter {
-  PNCounter(..counter, negative: gcounter_increment(counter.negative))
+/// Decrement the PN-Counter on the given node by 1.
+pub fn pncounter_decrement(counter: PNCounter, node_id: String) -> PNCounter {
+  PNCounter(
+    ..counter,
+    negative: gcounter_increment(counter.negative, node_id),
+  )
 }
 
 /// Get the global PN-Counter value: sum(positive) - sum(negative).
@@ -189,74 +180,68 @@ pub fn pncounter_merge(a: PNCounter, b: PNCounter) -> PNCounter {
 // LWW-Register — Last-Writer-Wins Register
 // =============================================================================
 //
-// Conflict resolution: highest timestamp wins.
+// Conflict resolution: highest timestamp_ms wins.
 // Tie-break: lexicographically larger node_id wins (deterministic total order).
-// This gives a total order on (timestamp, node_id) pairs — a valid lattice.
+// This gives a total order on (timestamp_ms, node_id) pairs — a valid lattice.
 //
 // Lattice proof:
 //   Commutativity: max(a,b) = max(b,a) under total order ✓
 //   Associativity: max(max(a,b),c) = max(a,max(b,c))    ✓
 //   Idempotency:   max(a,a) = a                          ✓
 
-/// LWW-Register (Last-Writer-Wins Register) — for distributed state.
+/// LWW-Register — last-writer-wins register with millisecond timestamp.
 pub type LWWRegister {
-  LWWRegister(value: String, timestamp: Int, node_id: String)
+  LWWRegister(value: String, timestamp_ms: Int, node_id: String)
 }
 
-/// Create a new LWW-Register with an empty value at timestamp 0.
-pub fn lww_new(node_id: String) -> LWWRegister {
-  LWWRegister(value: "", timestamp: 0, node_id: node_id)
+/// Create a new LWW-Register with an initial value, timestamp, and node_id.
+pub fn lww_new(
+  value: String,
+  timestamp_ms: Int,
+  node_id: String,
+) -> LWWRegister {
+  LWWRegister(value: value, timestamp_ms: timestamp_ms, node_id: node_id)
 }
 
-/// Set the register value with a monotonic timestamp.
+/// Set the register value — accepted only if (timestamp_ms, node_id) > current.
 ///
-/// The new value is accepted only if the timestamp is strictly greater than
-/// the current one, or equal with a lexicographically larger node_id.
-///
-/// [C3I-SIL6] ATOMIC CONTRACT
-/// <c3i-atomic>
-///   <morphism type="isomorphic">Timestamp total order ↔ LWW conflict resolution</morphism>
-///   <formal-proof>
-///     <P> Pre: timestamp >= 0 </P>
-///     <C> lww_set(reg, value, timestamp) </C>
-///     <Q> Post: result.value = value iff (timestamp, node_id) > (reg.timestamp, reg.node_id) </Q>
-///   </formal-proof>
-/// </c3i-atomic>
+/// Tie-break: if timestamps are equal, the lexicographically larger node_id wins.
 pub fn lww_set(
   reg: LWWRegister,
   value: String,
-  timestamp: Int,
+  timestamp_ms: Int,
+  node_id: String,
 ) -> LWWRegister {
-  case timestamp > reg.timestamp {
-    True -> LWWRegister(value: value, timestamp: timestamp, node_id: reg.node_id)
+  case timestamp_ms > reg.timestamp_ms {
+    True ->
+      LWWRegister(value: value, timestamp_ms: timestamp_ms, node_id: node_id)
     False ->
       case
-        timestamp == reg.timestamp
-        && string.compare(reg.node_id, reg.node_id) == order.Gt
+        timestamp_ms == reg.timestamp_ms
+        && string.compare(node_id, reg.node_id) == order.Gt
       {
         True ->
-          LWWRegister(value: value, timestamp: timestamp, node_id: reg.node_id)
+          LWWRegister(
+            value: value,
+            timestamp_ms: timestamp_ms,
+            node_id: node_id,
+          )
         False -> reg
       }
   }
 }
 
-/// Get the current value of the LWW-Register.
-pub fn lww_get(reg: LWWRegister) -> String {
-  reg.value
-}
-
-/// Merge two LWW-Registers — the higher (timestamp, node_id) wins.
+/// Merge two LWW-Registers — the higher (timestamp_ms, node_id) pair wins.
 ///
 /// Mathematical proof of CRDT properties:
 ///   Commutativity: total order comparison is symmetric in its max outcome ✓
 ///   Associativity: max of totals is associative                           ✓
 ///   Idempotency:   max(a, a) = a                                          ✓
 pub fn lww_merge(a: LWWRegister, b: LWWRegister) -> LWWRegister {
-  case b.timestamp > a.timestamp {
+  case b.timestamp_ms > a.timestamp_ms {
     True -> b
     False ->
-      case b.timestamp == a.timestamp {
+      case b.timestamp_ms == a.timestamp_ms {
         True ->
           case string.compare(b.node_id, a.node_id) == order.Gt {
             True -> b
@@ -272,21 +257,24 @@ pub fn lww_merge(a: LWWRegister, b: LWWRegister) -> LWWRegister {
 // =============================================================================
 //
 // Add-wins semantics: concurrent add and remove → element survives.
-// Each add operation is tagged with a unique tag (e.g., UUID or logical clock).
-// Remove tombstones the specific tags observed at remove time.
+// Each element in the set is tagged with a (value, unique_tag, timestamp_ms)
+// triple.  Remove tombstones the specific tags observed at remove time.
 // Merge is union of elements minus union of tombstones — set lattice join.
+//
+// Storage: List(#(String, String, Int)) = (value, unique_tag, timestamp_ms)
 //
 // Lattice proof:
 //   Commutativity: union(A,B) = union(B,A)                   ✓
 //   Associativity: union(union(A,B),C) = union(A,union(B,C)) ✓
 //   Idempotency:   union(A,A) = A                            ✓
 
-/// OR-Set (Observed-Remove Set) — for distributed guard verdicts.
+/// OR-Set — observed-remove set with add-wins semantics.
+///
+/// `elements` is a list of (value, unique_tag, timestamp_ms) triples.
+/// `tombstones` is a list of tombstoned unique tags.
 pub type ORSet {
   ORSet(
-    /// Active elements as (value, unique_tag) pairs
-    elements: List(#(String, String)),
-    /// Tombstoned unique tags (removed)
+    elements: List(#(String, String, Int)),
     tombstones: List(String),
   )
 }
@@ -296,33 +284,36 @@ pub fn orset_new() -> ORSet {
   ORSet(elements: [], tombstones: [])
 }
 
-/// Add a value with a unique tag to the OR-Set.
+/// Add a value with a unique tag and timestamp to the OR-Set.
 ///
 /// The tag MUST be globally unique (e.g., node_id + logical clock) to
 /// distinguish concurrent additions of the same value.
-pub fn orset_add(set: ORSet, value: String, tag: String) -> ORSet {
-  // Only add if tag is not already tombstoned
+pub fn orset_add(
+  set: ORSet,
+  value: String,
+  tag: String,
+  timestamp_ms: Int,
+) -> ORSet {
   case list.contains(set.tombstones, tag) {
     True -> set
     False ->
-      ORSet(..set, elements: [#(value, tag), ..set.elements])
+      ORSet(..set, elements: [#(value, tag, timestamp_ms), ..set.elements])
   }
 }
 
 /// Remove all live instances of a value from the OR-Set.
 ///
 /// Tombstones all tags currently associated with the value.
-/// Concurrent adds with new tags will survive (add-wins).
+/// Concurrent adds with new tags survive (add-wins semantics).
 pub fn orset_remove(set: ORSet, value: String) -> ORSet {
   let tags_to_tombstone =
-    list.filter_map(set.elements, fn(pair) {
-      case pair.0 == value {
-        True -> Ok(pair.1)
+    list.filter_map(set.elements, fn(triple) {
+      case triple.0 == value {
+        True -> Ok(triple.1)
         False -> Error(Nil)
       }
     })
-  let surviving =
-    list.filter(set.elements, fn(pair) { pair.0 != value })
+  let surviving = list.filter(set.elements, fn(triple) { triple.0 != value })
   let new_tombstones =
     list.append(set.tombstones, tags_to_tombstone) |> list.unique
   ORSet(elements: surviving, tombstones: new_tombstones)
@@ -330,12 +321,12 @@ pub fn orset_remove(set: ORSet, value: String) -> ORSet {
 
 /// Check if a value is currently in the OR-Set.
 pub fn orset_contains(set: ORSet, value: String) -> Bool {
-  list.any(set.elements, fn(pair) { pair.0 == value })
+  list.any(set.elements, fn(triple) { triple.0 == value })
 }
 
 /// Get the list of distinct values currently in the OR-Set.
-pub fn orset_elements(set: ORSet) -> List(String) {
-  set.elements |> list.map(fn(pair) { pair.0 }) |> list.unique
+pub fn orset_values(set: ORSet) -> List(String) {
+  set.elements |> list.map(fn(triple) { triple.0 }) |> list.unique
 }
 
 /// Merge two OR-Sets — union of elements minus union of tombstones.
@@ -347,15 +338,96 @@ pub fn orset_elements(set: ORSet) -> List(String) {
 pub fn orset_merge(a: ORSet, b: ORSet) -> ORSet {
   let all_tombstones =
     list.append(a.tombstones, b.tombstones) |> list.unique
-  // Union all entries, then filter out tombstoned tags
-  let all_elements = list.append(a.elements, b.elements)
-  // De-duplicate by (value, tag) pairs
-  let unique_elements = list.unique(all_elements)
+  let all_elements = list.append(a.elements, b.elements) |> list.unique
   let surviving =
-    list.filter(unique_elements, fn(pair) {
-      !list.contains(all_tombstones, pair.1)
+    list.filter(all_elements, fn(triple) {
+      !list.contains(all_tombstones, triple.1)
     })
   ORSet(elements: surviving, tombstones: all_tombstones)
+}
+
+// =============================================================================
+// Version Vector — Causal Ordering
+// =============================================================================
+//
+// A version vector assigns a monotonically increasing logical clock value to
+// each node.  It captures the causal history of updates across the mesh.
+//
+// Storage: association list of (node_id, clock) pairs.
+//
+// Dominance: VV a dominates VV b iff ∀k: a[k] >= b[k] AND ∃k: a[k] > b[k].
+// Concurrency: a and b are concurrent iff neither dominates the other.
+//
+// Merge is the per-node maximum — same lattice as G-Counter.
+//
+// Lattice proof (identical to G-Counter):
+//   Commutativity: max(a[k], b[k]) = max(b[k], a[k]) for all k ✓
+//   Associativity: max(max(a,b),c) = max(a,max(b,c)) for all k ✓
+//   Idempotency:   max(a[k], a[k]) = a[k] for all k             ✓
+
+/// Version Vector — causal ordering across nodes.
+///
+/// `versions` is an association list of (node_id, logical_clock) pairs.
+pub type VersionVector {
+  VersionVector(versions: List(#(String, Int)))
+}
+
+/// Create a new empty Version Vector.
+pub fn vv_new() -> VersionVector {
+  VersionVector(versions: [])
+}
+
+/// Increment the given node's logical clock by 1.
+///
+/// [C3I-SIL6] ATOMIC CONTRACT
+/// <c3i-atomic>
+///   <morphism type="isomorphic">VersionVector ↔ VersionVector (node clock + 1)</morphism>
+///   <formal-proof>
+///     <P> Pre: node_id is non-empty </P>
+///     <C> vv_increment(vv, node_id) </C>
+///     <Q> Post: result.versions[node_id] = vv.versions[node_id] + 1 </Q>
+///   </formal-proof>
+/// </c3i-atomic>
+pub fn vv_increment(vv: VersionVector, node_id: String) -> VersionVector {
+  let current = alist_get(vv.versions, node_id, 0)
+  VersionVector(versions: alist_set(vv.versions, node_id, current + 1))
+}
+
+/// Merge two Version Vectors — take the per-node maximum (lattice join ⊔).
+pub fn vv_merge(a: VersionVector, b: VersionVector) -> VersionVector {
+  VersionVector(versions: alist_merge_max(a.versions, b.versions))
+}
+
+/// Check if Version Vector `a` causally dominates `b`.
+///
+/// `a` dominates `b` iff:
+///   ∀ node k: a[k] >= b[k]  AND  ∃ node k: a[k] > b[k]
+///
+/// Returns False if a == b (equal vectors do not dominate each other).
+pub fn vv_dominates(a: VersionVector, b: VersionVector) -> Bool {
+  let all_keys =
+    list.append(list.map(a.versions, fn(p) { p.0 }), list.map(
+      b.versions,
+      fn(p) { p.0 },
+    ))
+    |> list.unique
+  let all_ge =
+    list.all(all_keys, fn(k) {
+      alist_get(a.versions, k, 0) >= alist_get(b.versions, k, 0)
+    })
+  let some_gt =
+    list.any(all_keys, fn(k) {
+      alist_get(a.versions, k, 0) > alist_get(b.versions, k, 0)
+    })
+  all_ge && some_gt
+}
+
+/// Check if two Version Vectors are concurrent (neither dominates the other).
+///
+/// Concurrency means nodes diverged and both made independent progress.
+/// Requires causal reconciliation (e.g., via LWW or application logic).
+pub fn vv_concurrent(a: VersionVector, b: VersionVector) -> Bool {
+  !vv_dominates(a, b) && !vv_dominates(b, a)
 }
 
 // =============================================================================
@@ -381,11 +453,7 @@ pub fn verify_commutativity(a: GCounter, b: GCounter) -> Bool {
 ///
 /// Checks that the global value of the left-associative merge equals the
 /// right-associative merge. Holds because max is associative.
-pub fn verify_associativity(
-  a: GCounter,
-  b: GCounter,
-  c: GCounter,
-) -> Bool {
+pub fn verify_associativity(a: GCounter, b: GCounter, c: GCounter) -> Bool {
   let left = gcounter_merge(gcounter_merge(a, b), c)
   let right = gcounter_merge(a, gcounter_merge(b, c))
   gcounter_value(left) == gcounter_value(right)
@@ -402,11 +470,48 @@ pub fn verify_idempotency(a: GCounter) -> Bool {
 
 /// Verify all three CRDT properties for a pair of G-Counters.
 ///
-/// Returns True only if commutativity, associativity (with itself as c),
-/// and idempotency all hold.
+/// Returns True only if commutativity, associativity (with `a` as the third
+/// argument), and idempotency all hold for both `a` and `b`.
 pub fn verify_all_properties(a: GCounter, b: GCounter) -> Bool {
   verify_commutativity(a, b)
   && verify_associativity(a, b, a)
   && verify_idempotency(a)
   && verify_idempotency(b)
+}
+
+// =============================================================================
+// Private helpers — association list operations
+// =============================================================================
+
+/// Look up a key in an association list, returning `default` if absent.
+fn alist_get(alist: List(#(String, Int)), key: String, default: Int) -> Int {
+  case list.find(alist, fn(pair) { pair.0 == key }) {
+    Ok(pair) -> pair.1
+    Error(_) -> default
+  }
+}
+
+/// Set a key in an association list (replaces existing entry if present).
+fn alist_set(
+  alist: List(#(String, Int)),
+  key: String,
+  value: Int,
+) -> List(#(String, Int)) {
+  let without = list.filter(alist, fn(pair) { pair.0 != key })
+  [#(key, value), ..without]
+}
+
+/// Merge two association lists by taking the per-key maximum.
+fn alist_merge_max(
+  a: List(#(String, Int)),
+  b: List(#(String, Int)),
+) -> List(#(String, Int)) {
+  let all_keys =
+    list.append(list.map(a, fn(p) { p.0 }), list.map(b, fn(p) { p.0 }))
+    |> list.unique
+  list.map(all_keys, fn(key) {
+    let va = alist_get(a, key, 0)
+    let vb = alist_get(b, key, 0)
+    #(key, int.max(va, vb))
+  })
 }
