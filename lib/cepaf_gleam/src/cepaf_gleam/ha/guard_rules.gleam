@@ -79,7 +79,43 @@
 ////   GR-032  MigrationVerification   salience  80  MigrationsMissing → TriggerRunbook("RB-LIFECYCLE-001")
 ////   GR-033  StatefulContainerGuard  salience  90  ContainerHasDataVolume("db-prod") → RequireNamedVolume
 ////
-//// STAMP: SC-SIL4-001, SC-HA-001, SC-OODA-001, SC-MUDA-001, SC-FUNC-001
+//// Rule inventory (GR-051..GR-070 — STAMP constraint guard rules):
+////
+////   SC-FUNC (Functional Invariant):
+////   GR-051  BuildFailureHalt         salience 100  BuildFailed → JidokaHalt
+////   GR-052  CoreServiceDegraded      salience  90  HealthBelow(0.5) AND failures > 3 → EscalateEmergency
+////   GR-053  ContainerAutoHeal        salience  85  MultipleContainersDown → TriggerRunbook("RB-HEAL")
+////   GR-054  ZenohDisconnected        salience  95  ZenohDisconnected → EscalateToOperator
+////
+////   SC-TRUTH (Truthfulness):
+////   GR-055  DataStaleWarn            salience  75  DataStalenessExceeds(60) → WarnLog
+////   GR-056  DataStaleBright          salience  80  DataStalenessExceeds(120) → SetCockpitMode("bright")
+////   GR-057  DataDeadEmergency        salience  90  DataStalenessExceeds(300) → SetCockpitMode("emergency")
+////   GR-058  MockDataHalt             salience 100  MockDataInProduction → JidokaHalt
+////
+////   SC-SIL4 (Safety):
+////   GR-059  L0ActionNoConsensus      salience 100  L0ActionWithoutConsensus → JidokaHalt
+////   GR-060  ShutdownNoCheckpoint     salience  90  ShutdownWithoutCheckpoint → EscalateToOperator
+////   GR-061  BootNoDag                salience 100  BootWithoutDagValidation → JidokaHalt
+////   GR-062  QuorumLost               salience  95  QuorumLost → SetCockpitMode("emergency")
+////   GR-063  SplitBrainApoptosis      salience 100  PartitionDetected → JidokaHalt
+////
+////   SC-MUDA (Waste):
+////   GR-064  CompileWarnings          salience  60  CompileWarningsExist → WarnLog
+////   GR-065  LargeFileDetected        salience  45  LargeFileDetected → LogWarning
+////   GR-066  InternalHttpDetected     salience  65  InternalHttpDetected → WarnLog
+////
+////   SC-ZK (Zettelkasten):
+////   GR-067  ZkRecallIgnored          salience  55  ZkRecallIgnored → WarnLog
+////   GR-068  ZkNoCitation             salience  50  ZkNoCitation → WarnLog
+////   GR-069  SessionNoHolon           salience  45  SessionNoHolonProduced → WarnLog
+////   GR-070  TaskWithoutZkSearch      salience  50  TaskWithoutZkSearch → WarnLog
+////
+//// STAMP: SC-SIL4-001, SC-HA-001, SC-OODA-001, SC-MUDA-001, SC-FUNC-001,
+////        SC-FUNC-002, SC-FUNC-005, SC-FUNC-007, SC-TRUTH-001, SC-TRUTH-003,
+////        SC-TRUTH-004, SC-TRUTH-010, SC-SIL4-006, SC-SIL4-007, SC-SIL4-010,
+////        SC-SIL4-011, SC-SIL4-015, SC-MUDA-F-003, SC-MUDA-F-005,
+////        SC-ZK-IMP-001, SC-ZK-IMP-002, SC-ZETTEL-001, SC-ZK-CLAUDE-001
 
 import gleam/float
 import gleam/int
@@ -171,6 +207,43 @@ pub type RuleCondition {
   MutualInfoBelow(threshold: Float)
   /// Transfer entropy (causal influence) below threshold
   TransferEntropyBelow(threshold: Float)
+  // ── STAMP-specific conditions (GR-051..GR-070) ──
+  /// SC-FUNC-001: build_failures > 0 (compile gate failed)
+  BuildFailed
+  /// SC-FUNC-002: core services < 50% health AND >= 3 failures
+  CoreServiceDegraded(min_failures: Int)
+  /// SC-FUNC-005: more than one container in the Down state
+  MultipleContainersDown(threshold: Int)
+  /// SC-FUNC-007: Zenoh router is not reachable / session lost
+  ZenohDisconnected
+  /// SC-TRUTH-001/003/004: NIF data age exceeds given seconds
+  DataStalenessExceeds(seconds: Int)
+  /// SC-TRUTH-010: mock or hardcoded data detected in a production render
+  MockDataInProduction
+  /// SC-SIL4-006: an L0-constitutional action was taken without 2oo3 quorum
+  L0ActionWithoutConsensus
+  /// SC-SIL4-007: a shutdown sequence completed without a dying-gasp checkpoint
+  ShutdownWithoutCheckpoint
+  /// SC-SIL4-010: the boot DAG was not validated before container launch
+  BootWithoutDagValidation
+  /// SC-SIL4-011: mesh quorum dropped below floor(N/2)+1
+  QuorumLost
+  /// SC-SIL4-015: network partition detected → split-brain risk
+  PartitionDetected
+  /// SC-MUDA-001: compile_warnings > 0 (zero-warnings gate failed)
+  CompileWarningsExist
+  /// SC-MUDA-F-003: a source file exceeds 1000 lines
+  LargeFileDetected
+  /// SC-MUDA-F-005: internal HTTP call detected between mesh components
+  InternalHttpDetected
+  /// SC-ZK-IMP-001: ZK recall results were not read for a prompt
+  ZkRecallIgnored
+  /// SC-ZK-IMP-002: response had zero Zettelkasten holon citations
+  ZkNoCitation
+  /// SC-ZETTEL-001: session ended without producing at least one new holon
+  SessionNoHolonProduced
+  /// SC-ZK-CLAUDE-001: task started without prior Zettelkasten search
+  TaskWithoutZkSearch
 }
 
 /// Rule actions — control decisions produced by fired rules
@@ -710,6 +783,229 @@ pub fn all_rules() -> List(GuardRule) {
       layer: "*",
       description: "Positive Lyapunov + high entropy = chaotic divergence — escalate cockpit",
     ),
+    // ── GR-051..054: SC-FUNC (Functional Invariant) ─────────────────────────
+    GuardRule(
+      id: "GR-051",
+      name: "BuildFailureHalt",
+      salience: 100,
+      condition: BuildFailed,
+      action: JidokaHalt(
+        "SC-FUNC-001: build_failures > 0 — system must compile at all times",
+      ),
+      layer: "*",
+      description: "SC-FUNC-001: Any compile failure triggers an immediate Jidoka halt",
+    ),
+    GuardRule(
+      id: "GR-052",
+      name: "CoreServiceDegraded",
+      salience: 90,
+      condition: AllOf([
+        HealthBelow(threshold: 0.5),
+        CoreServiceDegraded(min_failures: 3),
+      ]),
+      action: ActionSequence([
+        SetCockpitMode("emergency"),
+        EscalateToOperator(
+          "SC-FUNC-002: health < 50% AND failures > 3 — core services not operational",
+        ),
+      ]),
+      layer: "*",
+      description: "SC-FUNC-002: Core services < 50% health with 3+ failures → emergency escalation",
+    ),
+    GuardRule(
+      id: "GR-053",
+      name: "ContainerAutoHeal",
+      salience: 85,
+      condition: MultipleContainersDown(threshold: 1),
+      action: TriggerRunbook("RB-HEAL"),
+      layer: "L4",
+      description: "SC-FUNC-005: More than one container down — invoke auto-heal runbook",
+    ),
+    GuardRule(
+      id: "GR-054",
+      name: "ZenohDisconnectedAlert",
+      salience: 95,
+      condition: ZenohDisconnected,
+      action: EscalateToOperator(
+        "SC-FUNC-007: Zenoh mesh connectivity lost — internal bus unavailable",
+      ),
+      layer: "L6",
+      description: "SC-FUNC-007: Zenoh router unreachable triggers operator escalation",
+    ),
+    // ── GR-055..058: SC-TRUTH (Truthfulness) ────────────────────────────────
+    GuardRule(
+      id: "GR-055",
+      name: "DataStaleWarn",
+      salience: 75,
+      condition: DataStalenessExceeds(seconds: 60),
+      action: LogWarning(
+        "SC-TRUTH-001: NIF data > 60s old — only verified current data may be displayed",
+      ),
+      layer: "*",
+      description: "SC-TRUTH-001: Data staleness > 60s logs a truthfulness warning",
+    ),
+    GuardRule(
+      id: "GR-056",
+      name: "DataStaleBright",
+      salience: 80,
+      condition: DataStalenessExceeds(seconds: 120),
+      action: SetCockpitMode("bright"),
+      layer: "*",
+      description: "SC-TRUTH-003: Data > 120s stale escalates cockpit to bright mode",
+    ),
+    GuardRule(
+      id: "GR-057",
+      name: "DataDeadEmergency",
+      salience: 90,
+      condition: DataStalenessExceeds(seconds: 300),
+      action: SetCockpitMode("emergency"),
+      layer: "*",
+      description: "SC-TRUTH-004: Data > 5 min dead triggers emergency cockpit mode",
+    ),
+    GuardRule(
+      id: "GR-058",
+      name: "MockDataHalt",
+      salience: 100,
+      condition: MockDataInProduction,
+      action: JidokaHalt(
+        "SC-TRUTH-010: Mock/hardcoded data detected in production render — SC-SATYA-007 violated",
+      ),
+      layer: "*",
+      description: "SC-TRUTH-010: Any mock data in production triggers Jidoka halt",
+    ),
+    // ── GR-059..063: SC-SIL4 (Safety) ───────────────────────────────────────
+    GuardRule(
+      id: "GR-059",
+      name: "L0ActionNoConsensus",
+      salience: 100,
+      condition: L0ActionWithoutConsensus,
+      action: JidokaHalt(
+        "SC-SIL4-006: L0 Constitutional action attempted without 2oo3 voting consensus",
+      ),
+      layer: "L0",
+      description: "SC-SIL4-006: All L0 actuations require 2oo3 quorum — halt if violated",
+    ),
+    GuardRule(
+      id: "GR-060",
+      name: "ShutdownNoCheckpoint",
+      salience: 90,
+      condition: ShutdownWithoutCheckpoint,
+      action: EscalateToOperator(
+        "SC-SIL4-007: Shutdown sequence without dying-gasp checkpoint — state may be lost",
+      ),
+      layer: "L4",
+      description: "SC-SIL4-007: Checkpoint is mandatory before shutdown — escalate if missed",
+    ),
+    GuardRule(
+      id: "GR-061",
+      name: "BootNoDag",
+      salience: 100,
+      condition: BootWithoutDagValidation,
+      action: JidokaHalt(
+        "SC-SIL4-010: Container boot attempted without DAG topological validation",
+      ),
+      layer: "L4",
+      description: "SC-SIL4-010: Boot DAG must be validated before any container launch",
+    ),
+    GuardRule(
+      id: "GR-062",
+      name: "QuorumLostEmergency",
+      salience: 95,
+      condition: QuorumLost,
+      action: SetCockpitMode("emergency"),
+      layer: "L6",
+      description: "SC-SIL4-011: Mesh quorum < floor(N/2)+1 triggers emergency cockpit mode",
+    ),
+    GuardRule(
+      id: "GR-063",
+      name: "SplitBrainApoptosis",
+      salience: 100,
+      condition: PartitionDetected,
+      action: JidokaHalt(
+        "SC-SIL4-015: Network partition detected — split-brain prevention via Jidoka halt",
+      ),
+      layer: "L6",
+      description: "SC-SIL4-015: Network partition triggers immediate Jidoka halt to prevent split-brain",
+    ),
+    // ── GR-064..066: SC-MUDA (Waste Reduction) ──────────────────────────────
+    GuardRule(
+      id: "GR-064",
+      name: "CompileWarningsGate",
+      salience: 60,
+      condition: CompileWarningsExist,
+      action: LogWarning(
+        "SC-MUDA-001: Compile warnings detected — zero-warnings gate requires immediate cleanup",
+      ),
+      layer: "*",
+      description: "SC-MUDA-001: Any compile warnings violate the zero-warnings gate",
+    ),
+    GuardRule(
+      id: "GR-065",
+      name: "LargeFileAlert",
+      salience: 45,
+      condition: LargeFileDetected,
+      action: LogWarning(
+        "SC-MUDA-F-003: Source file > 1000 lines detected — split file before next evolution",
+      ),
+      layer: "*",
+      description: "SC-MUDA-F-003: Files > 1000 lines are agent-efficiency anti-patterns",
+    ),
+    GuardRule(
+      id: "GR-066",
+      name: "InternalHttpWarn",
+      salience: 65,
+      condition: InternalHttpDetected,
+      action: LogWarning(
+        "SC-MUDA-F-005: Internal HTTP call between mesh components — use Zenoh pub/sub (SC-ZMOF-001)",
+      ),
+      layer: "*",
+      description: "SC-MUDA-F-005: HTTP between internal components violates Zenoh backplane mandate",
+    ),
+    // ── GR-067..070: SC-ZK (Zettelkasten) ───────────────────────────────────
+    GuardRule(
+      id: "GR-067",
+      name: "ZkRecallIgnoredWarn",
+      salience: 55,
+      condition: ZkRecallIgnored,
+      action: LogWarning(
+        "SC-ZK-IMP-001: ZK recall results not read — institutional memory ignored (SC-ZK-CLAUDE-001)",
+      ),
+      layer: "L5",
+      description: "SC-ZK-IMP-001: Agent must read ZK recall before acting — warn on omission",
+    ),
+    GuardRule(
+      id: "GR-068",
+      name: "ZkNoCitationWarn",
+      salience: 50,
+      condition: ZkNoCitation,
+      action: LogWarning(
+        "SC-ZK-IMP-002: Response contained zero Zettelkasten holon citations — cite >= 1 holon",
+      ),
+      layer: "L5",
+      description: "SC-ZK-IMP-002: Every analysis response requires at least one holon citation",
+    ),
+    GuardRule(
+      id: "GR-069",
+      name: "SessionNoHolonWarn",
+      salience: 45,
+      condition: SessionNoHolonProduced,
+      action: LogWarning(
+        "SC-ZETTEL-001: Session ended without producing >= 1 new Zettelkasten holon",
+      ),
+      layer: "L5",
+      description: "SC-ZETTEL-001: Every session must produce at least one new holon",
+    ),
+    GuardRule(
+      id: "GR-070",
+      name: "TaskWithoutZkSearchWarn",
+      salience: 50,
+      condition: TaskWithoutZkSearch,
+      action: LogWarning(
+        "SC-ZK-CLAUDE-001: Task started without searching Zettelkasten for prior patterns",
+      ),
+      layer: "L5",
+      description: "SC-ZK-CLAUDE-001: ZK search is mandatory before starting any new task",
+    ),
   ]
 }
 
@@ -842,6 +1138,77 @@ pub fn evaluate_condition(
     // Uses lyapunov as proxy — near-zero lyapunov = no causal signal.
     TransferEntropyBelow(threshold) ->
       float.absolute_value(lyapunov) <. threshold
+
+    // ── STAMP-specific conditions (GR-051..GR-070) ──
+    // BuildFailed: SC-FUNC-001 — failure_count > 0 acts as proxy for build failures.
+    // Real build-failure detection is performed by the Rust sa-plan-daemon compile gate.
+    // In the pure evaluator, failure_count encodes the number of compile errors.
+    BuildFailed -> failure_count > 0
+
+    // CoreServiceDegraded: SC-FUNC-002 — health below threshold AND failures exceed minimum.
+    // The caller is responsible for setting failure_count to the number of core-service failures.
+    CoreServiceDegraded(min_failures) ->
+      health <. 0.5 && failure_count >= min_failures
+
+    // MultipleContainersDown: SC-FUNC-005 — failure_count > threshold containers down.
+    // Callers set failure_count to the number of containers in the Down state.
+    MultipleContainersDown(threshold) -> failure_count > threshold
+
+    // ZenohDisconnected: SC-FUNC-007 — entropy < 0.0 signals Zenoh session loss.
+    // Convention: callers pass entropy = -1.0 when the Zenoh router is unreachable.
+    ZenohDisconnected -> entropy <. 0.0
+
+    // DataStalenessExceeds: SC-TRUTH-001/003/004 — cascade_depth encodes staleness in seconds.
+    // Convention: callers pass cascade_depth = staleness_seconds for freshness checks.
+    DataStalenessExceeds(seconds) -> cascade_depth >= seconds
+
+    // MockDataInProduction: SC-TRUTH-010 — lyapunov = -99.0 signals mock data detected.
+    // This is an exceptional sentinel value; normal lyapunov values are in [-10, 10].
+    MockDataInProduction -> lyapunov <=. -99.0
+
+    // L0ActionWithoutConsensus: SC-SIL4-006 — lyapunov = -50.0 signals consensus bypass.
+    L0ActionWithoutConsensus -> lyapunov <=. -50.0 && lyapunov >. -99.0
+
+    // ShutdownWithoutCheckpoint: SC-SIL4-007 — cascade_depth encodes missing checkpoints.
+    // Convention: callers pass cascade_depth = 10 when shutdown proceeded without checkpoint.
+    ShutdownWithoutCheckpoint -> cascade_depth >= 10
+
+    // BootWithoutDagValidation: SC-SIL4-010 — failure_count = 100 signals DAG skip.
+    // Convention: callers pass failure_count = 100 for DAG-skipped boot events.
+    BootWithoutDagValidation -> failure_count >= 100
+
+    // QuorumLost: SC-SIL4-011 — health < 0.4 with high failure count signals quorum loss.
+    // Quorum loss manifests as a combination of health degradation and failure spike.
+    QuorumLost -> health <. 0.4 && failure_count >= 3
+
+    // PartitionDetected: SC-SIL4-015 — lyapunov = -20.0 signals partition event.
+    // Partition signals are distinct from consensus bypass (−50) and mock data (−99).
+    PartitionDetected -> lyapunov <=. -20.0 && lyapunov >. -50.0
+
+    // CompileWarningsExist: SC-MUDA-001 — entropy < 0.1 with failure_count > 0 signals warnings.
+    // Convention: callers pass failure_count = number of compile warnings, entropy = 0.0.
+    CompileWarningsExist -> failure_count > 0 && entropy <. 0.1
+
+    // LargeFileDetected: SC-MUDA-F-003 — entropy in (0.1, 0.5) with failure_count > 0.
+    // Convention: callers pass failure_count = 1 and entropy = 0.2 for large-file events.
+    LargeFileDetected -> failure_count > 0 && entropy >=. 0.1 && entropy <. 0.5
+
+    // InternalHttpDetected: SC-MUDA-F-005 — entropy in [0.5, 1.0) with no cascade.
+    // Convention: callers pass entropy = 0.6 and cascade_depth = 0 for internal HTTP events.
+    InternalHttpDetected ->
+      failure_count > 0 && entropy >=. 0.5 && entropy <. 1.0 && cascade_depth == 0
+
+    // ZkRecallIgnored: SC-ZK-IMP-001 — lyapunov in (-10.0, -5.0) signals ZK recall omission.
+    ZkRecallIgnored -> lyapunov <. -5.0 && lyapunov >. -10.0
+
+    // ZkNoCitation: SC-ZK-IMP-002 — lyapunov in (-5.0, -3.0) signals zero citations.
+    ZkNoCitation -> lyapunov <. -3.0 && lyapunov >. -5.0
+
+    // SessionNoHolonProduced: SC-ZETTEL-001 — lyapunov in (-3.0, -2.0) signals no new holons.
+    SessionNoHolonProduced -> lyapunov <. -2.0 && lyapunov >. -3.0
+
+    // TaskWithoutZkSearch: SC-ZK-CLAUDE-001 — lyapunov in (-2.0, -1.0) signals ZK search omission.
+    TaskWithoutZkSearch -> lyapunov <. -1.0 && lyapunov >. -2.0
   }
 }
 
