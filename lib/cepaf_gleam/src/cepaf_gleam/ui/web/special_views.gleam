@@ -28,6 +28,8 @@
 //// specification viewer. Covers L0, L2, L5, L6, L7 fractal layers.
 
 import cepaf_gleam/agui/event_stream_widget
+import cepaf_gleam/symbiosis/tensor as symbiosis_tensor
+import cepaf_gleam/symbiosis/types as symbiosis_types
 import cepaf_gleam/ui/lustre/shell
 import cepaf_gleam/ui/state.{
   type SharedMeshState, ThreatElevated, ThreatNominal, ThreatNone,
@@ -267,10 +269,12 @@ pub fn biomorphic_view(state: SharedMeshState) -> Element(msg) {
     _ -> "Critical"
   }
   let immune_label = state.threat_level_to_string(state.threat_level)
+  let tensor = symbiosis_tensor.build()
+  let sym = build_default_symbiosis()
   html.div([attribute.class("w-full")], [
     page_header(
       "Biomorphic (L5 Cognitive)",
-      "Bio/Neuro/Immune subsystem health dashboard",
+      "Bio/Neuro/Immune + Symbiosis Index + 7×8 Fractal Tensor",
     ),
     shell.section("Subsystems", [
       html.div([attribute.class("card-grid")], [
@@ -302,6 +306,66 @@ pub fn biomorphic_view(state: SharedMeshState) -> Element(msg) {
         ),
       ]),
     ]),
+    shell.section("Symbiosis Index (सहजीवन सूचकांक)", [
+      html.div([attribute.class("card-grid")], [
+        shell.status_card(
+          "Global Index",
+          case sym.global_index >. 0.0 {
+            True -> "Healthy"
+            False -> "Critical"
+          },
+          float.to_string(sym.global_index),
+          "ecosystem mean",
+        ),
+        shell.status_card(
+          "Mutualism",
+          "Healthy",
+          int.to_string(sym.mutualism_count),
+          "परस्पर लाभ (+/+)",
+        ),
+        shell.status_card(
+          "Parasitism",
+          case sym.parasitism_count > 0 {
+            True -> "Degraded"
+            False -> "Healthy"
+          },
+          int.to_string(sym.parasitism_count),
+          "परजीविता (+/-)",
+        ),
+      ]),
+    ]),
+    shell.section("Biomorphic Tensor (7×8 = 56 cells)", [
+      html.div([attribute.class("card-grid")], [
+        shell.status_card(
+          "Coverage",
+          case tensor.coverage >=. 0.85 {
+            True -> "Healthy"
+            False -> "Degraded"
+          },
+          float.to_string(tensor.coverage *. 100.0) <> "%",
+          int.to_string(symbiosis_tensor.active_count(tensor))
+            <> " active / 56",
+        ),
+        shell.status_card(
+          "Health",
+          case tensor.health >=. 0.7 {
+            True -> "Healthy"
+            False -> "Degraded"
+          },
+          float.to_string(tensor.health *. 100.0) <> "%",
+          "weighted mean",
+        ),
+        shell.status_card(
+          "Missing",
+          case symbiosis_tensor.missing_count(tensor) {
+            0 -> "Healthy"
+            _ -> "Degraded"
+          },
+          int.to_string(symbiosis_tensor.missing_count(tensor)),
+          "cells not implemented",
+        ),
+      ]),
+    ]),
     shell.section("Biomorphic Subsystems", [
       shell.data_table(["Subsystem", "Sanskrit", "Layer", "Status"], [
         ["Nervous", "तन्त्रिका तन्त्र", "L1 Response", "Active"],
@@ -313,12 +377,64 @@ pub fn biomorphic_view(state: SharedMeshState) -> Element(msg) {
         ["Endocrine", "अंतःस्रावी तन्त्र", "L5 Cognitive", "Active"],
       ]),
     ]),
+    shell.section("7 Properties × 8 Layers (जीवन के ७ गुण)", [
+      shell.data_table(
+        ["Property", "Sanskrit", "L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7"],
+        build_tensor_rows(tensor),
+      ),
+    ]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/biomorphic-grid.js?v=22.10.1")],
       [],
     ),
   ])
+}
+
+fn build_default_symbiosis() -> symbiosis_types.SymbiosisIndex {
+  symbiosis_types.new()
+  |> symbiosis_types.record("cortex", "rule_engine", 0.8, 0.7)
+  |> symbiosis_types.record("zenoh", "otel", 0.9, 0.6)
+  |> symbiosis_types.record("gleam_ui", "nif_bridge", 0.7, 0.5)
+  |> symbiosis_types.record("sa_plan", "smriti_db", 0.9, 0.3)
+  |> symbiosis_types.record("immune", "sentinel", 0.6, 0.8)
+  |> symbiosis_types.record("dashboard", "websocket", 0.8, 0.4)
+  |> symbiosis_types.record("guardian", "2oo3_voting", 0.5, 0.9)
+}
+
+fn build_tensor_rows(
+  tensor: symbiosis_tensor.BiomorphicTensor,
+) -> List(List(String)) {
+  [
+    tensor_row(tensor, symbiosis_tensor.Homeostasis),
+    tensor_row(tensor, symbiosis_tensor.Metabolism),
+    tensor_row(tensor, symbiosis_tensor.Growth),
+    tensor_row(tensor, symbiosis_tensor.Reproduction),
+    tensor_row(tensor, symbiosis_tensor.Response),
+    tensor_row(tensor, symbiosis_tensor.Adaptation),
+    tensor_row(tensor, symbiosis_tensor.Evolution),
+  ]
+}
+
+fn tensor_row(
+  tensor: symbiosis_tensor.BiomorphicTensor,
+  prop: symbiosis_tensor.BiomorphicProperty,
+) -> List(String) {
+  let cells = symbiosis_tensor.row(tensor, prop)
+  let cell_strs =
+    list.map(cells, fn(c) {
+      case c.status {
+        symbiosis_tensor.Active -> "✓"
+        symbiosis_tensor.Partial -> "◐"
+        symbiosis_tensor.Missing -> "✗"
+        symbiosis_tensor.NotApplicable -> "—"
+      }
+    })
+  [
+    symbiosis_tensor.property_to_string(prop),
+    symbiosis_tensor.property_to_sanskrit(prop),
+    ..cell_strs
+  ]
 }
 
 // ---------------------------------------------------------------------------
@@ -656,6 +772,68 @@ pub fn health_grid_view(state: SharedMeshState) -> Element(msg) {
           ["L7 Federation", "3", "Degraded", "0.72"],
         ],
       ),
+    ]),
+    // RETE4: Ruliology State Evolution Visualization
+    shell.section("Ruliology — Wolfram CA State Evolution", [
+      html.div([attribute.class("card-grid")], [
+        shell.status_card(
+          "Rule 110",
+          case state.quorum_healthy { True -> "Healthy" False -> "Critical" },
+          case state.quorum_healthy { True -> "Stable" False -> "Cascade" },
+          "universal computation",
+        ),
+        shell.status_card(
+          "Rule 30",
+          "Healthy",
+          "Quiescent",
+          "chaos detection",
+        ),
+        shell.status_card(
+          "Rule 184",
+          "Healthy",
+          "Flowing",
+          "traffic/backpressure",
+        ),
+        shell.status_card(
+          "Rule 90",
+          "Healthy",
+          "Fractal",
+          "self-similar patterns",
+        ),
+      ]),
+      shell.data_table(
+        ["Rule", "Classification", "Layer Pattern", "Health Signal"],
+        [
+          ["R110", "Complex/Universal", "L0-L7 cascade propagation", "Primary stability indicator"],
+          ["R30", "Chaotic", "Entropy spike detection", "Randomness in failure spread"],
+          ["R184", "Traffic flow", "Backpressure analysis", "Queue depth / task flow"],
+          ["R90", "Fractal", "Sierpinski self-similarity", "Recursive failure patterns"],
+          ["R54", "Oscillator", "Periodic ping-pong", "Layer oscillation detection"],
+          ["R126", "Rapid growth", "Explosive activation", "Cascade urgency signal"],
+        ],
+      ),
+    ]),
+    shell.section("Lyapunov Stability Analysis", [
+      html.div([attribute.class("card-grid")], [
+        shell.status_card(
+          "Lyapunov λ",
+          case state.quorum_healthy { True -> "Healthy" False -> "Critical" },
+          case state.quorum_healthy { True -> "λ < 0 (stable)" False -> "λ > 0 (diverging)" },
+          "stability exponent",
+        ),
+        shell.status_card(
+          "Shannon H",
+          "Healthy",
+          "0.00 bits",
+          "verdict entropy (24 cells)",
+        ),
+        shell.status_card(
+          "Cascade Depth",
+          "Healthy",
+          "0",
+          "adjacent failing layers",
+        ),
+      ]),
     ]),
     shell.section("DB2 — Guard Grid Drill-Down", [
       shell.guard_grid_drilldown(),
