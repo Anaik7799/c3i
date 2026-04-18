@@ -54,6 +54,7 @@
 import cepaf_gleam/ha/guard_grid
 import gleam/float
 import gleam/http/response.{type Response}
+import gleam/string
 
 // ---------------------------------------------------------------------------
 // Critical health threshold — below this the service is considered unsafe
@@ -170,4 +171,122 @@ pub fn service_unavailable_json(reason: String) -> Response(String) {
 /// Expose the critical threshold constant for external use (e.g. tests).
 pub fn critical_health_threshold() -> Float {
   critical_threshold
+}
+
+// ---------------------------------------------------------------------------
+// Risk-adaptive oversight (OpenClaw adaptive oversight pattern)
+// SC-SIL4-001, SC-SAFETY-001
+// ---------------------------------------------------------------------------
+
+/// Risk level for an endpoint (OpenClaw adaptive oversight pattern).
+/// Maps to the L0 Constitutional fractal layer hierarchy.
+pub type RiskLevel {
+  /// Read-only, always-safe endpoints — auto-proceed with no checks.
+  Low
+  /// Standard API endpoints — log and apply health floor check.
+  Medium
+  /// Mutation / restart / reload endpoints — blocked below 70 % health.
+  High
+  /// L0 Constitutional endpoints — blocked below 90 % health.
+  Critical
+}
+
+/// Classify endpoint risk by HTTP path.
+///
+/// [C3I-SIL6] ATOMIC CONTRACT
+/// <c3i-atomic>
+///   <morphism type="injective">String path ↪ RiskLevel ADT</morphism>
+///   <formal-proof>
+///     <P> path is a non-empty URL path string. </P>
+///     <C> classify_risk(path) </C>
+///     <Q> Returns a RiskLevel value. Total function — never panics. </Q>
+///   </formal-proof>
+/// </c3i-atomic>
+pub fn classify_risk(path: String) -> RiskLevel {
+  case path {
+    // L0 Constitutional — always Critical
+    "/api/v1/emergency/trigger" -> Critical
+    "/api/v1/guardian/respond" -> Critical
+    // Mutation endpoints — High
+    "/api/v1/planning/add" -> High
+    "/api/v1/podman/restart" -> High
+    "/api/v1/podman/stop" -> High
+    "/api/v1/reload" -> High
+    // Data query endpoints — Low
+    "/health" -> Low
+    "/api/v1/dashboard" -> Low
+    "/api/v1/pages" -> Low
+    // Default — Medium
+    _ -> Medium
+  }
+}
+
+/// Apply risk-proportional oversight.
+///
+/// Low: auto-proceed
+/// Medium: blocked when system health < 50 %
+/// High: blocked when system health < 70 %
+/// Critical: blocked when system health < 90 %
+///
+/// [C3I-SIL6] ATOMIC CONTRACT
+/// <c3i-atomic>
+///   <morphism type="injective">String × Float ↪ GuardResult</morphism>
+///   <formal-proof>
+///     <P> path is a URL path; health ∈ [0.0, 1.0]. </P>
+///     <C> risk_gate(path, health) </C>
+///     <Q> Returns Proceed or Block with a descriptive reason.
+///         Never panics; all branches are exhaustive. </Q>
+///   </formal-proof>
+/// </c3i-atomic>
+pub fn risk_gate(path: String, health: Float) -> GuardResult {
+  let risk = classify_risk(path)
+  case risk {
+    Low -> Proceed
+    Medium ->
+      case health <. 0.5 {
+        True ->
+          Block(
+            "Medium-risk endpoint blocked — system health below 50%",
+          )
+        False -> Proceed
+      }
+    High ->
+      case health <. 0.7 {
+        True ->
+          Block(
+            "High-risk mutation blocked — system health below 70%",
+          )
+        False -> Proceed
+      }
+    Critical ->
+      case health <. 0.9 {
+        True ->
+          Block(
+            "Critical L0 action blocked — system health must be above 90%",
+          )
+        False -> Proceed
+      }
+  }
+}
+
+/// Convert a RiskLevel to its lowercase string representation.
+pub fn risk_to_string(risk: RiskLevel) -> String {
+  case risk {
+    Low -> "low"
+    Medium -> "medium"
+    High -> "high"
+    Critical -> "critical"
+  }
+}
+
+/// Parse a string back to a RiskLevel (inverse of risk_to_string).
+/// Returns Error(Nil) for unrecognised strings.
+pub fn risk_from_string(s: String) -> Result(RiskLevel, Nil) {
+  case string.lowercase(s) {
+    "low" -> Ok(Low)
+    "medium" -> Ok(Medium)
+    "high" -> Ok(High)
+    "critical" -> Ok(Critical)
+    _ -> Error(Nil)
+  }
 }
