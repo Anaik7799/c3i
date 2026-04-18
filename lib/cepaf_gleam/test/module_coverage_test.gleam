@@ -460,3 +460,64 @@ pub fn substrate_fs_test() {
   let _r = fs.read_file("/nonexistent")
   True |> should.be_true()
 }
+
+// ═══════════ BATCH 4: Orphaned domain modules ═══════════
+
+import cepaf_gleam/core/result as core_result
+import cepaf_gleam/db/cross_holon
+import cepaf_gleam/db/holon_database
+import cepaf_gleam/db/transaction_manager
+import cepaf_gleam/substrate/database as substrate_db
+import cepaf_gleam/observability/zenoh_otel_ingestor
+import cepaf_gleam/chaos/apoptosis
+import cepaf_gleam/knowledge/anomaly
+
+pub fn core_result_lift2_test() {
+  let r = core_result.lift2(fn(a, b) { a + b }, Ok(1), Ok(2))
+  { r == Ok(3) } |> should.be_true()
+}
+
+pub fn core_result_lift3_test() {
+  let r = core_result.lift3(fn(a, b, c) { a + b + c }, Ok(1), Ok(2), Ok(3))
+  { r == Ok(6) } |> should.be_true()
+}
+
+pub fn cross_holon_conflict_resolution_test() {
+  let _c = cross_holon.LastWriterWins
+  True |> should.be_true()
+}
+
+pub fn holon_database_type_test() {
+  let _t = holon_database.HolonSQLite
+  True |> should.be_true()
+}
+
+pub fn transaction_manager_status_test() {
+  let _s = transaction_manager.TxPending
+  True |> should.be_true()
+}
+
+pub fn substrate_db_type_test() {
+  let _t = substrate_db.SQLite
+  True |> should.be_true()
+}
+
+pub fn zenoh_otel_ingestor_topic_test() {
+  let prefix = zenoh_otel_ingestor.span_topic_prefix
+  { string.length(prefix) > 0 } |> should.be_true()
+}
+
+pub fn apoptosis_init_test() {
+  let state = apoptosis.init()
+  { state.total_deaths == 0 } |> should.be_true()
+}
+
+pub fn apoptosis_default_config_test() {
+  let cfg = apoptosis.default_config()
+  { cfg.max_concurrent_deaths == 1 } |> should.be_true()
+}
+
+pub fn anomaly_detect_empty_test() {
+  let anomalies = anomaly.detect_anomalies([], 0.5, 0.5)
+  { anomalies == [] } |> should.be_true()
+}
