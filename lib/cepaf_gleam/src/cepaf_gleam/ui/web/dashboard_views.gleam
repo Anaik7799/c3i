@@ -1411,6 +1411,10 @@ pub fn dashboard_view(state: SharedMeshState) -> Element(msg) {
           ["5433", "PostgreSQL (db-prod)", "active"],
         ]),
       ]),
+      // L0 Emergency Stop (SC-SAFETY-022)
+      shell.section("Emergency Controls (L0 Constitutional)", [
+        shell.emergency_stop_button(),
+      ]),
       // Load comprehensive dashboard JS
       element.element(
         "script",
@@ -1757,6 +1761,10 @@ pub fn cockpit_view(state: SharedMeshState) -> Element(msg) {
           ["22:35:30", "INFO", "OODA", "Cycle latency within SLA (38ms)"],
           ["22:30:00", "INFO", "Health", "All 16 containers passing"],
         ]),
+      ]),
+      // ── L0 Emergency Stop (SC-SAFETY-022) ──────────────────────────────
+      shell.section("Emergency Controls (L0 Constitutional)", [
+        shell.emergency_stop_button(),
       ]),
       // ── JS loader ──────────────────────────────────────────────────────
       html.script(

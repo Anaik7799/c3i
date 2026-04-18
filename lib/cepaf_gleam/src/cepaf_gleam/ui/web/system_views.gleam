@@ -86,6 +86,9 @@ pub fn immune_view(state: SharedMeshState) -> Element(msg) {
         ["Psi-5 Truthfulness", "PASS", "No deception in outputs"],
       ]),
     ]),
+    shell.section("Emergency Controls (L0 Constitutional)", [
+      shell.emergency_stop_button(),
+    ]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/immune-grid.js?v=22.10.0")],

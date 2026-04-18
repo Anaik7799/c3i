@@ -21,6 +21,7 @@
 //   /ws/immune       — Immune system / threat data push (system_immune NIF)
 //   /ws/zenoh        — Live Zenoh mesh topology (system_zenoh NIF)
 //   /ws/verification — Live PROMETHEUS / SIL-6 compliance data (system_verification NIF)
+//   /ws/agents       — Live agent hierarchy / OODA data (system_dashboard NIF)
 //
 // धर्मक्षेत्रे कुरुक्षेत्रे — The field of dharma, the field of action (Gita 1.1)
 // सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज — Surrender all duties, take refuge (Gita 18.66)
@@ -693,7 +694,197 @@ fn verification_ws_on_close(_state: VerificationWsState) -> Nil {
 }
 
 // ---------------------------------------------------------------------------
-// Entry point — HTTP + penta WebSocket (planning + dashboard + immune + zenoh + verification)
+// Agents WebSocket — live agent hierarchy / OODA data (SC-AGUI-UI-006)
+// एजेंट श्रेणी — Agent hierarchy real-time monitoring via system_dashboard NIF
+// EXEC-001 → 4 supervisors → 20 workers, OODA phase, fractal layers L5_COGNITIVE
+// ---------------------------------------------------------------------------
+
+/// Agents WS state — tracks agent snapshot for diff detection
+pub type AgentsWsState {
+  AgentsWsState(push_count: Int, last_snapshot: String)
+}
+
+/// Agents WS init — send initial agent hierarchy snapshot
+fn agents_ws_on_init(
+  conn: mist.WebsocketConnection,
+) -> #(AgentsWsState, option.Option(process.Selector(WsMsg))) {
+  let snapshot = c3i_nif.system_dashboard()
+  let welcome =
+    json.object([
+      #("type", json.string("connected")),
+      #("page", json.string("agents")),
+      #("snapshot", json.string(snapshot)),
+      #("interval_ms", json.int(1000)),
+    ])
+    |> json.to_string()
+  let _ = mist.send_text_frame(conn, welcome)
+  #(AgentsWsState(push_count: 0, last_snapshot: snapshot), None)
+}
+
+/// Agents WS handler — on "ping" calls system_dashboard(), diff-detects, sends update or heartbeat
+fn agents_ws_handler(
+  state: AgentsWsState,
+  msg: mist.WebsocketMessage(WsMsg),
+  conn: mist.WebsocketConnection,
+) -> mist.Next(AgentsWsState, WsMsg) {
+  case msg {
+    mist.Text(text) -> {
+      case text {
+        "ping" -> {
+          let snapshot = c3i_nif.system_dashboard()
+          let changed = snapshot != state.last_snapshot
+          case changed {
+            True -> {
+              let payload =
+                json.object([
+                  #("type", json.string("update")),
+                  #("snapshot", json.string(snapshot)),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, payload)
+              mist.continue(AgentsWsState(
+                push_count: state.push_count + 1,
+                last_snapshot: snapshot,
+              ))
+            }
+            False -> {
+              let hb =
+                json.object([
+                  #("type", json.string("heartbeat")),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, hb)
+              mist.continue(AgentsWsState(
+                ..state,
+                push_count: state.push_count + 1,
+              ))
+            }
+          }
+        }
+        _ -> {
+          let search_result = c3i_nif.plan_search(text)
+          let resp =
+            json.object([
+              #("type", json.string("search")),
+              #("query", json.string(text)),
+              #("results", json.string(search_result)),
+            ])
+            |> json.to_string()
+          let _ = mist.send_text_frame(conn, resp)
+          mist.continue(state)
+        }
+      }
+    }
+    mist.Closed | mist.Shutdown -> mist.stop()
+    mist.Binary(_) -> mist.continue(state)
+    mist.Custom(_) -> mist.continue(state)
+  }
+}
+
+/// Called when agents WebSocket closes
+fn agents_ws_on_close(_state: AgentsWsState) -> Nil {
+  Nil
+}
+
+// ---------------------------------------------------------------------------
+// Knowledge WebSocket — live Zettelkasten / knowledge base data (SC-ZK-CLAUDE-001)
+// ज्ञान WebSocket — ज़ेटेलकास्टन वास्तविक-समय निगरानी (Gita 15.15)
+// ---------------------------------------------------------------------------
+
+/// Knowledge WS state — tracks knowledge snapshot for diff detection
+pub type KnowledgeWsState {
+  KnowledgeWsState(push_count: Int, last_snapshot: String)
+}
+
+/// Knowledge WS init — send initial knowledge base snapshot via knowledge_search NIF
+fn knowledge_ws_on_init(
+  conn: mist.WebsocketConnection,
+) -> #(KnowledgeWsState, option.Option(process.Selector(WsMsg))) {
+  let snapshot = c3i_nif.knowledge_search("")
+  let welcome =
+    json.object([
+      #("type", json.string("connected")),
+      #("page", json.string("knowledge")),
+      #("snapshot", json.string(snapshot)),
+      #("interval_ms", json.int(1000)),
+    ])
+    |> json.to_string()
+  let _ = mist.send_text_frame(conn, welcome)
+  #(KnowledgeWsState(push_count: 0, last_snapshot: snapshot), None)
+}
+
+/// Knowledge WS handler — "ping" → fresh knowledge data, diff-detect, update or heartbeat.
+/// Non-"ping" text is routed to plan_search(query) for Zettelkasten lookup.
+fn knowledge_ws_handler(
+  state: KnowledgeWsState,
+  msg: mist.WebsocketMessage(WsMsg),
+  conn: mist.WebsocketConnection,
+) -> mist.Next(KnowledgeWsState, WsMsg) {
+  case msg {
+    mist.Text(text) -> {
+      case text {
+        "ping" -> {
+          let snapshot = c3i_nif.knowledge_search("")
+          let changed = snapshot != state.last_snapshot
+          case changed {
+            True -> {
+              let payload =
+                json.object([
+                  #("type", json.string("update")),
+                  #("snapshot", json.string(snapshot)),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, payload)
+              mist.continue(KnowledgeWsState(
+                push_count: state.push_count + 1,
+                last_snapshot: snapshot,
+              ))
+            }
+            False -> {
+              let hb =
+                json.object([
+                  #("type", json.string("heartbeat")),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, hb)
+              mist.continue(KnowledgeWsState(
+                ..state,
+                push_count: state.push_count + 1,
+              ))
+            }
+          }
+        }
+        _ -> {
+          let search_result = c3i_nif.plan_search(text)
+          let resp =
+            json.object([
+              #("type", json.string("search")),
+              #("query", json.string(text)),
+              #("results", json.string(search_result)),
+            ])
+            |> json.to_string()
+          let _ = mist.send_text_frame(conn, resp)
+          mist.continue(state)
+        }
+      }
+    }
+    mist.Closed | mist.Shutdown -> mist.stop()
+    mist.Binary(_) -> mist.continue(state)
+    mist.Custom(_) -> mist.continue(state)
+  }
+}
+
+/// Called when knowledge WebSocket closes
+fn knowledge_ws_on_close(_state: KnowledgeWsState) -> Nil {
+  Nil
+}
+
+// ---------------------------------------------------------------------------
+// Entry point — HTTP + hepta WebSocket (planning + dashboard + immune + zenoh + verification + agents + knowledge)
 // ---------------------------------------------------------------------------
 
 pub fn start(port: Int) -> Result(Nil, String) {
@@ -750,6 +941,22 @@ pub fn start(port: Int) -> Result(Nil, String) {
               handler: verification_ws_handler,
               on_init: verification_ws_on_init,
               on_close: verification_ws_on_close,
+            )
+          // Agents WS — live agent hierarchy / OODA data (SC-AGUI-UI-006)
+          "/ws/agents" ->
+            mist.websocket(
+              request: req,
+              handler: agents_ws_handler,
+              on_init: agents_ws_on_init,
+              on_close: agents_ws_on_close,
+            )
+          // Knowledge WS — live Zettelkasten / knowledge base (SC-ZK-CLAUDE-001)
+          "/ws/knowledge" ->
+            mist.websocket(
+              request: req,
+              handler: knowledge_ws_handler,
+              on_init: knowledge_ws_on_init,
+              on_close: knowledge_ws_on_close,
             )
           // Unknown WS path — reject with 404
           _ ->

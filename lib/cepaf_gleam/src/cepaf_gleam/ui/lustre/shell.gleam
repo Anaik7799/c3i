@@ -1078,3 +1078,62 @@ pub fn render_a2ui_component(
     }
   }
 }
+
+// ---------------------------------------------------------------------------
+// Emergency Stop Button (SC-SAFETY-022, L0 Constitutional)
+// HITL confirmation dialog mandatory (SC-AGUI-004).
+// POST /api/v1/emergency/trigger requires Guardian 2oo3 consensus.
+// ---------------------------------------------------------------------------
+
+/// Render an L0 Constitutional emergency stop button with HITL confirmation.
+/// STAMP: SC-SAFETY-022, SC-SIL4-001, SC-AGUI-004
+pub fn emergency_stop_button() -> Element(msg) {
+  html.div(
+    [
+      attribute.class("emergency-stop-wrapper"),
+      attribute.attribute(
+        "style",
+        "display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.35);border-radius:8px;",
+      ),
+    ],
+    [
+      html.span(
+        [
+          attribute.attribute(
+            "style",
+            "font-size:.8rem;color:#ff8a94;flex:1;",
+          ),
+        ],
+        [
+          element.text(
+            "L0 Constitutional — Emergency Stop halts all operations and requires Guardian 2oo3 consensus (SC-SAFETY-022).",
+          ),
+        ],
+      ),
+      element.element(
+        "form",
+        [
+          attribute.attribute("method", "POST"),
+          attribute.attribute("action", "/api/v1/emergency/trigger"),
+          attribute.attribute(
+            "onsubmit",
+            "return confirm('EMERGENCY STOP — This will halt all mesh operations and require Guardian 2oo3 consensus to resume. Are you absolutely sure?')",
+          ),
+          attribute.attribute("style", "margin:0;"),
+        ],
+        [
+          html.button(
+            [
+              attribute.attribute("type", "submit"),
+              attribute.attribute(
+                "style",
+                "background:#ff4757;color:white;padding:12px 24px;border:none;border-radius:8px;font-weight:bold;font-size:16px;cursor:pointer;min-height:44px;letter-spacing:.03em;",
+              ),
+            ],
+            [element.text("EMERGENCY STOP")],
+          ),
+        ],
+      ),
+    ],
+  )
+}
