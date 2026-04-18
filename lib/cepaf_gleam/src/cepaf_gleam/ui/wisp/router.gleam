@@ -279,6 +279,9 @@ fn route_internal(path: String) -> String {
       module_guard.unwrap(module_guard.guard_nif_array(c3i_nif.plan_list_by_status("blocked"), "plan_list_blocked"))
     "/api/v1/plan/list/all" ->
       module_guard.unwrap(module_guard.guard_nif_array(c3i_nif.plan_list_by_status("all"), "plan_list_all"))
+    // Workflow Monitor (WF-3) — durable execution history (SC-HA-001)
+    "/api/v1/workflows" ->
+      "{\"workflows\":[],\"message\":\"Use sa-plan-daemon workflow-list for full history\"}"
     // AG-UI protocol routes (SSE event streams)
     "/ag-ui/run" | "/ag-ui/events" -> agui_run_json(path)
     "/ag-ui/health" -> agui_sse.health_json()
