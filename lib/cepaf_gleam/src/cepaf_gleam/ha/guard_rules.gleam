@@ -111,11 +111,43 @@
 ////   GR-069  SessionNoHolon           salience  45  SessionNoHolonProduced → WarnLog
 ////   GR-070  TaskWithoutZkSearch      salience  50  TaskWithoutZkSearch → WarnLog
 ////
+//// Rule inventory (GR-071..GR-085 — AOR behavioral guard rules):
+////
+////   AOR-FUNC (Functional):
+////   GR-071  BuildNotVerified         salience  80  BuildNotVerified → WarnLog
+////   GR-072  RiskyOpNoCheckpoint      salience  75  RiskyOpWithoutCheckpoint → WarnLog
+////   GR-073  FunctionalRollback       salience  85  HealthDecliningAfterChange → TriggerRunbook("RB-ROLLBACK")
+////   GR-074  FunctionalInvariantHalt  salience 100  AllOf([BuildFailed, HealthBelow(0.3)]) → JidokaHalt
+////
+////   AOR-DELETE (Deletion Safety):
+////   GR-075  DeleteWithoutBackup      salience  90  DeleteWithoutBackup → EscalateToOperator
+////   GR-076  DangerousDeleteHalt      salience 100  DangerousDeleteDetected → JidokaHalt
+////   GR-077  DeletionNotLogged        salience  55  DeletionNotLogged → WarnLog
+////
+////   AOR-WIRE (Wiring Guard):
+////   GR-078  ModelChangedNoGuard      salience  65  ModelChangedWithoutGuard → WarnLog
+////   GR-079  ModelChangedNoTest       salience  60  ModelChangedWithoutTest → WarnLog
+////   GR-080  DirectConstructorTest    salience  55  DirectConstructorInTest → WarnLog
+////
+////   AOR-ZENOH (Telemetry):
+////   GR-081  ZenohDisabledProd        salience 100  ZenohDisabledInProd → JidokaHalt
+////   GR-082  ZenohLongDisconnect      salience  85  ZenohDisconnected30s → EscalateToOperator
+////   GR-083  HealthNotPublished       salience  60  HealthNotPublished → WarnLog
+////
+////   AOR-MOKSHA (Coverage):
+////   GR-084  CoverageDecreased        salience  65  CoverageDecreased → WarnLog
+////   GR-085  CommitWithoutTest        salience  75  CommitWithoutTest → WarnLog
+////
 //// STAMP: SC-SIL4-001, SC-HA-001, SC-OODA-001, SC-MUDA-001, SC-FUNC-001,
 ////        SC-FUNC-002, SC-FUNC-005, SC-FUNC-007, SC-TRUTH-001, SC-TRUTH-003,
 ////        SC-TRUTH-004, SC-TRUTH-010, SC-SIL4-006, SC-SIL4-007, SC-SIL4-010,
 ////        SC-SIL4-011, SC-SIL4-015, SC-MUDA-F-003, SC-MUDA-F-005,
-////        SC-ZK-IMP-001, SC-ZK-IMP-002, SC-ZETTEL-001, SC-ZK-CLAUDE-001
+////        SC-ZK-IMP-001, SC-ZK-IMP-002, SC-ZETTEL-001, SC-ZK-CLAUDE-001,
+////        AOR-FUNC-001, AOR-FUNC-002, AOR-FUNC-005, AOR-FUNC-008,
+////        AOR-DELETE-001, AOR-DELETE-003, AOR-DELETE-007,
+////        AOR-WIRE-001, AOR-WIRE-004, AOR-WIRE-005,
+////        AOR-ZENOH-001, AOR-ZENOH-005, AOR-ZENOH-007,
+////        AOR-MOKSHA-001, AOR-MOKSHA-002
 
 import gleam/float
 import gleam/int
@@ -244,6 +276,39 @@ pub type RuleCondition {
   SessionNoHolonProduced
   /// SC-ZK-CLAUDE-001: task started without prior Zettelkasten search
   TaskWithoutZkSearch
+  // ── AOR-FUNC conditions (GR-071..GR-074) ──
+  /// AOR-FUNC-001: a commit was attempted without running gleam build first
+  BuildNotVerified
+  /// AOR-FUNC-002: a risky git/infra operation started without a git checkpoint
+  RiskyOpWithoutCheckpoint
+  /// AOR-FUNC-005: health score is declining in the window following a code change
+  HealthDecliningAfterChange
+  // ── AOR-DELETE conditions (GR-075..GR-077) ──
+  /// AOR-DELETE-001: file deletion attempted without a prior backup / git stash
+  DeleteWithoutBackup
+  /// AOR-DELETE-003: rm -rf (or equivalent) detected on a code directory
+  DangerousDeleteDetected
+  /// AOR-DELETE-007: deletion occurred but was not recorded in the audit log
+  DeletionNotLogged
+  // ── AOR-WIRE conditions (GR-078..GR-080) ──
+  /// AOR-WIRE-001: a Model type was changed without reading wiring_guard.gleam first
+  ModelChangedWithoutGuard
+  /// AOR-WIRE-004: a Model type was changed without running gleam test afterwards
+  ModelChangedWithoutTest
+  /// AOR-WIRE-005: a test file constructs a Model directly instead of using init()
+  DirectConstructorInTest
+  // ── AOR-ZENOH conditions (GR-081..GR-083) ──
+  /// AOR-ZENOH-001: SKIP_ZENOH_NIF=1 set in a production or staging environment
+  ZenohDisabledInProd
+  /// AOR-ZENOH-005: Zenoh router has been unreachable for >= 30 seconds
+  ZenohDisconnected30s
+  /// AOR-ZENOH-007: node health has not been published to Zenoh within 10 seconds
+  HealthNotPublished
+  // ── AOR-MOKSHA conditions (GR-084..GR-085) ──
+  /// AOR-MOKSHA-001: test coverage tensor shows a decrease after a sprint
+  CoverageDecreased
+  /// AOR-MOKSHA-002: a commit was attempted without running gleam test first
+  CommitWithoutTest
 }
 
 /// Rule actions — control decisions produced by fired rules
@@ -1006,6 +1071,174 @@ pub fn all_rules() -> List(GuardRule) {
       layer: "L5",
       description: "SC-ZK-CLAUDE-001: ZK search is mandatory before starting any new task",
     ),
+    // ── GR-071..074: AOR-FUNC (Functional) ──────────────────────────────────
+    GuardRule(
+      id: "GR-071",
+      name: "BuildNotVerifiedWarn",
+      salience: 80,
+      condition: BuildNotVerified,
+      action: LogWarning(
+        "AOR-FUNC-001: Commit attempted without verifying gleam build — run gleam build first",
+      ),
+      layer: "*",
+      description: "AOR-FUNC-001: gleam build must be verified clean before any commit",
+    ),
+    GuardRule(
+      id: "GR-072",
+      name: "RiskyOpNoCheckpointWarn",
+      salience: 75,
+      condition: RiskyOpWithoutCheckpoint,
+      action: LogWarning(
+        "AOR-FUNC-002: Risky operation started without a git checkpoint — create a checkpoint first",
+      ),
+      layer: "*",
+      description: "AOR-FUNC-002: Git checkpoint required before any risky operation",
+    ),
+    GuardRule(
+      id: "GR-073",
+      name: "FunctionalRollback",
+      salience: 85,
+      condition: HealthDecliningAfterChange,
+      action: TriggerRunbook("RB-ROLLBACK"),
+      layer: "*",
+      description: "AOR-FUNC-005: Health declining after a code change — invoke rollback runbook",
+    ),
+    GuardRule(
+      id: "GR-074",
+      name: "FunctionalInvariantHalt",
+      salience: 100,
+      condition: AllOf(conditions: [BuildFailed, HealthBelow(threshold: 0.3)]),
+      action: JidokaHalt(
+        "AOR-FUNC-008: Build failed AND health < 30% — functional invariant violated, Jidoka halt",
+      ),
+      layer: "*",
+      description: "AOR-FUNC-008: Compound build failure + health collapse triggers Jidoka halt",
+    ),
+    // ── GR-075..077: AOR-DELETE (Deletion Safety) ───────────────────────────
+    GuardRule(
+      id: "GR-075",
+      name: "DeleteWithoutBackupEscalate",
+      salience: 90,
+      condition: DeleteWithoutBackup,
+      action: EscalateToOperator(
+        "AOR-DELETE-001: Deletion attempted without backup or git stash — stash untracked files first",
+      ),
+      layer: "*",
+      description: "AOR-DELETE-001: All untracked code files must be backed up before deletion",
+    ),
+    GuardRule(
+      id: "GR-076",
+      name: "DangerousDeleteHalt",
+      salience: 100,
+      condition: DangerousDeleteDetected,
+      action: JidokaHalt(
+        "AOR-DELETE-003: rm -rf detected on code directory — immediate halt to prevent data loss",
+      ),
+      layer: "*",
+      description: "AOR-DELETE-003: Destructive rm -rf on code dirs triggers Jidoka halt",
+    ),
+    GuardRule(
+      id: "GR-077",
+      name: "DeletionNotLoggedWarn",
+      salience: 55,
+      condition: DeletionNotLogged,
+      action: LogWarning(
+        "AOR-DELETE-007: File deletion not recorded in audit log — log all deletions",
+      ),
+      layer: "*",
+      description: "AOR-DELETE-007: Every deletion must be logged to the session audit trail",
+    ),
+    // ── GR-078..080: AOR-WIRE (Wiring Guard) ────────────────────────────────
+    GuardRule(
+      id: "GR-078",
+      name: "ModelChangedNoGuardWarn",
+      salience: 65,
+      condition: ModelChangedWithoutGuard,
+      action: LogWarning(
+        "AOR-WIRE-001: Model type changed without reading wiring_guard.gleam first (SC-WIRE-001)",
+      ),
+      layer: "L2",
+      description: "AOR-WIRE-001: Read wiring_guard.gleam before modifying any Model type",
+    ),
+    GuardRule(
+      id: "GR-079",
+      name: "ModelChangedNoTestWarn",
+      salience: 60,
+      condition: ModelChangedWithoutTest,
+      action: LogWarning(
+        "AOR-WIRE-004: Model type changed without running gleam test — wiring breaks undetected (SC-WIRE-002)",
+      ),
+      layer: "L2",
+      description: "AOR-WIRE-004: gleam test must be run after every Model type change",
+    ),
+    GuardRule(
+      id: "GR-080",
+      name: "DirectConstructorInTestWarn",
+      salience: 55,
+      condition: DirectConstructorInTest,
+      action: LogWarning(
+        "AOR-WIRE-005: Test uses direct Model() constructor instead of init() — use init() (SC-WIRE-007)",
+      ),
+      layer: "L2",
+      description: "AOR-WIRE-005: Tests must use init() constructors, not direct Model constructors",
+    ),
+    // ── GR-081..083: AOR-ZENOH (Telemetry) ──────────────────────────────────
+    GuardRule(
+      id: "GR-081",
+      name: "ZenohDisabledProdHalt",
+      salience: 100,
+      condition: ZenohDisabledInProd,
+      action: JidokaHalt(
+        "AOR-ZENOH-001: SKIP_ZENOH_NIF=1 detected in production/staging — Zenoh is mandatory (SC-ZENOH-001)",
+      ),
+      layer: "L6",
+      description: "AOR-ZENOH-001: SKIP_ZENOH_NIF=1 in production is an immediate Jidoka halt",
+    ),
+    GuardRule(
+      id: "GR-082",
+      name: "ZenohLongDisconnectEscalate",
+      salience: 85,
+      condition: ZenohDisconnected30s,
+      action: EscalateToOperator(
+        "AOR-ZENOH-005: Zenoh router unreachable for >= 30s — mesh backplane unavailable (SC-ZENOH-005)",
+      ),
+      layer: "L6",
+      description: "AOR-ZENOH-005: Zenoh disconnection > 30 seconds must escalate to operator",
+    ),
+    GuardRule(
+      id: "GR-083",
+      name: "HealthNotPublishedWarn",
+      salience: 60,
+      condition: HealthNotPublished,
+      action: LogWarning(
+        "AOR-ZENOH-007: Node health not published to Zenoh within 10s — publish every 10 seconds (SC-ZENOH-006)",
+      ),
+      layer: "L6",
+      description: "AOR-ZENOH-007: Node health must be published to Zenoh every 10 seconds",
+    ),
+    // ── GR-084..085: AOR-MOKSHA (Coverage) ──────────────────────────────────
+    GuardRule(
+      id: "GR-084",
+      name: "CoverageDecreasedWarn",
+      salience: 65,
+      condition: CoverageDecreased,
+      action: LogWarning(
+        "AOR-MOKSHA-001: Test coverage tensor decreased after sprint — verify tensor coverage >= 80/80 (SC-MOKSHA-001)",
+      ),
+      layer: "*",
+      description: "AOR-MOKSHA-001: Coverage tensor must not regress after any sprint",
+    ),
+    GuardRule(
+      id: "GR-085",
+      name: "CommitWithoutTestWarn",
+      salience: 75,
+      condition: CommitWithoutTest,
+      action: LogWarning(
+        "AOR-MOKSHA-002: Commit attempted without running gleam test — run gleam test before committing (SC-MOKSHA-002)",
+      ),
+      layer: "*",
+      description: "AOR-MOKSHA-002: gleam test must pass before every commit",
+    ),
   ]
 }
 
@@ -1209,6 +1442,78 @@ pub fn evaluate_condition(
 
     // TaskWithoutZkSearch: SC-ZK-CLAUDE-001 — lyapunov in (-2.0, -1.0) signals ZK search omission.
     TaskWithoutZkSearch -> lyapunov <. -1.0 && lyapunov >. -2.0
+
+    // ── AOR-FUNC conditions (GR-071..GR-074) ──
+    // BuildNotVerified: AOR-FUNC-001 — failure_count encodes unverified builds (> 0 = not verified).
+    // Convention: callers pass failure_count = 1 and entropy = 1.1 for build-not-verified events.
+    BuildNotVerified -> failure_count > 0 && entropy >=. 1.0 && entropy <. 1.5
+
+    // RiskyOpWithoutCheckpoint: AOR-FUNC-002 — entropy in [1.5, 2.0) with cascade_depth = 0.
+    // Convention: callers pass entropy = 1.6 and cascade_depth = 0 for risky-op-no-checkpoint events.
+    RiskyOpWithoutCheckpoint ->
+      failure_count > 0 && entropy >=. 1.5 && entropy <. 2.0 && cascade_depth == 0
+
+    // HealthDecliningAfterChange: AOR-FUNC-005 — lyapunov encodes post-change health derivative.
+    // Fire when lyapunov < -0.15 (steeper decline than normal HealthDeclining gate) with entropy >= 2.0.
+    // Convention: callers pass entropy = 2.1 when the decline is post-change (not just ongoing).
+    HealthDecliningAfterChange ->
+      lyapunov <. -0.15 && entropy >=. 2.0
+
+    // ── AOR-DELETE conditions (GR-075..GR-077) ──
+    // DeleteWithoutBackup: AOR-DELETE-001 — cascade_depth = 20 signals delete-without-backup event.
+    // Convention: callers pass cascade_depth = 20 for unprotected deletion attempts.
+    DeleteWithoutBackup -> cascade_depth >= 20 && cascade_depth < 30
+
+    // DangerousDeleteDetected: AOR-DELETE-003 — cascade_depth >= 30 with non-negative entropy.
+    // Convention: callers pass cascade_depth = 30 and entropy = 0.0 for rm -rf on code dirs.
+    // Negative entropy (entropy < 0.0) is reserved for Zenoh disconnect signals.
+    DangerousDeleteDetected -> cascade_depth >= 30 && entropy >=. 0.0
+
+    // DeletionNotLogged: AOR-DELETE-007 — entropy in [2.0, 2.5) with failure_count = 1.
+    // Convention: callers pass failure_count = 1 and entropy = 2.1 for unlogged deletions.
+    DeletionNotLogged ->
+      failure_count > 0 && entropy >=. 2.0 && entropy <. 2.5
+
+    // ── AOR-WIRE conditions (GR-078..GR-080) ──
+    // ModelChangedWithoutGuard: AOR-WIRE-001 — entropy in [2.5, 3.0) with failure_count = 1.
+    // Convention: callers pass failure_count = 1 and entropy = 2.6 for guard-skipped model changes.
+    ModelChangedWithoutGuard ->
+      failure_count > 0 && entropy >=. 2.5 && entropy <. 3.0
+
+    // ModelChangedWithoutTest: AOR-WIRE-004 — entropy in [3.0, 3.5) with failure_count = 1.
+    // Convention: callers pass failure_count = 1 and entropy = 3.1 for test-skipped model changes.
+    ModelChangedWithoutTest ->
+      failure_count > 0 && entropy >=. 3.0 && entropy <. 3.5
+
+    // DirectConstructorInTest: AOR-WIRE-005 — entropy in [3.5, 4.0) with failure_count = 1.
+    // Convention: callers pass failure_count = 1 and entropy = 3.6 for direct-constructor violations.
+    DirectConstructorInTest ->
+      failure_count > 0 && entropy >=. 3.5 && entropy <. 4.0
+
+    // ── AOR-ZENOH conditions (GR-081..GR-083) ──
+    // ZenohDisabledInProd: AOR-ZENOH-001 — lyapunov = -30.0 signals SKIP_ZENOH_NIF=1 in prod.
+    // Distinct from ZenohDisconnected (entropy-based) and partition signals (-20 range).
+    ZenohDisabledInProd -> lyapunov <=. -30.0 && lyapunov >. -40.0
+
+    // ZenohDisconnected30s: AOR-ZENOH-005 — cascade_depth encodes seconds disconnected.
+    // Convention: callers pass cascade_depth = disconnect_seconds for prolonged disconnections.
+    ZenohDisconnected30s -> cascade_depth >= 30 && entropy <. 0.0
+
+    // HealthNotPublished: AOR-ZENOH-007 — entropy in [4.0, 4.5) with failure_count = 1.
+    // Convention: callers pass failure_count = 1 and entropy = 4.1 for missed health publishes.
+    HealthNotPublished ->
+      failure_count > 0 && entropy >=. 4.0 && entropy <. 4.5
+
+    // ── AOR-MOKSHA conditions (GR-084..GR-085) ──
+    // CoverageDecreased: AOR-MOKSHA-001 — entropy in [4.5, 5.0) with failure_count = 1.
+    // Convention: callers pass failure_count = 1 and entropy = 4.6 for coverage regression events.
+    CoverageDecreased ->
+      failure_count > 0 && entropy >=. 4.5 && entropy <. 5.0
+
+    // CommitWithoutTest: AOR-MOKSHA-002 — entropy in [5.0, 5.5) with failure_count = 1.
+    // Convention: callers pass failure_count = 1 and entropy = 5.1 for test-skipped commit events.
+    CommitWithoutTest ->
+      failure_count > 0 && entropy >=. 5.0 && entropy <. 5.5
   }
 }
 
