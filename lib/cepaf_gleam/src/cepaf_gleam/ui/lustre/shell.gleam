@@ -577,7 +577,7 @@ pub fn render_page(
           "link",
           [
             attribute.attribute("rel", "stylesheet"),
-            attribute.attribute("href", "/static/material.css?v=22.10.4"),
+            attribute.attribute("href", "/static/material.css?v=22.10.5"),
           ],
           [],
         ),
@@ -1401,6 +1401,247 @@ pub fn task_create_form() -> Element(msg) {
           ),
         ],
         [element.text("Add Task")],
+      ),
+    ],
+  )
+}
+
+// ---------------------------------------------------------------------------
+// CA5: Manual OODA Cycle Trigger (SC-OODA-ACCEL-004)
+// POST /api/v1/system/ooda-trigger — initiates a manual OODA cycle.
+// Confirm dialog required (HITL). Non-destructive: safe for autonomous use.
+// ---------------------------------------------------------------------------
+
+/// Manual OODA cycle trigger button — POST to /api/v1/system/ooda-trigger.
+/// Allows operator to initiate a manual OODA cycle outside the automatic cadence.
+/// STAMP: SC-OODA-ACCEL-004, SC-GLM-UI-001
+pub fn ooda_trigger_button() -> Element(msg) {
+  element.element(
+    "form",
+    [
+      attribute.attribute("method", "POST"),
+      attribute.attribute("action", "/api/v1/system/ooda-trigger"),
+      attribute.attribute(
+        "onsubmit",
+        "return confirm('Trigger manual OODA cycle?')",
+      ),
+      attribute.attribute("style", "margin:0;display:inline-block;"),
+    ],
+    [
+      html.button(
+        [
+          attribute.attribute("type", "submit"),
+          attribute.attribute(
+            "style",
+            "background:#9b59b6;color:white;padding:8px 16px;border:none;border-radius:6px;font-weight:600;cursor:pointer;min-height:44px;",
+          ),
+        ],
+        [element.text("Trigger OODA Cycle")],
+      ),
+    ],
+  )
+}
+
+// ---------------------------------------------------------------------------
+// CA6: Zenoh Topic Publish Form (SC-ZMOF-COMMS-001)
+// POST /api/v1/zenoh/publish — sends a message to a Zenoh topic.
+// STAMP: SC-ZMOF-COMMS-001, SC-GLM-UI-001
+// ---------------------------------------------------------------------------
+
+/// Zenoh topic publish form — POST to /api/v1/zenoh/publish.
+/// Renders a two-field form (topic + payload) for operator-initiated Zenoh publishes.
+/// STAMP: SC-ZMOF-COMMS-001, SC-GLM-UI-001
+pub fn zenoh_publish_form() -> Element(msg) {
+  element.element(
+    "form",
+    [
+      attribute.attribute("method", "POST"),
+      attribute.attribute("action", "/api/v1/zenoh/publish"),
+      attribute.attribute(
+        "style",
+        "display:flex;gap:.5rem;align-items:end;padding:.75rem 1rem;background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.25);border-radius:8px;flex-wrap:wrap;",
+      ),
+    ],
+    [
+      html.div(
+        [attribute.attribute("style", "flex:1;min-width:200px;")],
+        [
+          html.label(
+            [
+              attribute.attribute(
+                "style",
+                "display:block;font-size:.75rem;color:#7a8fa6;margin-bottom:4px;",
+              ),
+            ],
+            [element.text("Topic")],
+          ),
+          element.element(
+            "input",
+            [
+              attribute.attribute("type", "text"),
+              attribute.attribute("name", "topic"),
+              attribute.attribute("placeholder", "indrajaal/test/message"),
+              attribute.attribute("required", "true"),
+              attribute.attribute(
+                "style",
+                "width:100%;padding:8px 12px;background:#141922;border:1px solid #1e2a3a;border-radius:6px;color:#e0e6ed;",
+              ),
+            ],
+            [],
+          ),
+        ],
+      ),
+      html.div(
+        [attribute.attribute("style", "flex:1;min-width:150px;")],
+        [
+          html.label(
+            [
+              attribute.attribute(
+                "style",
+                "display:block;font-size:.75rem;color:#7a8fa6;margin-bottom:4px;",
+              ),
+            ],
+            [element.text("Payload")],
+          ),
+          element.element(
+            "input",
+            [
+              attribute.attribute("type", "text"),
+              attribute.attribute("name", "payload"),
+              attribute.attribute("placeholder", "{\"test\":true}"),
+              attribute.attribute(
+                "style",
+                "width:100%;padding:8px 12px;background:#141922;border:1px solid #1e2a3a;border-radius:6px;color:#e0e6ed;",
+              ),
+            ],
+            [],
+          ),
+        ],
+      ),
+      html.button(
+        [
+          attribute.attribute("type", "submit"),
+          attribute.attribute(
+            "style",
+            "background:#00d4aa;color:#0a0e17;padding:8px 16px;border:none;border-radius:6px;font-weight:600;cursor:pointer;min-height:44px;",
+          ),
+        ],
+        [element.text("Publish")],
+      ),
+    ],
+  )
+}
+
+// ---------------------------------------------------------------------------
+// CA8: Dark Cockpit Mode Override (SC-HMI-010)
+// POST /api/v1/cockpit/mode — force a specific cockpit mode.
+// Three forms: Dark / Normal / Emergency. No confirm required for Dark/Normal;
+// Emergency uses the same L0 friction threshold.
+// STAMP: SC-HMI-010, SC-GLM-UI-008
+// ---------------------------------------------------------------------------
+
+/// Cockpit mode switch — three POST forms for Dark / Normal / Emergency (SC-HMI-010).
+/// Allows operator to force a specific cockpit display mode regardless of auto-derived state.
+/// STAMP: SC-HMI-010, SC-GLM-UI-008
+pub fn cockpit_mode_switch() -> Element(msg) {
+  html.div(
+    [
+      attribute.attribute(
+        "style",
+        "display:flex;gap:.5rem;flex-wrap:wrap;padding:.75rem 1rem;background:rgba(122,143,166,0.08);border:1px solid rgba(122,143,166,0.25);border-radius:8px;",
+      ),
+    ],
+    [
+      element.element(
+        "form",
+        [
+          attribute.attribute("method", "POST"),
+          attribute.attribute("action", "/api/v1/cockpit/mode"),
+          attribute.attribute("style", "margin:0;"),
+        ],
+        [
+          element.element(
+            "input",
+            [
+              attribute.attribute("type", "hidden"),
+              attribute.attribute("name", "mode"),
+              attribute.attribute("value", "dark"),
+            ],
+            [],
+          ),
+          html.button(
+            [
+              attribute.attribute("type", "submit"),
+              attribute.attribute(
+                "style",
+                "background:#1e2a3a;color:#7a8fa6;padding:8px 16px;border:1px solid #2a3a4a;border-radius:6px;cursor:pointer;min-height:44px;",
+              ),
+            ],
+            [element.text("Dark")],
+          ),
+        ],
+      ),
+      element.element(
+        "form",
+        [
+          attribute.attribute("method", "POST"),
+          attribute.attribute("action", "/api/v1/cockpit/mode"),
+          attribute.attribute("style", "margin:0;"),
+        ],
+        [
+          element.element(
+            "input",
+            [
+              attribute.attribute("type", "hidden"),
+              attribute.attribute("name", "mode"),
+              attribute.attribute("value", "normal"),
+            ],
+            [],
+          ),
+          html.button(
+            [
+              attribute.attribute("type", "submit"),
+              attribute.attribute(
+                "style",
+                "background:#f5a623;color:#0a0e17;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;min-height:44px;",
+              ),
+            ],
+            [element.text("Normal")],
+          ),
+        ],
+      ),
+      element.element(
+        "form",
+        [
+          attribute.attribute("method", "POST"),
+          attribute.attribute("action", "/api/v1/cockpit/mode"),
+          attribute.attribute(
+            "onsubmit",
+            "return confirm('Force EMERGENCY cockpit mode?')",
+          ),
+          attribute.attribute("style", "margin:0;"),
+        ],
+        [
+          element.element(
+            "input",
+            [
+              attribute.attribute("type", "hidden"),
+              attribute.attribute("name", "mode"),
+              attribute.attribute("value", "emergency"),
+            ],
+            [],
+          ),
+          html.button(
+            [
+              attribute.attribute("type", "submit"),
+              attribute.attribute(
+                "style",
+                "background:#ff4757;color:white;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;min-height:44px;",
+              ),
+            ],
+            [element.text("Emergency")],
+          ),
+        ],
       ),
     ],
   )

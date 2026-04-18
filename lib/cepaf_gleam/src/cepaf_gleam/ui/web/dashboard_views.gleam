@@ -1764,6 +1764,10 @@ pub fn cockpit_view(state: SharedMeshState) -> Element(msg) {
           ["22:30:00", "INFO", "Health", "All 16 containers passing"],
         ]),
       ]),
+      // ── CA5: Manual OODA Trigger (SC-OODA-ACCEL-004) ───────────────────
+      shell.section("OODA Controls", [shell.ooda_trigger_button()]),
+      // ── CA8: Cockpit Mode Override (SC-HMI-010) ─────────────────────────
+      shell.section("Cockpit Mode Override", [shell.cockpit_mode_switch()]),
       // ── System Controls — Hot Reload (SC-HA-RELOAD-001) ────────────────
       shell.section("System Controls", [shell.hot_reload_button()]),
       // ── L0 Emergency Stop (SC-SAFETY-022) ──────────────────────────────

@@ -156,6 +156,8 @@ pub fn zenoh_view(state: SharedMeshState) -> Element(msg) {
         ["indrajaal/mcp/**", "pub/sub", "MCP-over-Zenoh (MoZ)"],
       ]),
     ]),
+    // ── CA6: Zenoh Publish (SC-ZMOF-COMMS-001) ──────────────────────────
+    shell.section("Zenoh Publish", [shell.zenoh_publish_form()]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/zenoh-grid.js?v=22.10.0")],
