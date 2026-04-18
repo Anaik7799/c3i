@@ -425,6 +425,9 @@ pub fn bicameral_view(state: SharedMeshState) -> Element(msg) {
         ["Cortex", "0", "—", "No vetoes recorded"],
       ]),
     ]),
+    shell.section("Guardian Approval (L0 HITL)", [
+      shell.guardian_approval_panel(),
+    ]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/bicameral-grid.js?v=22.10.1")],

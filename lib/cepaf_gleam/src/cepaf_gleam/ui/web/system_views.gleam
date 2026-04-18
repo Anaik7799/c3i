@@ -89,6 +89,9 @@ pub fn immune_view(state: SharedMeshState) -> Element(msg) {
     shell.section("Emergency Controls (L0 Constitutional)", [
       shell.emergency_stop_button(),
     ]),
+    shell.section("Guardian Approval (L0 HITL)", [
+      shell.guardian_approval_panel(),
+    ]),
     element.element(
       "script",
       [attribute.attribute("src", "/static/immune-grid.js?v=22.10.0")],

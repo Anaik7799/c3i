@@ -1187,6 +1187,120 @@ pub fn hot_reload_button() -> Element(msg) {
 }
 
 // ---------------------------------------------------------------------------
+// Guardian Approval Panel (SC-SIL4-006, L0 Constitutional)
+// Shows pending L0 approval requests with approve/reject buttons.
+// HITL: MANDATORY — 2oo3 consensus required for L0 mutations.
+// GET /api/v1/guardian/pending for live queue. POST /api/v1/guardian/respond.
+// ---------------------------------------------------------------------------
+
+/// Guardian approval panel — shows pending L0 requests with approve/reject (SC-SIL4-006).
+/// HITL approval is MANDATORY at L0 Constitutional layer (SC-AGUI-004).
+/// STAMP: SC-SIL4-006, SC-SAFETY-001, SC-AGUI-004
+pub fn guardian_approval_panel() -> Element(msg) {
+  html.div(
+    [
+      attribute.class("guardian-panel"),
+      attribute.attribute(
+        "style",
+        "padding:1rem;background:rgba(155,89,182,0.08);border:1px solid rgba(155,89,182,0.3);border-radius:8px;",
+      ),
+    ],
+    [
+      html.h3(
+        [
+          attribute.attribute(
+            "style",
+            "margin:0 0 .75rem;color:#9b59b6;font-size:.9rem;",
+          ),
+        ],
+        [element.text("Guardian Approval Queue (L0 Constitutional)")],
+      ),
+      html.p(
+        [
+          attribute.attribute(
+            "style",
+            "color:#7a8fa6;font-size:.8rem;margin:0 0 .75rem;",
+          ),
+        ],
+        [
+          element.text(
+            "Pending requests require 2oo3 consensus. GET /api/v1/guardian/pending for live queue.",
+          ),
+        ],
+      ),
+      html.div([attribute.attribute("style", "display:flex;gap:.5rem;")], [
+        element.element(
+          "form",
+          [
+            attribute.attribute("method", "POST"),
+            attribute.attribute("action", "/api/v1/guardian/respond"),
+            attribute.attribute(
+              "onsubmit",
+              "return confirm('APPROVE this L0 action? Requires 2oo3 consensus.')",
+            ),
+            attribute.attribute("style", "margin:0;"),
+          ],
+          [
+            element.element(
+              "input",
+              [
+                attribute.attribute("type", "hidden"),
+                attribute.attribute("name", "decision"),
+                attribute.attribute("value", "approve"),
+              ],
+              [],
+            ),
+            html.button(
+              [
+                attribute.attribute("type", "submit"),
+                attribute.attribute(
+                  "style",
+                  "background:#3dd68c;color:#0a0e17;padding:8px 16px;border:none;border-radius:6px;font-weight:600;cursor:pointer;min-height:44px;",
+                ),
+              ],
+              [element.text("Approve")],
+            ),
+          ],
+        ),
+        element.element(
+          "form",
+          [
+            attribute.attribute("method", "POST"),
+            attribute.attribute("action", "/api/v1/guardian/respond"),
+            attribute.attribute(
+              "onsubmit",
+              "return confirm('REJECT this L0 action?')",
+            ),
+            attribute.attribute("style", "margin:0;"),
+          ],
+          [
+            element.element(
+              "input",
+              [
+                attribute.attribute("type", "hidden"),
+                attribute.attribute("name", "decision"),
+                attribute.attribute("value", "reject"),
+              ],
+              [],
+            ),
+            html.button(
+              [
+                attribute.attribute("type", "submit"),
+                attribute.attribute(
+                  "style",
+                  "background:#ff4757;color:white;padding:8px 16px;border:none;border-radius:6px;font-weight:600;cursor:pointer;min-height:44px;",
+                ),
+              ],
+              [element.text("Reject")],
+            ),
+          ],
+        ),
+      ]),
+    ],
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Task Creation Form (SC-TODO-001, Planning page)
 // POST /api/v1/planning/add — delegates to sa-plan-daemon.
 // ---------------------------------------------------------------------------

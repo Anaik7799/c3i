@@ -884,6 +884,129 @@ fn knowledge_ws_on_close(_state: KnowledgeWsState) -> Nil {
 }
 
 // ---------------------------------------------------------------------------
+// Generic WebSocket handler — covers all pages not served by a specific handler
+// SC-AGUI-UI-006, SC-GLM-UI-001: every page gets real-time push via /ws/{page}
+// परिवर्तन — Universal change propagation (Gita 4.7)
+// ---------------------------------------------------------------------------
+
+/// Generic WS state — page name + push count + last snapshot for diff detection
+pub type PageWsState {
+  PageWsState(page: String, push_count: Int, last_snapshot: String)
+}
+
+/// Dispatch NIF call for a given page name.
+/// Pages with dedicated WS handlers (planning, dashboard) are excluded here —
+/// they carry custom multi-field logic handled by their own handlers above.
+fn page_ws_snapshot(page: String) -> String {
+  case page {
+    "immune" -> c3i_nif.system_immune()
+    "zenoh" -> c3i_nif.system_zenoh()
+    "verification" -> c3i_nif.system_verification()
+    "agents" -> c3i_nif.system_dashboard()
+    "knowledge" -> c3i_nif.knowledge_search("")
+    "telemetry" -> c3i_nif.system_dashboard()
+    "substrate" -> c3i_nif.system_health()
+    "metabolic" -> c3i_nif.system_health()
+    "podman" -> c3i_nif.system_dashboard()
+    "mcp" -> c3i_nif.system_dashboard()
+    "kms" -> c3i_nif.system_health()
+    "smriti" -> c3i_nif.plan_status()
+    "bridge" -> c3i_nif.system_zenoh()
+    "federation" -> c3i_nif.system_zenoh()
+    "prajna" -> c3i_nif.system_health()
+    "health-grid" -> c3i_nif.system_health()
+    _ -> c3i_nif.system_dashboard()
+  }
+}
+
+/// Generic WS init — sends connected frame with page-specific snapshot.
+fn generic_ws_on_init(
+  conn: mist.WebsocketConnection,
+  page: String,
+) -> #(PageWsState, option.Option(process.Selector(WsMsg))) {
+  let snapshot = page_ws_snapshot(page)
+  let welcome =
+    json.object([
+      #("type", json.string("connected")),
+      #("page", json.string(page)),
+      #("snapshot", json.string(snapshot)),
+      #("interval_ms", json.int(1000)),
+    ])
+    |> json.to_string()
+  let _ = mist.send_text_frame(conn, welcome)
+  #(PageWsState(page: page, push_count: 0, last_snapshot: snapshot), None)
+}
+
+/// Generic WS handler — diff-detected push on "ping", search fallback otherwise.
+fn generic_ws_handler(
+  state: PageWsState,
+  msg: mist.WebsocketMessage(WsMsg),
+  conn: mist.WebsocketConnection,
+) -> mist.Next(PageWsState, WsMsg) {
+  case msg {
+    mist.Text(text) -> {
+      case text {
+        "ping" -> {
+          let snapshot = page_ws_snapshot(state.page)
+          let changed = snapshot != state.last_snapshot
+          case changed {
+            True -> {
+              let payload =
+                json.object([
+                  #("type", json.string("update")),
+                  #("page", json.string(state.page)),
+                  #("snapshot", json.string(snapshot)),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, payload)
+              mist.continue(PageWsState(
+                page: state.page,
+                push_count: state.push_count + 1,
+                last_snapshot: snapshot,
+              ))
+            }
+            False -> {
+              let hb =
+                json.object([
+                  #("type", json.string("heartbeat")),
+                  #("seq", json.int(state.push_count + 1)),
+                ])
+                |> json.to_string()
+              let _ = mist.send_text_frame(conn, hb)
+              mist.continue(PageWsState(
+                ..state,
+                push_count: state.push_count + 1,
+              ))
+            }
+          }
+        }
+        _ -> {
+          let search_result = c3i_nif.plan_search(text)
+          let resp =
+            json.object([
+              #("type", json.string("search")),
+              #("query", json.string(text)),
+              #("results", json.string(search_result)),
+            ])
+            |> json.to_string()
+          let _ = mist.send_text_frame(conn, resp)
+          mist.continue(state)
+        }
+      }
+    }
+    mist.Closed | mist.Shutdown -> mist.stop()
+    mist.Binary(_) -> mist.continue(state)
+    mist.Custom(_) -> mist.continue(state)
+  }
+}
+
+/// Called when a generic page WebSocket closes.
+fn generic_ws_on_close(_state: PageWsState) -> Nil {
+  Nil
+}
+
+// ---------------------------------------------------------------------------
 // Entry point — HTTP + hepta WebSocket (planning + dashboard + immune + zenoh + verification + agents + knowledge)
 // ---------------------------------------------------------------------------
 
@@ -957,6 +1080,16 @@ pub fn start(port: Int) -> Result(Nil, String) {
               handler: knowledge_ws_handler,
               on_init: knowledge_ws_on_init,
               on_close: knowledge_ws_on_close,
+            )
+          // Generic WS — catch-all for any remaining /ws/{page} routes.
+          // Planning and dashboard retain their custom multi-field handlers above.
+          // All other pages use page_ws_snapshot(page) for NIF dispatch.
+          "/ws/" <> page_name ->
+            mist.websocket(
+              request: req,
+              handler: generic_ws_handler,
+              on_init: fn(conn) { generic_ws_on_init(conn, page_name) },
+              on_close: generic_ws_on_close,
             )
           // Unknown WS path — reject with 404
           _ ->

@@ -57,6 +57,7 @@
 import cepaf_gleam/actors/freshness_actor
 import cepaf_gleam/actors/guard_grid_actor
 import cepaf_gleam/actors/observer_actor
+import cepaf_gleam/ha/claude_metrics
 import cepaf_gleam/ha/crdt
 import cepaf_gleam/prajna/bio
 import cepaf_gleam/prajna/circuit_breaker
@@ -71,6 +72,9 @@ import cepaf_gleam/substrate/beam_cache
 import gleam/float
 import gleam/int
 import gleam/io
+
+@external(erlang, "cepaf_gleam_ffi", "system_time_nanos")
+fn system_time_nanos() -> Int
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -173,6 +177,13 @@ pub fn start() -> AppState {
     False -> "false"
   })
   io.println("[C3I] IEC 61508 evidence loaded (coverage: " <> int.to_string(float.truncate(coverage)) <> "%)")
+
+  // 11. Claude metrics — self-observation tracker (SC-SATYA-002, SC-EVO-KPI-001)
+  let now_ms = system_time_nanos() / 1_000_000
+  let session_id = "gleam-" <> int.to_string(now_ms)
+  let metrics = claude_metrics.init(session_id, now_ms)
+  let _ = claude_metrics.publish_to_ets(metrics)
+  io.println("[C3I] Claude metrics initialised (session: " <> session_id <> ")")
 
   io.println("[C3I] All subsystems started. System is ALIVE.")
 
