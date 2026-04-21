@@ -2,3 +2,6 @@
 *.ez
 build/
 erl_crash.dump
+# NIF crate build artefacts — compiled .so is tracked under priv/ only
+native/*/target/
+native/*/Cargo.lock

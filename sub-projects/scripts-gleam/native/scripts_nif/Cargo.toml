@@ -1,0 +1,48 @@
+[package]
+name = "scripts_nif"
+version = "0.1.0"
+edition = "2021"
+description = "Rust NIFs for the scripts-gleam subproject (SC-SCRIPT-GLEAM-001). Zenoh + Smriti + Gemini + MCP-over-Zenoh + Fractal observability."
+license = "Apache-2.0"
+
+[lib]
+name = "scripts_nif"
+crate-type = ["cdylib"]
+
+[dependencies]
+# Rustler — matched to existing project NIFs (zenoh_nif uses 0.37).
+rustler = "0.37"
+
+# Async runtime — shared tokio for Zenoh + reqwest + mcp.
+tokio = { version = "1.35", features = ["rt-multi-thread", "sync", "time", "macros"] }
+
+# Zenoh — matched to existing zenoh_nif (1.7 with minimal transports).
+zenoh = { version = "1.7", default-features = false, features = ["transport_tcp", "transport_udp"] }
+
+# Smriti = SQLite. rusqlite bundled so the NIF is self-contained and cannot
+# break cepaf_gleam's esqlite NIF by version drift.
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# Gemini REST (generateContent). Use rustls to avoid OpenSSL coupling.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "blocking"] }
+
+# Identifiers + hashing + time.
+uuid = { version = "1.10", features = ["v4", "v7"] }
+sha2 = "0.10"
+chrono = "0.4"
+
+# JSON serialization — match ecosystem.
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Thread-safe lazy state for the Zenoh session cache.
+once_cell = "1.19"
+parking_lot = "0.12"
+
+# Logging — same as the sibling NIFs.
+log = "0.4"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
