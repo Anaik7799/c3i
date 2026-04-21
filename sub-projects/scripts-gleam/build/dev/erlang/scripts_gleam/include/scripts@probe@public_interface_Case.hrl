@@ -1,1 +1,0 @@
--record('case', {name :: binary(), path :: binary(), want :: binary()}).
