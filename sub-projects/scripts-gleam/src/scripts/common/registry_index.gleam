@@ -8,9 +8,11 @@ import scripts/common/manifest as mfst
 import scripts/probe/public_interface
 import scripts/registry/saplan_smoke
 import scripts/tools/build_nif
+import scripts/tools/build_nif_cross
 import scripts/tools/guard_no_shell
 import scripts/tools/metrics_dump
 import scripts/tools/scaffold
+import scripts/verify/feature_evolution
 import scripts/verify/metrics_roundtrip
 import scripts/verify/symbiosis_smoke
 
@@ -22,7 +24,9 @@ pub fn all() -> List(mfst.Manifest) {
     saplan_smoke.manifest(),
     symbiosis_smoke.manifest(),
     metrics_roundtrip.manifest(),
+    feature_evolution.manifest(),
     build_nif.manifest(),
+    build_nif_cross.manifest(),
     guard_no_shell.manifest(),
     metrics_dump.manifest(),
     scaffold.manifest(),

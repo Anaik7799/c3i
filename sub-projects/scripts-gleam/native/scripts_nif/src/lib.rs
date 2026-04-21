@@ -7,8 +7,10 @@
 //!   * Smriti:     smriti_get_pref, smriti_set_pref, smriti_get_task
 //!   * Zenoh:      zenoh_open_session, zenoh_put, zenoh_get, zenoh_session_info
 //!   * Fractal:    fractal_span_emit  (emits OTel-shaped span + Zenoh publish)
-//!   * Gemini:     gemini_generate    (HTTP POST generateContent)
-//!   * MCP:        mcp_invoke_moz     (MCP-over-Zenoh request/response)
+//!   * Gemini:     gemini_generate     (HTTP POST generateContent)
+//!   * OpenRouter: openrouter_generate (HTTP POST chat/completions)
+//!   * Ollama:     ollama_generate     (HTTP POST /api/generate)
+//!   * MCP:        mcp_invoke_moz      (MCP-over-Zenoh request/response)
 //!   * Metrics:    metrics_counter_inc, metrics_histogram_observe, metrics_snapshot
 //!
 //! All NIFs are synchronous wrappers around a shared tokio runtime so BEAM
@@ -551,7 +553,138 @@ fn metrics_snapshot() -> NifResult<(Atom, String)> {
     Ok((atoms::ok(), v.to_string()))
 }
 
-// ─── MCP-over-Zenoh ──────────────────────────────────────────────────────────
+// ─── OpenRouter NIF ────────────────────────────────────────────────────────────────────────
+
+#[derive(Serialize)]
+struct OpenRouterReq<'a> {
+    model: &'a str,
+    messages: Vec<OrMsg<'a>>,
+}
+
+#[derive(Serialize)]
+struct OrMsg<'a> {
+    role: &'a str,
+    content: &'a str,
+}
+
+#[derive(Deserialize)]
+struct OrResp {
+    #[serde(default)]
+    choices: Vec<OrChoice>,
+}
+
+#[derive(Deserialize)]
+struct OrChoice {
+    #[serde(default)]
+    message: Option<OrMessage>,
+}
+
+#[derive(Deserialize)]
+struct OrMessage {
+    #[serde(default)]
+    content: String,
+}
+
+#[rustler::nif(schedule = "DirtyIo")]
+fn openrouter_generate(
+    api_key: String,
+    model: String,
+    prompt: String,
+    timeout_ms: u64,
+) -> NifResult<(Atom, String)> {
+    let body = OpenRouterReq {
+        model: &model,
+        messages: vec![OrMsg { role: "user", content: &prompt }],
+    };
+    let res: Result<String, String> = (|| {
+        let client = reqwest::blocking::Client::builder()
+            .timeout(Duration::from_millis(timeout_ms))
+            .build()
+            .map_err(|e| format!("client: {}", e))?;
+        let resp = client
+            .post("https://openrouter.ai/api/v1/chat/completions")
+            .header("Authorization", format!("Bearer {}", api_key))
+            .header("HTTP-Referer", "https://vm-1.tail55d152.ts.net")
+            .header("X-Title", "scripts-gleam")
+            .json(&body)
+            .send()
+            .map_err(|e| format!("send: {}", e))?;
+        let status = resp.status().as_u16();
+        let text = resp.text().unwrap_or_default();
+        if status >= 400 {
+            return Err(format!("http {} body={}", status, text));
+        }
+        let parsed: OrResp =
+            serde_json::from_str(&text).map_err(|e| format!("parse: {} body={}", e, text))?;
+        let reply = parsed
+            .choices
+            .into_iter()
+            .next()
+            .and_then(|c| c.message)
+            .map(|m| m.content)
+            .unwrap_or_default();
+        Ok(reply)
+    })();
+    match res {
+        Ok(t) => Ok((atoms::ok(), t)),
+        Err(e) => err(e),
+    }
+}
+
+// ─── Ollama NIF (local model server at http://127.0.0.1:11434) ───────────────────
+
+#[derive(Serialize)]
+struct OllamaReq<'a> {
+    model: &'a str,
+    prompt: &'a str,
+    stream: bool,
+}
+
+#[derive(Deserialize)]
+struct OllamaResp {
+    #[serde(default)]
+    response: String,
+}
+
+#[rustler::nif(schedule = "DirtyIo")]
+fn ollama_generate(
+    endpoint: String,
+    model: String,
+    prompt: String,
+    timeout_ms: u64,
+) -> NifResult<(Atom, String)> {
+    let url = if endpoint.is_empty() {
+        "http://127.0.0.1:11434/api/generate".to_string()
+    } else {
+        format!("{}/api/generate", endpoint.trim_end_matches('/'))
+    };
+    let body = OllamaReq { model: &model, prompt: &prompt, stream: false };
+    let res: Result<String, String> = (|| {
+        let client = reqwest::blocking::Client::builder()
+            .timeout(Duration::from_millis(timeout_ms))
+            .build()
+            .map_err(|e| format!("client: {}", e))?;
+        let resp = client
+            .post(&url)
+            .json(&body)
+            .send()
+            .map_err(|e| format!("send: {}", e))?;
+        let status = resp.status().as_u16();
+        let text = resp.text().unwrap_or_default();
+        if status >= 400 {
+            return Err(format!("http {} body={}", status, text));
+        }
+        let parsed: OllamaResp =
+            serde_json::from_str(&text).map_err(|e| format!("parse: {} body={}", e, text))?;
+        Ok(parsed.response)
+    })();
+    match res {
+        Ok(t) => Ok((atoms::ok(), t)),
+        Err(e) => err(e),
+    }
+}
+
+// ─── MCP-over-Zenoh ───────────────────────────────────────────────────────────────────────────────
 //
 // Protocol: a client publishes an MCP request JSON to
 //   indrajaal/mcp/request/<tool>
@@ -623,6 +756,48 @@ fn mcp_invoke_moz(
     });
     match res {
         Ok(v) => Ok((atoms::ok(), v)),
+        Err(e) => err(e),
+    }
+}
+
+/// Server side of MCP-over-Zenoh: block waiting for a single inbound request
+/// on `indrajaal/mcp/request/<tool_pattern>` (Zenoh wildcards allowed).
+/// Returns `(ok, body)` on request, `(ok, "")` on timeout (so the gleam
+/// caller never sees a NIF exception for the common "nothing arrived" case).
+/// Setup errors return `(error_atom, reason)` via the standard term path.
+#[rustler::nif(schedule = "DirtyIo")]
+fn mcp_serve_one(
+    tool_pattern: String,
+    timeout_ms: u64,
+) -> NifResult<(Atom, String)> {
+    let rt = runtime();
+    let key_expr = format!("indrajaal/mcp/request/{}", tool_pattern);
+    let res: Result<Option<String>, String> = rt.block_on(async move {
+        let session = ensure_session().await?;
+        let subscriber = session
+            .declare_subscriber(&key_expr)
+            .await
+            .map_err(|e| format!("subscribe: {}", e))?;
+        match tokio::time::timeout(
+            Duration::from_millis(timeout_ms),
+            subscriber.recv_async(),
+        )
+        .await
+        {
+            Ok(Ok(sample)) => {
+                let payload: String = match sample.payload().try_to_string() {
+                    Ok(s) => s.to_string(),
+                    Err(_) => format!("<{} bytes>", sample.payload().len()),
+                };
+                Ok(Some(payload))
+            }
+            Ok(Err(e)) => Err(format!("recv: {}", e)),
+            Err(_) => Ok(None),
+        }
+    });
+    match res {
+        Ok(Some(v)) => Ok((atoms::ok(), v)),
+        Ok(None) => Ok((atoms::ok(), String::new())),
         Err(e) => err(e),
     }
 }

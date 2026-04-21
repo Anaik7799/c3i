@@ -32,23 +32,44 @@ pub type Run {
   Run(rc: Int, stdout: String, stderr: String)
 }
 
-/// Erlang OS-port bridge: spawn a command and capture combined output.
-/// Returns `#(stdout_combined, exit_code)`.
+/// Erlang OS-port bridge (run in default erlang CWD).
 @external(erlang, "scripts_sh_ffi", "run_capture")
 fn sh_run_capture(
   cmd: charlist.Charlist,
   args: List(charlist.Charlist),
 ) -> #(charlist.Charlist, Int)
 
+/// Erlang OS-port bridge with explicit CWD (needed for sa-plan which opens
+/// `data/smriti/Smriti.db` relative to the c3i sub-project).
+@external(erlang, "scripts_sh_ffi", "run_capture_in")
+fn sh_run_capture_in(
+  cmd: charlist.Charlist,
+  args: List(charlist.Charlist),
+  cwd: charlist.Charlist,
+) -> #(charlist.Charlist, Int)
+
 fn to_cl(s: String) -> charlist.Charlist {
   charlist.from_string(s)
 }
 
-/// Invoke `sa-plan <args>` and return a `Run`. Stdout+stderr are merged into
-/// the `stdout` field (system's binary itself prints to stdout).
+/// Directory sa-plan expects as its CWD (authoritative path).
+fn saplan_cwd() -> String {
+  let root = case envoy.get("C3I_REPO_ROOT") {
+    Ok(v) -> v
+    Error(_) -> "/home/an/dev/ver/c3i"
+  }
+  root <> "/sub-projects/c3i"
+}
+
+/// Invoke `sa-plan <args>` with the correct CWD set. Stdout+stderr are
+/// merged into the `stdout` field.
 pub fn invoke(args: List(String)) -> Run {
   let #(out, rc) =
-    sh_run_capture(to_cl(binary()), list.map(args, to_cl))
+    sh_run_capture_in(
+      to_cl(binary()),
+      list.map(args, to_cl),
+      to_cl(saplan_cwd()),
+    )
   Run(rc, charlist.to_string(out), "")
 }
 

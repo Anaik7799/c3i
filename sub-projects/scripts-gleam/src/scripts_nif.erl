@@ -29,8 +29,13 @@
     fractal_span_emit/6,
     %% Gemini (1)
     gemini_generate/4,
-    %% MCP (1)
+    %% OpenRouter (1)
+    openrouter_generate/4,
+    %% Ollama (1)
+    ollama_generate/4,
+    %% MCP (2)
     mcp_invoke_moz/3,
+    mcp_serve_one/2,
     %% Metrics (3)
     metrics_counter_inc/3,
     metrics_histogram_observe/3,
@@ -40,17 +45,47 @@
 -on_load(init/0).
 
 init() ->
-    SoPath =
-        case code:priv_dir(scripts_gleam) of
-            {error, _} -> "priv/scripts_nif";
-            PrivDir -> filename:join(PrivDir, "scripts_nif")
-        end,
-    case erlang:load_nif(SoPath, 0) of
+    PrivDir = case code:priv_dir(scripts_gleam) of
+        {error, _} -> "priv";
+        P -> P
+    end,
+    Arch = erlang:system_info(system_architecture),
+    %% Prefer a per-arch .so if present, fall back to the generic name.
+    %% This lets cross-arch builds (e.g. aarch64 for Raspberry Pi) coexist.
+    ArchSuffix = arch_suffix(Arch),
+    PerArch = filename:join(PrivDir, "scripts_nif-" ++ ArchSuffix),
+    Generic = filename:join(PrivDir, "scripts_nif"),
+    Candidates = [PerArch, Generic],
+    LoadRes = try_load(Candidates),
+    case LoadRes of
         ok -> ok;
         {error, {reload, _}} -> ok;
         {error, Reason} ->
-            io:format("[scripts_nif] NIF load failed: ~p (path: ~s)~n", [Reason, SoPath]),
+            io:format("[scripts_nif] NIF load failed: ~p (arch: ~s, tried: ~p)~n",
+                      [Reason, Arch, Candidates]),
             ok
+    end.
+
+arch_suffix(Arch) ->
+    %% Normalise triple to something filesystem-friendly.
+    case string:split(Arch, "-", leading) of
+        [Cpu | _] -> Cpu;
+        _ -> Arch
+    end.
+
+try_load([]) ->
+    {error, {nofile, "no NIF .so found"}};
+try_load([Path | Rest]) ->
+    case filelib:is_regular(Path ++ ".so") of
+        false -> try_load(Rest);
+        true ->
+            case erlang:load_nif(Path, 0) of
+                ok -> ok;
+                {error, {reload, _}} -> ok;
+                {error, Reason} ->
+                    io:format("[scripts_nif] tried ~s: ~p~n", [Path, Reason]),
+                    try_load(Rest)
+            end
     end.
 
 %% ── Pure-Erlang stubs (replaced by Rust at load time) ────────────────
@@ -75,6 +110,9 @@ fractal_span_emit(_, _, _, _, _, _) -> {ok, <<"{}">>}.
 gemini_generate(_, _, _, _) -> {ok, <<"stub">>}.
 
 mcp_invoke_moz(_, _, _) -> {ok, <<"stub">>}.
+mcp_serve_one(_, _) -> {ok, <<"stub">>}.
+openrouter_generate(_, _, _, _) -> {ok, <<"stub">>}.
+ollama_generate(_, _, _, _) -> {ok, <<"stub">>}.
 
 metrics_counter_inc(_, _, _) -> {ok, 0}.
 metrics_histogram_observe(_, _, _) -> {ok, 0}.
