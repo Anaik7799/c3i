@@ -28,31 +28,65 @@ Example:
 cd lib/cepaf_gleam && gleam run -m scripts/update_task_link_registry -- --task-id 1a92520c
 ```
 
-## Project structure for scripts
+## Project structure for scripts (canonical, single common area)
 
-All runnable gleam scripts MUST live under:
+**All runnable gleam scripts live under one tree:**
 ```
-lib/cepaf_gleam/src/scripts/<script_name>.gleam
-```
-or, if a script carries OTP supervision / richer structure, under:
-```
-lib/cepaf_gleam/src/cepaf_gleam/<subsystem>/<script>.gleam
+lib/cepaf_gleam/src/scripts/
+  README.md                 # conventions
+  common/                   # shared helpers only; not runnable
+    args.gleam              # arg parsing
+    paths.gleam             # canonical path resolution
+    logx.gleam              # structured logging + UTC stamps
+    fsx.gleam               # filesystem helpers (simplifile-backed)
+    httpx.gleam             # HTTP probe helper
+  probe/                    # network/endpoint probes
+  build/                    # build orchestration
+  ingest/                   # ZK / docs ingest
+  registry/                 # link + task registries
+  verify/                   # verification + convergence + gates
+  fractal/                  # criticality / RPN / FMEA matrices
+  tls/                      # TLS lifecycle helpers
+  pi/                       # Pi symbiosis orchestration
+  drift/                    # drift analysis automation
 ```
 
-Each runnable script MUST expose:
-```gleam
-pub fn main() -> Nil { ... }
+Each runnable module MUST:
+1. Live at `src/scripts/<category>/<name>.gleam`.
+2. Export `pub fn main() -> Nil`.
+3. Parse args via `scripts/common/args`.
+4. Resolve paths via `scripts/common/paths`.
+5. Write outputs via `scripts/common/fsx.run_dir(category, name, stamp)`.
+6. Log via `scripts/common/logx`.
+7. Panic on failure (non-zero exit), return `Nil` on success.
+
+## Output tree (clean + organized)
+
 ```
+<repo>/data/script-output/
+  _index/                          # tracked: README + migration.md
+  .gitignore                       # tracked: ignores all run dirs
+  <category>/
+    <name>/
+      <YYYYMMDD-HHMMSS>/           # one dir per invocation, gitignored
+        stdout.log
+        result.json                # machine-readable payload
+        artifacts/                 # script-produced files
+```
+
+No script writes outside `data/script-output/` or its explicit `--output` path.
+No tmp files in `/tmp`, repo root, or random docs paths.
 
 ## Migration rule
 
 Existing `.sh` / `.py` / `.mjs` files in `scripts/`, `sub-projects/c3i/scripts/`,
 `docs/`, and anywhere else:
-1. MUST be migrated to gleam modules.
+1. MUST be migrated to gleam modules under `lib/cepaf_gleam/src/scripts/<category>/`.
 2. The original file MUST be deleted (not wrapped).
 3. Any tool (Rust worker, systemd unit, CI pipeline) that invoked the legacy script
-   MUST be updated to invoke `gleam run -m <module>` instead.
+   MUST be updated to invoke `gleam run -m <category>/<name>` instead.
 4. Until all scripts are migrated, NEW script-like work is only allowed in Gleam.
+5. Migration progress tracked in `data/script-output/_index/migration.md`.
 
 ## Enforcement
 

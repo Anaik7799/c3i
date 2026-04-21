@@ -1,0 +1,8 @@
+# Script outputs are runtime artifacts — do not track individual runs.
+# Scripts under lib/cepaf_gleam/src/scripts/ write here under
+# <category>/<name>/<YYYYMMDD-HHMMSS>/ per SC-SCRIPT-GLEAM-001.
+*
+!.gitignore
+!_index/
+!_index/*.md
+!_index/*.json
