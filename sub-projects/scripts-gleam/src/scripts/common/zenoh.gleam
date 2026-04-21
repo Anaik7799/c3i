@@ -32,10 +32,64 @@ fn wrap_ok(r: Result(a, Nil)) -> Result(a, ZenohError) {
   }
 }
 
-/// Publish a payload to a Zenoh key-expression.
+/// Publish a payload to a Zenoh key-expression (default: Data priority, Block).
 pub fn put(key: String, payload: String) -> Result(String, ZenohError) {
   let #(_atom, msg) = nif.zenoh_put(key, payload)
   case string.starts_with(msg, "put ok") {
+    True -> Ok(msg)
+    False -> Error(ZenohError(msg))
+  }
+}
+
+pub type Priority {
+  RealTime
+  InteractiveHigh
+  InteractiveLow
+  DataHigh
+  Data
+  DataLow
+  Background
+}
+
+fn priority_code(p: Priority) -> Int {
+  case p {
+    RealTime -> 0
+    InteractiveHigh -> 1
+    InteractiveLow -> 2
+    DataHigh -> 3
+    Data -> 4
+    DataLow -> 5
+    Background -> 6
+  }
+}
+
+pub type Congestion {
+  Block
+  Drop
+}
+
+fn congestion_code(c: Congestion) -> String {
+  case c {
+    Block -> "block"
+    Drop -> "drop"
+  }
+}
+
+/// Publish with explicit priority + congestion control.
+pub fn put_with(
+  key: String,
+  payload: String,
+  priority: Priority,
+  congestion: Congestion,
+) -> Result(String, ZenohError) {
+  let #(_, msg) =
+    nif.zenoh_put_prio(
+      key,
+      payload,
+      priority_code(priority),
+      congestion_code(congestion),
+    )
+  case string.starts_with(msg, "put_prio ok") {
     True -> Ok(msg)
     False -> Error(ZenohError(msg))
   }

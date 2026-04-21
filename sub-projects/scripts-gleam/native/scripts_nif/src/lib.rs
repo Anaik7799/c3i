@@ -21,10 +21,12 @@ use rustler::{Atom, Env, Error, NifResult, Term};
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::runtime::Runtime;
 use uuid::Uuid;
+use zenoh::qos::{CongestionControl, Priority};
 use zenoh::Session;
 
 mod atoms {
@@ -100,8 +102,32 @@ fn sha256_hex(input: String) -> String {
 // the same one used by sa-plan; we intentionally use a bundled rusqlite so
 // there is ZERO coupling to cepaf_gleam's esqlite NIF.
 
-fn open_db(path: &str) -> Result<Connection, String> {
-    Connection::open(path).map_err(|e| format!("sqlite open {}: {}", path, e))
+/// Cache of open Smriti connections keyed by absolute DB path.
+/// Addresses SC-SCRIPT-GLEAM-001 scalability dimension #18 (Smriti at scale):
+/// WAL journal, NORMAL sync, reused connections.
+fn smriti_pool() -> &'static Mutex<HashMap<String, Arc<Mutex<Connection>>>> {
+    static CELL: OnceCell<Mutex<HashMap<String, Arc<Mutex<Connection>>>>> = OnceCell::new();
+    CELL.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+/// Open (or reuse) a pooled Smriti connection with WAL + NORMAL sync.
+fn open_db(path: &str) -> Result<Arc<Mutex<Connection>>, String> {
+    {
+        let pool = smriti_pool().lock();
+        if let Some(c) = pool.get(path) {
+            return Ok(c.clone());
+        }
+    }
+    let conn = Connection::open(path).map_err(|e| format!("sqlite open {}: {}", path, e))?;
+    // Performance + durability tuning for concurrent scripts; idempotent.
+    let _ = conn.execute_batch(
+        "PRAGMA journal_mode=WAL;\n\
+         PRAGMA synchronous=NORMAL;\n\
+         PRAGMA busy_timeout=5000;",
+    );
+    let handle = Arc::new(Mutex::new(conn));
+    smriti_pool().lock().insert(path.to_string(), handle.clone());
+    Ok(handle)
 }
 
 /// Returns `(ok, value)` where empty string means "not found" so the gleam
@@ -111,7 +137,8 @@ fn open_db(path: &str) -> Result<Connection, String> {
 /// sa-plan (PascalCase column names).
 #[rustler::nif]
 fn smriti_get_pref(db_path: String, key: String) -> NifResult<(Atom, String)> {
-    let conn = open_db(&db_path).map_err(|e| Error::Term(Box::new(e)))?;
+    let handle = open_db(&db_path).map_err(|e| Error::Term(Box::new(e)))?;
+    let conn = handle.lock();
     let row = conn
         .query_row(
             "SELECT Value FROM UserPreferences WHERE Key = ?1",
@@ -129,10 +156,9 @@ fn smriti_set_pref(
     key: String,
     value: String,
 ) -> NifResult<(Atom, String)> {
-    let conn = open_db(&db_path).map_err(|e| Error::Term(Box::new(e)))?;
+    let handle = open_db(&db_path).map_err(|e| Error::Term(Box::new(e)))?;
+    let conn = handle.lock();
     let now = chrono::Utc::now().to_rfc3339();
-    // Mirror sa-plan's INSERT OR REPLACE against the authoritative
-    // UserPreferences table (PascalCase).
     conn.execute(
         "INSERT OR REPLACE INTO UserPreferences (Key, Value, Category, UpdatedAt) VALUES (?1, ?2, ?3, ?4)",
         rusqlite::params![key, value, category, now],
@@ -143,7 +169,8 @@ fn smriti_set_pref(
 
 #[rustler::nif]
 fn smriti_get_task(db_path: String, id: String) -> NifResult<(Atom, String)> {
-    let conn = open_db(&db_path).map_err(|e| Error::Term(Box::new(e)))?;
+    let handle = open_db(&db_path).map_err(|e| Error::Term(Box::new(e)))?;
+    let conn = handle.lock();
     let row = conn
         .query_row(
             "SELECT json_object(
@@ -156,6 +183,15 @@ fn smriti_get_task(db_path: String, id: String) -> NifResult<(Atom, String)> {
         )
         .unwrap_or_default();
     Ok((atoms::ok(), row))
+}
+
+/// JSON snapshot of the Smriti connection pool (diagnostic).
+#[rustler::nif]
+fn smriti_pool_stats() -> NifResult<(Atom, String)> {
+    let pool = smriti_pool().lock();
+    let keys: Vec<&String> = pool.keys().collect();
+    let json = serde_json::json!({ "open_connections": keys.len(), "paths": keys });
+    Ok((atoms::ok(), json.to_string()))
 }
 
 // ─── Zenoh NIFs ──────────────────────────────────────────────────────────────
@@ -178,6 +214,54 @@ fn zenoh_put(key: String, payload: String) -> NifResult<(Atom, String)> {
             .await
             .map_err(|e| format!("zenoh put: {}", e))?;
         Ok::<_, String>(format!("put ok key={} bytes={}", key, payload.len()))
+    });
+    match res {
+        Ok(msg) => Ok((atoms::ok(), msg)),
+        Err(e) => err(e),
+    }
+}
+
+/// Priority tiers (lower number = higher priority):
+///   0 RealTime
+///   1 InteractiveHigh
+///   2 InteractiveLow
+///   3 DataHigh
+///   4 Data (default)
+///   5 DataLow
+///   6 Background
+///
+/// Congestion control:
+///   "block"  - wait for capacity (default, lossless)
+///   "drop"   - drop when congested (low-latency, lossy)
+#[rustler::nif(schedule = "DirtyIo")]
+fn zenoh_put_prio(
+    key: String,
+    payload: String,
+    priority: u8,
+    congestion: String,
+) -> NifResult<(Atom, String)> {
+    let rt = runtime();
+    let prio = match priority {
+        0 => Priority::RealTime,
+        1 => Priority::InteractiveHigh,
+        2 => Priority::InteractiveLow,
+        3 => Priority::DataHigh,
+        4 => Priority::Data,
+        5 => Priority::DataLow,
+        _ => Priority::Background,
+    };
+    let cc = match congestion.as_str() {
+        "drop" => CongestionControl::Drop,
+        _ => CongestionControl::Block,
+    };
+    let res = rt.block_on(async move {
+        let s = ensure_session().await?;
+        s.put(&key, payload.clone())
+            .priority(prio)
+            .congestion_control(cc)
+            .await
+            .map_err(|e| format!("zenoh put_prio: {}", e))?;
+        Ok::<_, String>(format!("put_prio ok key={} bytes={}", key, payload.len()))
     });
     match res {
         Ok(msg) => Ok((atoms::ok(), msg)),
@@ -389,8 +473,6 @@ fn gemini_generate(
 // and each update is best-effort published to Zenoh under
 //   indrajaal/metrics/scripts/<metric>/<label>
 // for downstream observability consumers.
-
-use std::collections::HashMap;
 
 fn metrics_counter_cell() -> &'static Mutex<HashMap<String, i64>> {
     static CELL: OnceCell<Mutex<HashMap<String, i64>>> = OnceCell::new();

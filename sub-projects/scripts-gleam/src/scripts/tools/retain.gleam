@@ -20,11 +20,7 @@ import scripts/common/logx
 import scripts/common/manifest as mfst
 import scripts/common/nif
 import scripts/common/paths
-import scripts/probe/public_interface
-import scripts/registry/saplan_smoke
-import scripts/tools/build_nif as build_nif_mod
-import scripts/tools/list as list_tool
-import scripts/verify/symbiosis_smoke
+import scripts/common/registry_index
 import simplifile
 
 const scope = "tools/retain"
@@ -52,14 +48,9 @@ pub fn manifest() -> mfst.Manifest {
 }
 
 fn all_manifests() -> List(mfst.Manifest) {
-  [
-    public_interface.manifest(),
-    saplan_smoke.manifest(),
-    symbiosis_smoke.manifest(),
-    build_nif_mod.manifest(),
-    list_tool.manifest(),
-    manifest(),
-  ]
+  // registry_index.all() carries every entry except list (which imports us).
+  // That's fine for retention purposes.
+  [manifest(), ..registry_index.all()]
 }
 
 fn retention_for(manifests: List(mfst.Manifest), relative_name: String, default_days: Int) -> Int {

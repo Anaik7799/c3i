@@ -1,0 +1,14 @@
+[Unit]
+Description=scripts-gleam timer for %I (SC-SCRIPT-GLEAM-001)
+# Each timer instance schedules its matching scripts-gleam@%I.service.
+
+[Timer]
+# Run every 10 minutes with randomised delay to spread load across scripts.
+OnBootSec=90s
+OnUnitActiveSec=10m
+RandomizedDelaySec=60s
+AccuracySec=30s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,44 @@
+[Unit]
+Description=scripts-gleam runner for %I (SC-SCRIPT-GLEAM-001)
+After=network-online.target
+Wants=network-online.target
+# Soft dependency on sa-plan: scripts frequently talk to it via the CLI bridge.
+After=sa-plan.service
+
+[Service]
+Type=oneshot
+User=%i
+Group=%i
+
+# %I is the script module (e.g. scripts-gleam@verify-symbiosis_smoke.service
+# maps to module "scripts/verify/symbiosis_smoke" — we translate "-" to "/").
+Environment=C3I_REPO_ROOT=/home/an/dev/ver/c3i
+WorkingDirectory=/home/an/dev/ver/c3i/sub-projects/scripts-gleam
+
+# Gleam binary path provided by the devenv profile; override here if relocated.
+Environment=PATH=/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin:/usr/bin:/bin
+
+# Resolve instance name → module path: replace the first "-" with "/".
+# We invoke via /bin/sh -c ONLY to expand the instance variable since systemd
+# does not itself perform string replacement; the logic is a single command,
+# not a shell script (allowed per SC-SCRIPT-GLEAM-001).
+ExecStart=/bin/sh -c 'M="%I"; gleam run -m "scripts/${M%%-*}/${M#*-}"'
+
+# Observability: every run is captured under data/script-output by the script
+# itself; stdout/stderr also land in the journal.
+StandardOutput=journal
+StandardError=journal
+
+# Safety: no new privileges, read-only root, tmp private.
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/home/an/dev/ver/c3i/data /home/an/dev/ver/c3i/sub-projects/scripts-gleam/build
+PrivateTmp=true
+
+# Resource governance (dimension #5): bound wall-clock + memory per run.
+TimeoutStartSec=900s
+MemoryMax=2G
+CPUQuota=200%
+
+[Install]
+WantedBy=multi-user.target

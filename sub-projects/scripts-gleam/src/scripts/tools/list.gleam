@@ -14,10 +14,8 @@ import scripts/common/fsx
 import scripts/common/logx
 import scripts/common/manifest as mfst
 import scripts/common/paths
-import scripts/probe/public_interface
-import scripts/registry/saplan_smoke
-import scripts/tools/build_nif
-import scripts/verify/symbiosis_smoke
+import scripts/common/registry_index
+import scripts/tools/retain
 
 const scope = "tools/list"
 
@@ -36,13 +34,9 @@ pub fn manifest() -> mfst.Manifest {
 }
 
 fn all_manifests() -> List(mfst.Manifest) {
-  [
-    public_interface.manifest(),
-    saplan_smoke.manifest(),
-    symbiosis_smoke.manifest(),
-    build_nif.manifest(),
-    manifest(),
-  ]
+  // Pull the canonical list from the registry_index module, plus the two
+  // tools (list + retain) that would otherwise create an import cycle.
+  [manifest(), retain.manifest(), ..registry_index.all()]
 }
 
 pub fn main() -> Nil {

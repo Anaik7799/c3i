@@ -34,6 +34,9 @@ pub fn smriti_set_pref(
 @external(erlang, "scripts_nif", "smriti_get_task")
 pub fn smriti_get_task(db_path: String, id: String) -> #(Atom, String)
 
+@external(erlang, "scripts_nif", "smriti_pool_stats")
+pub fn smriti_pool_stats() -> #(Atom, String)
+
 // ─── Zenoh ───────────────────────────────────────────────────────────────────
 
 @external(erlang, "scripts_nif", "zenoh_open_session")
@@ -41,6 +44,17 @@ pub fn zenoh_open_session() -> #(Atom, String)
 
 @external(erlang, "scripts_nif", "zenoh_put")
 pub fn zenoh_put(key: String, payload: String) -> #(Atom, String)
+
+/// Priority: 0=RealTime, 1=InteractiveHigh, 2=InteractiveLow, 3=DataHigh,
+/// 4=Data (default), 5=DataLow, 6=Background.
+/// Congestion: "block" (default, lossless) | "drop" (low-latency, lossy).
+@external(erlang, "scripts_nif", "zenoh_put_prio")
+pub fn zenoh_put_prio(
+  key: String,
+  payload: String,
+  priority: Int,
+  congestion: String,
+) -> #(Atom, String)
 
 @external(erlang, "scripts_nif", "zenoh_get")
 pub fn zenoh_get(selector: String, timeout_ms: Int) -> #(Atom, List(String))

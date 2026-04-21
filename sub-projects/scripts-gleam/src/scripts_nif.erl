@@ -14,13 +14,15 @@
     now_nanos/0,
     uuid_v7/0,
     sha256_hex/1,
-    %% Smriti (3)
+    %% Smriti (4)
     smriti_get_pref/2,
     smriti_set_pref/4,
     smriti_get_task/2,
-    %% Zenoh (4)
+    smriti_pool_stats/0,
+    %% Zenoh (5)
     zenoh_open_session/0,
     zenoh_put/2,
+    zenoh_put_prio/4,
     zenoh_get/2,
     zenoh_session_info/0,
     %% Fractal (1)
@@ -60,9 +62,11 @@ sha256_hex(_) -> <<"000000000000000000000000000000000000000000000000000000000000
 smriti_get_pref(_, _) -> {ok, <<"">>}.
 smriti_set_pref(_, _, _, _) -> {ok, <<"stub">>}.
 smriti_get_task(_, _) -> {ok, <<"">>}.
+smriti_pool_stats() -> {ok, <<"{\"open_connections\":0,\"paths\":[]}">>}.
 
 zenoh_open_session() -> {ok, <<"stub">>}.
 zenoh_put(_, _) -> {ok, <<"stub">>}.
+zenoh_put_prio(_, _, _, _) -> {ok, <<"stub">>}.
 zenoh_get(_, _) -> {ok, []}.
 zenoh_session_info() -> {ok, <<"{\"session_open\":false}">>}.
 

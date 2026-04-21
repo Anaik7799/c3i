@@ -51,3 +51,9 @@ pub fn get_task(id: String) -> Result(String, Nil) {
     s -> Ok(s)
   }
 }
+
+/// JSON snapshot of the Smriti connection pool (open connections + paths).
+pub fn pool_stats() -> String {
+  let #(_, s) = nif.smriti_pool_stats()
+  s
+}
