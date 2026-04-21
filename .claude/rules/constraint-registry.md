@@ -1,6 +1,11 @@
 # Constraint Registry (Reconciled 2026-03-22, PARITY ACHIEVED)
 All SC-*/AOR-* constraint families. CLAUDE.md + .claude/rules/ is the authoritative superset.
 Individual constraint details live in code; this registry tracks families and ranges.
+
+## Delta (2026-04-21)
+| Family | IDs | # | Description |
+|---|---|---|---|
+| SC-FRAC-RRF | 001-010 | 10 | Fractal layer/component matrix with RETE-UL+ruliology evidence, STAMP mapping, FMEA/FEMA scoring, and criticality-first execution |
 # P0-SAFETY (CRITICAL)
 | Family | IDs | # | Description |
 |--------|-----|---|-------------|

@@ -72,7 +72,7 @@
       "Bash(podman exec:*)",
       "Bash(find /home/an/dev/ver/c3i/sub-projects/c3i -type f \\\\\\(-name *.gleam -o -name router* -o -name *api.gleam \\\\\\) ! -path */build/* ! -path */.devenv/*)",
       "Bash(find /home/an/dev/ver/c3i/sub-projects/c3i/lib -type f \\\\\\(-name cockpit* -o -name *sse* -o -name *zenoh* \\\\\\))",
-      "Bash(claude config:*)",
+      "Bash(gemini config:*)",
       "Bash(find /home/an/dev/ver/c3i/sub-projects/c3i/lib/cepaf/src -type f \\\\\\(-name *router* -o -name *api* -o -name *view* -o -name *cockpit* -o -name *sse* \\\\\\))",
       "Skill(update-config)",
       "mcp__claude_ai_Gmail__*",
@@ -206,7 +206,7 @@
       "Bash(./target/release/sa-plan-daemon set-pref:*)",
       "Bash(./target/release/sa-plan-daemon daemon:*)",
       "Bash(./target/release/sa-plan-daemon sim-test:*)",
-      "Bash(./target/release/sa-plan-daemon gateway --channel gchat --text \"🧪 **SimTest Results \\(2026-04-09\\)**:*)",
+      "Bash(./target/release/sa-plan-daemon gateway --channel gchat --text \"\ud83e\uddea **SimTest Results \\(2026-04-09\\)**:*)",
       "Bash(ollama list:*)",
       "Bash(sh)",
       "Bash(ollama --version)",
@@ -220,7 +220,7 @@
       "Bash(timeout 120 tail -f /tmp/cortex-daemon.log)",
       "Bash(/dev/null sqlite3:*)",
       "Bash(./target/release/sa-plan-daemon send-email:*)",
-      "Bash(sub-projects/c3i/target/release/sa-plan-daemon send-email --to \"abhijitnaik7799@gmail.com\" --subject \"[c3i:2026-04-09-17:42] Full Session Journal + Architecture Docs \\(4 attachments\\)\" --body \"C3I Session Journal — 2026-04-09:*)",
+      "Bash(sub-projects/c3i/target/release/sa-plan-daemon send-email --to \"abhijitnaik7799@gmail.com\" --subject \"[c3i:2026-04-09-17:42] Full Session Journal + Architecture Docs \\(4 attachments\\)\" --body \"C3I Session Journal \u2014 2026-04-09:*)",
       "WebFetch(domain:ai.google.dev)",
       "WebFetch(domain:crates.io)",
       "WebFetch(domain:discuss.ai.google.dev)",
@@ -237,10 +237,90 @@
       "Bash(./sa-plan set-pref:*)",
       "Bash(./sa-plan gateway:*)",
       "Bash(./sa-plan send-email:*)",
-      "Bash(./sa-plan list-prefs:*)"
+      "Bash(./sa-plan list-prefs:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_resize",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_tabs",
+      "mcp__playwright__browser_close"
     ],
     "additionalDirectories": [
       "/home/an/gdrive"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/an/dev/ver/c3i && STATUS=$(./sub-projects/c3i/target/release/sa-plan-daemon status 2>&1 | grep -E 'Active:|Pending:|Completed:' | head -3 | tr '\\n' ' ') && C3I_COUNT=$(./sub-projects/c3i/target/release/sa-plan-daemon knowledge-search 'stats' 2>&1 | grep -oE '[0-9]+ holons' | head -1) && FY27=$(cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten stats 2>&1 | head -3 | tr '\\n' ' ') && cd /home/an/dev/ver/c3i && LAST=$(./sub-projects/c3i/target/release/sa-plan-daemon session-summary 2>/dev/null | grep -oP '\"commits\":\\d+' | head -1) && REC=$(./sub-projects/c3i/target/release/sa-plan-daemon recommend 2>/dev/null | grep '>>> Start' | head -1) && echo \"{\\\"systemMessage\\\":\\\"C3I BOOTSTRAP: $STATUS | C3I-ZK: $C3I_COUNT | FY27-ZK: $FY27 | LAST: $LAST | NEXT: $REC | MANDATE: You MUST cite ZK holon IDs in every response. You MUST search ZK before proposing solutions. ZK recall fires on every prompt \u2014 READ and USE the results.\\\"}\"",
+            "timeout": 20,
+            "statusMessage": "C3I bootstrap + last session + task recommend..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/an/dev/ver/c3i && QUERY=$(jq -r '.prompt // empty' | head -c 500 | tr '\\n' ' ') && if [ -n \"$QUERY\" ]; then C3I=$(./sub-projects/c3i/target/release/sa-plan-daemon zk-recall \"$QUERY\" --session-id $$ --limit 15 2>/dev/null | grep -v '\\[2026\\|\u2554\\|\u2551\\|\u255a\\|Planning\\|SIL-6') && FY27=$(cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten search \"$QUERY\" 2>&1 | grep -E '^  \\[zk-|^  Path:|^  .*\u00bb' | head -10) && ALL=\"$C3I\" && if [ -n \"$FY27\" ]; then ALL=\"$ALL\\nFY27-ZK RECALL (sales/accounts):\\n$FY27\"; fi && if [ -n \"$ALL\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"$ALL\\\"}}\"; fi; fi",
+            "timeout": 12,
+            "statusMessage": "ZK-RAG recall pipeline (C3I + FY27)..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/an/dev/ver/c3i && COMMITS=$(git log --oneline --since='12 hours ago' | wc -l) && FILES=$(git diff --stat HEAD~${COMMITS:-1}..HEAD 2>/dev/null | tail -1 | grep -oP '\\d+ file' | grep -oP '\\d+' || echo 0) && ./sub-projects/c3i/target/release/sa-plan-daemon session-save --session-id \"$(date +%Y%m%d-%H%M)\" --commits $COMMITS --files-modified ${FILES:-0} --tasks-completed 0 --effectiveness 0.85 2>/dev/null && ./sub-projects/c3i/target/release/sa-plan-daemon ingest-docs 2>/dev/null && cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten import .. 2>/dev/null && echo '{\"systemMessage\":\"Session saved + dual Zettelkasten ingested.\"}'",
+            "timeout": 60,
+            "async": true,
+            "statusMessage": "Saving session + ingesting to dual Zettelkasten..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read -r f; case $f in *.gleam) cd /home/an/dev/ver/c3i/lib/cepaf_gleam && gleam build 2>&1 | tail -3 ;; esac; } 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Auto-building Gleam (E4 incremental verification)"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read -r f; case $f in *.gleam) cd /home/an/dev/ver/c3i/lib/cepaf_gleam && OUTPUT=$(gleam test 2>&1) && SUMMARY=$(echo \"$OUTPUT\" | sed 's/\\x1b\\[[0-9;]*m//g' | tail -1) && FAILS=$(echo \"$OUTPUT\" | sed 's/\\x1b\\[[0-9;]*m//g' | grep -B2 'panic\\|FAIL' | head -10) && if [ -n \"$FAILS\" ]; then echo \"$SUMMARY\" && echo \"FAILURES:\" && echo \"$FAILS\"; else echo \"$SUMMARY\"; fi ;; esac; } 2>/dev/null || true",
+            "timeout": 120,
+            "async": true,
+            "statusMessage": "Jidoka: running tests in background"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if jq -r '.tool_input.command // \"\"' | grep -Eq 'feature-evolution|pi-symbiosis-evolve|fractal_feature_evolution_suite'; then echo '{\"systemMessage\":\"Fractal-criticality governance active: generate L0-L7\u00d7components\u00d7RETE-UL/ruliology\u00d7STAMP\u00d7FMEA/FEMA matrix via ./scripts/generate_fractal_criticality_matrix.sh <task-id> before closure (SC-FRAC-RRF-001..010).\"}'; fi",
+            "timeout": 8,
+            "statusMessage": "Fractal criticality governance gate"
+          }
+        ]
+      }
     ]
   }
 }
