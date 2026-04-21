@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Root Repo Drift — Deep Analysis (3 Passes)</title>
+<style>
+:root {
+  --bg:#0b1020; --bg2:#10172e; --fg:#e8edf7; --muted:#9aa5c2; --acc:#7cc4ff;
+  --good:#5fd29a; --warn:#ffce5c; --bad:#ff7a7a; --p0:#ff5d5d; --p1:#ffae3d; --p2:#7ad19a;
+  --card:#13193a; --line:#1d2752;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%); color:var(--fg);
+  font:14px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
+header { padding:20px 28px; border-bottom:1px solid var(--line); position:sticky; top:0;
+  background:rgba(11,16,32,.92); backdrop-filter:blur(8px); z-index:5; }
+header h1 { margin:0 0 6px 0; font-size:20px; letter-spacing:.2px; }
+header .meta { color:var(--muted); font-size:12px; }
+main { max-width:1200px; margin:0 auto; padding:24px; }
+section { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin:16px 0; }
+h2 { margin:0 0 10px 0; font-size:16px; color:var(--acc); }
+h3 { margin:14px 0 6px 0; font-size:14px; color:var(--good); }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th,td { padding:8px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { color:var(--muted); font-weight:600; }
+tr:hover td { background:#1a2150; }
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; }
+.kpi { background:#0e1438; border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+.kpi b { display:block; font-size:18px; }
+.kpi span { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.6px; }
+.tag { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
+.p0 { background:rgba(255,93,93,.18); color:var(--p0); border:1px solid rgba(255,93,93,.4); }
+.p1 { background:rgba(255,174,61,.18); color:var(--p1); border:1px solid rgba(255,174,61,.4); }
+.p2 { background:rgba(122,209,154,.18); color:var(--p2); border:1px solid rgba(122,209,154,.4); }
+code,pre { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+pre { background:#0e1438; border:1px solid var(--line); border-radius:8px; padding:12px; overflow:auto; }
+.bar { height:10px; background:#0e1438; border-radius:6px; overflow:hidden; border:1px solid var(--line); }
+.bar > i { display:block; height:100%; background:linear-gradient(90deg,#7cc4ff,#5fd29a); }
+.row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.callout { border-left:3px solid var(--acc); padding:10px 14px; background:#0f1640; border-radius:6px; }
+small.muted { color:var(--muted); }
+a { color:var(--acc); text-decoration:none; }
+a:hover { text-decoration:underline; }
+.legend { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+.legend span { font-size:11px; color:var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Root Repo Drift — Deep Analysis (3 Passes) — Pass 1+2+3 + Plan</h1>
+  <div class="meta">
+    <a href="https://vm-1.tail55d152.ts.net:8443/task-id/1a92520c">https://vm-1.tail55d152.ts.net:8443/task-id/1a92520c</a>
+    &nbsp;·&nbsp; 2026-04-21 06:40 UTC &nbsp;·&nbsp; repo /home/an/dev/ver/c3i (main)
+  </div>
+</header>
+<main>
+
+<section>
+  <h2>Executive KPIs</h2>
+  <div class="kpi-grid">
+    <div class="kpi"><span>Total drift entries</span><b>436</b></div>
+    <div class="kpi"><span>Shannon entropy H</span><b>2.339 bits</b></div>
+    <div class="kpi"><span>Mutation Load (MLI)</span><b>0.404</b></div>
+    <div class="kpi"><span>Untracked Load (ULI)</span><b>0.596</b></div>
+    <div class="kpi"><span>Duplicate nesting (DRI)</span><b>0.200</b></div>
+    <div class="kpi"><span>Binary media ratio (BMR)</span><b>0.970</b></div>
+    <div class="kpi"><span>Weighted complexity (WCI)</span><b>1.137</b></div>
+    <div class="kpi"><span>Weighted RPN/entry</span><b>214.5</b></div>
+    <div class="kpi"><span>System Confidence (SCS)</span><b>0.503</b></div>
+    <div class="kpi"><span>Durability/Safety (DSI)</span><b>0.694</b></div>
+    <div class="kpi"><span>Lyapunov L</span><b>0.420</b></div>
+    <div class="kpi"><span>P0 zones (RPN ≥ 200)</span><b>3</b></div>
+  </div>
+  <div class="legend">
+    <span>Targets: <b>SCS ≥ 0.85</b>, <b>DSI ≥ 0.85</b>, <b>L ≤ 0.15</b>, <b>CSI ≤ 0.15</b></span>
+  </div>
+</section>
+
+<section>
+  <h2>Drift category distribution</h2>
+  <table>
+    <thead><tr><th>Category</th><th>Count</th><th>Share</th><th>Bar</th><th>RPN</th><th>Tier</th></tr></thead>
+    <tbody>
+      <tr><td>governance</td><td>130</td><td>0.298</td><td><div class="bar"><i style="width:29.8%"></i></div></td><td>256</td><td><span class="tag p0">P0</span></td></tr>
+      <tr><td>docs_text</td><td>93</td><td>0.213</td><td><div class="bar"><i style="width:21.3%"></i></div></td><td>200</td><td><span class="tag p1">P1</span></td></tr>
+      <tr><td>core_code</td><td>92</td><td>0.211</td><td><div class="bar"><i style="width:21.1%"></i></div></td><td>252</td><td><span class="tag p0">P0</span></td></tr>
+      <tr><td>dup_nested</td><td>87</td><td>0.200</td><td><div class="bar"><i style="width:20.0%"></i></div></td><td>162</td><td><span class="tag p1">P1</span></td></tr>
+      <tr><td>local_env</td><td>15</td><td>0.034</td><td><div class="bar"><i style="width:3.4%"></i></div></td><td>128</td><td><span class="tag p2">P2</span></td></tr>
+      <tr><td>other</td><td>15</td><td>0.034</td><td><div class="bar"><i style="width:3.4%"></i></div></td><td>125</td><td><span class="tag p2">P2</span></td></tr>
+      <tr><td>runtime_state</td><td>2</td><td>0.005</td><td><div class="bar"><i style="width:0.5%"></i></div></td><td>168</td><td><span class="tag p1">P1</span></td></tr>
+      <tr><td>binary_media</td><td>2</td><td>0.005</td><td><div class="bar"><i style="width:0.5%"></i></div></td><td>120</td><td><span class="tag p2">P2</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Mathematical model</h2>
+  <h3>Composite Systemic Drift Index</h3>
+  <pre>CSI = 0.30·MLI + 0.25·(WCI/2) + 0.20·DRI + 0.15·BMR + 0.10·(SI/9)
+SCS = 1 − CSI
+DSI = 1 − WRPN / 700
+L   = 0.6·CSI + 0.4·(1 − DSI)</pre>
+  <h3>Current values</h3>
+  <pre>CSI = 0.497    SCS = 0.503
+DSI = 0.694    L   = 0.420
+H(D)= 2.339 bits
+WRPN= 214.5</pre>
+  <h3>Targets (production-grade mainline integrity)</h3>
+  <pre>SCS ≥ 0.85    DSI ≥ 0.85
+CSI ≤ 0.15    L   ≤ 0.15
+H(D)→ ≈ 0 (residual drift only on intentionally tracked policy paths)</pre>
+</section>
+
+<section>
+  <h2>STAMP analysis</h2>
+  <h3>Hierarchical control structure</h3>
+  <pre>Operator/Agent (Claude/Gemini)
+   ──control──▶ Workspace (root repo)
+   ──telemetry──▶ git status ledger
+   ──feedback──▶ Operator
+Side controllers:
+   - Sub-project (sub-projects/c3i)
+   - Smriti runtime (data/smriti/Smriti.db)
+   - Policy (.gitignore + governance)</pre>
+  <h3>Unsafe control actions (UCAs) and constraints</h3>
+  <table>
+    <thead><tr><th>UCA</th><th>Hazard</th><th>Constraint (H#)</th></tr></thead>
+    <tbody>
+      <tr><td>UCA-1: commit runtime state</td><td>non-determinism</td><td>H1 reproducibility</td></tr>
+      <tr><td>UCA-2: merge core_code w/o gates</td><td>regression</td><td>H2 buildability</td></tr>
+      <tr><td>UCA-3: merge governance + core_code together</td><td>reviewability collapse</td><td>H3 separation</td></tr>
+      <tr><td>UCA-4: bulk binary media</td><td>repo bloat</td><td>H4 artifact policy</td></tr>
+      <tr><td>UCA-5: dup_nested w/o ledger</td><td>audit gap</td><td>H5 migration ledger</td></tr>
+      <tr><td>UCA-6: submodule advance w/o verify</td><td>desync</td><td>H6 pointer integrity</td></tr>
+    </tbody>
+  </table>
+  <h3>Safety constraint set (SC-DRIFT-001..008)</h3>
+  <ol>
+    <li>SC-DRIFT-001: runtime state files MUST NOT be committed</li>
+    <li>SC-DRIFT-002: core code merges MUST pass full build+test in isolated worktree</li>
+    <li>SC-DRIFT-003: governance and core_code merges MUST be separated by commit boundary</li>
+    <li>SC-DRIFT-004: binary media bulk MUST be a single artifact-only commit</li>
+    <li>SC-DRIFT-005: path-normalization deletions MUST ship with mapping ledger</li>
+    <li>SC-DRIFT-006: submodule pointer changes MUST verify both repos clean</li>
+    <li>SC-DRIFT-007: mainline `main` MUST remain buildable after every merge</li>
+    <li>SC-DRIFT-008: multiverse worktree MUST be used for high-RPN merges</li>
+  </ol>
+</section>
+
+<section>
+  <h2>RETE-UL rule set (R1..R9)</h2>
+<pre>R1: governance high mass → block merge & open multiverse streams
+R2: core_code split by domain (bridge/, ha/, ui/)
+R3: runtime_state quarantine
+R4: binary media or BMR ≥ 0.9 → artifact-only commit
+R5: dup_nested → migration ledger
+R6: submodule integrity check
+R7: mainline invariant (refuse ff-only on red gates)
+R8: low entropy → serialize merge order by RPN desc
+R9: DSI < 0.7 → escalate P0 + Human Intent Protection</pre>
+  <small class="muted">All 9 rules currently fire on the present working tree.</small>
+</section>
+
+<section>
+  <h2>Ruliological state machine</h2>
+  <pre>Drifted → Stratified → Multiversed → Gated → Mainlined
+                                  ↘ Quarantined ↗ (after fix)</pre>
+  <h3>Convergence condition</h3>
+  <pre>∀ stream s: gates(s) green
+∀ stream s: ledger(s) recorded
+∀ stream s: ff-only merged into main
+H(D_post) ≈ 0
+DSI_post ≥ 0.85
+CSI_post ≤ 0.15
+L_post   ≤ 0.15</pre>
+</section>
+
+<section>
+  <h2>Biomorphic L0–L7 plan</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Role</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>L0 Constitutional</td><td>Adopt SC-DRIFT-001..008</td><td>No direct mainline edits for cleanup; ff-only merges from multiverse</td></tr>
+      <tr><td>L1 Sensory</td><td>Telemetry</td><td>Persist drift census per action (counters, footprint)</td></tr>
+      <tr><td>L2 Immune</td><td>Classification + quarantine</td><td>Auto-classify into 4 streams; reject runtime_state from merges</td></tr>
+      <tr><td>L3 Metabolic</td><td>Worktrees</td><td>multiverse/drift-governance, -corecode, -docs, -hygiene</td></tr>
+      <tr><td>L4 Homeostasis</td><td>Per-stream gates</td><td>parity, build/test, doc validation, ignore policy</td></tr>
+      <tr><td>L5 Cognitive</td><td>Risk-ordered merge</td><td>governance → corecode → docs → hygiene (RPN desc)</td></tr>
+      <tr><td>L6 Federation</td><td>Cross-repo</td><td>.claude↔.gemini parity; sub-project pointer alignment</td></tr>
+      <tr><td>L7 Audit/Evolution</td><td>Closure</td><td>Post-merge audit packet, ZK ingest, link registry</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Mainline functional invariants</h2>
+  <ol>
+    <li><code>git checkout main &amp;&amp; git pull</code> → clean tree</li>
+    <li><code>gleam build &amp;&amp; gleam test</code> in <code>lib/cepaf_gleam</code> → green</li>
+    <li><code>cargo build --release</code> in <code>sub-projects/c3i/native/planning_daemon</code> → green</li>
+    <li><code>sa-plan status</code> → working</li>
+    <li>No runtime DB/log artifacts on <code>main</code></li>
+    <li>Only ff-only merges from verified multiverse branches</li>
+  </ol>
+</section>
+
+<section>
+  <h2>Multiverse worktree commands</h2>
+<pre>git worktree add ../mv-governance -b multiverse/drift-governance main
+git worktree add ../mv-corecode   -b multiverse/drift-corecode   main
+git worktree add ../mv-docs       -b multiverse/drift-docs       main
+git worktree add ../mv-hygiene    -b multiverse/drift-hygiene    main</pre>
+</section>
+
+<section>
+  <h2>Original prompts (verbatim)</h2>
+  <ol>
+    <li>do deep analyis of workspace drift in the root repo</li>
+    <li>do deep analyis of workspace drift in the root repo -- one more pass, focus on safety, fema, complexity, criticality and durability, create biomorphic evolutionary plan. ensure mainline code is always fully functional, use multiverse for testing new merge before integrating with mainline</li>
+    <li>... + do deatiled mathematical , stamp, rete ul and ruliological analyis</li>
+    <li>full analyis, prompts, plan -- create and send detailed journal, html detailed, html slides, email attachments</li>
+  </ol>
+</section>
+
+<section>
+  <h2>Linked artifacts</h2>
+  <ul>
+    <li>Pass-1 MD: <code>docs/analysis/root-repo-workspace-drift-analysis-20260421.md</code></li>
+    <li>Pass-2 MD: <code>docs/analysis/root-repo-workspace-drift-analysis-20260421-pass2-biomorphic-plan.md</code></li>
+    <li>Pass-3 MD: <code>docs/analysis/root-repo-workspace-drift-analysis-20260421-pass3-mathematical-stamp-rete-ruliology.md</code></li>
+    <li>Journal: <code>docs/journal/20260421-0640-root-repo-drift-deep-analysis-journal.md</code></li>
+    <li>Slides:  <code>docs/journal/20260421-0640-root-repo-drift-deep-analysis-deck.html</code></li>
+  </ul>
+</section>
+
+</main>
+</body>
+</html>

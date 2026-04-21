@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Root Repo Drift — Slide Deck</title>
+<style>
+:root { --bg:#0b1020; --bg2:#10172e; --fg:#e8edf7; --muted:#9aa5c2; --acc:#7cc4ff; --good:#5fd29a; --warn:#ffce5c; --bad:#ff7a7a; --p0:#ff5d5d; --p1:#ffae3d; --p2:#7ad19a; --card:#13193a; --line:#1d2752; }
+* { box-sizing:border-box; }
+html,body { margin:0; padding:0; background:var(--bg); color:var(--fg);
+  font:15px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
+.deck { display:flex; flex-direction:column; }
+.slide { min-height:100vh; padding:48px 64px; border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%); }
+.slide .num { color:var(--muted); font-size:12px; letter-spacing:.5px; }
+.slide h1 { margin:8px 0 18px 0; font-size:32px; line-height:1.2; }
+.slide h2 { margin:0 0 16px 0; font-size:22px; color:var(--acc); }
+.slide h3 { margin:18px 0 8px 0; font-size:16px; color:var(--good); }
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin:14px 0; }
+.kpi { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+.kpi b { display:block; font-size:24px; }
+.kpi span { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.6px; }
+.row { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.tag { display:inline-block; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; }
+.p0 { background:rgba(255,93,93,.18); color:var(--p0); border:1px solid rgba(255,93,93,.4); }
+.p1 { background:rgba(255,174,61,.18); color:var(--p1); border:1px solid rgba(255,174,61,.4); }
+.p2 { background:rgba(122,209,154,.18); color:var(--p2); border:1px solid rgba(122,209,154,.4); }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th,td { padding:8px 10px; border-bottom:1px solid var(--line); text-align:left; }
+th { color:var(--muted); font-weight:600; }
+pre,code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+pre { background:#0e1438; border:1px solid var(--line); border-radius:8px; padding:14px; overflow:auto; font-size:13px; }
+.footer { position:fixed; right:14px; bottom:10px; font-size:11px; color:var(--muted); }
+.bar { height:10px; background:#0e1438; border-radius:6px; overflow:hidden; border:1px solid var(--line); }
+.bar > i { display:block; height:100%; background:linear-gradient(90deg,#7cc4ff,#5fd29a); }
+.callout { border-left:3px solid var(--acc); padding:10px 14px; background:#0f1640; border-radius:6px; }
+.center { display:flex; align-items:center; justify-content:center; flex-direction:column; min-height:80vh; text-align:center; }
+.lg { font-size:48px; }
+small.muted { color:var(--muted); }
+a { color:var(--acc); text-decoration:none; } a:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+<div class="deck">
+
+<section class="slide center">
+  <div class="num">SLIDE 1 / 14</div>
+  <h1 class="lg">Root Repo Drift</h1>
+  <h2>Deep Analysis (3 Passes) + Biomorphic Multiverse Plan</h2>
+  <p class="muted">2026-04-21 06:40 UTC · /home/an/dev/ver/c3i (main)</p>
+  <p><a href="https://vm-1.tail55d152.ts.net:8443/task-id/1a92520c">https://vm-1.tail55d152.ts.net:8443/task-id/1a92520c</a></p>
+</section>
+
+<section class="slide">
+  <div class="num">SLIDE 2 / 14 · KPIs</div>
+  <h1>Executive KPIs</h1>
+  <div class="kpi-grid">
+    <div class="kpi"><span>Drift entries</span><b>436</b></div>
+    <div class="kpi"><span>Shannon H</span><b>2.339 bits</b></div>
+    <div class="kpi"><span>MLI</span><b>0.404</b></div>
+    <div class="kpi"><span>ULI</span><b>0.596</b></div>
+    <div class="kpi"><span>DRI</span><b>0.200</b></div>
+    <div class="kpi"><span>BMR</span><b>0.970</b></div>
+    <div class="kpi"><span>WCI</span><b>1.137</b></div>
+    <div class="kpi"><span>WRPN/entry</span><b>214.5</b></div>
+    <div class="kpi"><span>SCS</span><b>0.503</b></div>
+    <div class="kpi"><span>DSI</span><b>0.694</b></div>
+    <div class="kpi"><span>Lyapunov L</span><b>0.420</b></div>
+    <div class="kpi"><span>P0 zones</span><b>3</b></div>
+  </div>
+  <p><small class="muted">Targets: SCS ≥ 0.85, DSI ≥ 0.85, L ≤ 0.15, CSI ≤ 0.15</small></p>
+</section>
+
+<section class="slide">
+  <div class="num">SLIDE 3 / 14 · Categories</div>
+  <h1>Drift category distribution</h1>
+  <table>
+    <thead><tr><th>Category</th><th>Count</th><th>Share</th><th>Visual</th><th>RPN</th><th>Tier</th></tr></thead>
+    <tbody>
+      <tr><td>governance</td><td>130</td><td>0.298</td><td><div class="bar"><i style="width:29.8%"></i></div></td><td>256</td><td><span class="tag p0">P0</span></td></tr>
+      <tr><td>docs_text</td><td>93</td><td>0.213</td><td><div class="bar"><i style="width:21.3%"></i></div></td><td>200</td><td><span class="tag p1">P1</span></td></tr>
+      <tr><td>core_code</td><td>92</td><td>0.211</td><td><div class="bar"><i style="width:21.1%"></i></div></td><td>252</td><td><span class="tag p0">P0</span></td></tr>
+      <tr><td>dup_nested</td><td>87</td><td>0.200</td><td><div class="bar"><i style="width:20.0%"></i></div></td><td>162</td><td><span class="tag p1">P1</span></td></tr>
+      <tr><td>local_env</td><td>15</td><td>0.034</td><td><div class="bar"><i style="width:3.4%"></i></div></td><td>128</td><td><span class="tag p2">P2</span></td></tr>
+      <tr><td>other</td><td>15</td><td>0.034</td><td><div class="bar"><i style="width:3.4%"></i></div></td><td>125</td><td><span class="tag p2">P2</span></td></tr>
+      <tr><td>runtime_state</td><td>2</td><td>0.005</td><td><div class="bar"><i style="width:0.5%"></i></div></td><td>168</td><td><span class="tag p1">P1</span></td></tr>
+      <tr><td>binary_media</td><td>2</td><td>0.005</td><td><div class="bar"><i style="width:0.5%"></i></div></td><td>120</td><td><span class="tag p2">P2</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="slide">
+  <div class="num">SLIDE 4 / 14 · Math model</div>
+  <h1>Mathematical model</h1>
+  <pre>CSI = 0.30·MLI + 0.25·(WCI/2) + 0.20·DRI + 0.15·BMR + 0.10·(SI/9)
+SCS = 1 − CSI
+DSI = 1 − WRPN / 700
+L   = 0.6·CSI + 0.4·(1 − DSI)</pre>
+  <h3>Current</h3>
+  <pre>CSI=0.497   SCS=0.503
+DSI=0.694   L=0.420
+H(D)=2.339 bits   WRPN=214.5</pre>
+  <h3>Targets</h3>
+  <pre>SCS ≥ 0.85   DSI ≥ 0.85   CSI ≤ 0.15   L ≤ 0.15
+H(D) → ≈0 (residual policy paths only)</pre>
+</section>
+
+<section class="slide">
+  <div class="num">SLIDE 5 / 14 · STAMP</div>
+  <h1>STAMP — Control structure</h1>
+  <pre>Operator/Agent (Claude/Gemini)
+   ──control──▶ Workspace (root repo)
+   ──telemetry──▶ git status ledger
+   ──feedback──▶ Operator
+Side controllers:
+   - sub-projects/c3i
+   - data/smriti/Smriti.db
+   - .gitignore + governance policy</pre>
+  <h3>Hazards / UCAs</h3>
+  <pre>UCA-1 commit runtime state         → non-determinism (H1)
+UCA-2 merge core_code w/o gates    → regression (H2)
+UCA-3 governance + core_code merge → review collapse (H3)
+UCA-4 bulk binary media            → repo bloat (H4)
+UCA-5 dup_nested w/o ledger        → audit gap (H5)
+UCA-6 submodule advance w/o verify → desync (H6)</pre>
+</section>
+
+<section class="slide">
+  <div class="num">SLIDE 6 / 14 · STAMP constraints</div>
+  <h1>SC-DRIFT-001..008</h1>
+  <ol>
+    <li>Runtime state files MUST NOT be committed</li>
+    <li>Core-code merges MUST pass full build+test in isolated worktree</li>
+    <li>Governance and core_code merges MUST be separated by commit boundary</li>
+    <li>Binary media bulk MUST be a single artifact-only commit</li>
+    <li>Path-normalization deletions MUST ship with mapping ledger</li>
+    <li>Submodule pointer changes MUST verify both repos clean</li>
+    <li>Mainline `main` MUST remain buildable after every merge</li>
+    <li>Multiverse worktree MUST be used for high-RPN merges</li>
+  </ol>
+</section>
+
+<section class="slide">
+  <div class="num">SLIDE 7 / 14 · RETE-UL</div>
+  <h1>RETE-UL rule set</h1>
+  <pre>R1 governance high mass → block merge & open multiverse
+R2 core_code split by domain (bridge/, ha/, ui/)
+R3 runtime_state quarantine
+R4 binary media or BMR ≥ 0.9 → artifact-only commit
+R5 dup_nested → migration ledger
+R6 submodule integrity check
+R7 mainline invariant (refuse ff-only on red gates)
+R8 low entropy → serialize merge order by RPN desc
+R9 DSI < 0.7 → escalate P0 + Human Intent Protection</pre>
+  <small class="muted">All 9 rules currently fire on the present working tree.</small>
+</section>
+
+<section class="slide">
+  <div class="num">SLIDE 8 / 14 · Ruliology</div>
+  <h1>Ruliological state machine</h1>
+  <pre>Drifted → Stratified → Multiversed → Gated → Mainlined
+                                  ↘ Quarantined ↗</pre>
+  <h3>Convergence</h3>
+  <pre>∀ stream: gates green
+∀ stream: ledger recorded
+∀ stream: ff-only merged
+H(D_post) ≈ 0
+DSI_post ≥ 0.85
+CSI_post ≤ 0.15
+L_post   ≤ 0.15</pre>
+</section>
+
+<section class="slide">
+  <div class="num">SLIDE 9 / 14 · Biomorphic L0–L7</div>
+  <h1>Biomorphic Plan (L0–L7)</h1>
+  <table>
+    <thead><tr><th>Layer</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>L0 Constitutional</td><td>Adopt SC-DRIFT-001..008</td></tr>
+      <tr><td>L1 Sensory</td><td>Drift telemetry per action</td></tr>
+      <tr><td>L2 Immune</td><td>Classify + quarantine runtime state</td></tr>
+      <tr><td>L3 Metabolic</td><td>Multiverse worktrees per stream</td></tr>
+      <tr><td>L4 Homeostasis</td><td>Per-stream gates</td></tr>
+      <tr><td>L5 Cognitive</td><td>RPN-ordered ff-only merges</td></tr>
+      <tr><td>L6 Federation</td><td>.claude↔.gemini parity, sub-project pointer</td></tr>
+      <tr><td>L7 Audit</td><td>Post-merge audit packet, ZK ingest</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="slide">
+  <div class="num">SLIDE 10 / 14 · Multiverse</div>
+  <h1>Multiverse worktrees</h1>
+  <pre>git worktree add ../mv-governance -b multiverse/drift-governance main
+git worktree add ../mv-corecode   -b multiverse/drift-corecode   main
+git worktree add ../mv-docs       -b multiverse/drift-docs       main
+git worktree add ../mv-hygiene    -b multiverse/drift-hygiene    main</pre>
+  <h3>Stream gates</h3>
+  <pre>governance: parity .claude vs .gemini
+corecode:   gleam build && gleam test
+docs:       html/md validation + size policy
+hygiene:    .gitignore + quarantine validation</pre>
+</section>
+
+<section class="slide">
+  <div class="num">SLIDE 11 / 14 · Mainline invariants</div>
+  <h1>Mainline functional invariants</h1>
+  <ul>
+    <li><code>git checkout main &amp;&amp; git pull</code> → clean tree</li>
+    <li><code>gleam build &amp;&amp; gleam test</code> in <code>lib/cepaf_gleam</code> → green</li>
+    <li><code>cargo build --release</code> in <code>sub-projects/c3i/native/planning_daemon</code> → green</li>
+    <li><code>sa-plan status</code> → working</li>
+    <li>No runtime DB/log artifacts on <code>main</code></li>
+    <li>Only ff-only merges from verified multiverse branches</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <div class="num">SLIDE 12 / 14 · Merge sequence</div>
+  <h1>Risk-ordered merge plan</h1>
+  <ol>
+    <li>multiverse/drift-governance (RPN 256)</li>
+    <li>multiverse/drift-corecode (RPN 252)</li>
+    <li>multiverse/drift-docs (RPN 200)</li>
+    <li>multiverse/drift-hygiene (≤ RPN 168)</li>
+  </ol>
+  <pre>git checkout main
+git merge --ff-only multiverse/drift-governance
+git merge --ff-only multiverse/drift-corecode
+git merge --ff-only multiverse/drift-docs
+git merge --ff-only multiverse/drift-hygiene</pre>
+</section>
+
+<section class="slide">
+  <div class="num">SLIDE 13 / 14 · Prompts</div>
+  <h1>Original prompts (verbatim)</h1>
+  <ol>
+    <li>do deep analyis of workspace drift in the root repo</li>
+    <li>do deep analyis of workspace drift in the root repo -- one more pass, focus on safety, fema, complexity, criticality and durability, create biomorphic evolutionary plan. ensure mainline code is always fully functional, use multiverse for testing new merge before integrating with mainline</li>
+    <li>+ do deatiled mathematical , stamp, rete ul and ruliological analyis</li>
+    <li>full analyis, prompts, plan -- create and send detailed journal, html detailed, html slides, email attachments</li>
+  </ol>
+</section>
+
+<section class="slide center">
+  <div class="num">SLIDE 14 / 14</div>
+  <h1>Closing</h1>
+  <h2>Mainline is sacred. Multiverse is where we evolve safely.</h2>
+  <p class="muted">Pass-1 + Pass-2 + Pass-3 reports, journal, HTML, and slides delivered.</p>
+  <p><a href="https://vm-1.tail55d152.ts.net:8443/task-id/1a92520c">https://vm-1.tail55d152.ts.net:8443/task-id/1a92520c</a></p>
+</section>
+
+</div>
+<div class="footer">Generated 2026-04-21 06:40 UTC</div>
+</body>
+</html>
