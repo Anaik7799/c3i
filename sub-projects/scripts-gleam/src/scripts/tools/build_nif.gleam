@@ -16,11 +16,27 @@ import gleam/erlang/charlist
 import gleam/int
 import gleam/list
 import gleam/string
+import scripts/common/fractal
 import scripts/common/fsx
 import scripts/common/logx
+import scripts/common/manifest
 import scripts/common/paths
 
 const scope = "tools/build_nif"
+
+pub fn manifest() -> manifest.Manifest {
+  manifest.Manifest(
+    name: "tools/build_nif",
+    category: manifest.Tools,
+    fractal_layer: fractal.L4,
+    summary: "Rebuild the scripts_nif Rust NIF via cargo (no shell).",
+    inputs: [],
+    outputs_schema: "{script,stamp,cargo_rc,install_rc,priv_so,ok}",
+    retention_days: 14,
+    auth_level: manifest.L2Normal,
+    sc_id: "SC-SCRIPT-TOOL-001",
+  )
+}
 
 // ── Minimal port-spawn helper (reuses scripts_sh_ffi) ────────────────────────
 

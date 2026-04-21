@@ -13,12 +13,28 @@
 
 import gleam/list
 import gleam/string
+import scripts/common/fractal
 import scripts/common/fsx
 import scripts/common/logx
+import scripts/common/manifest
 import scripts/common/paths
 import scripts/common/saplan
 
 const scope = "registry/saplan_smoke"
+
+pub fn manifest() -> manifest.Manifest {
+  manifest.Manifest(
+    name: "registry/saplan_smoke",
+    category: manifest.Registry,
+    fractal_layer: fractal.L3,
+    summary: "Smoke-check the sa-plan CLI bridge: list queues + round-trip a pref.",
+    inputs: [],
+    outputs_schema: "{script,stamp,status,pref,queue_list_rc}",
+    retention_days: 14,
+    auth_level: manifest.L2Normal,
+    sc_id: "SC-SCRIPT-REG-001",
+  )
+}
 
 pub fn main() -> Nil {
   let stamp = logx.stamp()

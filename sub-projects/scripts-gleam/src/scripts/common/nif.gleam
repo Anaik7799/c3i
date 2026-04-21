@@ -78,3 +78,14 @@ pub fn mcp_invoke_moz(
   args_json: String,
   timeout_ms: Int,
 ) -> #(Atom, String)
+
+// ─── Metrics (SC-SCRIPT-MET-001) ─────────────────────────────────────────────
+
+@external(erlang, "scripts_nif", "metrics_counter_inc")
+pub fn metrics_counter_inc(metric: String, label: String, by: Int) -> #(Atom, Int)
+
+@external(erlang, "scripts_nif", "metrics_histogram_observe")
+pub fn metrics_histogram_observe(metric: String, label: String, value: Float) -> #(Atom, Int)
+
+@external(erlang, "scripts_nif", "metrics_snapshot")
+pub fn metrics_snapshot() -> #(Atom, String)

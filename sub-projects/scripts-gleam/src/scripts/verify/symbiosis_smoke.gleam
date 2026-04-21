@@ -27,6 +27,7 @@ import scripts/common/fractal
 import scripts/common/fsx
 import scripts/common/gemini
 import scripts/common/logx
+import scripts/common/manifest
 import scripts/common/mcp
 import scripts/common/nif
 import scripts/common/paths
@@ -34,6 +35,25 @@ import scripts/common/smriti
 import scripts/common/zenoh
 
 const scope = "verify/symbiosis_smoke"
+
+pub fn manifest() -> manifest.Manifest {
+  manifest.Manifest(
+    name: "verify/symbiosis_smoke",
+    category: manifest.Verify,
+    fractal_layer: fractal.L6,
+    summary: "Full-system smoke: Zenoh + Smriti + Fractal span + MCP + Gemini round-trip.",
+    inputs: [
+      manifest.FlagSpec("zenoh-timeout-ms", "Zenoh op timeout", "1500", False),
+      manifest.FlagSpec("mcp-timeout-ms", "MCP invoke timeout", "2000", False),
+      manifest.FlagSpec("gemini-timeout-ms", "Gemini HTTP timeout", "10000", False),
+      manifest.FlagSpec("pi-tool", "MCP tool to invoke on Pi", "pi.ping", False),
+    ],
+    outputs_schema: "{script,stamp,passed,total,steps:[{step,ok,detail}]}",
+    retention_days: 30,
+    auth_level: manifest.L2Normal,
+    sc_id: "SC-SCRIPT-VER-001",
+  )
+}
 
 pub type StepResult {
   StepResult(name: String, ok: Bool, detail: String)

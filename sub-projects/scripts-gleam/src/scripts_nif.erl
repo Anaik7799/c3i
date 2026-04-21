@@ -28,7 +28,11 @@
     %% Gemini (1)
     gemini_generate/4,
     %% MCP (1)
-    mcp_invoke_moz/3
+    mcp_invoke_moz/3,
+    %% Metrics (3)
+    metrics_counter_inc/3,
+    metrics_histogram_observe/3,
+    metrics_snapshot/0
 ]).
 
 -on_load(init/0).
@@ -67,3 +71,7 @@ fractal_span_emit(_, _, _, _, _, _) -> {ok, <<"{}">>}.
 gemini_generate(_, _, _, _) -> {ok, <<"stub">>}.
 
 mcp_invoke_moz(_, _, _) -> {ok, <<"stub">>}.
+
+metrics_counter_inc(_, _, _) -> {ok, 0}.
+metrics_histogram_observe(_, _, _) -> {ok, 0}.
+metrics_snapshot() -> {ok, <<"{\"counters\":{},\"histograms\":{}}">>}.

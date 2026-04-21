@@ -14,10 +14,28 @@ import gleam/int
 import gleam/list
 import gleam/string
 import scripts/common/args as cargs
+import scripts/common/fractal
 import scripts/common/fsx
 import scripts/common/httpx
 import scripts/common/logx
+import scripts/common/manifest
 import scripts/common/paths
+
+pub fn manifest() -> manifest.Manifest {
+  manifest.Manifest(
+    name: "probe/public_interface",
+    category: manifest.Probe,
+    fractal_layer: fractal.L4,
+    summary: "HTTP probe subset of the public interface suite.",
+    inputs: [
+      manifest.FlagSpec("base", "Base URL to probe", "http://vm-1.tail55d152.ts.net:4200", False),
+    ],
+    outputs_schema: "{base,stamp,passed,total,results:[{name,ok,code,detail}]}",
+    retention_days: 30,
+    auth_level: manifest.L2Normal,
+    sc_id: "SC-SCRIPT-PROBE-001",
+  )
+}
 
 pub type Case {
   Case(name: String, path: String, want: String)

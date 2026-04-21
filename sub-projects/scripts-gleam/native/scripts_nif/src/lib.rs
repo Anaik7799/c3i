@@ -9,6 +9,7 @@
 //!   * Fractal:    fractal_span_emit  (emits OTel-shaped span + Zenoh publish)
 //!   * Gemini:     gemini_generate    (HTTP POST generateContent)
 //!   * MCP:        mcp_invoke_moz     (MCP-over-Zenoh request/response)
+//!   * Metrics:    metrics_counter_inc, metrics_histogram_observe, metrics_snapshot
 //!
 //! All NIFs are synchronous wrappers around a shared tokio runtime so BEAM
 //! scheduler impact is bounded (SC-NIF-001); long-running Zenoh work happens
@@ -379,6 +380,93 @@ fn gemini_generate(
         Ok(t) => Ok((atoms::ok(), t)),
         Err(e) => err(e),
     }
+}
+
+// ─── Metrics (SC-SCRIPT-MET-001) ────────────────────────────────────────────
+//
+// Prometheus-style counter and histogram primitives. Backed by parking_lot
+// maps so multiple scripts can share a single BEAM node without contention,
+// and each update is best-effort published to Zenoh under
+//   indrajaal/metrics/scripts/<metric>/<label>
+// for downstream observability consumers.
+
+use std::collections::HashMap;
+
+fn metrics_counter_cell() -> &'static Mutex<HashMap<String, i64>> {
+    static CELL: OnceCell<Mutex<HashMap<String, i64>>> = OnceCell::new();
+    CELL.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn metrics_histo_cell() -> &'static Mutex<HashMap<String, Vec<f64>>> {
+    static CELL: OnceCell<Mutex<HashMap<String, Vec<f64>>>> = OnceCell::new();
+    CELL.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn mkey(metric: &str, label: &str) -> String {
+    format!("{}|{}", metric, label)
+}
+
+fn publish_metric(metric: &str, label: &str, payload: String) {
+    let rt = runtime();
+    let key = format!("indrajaal/metrics/scripts/{}/{}", metric, label);
+    let _ = rt.block_on(async move {
+        if let Ok(s) = ensure_session().await {
+            let _ = s.put(&key, payload).await;
+        }
+    });
+}
+
+#[rustler::nif(schedule = "DirtyCpu")]
+fn metrics_counter_inc(metric: String, label: String, by: i64) -> NifResult<(Atom, i64)> {
+    let k = mkey(&metric, &label);
+    let new = {
+        let mut m = metrics_counter_cell().lock();
+        let v = m.entry(k.clone()).or_insert(0);
+        *v += by;
+        *v
+    };
+    publish_metric(
+        &metric,
+        &label,
+        format!("{{\"kind\":\"counter\",\"value\":{}}}", new),
+    );
+    Ok((atoms::ok(), new))
+}
+
+#[rustler::nif(schedule = "DirtyCpu")]
+fn metrics_histogram_observe(
+    metric: String,
+    label: String,
+    value: f64,
+) -> NifResult<(Atom, i64)> {
+    let k = mkey(&metric, &label);
+    let count = {
+        let mut m = metrics_histo_cell().lock();
+        let bucket = m.entry(k.clone()).or_insert_with(Vec::new);
+        bucket.push(value);
+        bucket.len() as i64
+    };
+    publish_metric(
+        &metric,
+        &label,
+        format!(
+            "{{\"kind\":\"histogram\",\"observation\":{}}}",
+            value
+        ),
+    );
+    Ok((atoms::ok(), count))
+}
+
+/// Return a JSON snapshot `{"counters":{...},"histograms":{metric:[values]}}`.
+#[rustler::nif]
+fn metrics_snapshot() -> NifResult<(Atom, String)> {
+    let counters: HashMap<String, i64> = metrics_counter_cell().lock().clone();
+    let histos: HashMap<String, Vec<f64>> = metrics_histo_cell().lock().clone();
+    let v = serde_json::json!({
+        "counters": counters,
+        "histograms": histos,
+    });
+    Ok((atoms::ok(), v.to_string()))
 }
 
 // ─── MCP-over-Zenoh ──────────────────────────────────────────────────────────
