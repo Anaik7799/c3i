@@ -1,0 +1,1 @@
+-record(run, {rc :: integer(), stdout :: binary(), stderr :: binary()}).

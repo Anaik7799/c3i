@@ -7,9 +7,12 @@ Status legend:
 - `PENDING`: legacy file still invoked somewhere; no gleam replacement yet.
 - `ARCHIVED`: legacy file deleted, gleam replacement is the only entry.
 
+> All target modules live inside the isolated subproject `sub-projects/scripts-gleam/src/scripts/<category>/<name>.gleam` and are invoked as `cd sub-projects/scripts-gleam && gleam run -m scripts/<category>/<name>`.
+
 | Legacy path | Target gleam module | Category | Status | Notes |
 |---|---|---|---|---|
 | `sub-projects/c3i/scripts/public_interface_test_suite.sh` | `scripts/probe/public_interface` | probe | DONE (HTTP subset) | HTTPS self-signed + WS upgrade probes pending (MIG-SCRIPT-P1 httpc SSL) |
+| _new_ | `scripts/registry/saplan_smoke` | registry | DONE | sa-plan bridge integration smoke; sets pref + lists queues |
 | `sub-projects/c3i/scripts/update_task_link_registry.sh` | `scripts/registry/task_link_registry` | registry | PENDING | Rust worker `run_link_registry_refresh` to switch after migration |
 | `sub-projects/c3i/scripts/fractal_feature_evolution_suite.sh` | `scripts/verify/feature_evolution_suite` | verify | PENDING | multi-phase orchestrator |
 | `sub-projects/c3i/scripts/recursive_feature_convergence.sh` | `scripts/verify/feature_convergence` | verify | PENDING | cache + iterate |

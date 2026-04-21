@@ -21,35 +21,43 @@ drivers — **MUST** be implemented as Gleam modules and invoked via `gleam run`
 
 **Required form**:
 ```
-gleam run -m <module_path> -- [--arg ...]
+cd sub-projects/scripts-gleam && gleam run -m <module_path> -- [--arg ...]
 ```
 Example:
 ```
-cd lib/cepaf_gleam && gleam run -m scripts/update_task_link_registry -- --task-id 1a92520c
+cd sub-projects/scripts-gleam
+gleam run -m scripts/probe/public_interface
+gleam run -m scripts/registry/saplan_smoke
 ```
 
 ## Project structure for scripts (canonical, single common area)
 
-**All runnable gleam scripts live under one tree:**
+**All runnable gleam scripts live in the isolated `scripts-gleam` subproject:**
 ```
-lib/cepaf_gleam/src/scripts/
-  README.md                 # conventions
-  common/                   # shared helpers only; not runnable
-    args.gleam              # arg parsing
-    paths.gleam             # canonical path resolution
-    logx.gleam              # structured logging + UTC stamps
-    fsx.gleam               # filesystem helpers (simplifile-backed)
-    httpx.gleam             # HTTP probe helper
-  probe/                    # network/endpoint probes
-  build/                    # build orchestration
-  ingest/                   # ZK / docs ingest
-  registry/                 # link + task registries
-  verify/                   # verification + convergence + gates
-  fractal/                  # criticality / RPN / FMEA matrices
-  tls/                      # TLS lifecycle helpers
-  pi/                       # Pi symbiosis orchestration
-  drift/                    # drift analysis automation
+sub-projects/scripts-gleam/
+  gleam.toml                         # isolated dependency set
+  README.md                          # subproject overview
+  src/
+    scripts_gleam.gleam              # host module
+    scripts_sh_ffi.erl               # port-spawn FFI (only here)
+    scripts/
+      README.md                      # conventions
+      common/                        # shared helpers; not runnable
+        args.gleam
+        paths.gleam
+        logx.gleam
+        fsx.gleam
+        httpx.gleam
+        saplan.gleam                 # sa-plan binary integration
+      probe/ build/ ingest/ registry/
+      verify/ fractal/ tls/ pi/ drift/
 ```
+
+**Hard isolation invariants:**
+- `lib/cepaf_gleam` MUST NOT depend on `scripts-gleam`.
+- Other subprojects (`pi-mono`, `ferriskey`, `openclaw`, `sutra`) MUST NOT depend on `scripts-gleam`.
+- `scripts-gleam` MUST NOT import from any other sub-project or from `lib/cepaf_gleam`.
+- The only way scripts interact with system services is via the `sa-plan` binary (thin invocation) or the sa-plan HTTP API.
 
 Each runnable module MUST:
 1. Live at `src/scripts/<category>/<name>.gleam`.
