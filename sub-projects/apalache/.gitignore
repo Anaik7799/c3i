@@ -1,0 +1,4 @@
+# Apalache distribution is fetched, not tracked (130 MB).
+# Keep launcher + README tracked; the unpacked tree is regenerated.
+apalache-*/
+!bin/

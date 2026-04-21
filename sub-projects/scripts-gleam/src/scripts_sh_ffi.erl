@@ -1,12 +1,28 @@
 %%% scripts_sh_ffi — minimal Erlang FFI for running external binaries from
 %%% the isolated `scripts-gleam` subproject.
 %%%
-%%% SC-SCRIPT-GLEAM-001. Port-spawn only (no shell). Two public functions:
-%%%   run_capture/2       — run binary with args
+%%% SC-SCRIPT-GLEAM-001. Port-spawn only (no shell).
+%%%
+%%% Functions:
+%%%   run_capture/2       — run binary with args, collect all stdout until exit
 %%%   run_capture_in/3    — run binary with args in a specific CWD
+%%%   run_stream/4        — SC-SCHED-TELE-PI-STREAM-FFI-001: streaming variant
+%%%                         that collects up to MaxLines or until TimeoutMs
+%%%                         elapses, then returns early without killing the
+%%%                         port (caller can keep reading).
+%%%   run_stream_bounded/5 — run with CWD + line-bounded capture + timeout.
 
 -module(scripts_sh_ffi).
--export([run_capture/2, run_capture_in/3]).
+-export([
+    run_capture/2,
+    run_capture_in/3,
+    run_stream/4,
+    run_stream_bounded/5
+]).
+
+%% ─────────────────────────────────────────────────────────────────────────────
+%% Existing blocking-collect variants
+%% ─────────────────────────────────────────────────────────────────────────────
 
 run_capture(Path, Args) when is_list(Path), is_list(Args) ->
     run_capture_in(Path, Args, []).
@@ -37,6 +53,74 @@ collect(Port, Acc) ->
             catch port_close(Port),
             {binary_to_list(Acc) ++ "\n[timeout 60s]\n", 124}
     end.
+
+%% ─────────────────────────────────────────────────────────────────────────────
+%% Streaming variant — SC-SCHED-TELE-PI-STREAM-FFI-001
+%%
+%% Spawns the subprocess in `{line, 8192}` mode so the port emits one message
+%% per newline-terminated chunk. We return as soon as EITHER:
+%%   * `MaxLines` lines have been observed, OR
+%%   * `TimeoutMs` milliseconds have elapsed since the first byte.
+%%
+%% The returned tuple is `{Lines, Status}`:
+%%   Lines  :: [string()]       — line-oriented stdout
+%%   Status :: {exited, RC} | ongoing | timeout
+%%
+%% The port is closed at the end of every call. For continuous-tail behaviour
+%% callers simply invoke repeatedly; each call captures a fresh window of
+%% subprocess output.
+%% ─────────────────────────────────────────────────────────────────────────────
+
+run_stream(Path, Args, MaxLines, TimeoutMs) when is_list(Path), is_list(Args),
+        is_integer(MaxLines), MaxLines >= 0, is_integer(TimeoutMs), TimeoutMs >= 0 ->
+    run_stream_bounded(Path, Args, [], MaxLines, TimeoutMs).
+
+run_stream_bounded(Path, Args, Cwd, MaxLines, TimeoutMs) when is_list(Path),
+        is_list(Args), is_integer(MaxLines), is_integer(TimeoutMs) ->
+    PathStr = resolve(Path),
+    case PathStr of
+        false -> {[], {error, "executable not found: " ++ Path}};
+        Resolved ->
+            ArgsStr = [to_charlist(A) || A <- Args],
+            Opts0 = [exit_status, binary, stderr_to_stdout,
+                     {args, ArgsStr}, {line, 8192}],
+            Opts = case Cwd of
+                [] -> Opts0;
+                _  -> [{cd, to_charlist(Cwd)} | Opts0]
+            end,
+            Port = open_port({spawn_executable, Resolved}, Opts),
+            Deadline = erlang:monotonic_time(millisecond) + TimeoutMs,
+            collect_stream(Port, Deadline, MaxLines, [])
+    end.
+
+collect_stream(Port, _Deadline, 0, Acc) ->
+    %% Reached the line cap; close port and return.
+    catch port_close(Port),
+    {lists:reverse(Acc), ongoing};
+collect_stream(Port, Deadline, Remaining, Acc) ->
+    Now = erlang:monotonic_time(millisecond),
+    WaitFor = max(0, Deadline - Now),
+    receive
+        {Port, {data, {eol, Bin}}} ->
+            collect_stream(Port, Deadline, Remaining - 1,
+                           [binary_to_list(Bin) | Acc]);
+        {Port, {data, {noeol, Bin}}} ->
+            %% Partial line; append without decrementing the line budget.
+            case Acc of
+                [] -> collect_stream(Port, Deadline, Remaining,
+                                     [binary_to_list(Bin)]);
+                [H | T] -> collect_stream(Port, Deadline, Remaining,
+                                          [H ++ binary_to_list(Bin) | T])
+            end;
+        {Port, {exit_status, RC}} ->
+            {lists:reverse(Acc), {exited, RC}}
+    after
+        WaitFor ->
+            catch port_close(Port),
+            {lists:reverse(Acc), timeout}
+    end.
+
+%% ─────────────────────────────────────────────────────────────────────────────
 
 resolve(Path) ->
     case Path of

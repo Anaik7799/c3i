@@ -1,14 +1,21 @@
 //// scripts/common/llm — multi-provider language-model access with fallback.
 ////
-//// Addresses scalability dimension #17 (model ops). Provider chain:
-////   1. Gemini          (generativelanguage.googleapis.com, via NIF)
-////   2. OpenRouter      (openrouter.ai/api/v1/chat/completions, via sa-plan HTTP)
-////   3. Ollama local    (localhost:11434, via sa-plan HTTP)
+//// Backed by real NIF HTTP calls for every provider. Chain:
+////   1. Gemini       (generativelanguage.googleapis.com, via gemini_generate NIF)
+////   2. OpenRouter   (openrouter.ai/api/v1/chat/completions, via openrouter_generate NIF)
+////   3. Ollama local (http://127.0.0.1:11434, via ollama_generate NIF)
 ////
-//// The first provider to return a non-empty response wins. Each attempt
-//// records a metric counter `scripts.llm.attempts.<provider>` and a
-//// histogram `scripts.llm.duration_ms.<provider>`. Totals available via
-//// `scripts/tools/metrics_dump`.
+//// Credentials + model names come from env. The first provider to return a
+//// non-empty reply wins. Metrics counters + histograms are emitted per attempt
+//// on Zenoh topic `indrajaal/metrics/scripts/scripts.llm.*`.
+////
+//// Env vars:
+////   GEMINI_API_KEY       required for Gemini
+////   GEMINI_MODEL         default: gemini-1.5-flash-8b
+////   OPENROUTER_API_KEY   required for OpenRouter
+////   OPENROUTER_MODEL     default: openrouter/auto
+////   OLLAMA_ENDPOINT      default: http://127.0.0.1:11434
+////   OLLAMA_MODEL         default: llama3.2
 
 import envoy
 import gleam/int
@@ -16,7 +23,6 @@ import gleam/list
 import gleam/string
 import scripts/common/errors.{type ScriptError}
 import scripts/common/gemini
-import scripts/common/httpx
 import scripts/common/metrics
 import scripts/common/nif
 
@@ -75,9 +81,8 @@ fn try_chain(
           let _ = metrics.counter_inc("scripts.llm.success", provider_tag(p), 1)
           Ok(ChainOutcome(provider: p, reply: reply, attempts: attempts))
         }
-        Error(e) -> {
+        Error(_) -> {
           let _ = metrics.counter_inc("scripts.llm.failures", provider_tag(p), 1)
-          let _ = e
           try_chain(prompt, timeout_ms, rest, attempts)
         }
       }
@@ -91,50 +96,59 @@ fn dispatch(
   timeout_ms: Int,
 ) -> Result(String, ScriptError) {
   case p {
-    Gemini ->
-      case gemini.generate(prompt, timeout_ms) {
-        Ok(reply) ->
-          case reply {
-            "" -> Error(errors.Upstream("gemini empty reply"))
-            s -> Ok(s)
-          }
-        Error(gemini.MissingApiKey) -> Error(errors.ConfigError("gemini: missing GEMINI_API_KEY"))
-        Error(gemini.CallFailed(d)) -> Error(errors.Upstream("gemini: " <> d))
-      }
-    OpenRouter -> openrouter(prompt, timeout_ms)
-    OllamaLocal -> ollama(prompt)
+    Gemini -> dispatch_gemini(prompt, timeout_ms)
+    OpenRouter -> dispatch_openrouter(prompt, timeout_ms)
+    OllamaLocal -> dispatch_ollama(prompt, timeout_ms)
   }
 }
 
-/// OpenRouter — thin JSON HTTP call; returns the first choice message content.
-fn openrouter(prompt: String, _timeout_ms: Int) -> Result(String, ScriptError) {
+fn dispatch_gemini(prompt: String, timeout_ms: Int) -> Result(String, ScriptError) {
+  case gemini.generate(prompt, timeout_ms) {
+    Ok("") -> Error(errors.Upstream("gemini empty reply"))
+    Ok(s) -> Ok(s)
+    Error(gemini.MissingApiKey) -> Error(errors.ConfigError("gemini: missing GEMINI_API_KEY"))
+    Error(gemini.CallFailed(d)) -> Error(errors.Upstream("gemini: " <> d))
+  }
+}
+
+fn dispatch_openrouter(prompt: String, timeout_ms: Int) -> Result(String, ScriptError) {
   case envoy.get("OPENROUTER_API_KEY") {
     Error(_) -> Error(errors.ConfigError("openrouter: missing OPENROUTER_API_KEY"))
-    Ok(_k) -> {
-      // Without multipart HTTP POST+headers in our httpx helper yet, call via
-      // a known sa-plan endpoint if present; otherwise surface a placeholder
-      // error so the chain advances to the next provider.
-      let r = httpx.get("http://127.0.0.1:4200/api/v1/llm/openrouter/ping")
-      case r.ok {
-        True -> {
-          // sa-plan will back this endpoint in a future pass; for now we
-          // advance the chain.
-          Error(errors.Upstream("openrouter: endpoint not yet wired in sa-plan"))
-        }
-        False -> Error(errors.Upstream("openrouter: " <> r.detail))
+    Ok(key) -> {
+      let model = case envoy.get("OPENROUTER_MODEL") {
+        Ok(m) -> m
+        Error(_) -> "openrouter/auto"
+      }
+      let #(_, body) = nif.openrouter_generate(key, model, prompt, timeout_ms)
+      case body {
+        "" -> Error(errors.Upstream("openrouter empty reply"))
+        s ->
+          case string.starts_with(s, "http ") {
+            True -> Error(errors.Upstream("openrouter: " <> s))
+            False -> Ok(s)
+          }
       }
     }
   }
 }
 
-fn ollama(prompt: String) -> Result(String, ScriptError) {
-  let _ = prompt
-  // Same pattern as openrouter: thin HTTP probe. If sa-plan proxies Ollama
-  // locally we'll wire the full body later.
-  let r = httpx.get("http://127.0.0.1:11434/api/tags")
-  case r.ok {
-    True -> Error(errors.Upstream("ollama: endpoint reachable; body call not yet wired"))
-    False -> Error(errors.Upstream("ollama: " <> r.detail))
+fn dispatch_ollama(prompt: String, timeout_ms: Int) -> Result(String, ScriptError) {
+  let endpoint = case envoy.get("OLLAMA_ENDPOINT") {
+    Ok(v) -> v
+    Error(_) -> "http://127.0.0.1:11434"
+  }
+  let model = case envoy.get("OLLAMA_MODEL") {
+    Ok(m) -> m
+    Error(_) -> "llama3.2"
+  }
+  let #(_, body) = nif.ollama_generate(endpoint, model, prompt, timeout_ms)
+  case body {
+    "" -> Error(errors.Upstream("ollama empty reply"))
+    s ->
+      case string.starts_with(s, "http ") {
+        True -> Error(errors.Upstream("ollama: " <> s))
+        False -> Ok(s)
+      }
   }
 }
 
@@ -145,5 +159,5 @@ pub fn default_chain() -> List(Provider) {
 
 /// Join chain members into a log-friendly string.
 pub fn render_chain(chain: List(Provider)) -> String {
-  string.join(list.map(chain, provider_tag), "→")
+  string.join(list.map(chain, provider_tag), "->")
 }

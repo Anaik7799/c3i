@@ -12,7 +12,9 @@ import scripts/tools/build_nif_cross
 import scripts/tools/guard_no_shell
 import scripts/tools/metrics_dump
 import scripts/tools/scaffold
+import scripts/pi/operator_view
 import scripts/verify/feature_evolution
+import scripts/verify/formal_check
 import scripts/verify/metrics_roundtrip
 import scripts/verify/symbiosis_smoke
 
@@ -30,5 +32,7 @@ pub fn all() -> List(mfst.Manifest) {
     guard_no_shell.manifest(),
     metrics_dump.manifest(),
     scaffold.manifest(),
+    operator_view.manifest(),
+    formal_check.manifest(),
   ]
 }

@@ -93,6 +93,11 @@ pub fn mcp_invoke_moz(
   timeout_ms: Int,
 ) -> #(Atom, String)
 
+/// Server side: block waiting for one inbound MCP request matching
+/// `indrajaal/mcp/request/<tool_pattern>`. Zenoh wildcards supported.
+@external(erlang, "scripts_nif", "mcp_serve_one")
+pub fn mcp_serve_one(tool_pattern: String, timeout_ms: Int) -> #(Atom, String)
+
 // ─── Metrics (SC-SCRIPT-MET-001) ─────────────────────────────────────────────
 
 @external(erlang, "scripts_nif", "metrics_counter_inc")
@@ -103,3 +108,21 @@ pub fn metrics_histogram_observe(metric: String, label: String, value: Float) ->
 
 @external(erlang, "scripts_nif", "metrics_snapshot")
 pub fn metrics_snapshot() -> #(Atom, String)
+
+// ─── OpenRouter + Ollama (multi-provider LLM) ────────────────────────────────
+
+@external(erlang, "scripts_nif", "openrouter_generate")
+pub fn openrouter_generate(
+  api_key: String,
+  model: String,
+  prompt: String,
+  timeout_ms: Int,
+) -> #(Atom, String)
+
+@external(erlang, "scripts_nif", "ollama_generate")
+pub fn ollama_generate(
+  endpoint: String,
+  model: String,
+  prompt: String,
+  timeout_ms: Int,
+) -> #(Atom, String)

@@ -15,6 +15,7 @@ import scripts/common/logx
 import scripts/common/manifest as mfst
 import scripts/common/paths
 import scripts/common/registry_index
+import scripts/pi/mcp_bridge
 import scripts/tools/retain
 
 const scope = "tools/list"
@@ -34,9 +35,14 @@ pub fn manifest() -> mfst.Manifest {
 }
 
 fn all_manifests() -> List(mfst.Manifest) {
-  // Pull the canonical list from the registry_index module, plus the two
-  // tools (list + retain) that would otherwise create an import cycle.
-  [manifest(), retain.manifest(), ..registry_index.all()]
+  // Pull the canonical list from the registry_index module, plus tools that
+  // would otherwise create an import cycle (list + retain + mcp_bridge).
+  [
+    manifest(),
+    retain.manifest(),
+    mcp_bridge.manifest(),
+    ..registry_index.all()
+  ]
 }
 
 pub fn main() -> Nil {

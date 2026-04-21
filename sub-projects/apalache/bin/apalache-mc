@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Thin launcher for Apalache (SC-SCHED-TELE-TLA-001).
+# Resolves the extracted distribution relative to this script so the repo
+# remains portable. The actual binary is `apalache-0.56.1/bin/apalache-mc`.
+SUBPROJ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VERSION="${APALACHE_VERSION:-0.56.1}"
+APALACHE_BIN="$SUBPROJ/apalache-$VERSION/bin/apalache-mc"
+if [ ! -x "$APALACHE_BIN" ]; then
+  echo "apalache-mc not found at $APALACHE_BIN" >&2
+  echo "Run: gleam run -m scripts/tools/install_apalache" >&2
+  exit 127
+fi
+exec "$APALACHE_BIN" "$@"

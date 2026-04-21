@@ -124,6 +124,10 @@
     # Zenoh Configuration (SC-LSP-005)
     # Zenoh uses JSON5 config files - use jsonnet LSP or JSON with relaxed parsing
     # Note: Quint LSP via `npx @informalsystems/quint-language-server`
+    # Formal verification (SC-SCHED-TELE-TLA-001)
+    tlaplus                            # TLA+ toolkit (includes TLC model checker)
+    # Apalache is not in nixpkgs — install via `./scripts/install_apalache.sh`
+    # or manually: https://github.com/apalache-mc/apalache/releases
   ];
 
   languages.elixir = {

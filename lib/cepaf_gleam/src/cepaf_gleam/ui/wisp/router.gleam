@@ -21,7 +21,6 @@ import cepaf_gleam/agui/state as agui_state
 import cepaf_gleam/agui/tools as agui_tools
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/beam_metrics
-import cepaf_gleam/ha/claude_metrics
 import cepaf_gleam/ha/fitness_gate
 import cepaf_gleam/ha/guard_grid
 import cepaf_gleam/ha/request_guard
@@ -39,6 +38,8 @@ import cepaf_gleam/fractal/l0_constitutional.{
 }
 import cepaf_gleam/moz/client as moz_client
 import cepaf_gleam/rules/engine as rule_engine
+import cepaf_gleam/symbiosis/tensor as symbiosis_tensor
+import cepaf_gleam/symbiosis/types as symbiosis_types
 import cepaf_gleam/ui/domain.{
   type HealthStatus, Agents, Bicameral, Biomorphic, Bridge, Cockpit,
   ComponentDemo, Config, Critical, Dashboard, Database, Degraded, Evolution,
@@ -1036,11 +1037,33 @@ fn evolution_json() -> String {
 }
 
 fn biomorphic_json() -> String {
+  let t = symbiosis_tensor.build()
+  let sym = build_symbiosis_index()
   json.object([
     #("page", json.string("Biomorphic")),
     #("layer", json.string("L5_COGNITIVE")),
     #("mode", json.string("normal")),
     #("overall_score", json.float(0.95)),
+    #(
+      "symbiosis",
+      json.object([
+        #("global_index", json.float(sym.global_index)),
+        #("mutualism_count", json.int(sym.mutualism_count)),
+        #("parasitism_count", json.int(sym.parasitism_count)),
+        #("total_count", json.int(sym.total_count)),
+        #("healthy", json.bool(symbiosis_types.is_healthy(sym))),
+      ]),
+    ),
+    #(
+      "tensor",
+      json.object([
+        #("coverage", json.float(t.coverage)),
+        #("health", json.float(t.health)),
+        #("active_cells", json.int(symbiosis_tensor.active_count(t))),
+        #("missing_cells", json.int(symbiosis_tensor.missing_count(t))),
+        #("total_cells", json.int(56)),
+      ]),
+    ),
     #(
       "subsystems",
       json.array(
@@ -1066,6 +1089,17 @@ fn biomorphic_json() -> String {
     ),
   ])
   |> json.to_string()
+}
+
+fn build_symbiosis_index() -> symbiosis_types.SymbiosisIndex {
+  symbiosis_types.new()
+  |> symbiosis_types.record("cortex", "rule_engine", 0.8, 0.7)
+  |> symbiosis_types.record("zenoh", "otel", 0.9, 0.6)
+  |> symbiosis_types.record("gleam_ui", "nif_bridge", 0.7, 0.5)
+  |> symbiosis_types.record("sa_plan", "smriti_db", 0.9, 0.3)
+  |> symbiosis_types.record("immune", "sentinel", 0.6, 0.8)
+  |> symbiosis_types.record("dashboard", "websocket", 0.8, 0.4)
+  |> symbiosis_types.record("guardian", "2oo3_voting", 0.5, 0.9)
 }
 
 fn homeostasis_json() -> String {
@@ -1938,6 +1972,10 @@ fn handle_get(path: String) -> HttpResponse(String) {
     "/static/knowledge-grid.js" -> serve_static_file("priv/static/knowledge-grid.js", "application/javascript")
     "/static/zenoh-grid.js" -> serve_static_file("priv/static/zenoh-grid.js", "application/javascript")
     "/static/telemetry-grid.js" -> serve_static_file("priv/static/telemetry-grid.js", "application/javascript")
+    // SCHED-TELE-CEPAF-ROUTER-WIRE: live jobs page served from cepaf-gleam
+    // (mirrors the sa-plan daemon static page). SC-SCHED-TELE-005.
+    "/jobs/live" -> serve_static_file("priv/static/jobs-live.html", "text/html; charset=utf-8")
+    "/jobs-live.html" -> serve_static_file("priv/static/jobs-live.html", "text/html; charset=utf-8")
     "/static/podman-grid.js" -> serve_static_file("priv/static/podman-grid.js", "application/javascript")
     "/static/substrate-grid.js" -> serve_static_file("priv/static/substrate-grid.js", "application/javascript")
     // Telegram Mini App routes — mobile-optimized SSR HTML (SC-OPENCLAW-001)
