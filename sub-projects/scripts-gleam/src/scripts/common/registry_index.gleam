@@ -13,10 +13,12 @@ import scripts/tools/guard_no_shell
 import scripts/tools/metrics_dump
 import scripts/tools/scaffold
 import scripts/pi/operator_view
+import scripts/drift/br_mrg_drift_p0_checklist
 import scripts/verify/feature_evolution
 import scripts/verify/formal_check
 import scripts/verify/metrics_roundtrip
 import scripts/verify/symbiosis_smoke
+import scripts/verify/ultrathink_symbiosis_pass
 
 /// Whenever a new runnable script is added, append its `manifest()` here and
 /// add the import above.
@@ -33,6 +35,8 @@ pub fn all() -> List(mfst.Manifest) {
     metrics_dump.manifest(),
     scaffold.manifest(),
     operator_view.manifest(),
+    br_mrg_drift_p0_checklist.manifest(),
     formal_check.manifest(),
+    ultrathink_symbiosis_pass.manifest(),
   ]
 }
