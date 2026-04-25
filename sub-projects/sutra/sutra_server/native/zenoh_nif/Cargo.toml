@@ -1,0 +1,15 @@
+[package]
+name = "zenoh_nif"
+version = "0.1.0"
+edition = "2021"
+description = "Zenoh pub/sub NIF for Sutra Matrix Server — OTel span publishing + test observability"
+
+[lib]
+name = "zenoh_nif"
+crate-type = ["cdylib"]
+
+[dependencies]
+rustler = "0.36"
+zenoh = { version = "1.9.0", default-features = false, features = ["transport_tcp"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread"] }
