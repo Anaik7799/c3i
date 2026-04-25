@@ -64,6 +64,14 @@ pub fn main() -> Nil {
 
   let server_name = "vm-1.tail55d152.ts.net"
 
+  // Initialize sled FIRST — before creating the store, so load_tokens_from_sled works
+  case rocksdb.open("data/sutra.db") {
+    Ok(msg) ->
+      io.println("[SUTRA] Sled persistent store: " <> msg)
+    Error(err) ->
+      io.println("[SUTRA] Sled unavailable (in-memory only): " <> err)
+  }
+
   // Seed store: pre-register admin user + token so immediate testing works.
   // password_hash stores bcrypt hash (tuwunel parity — cost 10).
   // admin password: "password", bot password: "!!112233!!"
@@ -98,6 +106,8 @@ pub fn main() -> Nil {
     |> kv.add_token("admin_token", "@admin:" <> server_name)
     |> kv.add_user(bot_user)
     |> kv.add_token("bot_token", "@vm-1-bot:" <> server_name)
+    // Load persisted tokens from sled (survives server restarts)
+    |> kv.load_tokens_from_sled()
 
   let initial_state =
     ServerState(
@@ -123,28 +133,12 @@ pub fn main() -> Nil {
         "[SUTRA] State actor started — admin token: admin_token",
       )
 
-      // Initialize persistent storage (sled NIF)
-      case rocksdb.open("data/sutra.db") {
-        Ok(msg) ->
-          io.println("[SUTRA] Sled persistent store: " <> msg)
-        Error(err) ->
-          io.println("[SUTRA] Sled unavailable (in-memory only): " <> err)
-      }
-
       // Initialize Zenoh mesh connection for OTel span publishing
       case zenoh.init() {
         Ok(msg) ->
           io.println("[SUTRA] Zenoh mesh: " <> msg)
         Error(err) ->
           io.println("[SUTRA] Zenoh mesh unavailable (degraded): " <> err)
-      }
-
-      // Initialize persistent KV store (sled via rocksdb_nif)
-      case rocksdb.open("data/sutra.db") {
-        Ok(_) ->
-          io.println("[SUTRA] Persistent store: data/sutra.db opened")
-        Error(err) ->
-          io.println("[SUTRA] Persistent store unavailable (degraded): " <> err)
       }
 
       let handler = fn(req: request.Request(mist.Connection)) {
