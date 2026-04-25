@@ -32,3 +32,11 @@ pub fn scan(cf: String, prefix: String, limit: Int) -> Result(List(#(String, Str
 /// Check if the database is open.
 @external(erlang, "rocksdb_ffi", "db_is_open")
 pub fn is_open() -> Bool
+
+/// Flush all pending writes to disk.
+@external(erlang, "rocksdb_ffi", "db_flush")
+pub fn flush() -> Result(String, String)
+
+/// Get database size in bytes.
+@external(erlang, "rocksdb_ffi", "db_size_on_disk")
+pub fn size_on_disk() -> Result(Int, String)

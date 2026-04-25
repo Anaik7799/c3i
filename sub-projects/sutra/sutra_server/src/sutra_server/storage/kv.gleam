@@ -429,7 +429,12 @@ pub fn summary(store: Store) -> String {
 // ---------------------------------------------------------------------------
 
 /// Store device keys for a user+device (upsert).
+/// Also persists to sled for cross-restart survival.
 pub fn store_device_keys(store: Store, dk: StoredDeviceKeys) -> Store {
+  // Persist to sled: key = "user_id|device_id", value = "algos|keys_json|sigs_json"
+  let sled_key = dk.user_id <> "|" <> dk.device_id
+  let sled_val = string.join(dk.algorithms, ",") <> "\n" <> dk.keys_json <> "\n" <> dk.signatures_json
+  let _ = sled_put("device_keys", sled_key, sled_val)
   let filtered = list.filter(store.device_keys, fn(k) {
     case k.user_id == dk.user_id && k.device_id == dk.device_id {
       True -> False
@@ -437,6 +442,35 @@ pub fn store_device_keys(store: Store, dk: StoredDeviceKeys) -> Store {
     }
   })
   Store(..store, device_keys: [dk, ..filtered])
+}
+
+/// Load persisted device keys from sled into the store.
+pub fn load_device_keys_from_sled(store: Store) -> Store {
+  case sled_scan("device_keys", "", 10_000) {
+    Ok(pairs) -> {
+      let keys = list.filter_map(pairs, fn(pair) {
+        case string.split_once(pair.0, "|") {
+          Ok(#(user_id, device_id)) -> {
+            // value = "algos\nkeys_json\nsigs_json"
+            case string.split(pair.1, "\n") {
+              [algos_str, keys_json, sigs_json, ..] ->
+                Ok(StoredDeviceKeys(
+                  user_id: user_id,
+                  device_id: device_id,
+                  algorithms: string.split(algos_str, ","),
+                  keys_json: keys_json,
+                  signatures_json: sigs_json,
+                ))
+              _ -> Error(Nil)
+            }
+          }
+          Error(_) -> Error(Nil)
+        }
+      })
+      Store(..store, device_keys: list.append(keys, store.device_keys))
+    }
+    Error(_) -> store
+  }
 }
 
 /// Get all device keys for a user.
@@ -1206,7 +1240,10 @@ pub fn get_url_preview(store: Store, url: String) -> Result(String, Nil) {
 import sutra_server/rocksdb
 
 fn sled_put(tree: String, key: String, value: String) -> Result(String, String) {
-  rocksdb.put(tree, key, value)
+  let result = rocksdb.put(tree, key, value)
+  // Flush to ensure durability even on hard kill (SIGKILL)
+  let _ = rocksdb.flush()
+  result
 }
 
 fn sled_delete(tree: String, key: String) -> Result(String, String) {

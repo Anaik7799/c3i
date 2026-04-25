@@ -106,8 +106,9 @@ pub fn main() -> Nil {
     |> kv.add_token("admin_token", "@admin:" <> server_name)
     |> kv.add_user(bot_user)
     |> kv.add_token("bot_token", "@vm-1-bot:" <> server_name)
-    // Load persisted tokens from sled (survives server restarts)
+    // Load persisted data from sled (survives server restarts)
     |> kv.load_tokens_from_sled()
+    |> kv.load_device_keys_from_sled()
 
   let initial_state =
     ServerState(
