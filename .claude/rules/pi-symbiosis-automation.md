@@ -9,7 +9,7 @@
 |----|------------|----------|
 | SC-PI-AUTO-001 | Every new Gleam module MUST check Pi bridge compatibility | HIGH |
 | SC-PI-AUTO-002 | Every feature MUST update pi_claude_code.gleam if it adds tools or events | CRITICAL |
-| SC-PI-AUTO-003 | Tool federation count MUST be verified after every feature (currently 87) | HIGH |
+| SC-PI-AUTO-003 | Tool federation count MUST be verified after every feature (currently 93) | HIGH |
 | SC-PI-AUTO-004 | Event bridge mapping MUST be verified after AG-UI event changes | HIGH |
 | SC-PI-AUTO-005 | Pi RPC protocol compatibility MUST be tested | HIGH |
 | SC-PI-AUTO-006 | Screenshots MUST include Pi integration UI elements | MEDIUM |
@@ -33,11 +33,12 @@ cd lib/cepaf_gleam && gleam build  # pi_claude_code.gleam compiles
 cd lib/cepaf_gleam && gleam test -- --module pi_claude_code  # 0 failures
 cd lib/cepaf_gleam && gleam test -- --module pi_integration  # 0 failures
 cd lib/cepaf_gleam && gleam test -- --module pi_bridge_regression  # 0 failures
+cd sub-projects/pi-mono && npm run build  # Pi packages compile
 ```
 
 ### Step 2: Tool Federation Count
 ```
-Expected: 87 (14 Pi + 73 C3I MCP)
+Expected: 93 (6 Claude + 14 Pi + 73 C3I MCP)
 If new MCP tools added → update pi_tools.gleam + pi_claude_code.gleam
 If new Pi tools added → update tool federation mapping
 ```
