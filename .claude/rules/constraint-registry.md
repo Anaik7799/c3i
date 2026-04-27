@@ -6,6 +6,16 @@ Individual constraint details live in code; this registry tracks families and ra
 | Family | IDs | # | Description |
 |---|---|---|---|
 | SC-FRAC-RRF | 001-010 | 10 | Fractal layer/component matrix with RETE-UL+ruliology evidence, STAMP mapping, FMEA/FEMA scoring, and criticality-first execution |
+
+## Delta (2026-04-27)
+| Family | IDs | # | Description |
+|---|---|---|---|
+| SC-INFER-RUST-API | 001-008 | 8 | mistral.rs Rust-API-only mandate (no `mistralrs-server`/`pyo3`/`bench`; `MultimodalModelBuilder` + `Model::send_chat_request` + detached dispatch + `OnceLock` singleton). See `.claude/rules/mistral-rust-api-mandate.md` |
+| SC-TESTDATA | 001-006 | 6 | Universal test-data corpus contract — license, manifest, ground-truth, no-PII, size budget. See `.claude/rules/test-data-corpus.md` |
+| SC-TESTDATA-TXT | 001-005 | 5 | Text fixtures — UTF-8 ≤ 8K tokens, multilingual, refusal-bait coverage |
+| SC-TESTDATA-IMG | 001-006 | 6 | Image fixtures — gemma-4 native 384×384, format sweep, ≥4 categories, adversarial |
+| SC-TESTDATA-AUD | 001-006 | 6 | Audio fixtures — gemma-4 native 16 kHz mono PCM-16, ≥3 200 samples, codec sweep, no Common Voice |
+| SC-TESTDATA-VID | 001-006 | 6 | Video fixtures — ≥4 frames @ 384×384, FPS sweep, JSON storage, ≥1 real Kinetics |
 # P0-SAFETY (CRITICAL)
 | Family | IDs | # | Description |
 |--------|-----|---|-------------|
