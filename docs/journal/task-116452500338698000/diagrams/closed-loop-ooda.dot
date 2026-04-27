@@ -1,0 +1,35 @@
+digraph OODA {
+  rankdir=LR; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica";
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed" fillcolor="#141922" color="#1e2a3a"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=10];
+
+  subgraph cluster_o { label="OBSERVE"; color="#00bfff"; fontcolor="#00bfff";
+    Session [label="session_metrics\n16 rows · $621.50 total"];
+    Pipeline [label="pipeline_stage_metrics\n527 stages · avg rag 2.78s"];
+    Pi [label="pi_sessions\n16 sessions tracked"];
+    Stage [label="Zenoh\nindrajaal/l4/sre/**"];
+  }
+  subgraph cluster_or { label="ORIENT"; color="#3dd68c"; fontcolor="#3dd68c";
+    OODA [label="v_ooda_live view\ncost/24h $207.67\ncache-hit 40.2%\nembed-coverage 37%"];
+    Cost [label="v_cost_by_agent\npi: $0.85/citation\ncitation-rate 11.8%"];
+  }
+  subgraph cluster_d { label="DECIDE"; color="#f5a623"; fontcolor="#f5a623";
+    Rules [label="rules/engine\nHighCostThreshold · LowCacheHit\nLowEmbeddingCoverage"];
+    Disp [label="rules/dispatcher\nEscalate · EmbedRefresh · PrefixRefactor"];
+  }
+  subgraph cluster_a { label="ACT"; color="#ff4757"; fontcolor="#ff4757";
+    Esc [label="Escalate →\nindrajaal/l5/cog/escalate"];
+    Embed [label="embed_refresh job\nbackfill 22,181 holons"];
+    Refactor [label="Prefix refactor task\nboost cache-hit"];
+  }
+
+  Session -> OODA -> Rules -> Disp;
+  Pipeline -> OODA;
+  Pi -> OODA;
+  Stage -> OODA [label="live"];
+  OODA -> Cost -> Rules;
+  Disp -> Esc; Disp -> Embed; Disp -> Refactor;
+  Esc -> Stage [label="OTel + Zenoh put" style=dashed];
+  Embed -> Session [label="re-observe\n(closed loop)" style=dashed color="#3dd68c"];
+  Refactor -> Session [style=dashed color="#3dd68c"];
+}

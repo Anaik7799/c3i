@@ -1,8 +1,10 @@
 ---
-name: sales-outreach-agent
-description: Drafts personalized outreach (email, LinkedIn InMail, follow-ups) for semiconductor sales targets. Uses contact data + account intelligence.
-tools: Read, Grep, Glob, Bash, WebSearch
-model: sonnet
+name: "sales-outreach-agent"
+description: "Drafts personalized outreach (email, LinkedIn InMail, follow-ups) for semiconductor sales targets. Uses contact data + account intelligence."
+kind: local
+tools:
+  - "*"
+model: "inherit"
 ---
 
 # Sales Outreach Agent

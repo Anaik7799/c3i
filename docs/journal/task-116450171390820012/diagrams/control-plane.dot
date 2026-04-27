@@ -1,0 +1,74 @@
+digraph ControlPlane {
+  rankdir=TB; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica";
+  node [style="filled,rounded" shape=box fontname="Helvetica" color="#1e2a3a" fillcolor="#141922" fontcolor="#e0e6ed" penwidth=1.5];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=10];
+  subgraph cluster_l0 { label="L0 Constitutional"; color="#ff4757"; fontcolor="#ff4757";
+    SafetyKernel [fillcolor="#1a0e0e" color="#ff4757"];
+    Guardian [fillcolor="#1a0e0e" color="#ff4757"];
+  }
+  subgraph cluster_l4 { label="L4 System Orchestration"; color="#00d4aa"; fontcolor="#00d4aa";
+    Ignition [label="ignition\n(Rust)"];
+    SaPlanServe [label="sa-plan serve :4200"];
+    SaPlanTLS [label="sa-plan tls serve :8443"];
+    Scheduler [label="sa-plan scheduler-run"];
+    Cortex [label="sa-plan daemon\n(Zenoh listener)"];
+    TsDaemon [label="timestamp_daemon"];
+  }
+  subgraph cluster_l5 { label="L5 Cognition"; color="#f5a623"; fontcolor="#f5a623";
+    CortexFsharp [label="indrajaal-cortex\n(dotnet F#)"];
+    Ollama [label="indrajaal-ollama"];
+    MLr1 [label="ml-runner-1"];
+    MLr2 [label="ml-runner-2"];
+    Mojo [label="indrajaal-mojo"];
+  }
+  subgraph cluster_l6 { label="L6 Ecosystem / Mesh"; color="#3dd68c"; fontcolor="#3dd68c";
+    ZR [label="zenoh-router"];
+    ZR1 [label="zenoh-router-1"];
+    ZR2 [label="zenoh-router-2"];
+    ZR3 [label="zenoh-router-3"];
+    Bridge [label="cepaf-bridge\n(dotnet F#)"];
+  }
+  subgraph cluster_l3 { label="L3 Transaction"; color="#9b6cff"; fontcolor="#9b6cff";
+    DB [label="indrajaal-db-prod\n(Timescale :5433)"];
+    PlanningDB [label="planning.db\n(SQLite, 2943 tasks)"];
+    Smriti [label="smriti.db\n(SQLite)"];
+  }
+  subgraph cluster_l2 { label="L2 Component (Apps)"; color="#00bfff"; fontcolor="#00bfff";
+    App1 [label="ex-app-1 :4000"];
+    App2 [label="ex-app-2 :4003"];
+    App3 [label="ex-app-3 :4004"];
+    Chaya [label="indrajaal-chaya :4002"];
+  }
+  subgraph cluster_obs { label="Observability"; color="#7a8fa6"; fontcolor="#7a8fa6";
+    Obs [label="obs-prod\nGrafana :3000 / OTEL :4317 / Prom :9090"];
+  }
+  Ignition -> SafetyKernel [label="preflight"];
+  SafetyKernel -> Guardian [label="invariants"];
+  Ignition -> ZR [label="launch wave-1"];
+  Ignition -> DB [label="launch wave-1"];
+  Ignition -> Obs [label="launch wave-1"];
+  Ignition -> Ollama;
+  Ignition -> Mojo;
+  Ignition -> CortexFsharp;
+  Ignition -> MLr1;
+  Ignition -> MLr2;
+  Ignition -> App1;
+  Ignition -> App2;
+  Ignition -> App3;
+  Ignition -> Chaya;
+  Ignition -> Bridge;
+  SaPlanServe -> PlanningDB;
+  SaPlanTLS -> PlanningDB;
+  Scheduler -> PlanningDB;
+  Cortex -> ZR [label="sub indrajaal/l5/**"];
+  Cortex -> Ollama [label="hedged"];
+  Cortex -> Ollama [label="openrouter"];
+  TsDaemon -> Obs [label="OTEL traces"];
+  CortexFsharp -> ZR;
+  Bridge -> ZR;
+  App1 -> ZR; App2 -> ZR; App3 -> ZR; Chaya -> ZR;
+  App1 -> DB; App2 -> DB; App3 -> DB; Chaya -> DB;
+  ZR -> ZR1 [dir=both]; ZR -> ZR2 [dir=both]; ZR -> ZR3 [dir=both];
+  ZR1 -> ZR2 [dir=both]; ZR2 -> ZR3 [dir=both]; ZR1 -> ZR3 [dir=both];
+  Obs -> Grafana_user [shape=ellipse style=dashed];
+}

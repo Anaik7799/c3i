@@ -288,7 +288,7 @@ Quick Sales Navigator search accessible from this command (redirects to fy27-sal
 # https://www.linkedin.com/sales/search/people?query=<encoded-query>
 
 # For full Sales Navigator operations, use:
-# .claude/commands/fy27-salesnav-ops.md
+# .gemini/commands/fy27-salesnav-ops.md
 
 # Pre-built searches available:
 # ARM-Decision-Makers, Nokia-5G-Leaders, Ericsson-Semicon,

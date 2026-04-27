@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Patrol MCP + Marionette MCP + Zenoh — Analysis (task 116469699362989555)</title>
+<style>
+  :root { --bg:#0a0e17; --card:#141922; --text:#e0e6ed; --muted:#7a8fa6; --accent:#00d4aa; --warn:#f5a623; --crit:#ff4757; --ok:#3dd68c; --border:#1e2a3a; }
+  * { box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font:14px/1.55 system-ui,-apple-system,Segoe UI,sans-serif; margin:0; padding:24px; }
+  h1 { color:var(--accent); border-bottom:1px solid var(--border); padding-bottom:8px; }
+  h2 { color:var(--accent); margin-top:32px; }
+  h3 { color:var(--text); }
+  a { color:var(--accent); }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); margin:16px 0; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:16px; backdrop-filter:blur(6px); }
+  .card .v { font-size:28px; color:var(--accent); font-weight:600; }
+  .card .l { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:0.06em; }
+  table { width:100%; border-collapse:collapse; margin:8px 0 24px; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--border); }
+  th { color:var(--accent); background:#0e1622; font-weight:500; font-size:12px; text-transform:uppercase; letter-spacing:0.06em; }
+  code, pre { font-family:JetBrains Mono, ui-monospace, monospace; font-size:13px; color:#cbe1d8; }
+  pre { background:#0e1622; padding:12px 14px; border-radius:6px; overflow-x:auto; border:1px solid var(--border); }
+  .ok   { color:var(--ok); }
+  .warn { color:var(--warn); }
+  .crit { color:var(--crit); }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; background:#0e1622; border:1px solid var(--border); font-size:11px; color:var(--muted); }
+  .arrow svg { width:100%; max-width:920px; height:auto; }
+  footer { color:var(--muted); margin-top:48px; border-top:1px solid var(--border); padding-top:12px; }
+</style>
+</head>
+<body>
+<h1>Patrol MCP + Marionette MCP + Zenoh — Dual-MCP Test Backplane</h1>
+<p>
+  <span class="badge">task 116469699362989555</span>
+  <span class="badge">2026-04-26</span>
+  <span class="badge">SC-PATROL-MCP-001..012</span>
+  <span class="badge">SC-ZMOF-001</span>
+  <a href="https://vm-1.tail55d152.ts.net:4200/task-id/116469699362989555/">task page</a>
+</p>
+
+<h2>KPIs</h2>
+<div class="grid">
+  <div class="card"><div class="v">13</div><div class="l">MCP tools wired (5 Patrol + 8 Marionette)</div></div>
+  <div class="card"><div class="v">12</div><div class="l">STAMP constraints added</div></div>
+  <div class="card"><div class="v">14</div><div class="l">Zenoh topics under indrajaal/l5/test/**</div></div>
+  <div class="card"><div class="v">3</div><div class="l">Platforms covered (Android · Linux · Chrome)</div></div>
+  <div class="card"><div class="v">7 / 3</div><div class="l">Files created / modified</div></div>
+  <div class="card"><div class="v ok">async</div><div class="l">Hook timeout 5 s · non-blocking</div></div>
+</div>
+
+<h2>Architecture</h2>
+<div class="arrow">
+<svg viewBox="0 0 940 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture diagram">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#00d4aa"/></marker>
+  </defs>
+  <rect x="20"  y="10"  width="280" height="60" rx="8" fill="#141922" stroke="#1e2a3a"/>
+  <text x="160" y="38"  text-anchor="middle" fill="#00d4aa" font-size="16" font-family="system-ui">Claude Code / Cursor / Gemini</text>
+  <text x="160" y="58"  text-anchor="middle" fill="#7a8fa6" font-size="11" font-family="system-ui">L5 cognitive — agentic layer</text>
+
+  <rect x="20"  y="110" width="130" height="60" rx="8" fill="#141922" stroke="#1e2a3a"/>
+  <text x="85"  y="138" text-anchor="middle" fill="#e0e6ed" font-size="13" font-family="system-ui">patrol_mcp</text>
+  <text x="85"  y="156" text-anchor="middle" fill="#7a8fa6" font-size="10" font-family="system-ui">5 tools (run/screenshot/...)</text>
+
+  <rect x="170" y="110" width="130" height="60" rx="8" fill="#141922" stroke="#1e2a3a"/>
+  <text x="235" y="138" text-anchor="middle" fill="#e0e6ed" font-size="13" font-family="system-ui">marionette_mcp</text>
+  <text x="235" y="156" text-anchor="middle" fill="#7a8fa6" font-size="10" font-family="system-ui">8 tools (tap/get_tree/...)</text>
+
+  <line x1="120" y1="70" x2="85"  y2="110" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="200" y1="70" x2="235" y2="110" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="20"  y="200" width="280" height="50" rx="8" fill="#141922" stroke="#1e2a3a"/>
+  <text x="160" y="222" text-anchor="middle" fill="#e0e6ed" font-size="13" font-family="system-ui">PostToolUse hook → patrol-zenoh-bridge.sh</text>
+  <text x="160" y="240" text-anchor="middle" fill="#7a8fa6" font-size="10" font-family="system-ui">async 5s · matcher mcp__patrol__.*|mcp__marionette__.*</text>
+
+  <line x1="85"  y1="170" x2="120" y2="200" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="235" y1="170" x2="200" y2="200" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="340" y="110" width="280" height="140" rx="8" fill="#0e1622" stroke="#1e2a3a"/>
+  <text x="480" y="135" text-anchor="middle" fill="#00d4aa" font-size="14" font-family="system-ui">Zenoh backplane (TCP 7447 / REST :8000)</text>
+  <text x="480" y="160" text-anchor="middle" fill="#cbe1d8" font-size="11" font-family="JetBrains Mono">indrajaal/l5/test/patrol/&lt;run_id&gt;/{start,screenshot,passed,failed,...}</text>
+  <text x="480" y="180" text-anchor="middle" fill="#cbe1d8" font-size="11" font-family="JetBrains Mono">indrajaal/l5/test/marionette/&lt;sid&gt;/{tap,enter_text,scroll,...}</text>
+  <text x="480" y="210" text-anchor="middle" fill="#7a8fa6" font-size="10" font-family="system-ui">OTel envelope: at, source, urn, run_id, phase, platform, payload</text>
+
+  <line x1="300" y1="225" x2="340" y2="180" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="660" y="110" width="260" height="50" rx="8" fill="#141922" stroke="#1e2a3a"/>
+  <text x="790" y="138" text-anchor="middle" fill="#e0e6ed" font-size="13" font-family="system-ui">cortex (rust planning_daemon)</text>
+
+  <rect x="660" y="170" width="260" height="50" rx="8" fill="#141922" stroke="#1e2a3a"/>
+  <text x="790" y="198" text-anchor="middle" fill="#e0e6ed" font-size="13" font-family="system-ui">dashboard / pi-mono / session_metrics</text>
+
+  <line x1="620" y1="155" x2="660" y2="135" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="620" y1="180" x2="660" y2="195" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="20"  y="290" width="280" height="70" rx="8" fill="#141922" stroke="#1e2a3a"/>
+  <text x="160" y="318" text-anchor="middle" fill="#e0e6ed" font-size="13" font-family="system-ui">fluffychat (Flutter, debug build)</text>
+  <text x="160" y="338" text-anchor="middle" fill="#7a8fa6" font-size="10" font-family="system-ui">MarionetteBinding · patrol harness · android/linux/chrome</text>
+
+  <line x1="85"  y1="170" x2="85"  y2="290" stroke="#00d4aa" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arr)"/>
+  <line x1="235" y1="170" x2="235" y2="290" stroke="#00d4aa" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arr)"/>
+</svg>
+</div>
+
+<h2>MCP Tool Surface</h2>
+<table>
+  <tr><th>MCP Tool</th><th>Server</th><th>Purpose</th><th>Zenoh phase</th></tr>
+  <tr><td><code>mcp__patrol__run</code></td><td>patrol_mcp</td><td>Execute Patrol test (hot-restart)</td><td>start</td></tr>
+  <tr><td><code>mcp__patrol__screenshot</code></td><td>patrol_mcp</td><td>800px-resized device screen</td><td>screenshot</td></tr>
+  <tr><td><code>mcp__patrol__native-tree</code></td><td>patrol_mcp</td><td>Trimmed UI hierarchy</td><td>native-tree</td></tr>
+  <tr><td><code>mcp__patrol__status</code></td><td>patrol_mcp</td><td>Session state + recent stdout</td><td>status</td></tr>
+  <tr><td><code>mcp__patrol__quit</code></td><td>patrol_mcp</td><td>Graceful session stop</td><td>quit</td></tr>
+  <tr><td><code>mcp__marionette__connect</code></td><td>marionette_mcp</td><td>Attach via VM Service URI</td><td>connect</td></tr>
+  <tr><td><code>mcp__marionette__get_interactive_elements</code></td><td>marionette_mcp</td><td>Tappable widget catalog</td><td>get_tree</td></tr>
+  <tr><td><code>mcp__marionette__tap</code></td><td>marionette_mcp</td><td>Tap by Key or text</td><td>tap</td></tr>
+  <tr><td><code>mcp__marionette__enter_text</code></td><td>marionette_mcp</td><td>Type into focused field</td><td>enter_text</td></tr>
+  <tr><td><code>mcp__marionette__scroll_to</code></td><td>marionette_mcp</td><td>Scroll until visible</td><td>scroll_to</td></tr>
+  <tr><td><code>mcp__marionette__take_screenshots</code></td><td>marionette_mcp</td><td>Base64 image</td><td>screenshot</td></tr>
+  <tr><td><code>mcp__marionette__get_logs</code></td><td>marionette_mcp</td><td>App log stream</td><td>logs</td></tr>
+  <tr><td><code>mcp__marionette__hot_reload</code></td><td>marionette_mcp</td><td>Apply latest code</td><td>hot_reload</td></tr>
+</table>
+
+<h2>FMEA</h2>
+<table>
+  <tr><th>Failure mode</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Mitigation</th></tr>
+  <tr><td>MCP server activation forgotten → no tools available</td><td>7</td><td>5</td><td>2</td><td>70</td><td>Setup steps in patrol-testing.md; runbook check</td></tr>
+  <tr><td>MarionetteBinding init in release build</td><td>9</td><td>2</td><td>2</td><td>36</td><td>kDebugMode guard + SC-PATROL-MCP-006</td></tr>
+  <tr><td>Selector fabrication by AI agent</td><td>6</td><td>6</td><td>3</td><td>108</td><td>SC-PATROL-MCP-002 + Marionette discover phase</td></tr>
+  <tr><td>Zenoh REST :8000 unreachable</td><td>5</td><td>4</td><td>2</td><td>40</td><td>Fallback to data/tmp/patrol-zenoh.jsonl</td></tr>
+  <tr><td>iOS 360s timeout</td><td>5</td><td>5</td><td>3</td><td>75</td><td>SC-PATROL-MCP-012 — --full-isolation</td></tr>
+  <tr><td>Hook blocks model</td><td>8</td><td>2</td><td>3</td><td>48</td><td>async + 5 s timeout</td></tr>
+</table>
+
+<h2>STAMP</h2>
+<table>
+  <tr><th>ID</th><th>Constraint</th><th>Severity</th></tr>
+  <tr><td>SC-PATROL-MCP-001</td><td>UI tests runnable through Patrol MCP run</td><td>CRITICAL</td></tr>
+  <tr><td>SC-PATROL-MCP-002</td><td>Authoring uses Marionette MCP for selector discovery</td><td>HIGH</td></tr>
+  <tr><td>SC-PATROL-MCP-003</td><td>Every tool call publishes to indrajaal/l5/test/**</td><td>CRITICAL</td></tr>
+  <tr><td>SC-PATROL-MCP-004</td><td>Envelopes follow OTel schema</td><td>HIGH</td></tr>
+  <tr><td>SC-PATROL-MCP-005</td><td>Triple-platform parity Android+Linux+Chrome</td><td>CRITICAL</td></tr>
+  <tr><td>SC-PATROL-MCP-006</td><td>MarionetteBinding under kDebugMode</td><td>CRITICAL</td></tr>
+  <tr><td>SC-PATROL-MCP-007</td><td>Artefacts persisted under docs/cache/patrol/</td><td>HIGH</td></tr>
+  <tr><td>SC-PATROL-MCP-008</td><td>Failure path captures screenshot + tree before quit</td><td>CRITICAL</td></tr>
+  <tr><td>SC-PATROL-MCP-009</td><td>Results persist to session_metrics</td><td>HIGH</td></tr>
+  <tr><td>SC-PATROL-MCP-010</td><td>CLI fallback publishes identical envelopes</td><td>HIGH</td></tr>
+  <tr><td>SC-PATROL-MCP-011</td><td>Web tests use --web-headless --web-video --web-reporter html in CI</td><td>HIGH</td></tr>
+  <tr><td>SC-PATROL-MCP-012</td><td>iOS uses --full-isolation</td><td>MEDIUM</td></tr>
+</table>
+
+<h2>Quick start</h2>
+<pre><code>dart pub global activate patrol_mcp marionette_mcp
+cd sub-projects/sutra/fluffychat
+flutter pub get
+flutter run -d chrome --debug    # Marionette attaches via VM Service
+# In Claude Code:
+/patrol-marionette-test integration_test/patrol_test.dart android,linux,chrome
+</code></pre>
+
+<footer>Generated 2026-04-26 · sa-plan task 116469699362989555 · journal.md alongside this file.</footer>
+</body>
+</html>

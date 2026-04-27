@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" font-family="system-ui,sans-serif">
+<rect width="900" height="480" fill="#0a0e17" rx="12"/>
+<text x="450" y="28" text-anchor="middle" fill="#00d4aa" font-size="16" font-weight="700">FerrisKey Data Plane — Token & Credential Flow</text>
+
+<!-- External sources -->
+<rect x="30" y="50" width="120" height="40" rx="6" fill="#141922" stroke="#4d96ff" stroke-width="1.5"/>
+<text x="90" y="75" text-anchor="middle" fill="#4d96ff" font-size="10">Browser/API</text>
+<rect x="30" y="110" width="120" height="40" rx="6" fill="#141922" stroke="#00d4aa" stroke-width="1.5"/>
+<text x="90" y="135" text-anchor="middle" fill="#00d4aa" font-size="10">Telegram Mini App</text>
+<rect x="30" y="170" width="120" height="40" rx="6" fill="#141922" stroke="#9b59b6" stroke-width="1.5"/>
+<text x="90" y="195" text-anchor="middle" fill="#9b59b6" font-size="10">sa-plan-daemon</text>
+<rect x="30" y="230" width="120" height="40" rx="6" fill="#141922" stroke="#e74c3c" stroke-width="1.5"/>
+<text x="90" y="255" text-anchor="middle" fill="#e74c3c" font-size="10">Google SSO</text>
+
+<!-- FerrisKey -->
+<rect x="220" y="80" width="180" height="160" rx="8" fill="#141922" stroke="#ff6b6b" stroke-width="2"/>
+<text x="310" y="100" text-anchor="middle" fill="#ff6b6b" font-size="12" font-weight="600">FerrisKey IAM</text>
+<text x="310" y="118" text-anchor="middle" fill="#7a8fa6" font-size="9">:8080</text>
+<line x1="230" y1="125" x2="390" y2="125" stroke="#1e2a3a" stroke-width="1"/>
+<text x="235" y="142" fill="#7a8fa6" font-size="9">OIDC Endpoints</text>
+<text x="235" y="157" fill="#7a8fa6" font-size="9">Token Exchange</text>
+<text x="235" y="172" fill="#7a8fa6" font-size="9">JWKS (.well-known)</text>
+<text x="235" y="187" fill="#7a8fa6" font-size="9">User/Role Mgmt</text>
+<text x="235" y="202" fill="#7a8fa6" font-size="9">Webhook Publisher</text>
+<text x="235" y="217" fill="#7a8fa6" font-size="9">Admin Console</text>
+
+<!-- Data flows to FerrisKey -->
+<line x1="150" y1="70" x2="220" y2="100" stroke="#4d96ff" stroke-width="1.5"/>
+<text x="175" y="78" fill="#4d96ff" font-size="7">auth code</text>
+<line x1="150" y1="130" x2="220" y2="150" stroke="#00d4aa" stroke-width="1.5"/>
+<text x="175" y="137" fill="#00d4aa" font-size="7">RFC 8693</text>
+<line x1="150" y1="190" x2="220" y2="175" stroke="#9b59b6" stroke-width="1.5"/>
+<text x="175" y="186" fill="#9b59b6" font-size="7">client creds</text>
+<line x1="150" y1="250" x2="220" y2="210" stroke="#e74c3c" stroke-width="1.5"/>
+<text x="175" y="235" fill="#e74c3c" font-size="7">OIDC broker</text>
+
+<!-- JWT output -->
+<rect x="470" y="50" width="150" height="50" rx="6" fill="rgba(0,212,170,.1)" stroke="#00d4aa" stroke-width="2"/>
+<text x="545" y="72" text-anchor="middle" fill="#00d4aa" font-size="11" font-weight="600">JWT Token</text>
+<text x="545" y="90" text-anchor="middle" fill="#7a8fa6" font-size="8">sub + roles + acr + exp</text>
+<line x1="400" y1="130" x2="470" y2="75" stroke="#00d4aa" stroke-width="1.5"/>
+
+<!-- Gleam Wisp -->
+<rect x="470" y="120" width="150" height="70" rx="6" fill="#141922" stroke="#00d4aa" stroke-width="1.5"/>
+<text x="545" y="140" text-anchor="middle" fill="#00d4aa" font-size="10" font-weight="600">Gleam Wisp :4100</text>
+<text x="480" y="158" fill="#7a8fa6" font-size="8">auth/oidc.gleam</text>
+<text x="480" y="171" fill="#7a8fa6" font-size="8">auth/rbac.gleam</text>
+<text x="480" y="184" fill="#7a8fa6" font-size="8">wisp/auth.gleam</text>
+<line x1="545" y1="100" x2="545" y2="120" stroke="#00d4aa" stroke-width="1.5"/>
+
+<!-- FerrisKey DB -->
+<rect x="220" y="280" width="180" height="60" rx="6" fill="#141922" stroke="#4d96ff" stroke-width="1.5"/>
+<text x="310" y="300" text-anchor="middle" fill="#4d96ff" font-size="10" font-weight="600">PostgreSQL :5434</text>
+<text x="310" y="318" text-anchor="middle" fill="#7a8fa6" font-size="9">Users, Roles, Sessions, Keys</text>
+<text x="310" y="333" text-anchor="middle" fill="#7a8fa6" font-size="8">Encrypted vault (credentials)</text>
+<line x1="310" y1="240" x2="310" y2="280" stroke="#4d96ff" stroke-width="1.5"/>
+
+<!-- Smriti.db -->
+<rect x="470" y="280" width="150" height="60" rx="6" fill="#141922" stroke="#f39c12" stroke-width="1.5"/>
+<text x="545" y="300" text-anchor="middle" fill="#f39c12" font-size="10" font-weight="600">Smriti.db (SQLite)</text>
+<text x="545" y="318" text-anchor="middle" fill="#7a8fa6" font-size="9">Fallback credentials</text>
+<text x="545" y="333" text-anchor="middle" fill="#7a8fa6" font-size="8">Legacy API keys, app passwords</text>
+<line x1="545" y1="190" x2="545" y2="280" stroke="#f39c12" stroke-width="1" stroke-dasharray="5,3"/>
+<text x="555" y="240" fill="#f39c12" font-size="7">fallback only</text>
+
+<!-- Webhook Bridge -->
+<rect x="470" y="370" width="150" height="50" rx="6" fill="#141922" stroke="#e74c3c" stroke-width="1.5"/>
+<text x="545" y="390" text-anchor="middle" fill="#e74c3c" font-size="10" font-weight="600">C3I Bridge :9090</text>
+<text x="545" y="408" text-anchor="middle" fill="#7a8fa6" font-size="8">Webhook -> Zenoh</text>
+<line x1="400" y1="220" x2="470" y2="380" stroke="#e74c3c" stroke-width="1"/>
+<text x="420" y="300" fill="#e74c3c" font-size="7">webhooks</text>
+
+<!-- Zenoh -->
+<rect x="690" y="120" width="170" height="100" rx="6" fill="#141922" stroke="#e74c3c" stroke-width="2"/>
+<text x="775" y="140" text-anchor="middle" fill="#e74c3c" font-size="10" font-weight="600">Zenoh Mesh :7447</text>
+<text x="700" y="158" fill="#7a8fa6" font-size="8">indrajaal/auth/login</text>
+<text x="700" y="171" fill="#7a8fa6" font-size="8">indrajaal/auth/role/changed</text>
+<text x="700" y="184" fill="#7a8fa6" font-size="8">indrajaal/auth/mfa/failed</text>
+<text x="700" y="197" fill="#7a8fa6" font-size="8">indrajaal/otel/spans/auth/*</text>
+<text x="700" y="210" fill="#7a8fa6" font-size="8">+ 5 more auth topics</text>
+<line x1="620" y1="395" x2="690" y2="195" stroke="#e74c3c" stroke-width="1.5"/>
+<line x1="620" y1="155" x2="690" y2="155" stroke="#00d4aa" stroke-width="1"/>
+<text x="650" y="148" fill="#00d4aa" font-size="7">OTel spans</text>
+
+<!-- Google Cloud -->
+<rect x="690" y="280" width="170" height="70" rx="6" fill="#141922" stroke="#f39c12" stroke-width="1.5"/>
+<text x="775" y="300" text-anchor="middle" fill="#f39c12" font-size="10" font-weight="600">Google Cloud</text>
+<text x="700" y="318" fill="#7a8fa6" font-size="8">Service Directory</text>
+<text x="700" y="331" fill="#7a8fa6" font-size="8">Cloud IAM (WIF)</text>
+<text x="700" y="344" fill="#7a8fa6" font-size="8">Gemini API / Gmail / Calendar</text>
+<line x1="620" y1="175" x2="690" y2="300" stroke="#f39c12" stroke-width="1" stroke-dasharray="5,3"/>
+<text x="650" y="250" fill="#f39c12" font-size="7">WIF exchange</text>
+
+<!-- Data type labels -->
+<rect x="30" y="420" width="840" height="45" rx="6" fill="#141922" stroke="#1e2a3a" stroke-width="1"/>
+<text x="50" y="438" fill="#4d96ff" font-size="9">Auth Code</text>
+<text x="150" y="438" fill="#00d4aa" font-size="9">JWT Token</text>
+<text x="250" y="438" fill="#9b59b6" font-size="9">Client Creds</text>
+<text x="370" y="438" fill="#ff6b6b" font-size="9">OIDC Claims</text>
+<text x="480" y="438" fill="#e74c3c" font-size="9">Webhook Events</text>
+<text x="610" y="438" fill="#f39c12" font-size="9">WIF Tokens</text>
+<text x="730" y="438" fill="#3dd68c" font-size="9">OTel Spans</text>
+<text x="50" y="455" fill="#7a8fa6" font-size="8">Data flows: auth code -> JWT -> RBAC -> layer access | webhooks -> Zenoh -> OTel | WIF -> Google Cloud APIs</text>
+</svg>

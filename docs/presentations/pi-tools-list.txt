@@ -1,0 +1,7 @@
+"bash"
+"edit"
+"find"
+"grep"
+"ls"
+"read"
+"write"

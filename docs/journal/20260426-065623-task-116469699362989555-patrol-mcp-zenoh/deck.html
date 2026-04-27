@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Patrol MCP + Marionette MCP + Zenoh — Slide Deck</title>
+<style>
+  :root { --bg:#0a0e17; --card:#141922; --text:#e0e6ed; --muted:#7a8fa6; --accent:#00d4aa; --border:#1e2a3a; }
+  * { box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font:16px/1.5 system-ui,sans-serif; margin:0; }
+  .slide { min-height:100vh; padding:48px 64px; border-bottom:1px solid var(--border); display:flex; flex-direction:column; justify-content:center; }
+  h1 { color:var(--accent); font-size:38px; margin:0 0 8px; }
+  h2 { color:var(--accent); font-size:30px; margin-top:0; }
+  ul { line-height:1.9; }
+  code, pre { font-family:JetBrains Mono, ui-monospace, monospace; }
+  pre { background:#0e1622; padding:14px; border-radius:8px; border:1px solid var(--border); overflow-x:auto; }
+  .num { color:var(--muted); font-size:13px; letter-spacing:0.1em; }
+  .pill { display:inline-block; padding:4px 10px; margin:4px 6px 4px 0; background:#0e1622; border:1px solid var(--border); border-radius:14px; font-size:13px; color:var(--accent); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px; }
+</style>
+</head>
+<body>
+
+<section class="slide">
+  <div class="num">01</div>
+  <h1>Patrol MCP + Marionette MCP + Zenoh</h1>
+  <p style="font-size:20px; color:var(--muted)">Closing the AI ↔ Flutter ↔ Mesh feedback loop for triple-platform UI testing</p>
+  <p>
+    <span class="pill">task 116469699362989555</span>
+    <span class="pill">SC-PATROL-MCP-001..012</span>
+    <span class="pill">2026-04-26</span>
+  </p>
+</section>
+
+<section class="slide">
+  <div class="num">02 — Problem</div>
+  <h2>Tests existed, but the system couldn't see them</h2>
+  <ul>
+    <li>fluffychat had <code>patrol: ^4.5.0</code> as dev_dep but no native runner.</li>
+    <li>Authoring required guessing widget keys (anti-pattern <code>zk-3346fc607a1ef9e6</code>).</li>
+    <li>Single-platform regression — Android-only or Web-only.</li>
+    <li>Test results lived in stdout. Cortex/dashboard had no visibility.</li>
+    <li>No bridge between AI assistants and the running Flutter app.</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <div class="num">03 — Solution shape</div>
+  <h2>Two MCP servers, one mesh</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="color:var(--accent); margin-top:0">Patrol MCP — orchestrate</h3>
+      <ul>
+        <li><code>run</code> · <code>screenshot</code> · <code>native-tree</code></li>
+        <li><code>status</code> · <code>quit</code></li>
+        <li>Drives written tests across Android · Linux · Chrome</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--accent); margin-top:0">Marionette MCP — introspect</h3>
+      <ul>
+        <li><code>connect</code> · <code>get_interactive_elements</code></li>
+        <li><code>tap</code> · <code>enter_text</code> · <code>scroll_to</code></li>
+        <li><code>take_screenshots</code> · <code>get_logs</code> · <code>hot_reload</code></li>
+        <li>Live VM-Service-driven discovery in debug builds</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:24px">Every tool call → Zenoh topic <code>indrajaal/l5/test/{patrol,marionette}/&lt;id&gt;/&lt;phase&gt;</code></p>
+</section>
+
+<section class="slide">
+  <div class="num">04 — System flow</div>
+  <h2>OODA loop with MCP+Zenoh</h2>
+  <pre><code>Observe   → marionette.get_interactive_elements + patrol.native-tree
+Orient    → ZK recall (UserPromptSubmit hook) + last test envelope on Zenoh
+Decide    → write/edit patrol_test.dart with discovered selectors
+Act       → patrol.run (publishes start, screenshots, status)
+Verify    → /passed or /failed envelope; on fail, recurse with Marionette</code></pre>
+  <p>Hook is async (5 s) so the model is never blocked.</p>
+</section>
+
+<section class="slide">
+  <div class="num">05 — Artefacts shipped</div>
+  <h2>Ten files; one closed loop</h2>
+  <ul>
+    <li><code>.claude/rules/patrol-mcp-zenoh.md</code> — 12 STAMP, topic vocab, anti-patterns</li>
+    <li><code>.claude/commands/patrol-marionette-test.md</code> — registered skill</li>
+    <li><code>.claude/agents/patrol-test-agent.md</code> — sub-agent, 13 MCP tools</li>
+    <li><code>.claude/scripts/patrol-zenoh-bridge.sh</code> — hook + CLI fallback</li>
+    <li><code>.claude/settings.json</code> — mcpServers + PostToolUse matcher</li>
+    <li><code>fluffychat/.mcp.json</code> · <code>tool/run-patrol</code> · <code>lib/main.dart</code> kDebugMode swap</li>
+    <li><code>pubspec.yaml</code> — <code>marionette_flutter</code> + <code>patrol_mcp</code></li>
+    <li><code>docs/patrol-testing.md</code> — runbook with MCP section</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <div class="num">06 — Activate</div>
+  <h2>Three commands and you're testing</h2>
+  <pre><code>dart pub global activate patrol_mcp marionette_mcp
+cd sub-projects/sutra/fluffychat &amp;&amp; flutter pub get
+# In Claude Code:
+/patrol-marionette-test integration_test/patrol_test.dart android,linux,chrome</code></pre>
+  <p>Restart claude after activation so <code>.mcp.json</code> + global settings load both servers.</p>
+</section>
+
+<section class="slide">
+  <div class="num">07 — Verification matrix</div>
+  <h2>What's green</h2>
+  <ul>
+    <li>✅ All 6 sub-tasks complete in sa-plan</li>
+    <li>✅ Bridge bash syntax clean</li>
+    <li>✅ Skill registered (visible in available-skills list)</li>
+    <li>✅ <code>jq .mcpServers</code> → <code>[marionette, patrol]</code></li>
+    <li>✅ <code>jq .hooks.PostToolUse[].matcher</code> → includes new pattern</li>
+    <li>✅ <code>lib/main.dart</code> binding swap behind <code>kDebugMode</code></li>
+    <li>⚠️ Live MCP run deferred until <code>flutter pub get</code> on devenv reload</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <div class="num">08 — Next</div>
+  <h2>Roadmap</h2>
+  <ul>
+    <li>P1 · activate MCP servers, run end-to-end on android+linux+chrome</li>
+    <li>P2 · pi-mono bridge: expose Patrol/Marionette via Pi tool federation</li>
+    <li>P2 · dashboard widget for <code>indrajaal/l5/test/**</code></li>
+    <li>P3 · iOS / macOS / Windows targets</li>
+    <li>P3 · Wallaby/Gleam parity — port envelope schema to Lustre tests</li>
+  </ul>
+</section>
+
+</body>
+</html>

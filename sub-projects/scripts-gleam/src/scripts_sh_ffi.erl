@@ -16,6 +16,7 @@
 -export([
     run_capture/2,
     run_capture_in/3,
+    run_capture_timeout/3,
     run_stream/4,
     run_stream_bounded/5
 ]).
@@ -26,6 +27,38 @@
 
 run_capture(Path, Args) when is_list(Path), is_list(Args) ->
     run_capture_in(Path, Args, []).
+
+%% Like run_capture_in but with configurable timeout (ms).
+%% Routes stdin from /dev/null so child processes don't hang waiting for input.
+%% Critical for Pi --print mode which exits after one response.
+run_capture_timeout(Path, Args, TimeoutMs) when is_list(Path), is_list(Args),
+        is_integer(TimeoutMs), TimeoutMs >= 0 ->
+    %% Build a shell command that redirects stdin from /dev/null
+    PathStr = resolve(Path),
+    case PathStr of
+        false -> {"[scripts_sh_ffi] executable not found: " ++ Path, 127};
+        Resolved ->
+            ArgsStr = [shell_escape(to_charlist(A)) || A <- Args],
+            Cmd = Resolved ++ " " ++ string:join(ArgsStr, " ") ++ " </dev/null",
+            Port = open_port({spawn, Cmd}, [exit_status, binary, stderr_to_stdout]),
+            collect_timed(Port, <<>>, TimeoutMs)
+    end.
+
+shell_escape(S) ->
+    %% Wrap in single quotes, escaping existing single quotes
+    "'" ++ re:replace(S, "'", "'\\\\''", [global, {return, list}]) ++ "'".
+
+collect_timed(Port, Acc, TimeoutMs) ->
+    receive
+        {Port, {data, Bin}} ->
+            collect_timed(Port, <<Acc/binary, Bin/binary>>, TimeoutMs);
+        {Port, {exit_status, RC}} ->
+            {binary_to_list(Acc), RC}
+    after
+        TimeoutMs ->
+            catch port_close(Port),
+            {binary_to_list(Acc) ++ "\n[timeout]\n", 124}
+    end.
 
 run_capture_in(Path, Args, Cwd) when is_list(Path), is_list(Args) ->
     PathStr = resolve(Path),

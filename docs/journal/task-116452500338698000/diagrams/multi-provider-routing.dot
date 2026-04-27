@@ -1,0 +1,45 @@
+digraph MP {
+  rankdir=LR; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica"; compound=true;
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed" fillcolor="#141922" color="#1e2a3a"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=10];
+
+  subgraph cluster_agents { label="Agents"; color="#00bfff"; fontcolor="#00bfff";
+    Claude [label=".claude hooks"];
+    Pi [label=".pi/extensions/zk-recall.ts"];
+    Gemini [label=".gemini hooks"];
+    Cortex [label="sa-plan cortex daemon"];
+  }
+  Router [label="sa-model-router\n(tier / cache / ctx / cost)" fillcolor="#0e2a1e" color="#3dd68c" shape=diamond];
+
+  subgraph cluster_prov { label="Providers (52 models, 7 providers)"; color="#f5a623"; fontcolor="#f5a623";
+    Anthropic [label="Anthropic\nclaude-opus/sonnet 4.5-4.7\n$3-$15/Mtok  cache-90%"];
+    OpenAI [label="OpenAI\ngpt-5.4 / gpt-5.4-mini / nano\ngpt-5.3-codex (max/mini)\n$0.10-$8/Mtok  cache"];
+    Google [label="Google\ngemini-3 pro/flash/flash-lite\ngemini-2.5 + gemma-4\n$0.075-$2/Mtok  2M ctx"];
+    OpenRouter [label="OpenRouter\n15 passthroughs\n+5% markup\nunified billing"];
+    Mistral [label="Mistral\nVoxtral / Pixtral\ndevstral"];
+    Qwen [label="Qwen\nqwen3-coder-next\ncode-tuned"];
+    Ollama [label="Ollama local\nllama-3.3-70b\nqwen2.5-coder-32b\n$0 marginal"];
+    Mojo [label="Mojo\nmax-sonnet\ncontainerised"];
+  }
+
+  subgraph cluster_kms { label="KMS telemetry"; color="#9b6cff"; fontcolor="#9b6cff";
+    Sess [label="session_metrics\n(+ provider, model)"];
+    Pricing [label="model_pricing\n52 rows"];
+    V_OODA [label="v_ooda_live\nv_provider_usage\nv_model_usage\nv_cost_optimization"];
+  }
+
+  Claude -> Router;  Pi -> Router;  Gemini -> Router;  Cortex -> Router;
+  Router -> Anthropic;  Router -> OpenAI;  Router -> Google;
+  Router -> OpenRouter;  Router -> Mistral;  Router -> Qwen;
+  Router -> Ollama;  Router -> Mojo;
+  Router -> Pricing [style=dashed];
+
+  Anthropic -> Sess [label="cost+tokens"];
+  OpenAI -> Sess;
+  Google -> Sess;
+  OpenRouter -> Sess;
+  Mistral -> Sess;
+  Qwen -> Sess;
+  Sess -> V_OODA;
+  V_OODA -> Router [label="optim feedback" style=dashed color="#3dd68c"];
+}

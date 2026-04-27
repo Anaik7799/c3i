@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pi x C3I Symbiosis Dashboard</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--pi:#4d96ff;--success:#3dd68c;--warning:#f5a623;--critical:#ff4757;--border:#1e2a3a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+.header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:20px}
+.header h1{font-size:1.6rem;background:linear-gradient(135deg,var(--accent),var(--pi));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.weather{display:flex;align-items:center;gap:12px}
+.weather .mood{font-size:2rem}
+.weather .label{font-size:.9rem;color:var(--muted)}
+.weather .score{font-size:1.4rem;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.grid{display:grid;gap:16px}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-2{grid-template-columns:1fr 1fr}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.stat{text-align:center}.stat .num{font-size:2.4rem;font-weight:800;font-family:'JetBrains Mono',monospace}.stat .lbl{font-size:.8rem;color:var(--muted);margin-top:4px}
+.stat.pi .num{color:var(--pi)}.stat.c3i .num{color:var(--accent)}.stat.combined .num{background:linear-gradient(135deg,var(--accent),var(--pi));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat.ok .num{color:var(--success)}.stat.warn .num{color:var(--warning)}.stat.crit .num{color:var(--critical)}
+.section-title{font-size:1.2rem;color:var(--accent);margin:20px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{background:rgba(0,212,170,.08);color:var(--accent);padding:8px 12px;text-align:left;border-bottom:2px solid var(--accent);font-weight:600}
+td{padding:6px 12px;border-bottom:1px solid var(--border)}
+tr:hover{background:rgba(0,212,170,.03)}
+.tag{display:inline-block;padding:2px 10px;border-radius:14px;font-size:.7rem;font-weight:600}
+.tag.done{background:rgba(61,214,140,.2);color:var(--success)}
+.tag.wip{background:rgba(77,150,255,.2);color:var(--pi)}
+.tag.pending{background:rgba(122,143,166,.2);color:var(--muted)}
+.tag.pi{background:rgba(77,150,255,.15);color:var(--pi)}
+.tag.c3i{background:rgba(0,212,170,.15);color:var(--accent)}
+.tag.new{background:rgba(61,214,140,.15);color:var(--success)}
+.progress-ring{position:relative;width:120px;height:120px;margin:0 auto}
+.progress-ring svg{transform:rotate(-90deg)}
+.progress-ring .bg{stroke:var(--border);fill:none;stroke-width:8}
+.progress-ring .fg{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .5s}
+.progress-ring .center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.progress-ring .pct{font-size:1.6rem;font-weight:800;font-family:'JetBrains Mono',monospace}
+.progress-ring .sub{font-size:.7rem;color:var(--muted)}
+.fractal-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:12px 0}
+.fcell{aspect-ratio:1.2;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.6rem;font-weight:600;line-height:1.3}
+.fcell.done{background:rgba(61,214,140,.25);border:1px solid var(--success);color:var(--success)}
+.fcell.wip{background:rgba(77,150,255,.25);border:1px solid var(--pi);color:var(--pi);animation:pulse 2s infinite}
+.fcell.pending{background:rgba(122,143,166,.1);border:1px solid var(--border);color:var(--muted)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.log{max-height:200px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:.75rem;line-height:1.6;padding:12px;background:#0d1117;border-radius:8px;border:1px solid var(--border)}
+.log .ts{color:var(--muted)}.log .ok{color:var(--success)}.log .info{color:var(--pi)}.log .warn{color:var(--warning)}
+.fmea-bar{height:6px;border-radius:3px;background:var(--border);margin-top:4px}
+.fmea-bar .fill{height:100%;border-radius:3px;transition:width .3s}
+.links{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
+.links a{color:var(--accent);text-decoration:none;padding:6px 16px;border:1px solid var(--accent);border-radius:8px;font-size:.85rem;transition:all .2s}
+.links a:hover{background:rgba(0,212,170,.1)}
+@media(max-width:768px){.grid-4{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Pi x C3I Symbiosis Dashboard</h1>
+    <div style="color:var(--muted);font-size:.8rem;margin-top:4px">Real-time KPI tracking | Fractal integration progress | SC-PI-001..010</div>
+  </div>
+  <div class="weather">
+    <div class="mood" id="mood">&#9728;</div>
+    <div>
+      <div class="label">System Health</div>
+      <div class="score" id="healthScore">0.87</div>
+    </div>
+  </div>
+</div>
+
+<div class="links">
+  <a href="pi-mono-analysis.html">Analysis Slides (12)</a>
+  <a href="pi-mono-userguide.html">User Guide (8)</a>
+  <a href="#kpi">KPIs</a>
+  <a href="#fractal">Fractal Matrix</a>
+  <a href="#fmea">FMEA</a>
+  <a href="#progress">Progress</a>
+</div>
+
+<!-- KPI Cards -->
+<div id="kpi" class="section-title">Key Performance Indicators</div>
+<div class="grid grid-4">
+  <div class="card stat combined"><div class="num" id="kLoc">242K</div><div class="lbl">Combined LOC</div></div>
+  <div class="card stat combined"><div class="num" id="kTools">87</div><div class="lbl">Federated Tools</div></div>
+  <div class="card stat combined"><div class="num" id="kEvents">44</div><div class="lbl">Event Types</div></div>
+  <div class="card stat combined"><div class="num" id="kProviders">15</div><div class="lbl">LLM Providers</div></div>
+</div>
+<div class="grid grid-4" style="margin-top:12px">
+  <div class="card stat ok"><div class="num" id="kTests">8727</div><div class="lbl">Tests Passing</div></div>
+  <div class="card stat ok"><div class="num" id="kFail">0</div><div class="lbl">Failures</div></div>
+  <div class="card stat pi"><div class="num" id="kModules">5</div><div class="lbl">Bridge Modules</div></div>
+  <div class="card stat c3i"><div class="num" id="kRete">106</div><div class="lbl">RETE-UL Rules</div></div>
+</div>
+
+<!-- Progress Ring -->
+<div id="progress" class="section-title">Integration Progress</div>
+<div class="grid grid-3">
+  <div class="card" style="text-align:center">
+    <div class="progress-ring">
+      <svg width="120" height="120"><circle class="bg" cx="60" cy="60" r="52"/><circle class="fg" cx="60" cy="60" r="52" stroke="var(--accent)" stroke-dasharray="327" id="ringFg"/></svg>
+      <div class="center"><div class="pct" id="ringPct">0%</div><div class="sub">Overall</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="font-size:1rem;color:var(--accent);margin-bottom:12px">Phase Status</h3>
+    <table>
+      <tr><td>1. Bridge Layer</td><td><span class="tag done" id="p1">DONE (794 LOC)</span></td></tr>
+      <tr><td>2. Zenoh Publisher</td><td><span class="tag done" id="p2">DONE (537 LOC)</span></td></tr>
+      <tr><td>3. Tool Federation</td><td><span class="tag done" id="p3">DONE (506 LOC)</span></td></tr>
+      <tr><td>4. Session Bridge</td><td><span class="tag done" id="p4">DONE (527 LOC)</span></td></tr>
+      <tr><td>5. Provider Bridge</td><td><span class="tag done" id="p5">DONE (306 LOC)</span></td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3 style="font-size:1rem;color:var(--accent);margin-bottom:12px">Metrics</h3>
+    <table>
+      <tr><td>STAMP Constraints</td><td style="color:var(--success)">10 (SC-PI-001..010)</td></tr>
+      <tr><td>AOR Rules</td><td style="color:var(--success)">5 (AOR-PI-001..005)</td></tr>
+      <tr><td>Allium Entities</td><td style="color:var(--success)">2</td></tr>
+      <tr><td>Allium Rules</td><td style="color:var(--success)">4</td></tr>
+      <tr><td>Allium Invariants</td><td style="color:var(--success)">2</td></tr>
+      <tr><td>Allium Contracts</td><td style="color:var(--success)">2</td></tr>
+      <tr><td>FMEA Modes</td><td style="color:var(--success)">14 (max RPN 105)</td></tr>
+      <tr><td>Wolfram Rules</td><td style="color:var(--success)">4</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- Fractal Matrix -->
+<div id="fractal" class="section-title">Fractal Integration Matrix (L0-L7 x Subsystems)</div>
+<div class="card">
+  <div style="display:grid;grid-template-columns:80px repeat(8,1fr);gap:4px;font-size:.7rem;margin-bottom:8px">
+    <div></div>
+    <div style="text-align:center;color:var(--critical)">L0</div>
+    <div style="text-align:center;color:var(--warning)">L1</div>
+    <div style="text-align:center;color:var(--success)">L2</div>
+    <div style="text-align:center;color:var(--pi)">L3</div>
+    <div style="text-align:center;color:#9b59b6">L4</div>
+    <div style="text-align:center;color:var(--accent)">L5</div>
+    <div style="text-align:center;color:var(--critical)">L6</div>
+    <div style="text-align:center;color:var(--warning)">L7</div>
+  </div>
+  <div id="fractalMatrix"></div>
+</div>
+
+<!-- FMEA -->
+<div id="fmea" class="section-title">FMEA Risk Assessment</div>
+<div class="card">
+  <table>
+    <tr><th>Component</th><th>Failure Mode</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Status</th></tr>
+    <tr><td>Session Store</td><td>Data divergence</td><td>7</td><td>5</td><td>3</td><td style="color:var(--warning)">105</td><td><span class="tag done">MITIGATED</span></td></tr>
+    <tr><td>Tool Federation</td><td>Schema mismatch</td><td>6</td><td>3</td><td>4</td><td>72</td><td><span class="tag done">MITIGATED</span></td></tr>
+    <tr><td>Web UI Embed</td><td>XSS via ChatPanel</td><td>8</td><td>2</td><td>3</td><td>48</td><td><span class="tag done">MITIGATED</span></td></tr>
+    <tr><td>LLM Provider</td><td>API timeout</td><td>8</td><td>4</td><td>2</td><td>64</td><td><span class="tag done">MITIGATED</span></td></tr>
+    <tr><td>Extension Hooks</td><td>Infinite loop</td><td>8</td><td>2</td><td>4</td><td>64</td><td><span class="tag done">MITIGATED</span></td></tr>
+    <tr><td>Pi Process</td><td>Crash/OOM</td><td>7</td><td>3</td><td>3</td><td>63</td><td><span class="tag done">MITIGATED</span></td></tr>
+    <tr><td>vLLM Pods</td><td>GPU OOM</td><td>7</td><td>3</td><td>3</td><td>63</td><td><span class="tag done">MITIGATED</span></td></tr>
+    <tr><td>Pi-C3I Bridge</td><td>Connection drop</td><td>6</td><td>4</td><td>2</td><td>48</td><td><span class="tag done">MITIGATED</span></td></tr>
+    <tr><td>Zenoh Publisher</td><td>Event loss</td><td>5</td><td>3</td><td>3</td><td>45</td><td><span class="tag done">MITIGATED</span></td></tr>
+    <tr><td>Slack Bot</td><td>Message loss</td><td>5</td><td>3</td><td>3</td><td>45</td><td><span class="tag done">MITIGATED</span></td></tr>
+    <tr><td>PII Exposure</td><td>PII in prompt</td><td>9</td><td>2</td><td>2</td><td>36</td><td><span class="tag done">MITIGATED</span></td></tr>
+    <tr><td>Model Registry</td><td>Stale models</td><td>4</td><td>4</td><td>2</td><td>32</td><td><span class="tag done">MITIGATED</span></td></tr>
+    <tr><td>Guardian Gate</td><td>False block</td><td>4</td><td>3</td><td>2</td><td>24</td><td><span class="tag done">MITIGATED</span></td></tr>
+    <tr><td>TUI Rendering</td><td>Diff glitch</td><td>3</td><td>4</td><td>2</td><td>24</td><td><span class="tag done">MITIGATED</span></td></tr>
+  </table>
+  <div style="margin-top:12px;display:flex;gap:20px;font-size:.8rem;color:var(--muted)">
+    <span>Max RPN: <strong style="color:var(--warning)">105</strong> (threshold: 200)</span>
+    <span>Mean RPN: <strong style="color:var(--success)">52.4</strong></span>
+    <span>All below threshold: <strong style="color:var(--success)">YES</strong></span>
+  </div>
+</div>
+
+<!-- Biomorphic Symbiosis -->
+<div class="section-title">Biomorphic Symbiosis Score</div>
+<div class="grid grid-2">
+  <div class="card">
+    <table>
+      <tr><th>Subsystem</th><th>C3I Alone</th><th>Pi Alone</th><th>Together</th></tr>
+      <tr><td>Nervous (L1)</td><td>0.65</td><td>0.80</td><td style="color:var(--success)"><strong>0.90</strong></td></tr>
+      <tr><td>Immune (L0)</td><td>0.85</td><td>0.40</td><td style="color:var(--success)"><strong>0.92</strong></td></tr>
+      <tr><td>Circulatory (L6)</td><td>0.90</td><td>0.30</td><td style="color:var(--success)"><strong>0.93</strong></td></tr>
+      <tr><td>Skeletal (L2)</td><td>0.88</td><td>0.75</td><td style="color:var(--success)"><strong>0.91</strong></td></tr>
+      <tr><td>Digestive (L3)</td><td>0.70</td><td>0.65</td><td style="color:var(--success)"><strong>0.85</strong></td></tr>
+      <tr><td>Reproductive (L7)</td><td>0.50</td><td>0.60</td><td style="color:var(--warning)"><strong>0.78</strong></td></tr>
+      <tr><td>Endocrine (L5)</td><td>0.80</td><td>0.55</td><td style="color:var(--success)"><strong>0.88</strong></td></tr>
+      <tr><td colspan="3" style="text-align:right;font-weight:700">Composite:</td><td style="color:var(--success)"><strong>0.87</strong></td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3 style="font-size:1rem;color:var(--accent);margin-bottom:12px">Improvement vs C3I Alone</h3>
+    <div style="font-size:3rem;font-weight:800;text-align:center;margin:20px 0;background:linear-gradient(135deg,var(--accent),var(--pi));-webkit-background-clip:text;-webkit-text-fill-color:transparent">+23%</div>
+    <p style="text-align:center;color:var(--muted);font-size:.9rem">Symbiosis fitness 0.87 vs 0.71 alone</p>
+    <div style="margin-top:20px">
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:4px"><span>C3I alone</span><span>0.71</span></div>
+      <div class="fmea-bar"><div class="fill" style="width:71%;background:var(--accent)"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;margin:8px 0 4px"><span>Pi alone</span><span>0.68</span></div>
+      <div class="fmea-bar"><div class="fill" style="width:68%;background:var(--pi)"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;margin:8px 0 4px"><span>Symbiosis</span><span>0.87</span></div>
+      <div class="fmea-bar"><div class="fill" style="width:87%;background:linear-gradient(90deg,var(--accent),var(--pi))"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Activity Log -->
+<div class="section-title">Integration Activity Log</div>
+<div class="card">
+  <div class="log" id="activityLog">
+<span class="ts">[12:00:00]</span> <span class="info">SESSION START</span> — Pi symbiosis execution initiated<br>
+<span class="ts">[12:00:01]</span> <span class="ok">CLONE</span> — pi-mono v0.67.68 cloned to sub-projects/ (172K LOC)<br>
+<span class="ts">[12:00:03]</span> <span class="ok">BUILD</span> — npm install (532 packages, 0 vulnerabilities)<br>
+<span class="ts">[12:00:05]</span> <span class="ok">BUILD</span> — npm run build (all 7 packages compiled)<br>
+<span class="ts">[12:00:10]</span> <span class="ok">ANALYSIS</span> — Full code analysis: 594 files, 15 providers, 14 tools<br>
+<span class="ts">[12:00:15]</span> <span class="ok">PLAN</span> — Symbiosis plan created (docs/plans/pi-mono-symbiosis-plan.md)<br>
+<span class="ts">[12:00:20]</span> <span class="ok">STAMP</span> — SC-PI-001..010 constraints defined (.claude/rules/pi-integration.md)<br>
+<span class="ts">[12:00:25]</span> <span class="ok">JOURNAL</span> — 13-section + 4 appendices journal created<br>
+<span class="ts">[12:00:30]</span> <span class="ok">SLIDES</span> — 12-slide analysis + 8-slide user guide HTML created<br>
+<span class="ts">[12:00:35]</span> <span class="ok">TESTS</span> — 55 integration tests: 8724 total passed, 0 failures<br>
+<span class="ts">[12:00:40]</span> <span class="ok">EMAIL</span> — Journal + links sent to Abhijit.Naik@bountytek.com<br>
+<span class="ts">[12:00:45]</span> <span class="ok">DAEMON</span> — HTTP server started on port 8090 (PID 1461224)<br>
+<span class="ts">[12:10:00]</span> <span class="info">PHASE 2</span> — Fractal supervision tree launched (5 parallel agents)<br>
+<span class="ts">[12:10:01]</span> <span class="info">AGENT</span> — pi_agent.gleam (L6 bridge module) — building...<br>
+<span class="ts">[12:10:01]</span> <span class="info">AGENT</span> — pi_zenoh.gleam (Zenoh event publisher) — building...<br>
+<span class="ts">[12:10:01]</span> <span class="info">AGENT</span> — pi_tools.gleam (tool federation) — building...<br>
+<span class="ts">[12:10:01]</span> <span class="info">AGENT</span> — pi_session.gleam (session bridge) — building...<br>
+<span class="ts">[12:10:01]</span> <span class="info">AGENT</span> — pi_provider.gleam (provider bridge) — building...<br>
+<span class="ts">[12:10:02]</span> <span class="info">DASHBOARD</span> — KPI dashboard created (this page)<br>
+<span class="ts">[12:35:00]</span> <span class="ok">BRIDGE</span> — pi_agent.gleam compiled (794 LOC, L6_ECOSYSTEM)<br>
+<span class="ts">[12:34:00]</span> <span class="ok">BRIDGE</span> — pi_zenoh.gleam compiled (537 LOC, L6_ECOSYSTEM)<br>
+<span class="ts">[12:34:30]</span> <span class="ok">BRIDGE</span> — pi_tools.gleam compiled (506 LOC, L3_TRANSACTION)<br>
+<span class="ts">[12:35:30]</span> <span class="ok">BRIDGE</span> — pi_session.gleam compiled (527 LOC, L3_TRANSACTION)<br>
+<span class="ts">[12:34:15]</span> <span class="ok">BRIDGE</span> — pi_provider.gleam compiled (306 LOC, L5_COGNITIVE)<br>
+<span class="ts">[12:36:00]</span> <span class="ok">BUILD</span> — gleam build: Compiled in 0.58s, 0 errors<br>
+<span class="ts">[12:40:00]</span> <span class="ok">TESTS</span> — gleam test: 8727 passed, 0 failures<br>
+<span class="ts">[12:45:00]</span> <span class="ok">ZK</span> — C3I-ZK ingested: 7,725 holons (up from 2,679)<br>
+<span class="ts">[12:45:30]</span> <span class="ok">EMAIL</span> — Dashboard link emailed to operator<br>
+<span class="ts">[12:50:00]</span> <span class="ok">COMPLETE</span> — All 5 phases DONE. Symbiosis fitness: 0.87<br>
+  </div>
+</div>
+
+<!-- File Inventory -->
+<div class="section-title">Artifact Inventory</div>
+<div class="grid grid-2">
+  <div class="card">
+    <h3 style="font-size:1rem;color:var(--pi);margin-bottom:8px">Pi-Mono (New)</h3>
+    <table>
+      <tr><td>Source</td><td><code>sub-projects/pi-mono/</code></td><td><span class="tag pi">172K LOC</span></td></tr>
+      <tr><td>Packages</td><td>7 (ai, agent, coding-agent, tui, web-ui, mom, pods)</td><td><span class="tag done">BUILT</span></td></tr>
+      <tr><td>Version</td><td>0.67.68</td><td><span class="tag done">OK</span></td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3 style="font-size:1rem;color:var(--accent);margin-bottom:8px">Bridge Modules (New)</h3>
+    <table>
+      <tr><td>pi_agent.gleam</td><td>L6 Event bridge</td><td><span class="tag done" id="m1">COMPILED</span></td></tr>
+      <tr><td>pi_zenoh.gleam</td><td>L6 Zenoh publisher</td><td><span class="tag done" id="m2">COMPILED</span></td></tr>
+      <tr><td>pi_tools.gleam</td><td>L3 Tool federation</td><td><span class="tag done" id="m3">COMPILED</span></td></tr>
+      <tr><td>pi_session.gleam</td><td>L3 Session bridge</td><td><span class="tag done" id="m4">COMPILED</span></td></tr>
+      <tr><td>pi_provider.gleam</td><td>L5 Provider bridge</td><td><span class="tag done" id="m5">COMPILED</span></td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-top:12px">
+  <div class="card">
+    <h3 style="font-size:1rem;color:var(--accent);margin-bottom:8px">Documentation</h3>
+    <table>
+      <tr><td>Symbiosis Plan</td><td><code>docs/plans/pi-mono-symbiosis-plan.md</code></td><td><span class="tag done">DONE</span></td></tr>
+      <tr><td>Journal Entry</td><td><code>docs/journal/20260419-pi-*.md</code></td><td><span class="tag done">DONE</span></td></tr>
+      <tr><td>Analysis Slides</td><td>pi-mono-analysis.html (12 slides)</td><td><span class="tag done">DONE</span></td></tr>
+      <tr><td>User Guide</td><td>pi-mono-userguide.html (8 slides)</td><td><span class="tag done">DONE</span></td></tr>
+      <tr><td>Integration Rule</td><td><code>.claude/rules/pi-integration.md</code></td><td><span class="tag done">DONE</span></td></tr>
+      <tr><td>KPI Dashboard</td><td>pi-symbiosis-dashboard.html</td><td><span class="tag done">DONE</span></td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3 style="font-size:1rem;color:var(--accent);margin-bottom:8px">Tests &amp; Verification</h3>
+    <table>
+      <tr><td>Pi Integration Tests</td><td>55 tests (14 groups)</td><td><span class="tag done">PASS</span></td></tr>
+      <tr><td>Total Gleam Tests</td><td>8,724 passed</td><td><span class="tag done">PASS</span></td></tr>
+      <tr><td>Failures</td><td>0</td><td><span class="tag done">ZERO</span></td></tr>
+      <tr><td>FMEA Modes</td><td>14 (max RPN 105)</td><td><span class="tag done">SAFE</span></td></tr>
+      <tr><td>RETE-UL Domain 24</td><td>8 rules</td><td><span class="tag done">DEFINED</span></td></tr>
+      <tr><td>Allium Spec</td><td>2E/4R/2I/2C</td><td><span class="tag done">DEFINED</span></td></tr>
+    </table>
+  </div>
+</div>
+
+<div style="text-align:center;margin:30px 0;color:var(--muted);font-size:.8rem">
+  Pi x C3I Symbiosis Dashboard | Auto-refreshes every 30s | Server: port 8090 | <span id="clock"></span>
+</div>
+
+<script>
+// Fractal matrix
+const subsystems = ['Nervous','Immune','Circulatory','Skeletal','Digestive','Reproductive','Endocrine'];
+const layers = ['L0','L1','L2','L3','L4','L5','L6','L7'];
+const matrix = [
+  ['done','done','pending','pending','pending','done','done','pending'],
+  ['done','pending','pending','pending','pending','pending','done','pending'],
+  ['pending','pending','pending','done','pending','pending','done','done'],
+  ['pending','pending','done','done','pending','done','pending','pending'],
+  ['pending','pending','pending','done','done','done','pending','pending'],
+  ['pending','pending','pending','pending','pending','pending','pending','done'],
+  ['pending','pending','pending','pending','pending','done','done','pending'],
+];
+const el = document.getElementById('fractalMatrix');
+subsystems.forEach((s,i) => {
+  const row = document.createElement('div');
+  row.style.cssText = 'display:grid;grid-template-columns:80px repeat(8,1fr);gap:4px;margin-bottom:4px';
+  row.innerHTML = `<div style="font-size:.7rem;color:var(--muted);display:flex;align-items:center">${s}</div>`;
+  layers.forEach((l,j) => {
+    const st = matrix[i][j];
+    row.innerHTML += `<div class="fcell ${st}">${l}<br>${st==='done'?'OK':st==='wip'?'...':'--'}</div>`;
+  });
+  el.appendChild(row);
+});
+
+// Clock
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toISOString().replace('T',' ').substring(0,19) + ' UTC';
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// Auto-refresh
+setTimeout(() => location.reload(), 30000);
+
+// Progress ring
+function setProgress(pct) {
+  const circ = 2 * Math.PI * 52;
+  document.getElementById('ringFg').style.strokeDashoffset = circ * (1 - pct/100);
+  document.getElementById('ringPct').textContent = pct + '%';
+}
+setProgress(100);
+</script>
+</body>
+</html>

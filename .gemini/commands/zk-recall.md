@@ -25,6 +25,6 @@ $ZK contacts "$ARGUMENTS"
 - Apply SC-AVP verification to any analysis output
 - Only then proceed with the task
 
-This is SC-ZK-CLAUDE-001: Claude MUST search Zettelkasten BEFORE starting ANY task.
+This is SC-ZK-GEMINI-001: Gemini MUST search Zettelkasten BEFORE starting ANY task.
 
 $ARGUMENTS

@@ -1,0 +1,54 @@
+{
+  "task_id": "116442770287604446",
+  "feature": "Recall/RAG/Context Memory Feature Evolution",
+  "version": "v22.10.1-PI-SYMBIOSIS",
+  "created": "2026-04-21T12:47:49Z",
+  "links": {
+    "dashboard": {
+      "url": "https://vm-1.tail55d152.ts.net:4200/recall-rag",
+      "type": "html",
+      "description": "Comprehensive KPI dashboard for Recall/RAG/Context Memory"
+    },
+    "deck": {
+      "url": "https://vm-1.tail55d152.ts.net:4200/recall-rag-deck",
+      "type": "html",
+      "description": "10-slide summary presentation"
+    },
+    "journal": {
+      "url": "https://vm-1.tail55d152.ts.net:4200/task-id/116442770287604446/20260421-recall-rag-context-memory-feature-evolution.md",
+      "type": "markdown",
+      "description": "13-section journal entry"
+    },
+    "pi_guide": {
+      "url": "file:///home/an/dev/ver/c3i/docs/pi-integration/recall-rag-pi-integration-guide.md",
+      "type": "markdown",
+      "description": "Pi-Mono integration guide (~630 LOC TypeScript estimated)"
+    },
+    "rule": {
+      "url": "file:///home/an/dev/ver/c3i/.claude/rules/recall-rag-feature-evolution.md",
+      "type": "markdown",
+      "description": "Automation rule (SC-RECALL-RAG-001..008)"
+    },
+    "task_page": {
+      "url": "https://vm-1.tail55d152.ts.net:4200/task-id/116442770287604446",
+      "type": "html",
+      "description": "Task index page with all artifacts"
+    }
+  },
+  "stamp_constraints": [
+    "SC-IKE-001", "SC-IKE-002", "SC-IKE-003",
+    "SC-SMRITI-131", "SC-SMRITI-133",
+    "SC-COG-001", "SC-SEC-003", "SC-ZMOF-001",
+    "SC-ZK-IMP-001", "SC-PI-AUTO-001",
+    "SC-RECALL-RAG-001", "SC-RECALL-RAG-002", "SC-RECALL-RAG-003",
+    "SC-RECALL-RAG-004", "SC-RECALL-RAG-005", "SC-RECALL-RAG-006",
+    "SC-RECALL-RAG-007", "SC-RECALL-RAG-008"
+  ],
+  "fractal_layers_impacted": ["L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7"],
+  "test_file": "lib/cepaf_gleam/test/recall_rag_regression_test.gleam",
+  "modules": {
+    "gleam_zk": 10,
+    "rust_cortex": 31,
+    "total_loc": 6139
+  }
+}

@@ -1,0 +1,47 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Pass-10 Robustness Analysis</title>
+<style>body{background:#0b0f14;color:#cfe7ff;font-family:ui-monospace,monospace;padding:24px;line-height:1.5}a{color:#60a5fa}code{color:#60a5fa}table{border-collapse:collapse}td,th{border:1px solid #1e2a37;padding:6px 10px}</style>
+</head><body>
+<h1>Pass-10 Robustness hardening (continued)</h1>
+<p>Focused on cold-start durability, bounded remediation, operator visibility, and closed-loop control.</p>
+
+<h2>Implemented</h2>
+<ul>
+<li><b>Jidoka hardening</b> in <code>p8_04_embed_backfill</code>: <code>MAX_SECONDS</code>, <code>HEARTBEAT_EVERY</code>, bounded stop and summary.</li>
+<li><b>Robustness gate</b> <code>p10_robustness_gate</code> (STAMP/FMEA/RETE-lite): integrity+FK+WAL+URL+Zenoh+fastembed checks, score/grade, alarm/action output.</li>
+<li><b>RETE-lite autofix</b> <code>p10_rete_autofix</code> with safe defaults: <code>AUTOFIX_ENABLED=false</code>, <code>REQUIRE_GUARDIAN=true</code>, bounded batches.</li>
+<li><b>Dashboard expansion</b>: sparklines + per-agent + robustness panel.</li>
+<li><b>Systemd durability</b>: <code>c3i-robustness-gate</code> and <code>c3i-rete-autofix</code> enabled.</li>
+</ul>
+
+<h2>Live services</h2>
+<table>
+<tr><th>Unit</th><th>Status</th><th>Cadence</th><th>Role</th></tr>
+<tr><td>c3i-symbiosis-monitor</td><td>active</td><td>5s</td><td>OODA metrics snapshot</td></tr>
+<tr><td>c3i-robustness-gate</td><td>active</td><td>60s</td><td>Correctness/stability/utility scoring</td></tr>
+<tr><td>c3i-rete-autofix</td><td>active</td><td>300s</td><td>Advisory/auto-remediation engine</td></tr>
+</table>
+
+<h2>Safety posture</h2>
+<ul>
+<li>Autofix default is <b>disabled</b>.</li>
+<li>Guardian required by default for execution path.</li>
+<li>Backfill constrained by rows + wall-clock + cooldown.</li>
+<li>Cost guard blocks embedding remediation when spend pressure is high.</li>
+</ul>
+
+<h2>Live endpoints</h2>
+<ul>
+<li><a href="https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/symbiosis.html">symbiosis dashboard</a></li>
+<li><a href="https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/symbiosis.json">symbiosis.json</a></li>
+<li><a href="https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/robustness.json">robustness.json</a></li>
+<li><a href="https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/robustness.md">robustness.md</a></li>
+<li><a href="https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/agents.json">agents.json</a></li>
+<li><a href="https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/history.ndjson">history.ndjson</a></li>
+</ul>
+
+<pre id="r">loading robustness…</pre>
+<script>
+fetch('https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/robustness.json',{cache:'no-store'})
+ .then(r=>r.json()).then(d=>{document.getElementById('r').textContent=JSON.stringify(d,null,2)});
+</script>
+</body></html>

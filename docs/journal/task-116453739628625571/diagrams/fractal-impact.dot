@@ -1,0 +1,19 @@
+digraph FractalImpact {
+  rankdir=TB;
+  bgcolor="#0b0f14";
+  node [shape=box, style="rounded,filled", fontname="Inter", fontcolor="#e6edf3", color="#30363d"];
+  edge [color="#7d8590", fontname="Inter", fontcolor="#c9d1d9"];
+
+  L0 [label="L0 Constitutional\n(176 LOC, HITL mandatory)\nΨ-0..Ψ-5 invariants", fillcolor="#da3633"];
+  L1 [label="L1 Atomic / Debug\n(118 LOC)\ntrace, log, assert", fillcolor="#b45309"];
+  L2 [label="L2 Component\n(112 LOC)\ntyped widgets, A2UI", fillcolor="#9e6a03"];
+  L3 [label="L3 Transaction\n(144 LOC)\nSmriti sessions, journaling", fillcolor="#1a7f37"];
+  L4 [label="L4 System\n(202 LOC)\ncircuit breakers, pods, health", fillcolor="#238636"];
+  L5 [label="L5 Cognitive\n(149 LOC)\nOODA, model resolver, skills", fillcolor="#1f6feb"];
+  L6 [label="L6 Ecosystem\n(105 LOC)\nextension bus, skill registry", fillcolor="#0969da"];
+  L7 [label="L7 Federation\n(101 LOC)\nMOM / Slack / Telegram bridges", fillcolor="#6e40c9"];
+
+  L0 -> L1 -> L2 -> L3 -> L4 -> L5 -> L6 -> L7;
+  L7 -> L0 [label="health ↑ / recovery ↓", style=dashed, color="#f85149"];
+  L0 -> L7 [label="Ψ invariants propagate", style=dotted, color="#3fb950"];
+}

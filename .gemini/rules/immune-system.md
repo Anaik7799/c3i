@@ -17,7 +17,7 @@ The Digital Immune System provides T-Cell-like protection for the Indrajaal holo
 | SC-IMMUNE-009 | Threat scoring uses weighted multi-factor formula | HIGH | Algorithm Test |
 | SC-IMMUNE-010 | False positive rate MUST be <5% | HIGH | Statistical Test |
 # AOR Rules
-> AOR-IMMUNE-001 to AOR-IMMUNE-004 — defined in CLAUDE.md §9.0
+> AOR-IMMUNE-001 to AOR-IMMUNE-004 — defined in GEMINI.md §9.0
 > Key: Sentinel health check before critical ops, kernel process protection, PatternHunter baseline calibration, RPN >= 50 → Guardian
 > Extended: AOR-IMMUNE-005: Recovery path: Restart → Reconfigure → Rollback → Manual
 # Module Specifications

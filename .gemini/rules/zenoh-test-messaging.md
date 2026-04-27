@@ -109,7 +109,7 @@ This rule file governs the Zenoh pub/sub real-time test messaging system that re
 | SC-ZTEST-020 | Quorum messages require 2oo3 consensus | CRITICAL | L6 | Quorum test | $healthy \geq \lfloor N/2 \rfloor + 1$ |
 ---
 # 2.0 AOR Rules
-> AOR-ZTEST-001 to AOR-ZTEST-015 — defined in CLAUDE.md §9.0
+> AOR-ZTEST-001 to AOR-ZTEST-015 — defined in GEMINI.md §9.0
 > Key: ZenohTestFormatter, async-only publishing, log fallback BEFORE Zenoh, state vector in boot, FIFO ordering, 2oo3 consensus
 ---
 # 3.0 Mathematical Foundations
@@ -276,7 +276,7 @@ checkpointId topic message stateVectorStr timestamp
 3. **ON FAILURE** Zenoh publish already has log backup
 ---
 # 9.0 TDG Generators
-> Dual property tests (PC. + SD.) mandatory — see CLAUDE.md §7.0, EP-GEN-014
+> Dual property tests (PC. + SD.) mandatory — see GEMINI.md §7.0, EP-GEN-014
 ```elixir
 # Generator for checkpoint IDs
 def checkpoint_id_gen do
@@ -478,10 +478,10 @@ CP-BOOT-06 → CP-BOOT-07 ↗
 # 18.0 Revision History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-01-18 | Claude Opus 4.5 | Initial creation |
-| 2.0.0 | 2026-01-18 | Claude Opus 4.5 | Pass 1: Extended STAMP (012-020), Math foundations, TDG, FMEA, DAG rules |
-| 2.0.0 | 2026-01-18 | Claude Opus 4.5 | Pass 2: Comprehensive FMEA (20 failure modes), extended AOR rules (001-015) |
-| 2.0.0 | 2026-01-18 | Claude Opus 4.5 | Pass 3: Log-based fallback verification, dual-write strategy, verification procedures |
+| 1.0.0 | 2026-01-18 | Gemini Opus 4.5 | Initial creation |
+| 2.0.0 | 2026-01-18 | Gemini Opus 4.5 | Pass 1: Extended STAMP (012-020), Math foundations, TDG, FMEA, DAG rules |
+| 2.0.0 | 2026-01-18 | Gemini Opus 4.5 | Pass 2: Comprehensive FMEA (20 failure modes), extended AOR rules (001-015) |
+| 2.0.0 | 2026-01-18 | Gemini Opus 4.5 | Pass 3: Log-based fallback verification, dual-write strategy, verification procedures |
 ---
 # 19.0 Specification Documents
 # 19.1 Primary Specifications

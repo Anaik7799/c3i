@@ -1,0 +1,39 @@
+digraph ControlPlane {
+  rankdir=LR;
+  bgcolor="#0b0f14";
+  node [shape=box, style="rounded,filled", fontname="Inter", fontcolor="#e6edf3", color="#30363d"];
+  edge [color="#7d8590", fontname="Inter", fontcolor="#c9d1d9"];
+
+  subgraph cluster_exec {
+    label="L1 Executive"; fontcolor="#f0b429"; color="#30363d";
+    MS [label="master-supervisor\n(Opus)", fillcolor="#b45309"];
+  }
+  subgraph cluster_dom {
+    label="L2 Supervisors"; fontcolor="#58a6ff"; color="#30363d";
+    DS [label="design-supervisor", fillcolor="#1f6feb"];
+    BS [label="build-supervisor", fillcolor="#1f6feb"];
+    DPS [label="deploy-supervisor", fillcolor="#1f6feb"];
+    OS [label="operate-supervisor", fillcolor="#1f6feb"];
+  }
+  subgraph cluster_workers {
+    label="L3 Workers (20 Haiku agents)"; fontcolor="#3fb950"; color="#30363d";
+    FA [label="fractal-architect", fillcolor="#238636"];
+    CE [label="code-evolution", fillcolor="#238636"];
+    GCE [label="gleam-coverage-engineer", fillcolor="#238636"];
+    WCE [label="wallaby-coverage-engineer", fillcolor="#238636"];
+    CAA [label="coverage-audit-agent", fillcolor="#238636"];
+    CR [label="code-reviewer", fillcolor="#238636"];
+    CDBG [label="code-debugger", fillcolor="#238636"];
+    SIL [label="sil6-validator", fillcolor="#238636"];
+  }
+  subgraph cluster_guardian {
+    label="Guardian / Safety Kernel"; fontcolor="#f85149"; color="#30363d";
+    GK [label="Guardian L0 gate\n(HITL for destructive)", fillcolor="#da3633", shape=octagon];
+  }
+
+  MS -> DS; MS -> BS; MS -> DPS; MS -> OS;
+  DS -> FA; BS -> CE; BS -> GCE; BS -> WCE; BS -> CR; BS -> CDBG;
+  DPS -> SIL; OS -> CAA;
+  MS -> GK [style=dashed, label="approve"];
+  CE -> GK [style=dashed];
+}

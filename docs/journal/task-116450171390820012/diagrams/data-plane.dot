@@ -1,0 +1,35 @@
+digraph DataPlane {
+  rankdir=LR; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica";
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed" color="#1e2a3a" fillcolor="#141922"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=10];
+  User [fillcolor="#1a2a3a"];
+  Tailscale [label="Tailscale\nvm-1.tail55d152.ts.net"];
+  TLS [label="sa-plan-daemon tls serve\n:8443 self-signed"];
+  HTTP [label="sa-plan serve\n:4200"];
+  Web [label="Agentic Dashboard\n(Rust-rendered HTML)"];
+  Api [label="/api/tasks/* /api/health\n/api/metrics"];
+  PlanningDB [label="planning.db"];
+  Cortex [label="Neuromorphic Cortex\nsa-plan daemon"];
+  Zenoh [label="Zenoh mesh\n4 routers, 6 sessions"];
+  Gemini [label="OpenRouter\ngemini-3-flash"];
+  Ollama [label="Ollama cluster\n(3 runners)"];
+  App [label="Elixir apps\n(ex-app-1..3, chaya)"];
+  DB [label="Timescale :5433"];
+  Obs [label="Obs stack\nGrafana/Prom/OTEL"];
+  User -> Tailscale [label="HTTPS"];
+  Tailscale -> TLS;
+  TLS -> Web; TLS -> Api;
+  HTTP -> Web; HTTP -> Api;
+  Api -> PlanningDB;
+  Web -> PlanningDB;
+  User -> App [label="4000-4004"];
+  App -> DB;
+  App -> Zenoh;
+  Cortex -> Zenoh;
+  Cortex -> Gemini [label="hedged"];
+  Cortex -> Ollama [label="fallback"];
+  App -> Obs [label="OTEL"];
+  Cortex -> Obs;
+  Zenoh -> Obs [label="span relay"];
+  Zenoh -> App [label="sub/pub"];
+}

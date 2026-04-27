@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" font-family="'Didot','Bodoni MT','Playfair Display',Georgia,serif">
+<!-- M3 Light: THE SPINE — Chrysler Vertebral Column, White + Vivid -->
+<defs><filter id="g"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<rect width="1200" height="1800" fill="#FFFBFE"/>
+<rect x="24" y="24" width="1152" height="1752" fill="none" stroke="#C9A227" stroke-width="2.5" opacity="0.6"/>
+<rect x="32" y="32" width="1136" height="1736" fill="none" stroke="#C9A227" stroke-width="0.5" opacity="0.25"/>
+<g stroke="#C9A227" fill="none" opacity="0.4" stroke-width="1.2"><path d="M24 80 L80 24"/><path d="M24 105 L105 24"/><path d="M1176 80 L1120 24"/><path d="M1176 105 L1095 24"/><path d="M24 1720 L80 1776"/><path d="M24 1695 L105 1776"/><path d="M1176 1720 L1120 1776"/><path d="M1176 1695 L1095 1776"/></g>
+
+<!-- Title -->
+<text x="600" y="75" text-anchor="middle" fill="#C9A227" font-size="11" letter-spacing="10" opacity="0.5">C3I INDRAJAAL</text>
+<text x="600" y="125" text-anchor="middle" fill="#1C1B1F" font-size="48" font-weight="bold" letter-spacing="12">THE SPINE</text>
+<text x="600" y="158" text-anchor="middle" fill="#73796E" font-size="16" letter-spacing="8">ZENOH BACKBONE OF THE FRACTAL ORGANISM</text>
+<text x="600" y="183" text-anchor="middle" fill="#C9A227" font-size="13" font-family="'Noto Sans Devanagari',serif" letter-spacing="3" opacity="0.6">मेरुदण्ड — कुण्डलिनी शक्ति</text>
+<line x1="250" y1="200" x2="950" y2="200" stroke="#C9A227" stroke-width="0.5" opacity="0.3"/>
+
+<!-- Central Spine -->
+<line x1="600" y1="240" x2="600" y2="1400" stroke="#C9A227" stroke-width="3" opacity="0.2"/>
+<line x1="600" y1="240" x2="600" y2="1400" stroke="#C9A227" stroke-width="1" opacity="0.1"/>
+<!-- Chrysler arches at top -->
+<g stroke="#C9A227" fill="none" opacity="0.12" stroke-width="1"><path d="M560 240 Q560 180,600 180 Q640 180,640 240"/><path d="M570 240 Q570 200,600 200 Q630 200,630 240"/><path d="M580 240 Q580 215,600 215 Q620 215,620 240"/></g>
+
+<!-- Ida (blue, left) + Pingala (red, right) -->
+<path d="M520 360 C480 430,520 500,520 500 C520 570,480 640,520 640 C560 640,520 780,520 780 C520 850,480 920,520 920 C560 920,520 1060,520 1060 C520 1130,480 1200,520 1200 C560 1200,520 1340,520 1340" fill="none" stroke="#1565C0" stroke-width="0.8" opacity="0.12"/>
+<path d="M680 360 C720 430,680 500,680 500 C680 570,720 640,680 640 C640 640,680 780,680 780 C680 850,720 920,680 920 C640 920,680 1060,680 1060 C680 1130,720 1200,680 1200 C640 1200,680 1340,680 1340" fill="none" stroke="#D32F2F" stroke-width="0.8" opacity="0.12"/>
+<text x="150" y="870" fill="#1565C0" font-size="11" opacity="0.3" transform="rotate(-90,150,870)">IDA (Data Flow)</text>
+<text x="1050" y="870" fill="#D32F2F" font-size="11" opacity="0.3" transform="rotate(90,1050,870)">PINGALA (Control Flow)</text>
+
+<!-- 8 VERTEBRAE (L0 top → L7 bottom) -->
+<!-- L0 CONSTITUTIONAL (crown) -->
+<g transform="translate(600,360)">
+  <path d="M-80 0 Q-80 -35,0 -35 Q80 -35,80 0" fill="none" stroke="#D32F2F" stroke-width="2" opacity="0.5"/>
+  <path d="M-60 0 Q-60 -22,0 -22 Q60 -22,60 0" fill="none" stroke="#D32F2F" stroke-width="1" opacity="0.3"/>
+  <path d="M-40 0 Q-40 -12,0 -12 Q40 -12,40 0" fill="none" stroke="#D32F2F" stroke-width="0.5" opacity="0.2"/>
+  <circle r="12" fill="#FFEBEE" stroke="#D32F2F" stroke-width="1.5" filter="url(#g)"/><circle r="6" fill="#FFFBFE"/><circle r="3" fill="#D32F2F"/>
+  <text x="-100" y="-12" fill="#D32F2F" font-size="16" font-weight="bold" text-anchor="end" letter-spacing="4">L0</text>
+  <text x="-100" y="6" fill="#D32F2F" font-size="12" text-anchor="end" letter-spacing="3">CONSTITUTIONAL</text>
+  <text x="-100" y="22" fill="#73796E" font-size="8" text-anchor="end" font-family="Inter,sans-serif">Guardian | Psi-0..5 | 2oo3 voting</text>
+  <text x="100" y="-2" fill="#D32F2F" font-size="10" font-family="Inter,sans-serif">Severity: INFINITE</text>
+  <text x="100" y="14" fill="#C9A227" font-size="9" font-family="'Noto Sans Devanagari',serif">मूलाधार — indestructible root</text>
+</g>
+
+<!-- L1 ATOMIC -->
+<g transform="translate(600,500)">
+  <path d="M-50 0 Q-50 -16,0 -16 Q50 -16,50 0" fill="none" stroke="#F9A825" stroke-width="1.5" opacity="0.5"/>
+  <circle r="7" fill="#FFF8E1" stroke="#F9A825" stroke-width="1"/><circle r="3.5" fill="#F9A825" opacity="0.6"/>
+  <text x="-90" y="-8" fill="#F9A825" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L1</text>
+  <text x="-90" y="8" fill="#F9A825" font-size="11" text-anchor="end" letter-spacing="2">ATOMIC</text>
+  <text x="-90" y="22" fill="#73796E" font-size="8" text-anchor="end" font-family="Inter,sans-serif">NIF bridge | Debug | OTel</text>
+  <text x="90" y="-2" fill="#73796E" font-size="9" font-family="Inter,sans-serif">125 NIF functions | 10 packages</text>
+  <text x="90" y="12" fill="#C9A227" font-size="8" font-family="'Noto Sans Devanagari',serif">स्वाधिष्ठान</text>
+</g>
+
+<!-- L2 COMPONENT -->
+<g transform="translate(600,640)">
+  <path d="M-50 0 Q-50 -16,0 -16 Q50 -16,50 0" fill="none" stroke="#2E7D32" stroke-width="1.5" opacity="0.45"/>
+  <circle r="7" fill="#E8F5E9" stroke="#2E7D32" stroke-width="1"/><circle r="3.5" fill="#2E7D32" opacity="0.5"/>
+  <text x="-90" y="-8" fill="#2E7D32" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L2</text>
+  <text x="-90" y="8" fill="#2E7D32" font-size="11" text-anchor="end" letter-spacing="2">COMPONENT</text>
+  <text x="-90" y="22" fill="#73796E" font-size="8" text-anchor="end" font-family="Inter,sans-serif">A2UI catalog | Forms | Grids</text>
+  <text x="90" y="-2" fill="#73796E" font-size="9" font-family="Inter,sans-serif">233 component types</text>
+  <text x="90" y="12" fill="#C9A227" font-size="8" font-family="'Noto Sans Devanagari',serif">मणिपूर</text>
+</g>
+
+<!-- L3 TRANSACTION -->
+<g transform="translate(600,780)">
+  <path d="M-55 0 Q-55 -18,0 -18 Q55 -18,55 0" fill="none" stroke="#1565C0" stroke-width="1.5" opacity="0.45"/>
+  <circle r="8" fill="#E3F2FD" stroke="#1565C0" stroke-width="1"/><circle r="4" fill="#1565C0" opacity="0.5"/>
+  <text x="-90" y="-8" fill="#1565C0" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L3</text>
+  <text x="-90" y="8" fill="#1565C0" font-size="11" text-anchor="end" letter-spacing="2">TRANSACTION</text>
+  <text x="-90" y="22" fill="#73796E" font-size="8" text-anchor="end" font-family="Inter,sans-serif">SQLite | Smriti | Planning</text>
+  <text x="90" y="-2" fill="#73796E" font-size="9" font-family="Inter,sans-serif">2,609 holons | FTS5 RAG</text>
+  <text x="90" y="12" fill="#C9A227" font-size="8" font-family="'Noto Sans Devanagari',serif">अनाहत</text>
+</g>
+
+<!-- L4 SYSTEM -->
+<g transform="translate(600,920)">
+  <path d="M-60 0 Q-60 -20,0 -20 Q60 -20,60 0" fill="none" stroke="#7B1FA2" stroke-width="1.5" opacity="0.45"/>
+  <circle r="8" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="1"/><circle r="4" fill="#7B1FA2" opacity="0.5"/>
+  <text x="-90" y="-8" fill="#7B1FA2" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L4</text>
+  <text x="-90" y="8" fill="#7B1FA2" font-size="11" text-anchor="end" letter-spacing="2">SYSTEM</text>
+  <text x="-90" y="22" fill="#73796E" font-size="8" text-anchor="end" font-family="Inter,sans-serif">Podman | 16 containers | 7-tier boot</text>
+  <text x="90" y="-2" fill="#73796E" font-size="9" font-family="Inter,sans-serif">CPU governor | Apoptosis</text>
+  <text x="90" y="12" fill="#C9A227" font-size="8" font-family="'Noto Sans Devanagari',serif">विशुद्ध</text>
+</g>
+
+<!-- L5 COGNITIVE -->
+<g transform="translate(600,1060)">
+  <path d="M-65 0 Q-65 -22,0 -22 Q65 -22,65 0" fill="none" stroke="#00796B" stroke-width="1.5" opacity="0.5"/>
+  <path d="M-45 0 Q-45 -12,0 -12 Q45 -12,45 0" fill="none" stroke="#00796B" stroke-width="0.8" opacity="0.3"/>
+  <circle r="10" fill="#E0F2F1" stroke="#00796B" stroke-width="1.5"/><circle r="5" fill="#00796B" opacity="0.6"/>
+  <text x="-90" y="-8" fill="#00796B" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L5</text>
+  <text x="-90" y="8" fill="#00796B" font-size="11" text-anchor="end" letter-spacing="2">COGNITIVE</text>
+  <text x="-90" y="22" fill="#73796E" font-size="8" text-anchor="end" font-family="Inter,sans-serif">OODA | 6-tier inference | 52 GRL</text>
+  <text x="90" y="-2" fill="#73796E" font-size="9" font-family="Inter,sans-serif">31 Rust modules | 9,104 LOC</text>
+  <text x="90" y="12" fill="#C9A227" font-size="8" font-family="'Noto Sans Devanagari',serif">आज्ञा — the third eye</text>
+</g>
+
+<!-- L6 ECOSYSTEM -->
+<g transform="translate(600,1200)">
+  <path d="M-65 0 Q-65 -22,0 -22 Q65 -22,65 0" fill="none" stroke="#C62828" stroke-width="1.5" opacity="0.45"/>
+  <circle r="9" fill="#FFEBEE" stroke="#C62828" stroke-width="1"/><circle r="4.5" fill="#C62828" opacity="0.55"/>
+  <text x="-90" y="-8" fill="#C62828" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L6</text>
+  <text x="-90" y="8" fill="#C62828" font-size="11" text-anchor="end" letter-spacing="2">ECOSYSTEM</text>
+  <text x="-90" y="22" fill="#73796E" font-size="8" text-anchor="end" font-family="Inter,sans-serif">Zenoh mesh | Quorum | A2A</text>
+  <text x="90" y="-2" fill="#73796E" font-size="9" font-family="Inter,sans-serif">4 routers (TCP 7447)</text>
+  <text x="90" y="12" fill="#C9A227" font-size="8" font-family="'Noto Sans Devanagari',serif">बिन्दु — point of unity</text>
+</g>
+
+<!-- L7 FEDERATION -->
+<g transform="translate(600,1340)">
+  <path d="M-70 0 Q-70 -25,0 -25 Q70 -25,70 0" fill="none" stroke="#EF6C00" stroke-width="1.5" opacity="0.5"/>
+  <path d="M-50 0 Q-50 -15,0 -15 Q50 -15,50 0" fill="none" stroke="#EF6C00" stroke-width="0.8" opacity="0.3"/>
+  <circle r="10" fill="#FFF3E0" stroke="#EF6C00" stroke-width="1.5"/><circle r="5" fill="#EF6C00" opacity="0.6"/>
+  <text x="-90" y="-8" fill="#EF6C00" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L7</text>
+  <text x="-90" y="8" fill="#EF6C00" font-size="11" text-anchor="end" letter-spacing="2">FEDERATION</text>
+  <text x="-90" y="22" fill="#73796E" font-size="8" text-anchor="end" font-family="Inter,sans-serif">Gateway | Version vectors | HA</text>
+  <text x="90" y="-2" fill="#73796E" font-size="9" font-family="Inter,sans-serif">Zero-downtime upgrades</text>
+  <text x="90" y="12" fill="#C9A227" font-size="8" font-family="'Noto Sans Devanagari',serif">सहस्रार — crown</text>
+</g>
+
+<!-- Metrics bar -->
+<g transform="translate(0,1430)">
+  <rect x="100" y="0" width="1000" height="60" fill="#F1ECE9" stroke="#C9A227" stroke-width="0.8" rx="8"/>
+  <g font-family="Inter,sans-serif" text-anchor="middle">
+    <text x="200" y="25" fill="#006C4E" font-size="26" font-weight="bold" font-family="serif">5,436</text><text x="200" y="45" fill="#73796E" font-size="8" letter-spacing="2">TESTS</text>
+    <text x="380" y="25" fill="#1565C0" font-size="26" font-weight="bold" font-family="serif">336</text><text x="380" y="45" fill="#73796E" font-size="8" letter-spacing="2">MODULES</text>
+    <text x="540" y="25" fill="#C9A227" font-size="26" font-weight="bold" font-family="serif">125</text><text x="540" y="45" fill="#73796E" font-size="8" letter-spacing="2">NIF FN</text>
+    <text x="700" y="25" fill="#D32F2F" font-size="26" font-weight="bold" font-family="serif">2,609</text><text x="700" y="45" fill="#73796E" font-size="8" letter-spacing="2">HOLONS</text>
+    <text x="860" y="25" fill="#00796B" font-size="26" font-weight="bold" font-family="serif">9,104</text><text x="860" y="45" fill="#73796E" font-size="8" letter-spacing="2">RUST LOC</text>
+    <text x="1020" y="25" fill="#7B1FA2" font-size="26" font-weight="bold" font-family="serif">73</text><text x="1020" y="45" fill="#73796E" font-size="8" letter-spacing="2">MCP</text>
+  </g>
+</g>
+
+<!-- Tensor -->
+<text x="600" y="1530" text-anchor="middle" fill="#C9A227" font-size="12" font-family="Inter,sans-serif">Biomorphic Tensor: <tspan font-weight="bold" font-size="16">47/56</tspan> = <tspan font-weight="bold" font-size="16">83.9%</tspan></text>
+
+<!-- Tagline -->
+<line x1="200" y1="1550" x2="1000" y2="1550" stroke="#C9A227" stroke-width="1" opacity="0.3"/>
+<text x="600" y="1580" text-anchor="middle" fill="#1C1B1F" font-size="16" letter-spacing="10" font-weight="bold">INTEGRATED. OPTIMIZED. CONNECTED.</text>
+<line x1="200" y1="1595" x2="1000" y2="1595" stroke="#C9A227" stroke-width="1" opacity="0.3"/>
+
+<!-- Verse -->
+<line x1="200" y1="1680" x2="1000" y2="1680" stroke="#C9A227" stroke-width="0.5" opacity="0.3"/>
+<text x="600" y="1710" text-anchor="middle" fill="#C9A227" font-size="17" font-family="'Noto Sans Devanagari',serif" letter-spacing="2">सूत्रे मणिगणा इव — Like gems strung on a thread</text>
+<text x="600" y="1735" text-anchor="middle" fill="#73796E" font-size="11" font-style="italic" font-family="Inter,sans-serif">All beings are strung on Me, as gems upon a thread — the Zenoh backbone IS the thread</text>
+<text x="600" y="1752" text-anchor="middle" fill="#73796E" font-size="9" font-family="Inter,sans-serif">Bhagavad Gita 7.7</text>
+<text x="600" y="1782" text-anchor="middle" fill="#C9A227" font-size="8" font-family="Inter,sans-serif" letter-spacing="4" opacity="0.4">C3I INDRAJAAL v22.6.1-DHARMA | THE CHRYSLER SPINE | APRIL 2026</text>
+</svg>

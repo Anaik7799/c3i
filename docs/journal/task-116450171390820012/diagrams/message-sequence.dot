@@ -1,0 +1,27 @@
+digraph MSC {
+  rankdir=TB; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica"; nodesep=0.1;
+  node [shape=box style="filled,rounded" fillcolor="#141922" fontcolor="#e0e6ed" color="#1e2a3a"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=10];
+  User [fillcolor="#1a2a3a"]; Igni [label="ignition"]; Podman; ZR [label="zenoh-router"]; DB; Obs; Cortex; Ollama; Tsd [label="timestamp_daemon"]; SaPlan [label="sa-plan serve"];
+
+  User -> Igni [label="1. sa-up full"];
+  Igni -> Igni [label="2. preflight (21 checks)"];
+  Igni -> Podman [label="3. wave-1: ZR, DB, Obs, Ollama"];
+  Podman -> ZR [label="4. container up"];
+  Igni -> ZR [label="5. verify mesh 6/6"];
+  Igni -> Podman [label="6. wave-2: Mojo, Cortex, MLr1/2"];
+  Igni -> Podman [label="7. wave-3: ex-app-1"];
+  Igni -> Podman [label="8. wave-4: chaya, ex-app-2/3, bridge"];
+  Igni -> User [label="9. 13/18 verify PASS"];
+  User -> SaPlan [label="10. ps confirm"];
+  User -> Tsd [label="11. launch tsd"];
+  Tsd -> Obs [label="12. OTEL span"];
+  User -> Cortex [label="13. sa-plan daemon"];
+  Cortex -> ZR [label="14. sub indrajaal/l5/**"];
+  Cortex -> Ollama [label="15. warm cascade"];
+  Ollama -> Cortex [label="16. 1273 ms (hedged)"];
+  User -> SaPlan [label="17. add 15 P5-CHILD tasks"];
+  SaPlan -> DB [label="18. insert (2927→2943)"];
+  User -> SaPlan [label="19. GET /task-id/…/"];
+  SaPlan -> User [label="20. HTML dashboard"];
+}

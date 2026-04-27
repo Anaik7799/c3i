@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ultra-Pass 5 · Fractal Analysis — Task 116450171390820012</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--accent:#00d4aa;--border:#1e2a3a;--success:#3dd68c;--warn:#f5a623;--critical:#ff4757;--muted:#7a8fa6;--purple:#9b6cff;--blue:#00bfff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.55}
+.topbar{background:linear-gradient(135deg,#141922,#1e2a3a);border-bottom:1px solid var(--border);padding:1rem 2rem;position:sticky;top:0;z-index:10;backdrop-filter:blur(10px)}
+.topbar a{color:var(--accent);text-decoration:none;font-weight:600}
+.topbar .url{display:block;font-family:ui-monospace,monospace;font-size:.85rem;color:var(--success);word-break:break-all;margin-top:.25rem}
+.wrap{max-width:1200px;margin:0 auto;padding:1.5rem 2rem 4rem}
+h1{color:var(--accent);font-size:1.8rem;margin:1rem 0 .5rem}
+h2{color:var(--accent);font-size:1.3rem;margin:2rem 0 .75rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
+h3{color:var(--blue);font-size:1.05rem;margin:1.25rem 0 .5rem}
+.grid{display:grid;gap:1rem;margin:1rem 0}
+.g4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:border-color .15s}
+.card:hover{border-color:var(--accent)}
+.card h3{margin-top:0}
+.kpi{font-size:2rem;font-weight:700;color:var(--accent);line-height:1}
+.kpi.warn{color:var(--warn)}.kpi.crit{color:var(--critical)}.kpi.ok{color:var(--success)}
+.kpi-label{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;margin-top:.25rem}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:8px;overflow:hidden;margin:.5rem 0 1rem;font-size:.9rem}
+th,td{padding:.55rem .75rem;text-align:left;border-bottom:1px solid var(--border)}
+th{background:#1e2a3a;color:var(--accent);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em}
+tr:last-child td{border-bottom:none}
+code,.mono{font-family:ui-monospace,'SFMono-Regular',monospace;background:#0e1420;padding:.1rem .35rem;border-radius:4px;font-size:.85em;color:var(--warn)}
+pre{background:#0e1420;border:1px solid var(--border);border-radius:8px;padding:.9rem;overflow-x:auto;font-size:.82rem;margin:.5rem 0 1rem}
+pre code{background:none;padding:0;color:var(--text)}
+.badge{display:inline-block;padding:.15rem .55rem;border-radius:10px;font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.b-ok{background:#0e2a1e;color:var(--success);border:1px solid var(--success)}
+.b-warn{background:#2a1e0e;color:var(--warn);border:1px solid var(--warn)}
+.b-crit{background:#2a0e0e;color:var(--critical);border:1px solid var(--critical)}
+.b-info{background:#0e1e2a;color:var(--blue);border:1px solid var(--blue)}
+img.diag{width:100%;border-radius:10px;border:1px solid var(--border);background:#0e1420}
+.toc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.9rem 1.2rem;margin:1rem 0}
+.toc a{color:var(--accent);text-decoration:none;display:inline-block;padding:.15rem .5rem}.toc a:hover{text-decoration:underline}
+.chip{display:inline-block;margin:.1rem .25rem .1rem 0;padding:.15rem .55rem;border-radius:20px;background:#1e2a3a;color:var(--text);font-size:.72rem;border:1px solid var(--border)}
+hr{border:none;border-top:1px solid var(--border);margin:2rem 0}
+</style></head>
+<body>
+
+<div class="topbar">
+<div><strong>Ultra-Pass 5 · Fractal Analysis</strong> — <span class="mono">Task 116450171390820012</span></div>
+<a class="url" href="https://vm-1.tail55d152.ts.net:8443/task-id/116450171390820012/20260422-212140-task-116450171390820012-swarm-ignition-ultrapass5-analysis.html">https://vm-1.tail55d152.ts.net:8443/task-id/116450171390820012/20260422-212140-task-116450171390820012-swarm-ignition-ultrapass5-analysis.html</a>
+</div>
+
+<div class="wrap">
+
+<h1>C3I Full Swarm Ignition · Fractal Analysis · v22.10.2-ULTRA-PASS5</h1>
+<p>2026-04-22 21:26:46 UTC · P0 · Status <span class="badge b-ok">SWARM IGNITED</span> <span class="badge b-ok">16/16 PODS</span> <span class="badge b-ok">6/6 ZENOH</span> <span class="badge b-warn">V-3/V-4 ADVISORY</span></p>
+
+<div class="toc">
+<strong>ToC:</strong>
+<a href="#kpi">KPIs</a> ·
+<a href="#zk">ZK-Recall</a> ·
+<a href="#containers">Containers</a> ·
+<a href="#daemons">Daemons</a> ·
+<a href="#diagrams">Diagrams</a> ·
+<a href="#findings">FMEA</a> ·
+<a href="#fractal">Fractal</a> ·
+<a href="#screens">Screenshots</a> ·
+<a href="#tasks">Child tasks</a> ·
+<a href="#improve">Next</a>
+</div>
+
+<section id="kpi"><h2>1. Live KPIs</h2>
+<div class="grid g4">
+<div class="card"><div class="kpi ok">16/16</div><div class="kpi-label">Pods Up</div></div>
+<div class="card"><div class="kpi ok">6/6</div><div class="kpi-label">Zenoh Sessions</div></div>
+<div class="card"><div class="kpi ok">7</div><div class="kpi-label">Host Daemons</div></div>
+<div class="card"><div class="kpi ok">1273ms</div><div class="kpi-label">Cortex Warm</div></div>
+<div class="card"><div class="kpi ok">2958</div><div class="kpi-label">Planning Tasks</div></div>
+<div class="card"><div class="kpi ok">+15</div><div class="kpi-label">Pass-5 Children</div></div>
+<div class="card"><div class="kpi ok">0.23s</div><div class="kpi-label">Cepaf Build</div></div>
+<div class="card"><div class="kpi ok">5</div><div class="kpi-label">Diagrams</div></div>
+<div class="card"><div class="kpi ok">3</div><div class="kpi-label">Screenshots</div></div>
+<div class="card"><div class="kpi warn">13/18→16/16</div><div class="kpi-label">Verify (after relaunch)</div></div>
+<div class="card"><div class="kpi ok">900→90</div><div class="kpi-label">FINDING-A RPN</div></div>
+<div class="card"><div class="kpi ok">5</div><div class="kpi-label">ZK Holons Cited</div></div>
+</div>
+</section>
+
+<section id="zk"><h2>2. ZK-RECALL (Phase-1 OODA, mandatory)</h2>
+<p>Per <code>[zk-c50fc32bd0bf7510]</code> SC-RECALL-RAG and <code>docs/journal/20260422-recall-rag-agent-utilization-guide.md</code>, every session opens with 5+ holon citations:</p>
+<div class="grid g2">
+<div class="card"><h3>Biomorphic mesh recall</h3>
+<p><span class="chip">[zk-7aa004f80f657270]</span> Allium v3 User Guide — C3I SIL-6 Biomorphic Mesh</p>
+<p><span class="chip">[zk-f6b0bd711aa34f58]</span> Rust ignition_daemon main.rs (L3_TRANSACTION)</p>
+<p><span class="chip">[zk-97150309ffddd6da]</span> Total Biomorphic Singularity Reified (v21.3.0-SIL6)</p>
+</div>
+<div class="card"><h3>Observability recall</h3>
+<p><span class="chip">[zk-67100f21107ce204]</span> Zenoh OTel Span Integration</p>
+<p><span class="chip">[zk-f287e08cb1b4b70d]</span> Zenoh OTel Telemetry Mandatory (SC-GLM-ZEN)</p>
+<p><span class="chip">[zk-d3edd671b66e5e3e]</span> Prior ultra-pass-4 analysis (FMEA)</p>
+</div>
+</div>
+</section>
+
+<section id="containers"><h2>3. Container Matrix (16/16)</h2>
+<table><thead><tr><th>Container</th><th>Tier</th><th>Status</th><th>Ports</th></tr></thead><tbody>
+<tr><td class="mono">zenoh-router</td><td>L6</td><td><span class="badge b-ok">Up</span></td><td class="mono">7447/7446/8000</td></tr>
+<tr><td class="mono">zenoh-router-1/2/3</td><td>L6</td><td><span class="badge b-ok">Up</span></td><td class="mono">internal only (mesh)</td></tr>
+<tr><td class="mono">indrajaal-db-prod</td><td>L3</td><td><span class="badge b-ok">Up</span></td><td class="mono">5433→5432 (Timescale)</td></tr>
+<tr><td class="mono">indrajaal-obs-prod</td><td>L4</td><td><span class="badge b-ok">Up</span></td><td class="mono">3000/4317/4318/9090</td></tr>
+<tr><td class="mono">indrajaal-ollama</td><td>L5</td><td><span class="badge b-ok">Up</span></td><td class="mono">11434</td></tr>
+<tr><td class="mono">indrajaal-ml-runner-1/2</td><td>L5</td><td><span class="badge b-ok">Up</span></td><td class="mono">11434</td></tr>
+<tr><td class="mono">indrajaal-mojo</td><td>L5</td><td><span class="badge b-ok">Up</span></td><td class="mono">11436</td></tr>
+<tr><td class="mono">indrajaal-cortex</td><td>L5</td><td><span class="badge b-ok">Up</span></td><td class="mono">internal (F# dotnet)</td></tr>
+<tr><td class="mono">cepaf-bridge</td><td>L6</td><td><span class="badge b-ok">Up</span></td><td class="mono">9876</td></tr>
+<tr><td class="mono">indrajaal-ex-app-1</td><td>L2</td><td><span class="badge b-ok">Up</span></td><td class="mono">4000/4001</td></tr>
+<tr><td class="mono">indrajaal-ex-app-2</td><td>L2</td><td><span class="badge b-ok">Up</span></td><td class="mono">4003→4000</td></tr>
+<tr><td class="mono">indrajaal-ex-app-3</td><td>L2</td><td><span class="badge b-ok">Up</span></td><td class="mono">4004→4000</td></tr>
+<tr><td class="mono">indrajaal-chaya</td><td>L2</td><td><span class="badge b-ok">Up</span></td><td class="mono">4002→4000</td></tr>
+</tbody></table>
+</section>
+
+<section id="daemons"><h2>4. Host Daemons</h2>
+<table><thead><tr><th>PID</th><th>Daemon</th><th>Fractal</th><th>Role</th></tr></thead><tbody>
+<tr><td class="mono">1921</td><td class="mono">sa-plan serve --port 4200</td><td>L4</td><td>HTTP agentic dashboard + REST API</td></tr>
+<tr><td class="mono">1923</td><td class="mono">sa-plan scheduler-run</td><td>L4</td><td>Oban/Temporal-style durable scheduler</td></tr>
+<tr><td class="mono">1925</td><td class="mono">sa-plan-daemon tls serve :8443</td><td>L4</td><td>HTTPS (self-signed) for Tailscale vm-1.tail55d152.ts.net</td></tr>
+<tr><td class="mono">35501</td><td class="mono">timestamp_daemon</td><td>L7</td><td>NTP fractal time sync + OTEL trace emit</td></tr>
+<tr><td class="mono">35565</td><td class="mono">sa-plan-daemon daemon</td><td>L5</td><td>Neuromorphic Cortex — subs indrajaal/l5/** + Telegram/GChat</td></tr>
+<tr><td class="mono">stdio</td><td class="mono">c3i-mcp-server</td><td>L6</td><td>MCP server (spawned on demand)</td></tr>
+<tr><td class="mono">21440</td><td class="mono">dotnet Indrajaal.Cortex.dll</td><td>L5</td><td>F# cortex (containerised)</td></tr>
+<tr><td class="mono">22086</td><td class="mono">dotnet cepaf-bridge.dll</td><td>L6</td><td>Bridge RPC (:9876)</td></tr>
+</tbody></table>
+</section>
+
+<section id="diagrams"><h2>5. Diagrams (Graphviz, PNG + SVG)</h2>
+<h3>5.1 Control plane</h3>
+<img class="diag" src="diagrams/control-plane.png" alt="control plane">
+<h3>5.2 Data plane</h3>
+<img class="diag" src="diagrams/data-plane.png" alt="data plane">
+<h3>5.3 Fractal impact (L0→L7)</h3>
+<img class="diag" src="diagrams/fractal-impact.png" alt="fractal impact">
+<h3>5.4 Ignition message sequence (numbered 1-20)</h3>
+<img class="diag" src="diagrams/message-sequence.png" alt="message sequence">
+<h3>5.5 State machine</h3>
+<img class="diag" src="diagrams/state-machine.png" alt="state machine">
+</section>
+
+<section id="findings"><h2>6. FMEA (before → after)</h2>
+<table><thead><tr><th>Finding</th><th>S</th><th>O</th><th>D</th><th>RPN before</th><th>After action</th><th>RPN after</th></tr></thead><tbody>
+<tr><td>A: zenoh_otel has no publish()</td><td>9</td><td>10</td><td>1</td><td class="mono">900</td><td>Added <code>publish</code>/<code>emit_span</code></td><td class="mono">90</td></tr>
+<tr><td>B: RETE-UL evaluates but never acts</td><td>8</td><td>9</td><td>3</td><td class="mono">216</td><td>Child task 199107400 scheduled</td><td class="mono">216</td></tr>
+<tr><td>Stale timestamp_daemon PID lock</td><td>7</td><td>5</td><td>4</td><td class="mono">140</td><td>rm lockfile; daemon up</td><td class="mono">40</td></tr>
+<tr><td>priv/native missing → ex-apps fail</td><td>8</td><td>6</td><td>5</td><td class="mono">240</td><td>mkdir; 4 replicas up</td><td class="mono">20</td></tr>
+<tr><td>Zenoh mesh cold-start partition risk</td><td>10</td><td>6</td><td>5</td><td class="mono">300</td><td>gossip converged attempt-1</td><td class="mono">60</td></tr>
+<tr><td>V-3 Web UI: no content</td><td>6</td><td>6</td><td>4</td><td class="mono">144</td><td>advisory, next pass</td><td class="mono">144</td></tr>
+<tr><td>Inter-container matrix 7/28</td><td>5</td><td>7</td><td>3</td><td class="mono">105</td><td>DNS settle; next pass gate 30s</td><td class="mono">105</td></tr>
+</tbody></table>
+</section>
+
+<section id="fractal"><h2>7. Fractal Invariants (Ψ-0..5)</h2>
+<table><thead><tr><th>Invariant</th><th>Status</th><th>Evidence</th></tr></thead><tbody>
+<tr><td>Ψ-0 Existence</td><td><span class="badge b-ok">PASS</span></td><td>sa-plan status: 3 ms</td></tr>
+<tr><td>Ψ-1 Regeneration</td><td><span class="badge b-ok">PASS</span></td><td>sa-up launch idempotent</td></tr>
+<tr><td>Ψ-2 History</td><td><span class="badge b-ok">PASS</span></td><td>2958 rows in planning.db; OTEL in obs-prod</td></tr>
+<tr><td>Ψ-3 Verification</td><td><span class="badge b-warn">PARTIAL</span></td><td>16/16 after relaunch; initial 13/18</td></tr>
+<tr><td>Ψ-4 Alignment</td><td><span class="badge b-warn">PARTIAL</span></td><td>0/57 Lustre pages emitting spans (child 195873159 queued)</td></tr>
+<tr><td>Ψ-5 Truthfulness</td><td><span class="badge b-ok">PASS</span></td><td>all numbers measured live</td></tr>
+</tbody></table>
+</section>
+
+<section id="screens"><h2>8. Screenshots (live dashboard)</h2>
+<div class="grid g2">
+<div class="card"><h3>sa-plan HTTP :4200</h3><img class="diag" src="screenshots/dashboard-http.png"></div>
+<div class="card"><h3>sa-plan HTTPS (Tailscale :8443)</h3><img class="diag" src="screenshots/dashboard-https.png"></div>
+</div>
+<div class="card"><h3>Task page</h3><img class="diag" src="screenshots/task-page.png"></div>
+</section>
+
+<section id="tasks"><h2>9. Child Tasks Registered</h2>
+<table><thead><tr><th>Child ID</th><th>Title</th><th>Status</th></tr></thead><tbody>
+<tr><td class="mono">116450172193845487</td><td>Evolve zenoh_otel.publish to invoke Zenoh NIF (FINDING-A, RPN=900)</td><td><span class="badge b-ok">DONE</span></td></tr>
+<tr><td class="mono">116450172195873159</td><td>Wire publish_span into 5 top Lustre pages</td><td><span class="badge b-warn">QUEUED</span></td></tr>
+<tr><td class="mono">116450172197403888</td><td>Pi event subscriber OTP actor</td><td><span class="badge b-warn">QUEUED</span></td></tr>
+<tr><td class="mono">116450172199107400</td><td>RETE-UL decision dispatcher (FINDING-B)</td><td><span class="badge b-warn">QUEUED</span></td></tr>
+<tr><td class="mono">116450172200497984</td><td>pi_session NIF write (FINDING-C)</td><td><span class="badge b-warn">QUEUED</span></td></tr>
+<tr><td class="mono">116450172201895909</td><td>Wire claude_metrics into self-awareness dashboard (FINDING-D)</td><td><span class="badge b-warn">QUEUED</span></td></tr>
+<tr><td class="mono">116450172203108585</td><td>Tests for 32 untested HA modules (FINDING-E)</td><td><span class="badge b-warn">QUEUED</span></td></tr>
+<tr><td class="mono">116450172204441764</td><td>MCP tool federation verifier (FINDING-F)</td><td><span class="badge b-warn">QUEUED</span></td></tr>
+<tr><td class="mono">116450172205924106</td><td>Regression suite: 57 Lustre pages × 10 categories</td><td><span class="badge b-warn">QUEUED</span></td></tr>
+<tr><td class="mono">116450172207230383</td><td>Dynamic links.json aggregator</td><td><span class="badge b-warn">QUEUED</span></td></tr>
+<tr><td class="mono">116450172208432385</td><td>SC-PASS5-AUTO-001 rule/skill/agent</td><td><span class="badge b-warn">QUEUED</span></td></tr>
+<tr><td class="mono">116450172209772051</td><td>Graphviz diagrams (control/data/fractal/msc/sm)</td><td><span class="badge b-ok">DONE</span></td></tr>
+<tr><td class="mono">116450172211026359</td><td>Headless-chromium screenshots</td><td><span class="badge b-ok">DONE</span></td></tr>
+<tr><td class="mono">116450172212253022</td><td>Video capture of 3 E2E journeys</td><td><span class="badge b-warn">QUEUED</span></td></tr>
+<tr><td class="mono">116450172213614181</td><td>Self-awareness KPI dashboard</td><td><span class="badge b-warn">QUEUED</span></td></tr>
+</tbody></table>
+</section>
+
+<section id="improve"><h2>10. Improvements Identified (next passes)</h2>
+<div class="grid g2">
+<div class="card"><h3>Control-flow</h3>
+<ul style="padding-left:1.2rem">
+<li>V-3/V-4 verify gates ignore reachability; add 30 s settle</li>
+<li>Rule engine should consume <code>RuleResult.decision</code> (FINDING-B)</li>
+<li>Ignition <code>--restart-failed-only</code> flag for idempotent partial recovery</li>
+</ul></div>
+<div class="card"><h3>Data-flow</h3>
+<ul style="padding-left:1.2rem">
+<li>57 Lustre pages must emit <code>zenoh_otel.emit_span</code></li>
+<li>Pi-session NIF write (FINDING-C) to persist to smriti.db</li>
+<li>claude_metrics orphaned — wire into guard_grid_actor</li>
+</ul></div>
+<div class="card"><h3>SRE/SDLC</h3>
+<ul style="padding-left:1.2rem">
+<li>32 HA modules without tests</li>
+<li>MCP 27+14 tools unverified federation</li>
+<li>Tailscale cert: migrate off self-signed → <code>tailscale cert</code></li>
+</ul></div>
+<div class="card"><h3>Biomorphic evolution</h3>
+<ul style="padding-left:1.2rem">
+<li>SC-PASS5-AUTO-001: auto-spawn this bundle per new feature</li>
+<li>Self-awareness KPI: ZK citations/session, Zenoh msgs/s, MCP fires/min</li>
+<li>RETE-UL second-order: rules that emit tasks</li>
+</ul></div>
+</div>
+</section>
+
+<hr>
+<p style="color:var(--muted);text-align:center;font-size:.8rem">
+Ultra-Pass 5 · Task <span class="mono">116450171390820012</span> · generated 2026-04-22 21:26:46 UTC ·
+<a href="20260422-212140-task-116450171390820012-swarm-ignition-ultrapass5-journal.md" style="color:var(--accent)">MD journal</a> ·
+<a href="20260422-212140-task-116450171390820012-swarm-ignition-ultrapass5-deck.html" style="color:var(--accent)">Slide deck</a>
+</p>
+</div></body></html>

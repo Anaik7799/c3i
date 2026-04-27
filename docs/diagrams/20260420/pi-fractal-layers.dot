@@ -1,0 +1,21 @@
+digraph FractalLayers {
+    rankdir=LR;
+    bgcolor="#0a0e17";
+    node [style=filled, fontname="Helvetica", fontsize=10, shape=record];
+    edge [color="#00d4aa80"];
+
+    labelloc="t";
+    label="Pi-Mono Symbiosis — Fractal Layer Impact (L0-L7)";
+    fontcolor="#00d4aa"; fontsize=14; fontname="Helvetica-Bold";
+
+    L0 [label="{L0 Constitutional|Guardian gate enforcement|beforeToolCall hook|SC-PI-002}", fillcolor="#2a0a0a", fontcolor="#ff6b6b", color="#ff6b6b"];
+    L1 [label="{L1 Atomic/Debug|OTel span injection|onPayload/onResponse|SC-GLM-ZEN-001}", fillcolor="#2a2a0a", fontcolor="#ffd93d", color="#ffd93d"];
+    L2 [label="{L2 Component|TypeBox schemas|Gleam ADTs bridge|Type safety layer}", fillcolor="#0a2a0a", fontcolor="#6bcb77", color="#6bcb77"];
+    L3 [label="{L3 Transaction|Session manager|Smriti.db backend|JSONL to SQLite}", fillcolor="#0a0a2a", fontcolor="#4d96ff", color="#4d96ff"];
+    L4 [label="{L4 System|Pi pods (vLLM)|Podman orchestration|GPU management}", fillcolor="#1a0a2a", fontcolor="#9b59b6", color="#9b59b6"];
+    L5 [label="{L5 Cognitive|Agent loop + steering|OODA Orient injection|6-tier inference}", fillcolor="#0a2a2a", fontcolor="#00d4aa", color="#00d4aa"];
+    L6 [label="{L6 Ecosystem|Extension event bus|Zenoh publishing|29 event types}", fillcolor="#2a0a0a", fontcolor="#e74c3c", color="#e74c3c"];
+    L7 [label="{L7 Federation|MOM Slack bot|Gateway unification|Multi-agent mesh}", fillcolor="#2a1a0a", fontcolor="#f39c12", color="#f39c12"];
+
+    L0 -> L1 -> L2 -> L3 -> L4 -> L5 -> L6 -> L7;
+}

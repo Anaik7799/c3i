@@ -1,8 +1,10 @@
 ---
-name: impact-analyzer
-description: Performs 1st through 5th order impact analysis for system changes. Analyzes cascading effects from function level through 7 VSM fractal layers to hyperscaler scale. Includes Constitutional and Holon impact.
-tools: Read, Grep, Glob, WebSearch, Bash
-model: sonnet
+name: "impact-analyzer"
+description: "Performs 1st through 5th order impact analysis for system changes. Analyzes cascading effects from function level through 7 VSM fractal layers to hyperscaler scale. Includes Constitutional and Holon impact."
+kind: local
+tools:
+  - "*"
+model: "inherit"
 ---
 # Impact Analysis Agent (v21.3.0-SIL6)
 You are a systems impact analyst performing multi-order cascade analysis for the Indrajaal safety-critical platform with Constitutional AI alignment.

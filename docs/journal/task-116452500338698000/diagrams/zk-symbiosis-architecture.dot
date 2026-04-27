@@ -1,0 +1,36 @@
+digraph Symb {
+  rankdir=TB; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica"; compound=true;
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed" fillcolor="#141922" color="#1e2a3a"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=10];
+
+  subgraph cluster_claude { label="Claude (host)"; color="#00d4aa"; fontcolor="#00d4aa";
+    ClaudeSetting [label=".claude/settings.json\nhooks: SessionStart\n       UserPromptSubmit\n       Stop · PostToolUse" fillcolor="#0e2a1e" color="#3dd68c"];
+  }
+  subgraph cluster_pi { label="Pi (agent)"; color="#00d4aa"; fontcolor="#00d4aa";
+    PiExt [label=".pi/extensions/zk-recall.ts\nevents: session_start\n        before_agent_start\n        after_provider_response\n        message_end\n        tool_call\n        session_shutdown" fillcolor="#0e2a1e" color="#3dd68c"];
+  }
+
+  SaPlan [label="sa-plan-daemon\nzk-recall · knowledge-search\nsemantic-search · embed\nzk-maintain · ingest-docs"];
+  FY27 [label="fy27-zettelkasten\n(sales/accounts ZK)"];
+
+  KMS [label="smriti.db\n35,227 holons\n13,046 embeddings\n3,074 edges (pass-7)\npi_sessions · session_metrics\npipeline_stage_metrics"];
+
+  RAG [label="cortex RAG pipeline\nquery expansion → FTS5 → semantic\n→ FY27 → graph-walk → rerank\n→ prompt injection" fillcolor="#0e1e2a" color="#00bfff"];
+
+  LLM [label="LLM (openrouter/gemini/claude)\ncost-tracked per turn" fillcolor="#2a1e0e" color="#f5a623"];
+
+  ClaudeSetting -> SaPlan [label="UserPromptSubmit\n(every prompt)"];
+  PiExt -> SaPlan [label="before_agent_start\n(every prompt)" color="#3dd68c"];
+
+  SaPlan -> KMS [label="query + write"];
+  SaPlan -> FY27 [label="delegated"];
+  SaPlan -> RAG;
+  FY27 -> RAG [label="merge"];
+
+  RAG -> LLM [label="ctx-enriched prompt"];
+  LLM -> PiExt [label="after_provider_response\nusage{input,output,cache,cost}" color="#f5a623"];
+  LLM -> ClaudeSetting [label="Stop hook\nsession-save + ingest" color="#f5a623"];
+
+  PiExt -> KMS [label="session_metrics\npi_sessions" style=dashed color="#3dd68c"];
+  ClaudeSetting -> KMS [label="session-save\n+ ingest-docs" style=dashed color="#3dd68c"];
+}

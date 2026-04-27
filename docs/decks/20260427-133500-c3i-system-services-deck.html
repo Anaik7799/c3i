@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>C3I System Services — Slide Deck (2026-04-27)</title>
+<style>
+  :root { --bg:#0a0e17; --card:#141922; --text:#e0e6ed; --muted:#7a8fa6; --accent:#00d4aa; --border:#1e2a3a; --ok:#3dd68c; --crit:#ff4757; --warn:#f5a623; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; }
+  body {
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,"SF Pro Display","Segoe UI",system-ui,sans-serif;
+  }
+  .deck { max-width:1100px; margin:0 auto; padding:30px 24px 60px 24px; }
+  .slide {
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:36px 44px;
+    margin: 24px 0;
+    background:linear-gradient(140deg,#0c1320,#10182a);
+    page-break-after: always;
+    min-height: 540px;
+    position: relative;
+  }
+  .slide .num { position:absolute; right:24px; top:18px; color:var(--muted); font-size:12px; }
+  .slide h2 { color:var(--accent); margin:0 0 14px 0; font-size:26px; }
+  .slide h3 { color:#bbd; margin: 18px 0 8px 0; font-size:16px; }
+  .slide ul { line-height:1.7; }
+  .slide table { width:100%; border-collapse:collapse; font-size:14px; }
+  .slide th, .slide td { border:1px solid var(--border); padding:8px 10px; text-align:left; }
+  .slide th { background:#1e2a3a; color:var(--accent); }
+  code { background:#1e2a3a; color:#9be7c4; padding:1px 6px; border-radius:4px; font-size:13px; }
+  pre { background:#0d1420; border:1px solid var(--border); padding:14px; border-radius:6px; font-size:13px; overflow-x:auto; }
+  .kpi { display:flex; gap:20px; flex-wrap:wrap; margin-top:14px; }
+  .kpi .item { background:var(--card); padding:14px 18px; border-radius:10px; border:1px solid var(--border); min-width:140px; }
+  .kpi .item .v { font-size:28px; color:var(--accent); font-weight:700; }
+  .kpi .item .l { font-size:11px; color:var(--muted); text-transform:uppercase; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; margin-right:4px; }
+  .b-p0 { background:#3a1822; color:#ff4757; }
+  .b-p1 { background:#3a2a14; color:#ffa502; }
+  .b-p2 { background:#1a2a1a; color:#2ed573; }
+  .b-p3 { background:#1f262e; color:#7a8fa6; }
+  .b-ok { background:#1d3a2a; color:var(--ok); }
+  .b-fail { background:#3a1d1d; color:var(--crit); }
+  .title-slide { display:flex; flex-direction:column; justify-content:center; align-items:flex-start; padding:80px 60px; }
+  .title-slide h1 { font-size:44px; color:var(--accent); margin:0 0 12px 0; }
+  .title-slide p { color:var(--muted); font-size:18px; margin:4px 0; }
+  @media print { body { background:white; color:black; } .slide { background:white; border:1px solid #888; } }
+</style>
+</head>
+<body>
+
+<div class="deck">
+
+<!-- Slide 1: Title -->
+<section class="slide title-slide">
+  <span class="num">1 / 10</span>
+  <h1>C3I System Services</h1>
+  <p>Topology · Control &amp; Data Planes · Lifecycle Sequences</p>
+  <p style="margin-top:32px">Abhijit Naik · 2026-04-27 13:35 CEST</p>
+  <p>14 systemd user units · 3-service operational floor · ≤30s cold-boot convergence</p>
+</section>
+
+<!-- Slide 2: Operational snapshot -->
+<section class="slide">
+  <span class="num">2 / 10</span>
+  <h2>Snapshot — Live State</h2>
+  <div class="kpi">
+    <div class="item"><div class="v">14</div><div class="l">total units</div></div>
+    <div class="item"><div class="v">12</div><div class="l">active</div></div>
+    <div class="item"><div class="v">9</div><div class="l">long-lived</div></div>
+    <div class="item"><div class="v">5</div><div class="l">oneshot</div></div>
+    <div class="item"><div class="v">8</div><div class="l">listening ports</div></div>
+    <div class="item"><div class="v">3</div><div class="l">P0 floor</div></div>
+  </div>
+  <h3>Verified ports</h3>
+  <p><code>4100</code> Lustre · <code>4101</code> Lustre WS · <code>4200</code> Rust dashboard ·
+     <code>6167</code> Sutra Matrix · <code>7447</code> Zenoh · <code>8000</code> Zenoh REST · <code>8443</code> HTTPS proxy</p>
+</section>
+
+<!-- Slide 3: Tier breakdown -->
+<section class="slide">
+  <span class="num">3 / 10</span>
+  <h2>Service Tiers</h2>
+  <table>
+    <tr><th>Tier</th><th>Units</th><th>Plane</th><th>Lifecycle</th></tr>
+    <tr><td>T0 Foundation</td><td>zenoh-router</td><td>both</td><td>Restart=always</td></tr>
+    <tr><td>T1 Core dashboard</td><td>sa-plan-http, scheduler, gleam-server, tls-proxy</td><td>both</td><td>Restart=always</td></tr>
+    <tr><td>T2 Federation/Cognitive</td><td>sutra, pi-runtime, ferriskey</td><td>both</td><td>Restart=always / oneshot</td></tr>
+    <tr><td>T3 Self-healing OODA</td><td>symbiosis, robustness, rete-autofix</td><td>control</td><td>Restart=always</td></tr>
+    <tr><td>T4 Oneshots</td><td>ops-status, slo-guard, history-compactor</td><td>control</td><td>run-and-exit</td></tr>
+  </table>
+</section>
+
+<!-- Slide 4: Control plane -->
+<section class="slide">
+  <span class="num">4 / 10</span>
+  <h2>Control Plane</h2>
+  <ul>
+    <li><strong>Mesh admin/scout</strong> — Zenoh router, scout multicast 224.0.0.224:7446</li>
+    <li><strong>HTTP control</strong> — sa-plan-http <code>/api/v1/plan/*</code> mutations</li>
+    <li><strong>AuthN/Z</strong> — FerrisKey OIDC token issuance</li>
+    <li><strong>Cognition</strong> — Pi-runtime tool dispatch · sa-plan cortex OODA</li>
+    <li><strong>Self-healing</strong> — symbiosis-monitor → robustness-gate → rete-autofix → slo-guard</li>
+    <li><strong>Telemetry rules</strong> — sched_telemetry → Zenoh <code>indrajaal/l4/sched/**</code></li>
+    <li><strong>Job queue</strong> — sa-plan-scheduler RETE rule firing</li>
+  </ul>
+</section>
+
+<!-- Slide 5: Data plane -->
+<section class="slide">
+  <span class="num">5 / 10</span>
+  <h2>Data Plane</h2>
+  <ul>
+    <li><strong>Mesh pub/sub</strong> — Zenoh 7447 (TCP) · 8000 (REST)</li>
+    <li><strong>UI tier</strong> — gleam-server SSR 4100 · WS 4101 · sa-plan dashboard 4200 · TLS 8443</li>
+    <li><strong>Federation</strong> — Sutra Matrix events 6167 (future federation 8448)</li>
+    <li><strong>LLM streams</strong> — Pi-runtime token streams · cortex pipeline trace</li>
+    <li><strong>OTel</strong> — OoZ spans on <code>indrajaal/otel/spans/**</code></li>
+    <li><strong>Job payloads</strong> — Oban rows in Smriti.db (176 MB)</li>
+  </ul>
+</section>
+
+<!-- Slide 6: Startup sequence -->
+<section class="slide">
+  <span class="num">6 / 10</span>
+  <h2>Cold Boot → Convergence (≤ 30 s)</h2>
+  <pre>T+0   network-online.target
+T+1   zenoh-router · sa-plan-http · tls-proxy · ferriskey
+T+3   sa-plan-scheduler · symbiosis-monitor
+T+5   robustness-gate · sutra
+T+7   pi-runtime · rete-autofix · gleam-server
+T+30  ops-status · slo-guard · history-compactor (oneshots)</pre>
+  <p><strong>Verified live</strong>: Zenoh 4 s · Sutra 6 s · Pi 7 s.</p>
+</section>
+
+<!-- Slide 7: Shutdown -->
+<section class="slide">
+  <span class="num">7 / 10</span>
+  <h2>Shutdown Sequence (Reverse)</h2>
+  <ol>
+    <li>Oneshots (T4) already exited</li>
+    <li>T3 self-healing loops: SIGTERM → 90 s → SIGKILL</li>
+    <li>T2 federation/cognitive: Sutra flushes RocksDB; Pi exits on stdin EOF</li>
+    <li>T1 core: <strong>dying gasp</strong> — sa-plan checkpoints Smriti.db (SC-SIL4-007)</li>
+    <li>T0 foundation: <code>podman stop c3i-zenoh-router</code> (–rm leaves no state)</li>
+  </ol>
+  <p><strong>Reverse order is mandatory</strong> — stopping Zenoh first triggers reconnect storms in dependents.</p>
+</section>
+
+<!-- Slide 8: Critical service set -->
+<section class="slide">
+  <span class="num">8 / 10</span>
+  <h2>Critical Service Set</h2>
+  <table>
+    <tr><th>Pri</th><th>Unit</th><th>Effect if down</th></tr>
+    <tr><td><span class="badge b-p0">P0</span></td><td>zenoh-router</td><td>All telemetry/MCP loses transport</td></tr>
+    <tr><td><span class="badge b-p0">P0</span></td><td>sa-plan-http</td><td>No dashboard / API / MCP</td></tr>
+    <tr><td><span class="badge b-p0">P0</span></td><td>tls-proxy</td><td>No HTTPS via Tailscale</td></tr>
+    <tr><td><span class="badge b-p1">P1</span></td><td>gleam-server, scheduler, symbiosis</td><td>UI degraded · jobs stalled · OODA loop opens</td></tr>
+    <tr><td><span class="badge b-p2">P2</span></td><td>sutra, pi-runtime, ferriskey</td><td>Federation / chat / IAM offline</td></tr>
+    <tr><td><span class="badge b-p3">P3</span></td><td>rete-autofix, robustness, oneshots</td><td>Manual remediation only</td></tr>
+  </table>
+  <p style="margin-top:14px"><strong>Floor = {zenoh-router, sa-plan-http, tls-proxy}</strong> — three services keep the system observable + commandable.</p>
+</section>
+
+<!-- Slide 9: STAMP -->
+<section class="slide">
+  <span class="num">9 / 10</span>
+  <h2>STAMP / Constitutional Alignment</h2>
+  <table>
+    <tr><th>ID</th><th>Constraint</th><th>Status</th></tr>
+    <tr><td>SC-ZENOH-001/002</td><td>Mesh transport mandatory</td><td><span class="badge b-ok">SAT</span></td></tr>
+    <tr><td>SC-ZMOF-001</td><td>Zenoh sole internal transport</td><td><span class="badge b-ok">SAT</span></td></tr>
+    <tr><td>SC-FUNC-005</td><td>Auto-heal long-lived units</td><td><span class="badge b-ok">SAT</span></td></tr>
+    <tr><td>SC-PI-RUNTIME-001</td><td>Pi managed lifecycle</td><td><span class="badge b-ok">SAT</span></td></tr>
+    <tr><td>SC-SIL4-007</td><td>Dying gasp checkpoint</td><td><span class="badge b-ok">SAT</span></td></tr>
+    <tr><td>SC-IAM-001</td><td>FerrisKey before apps</td><td><span class="badge b-fail">BLOCKED on image auth</span></td></tr>
+    <tr><td>Psi-0/1/2/3/5</td><td>Existence · Regen · Reverse · Verify · Truth</td><td><span class="badge b-ok">SAT</span></td></tr>
+    <tr><td>Omega-0</td><td>Founder's Directive</td><td><span class="badge b-ok">SAT</span></td></tr>
+  </table>
+</section>
+
+<!-- Slide 10: Next steps -->
+<section class="slide">
+  <span class="num">10 / 10</span>
+  <h2>Remaining Gaps &amp; Next Steps</h2>
+  <ol>
+    <li><strong>FerrisKey image auth</strong> — <code>podman login ghcr.io</code> + add docker.io to unqualified-search-registries</li>
+    <li><strong>Stop-hook ingest stacking</strong> — three concurrent ingest-docs runs; needs flock mutex</li>
+    <li><strong>mistral.rs duplication</strong> — sa-plan serve + scheduler both load 5.8 GB gemma weights; split into one inference daemon + clients</li>
+    <li><strong>Critical-service health probe</strong> — publish <code>indrajaal/l2/health/{unit}/state</code> from systemctl polling</li>
+    <li><strong>Periodic oneshots</strong> — convert T4 to <code>.timer</code> units for periodic re-eval</li>
+    <li><strong>Conflicts= directives</strong> — protect ports 4100/4200/8443 from collision</li>
+  </ol>
+</section>
+
+</div>
+
+</body>
+</html>

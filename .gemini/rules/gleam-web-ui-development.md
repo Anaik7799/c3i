@@ -247,3 +247,14 @@ cd lib/cepaf_gleam && gleam test     # Test
 **Regression**: 381 tests | 15 tabs × 8 layers | 30+ sec monitoring per tab | 100% tab coverage
 **Dark Cockpit**: Healthy=hidden | Degraded=Dim/Normal | Critical=Emergency | Mode via determine_mode()
 **Human Intent**: Section present | HUMAN-ONLY sentinel | Not modified by agent
+
+# 17.0 Agentic UI Evolution Cross-References (v22.7.0-PLANNING)
+**NEW**: Every page MUST implement the full agentic responsive pattern. See:
+- **Master Prompt**: `.gemini/commands/c3i-page-evolution.md` — 8 phases, 15 verification checks
+- **Rule**: `.gemini/rules/agentic-ui-responsive-design.md` — SC-AGUI-UI-001..015, 14 sections
+- **Skill**: `.gemini/commands/agentic-ui-evolve.md` — 10 phases with verification criteria
+- **Agent**: `.gemini/agents/agentic-ui-designer.md` — Autonomous page evolution workflow
+- **Spec**: `docs/architecture/planning-page-specification.md` — Reference implementation
+- **Journal**: `docs/journal/20260411-planning-page-evolution.md` — Patterns & anti-patterns
+- **Rust E2E**: `test/planning_e2e_rust.rs` — 179-test verification binary
+Features: WebSocket (Mist 6.0), Gemma AI (3+4), 4 views, fractal L0-L7, responsive 4-breakpoint, 44px touch, FMEA scoring, ruliology GRL rules, 6 DAG scenarios, 60 responsive tests.

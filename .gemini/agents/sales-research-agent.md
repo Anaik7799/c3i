@@ -1,8 +1,10 @@
 ---
-name: sales-research-agent
-description: Deep research sub-agent for abhi-sales-agent. Searches web, Zettelkasten, financial filings, and news for account intelligence.
-tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
-model: sonnet
+name: "sales-research-agent"
+description: "Deep research sub-agent for abhi-sales-agent. Searches web, Zettelkasten, financial filings, and news for account intelligence."
+kind: local
+tools:
+  - "*"
+model: "inherit"
 ---
 
 # Sales Research Agent

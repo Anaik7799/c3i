@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>C3I · Symbiosis OODA Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root {
+    --bg:#0b0f14; --panel:#111821; --line:#1e2a37; --ink:#cfe7ff;
+    --muted:#6b7f93; --good:#4ade80; --warn:#fbbf24; --bad:#f87171; --accent:#60a5fa;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:13px;}
+  header{padding:12px 18px;border-bottom:1px solid var(--line);display:flex;gap:18px;align-items:center;}
+  header h1{margin:0;font-size:15px;letter-spacing:.5px;}
+  header .pulse{width:10px;height:10px;border-radius:50%;background:var(--good);box-shadow:0 0 8px var(--good);animation:p 1.2s infinite;}
+  @keyframes p{0%,100%{opacity:.4}50%{opacity:1}}
+  header .ts{color:var(--muted);margin-left:auto;font-size:12px;}
+  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:12px 18px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 12px;}
+  .card h3{margin:0 0 6px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:500;}
+  .card .v{font-size:22px;font-weight:600;}
+  .card .s{font-size:11px;color:var(--muted);margin-top:2px;}
+  .card.good .v{color:var(--good);} .card.warn .v{color:var(--warn);} .card.bad .v{color:var(--bad);}
+  .wide{grid-column:span 3;} .full{grid-column:span 6;}
+  table{width:100%;border-collapse:collapse;}
+  th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);font-size:12px;}
+  th{color:var(--muted);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+  .alarm-row{color:var(--warn);}
+  .alarm-row.critical{color:var(--bad);}
+  .ok{color:var(--good);}
+  .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:6px;}
+  .bar>span{display:block;height:100%;background:var(--accent);transition:width .4s ease;}
+  .bar.good>span{background:var(--good);} .bar.warn>span{background:var(--warn);} .bar.bad>span{background:var(--bad);}
+  .foot{padding:10px 18px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);}
+  code{color:var(--accent);}
+  .spark{width:100%;height:40px;display:block;margin-top:6px;}
+  .agents table{font-size:12px;}
+  .agents td.n{text-align:right;color:var(--good);font-variant-numeric:tabular-nums;}
+  .agents td.c{text-align:right;color:var(--warn);font-variant-numeric:tabular-nums;}
+  .agents td.agent{color:var(--accent);}
+  .toolbar{padding:6px 18px;color:var(--muted);font-size:11px;display:flex;gap:14px;align-items:center;}
+  .toolbar select,.toolbar button{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:3px 8px;font-family:inherit;font-size:11px;}
+  .toolbar button:hover{border-color:var(--accent);cursor:pointer;}
+  .rob-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px;}
+  .rob-chip{background:#0a0f14;border:1px solid var(--line);border-radius:6px;padding:8px 10px;}
+  .rob-chip .k{font-size:10px;color:var(--muted);text-transform:uppercase;}
+  .rob-chip .v{font-size:16px;font-weight:600;}
+  .rob-chip.ok .v{color:var(--good);} .rob-chip.warn .v{color:var(--warn);} .rob-chip.bad .v{color:var(--bad);}
+  .rob-list{margin-top:8px;font-size:11px;color:var(--muted);}
+  .ops-table td,.ops-table th{padding:5px 8px;border-bottom:1px solid var(--line);font-size:11px}
+  .ops-ok{color:var(--good)} .ops-bad{color:var(--bad)} .ops-warn{color:var(--warn)}
+  .badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:600;}
+  .badge.ok{background:#0f2a1e;color:var(--good)}
+  .badge.warn{background:#2a1e0f;color:var(--warn)}
+  .badge.bad{background:#2a0f14;color:var(--bad)}
+</style>
+</head>
+<body>
+<header>
+  <div class="pulse" id="pulse"></div>
+  <h1>C3I · ZK ↔ Pi ↔ Agent · Symbiosis OODA</h1>
+  <span class="ts" id="ts">waiting for snapshot…</span>
+</header>
+
+<section class="grid" id="cards">
+  <div class="card"><h3>holons</h3><div class="v" data-bind="observe.holons">–</div><div class="s" data-bind="observe.edges"> edges</div></div>
+  <div class="card" id="card-embed"><h3>embed coverage</h3><div class="v" data-bind="observe.embed_coverage_pct" data-suffix="%">–</div><div class="bar"><span id="bar-embed" style="width:0"></span></div></div>
+  <div class="card"><h3>sessions</h3><div class="v" data-bind="observe.sessions">–</div><div class="s"><span data-bind="observe.pi_sessions">–</span> pi · <span data-bind="observe.turn_spans">–</span> turns</div></div>
+  <div class="card"><h3>tokens total</h3><div class="v" data-bind="observe.tokens_total" data-fmt="n">–</div><div class="s"><span data-bind="orient.tokens_per_session" data-fmt="n">–</span> / session</div></div>
+  <div class="card" id="card-cost"><h3>cost · total</h3><div class="v" data-bind="observe.cost_total_usd" data-prefix="$" data-fmt="f2">–</div><div class="s">$<span data-bind="orient.cost_per_session_usd" data-fmt="f2">–</span> / session</div></div>
+  <div class="card" id="card-cache"><h3>cache hit</h3><div class="v" data-bind="orient.cache_hit_ratio" data-fmt="pct">–</div><div class="s"><span data-bind="orient.cache_entries">–</span> entries</div></div>
+
+  <div class="card wide"><h3>last session</h3>
+    <table><tbody>
+      <tr><th>agent</th><td data-bind="last_session.agent">–</td>
+          <th>provider</th><td data-bind="last_session.provider">–</td></tr>
+      <tr><th>model</th><td data-bind="last_session.model" colspan="3">–</td></tr>
+      <tr><th>in tok</th><td data-bind="last_session.tokens_in" data-fmt="n">–</td>
+          <th>out tok</th><td data-bind="last_session.tokens_out" data-fmt="n">–</td></tr>
+      <tr><th>cache read</th><td data-bind="last_session.cache_read" data-fmt="n">–</td>
+          <th>$ cost</th><td data-bind="last_session.cost_usd" data-prefix="$" data-fmt="f2">–</td></tr>
+      <tr><th>zk recalls</th><td data-bind="last_session.zk_recalls">–</td>
+          <th>hit ratio</th><td data-bind="last_session.cache_hit_ratio" data-fmt="pct">–</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="card wide"><h3>alarms · OODA Decide</h3>
+    <table><tbody id="alarms"><tr><td class="ok">no alarms</td></tr></tbody></table>
+  </div>
+
+  <div class="card full" id="sparklines">
+    <h3>time-series (last <span id="window-label">60</span> samples · 5 s ticks)</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:6px;">
+      <div><div class="s" style="color:var(--muted);font-size:11px;">holons</div><svg class="spark" id="sp-h"></svg></div>
+      <div><div class="s" style="color:var(--muted);font-size:11px;">embeddings</div><svg class="spark" id="sp-e"></svg></div>
+      <div><div class="s" style="color:var(--muted);font-size:11px;">embed coverage %</div><svg class="spark" id="sp-ec"></svg></div>
+      <div><div class="s" style="color:var(--muted);font-size:11px;">sessions</div><svg class="spark" id="sp-s"></svg></div>
+      <div><div class="s" style="color:var(--muted);font-size:11px;">turn spans</div><svg class="spark" id="sp-ts_"></svg></div>
+      <div><div class="s" style="color:var(--muted);font-size:11px;">$ cost total</div><svg class="spark" id="sp-cost"></svg></div>
+    </div>
+  </div>
+
+  <div class="card full agents"><h3>per-agent rollup</h3>
+    <table><thead><tr><th>agent</th><th style="text-align:right">sessions</th><th style="text-align:right">tokens</th><th style="text-align:right">$ cost</th><th style="text-align:right">zk recalls</th><th style="text-align:right">cache hit</th></tr></thead>
+    <tbody id="agents-body"><tr><td colspan="6" style="color:var(--muted);">loading…</td></tr></tbody></table>
+  </div>
+
+  <div class="card full" id="robustness"><h3>robustness gate (STAMP/FMEA/RETE-lite)</h3>
+    <div class="rob-grid">
+      <div class="rob-chip" id="rb-score"><div class="k">score</div><div class="v" id="rb-score-v">–</div></div>
+      <div class="rob-chip" id="rb-grade"><div class="k">grade</div><div class="v" id="rb-grade-v">–</div></div>
+      <div class="rob-chip" id="rb-alarms"><div class="k">alarms</div><div class="v" id="rb-alarms-v">–</div></div>
+      <div class="rob-chip" id="rb-lat"><div class="k">customer latency p95-ish</div><div class="v" id="rb-lat-v">–</div></div>
+    </div>
+    <div class="rob-list" id="rb-alarm-list">loading robustness alarms…</div>
+    <div class="rob-list" id="rb-action-list"></div>
+  </div>
+
+  <div class="card full" id="ops-status"><h3>operations status (services + timers) <span id="ops-global-badge" class="badge warn">CHECKING</span></h3>
+    <table class="ops-table" style="width:100%">
+      <thead><tr><th>unit</th><th>state</th><th>sub/next</th><th>pid/last</th><th>rc</th></tr></thead>
+      <tbody id="ops-body"><tr><td colspan="5" style="color:var(--muted)">loading…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="card full"><h3>raw snapshot</h3>
+    <pre id="raw" style="margin:0;white-space:pre-wrap;word-break:break-all;color:var(--muted);font-size:11px;max-height:140px;overflow:auto;">–</pre>
+  </div>
+</section>
+
+<section class="toolbar">
+  history window:
+  <select id="win">
+    <option value="60" selected>60 (5 min)</option>
+    <option value="360">360 (30 min)</option>
+    <option value="720">720 (1 h)</option>
+    <option value="17280">17280 (24 h)</option>
+  </select>
+  poll: <select id="pollsel"><option value="1000">1 s</option><option value="2000" selected>2 s</option><option value="5000">5 s</option></select>
+  <button id="pause">pause</button>
+</section>
+
+<footer class="foot">
+  polling <code id="src">./symbiosis.json</code> every <code id="poll">2</code> s · zenoh topic <code>indrajaal/l5/ooda/symbiosis</code>
+</footer>
+
+<script>
+// Default JSON source resolves next to the HTML. Override with ?src=/other/path.json
+// Default JSON source resolves next to the HTML. Override with ?src=/other/path.json
+const SRC = new URLSearchParams(location.search).get('src') || './symbiosis.json';
+const HIST = './history.ndjson';
+const AGENTS = './agents.json';
+const ROBUST = './robustness.json';
+const OPS = './ops-status.json';
+let POLL_MS = parseInt(new URLSearchParams(location.search).get('ms') || '2000', 10);
+let WINDOW_N = 60;
+let PAUSED = false;
+document.getElementById('src').textContent = SRC;
+document.getElementById('poll').textContent = (POLL_MS/1000).toFixed(1);
+
+const dig = (o,p)=>p.split('.').reduce((a,k)=>a&&a[k]!=null?a[k]:null,o);
+const fmt = {
+  n: v => Number(v).toLocaleString(),
+  f2: v => Number(v).toFixed(2),
+  pct: v => (Number(v)*100).toFixed(1)+'%',
+};
+const classOf = (id, val, thresh, inv=false) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('good','warn','bad');
+  const hi = thresh.bad, mid = thresh.warn;
+  let cls = 'good';
+  if (inv) { if (val<hi) cls='bad'; else if (val<mid) cls='warn'; }
+  else    { if (val>hi) cls='bad'; else if (val>mid) cls='warn'; }
+  el.classList.add(cls);
+};
+
+async function refresh() {
+  try {
+    const r = await fetch(SRC, {cache:'no-store'});
+    if (!r.ok) throw new Error('http '+r.status);
+    const d = await r.json();
+    document.querySelectorAll('[data-bind]').forEach(el=>{
+      const v = dig(d, el.dataset.bind);
+      if (v == null) return;
+      const f = el.dataset.fmt;
+      const txt = f ? fmt[f](v) : String(v);
+      el.textContent = (el.dataset.prefix||'') + txt + (el.dataset.suffix||'');
+    });
+    // alarms
+    const tbody = document.getElementById('alarms');
+    const al = d.alarms || [];
+    if (al.length === 0) {
+      tbody.innerHTML = '<tr><td class="ok">✓ no alarms · all loops healthy</td></tr>';
+    } else {
+      tbody.innerHTML = al.map(a=>`<tr class="alarm-row ${a.startsWith('COST_')||a.startsWith('CACHE_HIT_LOW')?'critical':''}"><td>⚠ ${a}</td></tr>`).join('');
+    }
+    // progress bars
+    const cov = d.observe.embed_coverage_pct || 0;
+    const bar = document.getElementById('bar-embed');
+    bar.style.width = Math.min(100,cov) + '%';
+    bar.parentElement.className = 'bar ' + (cov<50?'bad':cov<80?'warn':'good');
+    // semantics for top cards
+    classOf('card-embed', cov, {warn:80,bad:50}, true);
+    classOf('card-cost',  d.orient.cost_per_session_usd, {warn:2,bad:5});
+    classOf('card-cache', d.orient.cache_hit_ratio, {warn:0.3,bad:0.1}, true);
+    // timestamp + pulse
+    const age = (Date.now()*1e6 - d.ts_nanos)/1e9;
+    document.getElementById('ts').textContent = `snapshot age: ${age.toFixed(1)} s · ts: ${d.ts_nanos}`;
+    document.getElementById('pulse').style.background = age < 10 ? 'var(--good)' : age < 60 ? 'var(--warn)' : 'var(--bad)';
+    document.getElementById('raw').textContent = JSON.stringify(d, null, 2);
+  } catch (e) {
+    document.getElementById('ts').textContent = 'error: ' + e.message;
+    document.getElementById('pulse').style.background = 'var(--bad)';
+  }
+}
+// ── sparkline renderer ────────────────────────────────────────────────
+function drawSpark(svgId, series, opts={}){
+  const svg = document.getElementById(svgId);
+  if(!svg) return;
+  const W = svg.clientWidth || 180, H = 40, pad = 2;
+  svg.innerHTML = '';
+  if(series.length < 2){ return; }
+  const mn = Math.min(...series), mx = Math.max(...series);
+  const sp = (mx-mn) || 1;
+  const pts = series.map((v,i)=>{
+    const x = pad + i*(W-2*pad)/(series.length-1);
+    const y = H - pad - (v-mn)/sp*(H-2*pad);
+    return x.toFixed(1)+','+y.toFixed(1);
+  }).join(' ');
+  const color = opts.color || 'var(--accent)';
+  const last = series[series.length-1];
+  svg.innerHTML = `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.3"/>`+
+                  `<text x="${W-2}" y="11" text-anchor="end" fill="${color}" font-size="10" font-family="inherit">${(last).toLocaleString()}</text>`+
+                  `<text x="2" y="${H-2}" fill="var(--muted)" font-size="9" font-family="inherit">${(mn).toLocaleString()}</text>`+
+                  `<text x="2" y="11" fill="var(--muted)" font-size="9" font-family="inherit">${(mx).toLocaleString()}</text>`;
+}
+
+async function refreshHistory(){
+  try {
+    const r = await fetch(HIST+'?_='+Date.now(),{cache:'no-store'});
+    if(!r.ok) return;
+    const txt = await r.text();
+    const lines = txt.trim().split(/\n/).filter(Boolean).slice(-WINDOW_N);
+    const parsed = lines.map(l=>{try{return JSON.parse(l);}catch{return null;}}).filter(Boolean);
+    if(parsed.length === 0) return;
+    drawSpark('sp-h',  parsed.map(p=>p.h),   {color:'var(--accent)'});
+    drawSpark('sp-e',  parsed.map(p=>p.e),   {color:'var(--good)'});
+    drawSpark('sp-ec', parsed.map(p=>p.ec),  {color:'var(--warn)'});
+    drawSpark('sp-s',  parsed.map(p=>p.s),   {color:'var(--accent)'});
+    drawSpark('sp-ts_',parsed.map(p=>p.ts_), {color:'var(--accent)'});
+    drawSpark('sp-cost',parsed.map(p=>p.cost),{color:'var(--bad)'});
+  } catch(e){}
+}
+
+async function refreshAgents(){
+  try {
+    const r = await fetch(AGENTS+'?_='+Date.now(),{cache:'no-store'});
+    if(!r.ok) return;
+    const d = await r.json();
+    const body = document.getElementById('agents-body');
+    if(!d.agents || d.agents.length === 0){ body.innerHTML = '<tr><td colspan="6" style="color:var(--muted);">no session_metrics rows yet</td></tr>'; return; }
+    body.innerHTML = d.agents.map(a=>
+      `<tr><td class="agent">${a.agent}</td>`+
+      `<td class="n">${a.sessions.toLocaleString()}</td>`+
+      `<td class="n">${a.tokens.toLocaleString()}</td>`+
+      `<td class="c">$${a.cost_usd.toFixed(2)}</td>`+
+      `<td class="n">${a.zk_recalls.toLocaleString()}</td>`+
+      `<td class="c">${(a.cache_hit*100).toFixed(1)}%</td></tr>`).join('');
+  } catch(e){}
+}
+
+async function refreshRobust(){
+  try {
+    const r = await fetch(ROBUST+'?_='+Date.now(),{cache:'no-store'});
+    if(!r.ok) return;
+    const d = await r.json();
+    document.getElementById('rb-score-v').textContent = d.score;
+    document.getElementById('rb-grade-v').textContent = d.grade;
+    document.getElementById('rb-alarms-v').textContent = (d.alarms||[]).length;
+    const lat = d.latency_ms || {};
+    const maxLat = Math.max(lat.symbiosis_html||0, lat.symbiosis_json||0, lat.agents_json||0, lat.history_ndjson||0);
+    document.getElementById('rb-lat-v').textContent = `${maxLat} ms`;
+
+    const scoreChip = document.getElementById('rb-score');
+    scoreChip.classList.remove('ok','warn','bad');
+    scoreChip.classList.add(d.score>=90?'ok':d.score>=75?'warn':'bad');
+
+    const alarmChip = document.getElementById('rb-alarms');
+    alarmChip.classList.remove('ok','warn','bad');
+    const ac = (d.alarms||[]).length;
+    alarmChip.classList.add(ac===0?'ok':ac<=2?'warn':'bad');
+
+    const listA = document.getElementById('rb-alarm-list');
+    listA.innerHTML = (d.alarms&&d.alarms.length)
+      ? '<b>alarms:</b> ' + d.alarms.map(x=>`<span style="color:var(--warn)">⚠ ${x}</span>`).join(' · ')
+      : '<span class="ok">✓ no robustness alarms</span>';
+
+    const listX = document.getElementById('rb-action-list');
+    listX.innerHTML = (d.actions&&d.actions.length)
+      ? '<b>actions:</b> ' + d.actions.map(x=>`<code>${x}</code>`).join(' · ')
+      : '';
+  } catch(e){}
+}
+
+async function refreshOps(){
+  try {
+    const r = await fetch(OPS+'?_='+Date.now(),{cache:'no-store'});
+    if(!r.ok) return;
+    const d = await r.json();
+    const rows = [];
+
+    let criticalBad = 0;
+    let warnCount = 0;
+
+    // services: red if not active/running or rc != 0
+    (d.services||[]).forEach(s=>{
+      const activeOk = s.active==='active' && s.sub==='running' && String(s.rc||'0')==='0';
+      const cls = activeOk ? 'ops-ok' : 'ops-bad';
+      const badge = activeOk ? '<span class="badge ok">OK</span>' : '<span class="badge bad">DOWN</span>';
+      if(!activeOk) criticalBad += 1;
+      rows.push(`<tr><td>${s.unit}</td><td class="${cls}">${s.active} ${badge}</td><td>${s.sub||''}</td><td>${s.pid||''}</td><td>${s.rc||''}</td></tr>`);
+    });
+
+    // timers: red if inactive, yellow if cadence appears missed
+    // heuristic: if next_mono <= last_mono, flag warn.
+    (d.timers||[]).forEach(t=>{
+      const activeOk = t.active==='active';
+      const lm = String(t.last_mono||'');
+      const nm = String(t.next_mono||'');
+      const cadenceWarn = activeOk && lm!=='' && nm!=='' && nm<=lm;
+      let cls = 'ops-ok', badge = '<span class="badge ok">OK</span>';
+      if(!activeOk){ cls='ops-bad'; badge='<span class="badge bad">INACTIVE</span>'; criticalBad += 1; }
+      else if(cadenceWarn){ cls='ops-warn'; badge='<span class="badge warn">LATE?</span>'; warnCount += 1; }
+      rows.push(`<tr><td>${t.unit}</td><td class="${cls}">${t.active} ${badge}</td><td>${t.next||t.next_mono||''}</td><td>${t.last||t.last_mono||''}</td><td>—</td></tr>`);
+    });
+
+    document.getElementById('ops-body').innerHTML = rows.length ? rows.join('') : '<tr><td colspan="5" style="color:var(--muted)">no ops rows</td></tr>';
+
+    // global badge
+    const g = document.getElementById('ops-global-badge');
+    g.className = 'badge';
+    if(criticalBad>0){ g.classList.add('bad'); g.textContent='DEGRADED'; }
+    else if(warnCount>0){ g.classList.add('warn'); g.textContent='WARN'; }
+    else { g.classList.add('ok'); g.textContent='HEALTHY'; }
+  } catch(e){}
+}
+
+// wiring
+let timer = null;
+function schedule(){ if(timer) clearInterval(timer); timer = setInterval(tickAll, POLL_MS); }
+function tickAll(){ if(PAUSED) return; refresh(); refreshHistory(); refreshAgents(); refreshRobust(); refreshOps(); }
+document.getElementById('win').addEventListener('change', e=>{
+  WINDOW_N = parseInt(e.target.value,10);
+  document.getElementById('window-label').textContent = WINDOW_N;
+  refreshHistory();
+});
+document.getElementById('pollsel').addEventListener('change', e=>{
+  POLL_MS = parseInt(e.target.value,10);
+  document.getElementById('poll').textContent = (POLL_MS/1000).toFixed(1);
+  schedule();
+});
+document.getElementById('pause').addEventListener('click', e=>{
+  PAUSED = !PAUSED;
+  e.target.textContent = PAUSED ? 'resume' : 'pause';
+});
+tickAll(); schedule();
+</script>
+</body>
+</html>

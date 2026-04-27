@@ -1,0 +1,148 @@
+<svg width="2400" height="1600" viewBox="0 0 2400 1600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="obsidian" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#121212"/>
+      <stop offset="100%" stop-color="#2C3E50"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="100%" stop-color="#B8860B"/>
+    </linearGradient>
+    <style>
+      .bg { fill: #FFFFFF; }
+      .title { font-family: 'Georgia', serif; font-size: 80px; fill: #121212; font-weight: bold; letter-spacing: 12px; }
+      .subtitle { font-family: 'Courier New', monospace; font-size: 24px; fill: #D84315; letter-spacing: 4px; }
+      .hex { fill: url(#obsidian); stroke: url(#gold); stroke-width: 4; opacity: 0.9; }
+      .hex-inner { fill: none; stroke: url(#gold); stroke-width: 1; opacity: 0.5; }
+      .data-text { font-family: 'Roboto', sans-serif; font-size: 16px; fill: #FFFFFF; }
+      .data-val { font-family: 'Courier New', monospace; font-size: 20px; fill: #FFD700; font-weight: bold; }
+    </style>
+  </defs>
+  
+  <rect width="2400" height="1600" class="bg"/>
+  
+  <text x="120" y="150" class="title">THE CONTAINER SUBSTRATE</text>
+  <text x="120" y="210" class="subtitle">VARIANT IV / 16-NODE IGNITION MESH / C3I DATA-VIZ</text>
+
+  <!-- Honeycomb Mesh -->
+  <g transform="translate(1200, 800)">
+    <!-- Function to create a hex at x,y -->
+    <g transform="translate(0, 0)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <polygon points="0,-130 112,-65 112,65 0,130 -112,65 -112,-65" class="hex-inner"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">c3i-cortex</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Rust sa-plan-daemon</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">9,104 LOC | 31 Mod</text>
+    </g>
+
+    <g transform="translate(0, -300)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">c3i-ignition</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Rust OODA Loop</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">Latency &lt;30ms</text>
+    </g>
+
+    <g transform="translate(260, -150)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">cepaf-gleam</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Lustre / Wisp</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">Port 4100</text>
+    </g>
+
+    <g transform="translate(260, 150)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">indrajaal-db</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Smriti.db SQLite</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">WAL Mode</text>
+    </g>
+
+    <g transform="translate(0, 300)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">zenoh-router</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Rust Backplane</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">Zero-IP Routing</text>
+    </g>
+
+    <g transform="translate(-260, 150)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">ollama-gpu</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Gemma 4 Inference</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">Local SLM</text>
+    </g>
+
+    <g transform="translate(-260, -150)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">playwright-e2e</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Agentic UI Tester</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">Chrome Stable</text>
+    </g>
+
+    <g transform="translate(520, -300)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">cepaf-elixir</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Phoenix LiveView</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">Port 4000 (Legacy)</text>
+    </g>
+    
+    <g transform="translate(520, 0)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">signoz-otel</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Telemetry Sink</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">Span &amp; Metrics</text>
+    </g>
+
+    <g transform="translate(520, 300)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">clickhouse</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">OLAP Store</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">Fast Aggregation</text>
+    </g>
+
+    <g transform="translate(-520, -300)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">fsharp-bridge</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Legacy ConstSync</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">Deprecated</text>
+    </g>
+
+    <g transform="translate(-520, 0)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">intelitor-obs</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Prometheus</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">Port 9090</text>
+    </g>
+
+    <g transform="translate(-520, 300)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">intelitor-nginx</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Reverse Proxy</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">Port 80/443</text>
+    </g>
+    
+    <g transform="translate(0, -600)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">redis-cache</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Session Store</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">Sub-10ms</text>
+    </g>
+
+    <g transform="translate(260, -450)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">tui-dashboard</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Headless TTY</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">Ratatui ANSI</text>
+    </g>
+
+    <g transform="translate(-260, -450)">
+      <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" class="hex"/>
+      <text x="0" y="-20" text-anchor="middle" class="data-val">gchat-webhook</text>
+      <text x="0" y="10" text-anchor="middle" class="data-text">Intent Poller</text>
+      <text x="0" y="30" text-anchor="middle" class="data-text">25 Classifications</text>
+    </g>
+
+  </g>
+  
+  <!-- Outer Decor -->
+  <path d="M 120,1500 L 2280,1500" stroke="#121212" stroke-width="4"/>
+  <text x="120" y="1480" font-family="Roboto" font-size="18" fill="#424242">Podman UDS Orchestration | Build Order: Rust -> Gleam -> Elixir -> F# | Target: 20 CPU Cores, 56GB RAM</text>
+</svg>

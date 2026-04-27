@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pi x Claude Code Parity — Slide Deck</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--border:#1e2a3a;--success:#3dd68c;--warning:#f5a623;--critical:#ff4757}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text)}
+.slide{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:60px 80px;border-bottom:2px solid var(--border);page-break-after:always}
+.slide-number{position:absolute;top:20px;right:40px;color:var(--muted);font-size:0.8rem;font-family:monospace}
+h1{font-size:3rem;background:linear-gradient(135deg,var(--accent),#6bcb77);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px}
+h2{font-size:2.2rem;color:var(--accent);margin-bottom:24px}
+h3{font-size:1.4rem;color:var(--text);margin:20px 0 12px}
+p,.bullet{font-size:1.3rem;line-height:1.8;color:var(--text)}
+.bullet{margin:8px 0 8px 32px;position:relative}
+.bullet::before{content:">";position:absolute;left:-24px;color:var(--accent);font-weight:700}
+.subtitle{color:var(--muted);font-size:1.1rem;margin-bottom:32px}
+.big-number{font-size:5rem;font-weight:900;font-family:monospace}
+.big-number.green{color:var(--success)}
+.big-number.amber{color:var(--warning)}
+.big-number.red{color:var(--critical)}
+.big-number.accent{color:var(--accent)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin:24px 0}
+.cols-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin:24px 0}
+.box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px}
+.box h3{margin-top:0}
+table{width:100%;border-collapse:collapse;font-size:1rem;margin:16px 0}
+th{background:#1a2332;color:var(--accent);padding:12px 16px;text-align:left}
+td{padding:10px 16px;border-bottom:1px solid var(--border)}
+.tag{display:inline-block;padding:4px 12px;border-radius:6px;font-size:0.85rem;font-weight:700}
+.tag-prod{background:rgba(61,214,140,0.2);color:var(--success)}
+.tag-scaf{background:rgba(245,166,35,0.2);color:var(--warning)}
+.tag-none{background:rgba(255,71,87,0.2);color:var(--critical)}
+.tag-crit{background:linear-gradient(135deg,#ff4757,#ff6b81);color:#fff}
+.tag-high{background:linear-gradient(135deg,#ffa502,#ffbe76);color:#1a1a2e}
+.bar{height:12px;background:var(--border);border-radius:6px;overflow:hidden;margin:4px 0 8px}
+.bar-fill{height:100%;border-radius:6px}
+.mono{font-family:'JetBrains Mono',monospace}
+.center{text-align:center}
+.footer{color:var(--muted);font-size:0.85rem;margin-top:40px;text-align:center}
+@media(max-width:768px){.slide{padding:30px 20px}h1{font-size:2rem}h2{font-size:1.5rem}.big-number{font-size:3rem}.cols,.cols-3{grid-template-columns:1fr}}
+@media print{.slide{min-height:auto;padding:30px;border:none}}
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: Title -->
+<div class="slide" style="position:relative">
+<span class="slide-number">1 / 10</span>
+<h1>Pi x Claude Code</h1>
+<h2>Symbiotic Functional Parity Analysis</h2>
+<p class="subtitle">v22.10.1-PI-SYMBIOSIS | 2026-04-23</p>
+<div class="cols" style="margin-top:40px">
+<div class="box center">
+<div class="big-number accent">25%</div>
+<p>Current Pi Parity</p>
+</div>
+<div class="box center">
+<div class="big-number green">14</div>
+<p>Work Packages to 100%</p>
+</div>
+</div>
+<p class="footer">10 domains | 51 features | 34 hours estimated</p>
+</div>
+
+<!-- SLIDE 2: The Symbiosis Model -->
+<div class="slide" style="position:relative">
+<span class="slide-number">2 / 10</span>
+<h2>The Symbiosis Model</h2>
+<p class="subtitle">Complementary, not competitive</p>
+<div class="cols">
+<div class="box">
+<h3>Claude Code = Infrastructure</h3>
+<div class="bullet">Rust NIFs, Zenoh mesh, 73 MCP tools</div>
+<div class="bullet">98 STAMP safety rules enforced</div>
+<div class="bullet">Auto-build + auto-test hooks</div>
+<div class="bullet">6-tier hedged inference cascade</div>
+<div class="bullet">PII scrubber, 4 circuit breakers</div>
+<div class="bullet">Smriti.db with FTS5 search</div>
+</div>
+<div class="box">
+<h3>Pi-mono = Cognitive Flexibility</h3>
+<div class="bullet">15 LLM providers (vs Claude-only)</div>
+<div class="bullet">Automated per-response cost tracking</div>
+<div class="bullet">Cache-optimized ZK injection (90% cheaper)</div>
+<div class="bullet">5-mode Guardian (vs allow/deny)</div>
+<div class="bullet">Automated ZK citation counting</div>
+<div class="bullet">172K LOC TypeScript agent runtime</div>
+</div>
+</div>
+<div class="box center" style="margin-top:16px">
+<h3>Bridge = <span class="mono">pi_claude_code.gleam</span> + <span class="mono">c3i-bridge.ts</span></h3>
+<p>93 federated tools | 29 <-> 32 event mapping | Bidirectional</p>
+</div>
+</div>
+
+<!-- SLIDE 3: Maturity Gap -->
+<div class="slide" style="position:relative">
+<span class="slide-number">3 / 10</span>
+<h2>Maturity Gap: Pi TypeScript Side</h2>
+<div class="cols-3">
+<div class="box center">
+<div class="big-number green">5</div>
+<p>PROD features (10%)</p>
+</div>
+<div class="box center">
+<div class="big-number amber">20</div>
+<p>Scaffolded (39%)</p>
+</div>
+<div class="box center">
+<div class="big-number red">18</div>
+<p>Missing (35%)</p>
+</div>
+</div>
+<table>
+<tr><th>Pi Module</th><th>LOC</th><th>Maturity</th><th>Gap</th></tr>
+<tr><td class="mono">zk-recall.ts</td><td>260</td><td><span class="tag tag-prod">FUNC</span></td><td>Dual-ZK + cost tracking works</td></tr>
+<tr><td class="mono">c3i-bridge.ts</td><td>667</td><td><span class="tag tag-scaf">SCAF</span></td><td>10/32 events, 2/5 topics, stub Zenoh</td></tr>
+<tr><td class="mono">smriti-adapter.ts</td><td>60</td><td><span class="tag tag-scaf">SCAF</span></td><td>JSONL not SQLite</td></tr>
+<tr><td class="mono">circuit-breaker.ts</td><td>55</td><td><span class="tag tag-scaf">SCAF</span></td><td>1 breaker vs 4 per-tier</td></tr>
+<tr><td class="mono">safety-system.ts</td><td>80</td><td><span class="tag tag-scaf">SCAF</span></td><td>Keyword filter, ethical = no-op</td></tr>
+<tr><td class="mono">mcp-registry.ts</td><td>60</td><td><span class="tag tag-scaf">SCAF</span></td><td>3/73 tools hardcoded</td></tr>
+<tr><td class="mono">agent-swarm.ts</td><td>80</td><td><span class="tag tag-scaf">SCAF</span></td><td>3 hardcoded agents, no dynamic loading</td></tr>
+<tr><td class="mono">moz-handler.ts</td><td>60</td><td><span class="tag tag-scaf">SCAF</span></td><td>No real Zenoh transport</td></tr>
+</table>
+</div>
+
+<!-- SLIDE 4: Domain Parity -->
+<div class="slide" style="position:relative">
+<span class="slide-number">4 / 10</span>
+<h2>Domain Parity Breakdown</h2>
+<table>
+<tr><th>Domain</th><th>Parity</th><th>Status</th></tr>
+<tr><td>Tool System</td><td>60%</td><td><div class="bar"><div class="bar-fill" style="width:60%;background:var(--accent)"></div></div></td></tr>
+<tr><td>Cost/Metrics</td><td>60%</td><td><div class="bar"><div class="bar-fill" style="width:60%;background:var(--accent)"></div></div></td></tr>
+<tr><td>Inference/LLM</td><td>43%</td><td><div class="bar"><div class="bar-fill" style="width:43%;background:var(--warning)"></div></div></td></tr>
+<tr><td>Build/Verify</td><td>25%</td><td><div class="bar"><div class="bar-fill" style="width:25%;background:var(--warning)"></div></div></td></tr>
+<tr><td>Event System</td><td>20%</td><td><div class="bar"><div class="bar-fill" style="width:20%;background:var(--warning)"></div></div></td></tr>
+<tr><td>Session Mgmt</td><td>20%</td><td><div class="bar"><div class="bar-fill" style="width:20%;background:var(--warning)"></div></div></td></tr>
+<tr><td>Safety/Guardian</td><td>20%</td><td><div class="bar"><div class="bar-fill" style="width:20%;background:var(--warning)"></div></div></td></tr>
+<tr><td>Zenoh Mesh</td><td>0%</td><td><div class="bar"><div class="bar-fill" style="width:0%;background:var(--critical)"></div></div></td></tr>
+<tr><td>Agent Swarm</td><td>0%</td><td><div class="bar"><div class="bar-fill" style="width:0%;background:var(--critical)"></div></div></td></tr>
+<tr><td>Type/Validation</td><td>0%</td><td><div class="bar"><div class="bar-fill" style="width:0%;background:var(--critical)"></div></div></td></tr>
+</table>
+</div>
+
+<!-- SLIDE 5: Critical Work Packages -->
+<div class="slide" style="position:relative">
+<span class="slide-number">5 / 10</span>
+<h2>CRITICAL Work Packages (WP1-WP3)</h2>
+<p class="subtitle">9 hours to reach ~60% parity</p>
+<div class="cols-3">
+<div class="box">
+<h3><span class="tag tag-crit">WP1</span> AG-UI Types</h3>
+<p style="font-size:1rem">Generate TypeScript types from <span class="mono">events.gleam</span> (32 types). Replace 10-element string Set with typed enum + exhaustive validation.</p>
+<p style="font-size:0.9rem;color:var(--muted);margin-top:8px">2 hours | c3i-bridge.ts + new agui-types.ts</p>
+</div>
+<div class="box">
+<h3><span class="tag tag-crit">WP2</span> MCP Sync</h3>
+<p style="font-size:1rem">Query <span class="mono">sa-plan-daemon</span> for 73 MCP tool definitions at startup. Replace 3 hardcoded tools with dynamic registry.</p>
+<p style="font-size:0.9rem;color:var(--muted);margin-top:8px">3 hours | mcp-registry.ts</p>
+</div>
+<div class="box">
+<h3><span class="tag tag-crit">WP3</span> Zenoh Mesh</h3>
+<p style="font-size:1rem">Make node-zenoh required (fail loudly). Add 3 missing topics. Implement <span class="mono">indrajaal/c3i/commands/**</span> subscriptions.</p>
+<p style="font-size:0.9rem;color:var(--muted);margin-top:8px">4 hours | c3i-bridge.ts + config.json</p>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 6: HIGH Work Packages -->
+<div class="slide" style="position:relative">
+<span class="slide-number">6 / 10</span>
+<h2>HIGH Impact Work Packages (WP4-WP8)</h2>
+<p class="subtitle">12 hours for infrastructure hardening</p>
+<table>
+<tr><th>WP</th><th>Package</th><th>What Changes</th><th>Hours</th></tr>
+<tr><td><span class="tag tag-high">WP4</span></td><td>Smriti.db Persistence</td><td>Replace JSONL with <span class="mono">sqlite3 CLI</span> calls to Smriti.db. Session branching + compaction.</td><td>3h</td></tr>
+<tr><td><span class="tag tag-high">WP5</span></td><td>Per-Tier Circuit Breakers</td><td>4 independent breakers (Gemini, OpenRouter, Ollama4, Ollama3). Match <span class="mono">mcp_inference.rs</span> pattern.</td><td>2h</td></tr>
+<tr><td><span class="tag tag-high">WP6</span></td><td>A2UI Catalog Sync</td><td>Export 233 components from <span class="mono">catalog.gleam</span> as JSON. Load at Pi startup for allowlist validation.</td><td>2h</td></tr>
+<tr><td><span class="tag tag-high">WP7</span></td><td>PII Scrubber</td><td>Port 5 regex patterns from <span class="mono">pii.rs</span> (email, phone, CC, SSN, IP) to TypeScript.</td><td>2h</td></tr>
+<tr><td><span class="tag tag-high">WP8</span></td><td>OTel Spans</td><td>New <span class="mono">otel-spans.ts</span> matching <span class="mono">zenoh_otel.gleam</span> span builder. Publish on every tool_call/message.</td><td>3h</td></tr>
+</table>
+</div>
+
+<!-- SLIDE 7: MEDIUM Work Packages -->
+<div class="slide" style="position:relative">
+<span class="slide-number">7 / 10</span>
+<h2>MEDIUM Impact Work Packages (WP9-WP13)</h2>
+<p class="subtitle">9 hours for config parity + testing</p>
+<table>
+<tr><th>WP</th><th>Package</th><th>What</th><th>Hours</th></tr>
+<tr><td>WP9</td><td>Skills Parity</td><td>Create 27 missing <span class="mono">.pi/skills/*/SKILL.md</span> files (39 total)</td><td>1h</td></tr>
+<tr><td>WP10</td><td>Prompts Parity</td><td>Mirror all 56 Claude commands as <span class="mono">.pi/prompts/*.md</span></td><td>2h</td></tr>
+<tr><td>WP11</td><td>Swarm Dynamic Loading</td><td>Read <span class="mono">.pi/skills/*/SKILL.md</span> at startup instead of 3 hardcoded agents</td><td>2h</td></tr>
+<tr><td>WP12</td><td>OODA Live View</td><td>Query <span class="mono">v_ooda_live</span> at session start for cost/cache thresholds</td><td>1h</td></tr>
+<tr><td>WP13</td><td>Bridge Tests</td><td>TypeScript test suite for c3i-bridge.ts + zk-recall.ts</td><td>3h</td></tr>
+</table>
+<div class="box" style="margin-top:24px">
+<h3>WP14 (LOW) — Semantic Cache</h3>
+<p style="font-size:1rem">Local LRU cache with 24h TTL matching Rust's semantic cache in <span class="mono">cortex.rs</span>. Skips inference on repeated prompts. 4 hours.</p>
+</div>
+</div>
+
+<!-- SLIDE 8: Critical Path -->
+<div class="slide" style="position:relative">
+<span class="slide-number">8 / 10</span>
+<h2>Critical Path & Execution Order</h2>
+<div class="box" style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;line-height:2.2;padding:32px">
+<span style="color:var(--critical)">CRITICAL (9h)</span><br>
+&nbsp;&nbsp;WP3 Zenoh -----> WP8 OTel -----> WP13 Tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;|<br>
+&nbsp;&nbsp;&nbsp;&nbsp;+---> WP2 MCP -----> WP6 A2UI<br><br>
+&nbsp;&nbsp;WP1 AG-UI types ---------> WP13 Tests<br><br>
+<span style="color:var(--warning)">HIGH (12h)</span><br>
+&nbsp;&nbsp;WP4 Smriti.db -----------> WP14 Semantic cache<br>
+&nbsp;&nbsp;WP5 Circuit breakers ---- standalone<br>
+&nbsp;&nbsp;WP7 PII scrubber -------- standalone<br><br>
+<span style="color:var(--accent)">MEDIUM (9h)</span><br>
+&nbsp;&nbsp;WP9 Skills --------------> WP11 Swarm loading<br>
+&nbsp;&nbsp;WP10 Prompts ------------ standalone<br>
+&nbsp;&nbsp;WP12 OODA view ---------- standalone
+</div>
+<div class="cols" style="margin-top:24px">
+<div class="box center">
+<p>Phase 1: WP1+WP2+WP3</p>
+<div class="big-number accent" style="font-size:3rem">60%</div>
+<p>parity after 9 hours</p>
+</div>
+<div class="box center">
+<p>Phase 2: WP4-WP14</p>
+<div class="big-number green" style="font-size:3rem">100%</div>
+<p>parity after 34 hours</p>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 9: What NOT to Build -->
+<div class="slide" style="position:relative">
+<span class="slide-number">9 / 10</span>
+<h2>Architecture Guardrails</h2>
+<p class="subtitle">What NOT to build in Pi (SC-ARCH-SPLIT-001)</p>
+<div class="cols">
+<div class="box" style="border-color:var(--critical)">
+<h3 style="color:var(--critical)">Do NOT Build in Pi</h3>
+<div class="bullet">Container orchestration (Rust only)</div>
+<div class="bullet">OODA supervisor loop (Rust only)</div>
+<div class="bullet">Health polling/consensus (Rust only)</div>
+<div class="bullet">Apoptosis/cascade logic (Rust only)</div>
+<div class="bullet">Duplicate 98 rule files (SYSTEM.md sufficient)</div>
+<div class="bullet">Gleam build system (call via shell)</div>
+<div class="bullet">Pi TUI (use pi-tui package)</div>
+</div>
+<div class="box" style="border-color:var(--success)">
+<h3 style="color:var(--success)">DO Build in Pi</h3>
+<div class="bullet">Full 32-event AG-UI type validation</div>
+<div class="bullet">Dynamic MCP tool discovery</div>
+<div class="bullet">Non-optional Zenoh mesh connection</div>
+<div class="bullet">Per-tier circuit breakers</div>
+<div class="bullet">PII scrubbing (regex port)</div>
+<div class="bullet">OTel span publishing</div>
+<div class="bullet">Smriti.db persistence</div>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 10: Summary -->
+<div class="slide" style="position:relative">
+<span class="slide-number">10 / 10</span>
+<h2>Summary & Recommendation</h2>
+<div class="cols-3" style="margin-top:32px">
+<div class="box center">
+<div class="big-number amber" style="font-size:3.5rem">25%</div>
+<p>Current parity</p>
+<p style="color:var(--muted);font-size:0.9rem">13/51 features FUNC+</p>
+</div>
+<div class="box center">
+<div class="big-number accent" style="font-size:3.5rem">34h</div>
+<p>To full parity</p>
+<p style="color:var(--muted);font-size:0.9rem">14 work packages</p>
+</div>
+<div class="box center">
+<div class="big-number green" style="font-size:3.5rem">9h</div>
+<p>To 60% parity</p>
+<p style="color:var(--muted);font-size:0.9rem">WP1+WP2+WP3 only</p>
+</div>
+</div>
+<div class="box" style="margin-top:32px;border-color:var(--accent)">
+<h3>Recommendation</h3>
+<div class="bullet" style="font-size:1.2rem">Execute WP1-WP3 first (9 hours) for 60% parity</div>
+<div class="bullet" style="font-size:1.2rem">Parallelize WP4-WP8 across next 2 sessions</div>
+<div class="bullet" style="font-size:1.2rem">WP9-WP14 are config/test parity — lower urgency</div>
+<div class="bullet" style="font-size:1.2rem">Full parity means Pi can operate independently when Claude is unavailable</div>
+</div>
+<p class="footer" style="margin-top:40px">Pi x Claude Code Symbiosis | C3I v22.10.1 | Generated by Claude Opus 4.6</p>
+</div>
+
+</body>
+</html>

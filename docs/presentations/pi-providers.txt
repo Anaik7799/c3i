@@ -1,0 +1,27 @@
+=== Pi Provider Registry ===
+Total models: 839
+Providers: 23
+
+  openrouter: 248 models
+  vercel-ai-gateway: 154 models
+  amazon-bedrock: 91 models
+  azure-openai-responses: 40 models
+  openai: 40 models
+  opencode: 34 models
+  google: 27 models
+  mistral: 26 models
+  github-copilot: 25 models
+  xai: 24 models
+  anthropic: 23 models
+  huggingface: 20 models
+  groq: 18 models
+  google-vertex: 13 models
+  zai: 13 models
+  google-antigravity: 9 models
+  openai-codex: 9 models
+  opencode-go: 9 models
+  google-gemini-cli: 6 models
+  cerebras: 4 models
+  kimi-coding: 2 models
+  minimax: 2 models
+  minimax-cn: 2 models

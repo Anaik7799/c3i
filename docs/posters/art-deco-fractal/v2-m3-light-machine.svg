@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" font-family="'Didot','Bodoni MT','Playfair Display',Georgia,serif">
+<!-- M3 Light: THE COSMIC MACHINE — White + Vivid + Art Deco Clockwork -->
+<defs>
+  <radialGradient id="cm-c" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#006C4E" stop-opacity="0.15"/>
+    <stop offset="100%" stop-color="#006C4E" stop-opacity="0"/>
+  </radialGradient>
+  <filter id="g"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="1200" height="1800" fill="#FFFBFE"/>
+<!-- Border -->
+<rect x="24" y="24" width="1152" height="1752" fill="none" stroke="#C9A227" stroke-width="2.5" opacity="0.6"/>
+<rect x="32" y="32" width="1136" height="1736" fill="none" stroke="#C9A227" stroke-width="0.5" opacity="0.25"/>
+<g stroke="#C9A227" fill="none" opacity="0.4" stroke-width="1.2"><path d="M24 80 L80 24"/><path d="M24 105 L105 24"/><path d="M1176 80 L1120 24"/><path d="M1176 105 L1095 24"/><path d="M24 1720 L80 1776"/><path d="M24 1695 L105 1776"/><path d="M1176 1720 L1120 1776"/><path d="M1176 1695 L1095 1776"/></g>
+<!-- Corner gears -->
+<g stroke="#C9A227" fill="none" opacity="0.15"><circle cx="50" cy="50" r="18"/><circle cx="50" cy="50" r="10"/><circle cx="1150" cy="50" r="18"/><circle cx="1150" cy="50" r="10"/><circle cx="50" cy="1750" r="18"/><circle cx="50" cy="1750" r="10"/><circle cx="1150" cy="1750" r="18"/><circle cx="1150" cy="1750" r="10"/></g>
+
+<!-- Title -->
+<text x="600" y="80" text-anchor="middle" fill="#C9A227" font-size="11" letter-spacing="10" opacity="0.5">C3I INDRAJAAL PRESENTS</text>
+<line x1="250" y1="90" x2="950" y2="90" stroke="#C9A227" stroke-width="0.5" opacity="0.3"/>
+<text x="600" y="140" text-anchor="middle" fill="#1C1B1F" font-size="52" font-weight="bold" letter-spacing="10">THE MACHINE</text>
+<text x="600" y="172" text-anchor="middle" fill="#73796E" font-size="16" letter-spacing="10">PRECISION THROUGH FRACTAL ORDER</text>
+<text x="600" y="198" text-anchor="middle" fill="#C9A227" font-size="13" font-family="'Noto Sans Devanagari',serif" letter-spacing="3" opacity="0.6">यन्त्र — भग्नात्मक सटीकता</text>
+<line x1="250" y1="215" x2="950" y2="215" stroke="#C9A227" stroke-width="0.5" opacity="0.3"/>
+
+<!-- Central glow -->
+<circle cx="600" cy="680" r="400" fill="url(#cm-c)"/>
+
+<!-- 8 CONCENTRIC GEAR RINGS -->
+<circle cx="600" cy="680" r="370" fill="none" stroke="#EF6C00" stroke-width="1.5" opacity="0.3"/>
+<g transform="translate(600,680)" stroke="#EF6C00" stroke-width="0.8" opacity="0.15">
+  <line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(0)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(15)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(30)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(45)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(60)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(75)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(90)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(105)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(120)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(135)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(150)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(165)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(180)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(195)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(210)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(225)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(240)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(255)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(270)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(285)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(300)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(315)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(330)"/><line x1="0" y1="-370" x2="0" y2="-382" transform="rotate(345)"/>
+</g>
+<circle cx="600" cy="680" r="320" fill="none" stroke="#C62828" stroke-width="1.2" opacity="0.25"/>
+<circle cx="600" cy="680" r="270" fill="none" stroke="#00796B" stroke-width="1.2" opacity="0.3"/>
+<circle cx="600" cy="680" r="225" fill="none" stroke="#7B1FA2" stroke-width="1" opacity="0.25"/>
+<circle cx="600" cy="680" r="185" fill="none" stroke="#1565C0" stroke-width="1" opacity="0.25"/>
+<circle cx="600" cy="680" r="145" fill="none" stroke="#2E7D32" stroke-width="1" opacity="0.25"/>
+<circle cx="600" cy="680" r="110" fill="none" stroke="#F9A825" stroke-width="1" opacity="0.3"/>
+<circle cx="600" cy="680" r="70" fill="none" stroke="#D32F2F" stroke-width="2" opacity="0.4"/>
+<!-- Inner gear teeth -->
+<g transform="translate(600,680)" stroke="#D32F2F" stroke-width="1" opacity="0.2">
+  <line x1="0" y1="-70" x2="0" y2="-78" transform="rotate(0)"/><line x1="0" y1="-70" x2="0" y2="-78" transform="rotate(30)"/><line x1="0" y1="-70" x2="0" y2="-78" transform="rotate(60)"/><line x1="0" y1="-70" x2="0" y2="-78" transform="rotate(90)"/><line x1="0" y1="-70" x2="0" y2="-78" transform="rotate(120)"/><line x1="0" y1="-70" x2="0" y2="-78" transform="rotate(150)"/><line x1="0" y1="-70" x2="0" y2="-78" transform="rotate(180)"/><line x1="0" y1="-70" x2="0" y2="-78" transform="rotate(210)"/><line x1="0" y1="-70" x2="0" y2="-78" transform="rotate(240)"/><line x1="0" y1="-70" x2="0" y2="-78" transform="rotate(270)"/><line x1="0" y1="-70" x2="0" y2="-78" transform="rotate(300)"/><line x1="0" y1="-70" x2="0" y2="-78" transform="rotate(330)"/>
+</g>
+
+<!-- OODA Quadrants -->
+<g transform="translate(600,680)">
+  <path d="M0 -50 A50 50 0 0 1 50 0" fill="none" stroke="#00796B" stroke-width="4" opacity="0.6"/>
+  <path d="M50 0 A50 50 0 0 1 0 50" fill="none" stroke="#1565C0" stroke-width="4" opacity="0.6"/>
+  <path d="M0 50 A50 50 0 0 1 -50 0" fill="none" stroke="#C9A227" stroke-width="4" opacity="0.6"/>
+  <path d="M-50 0 A50 50 0 0 1 0 -50" fill="none" stroke="#2E7D32" stroke-width="4" opacity="0.6"/>
+  <text x="0" y="-36" text-anchor="middle" fill="#00796B" font-size="8" font-family="Inter,sans-serif" font-weight="bold">OBS</text>
+  <text x="38" y="5" fill="#1565C0" font-size="8" font-family="Inter,sans-serif" font-weight="bold">ORI</text>
+  <text x="0" y="46" text-anchor="middle" fill="#C9A227" font-size="8" font-family="Inter,sans-serif" font-weight="bold">DEC</text>
+  <text x="-38" y="5" fill="#2E7D32" font-size="8" font-family="Inter,sans-serif" text-anchor="end" font-weight="bold">ACT</text>
+</g>
+<!-- Escapement -->
+<circle cx="600" cy="680" r="15" fill="#006C4E" opacity="0.3" filter="url(#g)"/>
+<circle cx="600" cy="680" r="8" fill="#FFFBFE"/><circle cx="600" cy="680" r="3" fill="#006C4E"/>
+
+<!-- 16 RUBY JEWEL BEARINGS -->
+<g transform="translate(600,680)" font-family="Inter,sans-serif" font-size="7">
+  <circle cx="185" cy="0" r="8" fill="#FFEBEE" stroke="#D32F2F" stroke-width="1"/><circle cx="185" cy="0" r="3" fill="#D32F2F"/><text x="198" y="4" fill="#73796E">db-prod</text>
+  <circle cx="159" cy="-159" r="8" fill="#FFF8E1" stroke="#F9A825" stroke-width="1"/><circle cx="159" cy="-159" r="3" fill="#F9A825"/><text x="172" y="-155" fill="#73796E">obs</text>
+  <circle cx="0" cy="-270" r="10" fill="#E0F2F1" stroke="#00796B" stroke-width="1.5"/><circle cx="0" cy="-270" r="4" fill="#00796B"/><text x="0" y="-285" text-anchor="middle" fill="#00796B" font-size="8" font-weight="bold">cortex</text>
+  <circle cx="226" cy="226" r="8" fill="#FFEBEE" stroke="#C62828" stroke-width="1"/><circle cx="226" cy="226" r="3" fill="#C62828"/><text x="240" y="230" fill="#73796E">zenoh-0</text>
+  <circle cx="-270" cy="0" r="9" fill="#E0F2F1" stroke="#00796B" stroke-width="1"/><circle cx="-270" cy="0" r="3.5" fill="#00796B"/><text x="-285" y="4" fill="#73796E" text-anchor="end">ex-1</text>
+  <circle cx="-159" cy="159" r="8" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="1"/><circle cx="-159" cy="159" r="3" fill="#7B1FA2"/><text x="-172" y="163" fill="#73796E" text-anchor="end">bridge</text>
+  <circle cx="0" cy="320" r="8" fill="#FFF8E1" stroke="#F9A825" stroke-width="0.8"/><circle cx="0" cy="320" r="3" fill="#F9A825"/><text x="0" y="336" text-anchor="middle" fill="#73796E">ollama</text>
+  <circle cx="-350" cy="110" r="7" fill="#FFEBEE" stroke="#C62828" stroke-width="0.6"/><text x="-362" y="114" fill="#73796E" text-anchor="end" font-size="5.5">z-1</text>
+  <circle cx="-330" cy="-170" r="7" fill="#FFEBEE" stroke="#C62828" stroke-width="0.6"/><text x="-342" y="-166" fill="#73796E" text-anchor="end" font-size="5.5">z-2</text>
+  <circle cx="330" cy="-170" r="7" fill="#FFEBEE" stroke="#C62828" stroke-width="0.6"/><text x="342" y="-166" fill="#73796E" font-size="5.5">z-3</text>
+  <circle cx="350" cy="110" r="7" fill="#E0F2F1" stroke="#00796B" stroke-width="0.6"/><text x="362" y="114" fill="#73796E" font-size="5.5">ex-2</text>
+  <circle cx="300" cy="200" r="7" fill="#E0F2F1" stroke="#00796B" stroke-width="0.6"/><text x="312" y="204" fill="#73796E" font-size="5.5">ex-3</text>
+  <circle cx="-300" cy="200" r="7" fill="#E8F5E9" stroke="#2E7D32" stroke-width="0.6"/><text x="-312" y="204" fill="#73796E" text-anchor="end" font-size="5.5">chaya</text>
+  <circle cx="-250" cy="260" r="6" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="0.5"/><text x="-262" y="264" fill="#73796E" text-anchor="end" font-size="5">ml-1</text>
+  <circle cx="250" cy="260" r="6" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="0.5"/><text x="262" y="264" fill="#73796E" font-size="5">ml-2</text>
+  <circle cx="-70" cy="315" r="7" fill="#FFF8E1" stroke="#F9A825" stroke-width="0.6"/><text x="-82" y="319" fill="#73796E" text-anchor="end" font-size="5.5">mojo</text>
+</g>
+
+<!-- Layer labels -->
+<g font-family="Inter,sans-serif" font-size="9" fill="#73796E" opacity="0.5">
+  <text x="600" y="290" text-anchor="middle" fill="#EF6C00">L7 FEDERATION</text>
+  <text x="600" y="340" text-anchor="middle" fill="#C62828">L6 ECOSYSTEM</text>
+  <text x="600" y="390" text-anchor="middle" fill="#00796B">L5 COGNITIVE</text>
+  <text x="988" y="680" fill="#EF6C00">L7</text><text x="935" y="680" fill="#C62828">L6</text>
+  <text x="885" y="680" fill="#00796B">L5</text><text x="838" y="680" fill="#7B1FA2">L4</text>
+  <text x="798" y="680" fill="#1565C0">L3</text><text x="758" y="680" fill="#2E7D32">L2</text>
+</g>
+
+<!-- METRICS -->
+<rect x="100" y="1100" width="1000" height="70" fill="#F1ECE9" stroke="#C9A227" stroke-width="1" rx="8"/>
+<g font-family="Inter,sans-serif" text-anchor="middle">
+  <text x="200" y="1132" fill="#006C4E" font-size="30" font-weight="bold" font-family="serif">5,436</text><text x="200" y="1155" fill="#73796E" font-size="8" letter-spacing="2">TESTS</text>
+  <text x="400" y="1132" fill="#1565C0" font-size="30" font-weight="bold" font-family="serif">336</text><text x="400" y="1155" fill="#73796E" font-size="8" letter-spacing="2">MODULES</text>
+  <text x="600" y="1132" fill="#C9A227" font-size="30" font-weight="bold" font-family="serif">125</text><text x="600" y="1155" fill="#73796E" font-size="8" letter-spacing="2">NIF FUNCTIONS</text>
+  <text x="800" y="1132" fill="#D32F2F" font-size="30" font-weight="bold" font-family="serif">2,609</text><text x="800" y="1155" fill="#73796E" font-size="8" letter-spacing="2">HOLONS</text>
+  <text x="1000" y="1132" fill="#00796B" font-size="30" font-weight="bold" font-family="serif">9,104</text><text x="1000" y="1155" fill="#73796E" font-size="8" letter-spacing="2">RUST LOC</text>
+</g>
+
+<!-- EVOLUTION -->
+<g transform="translate(100,1200)">
+  <text x="500" y="0" text-anchor="middle" fill="#C9A227" font-size="10" letter-spacing="6">CALIBRATION HISTORY</text>
+  <line x1="0" y1="12" x2="1000" y2="12" stroke="#C9A227" stroke-width="0.5" opacity="0.2"/>
+  <g font-family="Inter,sans-serif" font-size="8">
+    <circle cx="50" cy="45" r="4" fill="#73796E" opacity="0.3"/><text x="50" y="68" text-anchor="middle" fill="#73796E">Genesis</text>
+    <line x1="54" y1="45" x2="246" y2="45" stroke="#73796E" stroke-width="0.5" opacity="0.2"/>
+    <circle cx="250" cy="45" r="5" fill="#1565C0" opacity="0.5"/><text x="250" y="68" text-anchor="middle" fill="#1565C0">v22.4.0</text><text x="250" y="80" text-anchor="middle" fill="#73796E" opacity="0.5">CORTEX</text>
+    <line x1="255" y1="45" x2="446" y2="45" stroke="#1565C0" stroke-width="0.5" opacity="0.2"/>
+    <circle cx="450" cy="45" r="5" fill="#F9A825" opacity="0.5"/><text x="450" y="68" text-anchor="middle" fill="#F9A825">v22.5.0</text><text x="450" y="80" text-anchor="middle" fill="#73796E" opacity="0.5">CORTEX+</text>
+    <line x1="455" y1="45" x2="646" y2="45" stroke="#F9A825" stroke-width="0.5" opacity="0.2"/>
+    <circle cx="650" cy="45" r="6" fill="#D32F2F" opacity="0.5"/><text x="650" y="68" text-anchor="middle" fill="#D32F2F">v22.6.0</text><text x="650" y="80" text-anchor="middle" fill="#73796E" opacity="0.5">DHARMA</text>
+    <line x1="656" y1="45" x2="896" y2="45" stroke="#D32F2F" stroke-width="0.5" opacity="0.2"/>
+    <circle cx="900" cy="45" r="8" fill="#006C4E" opacity="0.5"/><circle cx="900" cy="45" r="4" fill="#FFFBFE"/><circle cx="900" cy="45" r="2" fill="#006C4E"/>
+    <text x="900" y="68" text-anchor="middle" fill="#006C4E" font-weight="bold">v22.6.1</text><text x="900" y="80" text-anchor="middle" fill="#006C4E" opacity="0.6">DHARMA+</text>
+  </g>
+</g>
+
+<!-- Tensor + Tagline -->
+<text x="600" y="1335" text-anchor="middle" fill="#C9A227" font-size="12" font-family="Inter,sans-serif">Biomorphic Tensor: <tspan font-weight="bold" font-size="16">47/56</tspan> = <tspan font-weight="bold" font-size="16">83.9%</tspan></text>
+<line x1="200" y1="1360" x2="1000" y2="1360" stroke="#C9A227" stroke-width="1" opacity="0.3"/>
+<text x="600" y="1392" text-anchor="middle" fill="#1C1B1F" font-size="16" letter-spacing="10" font-weight="bold">INTEGRATED. OPTIMIZED. CONNECTED.</text>
+<line x1="200" y1="1407" x2="1000" y2="1407" stroke="#C9A227" stroke-width="1" opacity="0.3"/>
+
+<!-- Specs -->
+<g transform="translate(100,1430)" font-family="Inter,sans-serif" font-size="8" fill="#73796E" opacity="0.6">
+  <text x="0" y="0" fill="#C9A227" font-size="9" letter-spacing="3" font-family="serif">SYSTEM SPECIFICATIONS</text>
+  <text x="0" y="18">Primary: Gleam (BEAM VM)</text><text x="0" y="30">UI: Lustre 5.6+ MVU (SSR)</text><text x="0" y="42">API: Wisp 2.2.2 HTTP/JSON</text><text x="0" y="54">TUI: ANSI + Split-Screen</text><text x="0" y="66">Bus: Zenoh (TCP 7447)</text>
+  <text x="350" y="18">Inference: 6-tier hedged</text><text x="350" y="30">Voice: 5-tier cascade</text><text x="350" y="42">Rules: 52 GRL (RETE-UL)</text><text x="350" y="54">Tracing: PipelineTracer</text><text x="350" y="66">Cache: Semantic 24h TTL</text>
+  <text x="700" y="18">Safety: IEC 61508 SIL-6</text><text x="700" y="30">Voting: 2oo3 consensus</text><text x="700" y="42">HA: Zenoh leader election</text><text x="700" y="54">PII: Regex scrubber</text><text x="700" y="66">Rate: 20/min per user</text>
+</g>
+
+<!-- Verse -->
+<line x1="200" y1="1560" x2="1000" y2="1560" stroke="#C9A227" stroke-width="0.5" opacity="0.2"/>
+<text x="600" y="1590" text-anchor="middle" fill="#C9A227" font-size="17" font-family="'Noto Sans Devanagari',serif" letter-spacing="2">कालोऽस्मि लोकक्षयकृत्प्रवृद्धो</text>
+<text x="600" y="1615" text-anchor="middle" fill="#73796E" font-size="11" font-style="italic" font-family="Inter,sans-serif">I am Time, the destroyer of worlds — every OODA tick creates and destroys state</text>
+<text x="600" y="1635" text-anchor="middle" fill="#73796E" font-size="9" font-family="Inter,sans-serif">Bhagavad Gita 11.32</text>
+<text x="600" y="1782" text-anchor="middle" fill="#C9A227" font-size="8" font-family="Inter,sans-serif" letter-spacing="4" opacity="0.4">C3I INDRAJAAL v22.6.1-DHARMA | THE COSMIC MACHINE | APRIL 2026</text>
+</svg>

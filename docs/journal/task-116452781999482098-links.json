@@ -1,0 +1,37 @@
+{
+  "task_id": "116452781999482098",
+  "parent_chain": ["116450171390820012 (p5)","116452373655782093 (p6)","116452500338698000 (p7)","116452781999482098 (p7-ideas)"],
+  "slug": "20260423-071526-task-116452781999482098-creative-ideas-ranked",
+  "base_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452781999482098",
+  "generated_at_utc": "2026-04-23T07:21:56+00:00",
+  "theme": "Ultrathink: 44 creative improvements ranked U·C·K·P·E",
+  "count": 10,
+  "links": [
+    { "name": "20260423-071526-task-116452781999482098-creative-ideas-ranked-journal.md", "type": "md", "role": "journal", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452781999482098/20260423-071526-task-116452781999482098-creative-ideas-ranked-journal.md" },
+    { "name": "20260423-071526-task-116452781999482098-creative-ideas-ranked-analysis.html", "type": "html", "role": "analysis", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452781999482098/20260423-071526-task-116452781999482098-creative-ideas-ranked-analysis.html" },
+    { "name": "20260423-071526-task-116452781999482098-creative-ideas-ranked-deck.html", "type": "html", "role": "deck", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452781999482098/20260423-071526-task-116452781999482098-creative-ideas-ranked-deck.html" },
+    { "name": "20260423-071526-task-116452781999482098-creative-ideas-ranked-ideas-dep-graph.png", "type": "png", "role": "diagram", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452781999482098/20260423-071526-task-116452781999482098-creative-ideas-ranked-ideas-dep-graph.png" },
+    { "name": "20260423-071526-task-116452781999482098-creative-ideas-ranked-roi-trajectory.png", "type": "png", "role": "diagram", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452781999482098/20260423-071526-task-116452781999482098-creative-ideas-ranked-roi-trajectory.png" },
+    { "name": "20260423-071526-task-116452781999482098-creative-ideas-ranked-category-scoreboard.png", "type": "png", "role": "diagram", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452781999482098/20260423-071526-task-116452781999482098-creative-ideas-ranked-category-scoreboard.png" },
+    { "name": "20260423-071526-task-116452781999482098-creative-ideas-ranked-analysis-screenshot.png", "type": "png", "role": "screenshot", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452781999482098/20260423-071526-task-116452781999482098-creative-ideas-ranked-analysis-screenshot.png" },
+    { "name": "20260423-071526-task-116452781999482098-creative-ideas-ranked-deck-screenshot.png", "type": "png", "role": "screenshot", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452781999482098/20260423-071526-task-116452781999482098-creative-ideas-ranked-deck-screenshot.png" },
+    { "name": "task-index", "type": "html", "role": "index", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452781999482098" },
+    { "name": "live-ooda", "type": "html", "role": "live-dashboard", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-ooda-metrics.html" }
+  ],
+  "scoring": {
+    "formula": "2C + 1.5K + 1.2U + 1.0P - 0.5E",
+    "top_1": "Prompt-prefix stabiliser — composite 54.6",
+    "top_5_avg": 47.5,
+    "top_10_avg": 44.3,
+    "full_44_avg": 30.1
+  },
+  "roi_trajectory": {
+    "baseline_per_session_usd": 38.84,
+    "end_sprint_1_2_pct_save": 55,
+    "end_sprint_3_pct_save": 75,
+    "end_sprint_4_pct_save": 87,
+    "end_sprint_5_6_pct_save": 92,
+    "target_per_session_usd": 3.11,
+    "annual_savings_projected_usd": 7146
+  }
+}

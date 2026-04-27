@@ -1,0 +1,33 @@
+digraph Ideas {
+  rankdir=LR; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica";
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed" fillcolor="#141922" color="#1e2a3a"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=10];
+
+  I1 [label="#1 Prompt-prefix\nstabiliser\n(54.6)" fillcolor="#0e2a1e" color="#3dd68c"];
+  I2 [label="#2 Semantic-cache\nfuzzy prelookup\n(52.6)" fillcolor="#0e2a1e" color="#3dd68c"];
+  I3 [label="#3 Adaptive router\n(49.6)" fillcolor="#0e2a1e" color="#3dd68c"];
+  I4 [label="#4 Embedding\nbackfill\n(45.5)"];
+  I5 [label="#5 BGE rerank\n(45.2)"];
+  I6 [label="#6 Budget gate\n(42.7)"];
+  I7 [label="#7 Exact-match\ncache\n(39.1)"];
+  I8 [label="#8 Multi-agent\npipeline\n(38.3)"];
+  I9 [label="#9 HyDE\n(37.9)"];
+  I10 [label="#10 Shared cache\nClaude↔Pi\n(37.7)"];
+  I11 [label="#11 LLMLingua-2\n(36.4)"];
+  I12 [label="#12 Spec decoding\n(36.3)"];
+  I13 [label="#13 MoE routing\n(35.4)"];
+  I22 [label="#22 Auto-lifeline\n(31.6)"];
+
+  I1 -> I10 -> I7;
+  I4 -> I5 -> I9;
+  I4 -> I2; I10 -> I2;
+  I2 -> I3; I6 -> I3;
+  I3 -> I13;
+  I11 -> I8 -> I12;
+
+  {rank=same I1 I4 I6 I22}
+  {rank=same I10 I5 I11}
+  {rank=same I7 I2 I8}
+  {rank=same I3 I9 I12}
+  {rank=same I13}
+}

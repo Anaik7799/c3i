@@ -1,0 +1,22 @@
+digraph SM {
+  rankdir=LR; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica";
+  node [style="filled,rounded" shape=box fillcolor="#141922" fontcolor="#e0e6ed" color="#1e2a3a"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=10];
+  Dark [label="Dark\n(no daemons)" color="#ff4757" fillcolor="#2a0e0e"];
+  Preflight; LaunchWave1 [label="Launch\nWave-1"]; LaunchWave2; LaunchWave3; LaunchWave4;
+  Verify; Operational [color="#3dd68c" fillcolor="#0e2a1e"]; Degraded [color="#f5a623" fillcolor="#2a1e0e"]; Apoptosis [color="#ff4757" fillcolor="#2a0e0e"];
+  Dark -> Preflight [label="sa-up preflight"];
+  Preflight -> LaunchWave1 [label="6/6 crit pass"];
+  Preflight -> Dark [label="FAIL"];
+  LaunchWave1 -> LaunchWave2 [label="ZR mesh 6/6"];
+  LaunchWave2 -> LaunchWave3;
+  LaunchWave3 -> LaunchWave4;
+  LaunchWave4 -> Verify [label="all up"];
+  Verify -> Operational [label="≥14/18"];
+  Verify -> Degraded [label="13/18"];
+  Operational -> Operational [label="OODA tick"];
+  Operational -> Degraded [label="container fail"];
+  Degraded -> Operational [label="relaunch"];
+  Operational -> Apoptosis [label="emergency"];
+  Degraded -> Apoptosis [label="critical"];
+}

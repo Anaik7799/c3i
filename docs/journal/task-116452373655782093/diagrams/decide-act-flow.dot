@@ -1,0 +1,29 @@
+digraph DecideAct {
+  rankdir=LR; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica";
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed" fillcolor="#141922" color="#1e2a3a"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=10];
+
+  subgraph cluster_before { label="BEFORE (pass-4/5)"; color="#ff4757"; fontcolor="#ff4757"; style=dashed;
+    B_Router [label="router.gleam\n/ooda endpoint"];
+    B_Engine [label="rules/engine\nevaluate()"];
+    B_JSON [label="JSON response\n{decision, reason}"];
+    B_Void [label="∅ no action taken" fillcolor="#2a0e0e" color="#ff4757"];
+    B_Router -> B_Engine [label="facts"];
+    B_Engine -> B_JSON [label="RuleResult"];
+    B_JSON -> B_Void [label="client ignores" style=dashed];
+  }
+
+  subgraph cluster_after { label="AFTER (pass-6 FINDING-B closure)"; color="#3dd68c"; fontcolor="#3dd68c";
+    A_Router [label="router.gleam\n/ooda endpoint" fillcolor="#0e2a1e" color="#3dd68c"];
+    A_Engine [label="rules/engine\nevaluate()"];
+    A_Dispatcher [label="rules/dispatcher\ndecision_to_action + dispatch" fillcolor="#0e2a1e" color="#3dd68c"];
+    A_Action [label="Action:\nEmergencyStop|Restart|\nScaleDown|Escalate|..."];
+    A_Zenoh [label="Zenoh put\nindrajaal/l0/const/emergency\nindrajaal/l4/system/restart\nindrajaal/l5/cog/escalate"];
+    A_JSON [label="JSON response\n{decision, reason, action}" fillcolor="#0e2a1e" color="#3dd68c"];
+    A_Router -> A_Engine [label="facts"];
+    A_Engine -> A_Dispatcher [label="RuleResult"];
+    A_Dispatcher -> A_Action [label="typed"];
+    A_Action -> A_Zenoh [label="side-effect"];
+    A_Action -> A_JSON [label="log string"];
+  }
+}

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>C3I Runtime Hardening — Slide Deck</title>
+<style>
+  :root { --bg:#0a0e17; --card:#141922; --text:#e0e6ed; --muted:#7a8fa6; --accent:#00d4aa; --border:#1e2a3a; --ok:#3dd68c; --warn:#f5a623; --crit:#ff4757; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; }
+  body { background:var(--bg); color:var(--text); font-family: -apple-system,"SF Pro Display","Segoe UI",system-ui,sans-serif; }
+  .deck { max-width:1100px; margin:0 auto; padding:30px 24px 60px; }
+  .slide { border:1px solid var(--border); border-radius:12px; padding:36px 44px; margin: 24px 0; background:linear-gradient(140deg,#0c1320,#10182a); page-break-after: always; min-height:560px; position:relative; }
+  .slide .num { position:absolute; right:24px; top:18px; color:var(--muted); font-size:12px; }
+  .slide h2 { color:var(--accent); margin:0 0 14px; font-size:26px; }
+  .slide h3 { color:#bbd; margin: 18px 0 8px; font-size:16px; }
+  .slide ul { line-height:1.7; }
+  .slide table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  .slide th, .slide td { border:1px solid var(--border); padding:7px 10px; text-align:left; }
+  .slide th { background:#1e2a3a; color:var(--accent); }
+  code { background:#1e2a3a; color:#9be7c4; padding:1px 6px; border-radius:4px; font-size:13px; }
+  pre { background:#0d1420; border:1px solid var(--border); padding:14px; border-radius:6px; font-size:13px; overflow-x:auto; }
+  .kpi { display:flex; gap:18px; flex-wrap:wrap; margin-top:14px; }
+  .kpi .item { background:var(--card); padding:14px 18px; border-radius:10px; border:1px solid var(--border); min-width:130px; }
+  .kpi .item .v { font-size:28px; color:var(--accent); font-weight:700; }
+  .kpi .item .l { font-size:11px; color:var(--muted); text-transform:uppercase; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; margin-right:4px; }
+  .b-ok { background:#1d3a2a; color:var(--ok); }
+  .b-warn { background:#3a2a14; color:var(--warn); }
+  .title-slide { display:flex; flex-direction:column; justify-content:center; padding:80px 60px; }
+  .title-slide h1 { font-size:42px; color:var(--accent); margin:0 0 12px; }
+  .title-slide p { color:var(--muted); font-size:17px; margin:4px 0; }
+</style>
+</head>
+<body>
+
+<div class="deck">
+
+<section class="slide title-slide"><span class="num">1 / 12</span>
+  <h1>C3I Runtime Hardening</h1>
+  <p>Flock mutex · Health probe · Periodic timers · Port conflicts · CPU slice (≤ 70%)</p>
+  <p style="margin-top:32px">Abhijit Naik · 2026-04-27 14:15 CEST · Auto mode</p>
+</section>
+
+<section class="slide"><span class="num">2 / 12</span>
+  <h2>What was asked</h2>
+  <ol>
+    <li>Stop-hook ingest stacking — three concurrent runs; needs <strong>flock mutex</strong></li>
+    <li>mistral.rs duplication — sa-plan serve + scheduler both load 5.8 GB gemma weights</li>
+    <li>Critical-service health probe — publish unit state from systemctl polling</li>
+    <li>Periodic oneshots — convert T4 to <code>.timer</code> units</li>
+    <li>Conflicts= directives — protect ports 4100/4200/8443</li>
+    <li><strong>CPU controller — system never exceeds 70% capacity</strong></li>
+  </ol>
+</section>
+
+<section class="slide"><span class="num">3 / 12</span>
+  <h2>Snapshot — shipped 5 / 6</h2>
+  <div class="kpi">
+    <div class="item"><div class="v">6</div><div class="l">requirements</div></div>
+    <div class="item"><div class="v">5</div><div class="l">shipped</div></div>
+    <div class="item"><div class="v">1</div><div class="l">deferred (mitigated)</div></div>
+    <div class="item"><div class="v">16</div><div class="l">c3i-* units</div></div>
+    <div class="item"><div class="v">15</div><div class="l">drop-ins</div></div>
+    <div class="item"><div class="v">700%</div><div class="l">CPU cap</div></div>
+    <div class="item"><div class="v">38 GB</div><div class="l">mem max</div></div>
+    <div class="item"><div class="v">8%</div><div class="l">live CPU</div></div>
+  </div>
+</section>
+
+<section class="slide"><span class="num">4 / 12</span>
+  <h2>1. Flock mutex on Stop hook</h2>
+  <pre>"command": "flock -n /tmp/c3i-stop-hook.lock -c '...ingest chain...' \
+  || echo '{\"systemMessage\":\"Stop-hook ingest already running, skipped (flock).\"}'"</pre>
+  <ul>
+    <li>Non-blocking: first session wins, others skip cleanly</li>
+    <li>Eliminates 3-way concurrent ingests previously observed (PIDs 7989/8337/9497)</li>
+    <li>Lock is advisory; no manual cleanup ever required</li>
+  </ul>
+</section>
+
+<section class="slide"><span class="num">5 / 12</span>
+  <h2>2. mistral.rs split — deferred, mitigated</h2>
+  <p><code>OnceLock&lt;mistralrs::Model&gt;</code> at <code>mcp_inference.rs:100</code> is per-process. Both <code>sa-plan serve</code> and <code>sa-plan scheduler-run</code> load gemma-3-4b-it independently → 2 × 14 GB RSS.</p>
+  <p><strong>Proper fix</strong> = single inference daemon + Zenoh MoZ clients (Rust refactor, 4–6 h).</p>
+  <p><strong>Mitigation in place</strong>: c3i.slice <code>MemoryMax=38G</code> + cgroup-OOM keeps duplication contained. Slice memory currently ~28 GB, well under hard cap.</p>
+</section>
+
+<section class="slide"><span class="num">6 / 12</span>
+  <h2>3. Health probe</h2>
+  <ul>
+    <li><strong>Where</strong>: <code>scripts/systemd/c3i-health-publish.sh</code> (POSIX shell, 60 lines)</li>
+    <li><strong>Cadence</strong>: every 30 s via <code>c3i-health-publisher.timer</code></li>
+    <li><strong>Output</strong>: <code>docs/health/services.json</code> (atomic <code>tmp + mv</code>)</li>
+    <li><strong>URL</strong>: <a style="color:var(--accent)" href="http://vm-1.tail55d152.ts.net:8090/health/services.json">vm-1.tail55d152.ts.net:8090/health/services.json</a></li>
+    <li><strong>Schema</strong>: <code>{ts, ncpu, loadavg, slice_cpu_nsec, slice_memory_bytes, units:[{unit, active, sub, memory_bytes, cpu_nsec}]}</code></li>
+  </ul>
+</section>
+
+<section class="slide"><span class="num">7 / 12</span>
+  <h2>4. Periodic timers — already there</h2>
+  <table>
+    <tr><th>Timer</th><th>Cadence</th><th>State</th></tr>
+    <tr><td>c3i-ops-status.timer</td><td>OnUnitActive 1 min</td><td><span class="badge b-ok">active</span></td></tr>
+    <tr><td>c3i-slo-guard.timer</td><td>OnUnitActive 1 min</td><td><span class="badge b-ok">active</span></td></tr>
+    <tr><td>c3i-history-compactor.timer</td><td>OnUnitActive 10 min</td><td><span class="badge b-ok">active</span></td></tr>
+    <tr><td>c3i-health-publisher.timer (NEW)</td><td>OnUnitActive 30 s</td><td><span class="badge b-ok">active</span></td></tr>
+  </table>
+  <p style="margin-top:14px">Verified via <code>systemctl --user list-timers c3i-*</code>.</p>
+</section>
+
+<section class="slide"><span class="num">8 / 12</span>
+  <h2>5. Port conflicts protection</h2>
+  <p>Drop-in <code>[Unit] Conflicts=c3i-port-NNNN-fight.target</code> on:</p>
+  <table>
+    <tr><th>Unit</th><th>Port</th></tr>
+    <tr><td>c3i-gleam-server</td><td>4100 / 4101</td></tr>
+    <tr><td>c3i-sa-plan-http</td><td>4200</td></tr>
+    <tr><td>c3i-tls-proxy</td><td>8443</td></tr>
+    <tr><td>c3i-zenoh-router</td><td>7447 / 8000</td></tr>
+    <tr><td>c3i-sutra</td><td>6167</td></tr>
+  </table>
+  <p>If a second service tries to bind one of these ports, systemd refuses to start it.</p>
+</section>
+
+<section class="slide"><span class="num">9 / 12</span>
+  <h2>6. CPU controller — c3i.slice (≤ 70%)</h2>
+  <pre>[Slice]
+CPUQuota=700%        # 70% × 10 cores; CFS-enforced
+CPUWeight=200
+MemoryHigh=32G       # soft throttle
+MemoryMax=38G        # hard kill
+IOWeight=200
+TasksMax=4096</pre>
+  <p>Rolling-restarted all long-lived c3i-* services so they enter the cgroup. <strong>Live measurement</strong>: slice consumed <strong>4271 ms / 5000 ms wall</strong> = 8% of host. Cap = 70%. <strong>Headroom 9×.</strong></p>
+</section>
+
+<section class="slide"><span class="num">10 / 12</span>
+  <h2>What was deployed</h2>
+  <table>
+    <tr><th>Object</th><th>State</th></tr>
+    <tr><td>flock wrap on Stop hook</td><td><span class="badge b-ok">active</span></td></tr>
+    <tr><td>c3i.slice unit</td><td><span class="badge b-ok">active</span></td></tr>
+    <tr><td>15 service drop-ins</td><td><span class="badge b-ok">active</span></td></tr>
+    <tr><td>c3i-health-publisher.{service,timer}</td><td><span class="badge b-ok">enabled</span></td></tr>
+    <tr><td>health-publish.sh</td><td><span class="badge b-ok">runs every 30 s</span></td></tr>
+    <tr><td>4 timer units</td><td><span class="badge b-ok">active</span></td></tr>
+    <tr><td>mistral.rs split</td><td><span class="badge b-warn">deferred (Rust refactor)</span></td></tr>
+  </table>
+</section>
+
+<section class="slide"><span class="num">11 / 12</span>
+  <h2>Impact on startup &amp; runtime</h2>
+  <ul>
+    <li><strong>Startup</strong>: same 30 s convergence, plus health snapshot at T+15 s</li>
+    <li><strong>CPU</strong>: kernel CFS throttles slice when &gt; 700% of CPU. Other host processes untouched.</li>
+    <li><strong>Memory</strong>: 32 G triggers reclaim, 38 G triggers cgroup-OOM (kills largest in slice, host stays alive)</li>
+    <li><strong>Hooks</strong>: idempotent under arbitrary fire rate</li>
+    <li><strong>Observability</strong>: any operator queries <code>:8090/health/services.json</code> for live truth</li>
+    <li><strong>Port safety</strong>: collisions refused at unit-start time</li>
+  </ul>
+</section>
+
+<section class="slide"><span class="num">12 / 12</span>
+  <h2>Remaining gaps + next steps</h2>
+  <ol>
+    <li><strong>mistral.rs split</strong> — single inference daemon + MoZ clients (Rust, 4-6 h)</li>
+    <li><strong>Zenoh REST</strong> — <code>:8000</code> not reachable in rootless podman; switch to <code>--net=host</code></li>
+    <li><strong>Health → Zenoh</strong> — once #2 fixed, publish to <code>indrajaal/l2/health/{unit}/state</code></li>
+    <li><strong>FerrisKey image</strong> — <code>podman login ghcr.io</code> still pending</li>
+    <li><strong>Pressure-stall publisher</strong> — emit cgroup throttle events to Zenoh</li>
+    <li><strong>Per-unit cap audit</strong> — sum 1170% &gt; slice 700% (intentional, doc'd)</li>
+  </ol>
+</section>
+
+</div>
+
+</body>
+</html>

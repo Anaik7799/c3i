@@ -1,0 +1,17 @@
+digraph CatScore {
+  rankdir=TB; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica";
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed"];
+
+  CACHE    [label="CACHE  · 5 ideas\nleader #1 (54.6)\n#1 #2 #7 #10 #20" fillcolor="#0e2a2a" color="#6ff"];
+  RAG      [label="RAG · 5 ideas\nleader #4 (45.5)\n#4 #5 #9 #35 #39" fillcolor="#0e2a1e" color="#3dd68c"];
+  ROUTER   [label="ROUTER · 5 ideas\nleader #3 (49.6)\n#3 #14 #21 #27 #34" fillcolor="#2a1e0e" color="#f5a623"];
+  AGENT    [label="AGENT · 7 ideas\nleader #8 (38.3)\n#7 #8 #13 #15 #25 #28 #30" fillcolor="#1e0e2a" color="#9b6cff"];
+  COMPRESS [label="COMPRESS · 3 ideas\nleader #11 (36.4)\n#11 #16 #36" fillcolor="#2a0e1e" color="#ff69b4"];
+  PERF     [label="PERF · 2 ideas\nleader #12 (36.3)\n#12 #32" fillcolor="#0e1e2a" color="#00bfff"];
+  KMS      [label="KMS · 7 ideas\nleader #17 (33.6)\n#17 #23 #38 #40 #41 #42" fillcolor="#0e0e2a" color="#99f"];
+  OBS      [label="OBS · 5 ideas\nleader #19 (32.9)\n#19 #26 #29 #33 #44" fillcolor="#1e2a0e" color="#ffe"];
+  SRE      [label="SRE · 3 ideas\nleader #18 (32.6)\n#18 #22 #24" fillcolor="#2a2a0e" color="#ff8"];
+  BUDGET   [label="BUDGET · 1 idea\nleader #6 (42.7)" fillcolor="#2a0e0e" color="#ff4757"];
+  SEC      [label="SEC · 2 ideas\nleader #31 (26.4)\n#31 #37"];
+  UX       [label="UX · 1 idea\n#43 (19.2)"];
+}

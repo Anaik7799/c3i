@@ -1,0 +1,18 @@
+{
+  "task": "116455937980437851",
+  "slug": "20260423-223639-task-116455937980437851-pass10-timeseries-sparklines",
+  "links": {
+    "journal": "https://vm-1.tail55d152.ts.net/c3i/task-id/116455937980437851/20260423-223639-task-116455937980437851-pass10-timeseries-sparklines-journal.md",
+    "analysis": "https://vm-1.tail55d152.ts.net/c3i/task-id/116455937980437851/20260423-223639-task-116455937980437851-pass10-timeseries-sparklines-analysis.html",
+    "deck": "https://vm-1.tail55d152.ts.net/c3i/task-id/116455937980437851/20260423-223639-task-116455937980437851-pass10-timeseries-sparklines-deck.html",
+    "dashboard": "https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/symbiosis.html",
+    "symbiosis_json": "https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/symbiosis.json",
+    "robustness_json": "https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/robustness.json",
+    "robustness_md": "https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/robustness.md",
+    "agents_json": "https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/agents.json",
+    "history_ndjson": "https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/history.ndjson",
+    "history_compactor_json": "https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/history-compactor.json",
+    "slo_state_json": "https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/slo-state.json",
+    "ops_status_json": "https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/ops-status.json"
+  }
+}

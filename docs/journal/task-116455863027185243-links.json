@@ -1,0 +1,32 @@
+{
+  "task": "116455863027185243",
+  "slug": "20260423-221733-task-116455863027185243-pass9-symbiosis-monitor",
+  "parent_chain": [
+    "116450171390820012",
+    "116452373655782093",
+    "116452500338698000",
+    "116452781999482098",
+    "116452825849720856",
+    "116455863027185243"
+  ],
+  "generated_at": "2026-04-23T20:20:06Z",
+  "links": {
+    "dashboard_live": "https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/symbiosis.html",
+    "dashboard_json": "https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/symbiosis.json",
+    "journal": "https://vm-1.tail55d152.ts.net/c3i/task-id/116455863027185243/20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-journal.md",
+    "analysis": "https://vm-1.tail55d152.ts.net/c3i/task-id/116455863027185243/20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-analysis.html",
+    "deck": "https://vm-1.tail55d152.ts.net/c3i/task-id/116455863027185243/20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-deck.html",
+    "diagram_ooda": "https://vm-1.tail55d152.ts.net/c3i/task-id/116455863027185243/20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-p9-ooda.png",
+    "diagram_arch": "https://vm-1.tail55d152.ts.net/c3i/task-id/116455863027185243/20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-p9-arch.png",
+    "diagram_metrics": "https://vm-1.tail55d152.ts.net/c3i/task-id/116455863027185243/20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-p9-metrics.png"
+  },
+  "systemd_units": [
+    "c3i-symbiosis-monitor",
+    "c3i-sa-plan-http",
+    "c3i-tls-proxy",
+    "c3i-sa-plan-default-scheduler"
+  ],
+  "zenoh_topic": "indrajaal/l5/ooda/symbiosis",
+  "canonical_cache": "/home/an/dev/ver/c3i/.c3i-context.json",
+  "smriti_live": "/home/an/dev/ver/c3i/sub-projects/c3i/data/kms/smriti.db"
+}

@@ -1,0 +1,312 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" font-family="'Didot', 'Bodoni MT', 'Georgia', serif">
+<!-- ═══════════════════════════════════════════════════════════════════
+     V2: THE CHRYSLER SPINE
+     Art Deco vertebral column — the Zenoh backbone as a Chrysler spire
+     Chakras at each vertebra. Data flows as golden streams.
+     Inspired by the Chrysler Building's crown + kundalini energy.
+     Silver, champagne, deep navy. Vertical emphasis.
+
+     10 Evolutions:
+     1. Basic spine → 2. Chrysler arches at each node → 3. Data streams
+     4. Metric badges → 5. Biomorphic icons per layer → 6. Art Deco border
+     7. Flowing curves between nodes → 8. Evolution as ascending elevator
+     9. Tensor heatmap sidebar → 10. Final: balanced, dramatic, vertical
+     ═══════════════════════════════════════════════════════════════════ -->
+<defs>
+  <linearGradient id="cs-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#0b0f1a"/><stop offset="100%" stop-color="#060810"/>
+  </linearGradient>
+  <linearGradient id="cs-silver" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#c0c0c0"/><stop offset="50%" stop-color="#a0a0a0"/>
+    <stop offset="100%" stop-color="#808080"/>
+  </linearGradient>
+  <linearGradient id="cs-champagne" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#8a7040" stop-opacity="0"/><stop offset="50%" stop-color="#d4b870"/>
+    <stop offset="100%" stop-color="#8a7040" stop-opacity="0"/>
+  </linearGradient>
+  <filter id="cs-glow"><feGaussianBlur stdDeviation="4" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <pattern id="cs-deco" width="40" height="40" patternUnits="userSpaceOnUse">
+    <rect width="40" height="40" fill="none"/>
+    <path d="M0 40 L20 0 L40 40" fill="none" stroke="#d4b870" stroke-width="0.3" opacity="0.05"/>
+  </pattern>
+</defs>
+
+<!-- Background -->
+<rect width="1200" height="1800" fill="url(#cs-bg)"/>
+<rect width="1200" height="1800" fill="url(#cs-deco)"/>
+
+<!-- Art Deco double border -->
+<rect x="25" y="25" width="1150" height="1750" fill="none" stroke="#d4b870" stroke-width="1.5" opacity="0.35"/>
+<rect x="32" y="32" width="1136" height="1736" fill="none" stroke="#d4b870" stroke-width="0.5" opacity="0.2"/>
+<!-- Deco corner blocks -->
+<g fill="#d4b870" opacity="0.15">
+  <rect x="25" y="25" width="15" height="15"/><rect x="1160" y="25" width="15" height="15"/>
+  <rect x="25" y="1760" width="15" height="15"/><rect x="1160" y="1760" width="15" height="15"/>
+</g>
+
+<!-- ═══════ TITLE ═══════ -->
+<line x1="200" y1="75" x2="1000" y2="75" stroke="#d4b870" stroke-width="1" opacity="0.3"/>
+<text x="600" y="65" text-anchor="middle" fill="#d4b870" font-size="11" letter-spacing="10" opacity="0.5">C3I INDRAJAAL</text>
+<text x="600" y="115" text-anchor="middle" fill="#d4b870" font-size="48" font-weight="bold" letter-spacing="10" filter="url(#cs-glow)">THE SPINE</text>
+<text x="600" y="150" text-anchor="middle" fill="#c0c0c0" font-size="16" letter-spacing="8" font-weight="300">ZENOH BACKBONE OF THE FRACTAL ORGANISM</text>
+<text x="600" y="175" text-anchor="middle" fill="#d4b870" font-size="13" font-family="'Noto Sans Devanagari', serif" letter-spacing="3" opacity="0.6">मेरुदण्ड — कुण्डलिनी शक्ति</text>
+<line x1="200" y1="195" x2="1000" y2="195" stroke="#d4b870" stroke-width="1" opacity="0.3"/>
+
+<!-- ═══════ THE CENTRAL SPINE ═══════ -->
+<!-- Main vertical line -->
+<line x1="600" y1="240" x2="600" y2="1400" stroke="#d4b870" stroke-width="3" opacity="0.25"/>
+<line x1="600" y1="240" x2="600" y2="1400" stroke="#c0c0c0" stroke-width="1" opacity="0.15"/>
+<!-- Chrysler-style arches flanking the spine -->
+<g stroke="#d4b870" fill="none" opacity="0.1" stroke-width="1">
+  <path d="M560 240 Q560 160, 600 160 Q640 160, 640 240"/>
+  <path d="M570 240 Q570 180, 600 180 Q630 180, 630 240"/>
+  <path d="M580 240 Q580 200, 600 200 Q620 200, 620 240"/>
+</g>
+
+<!-- ═══════ 8 VERTEBRAE (L7 bottom → L0 top) ═══════ -->
+
+<!-- L7 FEDERATION (y=1340) -->
+<g transform="translate(600, 1340)">
+  <!-- Chrysler arch node -->
+  <path d="M-70 0 Q-70 -25, 0 -25 Q70 -25, 70 0" fill="none" stroke="#c49b38" stroke-width="1.5" opacity="0.5"/>
+  <path d="M-50 0 Q-50 -15, 0 -15 Q50 -15, 50 0" fill="none" stroke="#c49b38" stroke-width="0.8" opacity="0.3"/>
+  <circle r="10" fill="#c49b38" opacity="0.2"/><circle r="5" fill="#c49b38" opacity="0.6"/>
+  <!-- Left info -->
+  <text x="-90" y="-8" fill="#c49b38" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L7</text>
+  <text x="-90" y="8" fill="#c49b38" font-size="11" text-anchor="end" letter-spacing="2">FEDERATION</text>
+  <text x="-90" y="22" fill="#7a8fa6" font-size="8" text-anchor="end" font-family="Inter, sans-serif">Gateway | Version vectors | HA election</text>
+  <!-- Right metric -->
+  <text x="90" y="-2" fill="#7a8fa6" font-size="9" font-family="Inter, sans-serif">Zero-downtime upgrades</text>
+  <text x="90" y="12" fill="#c49b38" font-size="8" font-family="'Noto Sans Devanagari', serif">सहस्रार — crown</text>
+</g>
+
+<!-- L6 ECOSYSTEM (y=1200) -->
+<g transform="translate(600, 1200)">
+  <path d="M-65 0 Q-65 -22, 0 -22 Q65 -22, 65 0" fill="none" stroke="#c75050" stroke-width="1.5" opacity="0.45"/>
+  <circle r="9" fill="#c75050" opacity="0.2"/><circle r="4.5" fill="#c75050" opacity="0.55"/>
+  <text x="-90" y="-8" fill="#c75050" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L6</text>
+  <text x="-90" y="8" fill="#c75050" font-size="11" text-anchor="end" letter-spacing="2">ECOSYSTEM</text>
+  <text x="-90" y="22" fill="#7a8fa6" font-size="8" text-anchor="end" font-family="Inter, sans-serif">Zenoh mesh | Quorum | A2A</text>
+  <text x="90" y="-2" fill="#7a8fa6" font-size="9" font-family="Inter, sans-serif">4 routers (TCP 7447)</text>
+  <text x="90" y="12" fill="#c75050" font-size="8" font-family="'Noto Sans Devanagari', serif">बिन्दु — point of unity</text>
+</g>
+
+<!-- L5 COGNITIVE (y=1060) -->
+<g transform="translate(600, 1060)">
+  <path d="M-65 0 Q-65 -22, 0 -22 Q65 -22, 65 0" fill="none" stroke="#2a9d8f" stroke-width="1.5" opacity="0.5"/>
+  <path d="M-45 0 Q-45 -12, 0 -12 Q45 -12, 45 0" fill="none" stroke="#2a9d8f" stroke-width="0.8" opacity="0.3"/>
+  <circle r="10" fill="#2a9d8f" opacity="0.2"/><circle r="5" fill="#2a9d8f" opacity="0.6"/>
+  <text x="-90" y="-8" fill="#2a9d8f" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L5</text>
+  <text x="-90" y="8" fill="#2a9d8f" font-size="11" text-anchor="end" letter-spacing="2">COGNITIVE</text>
+  <text x="-90" y="22" fill="#7a8fa6" font-size="8" text-anchor="end" font-family="Inter, sans-serif">OODA | Cortex | 6-tier inference</text>
+  <text x="90" y="-2" fill="#7a8fa6" font-size="9" font-family="Inter, sans-serif">52 GRL rules | 31 Rust modules</text>
+  <text x="90" y="12" fill="#2a9d8f" font-size="8" font-family="'Noto Sans Devanagari', serif">आज्ञा — the third eye</text>
+</g>
+
+<!-- L4 SYSTEM (y=920) -->
+<g transform="translate(600, 920)">
+  <path d="M-60 0 Q-60 -20, 0 -20 Q60 -20, 60 0" fill="none" stroke="#8a5cb8" stroke-width="1.5" opacity="0.45"/>
+  <circle r="8" fill="#8a5cb8" opacity="0.2"/><circle r="4" fill="#8a5cb8" opacity="0.5"/>
+  <text x="-90" y="-8" fill="#8a5cb8" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L4</text>
+  <text x="-90" y="8" fill="#8a5cb8" font-size="11" text-anchor="end" letter-spacing="2">SYSTEM</text>
+  <text x="-90" y="22" fill="#7a8fa6" font-size="8" text-anchor="end" font-family="Inter, sans-serif">Podman | 16 containers | 7-tier boot</text>
+  <text x="90" y="-2" fill="#7a8fa6" font-size="9" font-family="Inter, sans-serif">CPU governor | Apoptosis</text>
+  <text x="90" y="12" fill="#8a5cb8" font-size="8" font-family="'Noto Sans Devanagari', serif">विशुद्ध — purification</text>
+</g>
+
+<!-- L3 TRANSACTION (y=780) -->
+<g transform="translate(600, 780)">
+  <path d="M-55 0 Q-55 -18, 0 -18 Q55 -18, 55 0" fill="none" stroke="#4d7fff" stroke-width="1.5" opacity="0.45"/>
+  <circle r="8" fill="#4d7fff" opacity="0.2"/><circle r="4" fill="#4d7fff" opacity="0.5"/>
+  <text x="-90" y="-8" fill="#4d7fff" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L3</text>
+  <text x="-90" y="8" fill="#4d7fff" font-size="11" text-anchor="end" letter-spacing="2">TRANSACTION</text>
+  <text x="-90" y="22" fill="#7a8fa6" font-size="8" text-anchor="end" font-family="Inter, sans-serif">SQLite | Smriti | Planning state</text>
+  <text x="90" y="-2" fill="#7a8fa6" font-size="9" font-family="Inter, sans-serif">2,609 holons | FTS5 RAG</text>
+  <text x="90" y="12" fill="#4d7fff" font-size="8" font-family="'Noto Sans Devanagari', serif">अनाहत — the heart</text>
+</g>
+
+<!-- L2 COMPONENT (y=640) -->
+<g transform="translate(600, 640)">
+  <path d="M-50 0 Q-50 -16, 0 -16 Q50 -16, 50 0" fill="none" stroke="#4caf6a" stroke-width="1.5" opacity="0.45"/>
+  <circle r="7" fill="#4caf6a" opacity="0.2"/><circle r="3.5" fill="#4caf6a" opacity="0.5"/>
+  <text x="-90" y="-8" fill="#4caf6a" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L2</text>
+  <text x="-90" y="8" fill="#4caf6a" font-size="11" text-anchor="end" letter-spacing="2">COMPONENT</text>
+  <text x="-90" y="22" fill="#7a8fa6" font-size="8" text-anchor="end" font-family="Inter, sans-serif">A2UI catalog | Forms | Grids</text>
+  <text x="90" y="-2" fill="#7a8fa6" font-size="9" font-family="Inter, sans-serif">233 component types</text>
+  <text x="90" y="12" fill="#4caf6a" font-size="8" font-family="'Noto Sans Devanagari', serif">मणिपूर — jewel city</text>
+</g>
+
+<!-- L1 ATOMIC (y=500) -->
+<g transform="translate(600, 500)">
+  <path d="M-50 0 Q-50 -16, 0 -16 Q50 -16, 50 0" fill="none" stroke="#d4b870" stroke-width="1.5" opacity="0.5"/>
+  <circle r="7" fill="#d4b870" opacity="0.2"/><circle r="3.5" fill="#d4b870" opacity="0.6"/>
+  <text x="-90" y="-8" fill="#d4b870" font-size="14" font-weight="bold" text-anchor="end" letter-spacing="3">L1</text>
+  <text x="-90" y="8" fill="#d4b870" font-size="11" text-anchor="end" letter-spacing="2">ATOMIC</text>
+  <text x="-90" y="22" fill="#7a8fa6" font-size="8" text-anchor="end" font-family="Inter, sans-serif">NIF bridge | Debug | OTel</text>
+  <text x="90" y="-2" fill="#7a8fa6" font-size="9" font-family="Inter, sans-serif">125 NIF functions | 10 packages</text>
+  <text x="90" y="12" fill="#d4b870" font-size="8" font-family="'Noto Sans Devanagari', serif">स्वाधिष्ठान — own abode</text>
+</g>
+
+<!-- L0 CONSTITUTIONAL (y=360) — CROWN -->
+<g transform="translate(600, 360)">
+  <path d="M-80 0 Q-80 -35, 0 -35 Q80 -35, 80 0" fill="none" stroke="#d4b870" stroke-width="2" opacity="0.6" filter="url(#cs-glow)"/>
+  <path d="M-60 0 Q-60 -22, 0 -22 Q60 -22, 60 0" fill="none" stroke="#d4b870" stroke-width="1" opacity="0.3"/>
+  <path d="M-40 0 Q-40 -12, 0 -12 Q40 -12, 40 0" fill="none" stroke="#d4b870" stroke-width="0.5" opacity="0.2"/>
+  <circle r="12" fill="#d4b870" opacity="0.3" filter="url(#cs-glow)"/>
+  <circle r="6" fill="#0b0f1a"/><circle r="3" fill="#d4b870"/>
+  <text x="-100" y="-12" fill="#d4b870" font-size="16" font-weight="bold" text-anchor="end" letter-spacing="4" filter="url(#cs-glow)">L0</text>
+  <text x="-100" y="6" fill="#d4b870" font-size="12" text-anchor="end" letter-spacing="3">CONSTITUTIONAL</text>
+  <text x="-100" y="22" fill="#7a8fa6" font-size="8" text-anchor="end" font-family="Inter, sans-serif">Guardian | Psi-0..5 | 2oo3 voting</text>
+  <text x="100" y="-2" fill="#d4b870" font-size="10" font-family="Inter, sans-serif">Severity: INFINITE</text>
+  <text x="100" y="14" fill="#d4b870" font-size="9" font-family="'Noto Sans Devanagari', serif">मूलाधार — indestructible root</text>
+</g>
+
+<!-- ═══════ DATA STREAMS (flowing between nodes) ═══════ -->
+<g stroke="#d4b870" stroke-width="0.5" opacity="0.1" fill="none">
+  <!-- Left stream (Ida - data) -->
+  <path d="M520 360 C480 430, 520 480, 520 500 C520 570, 480 620, 520 640 C560 660, 520 740, 520 780 C520 850, 480 900, 520 920 C560 940, 520 1020, 520 1060 C520 1130, 480 1180, 520 1200 C560 1220, 520 1300, 520 1340"/>
+  <!-- Right stream (Pingala - control) -->
+  <path d="M680 360 C720 430, 680 480, 680 500 C680 570, 720 620, 680 640 C640 660, 680 740, 680 780 C680 850, 720 900, 680 920 C640 940, 680 1020, 680 1060 C680 1130, 720 1180, 680 1200 C640 1220, 680 1300, 680 1340"/>
+</g>
+
+<!-- ═══════ TENSOR HEATMAP (right sidebar) ═══════ -->
+<g transform="translate(940, 360)">
+  <text x="80" y="-10" text-anchor="middle" fill="#d4b870" font-size="9" letter-spacing="3">TENSOR</text>
+  <text x="80" y="2" text-anchor="middle" fill="#7a8fa6" font-size="7" letter-spacing="2" font-family="Inter, sans-serif">8x7 BIOMORPHIC</text>
+  <!-- Mini heatmap: 8 rows x 7 cols, each 16x12 -->
+  <!-- L0 row -->
+  <rect x="16" y="15" width="14" height="10" rx="1" fill="#c75050" opacity="0.4"/>
+  <rect x="32" y="15" width="14" height="10" rx="1" fill="#c75050" opacity="0.4"/>
+  <rect x="48" y="15" width="14" height="10" rx="1" fill="#c75050" opacity="0.4"/>
+  <rect x="64" y="15" width="14" height="10" rx="1" fill="#1e2a3a" opacity="0.2"/>
+  <rect x="80" y="15" width="14" height="10" rx="1" fill="#c75050" opacity="0.4"/>
+  <rect x="96" y="15" width="14" height="10" rx="1" fill="#1e2a3a" opacity="0.2"/>
+  <rect x="112" y="15" width="14" height="10" rx="1" fill="#c75050" opacity="0.4"/>
+  <text x="8" y="24" fill="#c75050" font-size="6" text-anchor="end" font-family="Inter, sans-serif">L0</text>
+  <!-- L1 row -->
+  <rect x="16" y="28" width="14" height="10" rx="1" fill="#d4b870" opacity="0.35"/>
+  <rect x="32" y="28" width="14" height="10" rx="1" fill="#d4b870" opacity="0.35"/>
+  <rect x="48" y="28" width="14" height="10" rx="1" fill="#d4b870" opacity="0.35"/>
+  <rect x="64" y="28" width="14" height="10" rx="1" fill="#1e2a3a" opacity="0.2"/>
+  <rect x="80" y="28" width="14" height="10" rx="1" fill="#d4b870" opacity="0.35"/>
+  <rect x="96" y="28" width="14" height="10" rx="1" fill="#1e2a3a" opacity="0.2"/>
+  <rect x="112" y="28" width="14" height="10" rx="1" fill="#1e2a3a" opacity="0.2"/>
+  <text x="8" y="37" fill="#d4b870" font-size="6" text-anchor="end" font-family="Inter, sans-serif">L1</text>
+  <!-- L2 -->
+  <rect x="16" y="41" width="14" height="10" rx="1" fill="#4caf6a" opacity="0.3"/>
+  <rect x="32" y="41" width="14" height="10" rx="1" fill="#1e2a3a" opacity="0.2"/>
+  <rect x="48" y="41" width="14" height="10" rx="1" fill="#4caf6a" opacity="0.3"/>
+  <rect x="64" y="41" width="14" height="10" rx="1" fill="#1e2a3a" opacity="0.2"/>
+  <rect x="80" y="41" width="14" height="10" rx="1" fill="#4caf6a" opacity="0.3"/>
+  <rect x="96" y="41" width="14" height="10" rx="1" fill="#1e2a3a" opacity="0.2"/>
+  <rect x="112" y="41" width="14" height="10" rx="1" fill="#1e2a3a" opacity="0.2"/>
+  <text x="8" y="50" fill="#4caf6a" font-size="6" text-anchor="end" font-family="Inter, sans-serif">L2</text>
+  <!-- L3 (all filled) -->
+  <rect x="16" y="54" width="14" height="10" rx="1" fill="#4d7fff" opacity="0.35"/>
+  <rect x="32" y="54" width="14" height="10" rx="1" fill="#4d7fff" opacity="0.35"/>
+  <rect x="48" y="54" width="14" height="10" rx="1" fill="#4d7fff" opacity="0.35"/>
+  <rect x="64" y="54" width="14" height="10" rx="1" fill="#4d7fff" opacity="0.35"/>
+  <rect x="80" y="54" width="14" height="10" rx="1" fill="#4d7fff" opacity="0.35"/>
+  <rect x="96" y="54" width="14" height="10" rx="1" fill="#4d7fff" opacity="0.35"/>
+  <rect x="112" y="54" width="14" height="10" rx="1" fill="#4d7fff" opacity="0.35"/>
+  <text x="8" y="63" fill="#4d7fff" font-size="6" text-anchor="end" font-family="Inter, sans-serif">L3</text>
+  <!-- L4 -->
+  <rect x="16" y="67" width="14" height="10" rx="1" fill="#8a5cb8" opacity="0.3"/>
+  <rect x="32" y="67" width="14" height="10" rx="1" fill="#8a5cb8" opacity="0.3"/>
+  <rect x="48" y="67" width="14" height="10" rx="1" fill="#8a5cb8" opacity="0.3"/>
+  <rect x="64" y="67" width="14" height="10" rx="1" fill="#1e2a3a" opacity="0.2"/>
+  <rect x="80" y="67" width="14" height="10" rx="1" fill="#8a5cb8" opacity="0.3"/>
+  <rect x="96" y="67" width="14" height="10" rx="1" fill="#1e2a3a" opacity="0.2"/>
+  <rect x="112" y="67" width="14" height="10" rx="1" fill="#8a5cb8" opacity="0.3"/>
+  <text x="8" y="76" fill="#8a5cb8" font-size="6" text-anchor="end" font-family="Inter, sans-serif">L4</text>
+  <!-- L5 (all filled) -->
+  <rect x="16" y="80" width="14" height="10" rx="1" fill="#2a9d8f" opacity="0.35"/>
+  <rect x="32" y="80" width="14" height="10" rx="1" fill="#2a9d8f" opacity="0.35"/>
+  <rect x="48" y="80" width="14" height="10" rx="1" fill="#2a9d8f" opacity="0.35"/>
+  <rect x="64" y="80" width="14" height="10" rx="1" fill="#2a9d8f" opacity="0.35"/>
+  <rect x="80" y="80" width="14" height="10" rx="1" fill="#2a9d8f" opacity="0.35"/>
+  <rect x="96" y="80" width="14" height="10" rx="1" fill="#2a9d8f" opacity="0.35"/>
+  <rect x="112" y="80" width="14" height="10" rx="1" fill="#2a9d8f" opacity="0.35"/>
+  <text x="8" y="89" fill="#2a9d8f" font-size="6" text-anchor="end" font-family="Inter, sans-serif">L5</text>
+  <!-- L6 -->
+  <rect x="16" y="93" width="14" height="10" rx="1" fill="#c75050" opacity="0.3"/>
+  <rect x="32" y="93" width="14" height="10" rx="1" fill="#c75050" opacity="0.3"/>
+  <rect x="48" y="93" width="14" height="10" rx="1" fill="#c75050" opacity="0.3"/>
+  <rect x="64" y="93" width="14" height="10" rx="1" fill="#1e2a3a" opacity="0.2"/>
+  <rect x="80" y="93" width="14" height="10" rx="1" fill="#c75050" opacity="0.3"/>
+  <rect x="96" y="93" width="14" height="10" rx="1" fill="#1e2a3a" opacity="0.2"/>
+  <rect x="112" y="93" width="14" height="10" rx="1" fill="#c75050" opacity="0.3"/>
+  <text x="8" y="102" fill="#c75050" font-size="6" text-anchor="end" font-family="Inter, sans-serif">L6</text>
+  <!-- L7 (all filled) -->
+  <rect x="16" y="106" width="14" height="10" rx="1" fill="#c49b38" opacity="0.35"/>
+  <rect x="32" y="106" width="14" height="10" rx="1" fill="#c49b38" opacity="0.35"/>
+  <rect x="48" y="106" width="14" height="10" rx="1" fill="#c49b38" opacity="0.35"/>
+  <rect x="64" y="106" width="14" height="10" rx="1" fill="#c49b38" opacity="0.35"/>
+  <rect x="80" y="106" width="14" height="10" rx="1" fill="#c49b38" opacity="0.35"/>
+  <rect x="96" y="106" width="14" height="10" rx="1" fill="#c49b38" opacity="0.35"/>
+  <rect x="112" y="106" width="14" height="10" rx="1" fill="#c49b38" opacity="0.35"/>
+  <text x="8" y="115" fill="#c49b38" font-size="6" text-anchor="end" font-family="Inter, sans-serif">L7</text>
+
+  <text x="80" y="130" text-anchor="middle" fill="#d4b870" font-size="10" font-family="Inter, sans-serif" opacity="0.6">47/56</text>
+  <text x="80" y="142" text-anchor="middle" fill="#d4b870" font-size="14" font-weight="bold">83.9%</text>
+</g>
+
+<!-- ═══════ METRICS BAR ═══════ -->
+<g transform="translate(0, 1430)">
+  <line x1="80" y1="0" x2="1120" y2="0" stroke="#d4b870" stroke-width="0.5" opacity="0.3"/>
+  <g font-family="Inter, sans-serif" text-anchor="middle">
+    <text x="180" y="30" fill="#d4b870" font-size="30" font-weight="bold">5,436</text>
+    <text x="180" y="48" fill="#7a8fa6" font-size="8" letter-spacing="3">TESTS PASSING</text>
+    <text x="400" y="30" fill="#c0c0c0" font-size="30" font-weight="bold">336</text>
+    <text x="400" y="48" fill="#7a8fa6" font-size="8" letter-spacing="3">GLEAM MODULES</text>
+    <text x="600" y="30" fill="#d4b870" font-size="30" font-weight="bold">125</text>
+    <text x="600" y="48" fill="#7a8fa6" font-size="8" letter-spacing="3">NIF FUNCTIONS</text>
+    <text x="800" y="30" fill="#c75050" font-size="30" font-weight="bold">2,609</text>
+    <text x="800" y="48" fill="#7a8fa6" font-size="8" letter-spacing="3">HOLONS</text>
+    <text x="1000" y="30" fill="#2a9d8f" font-size="30" font-weight="bold">9,104</text>
+    <text x="1000" y="48" fill="#7a8fa6" font-size="8" letter-spacing="3">RUST LOC</text>
+  </g>
+  <line x1="80" y1="60" x2="1120" y2="60" stroke="#d4b870" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- ═══════ EVOLUTION TIMELINE ═══════ -->
+<g transform="translate(80, 1530)">
+  <text x="520" y="0" text-anchor="middle" fill="#d4b870" font-size="10" letter-spacing="6">GENESIS TO DHARMA</text>
+  <!-- Stepped Art Deco timeline -->
+  <g font-family="Inter, sans-serif" font-size="8">
+    <rect x="0" y="15" width="4" height="30" fill="#7a8fa6" opacity="0.3"/>
+    <text x="15" y="28" fill="#7a8fa6">Mar 29 Genesis</text>
+    <text x="15" y="40" fill="#7a8fa6" opacity="0.5">Empty void</text>
+
+    <rect x="200" y="15" width="4" height="30" fill="#4d7fff" opacity="0.4"/>
+    <text x="215" y="28" fill="#4d7fff">v22.4.0 CORTEX</text>
+    <text x="215" y="40" fill="#7a8fa6" opacity="0.5">25 commands, voice</text>
+
+    <rect x="430" y="15" width="4" height="30" fill="#c49b38" opacity="0.4"/>
+    <text x="445" y="28" fill="#c49b38">v22.5.0 CORTEX+</text>
+    <text x="445" y="40" fill="#7a8fa6" opacity="0.5">8,000 LOC, 21 features</text>
+
+    <rect x="660" y="15" width="4" height="30" fill="#c75050" opacity="0.4"/>
+    <text x="675" y="28" fill="#c75050">v22.6.0 DHARMA</text>
+    <text x="675" y="40" fill="#7a8fa6" opacity="0.5">4,077 tests, truth rule</text>
+
+    <rect x="880" y="15" width="6" height="30" fill="#d4b870" opacity="0.6"/>
+    <text x="895" y="28" fill="#d4b870" font-weight="bold">v22.6.1 DHARMA+</text>
+    <text x="895" y="40" fill="#d4b870" opacity="0.7">5,436 tests, 125 NIFs</text>
+  </g>
+  <line x1="2" y1="30" x2="883" y2="30" stroke="#d4b870" stroke-width="0.5" opacity="0.15"/>
+</g>
+
+<!-- ═══════ BOTTOM VERSE ═══════ -->
+<text x="600" y="1680" text-anchor="middle" fill="#d4b870" font-size="16" font-family="'Noto Sans Devanagari', serif" letter-spacing="2">
+  सूत्रे मणिगणा इव — Like gems strung on a thread
+</text>
+<text x="600" y="1705" text-anchor="middle" fill="#c0c0c0" font-size="11" font-style="italic" font-weight="300" font-family="Inter, sans-serif">
+  All beings are strung on Me, as gems upon a thread
+</text>
+<text x="600" y="1725" text-anchor="middle" fill="#7a8fa6" font-size="9" font-family="Inter, sans-serif">Bhagavad Gita 7.7 — The Zenoh backbone IS the thread</text>
+
+<text x="600" y="1758" text-anchor="middle" fill="#d4b870" font-size="9" font-family="Inter, sans-serif" letter-spacing="3" opacity="0.3">C3I INDRAJAAL v22.6.1-DHARMA | THE CHRYSLER SPINE | APRIL 2026</text>
+</svg>

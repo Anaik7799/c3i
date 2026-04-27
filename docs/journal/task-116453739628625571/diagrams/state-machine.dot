@@ -1,0 +1,19 @@
+digraph StateMachine {
+  rankdir=LR;
+  bgcolor="#0b0f14";
+  node [shape=circle, style="filled", fontname="Inter", fontcolor="#e6edf3", color="#30363d"];
+  edge [color="#7d8590", fontname="Inter", fontcolor="#c9d1d9"];
+
+  Observe  [label="Observe",  fillcolor="#1f6feb"];
+  Orient   [label="Orient",   fillcolor="#0969da"];
+  Decide   [label="Decide",   fillcolor="#9e6a03"];
+  Act      [label="Act",      fillcolor="#238636"];
+  Verify   [label="Verify",   fillcolor="#6e40c9"];
+  Quarantine [label="Quar.",  fillcolor="#da3633"];
+
+  Observe -> Orient -> Decide -> Act -> Verify -> Observe;
+  Decide -> Quarantine [label="Ψ fail", color="#f85149"];
+  Act    -> Quarantine [label="CB open", color="#f85149"];
+  Verify -> Quarantine [label="gate fail", color="#f85149"];
+  Quarantine -> Observe [label="HITL clear", style=dashed];
+}

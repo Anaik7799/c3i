@@ -4,7 +4,7 @@ Instead of reacting to problems, PREDICT them using the system's own math:
 
 ```bash
 # Run Gleam health calculus
-cd lib/cepaf_gleam && gleam run -m cepaf_gleam/claude_compute 2>&1 | grep -v warning
+cd lib/cepaf_gleam && gleam run -m cepaf_gleam/gemini_compute 2>&1 | grep -v warning
 
 # What the derivatives tell you:
 # d(H)/dt > 0 : System improving, keep current approach

@@ -22,11 +22,11 @@ These modules are subject to IEC 61508 SIL-6 compliance (Biomorphic Extended).
 - **Rule**: Threat-level-based escalation protocol
 - **Pattern**: Founder's Directive protection (SC-FOUNDER-007)
 # Cross-Cutting Constraint References
-> SC-HOLON-001 to SC-HOLON-020, AOR-HOLON-001 to AOR-HOLON-020: Holon state sovereignty — see CLAUDE.md §5.0, §9.0
-> SC-REG-001+, AOR-REG-001 to AOR-REG-012: Immutable register append-only blocks — see CLAUDE.md §5.0, §9.0
-> SC-DBLOCAL-001 to SC-DBLOCAL-004: Local database access (WAL, pooling, <1ms) — see CLAUDE.md §5.0
-> SC-DBCROSS-001 to SC-DBCROSS-004: Cross-holon access via Zenoh only (saga, version vectors) — see CLAUDE.md §5.0
-> SC-CONST-001+, AOR-CONST-001 to AOR-CONST-005: Constitutional governance, Guardian supremacy — see CLAUDE.md §5.0, §9.0
+> SC-HOLON-001 to SC-HOLON-020, AOR-HOLON-001 to AOR-HOLON-020: Holon state sovereignty — see GEMINI.md §5.0, §9.0
+> SC-REG-001+, AOR-REG-001 to AOR-REG-012: Immutable register append-only blocks — see GEMINI.md §5.0, §9.0
+> SC-DBLOCAL-001 to SC-DBLOCAL-004: Local database access (WAL, pooling, <1ms) — see GEMINI.md §5.0
+> SC-DBCROSS-001 to SC-DBCROSS-004: Cross-holon access via Zenoh only (saga, version vectors) — see GEMINI.md §5.0
+> SC-CONST-001+, AOR-CONST-001 to AOR-CONST-005: Constitutional governance, Guardian supremacy — see GEMINI.md §5.0, §9.0
 # Mandatory Patterns
 # Error Handling
 - Always return `{:ok, result}` or `{:error, reason}`

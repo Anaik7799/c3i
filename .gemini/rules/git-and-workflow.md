@@ -16,7 +16,7 @@ WHAT: Technical approach
 Layer: L1-CODE(N), L3-SYSTEM(N)
 STAMP: SC-XXX-NNN
 Task: SNN-TNNN
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+Co-Authored-By: Gemini Opus 4.6 <noreply@anthropic.com>
 ```
 **Examples** (em-dash context channel):
 ```
@@ -52,7 +52,7 @@ git commit -m "$(cat <<'EOF'
 fix(scope): description — context
 WHY: cause | WHAT: approach
 Layer: L1-CODE(N) | STAMP: SC-XXX-NNN | Task: SNN-TNNN
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+Co-Authored-By: Gemini Opus 4.6 <noreply@anthropic.com>
 EOF
 )"
 ```
@@ -88,4 +88,4 @@ EOF
 | ./sa-plan returns error | Check `ls data/smriti/planning.db` and verify Rust binary: `./target/release/sa-plan-daemon status` |
 | Compilation fails after merge | `git revert HEAD` and investigate |
 # Version Updates
-Update on release: mix.exs, CLAUDE.md, CHANGELOG.md, lib/indrajaal/version.ex. Use Keep a Changelog format.
+Update on release: mix.exs, GEMINI.md, CHANGELOG.md, lib/indrajaal/version.ex. Use Keep a Changelog format.

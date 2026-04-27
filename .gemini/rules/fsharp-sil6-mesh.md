@@ -9,10 +9,10 @@ paths:
 # Overview
 This rule file governs all F# SIL-6 mesh operations including swarming, observability, cortex integration, and multiverse capabilities.
 # Cross-Cutting Constraint References
-> SC-NET-001/002, AOR-NET-001: All F# projects MUST target net10.0 — see CLAUDE.md §13.0
-> SC-FFI-001/002: F# Zenoh FFI tests MUST set LD_LIBRARY_PATH, ZENOH_USE_NATIVE=true — see CLAUDE.md §13.0
-> SC-CEP-005: All F# orchestration MUST be pre-compiled (no .fsx in production) — see CLAUDE.md §13.0
-> SC-DBNAME-001 to SC-DBNAME-010: UHI database naming for cross-holon references — see CLAUDE.md §5.0
+> SC-NET-001/002, AOR-NET-001: All F# projects MUST target net10.0 — see GEMINI.md §13.0
+> SC-FFI-001/002: F# Zenoh FFI tests MUST set LD_LIBRARY_PATH, ZENOH_USE_NATIVE=true — see GEMINI.md §13.0
+> SC-CEP-005: All F# orchestration MUST be pre-compiled (no .fsx in production) — see GEMINI.md §13.0
+> SC-DBNAME-001 to SC-DBNAME-010: UHI database naming for cross-holon references — see GEMINI.md §5.0
 # STAMP Constraints (F# Mesh)
 | ID | Constraint | Severity |
 |----|------------|----------|
@@ -28,7 +28,7 @@ This rule file governs all F# SIL-6 mesh operations including swarming, observab
 | SC-MESH-010 | Graceful degradation before failure | HIGH |
 | SC-MESH-011 | Health checks MUST verify Biological Pulse (Zenoh pub/sub) | CRITICAL |
 # AOR Rules
-> AOR-MESH-001 to AOR-MESH-010 — defined in CLAUDE.md §9.0
+> AOR-MESH-001 to AOR-MESH-010 — defined in GEMINI.md §9.0
 > Key: Use `sa-up` for mesh ops, checkpoint before shutdown, 2oo3 consensus, FPPS validation, Digital Twin authoritative
 # Boot Sequence Stages
 ```
@@ -246,5 +246,5 @@ SmokeTestOrchestrator.printSummary state
 - `lib/cepaf/src/Cepaf/Mesh/SmokeTestPublisher.fs` - Smoke test Zenoh publisher
 - `lib/cepaf/src/Cepaf/Mesh/SIL6BiomorphicOrchestrator.fs` - Unified SIL-6 orchestrator
 - `lib/cepaf/src/Cepaf/Mesh/ZenohCheckpoints.fs` - Boot checkpoint messaging
-- `.claude/rules/zenoh-telemetry-mandatory.md` - Zenoh constraints
-- `CLAUDE.md` - Master system specification
+- `.gemini/rules/zenoh-telemetry-mandatory.md` - Zenoh constraints
+- `GEMINI.md` - Master system specification

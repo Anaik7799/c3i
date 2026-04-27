@@ -247,7 +247,10 @@
       "mcp__playwright__browser_evaluate",
       "mcp__playwright__browser_wait_for",
       "mcp__playwright__browser_tabs",
-      "mcp__playwright__browser_close"
+      "mcp__playwright__browser_close",
+      "Write(/home/an/dev/ver/c3i/.pi/**)",
+      "Bash(mkdir:*)",
+      "Bash(node .pi/pi-ctl.mjs:*)"
     ],
     "additionalDirectories": [
       "/home/an/gdrive"
@@ -264,6 +267,17 @@
             "statusMessage": "C3I bootstrap + last session + task recommend..."
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/an/dev/ver/c3i && PI_PING=$(GOOGLE_API_KEY=${GOOGLE_API_KEY:-$GEMINI_API_KEY} timeout 20 node sub-projects/pi-mono/packages/coding-agent/dist/cli.js --provider google --model gemini-2.5-flash --print 'Reply with exactly: PI_READY' </dev/null 2>&1 | grep -o 'PI_READY' | head -1) && if [ \"$PI_PING\" = \"PI_READY\" ]; then echo '{\"systemMessage\":\"Pi-mono: CONNECTED (google/gemini-2.5-flash) | /pi-prompt active | 15 providers\"}'; else echo '{\"systemMessage\":\"Pi-mono: OFFLINE\"}'; fi",
+            "timeout": 25,
+            "async": true,
+            "statusMessage": "Pi-mono warm-up ping..."
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -276,6 +290,16 @@
             "statusMessage": "ZK-RAG recall pipeline (C3I + FY27)..."
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "true",
+            "timeout": 2,
+            "statusMessage": "Pi ready (one-shot dispatch mode)"
+          }
+        ]
       }
     ],
     "Stop": [
@@ -283,10 +307,28 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/an/dev/ver/c3i && COMMITS=$(git log --oneline --since='12 hours ago' | wc -l) && FILES=$(git diff --stat HEAD~${COMMITS:-1}..HEAD 2>/dev/null | tail -1 | grep -oP '\\d+ file' | grep -oP '\\d+' || echo 0) && ./sub-projects/c3i/target/release/sa-plan-daemon session-save --session-id \"$(date +%Y%m%d-%H%M)\" --commits $COMMITS --files-modified ${FILES:-0} --tasks-completed 0 --effectiveness 0.85 2>/dev/null && ./sub-projects/c3i/target/release/sa-plan-daemon ingest-docs 2>/dev/null && cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten import .. 2>/dev/null && echo '{\"systemMessage\":\"Session saved + dual Zettelkasten ingested.\"}'",
+            "command": "flock -n /tmp/c3i-stop-hook.lock -c '/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/gleam run -m scripts/sysd/stop_hook' || echo '{\"systemMessage\":\"Stop-hook ingest already running, skipped (flock).\"}'",
             "timeout": 60,
             "async": true,
             "statusMessage": "Saving session + ingesting to dual Zettelkasten..."
+          },
+          {
+            "type": "command",
+            "command": "cd /home/an/dev/ver/c3i && SID=\"claude-$(date +%Y%m%d-%H%M)-$$\" && NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ) && sqlite3 sub-projects/c3i/data/kms/smriti.db \"INSERT OR REPLACE INTO session_metrics (session_id, agent, started_at, ended_at, zk_recalls, zk_citations, tool_calls, tokens_input, tokens_output, cost_usd, cache_hit_ratio, provider, model) VALUES ('$SID','claude','$NOW','$NOW',0,0,0,0,0,0.0,0.0,'anthropic','claude-opus-4-6');\" 2>/dev/null || true",
+            "timeout": 10,
+            "async": true,
+            "statusMessage": "Persisting session metrics to smriti.db (Pi parity)"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/an/dev/ver/c3i && node .pi/pi-ctl.mjs stop 2>/dev/null",
+            "timeout": 5,
+            "async": true,
+            "statusMessage": "Stopping Pi-RPC subprocess..."
           }
         ]
       }
@@ -320,7 +362,34 @@
             "statusMessage": "Fractal criticality governance gate"
           }
         ]
+      },
+      {
+        "matcher": "mcp__patrol__.*|mcp__marionette__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/an/dev/ver/c3i/.claude/scripts/patrol-zenoh-bridge.sh hook",
+            "timeout": 5,
+            "async": true,
+            "statusMessage": "Publishing patrol/marionette event to Zenoh"
+          }
+        ]
       }
     ]
+  },
+  "mcpServers": {
+    "patrol": {
+      "type": "stdio",
+      "command": "/home/an/dev/ver/c3i/sub-projects/sutra/fluffychat/tool/run-patrol",
+      "env": {
+        "PROJECT_ROOT": "/home/an/dev/ver/c3i/sub-projects/sutra/fluffychat",
+        "PATROL_FLAGS": "",
+        "SHOW_TERMINAL": "false"
+      }
+    },
+    "marionette": {
+      "type": "stdio",
+      "command": "marionette_mcp"
+    }
   }
 }

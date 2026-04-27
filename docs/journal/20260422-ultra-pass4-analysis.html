@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ULTRA-PASS4: Deep System Analysis — C3I v22.10.1</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--accent:#00d4aa;--border:#1e2a3a;--success:#3dd68c;--warn:#f5a623;--critical:#ff4757;--muted:#7a8fa6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+a{color:var(--accent);text-decoration:none}
+.hdr{position:sticky;top:0;z-index:200;background:rgba(10,14,23,.92);backdrop-filter:blur(12px);border-bottom:2px solid var(--critical);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{font-size:1.2rem;font-weight:800;color:var(--critical)}.ver{background:rgba(255,71,87,.12);color:var(--critical);border:1px solid rgba(255,71,87,.3);border-radius:20px;padding:2px 10px;font-size:.72rem}
+.ts{margin-left:auto;background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.2);border-radius:6px;padding:4px 12px;font-size:.72rem;font-family:monospace;color:var(--accent)}
+main{max-width:1440px;margin:0 auto;padding:24px}
+.sec{font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:28px 0 12px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.kg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:16px}
+.k{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.kn{font-size:2rem;font-weight:800;line-height:1}.kl{font-size:.65rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.8px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+thead th{background:rgba(0,0,0,.3);color:var(--muted);font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+tbody td{padding:7px 10px;border-bottom:1px solid rgba(30,42,58,.5)}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+.b{display:inline-block;padding:2px 7px;border-radius:10px;font-size:.65rem;font-weight:600}
+.b-cr{background:rgba(255,71,87,.15);color:var(--critical)}.b-hi{background:rgba(245,166,35,.15);color:var(--warn)}.b-ok{background:rgba(0,212,170,.12);color:var(--accent)}.b-su{background:rgba(61,214,140,.12);color:var(--success)}
+.gap{border-left:4px solid var(--critical);padding:12px 16px;margin:8px 0;border-radius:0 8px 8px 0;background:var(--card)}
+.gap h4{color:var(--critical);font-size:.85rem;margin-bottom:6px}
+.gap p{font-size:.78rem;color:var(--muted)}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.ft{text-align:center;padding:20px;color:var(--muted);font-size:.7rem;border-top:1px solid var(--border);margin-top:32px}
+@media(max-width:768px){.kg{grid-template-columns:repeat(2,1fr)}.r2,.r3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <span class="logo">ULTRA-PASS4: Deep System Analysis</span>
+  <span class="ver">v22.10.1 | P0</span>
+  <a class="ts" href="https://vm-1.tail55d152.ts.net:8443/task-id/116446490148048164">Task 116446490148048164</a>
+</div>
+<main>
+
+<div class="sec">System Scale (2026-04-22)</div>
+<div class="kg">
+  <div class="k"><div class="kn" style="color:var(--accent)">214K</div><div class="kl">Total LOC</div></div>
+  <div class="k"><div class="kn" style="color:var(--success)">718</div><div class="kl">Files</div></div>
+  <div class="k"><div class="kn" style="color:var(--accent)">424</div><div class="kl">Gleam Src</div></div>
+  <div class="k"><div class="kn" style="color:var(--success)">223</div><div class="kl">Test Files</div></div>
+  <div class="k"><div class="kn" style="color:var(--warn)">71</div><div class="kl">Rust Files</div></div>
+  <div class="k"><div class="kn" style="color:var(--accent)">57</div><div class="kl">Lustre Pages</div></div>
+  <div class="k"><div class="kn" style="color:var(--warn)">34</div><div class="kl">Wisp APIs</div></div>
+  <div class="k"><div class="kn" style="color:var(--success)">50</div><div class="kl">TUI Views</div></div>
+  <div class="k"><div class="kn" style="color:var(--accent)">8,979</div><div class="kl">Tests Pass</div></div>
+  <div class="k"><div class="kn" style="color:var(--success)">31,775</div><div class="kl">ZK Holons</div></div>
+  <div class="k"><div class="kn" style="color:var(--warn)">62</div><div class="kl">HTTP Routes</div></div>
+  <div class="k"><div class="kn" style="color:var(--critical)">5</div><div class="kl">Critical Gaps</div></div>
+</div>
+
+<div class="sec">Critical Gaps Found (by FMEA RPN)</div>
+
+<div class="gap"><h4>GAP-2: Observability Theater (RPN 336)</h4><p>zenoh_otel.gleam exists but 0/57 Lustre pages import it. SC-GLM-ZEN-001 violated. Zero production OTel spans.</p></div>
+<div class="gap"><h4>GAP-1: Pi Bridge Dead Code (RPN 252)</h4><p>6 Pi bridge modules, 3,494 LOC, zero production imports. Bridge types exist but no consumer actor wired.</p></div>
+<div class="gap" style="border-color:var(--warn)"><h4>GAP-3: Triple Interface at 60% (RPN 168)</h4><p>23/57 pages missing Wisp REST API. 7/57 missing TUI view. SC-GLM-UI-001 partially violated.</p></div>
+<div class="gap" style="border-color:var(--warn)"><h4>GAP-4: RETE-UL 2 Imports Only (RPN 140)</h4><p>52 GRL rules across 13 domains. Only 2 Gleam modules import the engine. 10 decision points identified for migration.</p></div>
+<div class="gap" style="border-color:var(--accent)"><h4>GAP-5: No Self-Awareness Dashboard (RPN 90)</h4><p>No tracking of ZK citation rate, hook fire rate, cache hit ratio, Zenoh message volume, MCP tool usage.</p></div>
+
+<div class="sec">FMEA Risk Matrix</div>
+<div class="card">
+<table>
+<thead><tr><th>Failure Mode</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Gap</th><th>Fix Priority</th></tr></thead>
+<tbody>
+<tr><td>Observability theater — spans exist but unpublished</td><td>8</td><td>7</td><td>6</td><td><span class="b b-cr">336</span></td><td>GAP-2</td><td>P0</td></tr>
+<tr><td>Pi bridge dead code — 3,494 LOC no consumers</td><td>7</td><td>6</td><td>6</td><td><span class="b b-cr">252</span></td><td>GAP-1</td><td>P0</td></tr>
+<tr><td>ZK recall ignored by agents</td><td>9</td><td>9</td><td>3</td><td><span class="b b-cr">243</span></td><td>AP1</td><td>P0</td></tr>
+<tr><td>Triple interface incomplete (60%)</td><td>6</td><td>7</td><td>4</td><td><span class="b b-hi">168</span></td><td>GAP-3</td><td>P1</td></tr>
+<tr><td>RETE-UL underutilization</td><td>5</td><td>7</td><td>4</td><td><span class="b b-hi">140</span></td><td>GAP-4</td><td>P1</td></tr>
+<tr><td>No cognitive self-awareness</td><td>5</td><td>6</td><td>3</td><td><span class="b b-ok">90</span></td><td>GAP-5</td><td>P1</td></tr>
+<tr><td>CLAUDE.md stats stale (214K vs 42K)</td><td>4</td><td>7</td><td>3</td><td><span class="b b-ok">84</span></td><td>GAP-6</td><td>P2</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="sec">RETE-UL Integration Opportunities (10 Decision Points)</div>
+<div class="card">
+<table>
+<thead><tr><th>Decision Point</th><th>Current</th><th>RETE-UL Domain</th><th>Impact</th></tr></thead>
+<tbody>
+<tr><td>Dark cockpit mode</td><td>Hardcoded thresholds</td><td>Verify Compliance</td><td>Configurable modes</td></tr>
+<tr><td>Health badge colors</td><td>Case statements</td><td>Health Consensus</td><td>Consistent across UI</td></tr>
+<tr><td>Task priority routing</td><td>if/else chains</td><td>OODA Decide</td><td>Rule-driven dispatch</td></tr>
+<tr><td>Container restart</td><td>Manual podman logic</td><td>Recovery Selection</td><td>RPN-prioritized playbooks</td></tr>
+<tr><td>CPU throttling</td><td>Bash script thresholds</td><td>CPU Governor</td><td>Adaptive parallelism</td></tr>
+<tr><td>Build staleness</td><td>Age comparison</td><td>Build Staleness</td><td>Configurable windows</td></tr>
+<tr><td>Apoptosis grace</td><td>Hardcoded timeouts</td><td>Apoptosis Grace</td><td>Per-criticality periods</td></tr>
+<tr><td>RCA escalation</td><td>Manual tier assign</td><td>RCA Escalation</td><td>Auto L1-L7 routing</td></tr>
+<tr><td>Preflight checks</td><td>Inline validation</td><td>Preflight Gate</td><td>Graduated block/warn/pass</td></tr>
+<tr><td>Cascade containment</td><td>Depth limits</td><td>Cascade Containment</td><td>Auto apoptosis/isolate</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="sec">Pi Symbiosis Wiring Status</div>
+<div class="card">
+<table>
+<thead><tr><th>Module</th><th>LOC</th><th>Types Defined</th><th>Production Imports</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>pi_agent.gleam</td><td>925</td><td>PiEvent, PiAgentState, EventMapping</td><td>0</td><td><span class="b b-cr">UNWIRED</span></td></tr>
+<tr><td>pi_tools.gleam</td><td>723</td><td>PiTool, ToolRegistry, FederatedTool</td><td>0</td><td><span class="b b-cr">UNWIRED</span></td></tr>
+<tr><td>pi_zenoh.gleam</td><td>537</td><td>PiZenohBridge, TopicMapping</td><td>0</td><td><span class="b b-cr">UNWIRED</span></td></tr>
+<tr><td>pi_session.gleam</td><td>527</td><td>PiSession, SessionState, Branch</td><td>0</td><td><span class="b b-cr">UNWIRED</span></td></tr>
+<tr><td>pi_claude_code.gleam</td><td>476</td><td>ClaudeTool, EventBridge, Federation</td><td>0</td><td><span class="b b-cr">UNWIRED</span></td></tr>
+<tr><td>pi_provider.gleam</td><td>306</td><td>LlmProvider, ModelConfig, Tier</td><td>0</td><td><span class="b b-cr">UNWIRED</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="sec">Fractal L0-L7 Gap Distribution</div>
+<div class="card">
+<table>
+<thead><tr><th>Layer</th><th>Gaps</th><th>Highest RPN</th><th>Fix Priority</th></tr></thead>
+<tbody>
+<tr><td style="color:#ff6b6b">L0 Constitutional</td><td>Guardian approval not wired to Pi events</td><td>252</td><td>P0</td></tr>
+<tr><td style="color:#ffd93d">L1 Atomic/Debug</td><td>zenoh_otel in 0/57 pages</td><td>336</td><td>P0</td></tr>
+<tr><td style="color:#6bcb77">L2 Component</td><td>23 pages missing Wisp API, 7 missing TUI</td><td>168</td><td>P1</td></tr>
+<tr><td style="color:#4d96ff">L3 Transaction</td><td>ZK UC02-UC25 unused in production</td><td>90</td><td>P1</td></tr>
+<tr><td style="color:#9b59b6">L4 System</td><td>RETE-UL for container decisions</td><td>140</td><td>P1</td></tr>
+<tr><td style="color:#00d4aa">L5 Cognitive</td><td>Self-awareness dashboard missing</td><td>90</td><td>P1</td></tr>
+<tr><td style="color:#e74c3c">L6 Ecosystem</td><td>Pi bridge subscriber actor missing</td><td>252</td><td>P0</td></tr>
+<tr><td style="color:#f39c12">L7 Federation</td><td>CLAUDE.md stats stale, Pi TypeScript RAG</td><td>84</td><td>P2</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="sec">Evolutionary Task Queue (RPN-Ordered)</div>
+<div class="card">
+<table>
+<thead><tr><th>#</th><th>Task</th><th>RPN</th><th>LOC</th><th>Layer</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Wire zenoh_otel.publish_span() into all 57 Lustre pages</td><td>336</td><td>114</td><td>L1</td></tr>
+<tr><td>2</td><td>Create Pi event subscriber OTP actor + wire 6 bridge modules</td><td>252</td><td>200</td><td>L6</td></tr>
+<tr><td>3</td><td>Enforce ZK citation via cognitive hook upgrade</td><td>243</td><td>100</td><td>L5</td></tr>
+<tr><td>4</td><td>Generate 23 missing Wisp API modules</td><td>168</td><td>2,300</td><td>L2</td></tr>
+<tr><td>5</td><td>Wire RETE-UL into 10 decision points</td><td>140</td><td>300</td><td>L4-L5</td></tr>
+<tr><td>6</td><td>Build self-awareness dashboard (ZK/cache/hook metrics)</td><td>90</td><td>400</td><td>L5</td></tr>
+<tr><td>7</td><td>Generate 7 missing TUI views</td><td>84</td><td>700</td><td>L2</td></tr>
+<tr><td>8</td><td>Update CLAUDE.md with current metrics (214K LOC)</td><td>84</td><td>50</td><td>L7</td></tr>
+<tr><td>9</td><td>Pi TypeScript RAG pipeline</td><td>72</td><td>630</td><td>L7</td></tr>
+<tr><td>10</td><td>Vector embeddings for semantic ZK search</td><td>60</td><td>200</td><td>L3</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="ft">
+  Task ID: 116446490148048164 | Generated: 2026-04-22 | sa-plan-daemon v22.5.0<br>
+  <a href="https://vm-1.tail55d152.ts.net:8443/recall-rag">Recall/RAG Dashboard</a> |
+  <a href="https://vm-1.tail55d152.ts.net:8443/recall-rag-deck">Slide Deck</a> |
+  <a href="https://vm-1.tail55d152.ts.net:8443/task-id/116446490148048164">Task Page</a>
+</div>
+
+</main>
+</body>
+</html>

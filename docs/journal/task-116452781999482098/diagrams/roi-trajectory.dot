@@ -1,0 +1,16 @@
+digraph ROI {
+  rankdir=LR; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica";
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed" fillcolor="#141922" color="#1e2a3a"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=11];
+
+  T0 [label="TODAY\n$38.84 / session\n(baseline)" fillcolor="#2a0e0e" color="#ff4757"];
+  T1 [label="Sprint 1-2\n$17.48 / session\n-55%" fillcolor="#2a1e0e" color="#f5a623"];
+  T2 [label="Sprint 3\n$9.71 / session\n-75%" fillcolor="#2a1e0e" color="#f5a623"];
+  T3 [label="Sprint 4\n$5.05 / session\n-87%" fillcolor="#0e2a1e" color="#3dd68c"];
+  T4 [label="Sprint 5-6\n$3.11 / session\n-92%" fillcolor="#0e2a1e" color="#3dd68c"];
+
+  T0 -> T1 [label="Prefix-cache\nEmbed backfill\nBGE rerank" fontsize=9];
+  T1 -> T2 [label="Semantic cache\nExact cache\nShared cache" fontsize=9];
+  T2 -> T3 [label="Adaptive routing\nMoE split\nCtx-aware pick" fontsize=9];
+  T3 -> T4 [label="LLMLingua\nCompaction\nSkill scoping" fontsize=9];
+}

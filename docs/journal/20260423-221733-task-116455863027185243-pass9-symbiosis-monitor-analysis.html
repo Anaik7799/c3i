@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>C3I · Pass-9 Analysis · Symbiosis OODA Monitor</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{--bg:#0b0f14;--panel:#111821;--line:#1e2a37;--ink:#cfe7ff;--mut:#6b7f93;--ok:#4ade80;--warn:#fbbf24;--bad:#f87171;--acc:#60a5fa;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.55;}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px;}
+  h1{font-size:20px;margin:0 0 6px;letter-spacing:.3px;}
+  h2{font-size:15px;margin:28px 0 10px;color:var(--acc);border-bottom:1px solid var(--line);padding-bottom:4px;}
+  h3{font-size:13px;margin:18px 0 6px;color:var(--ok);}
+  .lead{color:var(--mut);margin:0 0 14px;}
+  .grid{display:grid;gap:10px;grid-template-columns:repeat(4,1fr);margin:14px 0;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 12px;}
+  .card h4{margin:0 0 6px;font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;font-weight:500;}
+  .v{font-size:20px;font-weight:600;}
+  .card.good .v{color:var(--ok);} .card.warn .v{color:var(--warn);} .card.bad .v{color:var(--bad);}
+  table{border-collapse:collapse;width:100%;font-size:12px;margin:10px 0;}
+  th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);}
+  th{color:var(--mut);font-weight:500;text-transform:uppercase;font-size:10px;letter-spacing:.5px;}
+  code{color:var(--acc);background:#132137;padding:1px 5px;border-radius:3px;}
+  pre{background:#0a0f14;border:1px solid var(--line);border-radius:4px;padding:10px;overflow:auto;font-size:11px;}
+  img.diag{max-width:100%;border:1px solid var(--line);border-radius:4px;margin:8px 0;display:block;background:#0b0f14;}
+  .mono{font-family:var(--mono);}
+  a{color:var(--acc);}
+  .tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;background:#132137;color:var(--acc);margin-right:4px;}
+  .tag.warn{background:#2a1e0f;color:var(--warn);} .tag.bad{background:#2a0f14;color:var(--bad);} .tag.ok{background:#0f2a1e;color:var(--ok);}
+</style></head>
+<body><div class="wrap">
+
+<h1>Pass-9 · Symbiosis OODA Monitor</h1>
+<p class="lead">Closed-loop ZK ↔ Pi ↔ Agent monitor. Gleam + systemd + Tailscale LE cert. Tick 3–20 ms · snapshot every 5 s · zero external deps.</p>
+<p><span class="tag ok">shipped</span><span class="tag">task 116455863027185243</span><span class="tag">p5→p6→p7→p8→p9</span></p>
+
+<h2>1 · Live snapshot (right now)</h2>
+<div class="grid">
+  <div class="card"><h4>holons</h4><div class="v">35 326</div></div>
+  <div class="card warn"><h4>embed coverage</h4><div class="v">38.3 %</div></div>
+  <div class="card"><h4>sessions</h4><div class="v">17</div></div>
+  <div class="card"><h4>cost total</h4><div class="v">$ 621.50</div></div>
+  <div class="card"><h4>tokens total</h4><div class="v">743 M</div></div>
+  <div class="card bad"><h4>cost / session</h4><div class="v">$ 36.56</div></div>
+  <div class="card"><h4>edges</h4><div class="v">3 074</div></div>
+  <div class="card"><h4>pipeline stages</h4><div class="v">527</div></div>
+</div>
+<p class="lead">Source: <a href="https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/symbiosis.json">/c3i/task-id/any/monitor/symbiosis.json</a></p>
+
+<h2>2 · OODA loop</h2>
+<p>One tick = Observe → Orient → Decide → Act. Gleam module <code>scripts/pass9/p9_symbiosis_monitor</code>. Runs under systemd unit <code>c3i-symbiosis-monitor</code>. Publishes span on <code>indrajaal/l5/ooda/symbiosis</code>.</p>
+<img class="diag" src="20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-p9-ooda.png" alt="OODA diagram">
+
+<h2>3 · Architecture</h2>
+<p>Edge is Tailscale Serve with a real Let's Encrypt cert (issuer <code>E8</code>, valid until Jul 17 2026), proxying <code>/c3i → :4200</code>. Self-signed <code>:8443</code> remains for internal tools. Monitor writes JSON into the journal tree so the existing static-file route serves it directly — no new server code.</p>
+<img class="diag" src="20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-p9-arch.png" alt="Architecture diagram">
+
+<h2>4 · Metric health</h2>
+<img class="diag" src="20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-p9-metrics.png" alt="Metric health">
+
+<h2>5 · Alarms surfaced on first tick</h2>
+<table>
+<thead><tr><th>Alarm</th><th>Condition</th><th>Remediation</th></tr></thead>
+<tbody>
+<tr><td><span class="tag bad">EMBED_LOW</span></td><td>embeddings / holons &lt; 50 %  (38.3 %)</td><td>run <code>scripts/pass8/p8_04_embed_backfill</code></td></tr>
+<tr><td><span class="tag bad">COST_HIGH</span></td><td>cost / session &gt; $ 5  ($ 36.56)</td><td><code>p8_06_budget_middleware</code> + <code>p8_13_moe_router</code></td></tr>
+<tr><td><span class="tag ok">TURN_SPANS</span></td><td>pipeline_stage_metrics &gt; 0</td><td>ok</td></tr>
+<tr><td><span class="tag ok">CACHE_HIT</span></td><td>last session no high input</td><td>ok</td></tr>
+<tr><td><span class="tag ok">PI_TURN_TRACE</span></td><td>6 turn spans present</td><td>ok</td></tr>
+</tbody></table>
+
+<h2>6 · Jidoka interventions</h2>
+<table>
+<thead><tr><th>Muda</th><th>Fix</th><th>Verified</th></tr></thead>
+<tbody>
+<tr><td>Re-searching paths each session</td><td><code>.c3i-context.json</code> at repo root</td><td><code>cat .c3i-context.json</code></td></tr>
+<tr><td>Wrong smriti DB picked by agents</td><td>Cache labels <code>_live / _stale / _corrupt / _stub</code></td><td>Live = 169 MB, 35 326 holons</td></tr>
+<tr><td>Stale <code>sub-projects/c3i/sa-plan</code> binary</td><td>md5 re-sync after rebuild; cmd in cache</td><td>md5 match verified</td></tr>
+<tr><td>Chromium 30 s hangs</td><td><code>p8_customer_verify</code> + binary-safe <code>httpx.head</code></td><td>2 s for 5 subresources</td></tr>
+<tr><td>Erlang httpc refuses self-signed</td><td>Tailscale Serve LE cert on <code>/c3i</code></td><td><code>ssl_verify_result = 0</code></td></tr>
+</tbody></table>
+
+<h2>7 · Deliverables</h2>
+<ul>
+<li><a href="20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-journal.md">Journal (MD)</a></li>
+<li><a href="20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-deck.html">Slide deck</a></li>
+<li><a href="https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/symbiosis.html">Live dashboard</a> · <a href="https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/symbiosis.json">JSON API</a></li>
+<li>Diagrams: <a href="20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-p9-ooda.png">OODA</a> · <a href="20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-p9-arch.png">arch</a> · <a href="20260423-221733-task-116455863027185243-pass9-symbiosis-monitor-p9-metrics.png">metrics</a></li>
+</ul>
+
+<h2>8 · Raw snapshot</h2>
+<pre id="raw">loading…</pre>
+
+<script>
+fetch('https://vm-1.tail55d152.ts.net/c3i/task-id/any/monitor/symbiosis.json',{cache:'no-store'})
+  .then(r=>r.json()).then(d=>{document.getElementById('raw').textContent=JSON.stringify(d,null,2);})
+  .catch(e=>{document.getElementById('raw').textContent='error: '+e.message;});
+</script>
+
+</div></body></html>

@@ -1,8 +1,10 @@
 ---
-name: design-supervisor
-description: Orchestrates design-phase agents (fractal-architect, holon-analyzer, impact-analyzer, constitutional-verifier, hyperscaler-analyzer). Spawns analysis swarms for architecture planning.
-tools: Read, Grep, Glob, Task, Bash
-model: sonnet
+name: "design-supervisor"
+description: "Orchestrates design-phase agents (fractal-architect, holon-analyzer, impact-analyzer, constitutional-verifier, hyperscaler-analyzer). Spawns analysis swarms for architecture planning."
+kind: local
+tools:
+  - "*"
+model: "inherit"
 ---
 # Design Supervisor Agent (v21.3.0-SIL6)
 You are the Design Phase Supervisor responsible for orchestrating architecture and planning activities across the Indrajaal system.

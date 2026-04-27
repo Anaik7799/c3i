@@ -1,0 +1,15 @@
+digraph Bench {
+  rankdir=LR; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica";
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed"];
+  edge [color="#00d4aa" fontname="Helvetica" fontsize=10];
+
+  Req [label="10 sample prompts"];
+  OHT [label="Ollama /api/embeddings\n(HTTP hop)" fillcolor="#2a0e0e" color="#ff4757"];
+  FE  [label="fastembed NIF\n(in-process ONNX)" fillcolor="#0e2a1e" color="#3dd68c"];
+
+  OllamaRes [label="8/10 success\n84 383 ms/doc\n0.012 doc/s\n(timeouts)" fillcolor="#2a0e0e" color="#ff4757"];
+  FERes     [label="10/10 success\n1 646 ms/doc\n0.61 doc/s\n(51× faster)" fillcolor="#0e2a1e" color="#3dd68c"];
+
+  Req -> OHT -> OllamaRes;
+  Req -> FE -> FERes;
+}

@@ -1,0 +1,38 @@
+digraph DataPlane {
+  rankdir=LR;
+  bgcolor="#0b0f14";
+  node [shape=box, style="rounded,filled", fontname="Inter", fontcolor="#e6edf3", color="#30363d"];
+  edge [color="#7d8590", fontname="Inter", fontcolor="#c9d1d9"];
+
+  subgraph cluster_ui {
+    label="Triple-Interface UI (Gleam/Lustre)"; fontcolor="#58a6ff"; color="#30363d";
+    Lustre [label="Lustre MVU\n(24 pages, SSR)", fillcolor="#1f6feb"];
+    Wisp   [label="Wisp REST\n(15 handlers)", fillcolor="#1f6feb"];
+    TUI    [label="TUI / Split-Screen\n(23 views)", fillcolor="#1f6feb"];
+    Domain [label="ui/domain.gleam\n(shared types)", fillcolor="#0969da", shape=folder];
+  }
+  subgraph cluster_bus {
+    label="Zenoh Mesh + OTel"; fontcolor="#f0b429"; color="#30363d";
+    Z [label="Zenoh pub/sub\nindrajaal/**", fillcolor="#9e6a03", shape=cylinder];
+    OT [label="OTel spans\n(zenoh_otel.gleam)", fillcolor="#9e6a03"];
+  }
+  subgraph cluster_pi {
+    label="Pi Symbiosis"; fontcolor="#3fb950"; color="#30363d";
+    Pi   [label="pi_agent / pi_tools\npi_session / pi_provider", fillcolor="#238636"];
+    CB   [label="Circuit Breakers\n+ Hedged LLM", fillcolor="#1a7f37"];
+    Smriti [label="Smriti.db\n(sessions)", fillcolor="#1a7f37", shape=cylinder];
+  }
+  subgraph cluster_plan {
+    label="Planning / Knowledge"; fontcolor="#d2a8ff"; color="#30363d";
+    SAPlan [label="sa-plan daemon\n(Rust, SIL-6)", fillcolor="#6e40c9"];
+    ZK     [label="Zettelkasten\n(FTS5 + fractal)", fillcolor="#6e40c9", shape=cylinder];
+    FY27   [label="fy27-plan.db\n(tasks)", fillcolor="#6e40c9", shape=cylinder];
+  }
+
+  Lustre -> Domain; Wisp -> Domain; TUI -> Domain;
+  Lustre -> Z; Wisp -> Z; TUI -> Z;
+  Z -> OT;
+  Pi -> Z; Pi -> CB; Pi -> Smriti;
+  SAPlan -> Z; SAPlan -> ZK; SAPlan -> FY27;
+  OT -> SAPlan [label="ingest"];
+}

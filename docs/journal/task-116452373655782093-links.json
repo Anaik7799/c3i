@@ -1,0 +1,46 @@
+{
+  "task_id": "116452373655782093",
+  "parent_chain": ["116450171390820012 (pass-5)", "116452373655782093 (pass-6)"],
+  "slug": "20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6",
+  "base_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093",
+  "base_url_http": "http://localhost:4200/task-id/116452373655782093",
+  "generated_at_utc": "2026-04-23T05:41:27+00:00",
+  "pass": "ultra-pass-6",
+  "rule": "SC-PASS5-AUTO-001",
+  "count": 11,
+  "links": [
+    { "name": "20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-journal.md", "type": "md", "role": "journal", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093/20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-journal.md" },
+    { "name": "20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-analysis.html", "type": "html", "role": "analysis", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093/20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-analysis.html" },
+    { "name": "20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-deck.html", "type": "html", "role": "deck", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093/20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-deck.html" },
+    { "name": "20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-decide-act-flow.png", "type": "png", "role": "diagram", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093/20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-decide-act-flow.png" },
+    { "name": "20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-pi-subscriber-wiring.png", "type": "png", "role": "diagram", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093/20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-pi-subscriber-wiring.png" },
+    { "name": "20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-fmea-delta-p5-p6.png", "type": "png", "role": "diagram", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093/20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-fmea-delta-p5-p6.png" },
+    { "name": "20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-dashboard-post-p6.png", "type": "png", "role": "screenshot", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093/20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-dashboard-post-p6.png" },
+    { "name": "20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-task-page-p6.png", "type": "png", "role": "screenshot", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093/20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-task-page-p6.png" },
+    { "name": "task-index", "type": "html", "role": "index", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093" },
+    { "name": "kpi", "type": "html", "role": "kpi-dashboard", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093/kpi.html" },
+    { "name": "session", "type": "html", "role": "session-dashboard", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093/session.html" }
+  ],
+  "fmea_delta_pass6": {
+    "A_zenoh_otel_publish":     { "p5": 90, "p6": 30, "delta": -60 },
+    "B_rete_ul_no_dispatcher":  { "p5": 216, "p6": 60, "delta": -156 },
+    "C_pi_session_nif_stub":    { "p5": 175, "p6": 175, "delta": 0 },
+    "D_claude_metrics_orphan":  { "p5": 144, "p6": 50, "delta": -94 },
+    "E_32_ha_modules_untested": { "p5": 120, "p6": 120, "delta": 0 },
+    "embed_refresh_hang":        { "p5": 80, "p6": 80, "delta": 0 },
+    "GAP1_pi_subscriber_dead":  { "p5": 252, "p6": 30, "delta": -222 },
+    "net_delta": -536
+  },
+  "code_changes_pass6": [
+    { "file": "lib/cepaf_gleam/src/cepaf_gleam/ui/wisp/router.gleam", "type": "edit", "loc_delta": 6, "effect": "SC-OODA-003 decide→act coupling" },
+    { "file": "lib/cepaf_gleam/src/cepaf_gleam/actors/pi_subscriber.gleam", "type": "edit", "loc_delta": 0, "effect": "3 fn→pub fn visibility" },
+    { "file": ".gemini/rules/sc-pass5-auto-001.md", "type": "edit", "loc_delta": 1, "effect": "CLAUDE.md→GEMINI.md parity fix" },
+    { "file": ".gemini/commands/pass5-auto.md", "type": "new", "loc_delta": 57, "effect": "Gemini commands parity mirror" }
+  ],
+  "test_state": {
+    "executed": 8980,
+    "passed": 8980,
+    "failed": 0,
+    "build_time_sec": 0.34
+  }
+}

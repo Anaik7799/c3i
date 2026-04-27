@@ -1,0 +1,47 @@
+{
+  "task_id": "116453739628625571",
+  "slug": "20260423-111728-task-116453739628625571-c3i-system-overview",
+  "title": "C3I System Overview — web pages, slides, email",
+  "version": "22.5.0-CORTEX",
+  "created_utc": "2026-04-23T11:17:28Z",
+  "base_url": "https://vm-1.tail55d152.ts.net:8443",
+  "dashboard": "https://vm-1.tail55d152.ts.net:8443/task-id/116453739628625571",
+  "journal_md":   "https://vm-1.tail55d152.ts.net:8443/task-id/116453739628625571/20260423-111728-task-116453739628625571-c3i-system-overview-journal.md",
+  "analysis_html":"https://vm-1.tail55d152.ts.net:8443/task-id/116453739628625571/20260423-111728-task-116453739628625571-c3i-system-overview-analysis.html",
+  "deck_html":    "https://vm-1.tail55d152.ts.net:8443/task-id/116453739628625571/20260423-111728-task-116453739628625571-c3i-system-overview-deck.html",
+  "diagrams": {
+    "control_plane":    "https://vm-1.tail55d152.ts.net:8443/task-id/116453739628625571/20260423-111728-task-116453739628625571-c3i-system-overview-control-plane.png",
+    "data_plane":       "https://vm-1.tail55d152.ts.net:8443/task-id/116453739628625571/20260423-111728-task-116453739628625571-c3i-system-overview-data-plane.png",
+    "fractal_impact":   "https://vm-1.tail55d152.ts.net:8443/task-id/116453739628625571/20260423-111728-task-116453739628625571-c3i-system-overview-fractal-impact.png",
+    "message_sequence": "https://vm-1.tail55d152.ts.net:8443/task-id/116453739628625571/20260423-111728-task-116453739628625571-c3i-system-overview-message-sequence.png",
+    "state_machine":    "https://vm-1.tail55d152.ts.net:8443/task-id/116453739628625571/20260423-111728-task-116453739628625571-c3i-system-overview-state-machine.png"
+  },
+  "screenshots": {
+    "dashboard_http":   "https://vm-1.tail55d152.ts.net:8443/task-id/116453739628625571/20260423-111728-task-116453739628625571-c3i-system-overview-dashboard-http.png",
+    "task_page":        "https://vm-1.tail55d152.ts.net:8443/task-id/116453739628625571/20260423-111728-task-116453739628625571-c3i-system-overview-task-page.png",
+    "system_overview":  "https://vm-1.tail55d152.ts.net:8443/task-id/116453739628625571/20260423-111728-task-116453739628625571-c3i-system-overview-system-overview.png"
+  },
+  "zk_holons_cited": [
+    "zk-de7ca7e9a63571d9",
+    "zk-6ec2e84145874047",
+    "zk-c3b7a9f9daca60f3",
+    "zk-c8d9ce16675cdbae",
+    "zk-67d51df3850e95aa",
+    "zk-12597fb7e6ba901a",
+    "zk-3379a591f9350d32",
+    "zk-717079d52611c33a",
+    "zk-85fdab1485cad668",
+    "zk-08ae428c07d0d4b7"
+  ],
+  "stamp": [
+    "SC-PASS5-AUTO-001",
+    "SC-RECALL-RAG",
+    "SC-GLM-UI-001",
+    "SC-GLM-ZEN-001",
+    "SC-AGUI",
+    "SC-A2UI",
+    "SC-BIO-001",
+    "SC-HINT-001",
+    "SC-MUDA-001"
+  ]
+}

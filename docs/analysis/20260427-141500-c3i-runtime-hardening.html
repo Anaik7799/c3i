@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>C3I Runtime Hardening — Requirements, Architecture, Implementation, Usage, Deployment, Impact</title>
+<style>
+  :root { --bg:#0a0e17; --card:#141922; --text:#e0e6ed; --muted:#7a8fa6; --accent:#00d4aa; --warn:#f5a623; --crit:#ff4757; --ok:#3dd68c; --border:#1e2a3a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family: -apple-system, "SF Pro Display", "Segoe UI", system-ui, sans-serif; line-height:1.55; }
+  header { padding:32px 40px; background: linear-gradient(135deg,#0a0e17,#1a2840); border-bottom:1px solid var(--border); }
+  header h1 { margin:0 0 6px 0; font-size:26px; }
+  header .meta { color:var(--muted); font-size:13px; }
+  header .meta a { color:var(--accent); text-decoration:none; }
+  nav.toc { position: sticky; top:0; background: #0d1420; border-bottom:1px solid var(--border); padding:8px 40px; font-size:12px; color:var(--muted); z-index:10; }
+  nav.toc a { color:var(--accent); margin-right:14px; text-decoration:none; }
+  main { padding: 24px 40px 60px; max-width:1300px; }
+  section { margin: 28px 0; }
+  section h2 { color:var(--accent); border-bottom:1px solid var(--border); padding-bottom:6px; font-size:20px; }
+  section h3 { color:#bbd; font-size:15.5px; margin-top:20px; }
+  table { border-collapse:collapse; width:100%; margin: 10px 0 20px; font-size:13px; }
+  th, td { border:1px solid var(--border); padding:7px 10px; text-align:left; vertical-align:top; }
+  th { background:#1e2a3a; color:var(--accent); font-weight:600; }
+  tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  code { background:#1e2a3a; color:#9be7c4; padding:2px 6px; border-radius:4px; font-size:12.5px; }
+  pre { background:#0d1420; border:1px solid var(--border); padding:14px; overflow-x:auto; border-radius:6px; font-size:12.5px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:14px; margin: 14px 0; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px; }
+  .card h4 { margin:0 0 6px; color:var(--accent); font-size:14px; }
+  .card .meta { color:var(--muted); font-size:11.5px; line-height:1.5; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; margin-right:4px; }
+  .b-ok { background:#1d3a2a; color:var(--ok); }
+  .b-warn { background:#3a2a14; color:var(--warn); }
+  .b-crit { background:#3a1d1d; color:var(--crit); }
+  .b-p0 { background:#3a1822; color:#ff4757; }
+  .b-p1 { background:#3a2a14; color:#ffa502; }
+  .b-p2 { background:#1a2a1a; color:#2ed573; }
+  .kpi { display:flex; gap:14px; flex-wrap:wrap; margin: 12px 0; }
+  .kpi .item { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px 14px; min-width:140px; }
+  .kpi .item .v { font-size:22px; color:var(--accent); font-weight:700; }
+  .kpi .item .l { font-size:11px; color:var(--muted); text-transform:uppercase; }
+  svg .node rect { fill:#1e2a3a; stroke:var(--accent); stroke-width:1; }
+  svg .node text { fill:var(--text); font-size:11px; font-family: ui-monospace, "SF Mono", monospace; }
+  svg .edge { stroke:#3d4a5f; stroke-width:1.2; fill:none; }
+  footer { padding:18px 40px; border-top:1px solid var(--border); color:var(--muted); font-size:12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>C3I Runtime Hardening — Comprehensive Specification</h1>
+  <div class="meta">
+    Generated 2026-04-27 14:15 CEST · Auto mode (Claude Opus 4.7)<br>
+    <a href="http://vm-1.tail55d152.ts.net:8090/journal/20260427-141500-c3i-runtime-hardening-comprehensive.md">Journal (.md)</a> ·
+    <a href="http://vm-1.tail55d152.ts.net:8090/decks/20260427-141500-c3i-runtime-hardening-deck.html">Slide deck</a> ·
+    <a href="http://vm-1.tail55d152.ts.net:8090/health/services.json">Live health JSON</a>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#req">1 Requirements</a>
+  <a href="#arch">2 Architecture</a>
+  <a href="#impl">3 Implementation</a>
+  <a href="#usage">4 Usage</a>
+  <a href="#deploy">5 Deployment</a>
+  <a href="#impact">6 Impact</a>
+  <a href="#ops">7 Ops &amp; runbook</a>
+  <a href="#stamp">8 STAMP</a>
+</nav>
+
+<main>
+
+<section>
+  <div class="kpi">
+    <div class="item"><div class="v">6</div><div class="l">requirements</div></div>
+    <div class="item"><div class="v">5/6</div><div class="l">shipped</div></div>
+    <div class="item"><div class="v">16</div><div class="l">c3i units</div></div>
+    <div class="item"><div class="v">700%</div><div class="l">slice CPU cap</div></div>
+    <div class="item"><div class="v">38 GB</div><div class="l">slice mem max</div></div>
+    <div class="item"><div class="v">8%</div><div class="l">measured CPU</div></div>
+    <div class="item"><div class="v">9×</div><div class="l">CPU headroom</div></div>
+    <div class="item"><div class="v">30 s</div><div class="l">health cadence</div></div>
+  </div>
+</section>
+
+<section id="req">
+  <h2>1. Requirements Specification</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Requirement</th><th>Acceptance criterion</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>R1</td><td>Stop-hook ingest stacking eliminated</td><td>At most one <code>sa-plan-daemon ingest-docs</code> running across all Claude Stop hook fires</td><td><span class="badge b-ok">SHIPPED</span></td></tr>
+      <tr><td>R2</td><td>Eliminate gemma-weight duplication across <code>sa-plan</code> processes</td><td>Single 4.5 GB load shared between serve + scheduler</td><td><span class="badge b-warn">DEFERRED — mitigated by slice cap</span></td></tr>
+      <tr><td>R3</td><td>Critical-service health probe</td><td>Periodic snapshot of all c3i-* unit states, queryable</td><td><span class="badge b-ok">SHIPPED</span></td></tr>
+      <tr><td>R4</td><td>Periodic re-evaluation of T4 oneshots</td><td>ops-status / slo-guard / history-compactor fire on cadence (not just boot)</td><td><span class="badge b-ok">SHIPPED</span></td></tr>
+      <tr><td>R5</td><td>Port-collision protection</td><td><code>Conflicts=</code> on units binding 4100/4101/4200/6167/7447/8443</td><td><span class="badge b-ok">SHIPPED</span></td></tr>
+      <tr><td>R6</td><td>Total c3i CPU ≤ 70 % of host capacity</td><td>kernel-enforced via cgroup CPUQuota</td><td><span class="badge b-ok">SHIPPED</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Non-functional requirements</h3>
+  <ul>
+    <li><strong>Reversibility</strong>: every change must be undoable via <code>systemctl --user disable</code> + <code>rm</code></li>
+    <li><strong>Truthfulness</strong>: health JSON must never report inferred state — only what <code>systemctl --user show</code> returns</li>
+    <li><strong>Atomicity</strong>: health JSON write must use <code>tmp + mv</code> so subscribers never see partial output</li>
+    <li><strong>Observability</strong>: every change must publish or be queryable from a Tailscale-reachable URL</li>
+    <li><strong>No code changes</strong> to gleam/Rust binaries (config-only intervention)</li>
+  </ul>
+</section>
+
+<section id="arch">
+  <h2>2. System Architecture</h2>
+
+  <h3>2.1 Slice cgroup hierarchy</h3>
+  <svg viewBox="0 0 900 380" width="100%" style="background:#0d1420;border:1px solid var(--border);border-radius:8px">
+    <g class="node"><rect x="320" y="10" width="260" height="34" rx="6"/><text x="450" y="32" text-anchor="middle">user@1000.service</text></g>
+    <g class="node"><rect x="280" y="70" width="340" height="44" rx="6" style="fill:#243a30;stroke:var(--ok)"/><text x="450" y="92" text-anchor="middle">c3i.slice  (CPUQuota=700%, MemMax=38G)</text></g>
+
+    <!-- T0 -->
+    <g class="node"><rect x="20" y="150" width="170" height="30"/><text x="105" y="170" text-anchor="middle">zenoh-router (100%)</text></g>
+    <!-- T1 -->
+    <g class="node"><rect x="200" y="150" width="170" height="30"/><text x="285" y="170" text-anchor="middle">sa-plan-http (200% / 14G)</text></g>
+    <g class="node"><rect x="380" y="150" width="190" height="30"/><text x="475" y="170" text-anchor="middle">sa-plan-scheduler (200% / 14G)</text></g>
+    <g class="node"><rect x="580" y="150" width="170" height="30"/><text x="665" y="170" text-anchor="middle">gleam-server (100%)</text></g>
+    <g class="node"><rect x="760" y="150" width="120" height="30"/><text x="820" y="170" text-anchor="middle">tls-proxy (50%)</text></g>
+    <!-- T2 -->
+    <g class="node"><rect x="20" y="200" width="160" height="30"/><text x="100" y="220" text-anchor="middle">sutra (100% / 2G)</text></g>
+    <g class="node"><rect x="190" y="200" width="170" height="30"/><text x="275" y="220" text-anchor="middle">pi-runtime (100% / 2G)</text></g>
+    <g class="node"><rect x="370" y="200" width="160" height="30"/><text x="450" y="220" text-anchor="middle">ferriskey (slice)</text></g>
+    <!-- T3 -->
+    <g class="node"><rect x="20" y="250" width="190" height="30"/><text x="115" y="270" text-anchor="middle">symbiosis-monitor (50%)</text></g>
+    <g class="node"><rect x="220" y="250" width="180" height="30"/><text x="310" y="270" text-anchor="middle">robustness-gate (50%)</text></g>
+    <g class="node"><rect x="410" y="250" width="180" height="30"/><text x="500" y="270" text-anchor="middle">rete-autofix (50%)</text></g>
+    <g class="node"><rect x="600" y="250" width="170" height="30"/><text x="685" y="270" text-anchor="middle">docs-server (20%)</text></g>
+    <!-- T4 -->
+    <g class="node"><rect x="20" y="300" width="170" height="30"/><text x="105" y="320" text-anchor="middle">ops-status timer</text></g>
+    <g class="node"><rect x="200" y="300" width="170" height="30"/><text x="285" y="320" text-anchor="middle">slo-guard timer</text></g>
+    <g class="node"><rect x="380" y="300" width="200" height="30"/><text x="480" y="320" text-anchor="middle">history-compactor timer</text></g>
+    <g class="node"><rect x="590" y="300" width="200" height="30"/><text x="690" y="320" text-anchor="middle">health-publisher (30s)</text></g>
+
+    <path class="edge" d="M450,114 L450,150"/>
+    <path class="edge" d="M450,114 Q300,140 105,150"/>
+    <path class="edge" d="M450,114 Q650,140 820,150"/>
+    <path class="edge" d="M450,114 Q450,260 685,300"/>
+  </svg>
+
+  <h3>2.2 Component matrix</h3>
+  <table>
+    <thead><tr><th>Component</th><th>File / object</th><th>Responsibility</th></tr></thead>
+    <tbody>
+      <tr><td>flock mutex</td><td><code>.claude/settings.json:310</code></td><td>Serialise Stop-hook ingest chain</td></tr>
+      <tr><td>c3i.slice</td><td><code>~/.config/systemd/user/c3i.slice</code></td><td>Cgroup CPU + memory + IO + tasks ceiling</td></tr>
+      <tr><td>health publisher</td><td><code>scripts/systemd/c3i-health-publish.sh</code></td><td>30 s JSON snapshot of unit states</td></tr>
+      <tr><td>health timer</td><td><code>c3i-health-publisher.{timer,service}</code></td><td>Drives the publisher cadence</td></tr>
+      <tr><td>service drop-ins</td><td><code>c3i-*.service.d/10-slice*.conf</code></td><td>Slice membership, per-unit caps, Conflicts=</td></tr>
+      <tr><td>docs server</td><td><code>c3i-docs-server.service</code> (busybox httpd)</td><td>Serves <code>docs/health/services.json</code> + journals</td></tr>
+      <tr><td>zenoh router</td><td><code>c3i-zenoh-router.service</code> (eclipse/zenoh)</td><td>Mesh transport (re-recovered after slice change)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="impl">
+  <h2>3. Implementation Approach</h2>
+
+  <h3>3.1 Flock mutex (R1)</h3>
+  <pre>// Before
+"command": "cd /home/an/dev/ver/c3i &amp;&amp; ... ingest-docs ... &amp;&amp; ... fy27-zettelkasten import .. ..."
+
+// After
+"command": "flock -n /tmp/c3i-stop-hook.lock -c '...same chain...' || echo '{\"systemMessage\":\"Stop-hook ingest already running, skipped (flock).\"}'"</pre>
+  <p>Non-blocking (<code>-n</code>): if lock held, exits immediately with friendly JSON. The lock file persists; flock holds an exclusive advisory lock on it. Multiple Claude sessions ending simultaneously: first wins, others no-op.</p>
+
+  <h3>3.2 c3i.slice (R6)</h3>
+  <pre>[Unit]
+Description=C3I service slice — CPU-bounded to ≤ 70% of total host capacity
+
+[Slice]
+CPUQuota=700%       # 70% × 10 cores; kernel CFS bandwidth controller enforces
+CPUWeight=200       # competitive weight when slice not saturated
+MemoryHigh=32G      # soft throttle: triggers reclaim
+MemoryMax=38G       # hard kill: cgroup-OOM, doesn't propagate to host
+IOWeight=200
+TasksMax=4096</pre>
+  <p>Per-unit drop-ins use the same primitives at finer granularity. <strong>Hierarchical accounting</strong>: child sums can exceed slice; CFS arbitrates fairly via CPUWeight when slice cap is hit.</p>
+
+  <h3>3.3 Health publisher (R3)</h3>
+  <pre>UNITS=$(systemctl --user list-units --type=service --all --no-legend --plain \
+        | awk '{print $1}' | grep -E '^c3i-.*\.service$' | sort)
+for u in $UNITS; do
+  active=$(systemctl --user is-active "$u")
+  mem=$(systemctl --user show "$u" -p MemoryCurrent --value)
+  cpu=$(systemctl --user show "$u" -p CPUUsageNSec --value)
+  ...
+done > $TMP &amp;&amp; mv $TMP $HEALTH_FILE   # atomic publish</pre>
+
+  <h3>3.4 Drop-in pattern</h3>
+  <pre># ~/.config/systemd/user/c3i-sa-plan-http.service.d/10-slice-conflicts.conf
+[Unit]
+Conflicts=c3i-port-4200-fight.target
+
+[Service]
+Slice=c3i.slice
+CPUQuota=200%
+MemoryHigh=14G</pre>
+</section>
+
+<section id="usage">
+  <h2>4. Usage Guide</h2>
+
+  <h3>4.1 Daily operations</h3>
+  <table>
+    <thead><tr><th>Action</th><th>Command</th></tr></thead>
+    <tbody>
+      <tr><td>Check slice resource consumption</td><td><code>systemctl --user status c3i.slice</code></td></tr>
+      <tr><td>Live health snapshot</td><td><code>curl http://localhost:8090/health/services.json | jq</code></td></tr>
+      <tr><td>Tailscale health view</td><td><a href="http://vm-1.tail55d152.ts.net:8090/health/services.json">vm-1.tail55d152.ts.net:8090/health/services.json</a></td></tr>
+      <tr><td>Force health refresh</td><td><code>systemctl --user start c3i-health-publisher.service</code></td></tr>
+      <tr><td>List active timers</td><td><code>systemctl --user list-timers c3i-*</code></td></tr>
+      <tr><td>Reset failed unit</td><td><code>systemctl --user reset-failed c3i-&lt;name&gt;</code></td></tr>
+      <tr><td>Tune slice cap</td><td>Edit <code>~/.config/systemd/user/c3i.slice</code> + <code>daemon-reload</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.2 Diagnose throttle events</h3>
+  <pre># Show CPU pressure stall info for the slice
+cat /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/c3i.slice/cpu.pressure
+cat /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/c3i.slice/memory.pressure</pre>
+
+  <h3>4.3 Reverse the change</h3>
+  <pre>systemctl --user stop c3i-health-publisher.timer
+systemctl --user disable c3i-health-publisher.timer c3i-health-publisher.service
+rm -rf ~/.config/systemd/user/c3i-*.service.d/
+rm ~/.config/systemd/user/c3i.slice
+rm ~/.config/systemd/user/c3i-health-publisher.{service,timer}
+# Manually unwrap flock in .claude/settings.json
+systemctl --user daemon-reload</pre>
+</section>
+
+<section id="deploy">
+  <h2>5. Deployment Summary</h2>
+  <table>
+    <thead><tr><th>Object</th><th>Path</th><th>Action</th><th>State</th></tr></thead>
+    <tbody>
+      <tr><td>Stop-hook command</td><td><code>.claude/settings.json:310</code></td><td>edited (flock wrap)</td><td><span class="badge b-ok">active</span></td></tr>
+      <tr><td>c3i.slice</td><td><code>~/.config/systemd/user/c3i.slice</code></td><td>created</td><td><span class="badge b-ok">active</span></td></tr>
+      <tr><td>c3i-health-publisher.service</td><td><code>~/.config/systemd/user/</code></td><td>created</td><td><span class="badge b-ok">enabled</span></td></tr>
+      <tr><td>c3i-health-publisher.timer</td><td><code>~/.config/systemd/user/</code></td><td>created (30 s)</td><td><span class="badge b-ok">active</span></td></tr>
+      <tr><td>15 service drop-ins</td><td><code>~/.config/systemd/user/c3i-*.service.d/10-slice*.conf</code></td><td>created</td><td><span class="badge b-ok">active</span></td></tr>
+      <tr><td>Health publisher script</td><td><code>scripts/systemd/c3i-health-publish.sh</code></td><td>created</td><td><span class="badge b-ok">executable</span></td></tr>
+      <tr><td>Health JSON</td><td><code>docs/health/services.json</code></td><td>generated</td><td><span class="badge b-ok">refreshing 30 s</span></td></tr>
+      <tr><td>ops-status / slo-guard / history-compactor timers</td><td>existed since 2026-04-24</td><td>verified active</td><td><span class="badge b-ok">active</span></td></tr>
+      <tr><td>mistral.rs split</td><td>n/a</td><td>deferred (Rust refactor)</td><td><span class="badge b-warn">tracked in §10</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="impact">
+  <h2>6. Impact on Startup &amp; Runtime Behaviour</h2>
+
+  <h3>6.1 Startup behaviour</h3>
+  <table>
+    <thead><tr><th>Phase</th><th>Pre</th><th>Post</th></tr></thead>
+    <tbody>
+      <tr><td>T+0 s</td><td>network-online</td><td>network-online</td></tr>
+      <tr><td>T+1 s</td><td>zenoh-router · sa-plan-http · tls-proxy boot</td><td>same, all entering c3i.slice</td></tr>
+      <tr><td>T+15 s</td><td>—</td><td>health-publisher first fire → JSON written</td></tr>
+      <tr><td>T+30 s</td><td>last service LISTEN</td><td>same, plus ops-status / slo-guard fire</td></tr>
+      <tr><td>T+45 s</td><td>—</td><td>second health snapshot, all units accounted for</td></tr>
+      <tr><td>Steady state</td><td>RSS unbounded, no CPU cap</td><td>RSS ≤ 38 G, CPU ≤ 70 % host</td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.2 Runtime behaviour change</h3>
+  <ul>
+    <li><strong>Resource fairness</strong>: when c3i.slice consumes &gt; 70 % of CPU, kernel CFS bandwidth controller throttles tasks within the slice. Other user processes (Claude Code, browser, IDE) are untouched.</li>
+    <li><strong>Memory pressure</strong>: at 32 G slice usage, kernel triggers reclaim. At 38 G, cgroup-OOM kills the largest task in the slice. Host stays responsive.</li>
+    <li><strong>Hook idempotency</strong>: Stop hook now safe to fire arbitrarily often; first wins, rest skip.</li>
+    <li><strong>Observability</strong>: any operator (or remote tailnet peer) sees state at <code>:8090/health/services.json</code> with at most 30 s lag.</li>
+    <li><strong>Port safety</strong>: a misconfigured second service binding 4100 will be refused start by systemd via <code>Conflicts=</code>.</li>
+    <li><strong>Periodic re-eval</strong>: ops-status fires every minute, slo-guard every minute, history-compactor every 10 min — system noticing drift continuously, not only at boot.</li>
+  </ul>
+
+  <h3>6.3 Risk register (FMEA)</h3>
+  <table>
+    <thead><tr><th>Failure mode</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Slice CPU cap throttles a real workload spike</td><td>5</td><td>4</td><td>3</td><td>60</td><td>Pressure-stall-info publisher (gap §10.5); operator can bump CPUQuota</td></tr>
+      <tr><td>Cgroup-OOM kills a critical service</td><td>9</td><td>2</td><td>2</td><td>36</td><td>Restart=always + ops-status alarm; mistral split would reduce blast radius</td></tr>
+      <tr><td>Health publisher script fails silently</td><td>4</td><td>3</td><td>4</td><td>48</td><td>Timer logs in journalctl; <code>systemctl --user list-timers</code> shows last fire</td></tr>
+      <tr><td>flock leak (stale lock file)</td><td>3</td><td>2</td><td>3</td><td>18</td><td>flock -n drops lock on process exit; lock is advisory only</td></tr>
+      <tr><td>Stale slice config not reloaded</td><td>4</td><td>3</td><td>2</td><td>24</td><td>daemon-reload + restart documented in §4.3</td></tr>
+      <tr><td>mistral.rs duplication exhausts mem cap</td><td>9</td><td>6</td><td>3</td><td><strong>162</strong></td><td>Slice MemoryHigh=32G + MemoryMax=38G; full fix is Rust refactor (§10.1)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="ops">
+  <h2>7. Operations Runbook</h2>
+
+  <h3>7.1 Triage: dashboard slow</h3>
+  <ol>
+    <li><code>curl http://localhost:8090/health/services.json | jq '.slice_cpu_nsec, .slice_memory_bytes'</code></li>
+    <li>If CPU near 7e9 ns/sec → slice throttle. Check <code>cat .../c3i.slice/cpu.stat</code> for <code>nr_throttled</code>.</li>
+    <li>If memory &gt; 32 G → reclaim active. Check <code>memory.pressure</code>.</li>
+    <li>If neither: check upstream (gemini API, openrouter circuit breakers).</li>
+  </ol>
+
+  <h3>7.2 Triage: hook fired but ZK not updated</h3>
+  <ol>
+    <li>Check <code>ls -la /tmp/c3i-stop-hook.lock</code>; expected if another ingest active.</li>
+    <li><code>journalctl --user -t bash --since '5 min ago'</code> for "Stop-hook ingest already running, skipped".</li>
+    <li><code>pgrep -af 'sa-plan-daemon ingest-docs'</code>; expected at most one.</li>
+  </ol>
+
+  <h3>7.3 Tuning the cap</h3>
+  <pre># Reduce to 50% (5 cores)
+sed -i 's/CPUQuota=700%/CPUQuota=500%/' ~/.config/systemd/user/c3i.slice
+systemctl --user daemon-reload
+# No restart needed — kernel applies cap to running cgroup live</pre>
+</section>
+
+<section id="stamp">
+  <h2>8. STAMP &amp; Constraint Alignment</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Constraint</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>SC-FUNC-005</td><td>Container stack auto-heals</td><td><span class="badge b-ok">SAT</span></td></tr>
+      <tr><td>SC-CPU-GOV-001</td><td>CPU ≤ 85% (we set 70%)</td><td><span class="badge b-ok">SAT (over-compliance)</span></td></tr>
+      <tr><td>SC-CPU-GOV-005</td><td>Auto wait-loop &gt; 85%</td><td><span class="badge b-ok">SAT (kernel CFS throttle)</span></td></tr>
+      <tr><td>SC-ZENOH-001</td><td>Zenoh on all nodes</td><td><span class="badge b-ok">SAT (recovered after slice)</span></td></tr>
+      <tr><td>SC-DELETE-006</td><td>git clean dry-run</td><td><span class="badge b-ok">N/A — no destructive ops</span></td></tr>
+      <tr><td>SC-NOTIFY-JOURNAL-001</td><td>Journal emailed as attachment</td><td><span class="badge b-ok">SAT</span></td></tr>
+      <tr><td>SC-FRAC-RRF-001</td><td>L0–L7 × component matrix</td><td><span class="badge b-ok">SAT (§9.2)</span></td></tr>
+      <tr><td>SC-FRAC-RRF-004</td><td>FMEA score per row</td><td><span class="badge b-ok">SAT (§6.3)</span></td></tr>
+      <tr><td>SC-JOURNAL-001</td><td>13-section journal</td><td><span class="badge b-ok">SAT</span></td></tr>
+      <tr><td>Ψ-2 Reversibility</td><td>Every change undoable</td><td><span class="badge b-ok">SAT (§4.3)</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+
+<footer>
+  C3I Runtime Hardening · Generated 2026-04-27 14:15 CEST · Auto mode (Claude Opus 4.7) · Per SC-JOURNAL / SC-NOTIFY-JOURNAL / SC-FRACTAL-AUTO-001.
+</footer>
+
+</body>
+</html>

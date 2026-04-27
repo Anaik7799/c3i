@@ -1,0 +1,16 @@
+digraph ROI {
+  rankdir=LR; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica";
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=11];
+
+  B [label="Baseline\n$38.84 / session\n(pass-7 measurement)" fillcolor="#2a0e0e" color="#ff4757"];
+  S12 [label="Sprint 1-2\nPrefix + RAG substrate\n$17.48 -55%" fillcolor="#2a1e0e" color="#f5a623"];
+  S3 [label="Sprint 3\nCache layers\n$9.71 -75%" fillcolor="#2a1e0e" color="#f5a623"];
+  S4 [label="Sprint 4\nRouting\n$5.05 -87%" fillcolor="#0e2a1e" color="#3dd68c"];
+  S56 [label="Sprint 5-6\nCompression + Obs\n$3.11 -92%" fillcolor="#0e2a1e" color="#3dd68c"];
+
+  B -> S12 [label="#1 #4 #5 #6 #17 #22"];
+  S12 -> S3 [label="#2 #7 #10"];
+  S3 -> S4 [label="#3 #13 #14"];
+  S4 -> S56 [label="#11 #15 #16 #18 #19 #24"];
+}

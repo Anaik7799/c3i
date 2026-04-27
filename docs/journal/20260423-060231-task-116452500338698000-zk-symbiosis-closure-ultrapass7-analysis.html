@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ultra-Pass 7 · ZK Symbiosis — Task 116452500338698000</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--accent:#00d4aa;--border:#1e2a3a;--success:#3dd68c;--warn:#f5a623;--critical:#ff4757;--muted:#7a8fa6;--blue:#00bfff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.55;max-width:1200px;margin:0 auto;padding:1.5rem 2rem 4rem}
+.topurl{font-family:ui-monospace,monospace;color:var(--success);background:#0e1420;padding:.4rem .8rem;border-radius:6px;display:inline-block;font-size:.82rem;margin-bottom:1rem;word-break:break-all}
+h1{color:var(--accent);font-size:1.7rem;margin:.5rem 0}
+h2{color:var(--accent);font-size:1.2rem;margin:1.75rem 0 .6rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
+.grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin:1rem 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem}
+.kpi{font-size:1.9rem;font-weight:700;color:var(--accent);line-height:1}
+.kpi.ok{color:var(--success)}.kpi.warn{color:var(--warn)}.kpi.crit{color:var(--critical)}.kpi.info{color:var(--blue)}
+.l{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;margin-top:.3rem}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:8px;overflow:hidden;margin:.5rem 0 1rem;font-size:.87rem}
+th,td{padding:.5rem .7rem;text-align:left;border-bottom:1px solid var(--border)}
+th{background:#1e2a3a;color:var(--accent);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
+tr:last-child td{border-bottom:none}
+td.num{text-align:right;font-family:ui-monospace,monospace}
+code{font-family:ui-monospace,monospace;background:#0e1420;padding:.1rem .35rem;border-radius:4px;color:var(--warn);font-size:.85em}
+.badge{display:inline-block;padding:.15rem .55rem;border-radius:10px;font-size:.7rem;font-weight:600}
+.b-ok{background:#0e2a1e;color:var(--success);border:1px solid var(--success)}
+.b-warn{background:#2a1e0e;color:var(--warn);border:1px solid var(--warn)}
+.b-crit{background:#2a0e0e;color:var(--critical);border:1px solid var(--critical)}
+img.diag{width:100%;border-radius:10px;border:1px solid var(--border);background:#0e1420}
+</style></head><body>
+
+<div class="topurl">https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-analysis.html</div>
+<h1>Ultra-Pass 7 · ZK-Pi-Claude Symbiosis + Closed-Loop OODA</h1>
+<p style="color:var(--muted);font-size:.9rem">2026-04-23 06:31 UTC · P0 · <span class="badge b-ok">Data plane closed</span> <span class="badge b-ok">16 Pi sessions backfilled</span> <span class="badge b-ok">3,074 edges</span> <span class="badge b-warn">37% embedding coverage</span></p>
+
+<h2>1. The question answered</h2>
+<div class="card" style="border-left:4px solid var(--accent)"><em>"Is ZK being fully utilized for all Pi and Claude operations?"</em><br><br><strong>Before pass-7:</strong> Partial (~40-50%). Claude hooks working, Pi hooks absent, no session metrics, no edges, 63% embeddings missing.<br><strong>After pass-7:</strong> Data-plane symbiosis complete. Pi now has parity hook, all sessions → smriti.db, 3,074 edges, 6 metrics tables, 2 OODA views. Threshold tuning + embedding backfill queued for pass-8.</div>
+
+<h2>2. Live measurements (smriti.db · post-pass-7)</h2>
+<div class="grid">
+<div class="card"><div class="kpi ok">35,227</div><div class="l">Holons total</div></div>
+<div class="card"><div class="kpi warn">13,046</div><div class="l">Embeddings (37%)</div></div>
+<div class="card"><div class="kpi ok">3,074</div><div class="l">Edges (pass-7)</div></div>
+<div class="card"><div class="kpi ok">16</div><div class="l">Pi sessions tracked</div></div>
+<div class="card"><div class="kpi warn">$621.50</div><div class="l">Cumulative Pi cost</div></div>
+<div class="card"><div class="kpi warn">$207.67</div><div class="l">Cost last 24h</div></div>
+<div class="card"><div class="kpi ok">744 M</div><div class="l">Tokens across sessions</div></div>
+<div class="card"><div class="kpi warn">47.8%</div><div class="l">Cache hit ratio</div></div>
+<div class="card"><div class="kpi warn">$0.85</div><div class="l">Cost per zk-citation</div></div>
+<div class="card"><div class="kpi ok">1,021</div><div class="l">ZK recalls last 24h</div></div>
+<div class="card"><div class="kpi ok">527</div><div class="l">Pipeline stages logged</div></div>
+<div class="card"><div class="kpi ok">296</div><div class="l">Semantic cache entries</div></div>
+</div>
+
+<h2>3. Diagrams</h2>
+<h3 style="color:var(--blue)">Closed-loop OODA</h3>
+<img class="diag" src="20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-closed-loop-ooda.png">
+<h3 style="color:var(--blue);margin-top:1rem">Symbiosis architecture (Claude + Pi + Cortex + KMS)</h3>
+<img class="diag" src="20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-zk-symbiosis-architecture.png">
+<h3 style="color:var(--blue);margin-top:1rem">Cost optimization flow (cacheable prefix + metrics)</h3>
+<img class="diag" src="20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-cost-optimization-flow.png">
+
+<h2>4. New metric tables in smriti.db</h2>
+<table>
+<thead><tr><th>Table / View</th><th>Purpose</th><th>Pre</th><th>Post</th></tr></thead>
+<tbody>
+<tr><td><code>session_metrics</code></td><td>Per-session tokens/cost/cache</td><td>—</td><td>16</td></tr>
+<tr><td><code>pi_sessions</code></td><td>Pi session catalog (closes SC-PI-003)</td><td>missing</td><td>16</td></tr>
+<tr><td><code>pipeline_stage_metrics</code></td><td>Cortex pipeline stages</td><td>—</td><td>527</td></tr>
+<tr><td><code>task_metrics</code></td><td>Per-task aggregates</td><td>—</td><td>ready</td></tr>
+<tr><td><code>job_metrics</code></td><td>Scheduler-job spend</td><td>—</td><td>ready</td></tr>
+<tr><td><code>plan_metrics</code></td><td>Plan-level rollups</td><td>—</td><td>ready</td></tr>
+<tr><td><code>v_ooda_live</code></td><td>10-metric OODA view</td><td>—</td><td>view created</td></tr>
+<tr><td><code>v_cost_by_agent</code></td><td>Cost by agent type</td><td>—</td><td>view created</td></tr>
+<tr><td><code>holon_edges</code></td><td>Graph substrate</td><td>0</td><td>3,074</td></tr>
+</tbody>
+</table>
+
+<h2>5. Pipeline stage latency (from 527 real traces)</h2>
+<table>
+<thead><tr><th>Stage</th><th>Calls</th><th>Avg ms</th><th>Max ms</th><th>Cost leverage</th></tr></thead>
+<tbody>
+<tr><td><code>rag</code></td><td class="num">47</td><td class="num">2,781</td><td class="num">5,072</td><td><span class="badge b-crit">HIGHEST</span></td></tr>
+<tr><td><code>inference_complete</code></td><td class="num">67</td><td class="num">4,323</td><td class="num">16,493</td><td><span class="badge b-warn">high</span></td></tr>
+<tr><td><code>delivered</code></td><td class="num">91</td><td class="num">3,479</td><td class="num">16,493</td><td><span class="badge b-warn">wall-clock</span></td></tr>
+<tr><td><code>ack_sent</code></td><td class="num">69</td><td class="num">2,138</td><td class="num">5,054</td><td></td></tr>
+<tr><td><code>inference_started</code></td><td class="num">67</td><td class="num">2,218</td><td class="num">5,070</td><td></td></tr>
+<tr><td><code>classified</code></td><td class="num">91</td><td class="num">149</td><td class="num">1,136</td><td></td></tr>
+<tr><td><code>cache_hit</code></td><td class="num">2</td><td class="num">54</td><td class="num">74</td><td><span class="badge b-ok">cheapest</span></td></tr>
+</tbody>
+</table>
+
+<h2>6. New Pi extension (<code>.pi/extensions/zk-recall.ts</code>)</h2>
+<table>
+<thead><tr><th>Event</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td><code>session_start</code></td><td>Seed session state</td></tr>
+<tr><td><code>before_agent_start</code></td><td>Dual-ZK recall → inject cached prefix</td></tr>
+<tr><td><code>after_provider_response</code></td><td>Capture usage.{input,output,cacheRead,cacheWrite,cost}</td></tr>
+<tr><td><code>tool_call</code></td><td>Increment tool counter</td></tr>
+<tr><td><code>message_end</code></td><td>Count zk- citations in reply</td></tr>
+<tr><td><code>session_shutdown</code></td><td>Persist session_metrics row via sqlite3 CLI</td></tr>
+<tr><td>cmd <code>/zk-metrics</code></td><td>Manual metrics inspection</td></tr>
+</tbody>
+</table>
+
+<h2>7. Queued improvements (pass-8 target)</h2>
+<ol style="padding-left:1.5rem;line-height:1.8">
+<li>Backfill 22,181 missing embeddings (fix Ollama timeout first)</li>
+<li>Cross-encoder rerank top-15 → top-3 (-80 % RAG tokens)</li>
+<li>Expose <code>zk-recall</code>/<code>semantic-search</code>/<code>embed</code> as Pi MCP tools</li>
+<li>Live <code>/api/v1/ooda</code> endpoint + 30 s client polling</li>
+<li>Prefix-cache the ZK block in system prompt</li>
+<li>Rule bindings: <code>HighCostThreshold</code> · <code>LowCacheHit</code> · <code>LowEmbeddingCoverage</code></li>
+<li>Zenoh publishers on <code>indrajaal/l4/sre/cost</code>, <code>…/zk</code></li>
+<li>Wire <code>record_zk_recall</code> call-sites in cortex Gleam path</li>
+<li>Raise cache-hit ratio 47.8 % → 90 % via stable prefixes</li>
+</ol>
+
+<h2>8. Dashboard preview</h2>
+<a href="20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-ooda-metrics.html" style="display:block">
+<img class="diag" src="20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-ooda-dashboard.png" alt="OODA metrics dashboard live screenshot">
+</a>
+<p style="margin-top:.5rem"><a style="color:var(--accent)" href="20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-ooda-metrics.html">→ open live dashboard</a></p>
+
+<hr style="border:none;border-top:1px solid var(--border);margin:2rem 0">
+<p style="color:var(--muted);text-align:center;font-size:.8rem">
+Ultra-Pass 7 · <code>116452500338698000</code> ·
+<a href="20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-journal.md" style="color:var(--accent)">MD journal</a> ·
+<a href="20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-deck.html" style="color:var(--accent)">Slide deck</a> ·
+<a href="20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-ooda-metrics.html" style="color:var(--accent)">OODA live</a>
+</p>
+</body></html>

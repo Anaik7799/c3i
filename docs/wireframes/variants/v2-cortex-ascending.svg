@@ -1,0 +1,81 @@
+<svg width="1920" height="1200" viewBox="0 0 1920 1200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sunGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD600;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFAB00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF6D00;stop-opacity:1" />
+    </linearGradient>
+    <style>
+      .bg { fill: #FFFFFF; }
+      .ooda-ray { stroke: #FFAB00; stroke-width: 12; fill: none; opacity: 0.8; }
+      .ooda-ray-inner { stroke: #FFD600; stroke-width: 4; fill: none; opacity: 0.6; }
+      .deco-pillar { fill: #1A237E; stroke: #00B0FF; stroke-width: 1.5; }
+      .pillar-detail { stroke: #00B0FF; stroke-width: 0.5; opacity: 0.4; }
+      .sun-core { fill: url(#sunGrad); stroke: #212121; stroke-width: 3; }
+      .label-text { font-family: 'Roboto', sans-serif; font-weight: 900; font-size: 36px; fill: #1A237E; letter-spacing: 2px; }
+      .circuit-line { stroke: #1A237E; stroke-width: 1; fill: none; opacity: 0.3; }
+    </style>
+  </defs>
+
+  <rect width="1920" height="1200" class="bg" />
+
+  <!-- Digital Pillars (Regression Enhanced) -->
+  <g transform="translate(0, 1000)">
+    <!-- Left Clusters -->
+    <rect x="50" y="-300" width="40" height="300" class="deco-pillar" />
+    <rect x="90" y="-450" width="40" height="450" class="deco-pillar" />
+    <rect x="130" y="-200" width="40" height="200" class="deco-pillar" />
+    <line x1="50" y1="-100" x2="170" y2="-100" class="pillar-detail" />
+    <line x1="50" y1="-200" x2="170" y2="-200" class="pillar-detail" />
+
+    <rect x="250" y="-550" width="60" height="550" class="deco-pillar" />
+    <rect x="310" y="-350" width="60" height="350" class="deco-pillar" />
+    
+    <!-- Right Clusters -->
+    <rect x="1570" y="-550" width="60" height="550" class="deco-pillar" />
+    <rect x="1630" y="-350" width="60" height="350" class="deco-pillar" />
+    
+    <rect x="1750" y="-300" width="40" height="300" class="deco-pillar" />
+    <rect x="1790" y="-450" width="40" height="450" class="deco-pillar" />
+    <rect x="1830" y="-200" width="40" height="200" class="deco-pillar" />
+  </g>
+
+  <!-- OODA Sunburst (Tiered) -->
+  <g transform="translate(960, 1000)">
+    <g>
+      <line x1="0" y1="0" x2="-850" y2="-450" class="ooda-ray" />
+      <line x1="0" y1="0" x2="-850" y2="-450" class="ooda-ray-inner" />
+      <text x="-700" y="-400" text-anchor="middle" class="label-text" transform="rotate(-28, -700, -400)">OBSERVE</text>
+    </g>
+    <g>
+      <line x1="0" y1="0" x2="-450" y2="-800" class="ooda-ray" />
+      <line x1="0" y1="0" x2="-450" y2="-800" class="ooda-ray-inner" />
+      <text x="-400" y="-700" text-anchor="middle" class="label-text" transform="rotate(-60, -400, -700)">ORIENT</text>
+    </g>
+    <g>
+      <line x1="0" y1="0" x2="450" y2="-800" class="ooda-ray" />
+      <line x1="0" y1="0" x2="450" y2="-800" class="ooda-ray-inner" />
+      <text x="400" y="-700" text-anchor="middle" class="label-text" transform="rotate(60, 400, -700)">DECIDE</text>
+    </g>
+    <g>
+      <line x1="0" y1="0" x2="850" y2="-450" class="ooda-ray" />
+      <line x1="0" y1="0" x2="850" y2="-450" class="ooda-ray-inner" />
+      <text x="700" y="-400" text-anchor="middle" class="label-text" transform="rotate(28, 700, -400)">ACT</text>
+    </g>
+
+    <!-- Sun Iris with Circuitry -->
+    <circle cx="0" cy="0" r="280" class="sun-core" />
+    <g opacity="0.5">
+      <path d="M -150,0 L 150,0 M 0,-150 L 0,150" class="circuit-line" />
+      <circle r="180" fill="none" stroke="#1A237E" stroke-width="0.5" stroke-dasharray="10,5" />
+      <polygon points="0,-100 86,50 -86,50" class="circuit-line" />
+    </g>
+    
+    <!-- Central Processor -->
+    <rect x="-40" y="-40" width="80" height="80" fill="#1A237E" stroke="#FFD600" stroke-width="2" />
+    <circle r="10" fill="#FFD600" />
+  </g>
+
+  <text x="60" y="100" class="label-text" style="font-size: 56px;">CORTEX ASCENDING</text>
+  <text x="60" y="150" class="label-text" style="font-size: 28px; font-weight: 300; fill: #FF6D00;">Regression 20: Neuronal Pathing Finalized</text>
+</svg>

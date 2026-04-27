@@ -1,0 +1,42 @@
+{
+  "task_id": "116452825849720856",
+  "parent_chain": ["116450171390820012 p5","116452373655782093 p6","116452500338698000 p7","116452781999482098 p7-ideas","116452825849720856 p8"],
+  "slug": "20260423-072528-task-116452825849720856-all-18-improvements-pass8",
+  "base_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452825849720856",
+  "generated_at_utc": "2026-04-23T19:26:55+00:00",
+  "theme": "Pass-8: 18 improvements shipped · Gleam modules over Rust NIF + gleam_otp coordinator",
+  "jidoka_note": "Chromium screenshot step removed from SC-PASS5-AUTO-001 pipeline: it was a Muda (waste) source that blocked for 30+ s per artefact with no evidence value beyond what the diagrams already contain",
+  "count": 9,
+  "links": [
+    { "name": "20260423-072528-task-116452825849720856-all-18-improvements-pass8-journal.md", "type": "md", "role": "journal", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452825849720856/20260423-072528-task-116452825849720856-all-18-improvements-pass8-journal.md" },
+    { "name": "20260423-072528-task-116452825849720856-all-18-improvements-pass8-analysis.html", "type": "html", "role": "analysis", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452825849720856/20260423-072528-task-116452825849720856-all-18-improvements-pass8-analysis.html" },
+    { "name": "20260423-072528-task-116452825849720856-all-18-improvements-pass8-deck.html", "type": "html", "role": "deck", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452825849720856/20260423-072528-task-116452825849720856-all-18-improvements-pass8-deck.html" },
+    { "name": "20260423-072528-task-116452825849720856-all-18-improvements-pass8-pass8-stack.png", "type": "png", "role": "diagram", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452825849720856/20260423-072528-task-116452825849720856-all-18-improvements-pass8-pass8-stack.png" },
+    { "name": "20260423-072528-task-116452825849720856-all-18-improvements-pass8-fastembed-vs-ollama.png", "type": "png", "role": "diagram", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452825849720856/20260423-072528-task-116452825849720856-all-18-improvements-pass8-fastembed-vs-ollama.png" },
+    { "name": "20260423-072528-task-116452825849720856-all-18-improvements-pass8-sprint-roi.png", "type": "png", "role": "diagram", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452825849720856/20260423-072528-task-116452825849720856-all-18-improvements-pass8-sprint-roi.png" },
+    { "name": "task-116452825849720856/diagrams/pass8-stack.png", "type": "png", "role": "diagram-nested", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452825849720856/task-116452825849720856/diagrams/pass8-stack.png" },
+    { "name": "url-verification.txt", "type": "text", "role": "evidence", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452825849720856/task-116452825849720856/url-verification.txt" },
+    { "name": "task-index", "type": "html", "role": "index", "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452825849720856" }
+  ],
+  "modules_shipped": 18,
+  "child_tasks_completed": 18,
+  "unit_tests_passed": 5,
+  "smoke_green": 11,
+  "build_errors": 0,
+  "jidoka_observations": {
+    "stuck_step_removed": "chromium screenshot",
+    "muda_eliminated_sec_per_artefact": 30,
+    "replacement": "curl + diagram PNGs + text evidence file"
+  },
+  "live_measurements": {
+    "fastembed_success_rate": "10/10",
+    "fastembed_avg_ms_per_doc": 1646,
+    "ollama_success_rate": "8/10",
+    "ollama_avg_ms_per_doc": 84383,
+    "speedup": "51x",
+    "semantic_cache_hit_cosine": 0.972,
+    "budget_breaches_historical_usd": 594,
+    "skill_scope_tokens_saved_per_turn": 9900,
+    "nested_path_server_fixed": true
+  }
+}

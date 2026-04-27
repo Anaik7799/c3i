@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FerrisKey IAM Fractal Analysis — 88 Use Cases x 8 Layers x 255 Components</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--border:#1e2a3a;--accent:#00d4aa;--success:#3dd68c;--warning:#f5a623;--critical:#ff4757;--l0:#ff6b6b;--l1:#ffd93d;--l2:#6bcb77;--l3:#4d96ff;--l4:#9b59b6;--l5:#00d4aa;--l6:#e74c3c;--l7:#f39c12}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+.container{max-width:1400px;margin:0 auto;padding:16px}
+h1{font-size:clamp(1.4rem,4vw,2.2rem);background:linear-gradient(135deg,var(--accent),var(--l3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+h2{font-size:clamp(1.1rem,3vw,1.6rem);color:var(--accent);margin:24px 0 12px;border-bottom:1px solid var(--border);padding-bottom:8px}
+h3{font-size:clamp(0.95rem,2.5vw,1.2rem);color:var(--text);margin:16px 0 8px}
+.subtitle{color:var(--muted);font-size:0.9rem;margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:clamp(12px,3vw,24px);margin-bottom:16px;backdrop-filter:blur(10px)}
+.card:hover{border-color:var(--accent);transition:border-color .3s}
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr))}
+.grid-3{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))}
+.grid-4{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))}
+.stat{text-align:center;padding:16px}
+.stat-value{font-size:clamp(1.8rem,5vw,2.8rem);font-weight:700;background:linear-gradient(135deg,var(--accent),var(--l3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{color:var(--muted);font-size:0.85rem;margin-top:4px}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;margin:2px}
+.badge-l0{background:rgba(255,107,107,.15);color:var(--l0);border:1px solid rgba(255,107,107,.3)}
+.badge-l1{background:rgba(255,217,61,.15);color:var(--l1);border:1px solid rgba(255,217,61,.3)}
+.badge-l2{background:rgba(107,203,119,.15);color:var(--l2);border:1px solid rgba(107,203,119,.3)}
+.badge-l3{background:rgba(77,150,255,.15);color:var(--l3);border:1px solid rgba(77,150,255,.3)}
+.badge-l4{background:rgba(155,89,182,.15);color:var(--l4);border:1px solid rgba(155,89,182,.3)}
+.badge-l5{background:rgba(0,212,170,.15);color:var(--l5);border:1px solid rgba(0,212,170,.3)}
+.badge-l6{background:rgba(231,76,60,.15);color:var(--l6);border:1px solid rgba(231,76,60,.3)}
+.badge-l7{background:rgba(243,156,18,.15);color:var(--l7);border:1px solid rgba(243,156,18,.3)}
+.badge-admin{background:rgba(255,107,107,.2);color:#ff6b6b;border:1px solid rgba(255,107,107,.4)}
+.badge-operator{background:rgba(255,165,2,.2);color:#ffa502;border:1px solid rgba(255,165,2,.4)}
+.badge-viewer{background:rgba(46,213,115,.2);color:#2ed573;border:1px solid rgba(46,213,115,.4)}
+.badge-service{background:rgba(155,89,182,.2);color:#9b59b6;border:1px solid rgba(155,89,182,.4)}
+table{width:100%;border-collapse:collapse;font-size:clamp(0.75rem,2vw,0.9rem);overflow-x:auto;display:block}
+@media(min-width:768px){table{display:table}}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--accent);font-weight:600;white-space:nowrap;position:sticky;top:0;background:var(--card)}
+tr:hover td{background:rgba(0,212,170,.05)}
+.flow-diagram{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:clamp(0.65rem,1.8vw,0.82rem);overflow-x:auto;white-space:pre;line-height:1.5;color:var(--muted)}
+.flow-diagram .highlight{color:var(--accent)}
+.flow-diagram .warn{color:var(--warning)}
+.flow-diagram .err{color:var(--critical)}
+.tensor{display:grid;grid-template-columns:auto repeat(8,1fr);gap:2px;font-size:clamp(0.6rem,1.5vw,0.8rem);text-align:center}
+.tensor-cell{padding:clamp(4px,1vw,8px);border-radius:4px;min-height:28px;display:flex;align-items:center;justify-content:center}
+.tensor-header{background:var(--card);color:var(--accent);font-weight:600}
+.tensor-label{background:var(--card);color:var(--muted);font-weight:500;text-align:right;padding-right:8px}
+.tensor-active{background:rgba(0,212,170,.2);color:var(--accent);font-weight:600}
+.tensor-inactive{background:rgba(122,143,166,.08);color:rgba(122,143,166,.4)}
+.progress-ring{position:relative;width:clamp(80px,15vw,120px);height:clamp(80px,15vw,120px);margin:0 auto}
+.progress-ring svg{transform:rotate(-90deg)}
+.progress-ring circle{fill:none;stroke-width:8;stroke-linecap:round}
+.progress-ring .bg{stroke:var(--border)}
+.progress-ring .fg{stroke:var(--accent);transition:stroke-dashoffset .5s}
+.progress-ring .label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(1rem,3vw,1.4rem);font-weight:700;color:var(--accent)}
+.layer-bar{display:flex;gap:4px;margin:8px 0;flex-wrap:wrap}
+.layer-chip{padding:4px 12px;border-radius:16px;font-size:0.75rem;font-weight:600;min-width:44px;min-height:32px;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+.uc-card{border-left:3px solid var(--accent);padding-left:12px;margin:12px 0}
+.uc-card h4{font-size:0.95rem;margin-bottom:4px}
+.uc-card p{font-size:0.85rem;color:var(--muted)}
+.uc-card .improvement{color:var(--success);font-size:0.8rem;margin-top:4px}
+.nav{position:sticky;top:0;background:rgba(10,14,23,.95);backdrop-filter:blur(12px);z-index:100;padding:8px 0;border-bottom:1px solid var(--border);overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+.nav a{color:var(--muted);text-decoration:none;padding:6px 12px;font-size:0.8rem;border-radius:8px;display:inline-block;min-height:44px;line-height:32px}
+.nav a:hover,.nav a:focus{color:var(--accent);background:rgba(0,212,170,.1)}
+.diagram-svg{width:100%;max-width:800px;margin:16px auto;display:block}
+.rbac-matrix{display:grid;grid-template-columns:auto repeat(8,1fr);gap:1px;font-size:clamp(0.6rem,1.5vw,0.78rem)}
+.rbac-cell{padding:clamp(4px,1vw,10px);text-align:center;border-radius:4px;min-height:36px;display:flex;align-items:center;justify-content:center}
+.rbac-allow{background:rgba(61,214,140,.2);color:var(--success)}
+.rbac-deny{background:rgba(255,71,87,.1);color:rgba(255,71,87,.5)}
+.rbac-mfa{background:rgba(255,165,2,.2);color:var(--warning)}
+@media(max-width:768px){.container{padding:8px}.card{padding:12px;border-radius:8px}.grid-2,.grid-3{grid-template-columns:1fr}.tensor{font-size:0.55rem}.tensor-cell{padding:3px;min-height:24px}h2{font-size:1.1rem}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media(prefers-color-scheme:light){:root{--bg:#f5f7fa;--card:#fff;--text:#1a1a2e;--muted:#666;--border:#e0e0e0}}
+@media print{body{background:#fff;color:#000}.nav{display:none}.card{border:1px solid #ccc;break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+<div class="container">
+<a href="#overview">Overview</a>
+<a href="#tensor">Tensor</a>
+<a href="#rbac">RBAC</a>
+<a href="#l0">L0</a>
+<a href="#l1">L1</a>
+<a href="#l2">L2</a>
+<a href="#l3">L3</a>
+<a href="#l4">L4</a>
+<a href="#l5">L5</a>
+<a href="#l6">L6</a>
+<a href="#l7">L7</a>
+<a href="#flows">Flows</a>
+<a href="#guard">Guard Grid</a>
+<a href="#metrics">Metrics</a>
+</div>
+</nav>
+
+<div class="container">
+
+<h1>FerrisKey IAM Fractal Analysis</h1>
+<p class="subtitle">88 Use Cases x 8 Fractal Layers x 255 Components — v22.11.0-FERRISKEY | 2026-04-19</p>
+
+<!-- Overview Stats -->
+<section id="overview">
+<div class="grid grid-4">
+<div class="card stat"><div class="stat-value">88</div><div class="stat-label">Use Cases</div></div>
+<div class="card stat"><div class="stat-value">8/8</div><div class="stat-label">Layers Covered</div></div>
+<div class="card stat"><div class="stat-value">255</div><div class="stat-label">Total Components</div></div>
+<div class="card stat"><div class="stat-value">34.5%</div><div class="stat-label">Components Impacted</div></div>
+<div class="card stat"><div class="stat-value">34</div><div class="stat-label">STAMP Constraints</div></div>
+<div class="card stat"><div class="stat-value">8670</div><div class="stat-label">Tests Passing</div></div>
+<div class="card stat"><div class="stat-value">24/24</div><div class="stat-label">Guard Grid Cells</div></div>
+<div class="card stat"><div class="stat-value">7658</div><div class="stat-label">ZK Holons</div></div>
+</div>
+</section>
+
+<!-- Fractal Tensor -->
+<section id="tensor">
+<h2>Fractal Use Case Tensor</h2>
+<div class="card">
+<div class="tensor">
+<div class="tensor-header">Category</div>
+<div class="tensor-header">L0</div><div class="tensor-header">L1</div><div class="tensor-header">L2</div><div class="tensor-header">L3</div><div class="tensor-header">L4</div><div class="tensor-header">L5</div><div class="tensor-header">L6</div><div class="tensor-header">L7</div>
+
+<div class="tensor-label">Guardian</div>
+<div class="tensor-active">4</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-active">1</div><div class="tensor-inactive">-</div>
+
+<div class="tensor-label">Psi Invariants</div>
+<div class="tensor-active">2</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div>
+
+<div class="tensor-label">Auth Identity</div>
+<div class="tensor-active">4</div><div class="tensor-active">2</div><div class="tensor-active">4</div><div class="tensor-active">3</div><div class="tensor-active">2</div><div class="tensor-active">3</div><div class="tensor-active">2</div><div class="tensor-active">3</div>
+
+<div class="tensor-label">MFA</div>
+<div class="tensor-active">2</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div>
+
+<div class="tensor-label">RBAC</div>
+<div class="tensor-active">1</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-active">3</div><div class="tensor-active">3</div><div class="tensor-active">3</div><div class="tensor-active">3</div><div class="tensor-inactive">-</div>
+
+<div class="tensor-label">Svc Directory</div>
+<div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-active">4</div><div class="tensor-inactive">-</div><div class="tensor-active">2</div><div class="tensor-active">1</div>
+
+<div class="tensor-label">Cloud IAM</div>
+<div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-active">1</div><div class="tensor-inactive">-</div><div class="tensor-active">2</div><div class="tensor-inactive">-</div>
+
+<div class="tensor-label">Webhook/Zenoh</div>
+<div class="tensor-inactive">-</div><div class="tensor-active">1</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-active">3</div><div class="tensor-active">1</div>
+
+<div class="tensor-label">Audit/OTel</div>
+<div class="tensor-active">1</div><div class="tensor-active">3</div><div class="tensor-inactive">-</div><div class="tensor-active">2</div><div class="tensor-inactive">-</div><div class="tensor-active">2</div><div class="tensor-active">1</div><div class="tensor-inactive">-</div>
+
+<div class="tensor-label">Dark Cockpit</div>
+<div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-active">1</div><div class="tensor-active">1</div><div class="tensor-inactive">-</div>
+
+<div class="tensor-label">Guard Grid</div>
+<div class="tensor-inactive">-</div><div class="tensor-active">1</div><div class="tensor-active">1</div><div class="tensor-active">1</div><div class="tensor-active">1</div><div class="tensor-active">1</div><div class="tensor-active">1</div><div class="tensor-active">1</div>
+
+<div class="tensor-label">Health Cascade</div>
+<div class="tensor-active">1</div><div class="tensor-inactive">-</div><div class="tensor-active">1</div><div class="tensor-inactive">-</div><div class="tensor-active">1</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div>
+
+<div class="tensor-label">Google Fed</div>
+<div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-active">1</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-active">2</div>
+
+<div class="tensor-label">Gateway Auth</div>
+<div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-inactive">-</div><div class="tensor-active">3</div>
+
+<div class="tensor-header">TOTAL</div>
+<div class="tensor-header" style="color:var(--l0)">16</div><div class="tensor-header" style="color:var(--l1)">7</div><div class="tensor-header" style="color:var(--l2)">7</div><div class="tensor-header" style="color:var(--l3)">10</div><div class="tensor-header" style="color:var(--l4)">12</div><div class="tensor-header" style="color:var(--l5)">10</div><div class="tensor-header" style="color:var(--l6)">16</div><div class="tensor-header" style="color:var(--l7)">11</div>
+</div>
+</div>
+</section>
+
+<!-- RBAC Matrix -->
+<section id="rbac">
+<h2>RBAC Permission x Layer Matrix</h2>
+<div class="card">
+<div class="rbac-matrix">
+<div class="tensor-header">Role</div>
+<div class="tensor-header">L0</div><div class="tensor-header">L1</div><div class="tensor-header">L2</div><div class="tensor-header">L3</div><div class="tensor-header">L4</div><div class="tensor-header">L5</div><div class="tensor-header">L6</div><div class="tensor-header">L7</div>
+<div class="tensor-label"><span class="badge badge-admin">Admin</span></div>
+<div class="rbac-mfa">MFA</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div>
+<div class="tensor-label"><span class="badge badge-operator">Operator</span></div>
+<div class="rbac-deny">No</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div>
+<div class="tensor-label"><span class="badge badge-service">Service</span></div>
+<div class="rbac-deny">No</div><div class="rbac-deny">No</div><div class="rbac-deny">No</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-deny">No</div>
+<div class="tensor-label"><span class="badge badge-viewer">Viewer</span></div>
+<div class="rbac-deny">No</div><div class="rbac-deny">No</div><div class="rbac-deny">No</div><div class="rbac-deny">No</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div><div class="rbac-allow">Yes</div>
+</div>
+</div>
+</section>
+
+<!-- Layer Sections -->
+<section id="l0">
+<h2><span class="badge badge-l0">L0</span> Constitutional — 16 Use Cases, 18 Components</h2>
+<div class="card">
+<h3>Components</h3>
+<div class="layer-bar">
+<span class="layer-chip badge-l0">Guardian</span>
+<span class="layer-chip badge-l0">Psi 0-5</span>
+<span class="layer-chip badge-l0">E-Stop</span>
+<span class="layer-chip badge-l0">Consensus 2oo3</span>
+<span class="layer-chip badge-l0">OIDC Validator</span>
+<span class="layer-chip badge-l0">RBAC Engine</span>
+<span class="layer-chip badge-l0">Token Exchange</span>
+<span class="layer-chip badge-l0">Auth Page</span>
+</div>
+<h3>Key Use Cases</h3>
+<div class="uc-card"><h4>UC-L0-001: Guardian Approval with Named Identity + MFA</h4><p>Critical ops require named admin JWT + MFA + 2oo3 quorum. Before: any static token = God mode.</p><p class="improvement">Improvement: Anonymous voting to identity-verified quorum consensus</p></div>
+<div class="uc-card"><h4>UC-L0-002: Emergency Stop with Accountability</h4><p>E-stop trigger includes who triggered it (JWT sub). Reason logged with human identity.</p><p class="improvement">Improvement: "Who pulled the e-stop?" answered by JWT audit trail</p></div>
+<div class="uc-card"><h4>UC-L0-003: Psi-5 Truthfulness Includes FerrisKey Health</h4><p>Identity plane health is a constitutional invariant. FerrisKey down = Psi-5 Warning.</p><p class="improvement">Improvement: Auth system health is now a constitutional check</p></div>
+<div class="uc-card"><h4>UC-L0-007: Bicameral Dual Sign-Off with Distinct Identities</h4><p>Two-key release requires 2 different JWT sub claims. Same person cannot approve both keys.</p><p class="improvement">Improvement: Genuine multi-party consensus enforced by identity</p></div>
+</div>
+<div class="card">
+<h3>Data Flow: Guardian Approval</h3>
+<div class="flow-diagram"><span class="highlight">POST /api/v1/guardian/respond</span> { request_id, decision }
+  Authorization: Bearer &lt;ferriskey-jwt&gt;
+       |
+       v
+<span class="highlight">auth.validate_request()</span> -> AuthenticatedOidc(claims)
+       |
+       v
+<span class="highlight">rbac.authorize_layer_access(user, L0)</span>
+  can_access_layer(FullAccess, L0) = <span class="highlight">True</span>
+  require_mfa_for_layer(L0) = <span class="warn">True</span>
+  has_mfa(claims) = <span class="highlight">True</span> (acr: "mfa:totp")
+       |
+       v
+<span class="highlight">l0.resolve_request(state, id, Approved)</span>
+       |
+       v
+Zenoh: <span class="highlight">indrajaal/l0/const/approval/{id}</span>
+Zenoh: <span class="highlight">indrajaal/auth/admin/action</span></div>
+</div>
+</section>
+
+<section id="l1">
+<h2><span class="badge badge-l1">L1</span> Atomic/Debug — 7 Use Cases, 9 Components</h2>
+<div class="card">
+<div class="layer-bar">
+<span class="layer-chip badge-l1">TraceSpan</span>
+<span class="layer-chip badge-l1">EventMonitor</span>
+<span class="layer-chip badge-l1">NIF Bridge</span>
+<span class="layer-chip badge-l1">OTel Exporter</span>
+<span class="layer-chip badge-l1">FFI (4 new)</span>
+</div>
+<div class="uc-card"><h4>UC-L1-001: Auth OTel Span Publishing</h4><p>Every JWT validation produces an OTel span on indrajaal/otel/spans/auth/validate_token.</p><p class="improvement">Improvement: 0 to full auth observability with sub-ms latency histograms</p></div>
+<div class="uc-card"><h4>UC-L1-003: NIF Bridge Auth FFI Functions</h4><p>4 new Erlang FFI: system_time_seconds, base64_decode, get_env, url_encode.</p><p class="improvement">Improvement: JWT validation runs natively on BEAM with zero overhead</p></div>
+</div>
+</section>
+
+<section id="l2">
+<h2><span class="badge badge-l2">L2</span> Component — 7 Use Cases, 9 Components</h2>
+<div class="card">
+<div class="layer-bar">
+<span class="layer-chip badge-l2">Badge</span>
+<span class="layer-chip badge-l2">DataGrid</span>
+<span class="layer-chip badge-l2">A2UI Catalog</span>
+<span class="layer-chip badge-l2">Forms</span>
+<span class="layer-chip badge-l2">Layer Chips</span>
+</div>
+<div class="uc-card"><h4>UC-L2-001: Auth Permission Badges</h4><p>5 badge variants: <span class="badge badge-admin">Admin</span> <span class="badge badge-operator">Operator</span> <span class="badge badge-viewer">Viewer</span> <span class="badge badge-service">Service</span></p><p class="improvement">Improvement: Visual identity of access level at a glance</p></div>
+<div class="uc-card"><h4>UC-L2-002: Fractal Layer Access Chips</h4><p>8 colored chips showing accessible (green) vs blocked (gray) layers for current user.</p><p class="improvement">Improvement: Self-service permission visibility</p></div>
+</div>
+</section>
+
+<section id="l3">
+<h2><span class="badge badge-l3">L3</span> Transaction — 10 Use Cases, 10 Components</h2>
+<div class="card">
+<div class="layer-bar">
+<span class="layer-chip badge-l3">StateDiff</span>
+<span class="layer-chip badge-l3">Smriti.db</span>
+<span class="layer-chip badge-l3">Planning</span>
+<span class="layer-chip badge-l3">Zettelkasten</span>
+<span class="layer-chip badge-l3">Token Exchange</span>
+</div>
+<div class="uc-card"><h4>UC-L3-001: Credential Migration Smriti.db to FerrisKey Vault</h4><p>API keys, passwords, OAuth tokens move from plaintext SQLite to encrypted FerrisKey vault.</p><p class="improvement">Improvement: Plaintext to encrypted at rest. Key rotation via admin console</p></div>
+<div class="uc-card"><h4>UC-L3-002: Telegram Token Exchange (RFC 8693)</h4><p>Telegram initData -> HMAC validate -> FerrisKey token exchange -> JWT with c3i-viewer role.</p><p class="improvement">Improvement: Telegram users get persistent identity with RBAC</p></div>
+<div class="uc-card"><h4>UC-L3-003: Planning Task Mutation Auth Gate</h4><p>Task creation/update requires L3 Transaction access (OperatorAccess+).</p><p class="improvement">Improvement: Viewers cannot modify planning tasks</p></div>
+</div>
+</section>
+
+<section id="l4">
+<h2><span class="badge badge-l4">L4</span> System — 12 Use Cases, 10 Components</h2>
+<div class="card">
+<div class="layer-bar">
+<span class="layer-chip badge-l4">Containers</span>
+<span class="layer-chip badge-l4">Boot Seq</span>
+<span class="layer-chip badge-l4">CPU Gov</span>
+<span class="layer-chip badge-l4">FerrisKey #17</span>
+<span class="layer-chip badge-l4">Svc Directory</span>
+</div>
+<div class="uc-card"><h4>UC-L4-001: FerrisKey Container #17 at Boot Tier 2.5</h4><p>FerrisKey boots after DB, before apps. Health gate: HTTP /health. Failure = HALT boot.</p><p class="improvement">Improvement: Identity plane is infrastructure. Apps cannot start without auth</p></div>
+<div class="uc-card"><h4>UC-L4-002: Service Directory Registration</h4><p>All 19 containers register in Google Cloud SD with fractal metadata via WIF.</p><p class="improvement">Improvement: `podman ps` to Google Cloud Console visibility</p></div>
+<div class="uc-card"><h4>UC-L4-003: Container Restart Requires L4 Access</h4><p>Container lifecycle mutations gated by RBAC. Viewer cannot restart containers.</p><p class="improvement">Improvement: Container ops protected by role-based access</p></div>
+</div>
+</section>
+
+<section id="l5">
+<h2><span class="badge badge-l5">L5</span> Cognitive — 10 Use Cases, 12 Components</h2>
+<div class="card">
+<div class="layer-bar">
+<span class="layer-chip badge-l5">OODA Cycle</span>
+<span class="layer-chip badge-l5">Cortex</span>
+<span class="layer-chip badge-l5">Inference</span>
+<span class="layer-chip badge-l5">Dashboard</span>
+<span class="layer-chip badge-l5">Cockpit</span>
+<span class="layer-chip badge-l5">Agents</span>
+</div>
+<div class="uc-card"><h4>UC-L5-001: Per-User Gemini Inference Cost Attribution</h4><p>Every Gemini API call carries user identity. Per-user cost tracking and rate limiting.</p><p class="improvement">Improvement: Aggregate usage to per-user attribution</p></div>
+<div class="uc-card"><h4>UC-L5-002: OODA Cycle Auth Observation</h4><p>OODA Observe phase includes auth state: FerrisKey health, sessions, recent failures.</p><p class="improvement">Improvement: Auth anomalies are OODA inputs for system intelligence</p></div>
+<div class="uc-card"><h4>UC-L5-003: MCP Tool Authorization by Layer</h4><p>73 MCP tools mapped to fractal layers. Tool invocation requires matching permission.</p><p class="improvement">Improvement: 73 MCP tools gain per-tool RBAC</p></div>
+</div>
+<div class="card">
+<h3>Control Flow: MCP Tool Authorization</h3>
+<div class="flow-diagram">MoZ Request: { tool: "plan_search", params: {...}, auth: jwt }
+       |
+       v
+Extract JWT -> <span class="highlight">oidc.validate_token()</span> -> TokenClaims
+       |
+       v
+<span class="highlight">rbac.can_access_layer(permission, tool_layer)</span>
+       |
+  +----+----+
+  |         |
+<span class="highlight">Authorized</span>  <span class="err">403 Forbidden</span>
+  |
+  v
+Execute MCP tool -> Return result via MoZ</div>
+</div>
+</section>
+
+<section id="l6">
+<h2><span class="badge badge-l6">L6</span> Ecosystem — 16 Use Cases, 10 Components</h2>
+<div class="card">
+<div class="layer-bar">
+<span class="layer-chip badge-l6">Zenoh Mesh</span>
+<span class="layer-chip badge-l6">Webhook Bridge</span>
+<span class="layer-chip badge-l6">MoZ Client</span>
+<span class="layer-chip badge-l6">Quorum</span>
+<span class="layer-chip badge-l6">Pub/Sub</span>
+</div>
+<div class="uc-card"><h4>UC-L6-001: Webhook to Zenoh Dark Cockpit Bridge</h4><p>16 FerrisKey event types classified: Publish (anomalous) or Suppress (nominal). 7 Rust unit tests.</p><p class="improvement">Improvement: 0 to 8 Zenoh auth topics with intelligent filtering</p></div>
+<div class="uc-card"><h4>UC-L6-002: Service Directory + Zenoh Dual Discovery</h4><p>SD endpoints synced to Zenoh cache every 60s. Mesh-local speed + cloud-authoritative backend.</p><p class="improvement">Improvement: Hybrid discovery: Zenoh &lt;1ms + SD &lt;100ms</p></div>
+<div class="uc-card"><h4>UC-L6-003: Pub/Sub WIF Auth (Keyless)</h4><p>GCP Pub/Sub via WIF: FerrisKey JWT -> STS -> GCP token. No key files on disk.</p><p class="improvement">Improvement: Keyless authentication eliminates key leakage risk</p></div>
+</div>
+</section>
+
+<section id="l7">
+<h2><span class="badge badge-l7">L7</span> Federation — 11 Use Cases, 10 Components</h2>
+<div class="card">
+<div class="layer-bar">
+<span class="layer-chip badge-l7">Gateway</span>
+<span class="layer-chip badge-l7">HA Election</span>
+<span class="layer-chip badge-l7">Version Vectors</span>
+<span class="layer-chip badge-l7">Federation</span>
+<span class="layer-chip badge-l7">Matrix</span>
+</div>
+<div class="uc-card"><h4>UC-L7-001: Authenticated Gateway Broadcasts</h4><p>Every outbound message (Telegram/GChat) carries service account identity.</p><p class="improvement">Improvement: Anonymous broadcasts to identity-attributed messages</p></div>
+<div class="uc-card"><h4>UC-L7-002: Google SSO Federation</h4><p>Google Workspace users authenticate via FerrisKey OIDC broker. Role mapped from Google group.</p><p class="improvement">Improvement: SSO with existing Google credentials. 1 to N users</p></div>
+<div class="uc-card"><h4>UC-L7-004: Multi-Region Service Directory Discovery</h4><p>Cross-region endpoint discovery via Google Cloud SD.</p><p class="improvement">Improvement: Manual config to automatic cross-region discovery</p></div>
+</div>
+</section>
+
+<!-- Architecture Flows -->
+<section id="flows">
+<h2>Architecture Data Flows</h2>
+<div class="card">
+<h3>Authentication Pipeline</h3>
+<div class="flow-diagram"><span class="highlight">Browser / API Client / Telegram / Service Account</span>
+       |
+       | Authorization: Bearer &lt;JWT&gt;
+       v
+<span class="highlight">Gleam Wisp :4100</span> -> auth.validate_request()
+       |
+       +-- FERRISKEY_ENABLED?
+       |     |
+       |     +-- Yes: <span class="highlight">oidc.validate_token(jwt, config, now)</span>
+       |     |     |-- decode JWT payload (base64url)
+       |     |     |-- parse claims (sub, exp, iss, roles, acr)
+       |     |     |-- check expiration (exp > now)
+       |     |     |-- validate issuer (iss == config.issuer_url)
+       |     |     +-- <span class="highlight">AuthenticatedOidc(claims)</span>
+       |     |
+       |     +-- No: validate_static_token()
+       |           +-- <span class="highlight">Authenticated("api-client")</span>
+       |
+       v
+<span class="highlight">rbac.resolve_permission(claims.roles)</span>
+       |-- c3i-admin    -> <span class="err">FullAccess</span> (L0-L7, MFA for L0)
+       |-- c3i-operator -> <span class="warn">OperatorAccess</span> (L1-L7)
+       |-- c3i-service  -> <span class="highlight">ServiceAccount</span> (L3-L6)
+       |-- c3i-viewer   -> ViewerAccess (L4-L7)
+       +-- unknown      -> NoAccess
+       |
+       v
+<span class="highlight">can_access_layer(permission, target_layer)</span>
+       |
+       +-- L0 + require_mfa? -> <span class="warn">check has_mfa(claims)</span>
+       |
+       v
+Authorized -> Execute handler
+       |
+       v
+<span class="highlight">Zenoh OTel span</span> -> indrajaal/otel/spans/auth/{op}</div>
+</div>
+
+<div class="card">
+<h3>Webhook to Zenoh Event Bridge</h3>
+<div class="flow-diagram"><span class="highlight">FerrisKey IAM</span> (event: login_failure)
+       |
+       | POST http://ferriskey-c3i-bridge:9090/webhook
+       v
+<span class="highlight">classify_event("login_failure")</span>
+       |
+       +-- login_success  -> <span class="highlight">SUPPRESS</span> (dark cockpit: nominal)
+       +-- login_failure  -> <span class="err">PUBLISH</span>  (anomalous)
+       +-- token_issued   -> <span class="highlight">SUPPRESS</span> (nominal)
+       +-- role_assigned  -> <span class="warn">PUBLISH</span>  (security-relevant)
+       +-- mfa_failure    -> <span class="err">PUBLISH</span>  (potential attack)
+       +-- admin_action   -> <span class="warn">PUBLISH</span>  (audit required)
+       +-- unknown        -> <span class="err">PUBLISH</span>  (fail-safe)
+       |
+       v
+Zenoh.put("<span class="highlight">indrajaal/auth/login</span>", json)
+Zenoh.put("<span class="highlight">indrajaal/otel/spans/auth/login</span>", json)
+       |
+       v
+Subscribers: Dashboard WS, TUI, OODA Observe, Prometheus</div>
+</div>
+
+<div class="card">
+<h3>Container Boot Sequence with FerrisKey</h3>
+<div class="flow-diagram"><span class="highlight">Panoptic Ignition — 7-Tier Boot Hierarchy</span>
+
+Tier 1: <span class="highlight">Zenoh Control Plane</span> (zenoh-router, TCP 7447)
+  |  Health: TCP connection to 7447
+  v
+Tier 2: <span class="highlight">Database</span> (postgres, pg_isready 5433)
+  |  Health: pg_isready returns 0
+  v
+Tier 2.5: <span class="warn">FerrisKey IAM</span> (ferriskey, HTTP 8080) <span class="warn">[NEW]</span>
+  |  Health: HTTP GET /health -> { status: "ok" }
+  |  <span class="err">FAILURE = HALT BOOT (SC-IAM-001)</span>
+  v
+Tier 3: <span class="highlight">Observability</span> (obs-prod, TCP 4317)
+  v
+Tier 4: Quorum Routers (zenoh-1/2/3, PARALLEL)
+  v
+Tier 5: Cognitive (cortex + cepaf-bridge, PARALLEL)
+  v
+Tier 6: Application (ex-app-1 + chaya + ollama, PARALLEL)
+  v
+Tier 7: HA + ML (app-2/3 + ml-runners, PARALLEL)</div>
+</div>
+</section>
+
+<!-- Guard Grid -->
+<section id="guard">
+<h2>Guard Grid — 24-Cell Verdict Matrix</h2>
+<div class="card">
+<table>
+<thead><tr><th>Layer</th><th>Cell 1</th><th>Cell 2</th><th>Cell 3</th><th>Auth Impact</th></tr></thead>
+<tbody>
+<tr><td><span class="badge badge-l0">L0</span></td><td>guardian + <b>AUTH_GATE</b></td><td>psi_invariants + <b>FK_HEALTH</b></td><td>emergency_stop + <b>MFA_CHECK</b></td><td>All 3 cells enhanced</td></tr>
+<tr><td><span class="badge badge-l1">L1</span></td><td>nif_bridge + <b>AUTH_FFI</b></td><td>otel_trace + <b>AUTH_SPANS</b></td><td>debug_probes</td><td>2 of 3 cells</td></tr>
+<tr><td><span class="badge badge-l2">L2</span></td><td>a2ui_catalog + <b>AUTH_COMPS</b></td><td>shell_helpers</td><td>lustre_ssr + <b>AUTH_PAGE</b></td><td>2 of 3 cells</td></tr>
+<tr><td><span class="badge badge-l3">L3</span></td><td>plan_status</td><td>smriti_db + <b>CRED_VAULT</b></td><td>planning_db</td><td>1 of 3 cells</td></tr>
+<tr><td><span class="badge badge-l4">L4</span></td><td>container_genome + <b>FK_CONTAINER</b></td><td>boot_sequencer + <b>SD_REG</b></td><td>cpu_governor</td><td>2 of 3 cells</td></tr>
+<tr><td><span class="badge badge-l5">L5</span></td><td>cortex + <b>USER_CTX</b></td><td>ooda_loop + <b>AUTH_OBS</b></td><td>inference_cascade + <b>RATE_LIMIT</b></td><td>All 3 cells</td></tr>
+<tr><td><span class="badge badge-l6">L6</span></td><td>zenoh_mesh + <b>AUTH_TOPICS</b></td><td>quorum + <b>IDENTITY</b></td><td>moz_bridge + <b>AUTH_HDRS</b></td><td>All 3 cells</td></tr>
+<tr><td><span class="badge badge-l7">L7</span></td><td>gateway + <b>IDENTITY</b></td><td>ha_election</td><td>version_vectors + <b>SD_FED</b></td><td>2 of 3 cells</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- Metrics -->
+<section id="metrics">
+<h2>Impact Metrics</h2>
+<div class="grid grid-2">
+<div class="card">
+<h3>Component Impact by Layer</h3>
+<table>
+<thead><tr><th>Layer</th><th>Total</th><th>Impacted</th><th>%</th></tr></thead>
+<tbody>
+<tr><td><span class="badge badge-l0">L0</span></td><td>48</td><td>18</td><td>37.5%</td></tr>
+<tr><td><span class="badge badge-l1">L1</span></td><td>13</td><td>9</td><td>69.2%</td></tr>
+<tr><td><span class="badge badge-l2">L2</span></td><td>17</td><td>9</td><td>52.9%</td></tr>
+<tr><td><span class="badge badge-l3">L3</span></td><td>28</td><td>10</td><td>35.7%</td></tr>
+<tr><td><span class="badge badge-l4">L4</span></td><td>40</td><td>10</td><td>25.0%</td></tr>
+<tr><td><span class="badge badge-l5">L5</span></td><td>73</td><td>12</td><td>16.4%</td></tr>
+<tr><td><span class="badge badge-l6">L6</span></td><td>15</td><td>10</td><td>66.7%</td></tr>
+<tr><td><span class="badge badge-l7">L7</span></td><td>21</td><td>10</td><td>47.6%</td></tr>
+<tr style="font-weight:700"><td>TOTAL</td><td>255</td><td>88</td><td>34.5%</td></tr>
+</tbody>
+</table>
+</div>
+<div class="card">
+<h3>Improvements Summary</h3>
+<table>
+<thead><tr><th>Area</th><th>Before</th><th>After</th></tr></thead>
+<tbody>
+<tr><td>Identity</td><td>Static token (1)</td><td>Per-user JWT (N)</td></tr>
+<tr><td>Authorization</td><td>Binary</td><td>5 levels x 8 layers</td></tr>
+<tr><td>MFA</td><td>None</td><td>TOTP + WebAuthn</td></tr>
+<tr><td>Audit</td><td>None</td><td>16 types x 8 topics</td></tr>
+<tr><td>Credentials</td><td>Plaintext SQLite</td><td>FerrisKey vault</td></tr>
+<tr><td>Key rotation</td><td>Manual DB edit</td><td>Admin console</td></tr>
+<tr><td>Discovery</td><td>podman ps</td><td>DNS + SD + Zenoh</td></tr>
+<tr><td>GCP auth</td><td>Key files</td><td>Keyless WIF</td></tr>
+<tr><td>Multi-user</td><td>1 operator</td><td>N via Google SSO</td></tr>
+<tr><td>Isolation</td><td>Minutes</td><td>&lt;60 seconds</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+
+<footer style="text-align:center;padding:32px;color:var(--muted);font-size:0.8rem">
+C3I Fractal IAM Analysis | FerrisKey + Google Cloud Service Directory + Cloud IAM<br>
+v22.11.0-FERRISKEY | 88 Use Cases | 8670 Tests | 7658 ZK Holons
+</footer>
+
+</div>
+</body>
+</html>

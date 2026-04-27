@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" font-family="system-ui,sans-serif">
+<defs>
+<linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00d4aa"/><stop offset="1" stop-color="#4d96ff"/></linearGradient>
+<linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset="1" stop-color="#f39c12"/></linearGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="900" height="600" fill="#0a0e17" rx="12"/>
+<text x="450" y="35" text-anchor="middle" fill="#00d4aa" font-size="18" font-weight="700">FerrisKey IAM Architecture — C3I Integration</text>
+
+<!-- FerrisKey Box -->
+<rect x="300" y="55" width="300" height="120" rx="8" fill="#141922" stroke="#ff6b6b" stroke-width="2"/>
+<text x="450" y="78" text-anchor="middle" fill="#ff6b6b" font-size="13" font-weight="600">FerrisKey IAM (L0 Constitutional)</text>
+<text x="320" y="98" fill="#7a8fa6" font-size="10">Realms: c3i-dev / c3i-prod</text>
+<text x="320" y="113" fill="#7a8fa6" font-size="10">Clients: 5 (wisp, lustre, phoenix, daemon, mcp)</text>
+<text x="320" y="128" fill="#7a8fa6" font-size="10">Roles: admin / operator / viewer / service</text>
+<text x="320" y="143" fill="#7a8fa6" font-size="10">MFA: TOTP + WebAuthn + Magic Links</text>
+<text x="320" y="158" fill="#7a8fa6" font-size="10">Webhooks -> Zenoh Bridge (:9090)</text>
+
+<!-- Gleam Box -->
+<rect x="50" y="210" width="220" height="100" rx="8" fill="#141922" stroke="#00d4aa" stroke-width="1.5"/>
+<text x="160" y="233" text-anchor="middle" fill="#00d4aa" font-size="12" font-weight="600">Gleam Wisp API :4100</text>
+<text x="70" y="253" fill="#7a8fa6" font-size="10">auth/oidc.gleam (JWT validation)</text>
+<text x="70" y="268" fill="#7a8fa6" font-size="10">auth/rbac.gleam (L0-L7 RBAC)</text>
+<text x="70" y="283" fill="#7a8fa6" font-size="10">auth/token_exchange.gleam</text>
+<text x="70" y="298" fill="#e0e6ed" font-size="10">52 Lustre + 33 Wisp + 49 TUI</text>
+
+<!-- sa-plan-daemon Box -->
+<rect x="340" y="210" width="220" height="100" rx="8" fill="#141922" stroke="#4d96ff" stroke-width="1.5"/>
+<text x="450" y="233" text-anchor="middle" fill="#4d96ff" font-size="12" font-weight="600">sa-plan-daemon (Rust)</text>
+<text x="360" y="253" fill="#7a8fa6" font-size="10">auth.rs (client credentials)</text>
+<text x="360" y="268" fill="#7a8fa6" font-size="10">cortex.rs (user context)</text>
+<text x="360" y="283" fill="#7a8fa6" font-size="10">mcp_inference.rs (per-user)</text>
+<text x="360" y="298" fill="#e0e6ed" font-size="10">31 modules, 9,104 LOC</text>
+
+<!-- Zenoh Box -->
+<rect x="630" y="210" width="220" height="100" rx="8" fill="#141922" stroke="#e74c3c" stroke-width="1.5"/>
+<text x="740" y="233" text-anchor="middle" fill="#e74c3c" font-size="12" font-weight="600">Zenoh Mesh (L6)</text>
+<text x="650" y="253" fill="#7a8fa6" font-size="10">indrajaal/auth/** (8 topics)</text>
+<text x="650" y="268" fill="#7a8fa6" font-size="10">indrajaal/otel/spans/auth/**</text>
+<text x="650" y="283" fill="#7a8fa6" font-size="10">indrajaal/l7/discovery/**</text>
+<text x="650" y="298" fill="#e0e6ed" font-size="10">4 routers, TCP 7447</text>
+
+<!-- Google Cloud Box -->
+<rect x="200" y="360" width="500" height="90" rx="8" fill="#141922" stroke="#f39c12" stroke-width="1.5"/>
+<text x="450" y="383" text-anchor="middle" fill="#f39c12" font-size="12" font-weight="600">Google Cloud (europe-north1)</text>
+<text x="220" y="403" fill="#7a8fa6" font-size="10">Service Directory</text>
+<text x="370" y="403" fill="#7a8fa6" font-size="10">Cloud IAM (WIF)</text>
+<text x="530" y="403" fill="#7a8fa6" font-size="10">Gemini API</text>
+<text x="220" y="420" fill="#7a8fa6" font-size="10">19 services registered</text>
+<text x="370" y="420" fill="#7a8fa6" font-size="10">Keyless auth</text>
+<text x="530" y="420" fill="#7a8fa6" font-size="10">6-tier inference</text>
+<text x="220" y="437" fill="#7a8fa6" font-size="10">Pub/Sub | Calendar | Drive | Gmail</text>
+
+<!-- Containers Box -->
+<rect x="200" y="480" width="500" height="60" rx="8" fill="#141922" stroke="#9b59b6" stroke-width="1.5"/>
+<text x="450" y="503" text-anchor="middle" fill="#9b59b6" font-size="12" font-weight="600">19 Containers — SIL-6 Biomorphic Mesh (L4 System)</text>
+<text x="220" y="523" fill="#7a8fa6" font-size="10">4 core + 3 FerrisKey + 3 AI + 1 obs + 4 zenoh + 4 HA</text>
+
+<!-- Arrows -->
+<line x1="450" y1="175" x2="160" y2="210" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="450" y1="175" x2="450" y2="210" stroke="#4d96ff" stroke-width="1.5"/>
+<line x1="450" y1="175" x2="740" y2="210" stroke="#e74c3c" stroke-width="1.5"/>
+<line x1="160" y1="310" x2="450" y2="360" stroke="#f39c12" stroke-width="1" stroke-dasharray="5,3"/>
+<line x1="450" y1="310" x2="450" y2="360" stroke="#f39c12" stroke-width="1" stroke-dasharray="5,3"/>
+<line x1="740" y1="310" x2="450" y2="360" stroke="#f39c12" stroke-width="1" stroke-dasharray="5,3"/>
+<line x1="450" y1="450" x2="450" y2="480" stroke="#9b59b6" stroke-width="1"/>
+
+<!-- Labels on arrows -->
+<text x="280" y="195" fill="#00d4aa" font-size="9">OIDC JWT</text>
+<text x="460" y="195" fill="#4d96ff" font-size="9">Client Creds</text>
+<text x="610" y="195" fill="#e74c3c" font-size="9">Webhooks</text>
+<text x="260" y="340" fill="#f39c12" font-size="9">WIF</text>
+<text x="460" y="340" fill="#f39c12" font-size="9">WIF</text>
+<text x="640" y="340" fill="#f39c12" font-size="9">OTel</text>
+
+<!-- Layer indicators -->
+<rect x="50" y="555" width="800" height="30" rx="4" fill="#141922"/>
+<rect x="55" y="560" width="90" height="20" rx="10" fill="rgba(255,107,107,.15)"/><text x="100" y="574" text-anchor="middle" fill="#ff6b6b" font-size="9">L0 Const</text>
+<rect x="155" y="560" width="90" height="20" rx="10" fill="rgba(255,217,61,.15)"/><text x="200" y="574" text-anchor="middle" fill="#ffd93d" font-size="9">L1 Debug</text>
+<rect x="255" y="560" width="90" height="20" rx="10" fill="rgba(107,203,119,.15)"/><text x="300" y="574" text-anchor="middle" fill="#6bcb77" font-size="9">L2 Comp</text>
+<rect x="355" y="560" width="90" height="20" rx="10" fill="rgba(77,150,255,.15)"/><text x="400" y="574" text-anchor="middle" fill="#4d96ff" font-size="9">L3 Txn</text>
+<rect x="455" y="560" width="90" height="20" rx="10" fill="rgba(155,89,182,.15)"/><text x="500" y="574" text-anchor="middle" fill="#9b59b6" font-size="9">L4 Sys</text>
+<rect x="555" y="560" width="90" height="20" rx="10" fill="rgba(0,212,170,.15)"/><text x="600" y="574" text-anchor="middle" fill="#00d4aa" font-size="9">L5 Cog</text>
+<rect x="655" y="560" width="90" height="20" rx="10" fill="rgba(231,76,60,.15)"/><text x="700" y="574" text-anchor="middle" fill="#e74c3c" font-size="9">L6 Eco</text>
+<rect x="755" y="560" width="90" height="20" rx="10" fill="rgba(243,156,18,.15)"/><text x="800" y="574" text-anchor="middle" fill="#f39c12" font-size="9">L7 Fed</text>
+</svg>

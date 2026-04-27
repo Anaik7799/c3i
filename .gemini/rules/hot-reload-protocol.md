@@ -183,7 +183,7 @@ For independent modules A, B:
 | `src/hot_reload_ffi.erl` | ~250 | Erlang FFI — code server API bindings |
 | `src/cepaf_gleam/ha/hot_reload.gleam` | ~120 | Gleam wrapper — typed hot reload API |
 | `scripts/hot-reload.sh` | ~40 | CLI script for hot reload |
-| `.claude/rules/hot-reload-protocol.md` | This file | Protocol and correctness proofs |
+| `.gemini/rules/hot-reload-protocol.md` | This file | Protocol and correctness proofs |
 
 ## Integration with Dashboard (डैशबोर्ड एकीकरण)
 The dashboard JS can trigger hot reload via:

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Ultra-Pass 7 Ideas Deck</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--accent:#00d4aa;--border:#1e2a3a;--success:#3dd68c;--warn:#f5a623;--critical:#ff4757;--muted:#7a8fa6;--blue:#00bfff;--purple:#9b6cff}
+*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,system-ui,sans-serif;overflow:hidden}
+.topbar{position:fixed;top:0;left:0;right:0;padding:.6rem 1.5rem;background:rgba(10,14,23,.85);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);z-index:100;font-size:.82rem;display:flex;justify-content:space-between;align-items:center}
+.topbar a{color:var(--accent);text-decoration:none;font-family:ui-monospace,monospace}
+.deck{position:relative;height:100vh;padding-top:50px}
+.slide{position:absolute;top:50px;left:0;right:0;bottom:0;padding:2rem 3rem;opacity:0;transition:opacity .4s;overflow-y:auto;display:flex;flex-direction:column}.slide.active{opacity:1}
+.slide h1{color:var(--accent);font-size:2.2rem;margin-bottom:.5rem}.slide h2{color:var(--accent);font-size:1.7rem;margin-bottom:1rem}.slide h3{color:var(--warn);font-size:1.1rem;margin-top:.8rem}
+.subtitle{color:var(--muted);font-size:1.05rem;margin-bottom:1.2rem}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.8rem;margin:1rem 0}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.9rem;text-align:center}
+.kpi .v{font-size:1.7rem;font-weight:700;color:var(--success)}.kpi .v.warn{color:var(--warn)}.kpi .v.crit{color:var(--critical)}.kpi .v.info{color:var(--blue)}
+.kpi .l{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;margin-top:.2rem}
+code{font-family:ui-monospace,monospace;background:#0e1420;padding:.1rem .35rem;border-radius:4px;color:var(--warn);font-size:.9em}
+pre{background:#0e1420;border:1px solid var(--border);border-radius:8px;padding:.7rem;font-size:.8rem;overflow-x:auto;white-space:pre-wrap}
+table{width:100%;border-collapse:collapse;font-size:.86rem}th,td{padding:.38rem .55rem;border-bottom:1px solid var(--border);text-align:left}
+th{color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;background:#1e2a3a}
+.score{font-family:ui-monospace,monospace;color:var(--accent);text-align:right}.score.top{color:var(--success)}
+.nav{position:fixed;bottom:.8rem;left:50%;transform:translateX(-50%);display:flex;gap:.5rem;background:var(--card);padding:.4rem .6rem;border-radius:20px;border:1px solid var(--border);z-index:99}
+.nav button{background:none;border:1px solid var(--border);color:var(--text);padding:.3rem .8rem;border-radius:14px;cursor:pointer;font-family:inherit}
+.nav button:hover{background:#1e2a3a;border-color:var(--accent);color:var(--accent)}
+.counter{color:var(--muted);font-size:.85rem;padding:.3rem .5rem}
+.slide-title{color:var(--accent);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem}
+.callout{background:linear-gradient(135deg,#0e2a1e,#141922);border-left:4px solid var(--success);border-radius:8px;padding:1rem 1.3rem;margin:1rem 0}
+.callout h3{color:var(--success);margin:0 0 .4rem 0}
+</style></head><body>
+
+<div class="topbar">
+<div><strong>44 Creative Ideas Ranked</strong> · Task <code>116452781999482098</code></div>
+<a href="https://vm-1.tail55d152.ts.net:8443/task-id/116452781999482098/">→ dashboard</a>
+</div>
+
+<div class="deck">
+
+<div class="slide active" data-n="1">
+<div class="slide-title">Slide 1 · Title</div>
+<h1>Ultrathink · 44 Improvements</h1>
+<h2>Ranked on Utility · Cost · Criticality · Performance</h2>
+<p class="subtitle">Composite = 2·C + 1.5·K + 1.2·U + 1.0·P − 0.5·E</p>
+<div class="kpi-row">
+<div class="kpi"><div class="v">44</div><div class="l">Ideas</div></div>
+<div class="kpi"><div class="v">12</div><div class="l">Categories</div></div>
+<div class="kpi"><div class="v">54.6</div><div class="l">Top score</div></div>
+<div class="kpi"><div class="v warn">$621</div><div class="l">Current spend</div></div>
+<div class="kpi"><div class="v">92%</div><div class="l">Possible savings</div></div>
+<div class="kpi"><div class="v info">215h</div><div class="l">Sprint effort</div></div>
+</div>
+</div>
+
+<div class="slide" data-n="2">
+<div class="slide-title">Slide 2 · Prompt</div>
+<h2>The prompt</h2>
+<div class="callout"><em>"ultrathink, can anyother impovements be made, look for all cratice ideas, rank them on utility, cost optimizstion, criticality and performance"</em></div>
+<h3>Preceding conversation</h3>
+<ul style="padding-left:1.5rem;line-height:1.7">
+<li>"is zk being fully utilized … track metrics per task/job/plan/session"</li>
+<li>"continue, extend for openrouter, claude, gemini, gpt and other models"</li>
+<li>"optimize for agentic use"</li>
+</ul>
+</div>
+
+<div class="slide" data-n="3">
+<div class="slide-title">Slide 3 · Ground truth</div>
+<h2>Baseline (live from smriti.db)</h2>
+<div class="kpi-row">
+<div class="kpi"><div class="v">35,254</div><div class="l">Holons</div></div>
+<div class="kpi"><div class="v warn">37%</div><div class="l">Embed coverage</div></div>
+<div class="kpi"><div class="v">52</div><div class="l">Models</div></div>
+<div class="kpi"><div class="v">7</div><div class="l">Providers</div></div>
+<div class="kpi"><div class="v warn">$621.50</div><div class="l">Pi spend</div></div>
+<div class="kpi"><div class="v warn">47.8%</div><div class="l">Cache hit</div></div>
+<div class="kpi"><div class="v crit">$158.61</div><div class="l">gpt-5.4-pro leak</div></div>
+<div class="kpi"><div class="v">$0.85</div><div class="l">$/citation</div></div>
+</div>
+</div>
+
+<div class="slide" data-n="4">
+<div class="slide-title">Slide 4 · Top 10</div>
+<h2>Top 10 ideas (composite ≥ 37)</h2>
+<table>
+<thead><tr><th>#</th><th>Idea</th><th>Category</th><th>Score</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Prompt-prefix stabiliser + cache warmer</td><td>CACHE</td><td class="score top">54.6</td></tr>
+<tr><td>2</td><td>Semantic-cache fuzzy prelookup</td><td>CACHE</td><td class="score top">52.6</td></tr>
+<tr><td>3</td><td>Adaptive per-prompt model router</td><td>ROUTER</td><td class="score top">49.6</td></tr>
+<tr><td>4</td><td>Backfill 22,181 embeddings</td><td>RAG</td><td class="score top">45.5</td></tr>
+<tr><td>5</td><td>BGE cross-encoder rerank top-15→top-3</td><td>RAG</td><td class="score top">45.2</td></tr>
+<tr><td>6</td><td>Budget enforcement via Guardian</td><td>BUDGET</td><td class="score top">42.7</td></tr>
+<tr><td>7</td><td>Exact-match prompt cache</td><td>CACHE</td><td class="score">39.1</td></tr>
+<tr><td>8</td><td>Multi-agent pipeline</td><td>AGENT</td><td class="score">38.3</td></tr>
+<tr><td>9</td><td>HyDE retrieval</td><td>RAG</td><td class="score">37.9</td></tr>
+<tr><td>10</td><td>Shared cross-agent cache</td><td>CACHE</td><td class="score">37.7</td></tr>
+</tbody></table>
+</div>
+
+<div class="slide" data-n="5">
+<div class="slide-title">Slide 5 · Category leaders</div>
+<h2>Category leaders</h2>
+<table>
+<thead><tr><th>Category</th><th>Leader</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>CACHE</td><td>#1 Prefix stabiliser</td><td>90% discount on every token</td></tr>
+<tr><td>ROUTER</td><td>#3 Adaptive router</td><td>Fixes $558 OpenAI over-spend</td></tr>
+<tr><td>RAG</td><td>#4 Embedding backfill</td><td>Substrate — all else downstream</td></tr>
+<tr><td>BUDGET</td><td>#6 Guardian gate</td><td>Single-incident protection ($158)</td></tr>
+<tr><td>COMPRESS</td><td>#11 LLMLingua-2</td><td>Largest token reduction</td></tr>
+<tr><td>PERF</td><td>#12 Spec decoding</td><td>2-3× throughput</td></tr>
+<tr><td>KMS</td><td>#17 Edge growth</td><td>Graph-walk gates recall quality</td></tr>
+<tr><td>OBS</td><td>#19 Per-turn spans</td><td>Session-level telemetry too coarse</td></tr>
+<tr><td>AGENT</td><td>#8 Multi-agent pipeline</td><td>Provider ↔ sub-task match</td></tr>
+</tbody></table>
+</div>
+
+<div class="slide" data-n="6">
+<div class="slide-title">Slide 6 · Hidden gems</div>
+<h2>Hidden gems (under-scored, strategic)</h2>
+<ol style="padding-left:1.5rem;line-height:1.9">
+<li><strong>#19 Per-turn spans</strong> — correlate prompt↔cost. Surgical fixes.</li>
+<li><strong>#10 Shared cross-agent cache</strong> — Claude+Pi share SQLite cache. ~50% win.</li>
+<li><strong>#7 Exact-match cache</strong> — sessions re-send "run tests" repeatedly.</li>
+<li><strong>#13 MoE routing</strong> — cortex intent classifier already at <code>cortex.rs:232</code>.</li>
+<li><strong>#15 Skill-scoped prompts</strong> — Pi loads all 44 tools/turn. Scope saves 4k tok/turn.</li>
+</ol>
+</div>
+
+<div class="slide" data-n="7">
+<div class="slide-title">Slide 7 · Dep graph</div>
+<h2>Implementation dependencies</h2>
+<pre>Prefix stabiliser (#1) ──► Shared cache (#10) ──► Exact cache (#7)
+     │                                                │
+     ▼                                                ▼
+Semantic prelookup (#2) ◄─┬─ Embed backfill (#4) ─► BGE rerank (#5) ─► HyDE (#9)
+     │                    │
+     ▼                    ▼
+Adaptive router (#3) ◄─── Budget (#6) ──────────► MoE routing (#13)
+     │
+     ▼
+LLMLingua (#11) ────────► Multi-agent pipe (#8) ──► Spec decoding (#12)</pre>
+<p class="subtitle">Critical path: <code>#1 → #4 → #5 → #2 → #3 → #6</code></p>
+</div>
+
+<div class="slide" data-n="8">
+<div class="slide-title">Slide 8 · Sprint plan</div>
+<h2>6 sprints · 18 improvements · 215 h</h2>
+<table>
+<thead><tr><th>Sprint</th><th>Theme</th><th>Ideas</th><th>Σ</th><th>Hrs</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Prefix + budget + SRE</td><td>#1 · #6 · #22</td><td class="score">128.9</td><td>20</td></tr>
+<tr><td>2</td><td>RAG substrate</td><td>#4 · #5 · #17</td><td class="score">124.3</td><td>35</td></tr>
+<tr><td>3</td><td>Cache layers</td><td>#2 · #7 · #10</td><td class="score top">129.4</td><td>40</td></tr>
+<tr><td>4</td><td>Routing</td><td>#3 · #14 · #13</td><td class="score">119.4</td><td>50</td></tr>
+<tr><td>5</td><td>Compression</td><td>#11 · #16 · #15</td><td class="score">103.0</td><td>40</td></tr>
+<tr><td>6</td><td>Observability</td><td>#19 · #18 · #24</td><td class="score">96.1</td><td>30</td></tr>
+</tbody></table>
+</div>
+
+<div class="slide" data-n="9">
+<div class="slide-title">Slide 9 · ROI</div>
+<h2>Projected ROI trajectory</h2>
+<table>
+<thead><tr><th>Cutover</th><th>Cumulative savings</th><th>$/session</th></tr></thead>
+<tbody>
+<tr><td>Today</td><td>—</td><td>$38.84</td></tr>
+<tr><td>After Sprint 1-2</td><td>55%</td><td>$17.48</td></tr>
+<tr><td>After Sprint 3</td><td>75%</td><td>$9.71</td></tr>
+<tr><td>After Sprint 4</td><td>87%</td><td>$5.05</td></tr>
+<tr><td>After Sprint 5-6</td><td><strong>92%</strong></td><td><strong>$3.11</strong></td></tr>
+</tbody></table>
+<p style="margin-top:1rem">Annualised @ 200 sessions/year: <strong>$7,146 saved vs current $7,768 baseline</strong>.</p>
+</div>
+
+<div class="slide" data-n="10">
+<div class="slide-title">Slide 10 · The one thing</div>
+<h2>If only one thing this week:</h2>
+<div class="callout"><h3>#1 Prompt-prefix stabiliser + cache warmer</h3>
+<ul style="padding-left:1.5rem;line-height:1.8;margin-top:.5rem">
+<li>≈ 40 LOC across Pi extension + Claude settings</li>
+<li>Move ZK block into cached system-prompt prefix (90% discount)</li>
+<li>Periodic warmer re-primes every 5 min</li>
+<li>Closes 47.8% → 90% cache-hit gap</li>
+<li>Saves <strong>$569</strong> cumulative (highest composite 54.6)</li>
+<li>Every other optimization compounds on top</li>
+</ul></div>
+</div>
+
+<div class="slide" data-n="11">
+<div class="slide-title">Slide 11 · Conclusion</div>
+<h2>Conclusion</h2>
+<p style="font-size:1.05rem;line-height:1.8">
+Current spend is dominated by <strong>one mis-cached gpt-5.4-pro session</strong> ($158.61) and <strong>one high-throughput gpt-5.3-codex session</strong> ($399.71).<br><br>
+Three cache-layer interventions (#1, #2, #7) alone account for over $569 of projected savings — more than the best model-route change.<br><br>
+Ordering: <strong>stabilise prefix → fuzzy-cache → exact-cache → route → compress → observe</strong>. Pass-8's critical path is only 6 items totaling 95 h of work to hit <strong>92 % cost reduction</strong>.
+</p>
+<p style="margin-top:2rem;color:var(--muted);font-style:italic;text-align:center">
+ज्ञानं सर्वेषु यज्ञेषु श्रेष्ठम् — among all sacrifices, the sacrifice of knowledge is the highest. (Gītā 4.33)
+</p>
+</div>
+
+</div>
+
+<div class="nav">
+<button onclick="go(-1)">◀ Prev</button>
+<span class="counter" id="counter">1 / 11</span>
+<button onclick="go(1)">Next ▶</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+let idx = 0;
+function go(d){
+  idx = (idx + d + slides.length) % slides.length;
+  slides.forEach((s,i)=>s.classList.toggle('active', i===idx));
+  document.getElementById('counter').textContent = (idx+1) + ' / ' + slides.length;
+}
+document.addEventListener('keydown', e => {
+  if(e.key==='ArrowRight'||e.key===' ') go(1);
+  if(e.key==='ArrowLeft') go(-1);
+  const n = parseInt(e.key,10);
+  if(!isNaN(n) && n>=1 && n<=slides.length){ idx=n-1; go(0); }
+});
+</script>
+</body></html>

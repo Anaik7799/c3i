@@ -1,0 +1,1 @@
+{"ts_nanos":1777298446226829638,"agents":[{"agent":"pi","sessions":76,"tokens":743795170,"cost_usd":621.5031,"zk_recalls":6251,"cache_hit":0.10060526315789474},{"agent":"claude","sessions":186,"tokens":0,"cost_usd":0.0,"zk_recalls":0,"cache_hit":0.0}]}

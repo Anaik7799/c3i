@@ -1,0 +1,205 @@
+{
+  "task_id": "116452500338698000",
+  "parent_chain": [
+    "116450171390820012 (p5)",
+    "116452373655782093 (p6)",
+    "116452500338698000 (p7)"
+  ],
+  "slug": "20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7",
+  "base_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000",
+  "generated_at_utc": "2026-04-23T06:33:33+00:00",
+  "pass": "ultra-pass-7",
+  "theme": "ZK-Pi-Claude symbiosis + closed-loop OODA + cost optimization",
+  "count": 16,
+  "links": [
+    {
+      "name": "20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-journal.md",
+      "type": "md",
+      "role": "journal",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-journal.md"
+    },
+    {
+      "name": "20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-analysis.html",
+      "type": "html",
+      "role": "analysis",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-analysis.html"
+    },
+    {
+      "name": "20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-deck.html",
+      "type": "html",
+      "role": "deck",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-deck.html"
+    },
+    {
+      "name": "20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-ooda-metrics.html",
+      "type": "html",
+      "role": "live-ooda-dashboard",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-ooda-metrics.html"
+    },
+    {
+      "name": "20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-closed-loop-ooda.png",
+      "type": "png",
+      "role": "diagram",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-closed-loop-ooda.png"
+    },
+    {
+      "name": "20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-zk-symbiosis-architecture.png",
+      "type": "png",
+      "role": "diagram",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-zk-symbiosis-architecture.png"
+    },
+    {
+      "name": "20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-cost-optimization-flow.png",
+      "type": "png",
+      "role": "diagram",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-cost-optimization-flow.png"
+    },
+    {
+      "name": "20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-ooda-dashboard.png",
+      "type": "png",
+      "role": "screenshot",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-ooda-dashboard.png"
+    },
+    {
+      "name": "20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-task-page.png",
+      "type": "png",
+      "role": "screenshot",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-task-page.png"
+    },
+    {
+      "name": "task-index",
+      "type": "html",
+      "role": "index",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000"
+    },
+    {
+      "name": "kpi",
+      "type": "html",
+      "role": "kpi-dashboard",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/kpi.html"
+    },
+    {
+      "name": ".pi/extensions/zk-recall.ts",
+      "type": "ts",
+      "role": "pi-auto-rag-extension",
+      "local_path": "/home/an/dev/ver/c3i/.pi/extensions/zk-recall.ts"
+    },
+    {
+      "name": "ooda-v2-multi-provider.png",
+      "type": "png",
+      "role": "screenshot",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-ooda-v2-multi-provider.png"
+    },
+    {
+      "name": "multi-provider-routing.png",
+      "type": "png",
+      "role": "diagram",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116452500338698000/20260423-060231-task-116452500338698000-zk-symbiosis-closure-ultrapass7-multi-provider-routing.png"
+    },
+    {
+      "name": "sa-model-router",
+      "type": "sh",
+      "role": "cli-tool",
+      "local_path": "/home/an/dev/ver/c3i/sa-model-router"
+    },
+    {
+      "name": "sa-openrouter-sync",
+      "type": "sh",
+      "role": "cli-tool",
+      "local_path": "/home/an/dev/ver/c3i/sa-openrouter-sync"
+    }
+  ],
+  "live_ooda_snapshot": [
+    {
+      "metric": "sessions_last_24h",
+      "value": 6
+    },
+    {
+      "metric": "tokens_last_24h",
+      "value": 61903276
+    },
+    {
+      "metric": "cost_usd_last_24h",
+      "value": 207.6684
+    },
+    {
+      "metric": "avg_cache_hit_last_24h",
+      "value": 0.402
+    },
+    {
+      "metric": "zk_recalls_last_24h",
+      "value": 1021
+    },
+    {
+      "metric": "holons_total",
+      "value": 35227
+    },
+    {
+      "metric": "embeddings_total",
+      "value": 13046
+    },
+    {
+      "metric": "embedding_coverage_pct",
+      "value": 37.0
+    },
+    {
+      "metric": "edges_total",
+      "value": 3074
+    },
+    {
+      "metric": "pi_sessions_total",
+      "value": 16
+    }
+  ],
+  "live_cost_by_agent": [
+    {
+      "agent": "pi",
+      "sessions": 16,
+      "tokens": 743795170,
+      "cost_usd": 621.5031,
+      "avg_cache_hit": 0.478,
+      "citation_rate": 0.118,
+      "cost_per_citation": 0.8479
+    }
+  ],
+  "code_changes_pass7": [
+    {
+      "file": ".pi/extensions/zk-recall.ts",
+      "type": "new",
+      "loc": 231,
+      "effect": "Pi auto-RAG + per-session metrics capture (Claude-parity)"
+    },
+    {
+      "file": "sub-projects/c3i/data/kms/smriti.db",
+      "type": "schema",
+      "tables_added": 6,
+      "views_added": 2,
+      "rows_backfilled": 559
+    }
+  ],
+  "pass7_child_tasks_status": {
+    "116452501222662348": "completed (Pi hook)",
+    "116452501226153474": "queued (embeddings)",
+    "116452501228854314": "queued (rerank)",
+    "116452501230674684": "completed (edges: 3,074)",
+    "116452501233785636": "completed (pi_sessions: 16)",
+    "116452501235671489": "queued (expose Pi tools)",
+    "116452501237967540": "queued (wire claude_metrics)",
+    "116452501239999088": "completed (session_metrics)",
+    "116452501242304202": "completed (task/job/plan/stage tables)",
+    "116452501245645435": "completed (OODA dashboard)",
+    "116452501248212945": "queued (sa-plan stats cmd)",
+    "116452501250700134": "partial (infra ready)",
+    "116452501253435106": "queued (Zenoh l4/sre/**)"
+  },
+  "extensions_pass7_multi_provider": {
+    "providers_catalogued": 7,
+    "models_catalogued": 52,
+    "live_providers_observed": 5,
+    "live_models_observed": 9,
+    "current_total_spend_usd": 621.5,
+    "savings_if_gemini_flash": 607.8,
+    "savings_if_gpt5_mini": 610.3,
+    "savings_if_90pct_cache": 569.14
+  }
+}

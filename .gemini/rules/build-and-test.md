@@ -59,11 +59,15 @@ cpu_governor_status       # Dashboard
 # Port Assignments
 | Port | Service |
 |------|---------|
+| 3000 | Grafana (obs-prod, exposed to host) |
 | 4000-4010 | 16-container SIL-6 mesh (RESERVED) |
 | 4050 | Phoenix Wallaby test endpoint |
 | 4051 | FoundationSupervisor health plug (test) -- MUST set HEALTH_PORT=4051 |
 | 4052 | Dashboard monitoring port (test) |
-| 5433 | PostgreSQL |
-| 7447 | Zenoh router |
+| 4317 | OTel gRPC (obs-prod, exposed to host) |
+| 4318 | OTel HTTP (obs-prod, exposed to host — cepaf_gleam exporter uses this) |
+| 5433 | PostgreSQL (db-prod:5432 mapped to host:5433) |
+| 7447 | Zenoh router (exposed to host for cepaf_gleam NIF) |
+| 9090 | Prometheus (obs-prod, exposed to host) |
 **Authoritative source**: `devenv.nix` scripts section. All other files MUST mirror these patterns.
 **SC-CPU-GOV overrides SC-PARALLEL when CPU > 80%**. The 85% hard limit is non-negotiable.

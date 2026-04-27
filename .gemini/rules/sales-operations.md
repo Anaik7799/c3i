@@ -1,7 +1,7 @@
 # Sales Operations Rules (SC-SALES)
 
 ## SUPREME MANDATE
-**Revenue is oxygen. Every action Claude takes for sales work MUST connect to pipeline growth, deal progression, or relationship building. Anything else is waste (Muda).**
+**Revenue is oxygen. Every action Gemini takes for sales work MUST connect to pipeline growth, deal progression, or relationship building. Anything else is waste (Muda).**
 
 ## STAMP Constraints
 | ID | Constraint | Severity |

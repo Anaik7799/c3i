@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>C3I Fractal Pass 3 — L0-L7 × Components × Implementation Tradeoff (Rust/Gleam/JSON)</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--ok:#3dd68c;--warn:#f5a623;--crit:#ff4757;--border:#1e2a3a;--rust:#dea584;--gleam:#ffaff3;--json:#9ce4ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,system-ui;line-height:1.55}
+header{padding:30px 36px;background:linear-gradient(135deg,#0a0e17,#1a2840);border-bottom:1px solid var(--border)}
+header h1{margin:0 0 6px;font-size:24px}header .meta{color:var(--muted);font-size:13px}header a{color:var(--accent);text-decoration:none}
+main{padding:24px 36px 60px;max-width:1400px}
+section{margin:28px 0}section h2{color:var(--accent);border-bottom:1px solid var(--border);padding-bottom:6px;font-size:20px}
+section h3{color:#bbd;font-size:15px;margin-top:20px}
+table{border-collapse:collapse;width:100%;margin:10px 0 20px;font-size:12.5px}
+th,td{border:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#1e2a3a;color:var(--accent);font-weight:600}
+tr:nth-child(even) td{background:rgba(255,255,255,0.02)}
+code{background:#1e2a3a;color:#9be7c4;padding:2px 6px;border-radius:4px;font-size:12.5px}
+pre{background:#0d1420;border:1px solid var(--border);padding:13px;border-radius:6px;font-size:12.5px;overflow-x:auto}
+.kpi{display:flex;gap:14px;flex-wrap:wrap}
+.kpi .item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;min-width:140px}
+.kpi .item .v{font-size:22px;color:var(--accent);font-weight:700}.kpi .item .l{font-size:11px;color:var(--muted);text-transform:uppercase}
+.tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;font-weight:600;margin:1px 2px}
+.t-rust{background:#3a2a1c;color:var(--rust)}.t-gleam{background:#3a1c2c;color:var(--gleam)}.t-json{background:#1c2a3a;color:var(--json)}.t-bridge{background:#2a2a3a;color:#c099ff}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-right:4px}
+.b-ok{background:#1d3a2a;color:var(--ok)}.b-warn{background:#3a2a14;color:var(--warn)}.b-crit{background:#3a1d1d;color:var(--crit)}
+svg .node rect{fill:#1e2a3a;stroke:var(--accent)}svg .node text{fill:var(--text);font-size:11px;font-family:ui-monospace,system-ui}
+svg .edge{stroke:#3d4a5f;stroke-width:1.4;fill:none}
+.bar{height:18px;background:#1e2a3a;border-radius:3px;display:flex;overflow:hidden}
+.bar .seg-rust{background:var(--rust)}.bar .seg-gleam{background:var(--gleam)}.bar .seg-json{background:var(--json)}
+footer{padding:18px 36px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+</style></head><body>
+
+<header>
+  <h1>C3I Fractal Pass 3 — Layers × Components × Implementation Tradeoff</h1>
+  <div class="meta">
+    Generated 2026-04-27 14:30 CEST · Auto mode (Claude Opus 4.7) ·
+    <a href="http://vm-1.tail55d152.ts.net:8090/journal/20260427-143000-c3i-fractal-pass3-implementation-tradeoff.md">Journal</a> ·
+    <a href="http://vm-1.tail55d152.ts.net:8090/decks/20260427-143000-c3i-fractal-pass3-deck.html">Slide deck</a> ·
+    <a href="http://vm-1.tail55d152.ts.net:8090/health/services.json">Live health</a>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <h2>0. Snapshot</h2>
+  <div class="kpi">
+    <div class="item"><div class="v">17</div><div class="l">c3i-* units</div></div>
+    <div class="item"><div class="v">8</div><div class="l">fractal layers</div></div>
+    <div class="item"><div class="v">12</div><div class="l">components / layer</div></div>
+    <div class="item"><div class="v">96</div><div class="l">matrix cells</div></div>
+    <div class="item"><div class="v">100%</div><div class="l">classified</div></div>
+    <div class="item"><div class="v">5</div><div class="l">anti-patterns</div></div>
+    <div class="item"><div class="v">0.54</div><div class="l">ITQS (amber)</div></div>
+  </div>
+  <h3>Implementation distribution</h3>
+  <div class="bar"><div class="seg-rust" style="width:50%"></div><div class="seg-gleam" style="width:35%"></div><div class="seg-json" style="width:15%"></div></div>
+  <div style="margin-top:6px;font-size:12px;color:var(--muted)">
+    <span class="tag t-rust">Rust ~50%</span>
+    <span class="tag t-gleam">Gleam ~35%</span>
+    <span class="tag t-json">JSON ~15%</span>
+  </div>
+</section>
+
+<section>
+  <h2>1. Tradeoff axes</h2>
+  <table>
+    <thead><tr><th>Axis</th><th>Rust strong</th><th>Gleam strong</th><th>JSON strong</th></tr></thead>
+    <tbody>
+      <tr><td>Speed (latency)</td><td>µs–ms (zero-cost)</td><td>ms (BEAM)</td><td>n/a (config)</td></tr>
+      <tr><td>Safety (memory + types)</td><td>★ borrow checker</td><td>★ exhaustive ADT + BEAM isolation</td><td>★ schema validation</td></tr>
+      <tr><td>Hot reload</td><td>✗ rebuild</td><td>★ BEAM code swap</td><td>★ re-read</td></tr>
+      <tr><td>Operability</td><td>dev only</td><td>dev</td><td>operator-friendly</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>2. Master matrix — L0–L7 × 12 components × implementation</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>State</th><th>Health</th><th>Recovery</th><th>Boundary</th><th>Comm</th><th>OTel</th><th>Rules</th><th>Auth</th><th>Storage</th><th>UI</th><th>Ops</th></tr></thead>
+    <tbody>
+      <tr><td><strong>L0 Const</strong></td><td><span class="tag t-rust">Rust</span> Guardian</td><td><span class="tag t-rust">Rust</span> cortex.rs</td><td><span class="tag t-rust">Rust</span> supervisor.rs</td><td><span class="tag t-json">JSON</span> settings.json</td><td><span class="tag t-bridge">bridge</span> NIF</td><td><span class="tag t-rust">Rust</span> zenoh_telemetry</td><td><span class="tag t-rust">Rust</span> rule_engine</td><td><span class="tag t-json">JSON</span> ferriskey</td><td><span class="tag t-rust">Rust</span> Smriti.db</td><td><span class="tag t-gleam">Gleam</span> l0_const</td><td><span class="tag t-rust">Rust</span> sa-plan</td></tr>
+      <tr><td><strong>L1 Atomic</strong></td><td><span class="tag t-rust">Rust</span> NIF</td><td><span class="tag t-rust">Rust</span> trace.rs</td><td>—</td><td><span class="tag t-rust">Rust</span> c3i_nif</td><td><span class="tag t-bridge">bridge</span> erl_nif</td><td><span class="tag t-rust">Rust</span> OTel</td><td>—</td><td>—</td><td>—</td><td><span class="tag t-gleam">Gleam</span> l1_debug</td><td><span class="tag t-rust">Rust</span></td></tr>
+      <tr><td><strong>L2 Comp</strong></td><td><span class="tag t-gleam">Gleam</span> Lustre</td><td><span class="tag t-gleam">Gleam</span> BEAM sup</td><td><span class="tag t-gleam">Gleam</span> OTP</td><td><span class="tag t-gleam">Gleam</span> domain</td><td><span class="tag t-gleam">Gleam</span> Wisp</td><td><span class="tag t-gleam">Gleam</span> zenoh_otel</td><td><span class="tag t-gleam">Gleam</span> rules/engine</td><td><span class="tag t-gleam">Gleam</span> auth_api</td><td><span class="tag t-gleam">Gleam</span> esqlite</td><td><span class="tag t-gleam">Gleam</span> lustre/*</td><td><span class="tag t-gleam">Gleam</span></td></tr>
+      <tr><td><strong>L3 Tx</strong></td><td><span class="tag t-rust">Rust</span> Smriti</td><td><span class="tag t-rust">Rust</span> db.rs</td><td><span class="tag t-rust">Rust</span> backup.rs</td><td><span class="tag t-rust">Rust</span> ingest.rs</td><td><span class="tag t-rust">Rust</span> oban.rs</td><td><span class="tag t-rust">Rust</span> trace.rs</td><td><span class="tag t-rust">Rust</span> evaluate_recovery</td><td><span class="tag t-bridge">bridge</span> oidc</td><td><span class="tag t-rust">Rust</span> sqlite WAL</td><td><span class="tag t-gleam">Gleam</span> wisp/router</td><td><span class="tag t-rust">Rust</span></td></tr>
+      <tr><td><strong>L4 System</strong></td><td><span class="tag t-rust">Rust</span> sched_tele</td><td><span class="tag t-rust">Rust</span> process_runner</td><td><span class="tag t-json">JSON</span> drop-ins</td><td><span class="tag t-json">JSON</span> slice + 30-opt</td><td><span class="tag t-rust">Rust</span> mcp_sys</td><td><span class="tag t-rust">Rust</span> OoZ</td><td><span class="tag t-rust">Rust</span> evaluate_governor</td><td>—</td><td><span class="tag t-rust">Rust</span> podman API</td><td><span class="tag t-gleam">Gleam</span> podman.gleam</td><td><span class="tag t-json">JSON</span> systemd</td></tr>
+      <tr><td><strong>L5 Cog</strong></td><td><span class="tag t-rust">Rust</span> cortex.rs</td><td><span class="tag t-rust">Rust</span> ha_election</td><td><span class="tag t-rust">Rust</span> fmea.rs</td><td><span class="tag t-rust">Rust</span> mcp_inference</td><td><span class="tag t-bridge">bridge</span> mistralrs+Pi</td><td><span class="tag t-rust">Rust</span> trace</td><td><span class="tag t-rust">Rust</span> ruliology.rs</td><td>—</td><td><span class="tag t-rust">Rust</span> rag.rs</td><td><span class="tag t-gleam">Gleam</span> cortex.gleam</td><td><span class="tag t-rust">Rust</span></td></tr>
+      <tr><td><strong>L6 Eco</strong></td><td><span class="tag t-rust">Rust</span> zenoh-router</td><td><span class="tag t-rust">Rust</span> probes</td><td><span class="tag t-rust">Rust</span> ha_election</td><td><span class="tag t-bridge">bridge</span> zenoh NIF</td><td><span class="tag t-rust">Rust</span> zenohd</td><td><span class="tag t-rust">Rust</span> OoZ topics</td><td><span class="tag t-rust">Rust</span> evaluate_partition</td><td><span class="tag t-json">JSON</span> ferriskey</td><td>—</td><td><span class="tag t-gleam">Gleam</span> mesh dash</td><td><span class="tag t-rust">Rust</span></td></tr>
+      <tr><td><strong>L7 Fed</strong></td><td><span class="tag t-gleam">Gleam</span> sutra</td><td><span class="tag t-gleam">Gleam</span> health</td><td><span class="tag t-gleam">Gleam</span> sutra restart</td><td><span class="tag t-gleam">Gleam</span> federation</td><td><span class="tag t-gleam">Gleam</span> Matrix</td><td><span class="tag t-gleam">Gleam</span> zenoh_otel</td><td><span class="tag t-gleam">Gleam</span> fed rules</td><td><span class="tag t-gleam">Gleam</span> sutra_auth</td><td><span class="tag t-gleam">Gleam</span> RocksDB FFI</td><td><span class="tag t-gleam">Gleam</span> fluffychat</td><td><span class="tag t-gleam">Gleam</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>3. Tradeoff verdict per layer</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Speed</th><th>Safety</th><th>Hot reload</th><th>Best fit</th><th>Current</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td>L0 Const</td><td>µs (safety)</td><td>★★★</td><td>n/a</td><td>Rust</td><td>Rust</td><td><span class="badge b-ok">optimal</span></td></tr>
+      <tr><td>L1 Atomic</td><td>µs</td><td>★★</td><td>n/a</td><td>Rust + bridge</td><td>Rust + erl_nif</td><td><span class="badge b-ok">optimal</span></td></tr>
+      <tr><td>L2 Component</td><td>ms</td><td>★★★</td><td>★ Gleam</td><td>Gleam</td><td>Gleam</td><td><span class="badge b-ok">optimal</span></td></tr>
+      <tr><td>L3 Tx</td><td>&lt;10 ms</td><td>★★★</td><td>n/a</td><td>Rust + Gleam UI</td><td>Rust + Gleam UI</td><td><span class="badge b-ok">optimal</span></td></tr>
+      <tr><td>L4 System</td><td>ms</td><td>★★</td><td>n/a</td><td>Rust + JSON</td><td>Rust + systemd</td><td><span class="badge b-ok">optimal</span></td></tr>
+      <tr><td>L5 Cognitive</td><td>&lt;100 ms</td><td>★★</td><td>partial</td><td>Rust + Gleam</td><td>both</td><td><span class="badge b-warn">mistral split</span></td></tr>
+      <tr><td>L6 Ecosystem</td><td>ms</td><td>★★</td><td>n/a</td><td>Rust</td><td>Rust</td><td><span class="badge b-ok">optimal</span></td></tr>
+      <tr><td>L7 Federation</td><td>ms (Matrix)</td><td>★★</td><td>★ Gleam</td><td>Gleam</td><td>Gleam (sutra)</td><td><span class="badge b-ok">optimal</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>4. Storage strategy per layer</h2>
+  <svg viewBox="0 0 880 220" width="100%" style="background:#0d1420;border:1px solid var(--border);border-radius:8px">
+    <g class="node"><rect x="20" y="20" width="180" height="36"/><text x="110" y="42" text-anchor="middle">L0-L1: stateless</text></g>
+    <g class="node"><rect x="20" y="80" width="180" height="36"/><text x="110" y="102" text-anchor="middle">L2: ETS (BEAM)</text></g>
+    <g class="node"><rect x="20" y="140" width="180" height="36"/><text x="110" y="162" text-anchor="middle">L7: RocksDB (sutra)</text></g>
+
+    <g class="node"><rect x="320" y="20" width="240" height="36" style="fill:#1d3a2a;stroke:var(--ok)"/><text x="440" y="42" text-anchor="middle">L3+L5: Smriti.db (SQLite WAL + FTS5)</text></g>
+    <g class="node"><rect x="320" y="80" width="240" height="36"/><text x="440" y="102" text-anchor="middle">L4: cgroup state (kernel)</text></g>
+    <g class="node"><rect x="320" y="140" width="240" height="36"/><text x="440" y="162" text-anchor="middle">L6: Zenoh in-memory PubSub (ephemeral)</text></g>
+
+    <g class="node"><rect x="640" y="80" width="220" height="36"/><text x="750" y="102" text-anchor="middle">authoritative = Rust-owned</text></g>
+    <g class="node"><rect x="640" y="140" width="220" height="36"/><text x="750" y="162" text-anchor="middle">UI-only = Gleam-owned</text></g>
+  </svg>
+</section>
+
+<section>
+  <h2>5. Hot-reload coverage</h2>
+  <table>
+    <thead><tr><th>Class</th><th>Units</th><th>Mechanism</th><th>%</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag t-gleam">Gleam BEAM</span></td><td>gleam-server, sutra, symbiosis-monitor, robustness-gate, rete-autofix</td><td>BEAM code swap, no restart</td><td>29 %</td></tr>
+      <tr><td><span class="tag t-rust">Rust</span></td><td>zenoh-router, tls-proxy, sa-plan-http, sa-plan-scheduler, pi-runtime (node), docs-server</td><td>process restart needed</td><td>35 %</td></tr>
+      <tr><td><span class="tag t-json">JSON config</span></td><td>34 systemd drop-ins, settings.json, A2UI</td><td>daemon-reload (instant)</td><td>—</td></tr>
+      <tr><td>oneshots</td><td>ops-status, slo-guard, history-compactor, health-publisher, muda-prune, ferriskey</td><td>fire on next timer</td><td>35 %</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>6. Anti-patterns</h2>
+  <table>
+    <thead><tr><th>#</th><th>Anti-pattern</th><th>Class</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>mistral.rs gemma in 2 binaries (8 GB redundant)</td><td><span class="tag t-rust">Rust</span></td><td>Extract sa-plan-inference daemon (4-6 h)</td></tr>
+      <tr><td>2</td><td>health-publish.sh in bash (SC-SCRIPT-GLEAM-001)</td><td><span class="tag t-bridge">bridge</span></td><td>Migrate to scripts-gleam (1 h)</td></tr>
+      <tr><td>3</td><td>muda-prune.sh in bash</td><td><span class="tag t-bridge">bridge</span></td><td>Migrate to scripts-gleam (1 h)</td></tr>
+      <tr><td>4</td><td>settings.json hook = 800-char inline pipeline</td><td><span class="tag t-json">JSON</span></td><td>Replace with single Gleam binary call</td></tr>
+      <tr><td>5</td><td>No A2UI for slice/health dashboards</td><td><span class="tag t-json">JSON</span></td><td>Add A2UI components for operator</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>7. STAMP coverage</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>SC-ARCH-SPLIT-001 (Rust ops)</td><td><span class="badge b-ok">SAT</span></td></tr>
+      <tr><td>SC-ARCH-SPLIT-002 (Gleam UI)</td><td><span class="badge b-ok">SAT</span></td></tr>
+      <tr><td>SC-ARCH-SPLIT-003 (bridges only)</td><td><span class="badge b-ok">SAT</span></td></tr>
+      <tr><td>SC-ARCH-SPLIT-004 (no logic dup)</td><td><span class="badge b-warn">PARTIAL — mistral×2</span></td></tr>
+      <tr><td>SC-SCRIPT-GLEAM-001 (Gleam scripts)</td><td><span class="badge b-warn">PARTIAL — 2 bash scripts</span></td></tr>
+      <tr><td>SC-FRAC-RRF-001 (matrix)</td><td><span class="badge b-ok">SAT (this pass)</span></td></tr>
+      <tr><td>SC-MUDA-001</td><td><span class="badge b-warn">PARTIAL — 8 GB residual</span></td></tr>
+      <tr><td>SC-FRACTAL-AUTO-001</td><td><span class="badge b-ok">SAT</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+
+<footer>
+  C3I Fractal Pass 3 · 2026-04-27 14:30 CEST · 96 cells classified · 5 anti-patterns · 7.1 GB freed (cumulative).
+</footer>
+
+</body></html>

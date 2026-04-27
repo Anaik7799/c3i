@@ -1,8 +1,10 @@
 ---
-name: sales-competitive-agent
-description: Competitive intelligence sub-agent. Tracks TCS, Accenture, Capgemini, Tessolve, boutiques across EMEA semiconductor accounts.
-tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
-model: sonnet
+name: "sales-competitive-agent"
+description: "Competitive intelligence sub-agent. Tracks TCS, Accenture, Capgemini, Tessolve, boutiques across EMEA semiconductor accounts."
+kind: local
+tools:
+  - "*"
+model: "inherit"
 ---
 
 # Sales Competitive Intelligence Agent

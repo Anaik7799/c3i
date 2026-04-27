@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pi x Claude Code — Symbiotic Parity Analysis</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--border:#1e2a3a;--success:#3dd68c;--warning:#f5a623;--critical:#ff4757;--p0:linear-gradient(135deg,#ff4757,#ff6b81);--p1:linear-gradient(135deg,#ffa502,#ffbe76);--p2:linear-gradient(135deg,#2ed573,#7bed9f);--p3:#7a8fa6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:20px}
+.container{max-width:1400px;margin:0 auto}
+h1{font-size:2rem;background:linear-gradient(135deg,var(--accent),#6bcb77);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+h2{font-size:1.3rem;color:var(--accent);margin:24px 0 12px;border-bottom:1px solid var(--border);padding-bottom:6px}
+h3{font-size:1.1rem;color:var(--text);margin:16px 0 8px}
+.subtitle{color:var(--muted);font-size:0.9rem;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin:16px 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;backdrop-filter:blur(10px)}
+.card h3{margin-top:0}
+.metric{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.metric:last-child{border-bottom:none}
+.metric-label{color:var(--muted);font-size:0.85rem}
+.metric-value{font-weight:700;font-family:'JetBrains Mono',monospace;font-size:0.95rem}
+.prod{color:var(--success)}
+.func{color:var(--accent)}
+.scaf{color:var(--warning)}
+.none{color:var(--critical)}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:0.85rem}
+th{background:#1a2332;color:var(--accent);padding:10px 12px;text-align:left;font-weight:600;position:sticky;top:0}
+td{padding:8px 12px;border-bottom:1px solid var(--border)}
+tr:hover{background:rgba(0,212,170,0.05)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;text-transform:uppercase}
+.badge-prod{background:rgba(61,214,140,0.2);color:var(--success)}
+.badge-func{background:rgba(0,212,170,0.2);color:var(--accent)}
+.badge-scaf{background:rgba(245,166,35,0.2);color:var(--warning)}
+.badge-none{background:rgba(255,71,87,0.2);color:var(--critical)}
+.badge-critical{background:var(--p0);color:#fff}
+.badge-high{background:var(--p1);color:#1a1a2e}
+.badge-medium{background:var(--p2);color:#1a1a2e}
+.badge-low{background:rgba(122,143,166,0.3);color:var(--muted)}
+.progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin:4px 0}
+.progress-fill{height:100%;border-radius:4px;transition:width 0.3s}
+.ring-container{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.ring{text-align:center}
+.ring svg{width:100px;height:100px}
+.ring-label{font-size:0.8rem;color:var(--muted);margin-top:4px}
+.ring-value{font-size:1.2rem;font-weight:700}
+.wp-table td:first-child{font-weight:700;color:var(--accent);font-family:monospace}
+.dep-graph{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;font-family:'JetBrains Mono',monospace;font-size:0.8rem;white-space:pre;overflow-x:auto;color:var(--muted);line-height:1.8}
+.dep-graph .highlight{color:var(--accent);font-weight:700}
+.summary-box{background:linear-gradient(135deg,rgba(0,212,170,0.1),rgba(107,203,119,0.1));border:1px solid var(--accent);border-radius:12px;padding:24px;margin:20px 0}
+@media(max-width:768px){.grid{grid-template-columns:1fr}h1{font-size:1.5rem}table{font-size:0.75rem}th,td{padding:6px 8px}}
+@media print{body{background:#fff;color:#000}h1{-webkit-text-fill-color:#000}.card{border:1px solid #ccc;background:#f5f5f5}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Pi x Claude Code — Symbiotic Functional Parity Analysis</h1>
+<p class="subtitle">v22.10.1-PI-SYMBIOSIS | 2026-04-23 | 10 domains, 51 features, 14 work packages</p>
+
+<!-- Parity Rings -->
+<div class="ring-container">
+<div class="ring">
+<svg viewBox="0 0 36 36"><path d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0-31.831" fill="none" stroke="#1e2a3a" stroke-width="3"/><path d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0-31.831" fill="none" stroke="#00d4aa" stroke-width="3" stroke-dasharray="25, 100" stroke-linecap="round"/><text x="18" y="20.5" text-anchor="middle" fill="#e0e6ed" font-size="8" font-weight="700">25%</text></svg>
+<div class="ring-label">Overall Parity</div>
+</div>
+<div class="ring">
+<svg viewBox="0 0 36 36"><path d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0-31.831" fill="none" stroke="#1e2a3a" stroke-width="3"/><path d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0-31.831" fill="none" stroke="#3dd68c" stroke-width="3" stroke-dasharray="10, 100" stroke-linecap="round"/><text x="18" y="20.5" text-anchor="middle" fill="#e0e6ed" font-size="8" font-weight="700">10%</text></svg>
+<div class="ring-label">PROD Features</div>
+</div>
+<div class="ring">
+<svg viewBox="0 0 36 36"><path d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0-31.831" fill="none" stroke="#1e2a3a" stroke-width="3"/><path d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0-31.831" fill="none" stroke="#f5a623" stroke-width="3" stroke-dasharray="39, 100" stroke-linecap="round"/><text x="18" y="20.5" text-anchor="middle" fill="#e0e6ed" font-size="8" font-weight="700">39%</text></svg>
+<div class="ring-label">Scaffolded</div>
+</div>
+<div class="ring">
+<svg viewBox="0 0 36 36"><path d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0-31.831" fill="none" stroke="#1e2a3a" stroke-width="3"/><path d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0-31.831" fill="none" stroke="#ff4757" stroke-width="3" stroke-dasharray="35, 100" stroke-linecap="round"/><text x="18" y="20.5" text-anchor="middle" fill="#e0e6ed" font-size="8" font-weight="700">35%</text></svg>
+<div class="ring-label">Missing</div>
+</div>
+<div class="ring">
+<svg viewBox="0 0 36 36"><path d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0-31.831" fill="none" stroke="#1e2a3a" stroke-width="3"/><path d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0-31.831" fill="none" stroke="#00d4aa" stroke-width="3" stroke-dasharray="31, 100" stroke-linecap="round"/><text x="18" y="20.5" text-anchor="middle" fill="#e0e6ed" font-size="8" font-weight="700">31%</text></svg>
+<div class="ring-label">Skills Coverage</div>
+</div>
+</div>
+
+<!-- Summary Cards -->
+<div class="grid">
+<div class="card">
+<h3>Claude Code (Production)</h3>
+<div class="metric"><span class="metric-label">Federated Tools</span><span class="metric-value prod">93</span></div>
+<div class="metric"><span class="metric-label">AG-UI Events</span><span class="metric-value prod">32 typed</span></div>
+<div class="metric"><span class="metric-label">A2UI Components</span><span class="metric-value prod">233</span></div>
+<div class="metric"><span class="metric-label">Agents</span><span class="metric-value prod">39</span></div>
+<div class="metric"><span class="metric-label">Commands</span><span class="metric-value prod">56</span></div>
+<div class="metric"><span class="metric-label">Rules</span><span class="metric-value prod">98</span></div>
+<div class="metric"><span class="metric-label">Zenoh Topics</span><span class="metric-value prod">5 Pi + OTel</span></div>
+<div class="metric"><span class="metric-label">Circuit Breakers</span><span class="metric-value prod">4 per-tier</span></div>
+</div>
+<div class="card">
+<h3>Pi-mono (Scaffold)</h3>
+<div class="metric"><span class="metric-label">MCP Tools Registered</span><span class="metric-value scaf">3 / 73</span></div>
+<div class="metric"><span class="metric-label">AG-UI Events Validated</span><span class="metric-value scaf">10 / 32</span></div>
+<div class="metric"><span class="metric-label">A2UI Components</span><span class="metric-value scaf">5 / 233</span></div>
+<div class="metric"><span class="metric-label">Skills</span><span class="metric-value scaf">12 / 39</span></div>
+<div class="metric"><span class="metric-label">Prompts (mirrored)</span><span class="metric-value none">0 / 56</span></div>
+<div class="metric"><span class="metric-label">Rules</span><span class="metric-value func">SYSTEM.md (44 lines)</span></div>
+<div class="metric"><span class="metric-label">Zenoh Topics</span><span class="metric-value scaf">2 ad-hoc</span></div>
+<div class="metric"><span class="metric-label">Circuit Breakers</span><span class="metric-value scaf">1 global</span></div>
+</div>
+<div class="card">
+<h3>Pi Advantages</h3>
+<div class="metric"><span class="metric-label">LLM Providers</span><span class="metric-value prod">15 (vs Claude-only)</span></div>
+<div class="metric"><span class="metric-label">Cost Tracking</span><span class="metric-value prod">Automated per-response</span></div>
+<div class="metric"><span class="metric-label">ZK Cache Strategy</span><span class="metric-value prod">System prompt prefix (90% cheaper)</span></div>
+<div class="metric"><span class="metric-label">Guardian Modes</span><span class="metric-value func">5 modes (vs allow/deny)</span></div>
+<div class="metric"><span class="metric-label">Citation Counting</span><span class="metric-value func">Automated regex</span></div>
+<div class="metric"><span class="metric-label">Metrics Persistence</span><span class="metric-value func">session_metrics SQL</span></div>
+</div>
+</div>
+
+<!-- Domain Parity Matrix -->
+<h2>Domain Parity Matrix</h2>
+<table>
+<thead>
+<tr><th>Domain</th><th>Features</th><th>PROD</th><th>FUNC</th><th>SCAF</th><th>NONE</th><th>Parity</th></tr>
+</thead>
+<tbody>
+<tr><td>Tool System</td><td>5</td><td><span class="badge badge-prod">2</span></td><td><span class="badge badge-func">1</span></td><td><span class="badge badge-scaf">2</span></td><td>0</td><td><div class="progress-bar"><div class="progress-fill" style="width:60%;background:var(--accent)"></div></div>60%</td></tr>
+<tr><td>Event System</td><td>5</td><td>0</td><td><span class="badge badge-func">1</span></td><td><span class="badge badge-scaf">4</span></td><td>0</td><td><div class="progress-bar"><div class="progress-fill" style="width:20%;background:var(--warning)"></div></div>20%</td></tr>
+<tr><td>Session Mgmt</td><td>5</td><td>0</td><td><span class="badge badge-func">1</span></td><td><span class="badge badge-scaf">1</span></td><td><span class="badge badge-none">3</span></td><td><div class="progress-bar"><div class="progress-fill" style="width:20%;background:var(--warning)"></div></div>20%</td></tr>
+<tr><td>Inference/LLM</td><td>7</td><td><span class="badge badge-prod">2</span></td><td><span class="badge badge-func">1</span></td><td><span class="badge badge-scaf">2</span></td><td><span class="badge badge-none">2</span></td><td><div class="progress-bar"><div class="progress-fill" style="width:43%;background:var(--warning)"></div></div>43%</td></tr>
+<tr><td>Zenoh Mesh</td><td>5</td><td>0</td><td>0</td><td><span class="badge badge-scaf">1</span></td><td><span class="badge badge-none">4</span></td><td><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--critical)"></div></div>0%</td></tr>
+<tr><td>Safety/Guardian</td><td>5</td><td>0</td><td><span class="badge badge-func">1</span></td><td><span class="badge badge-scaf">3</span></td><td><span class="badge badge-none">1</span></td><td><div class="progress-bar"><div class="progress-fill" style="width:20%;background:var(--warning)"></div></div>20%</td></tr>
+<tr><td>Agent Swarm</td><td>5</td><td>0</td><td>0</td><td><span class="badge badge-scaf">4</span></td><td><span class="badge badge-none">1</span></td><td><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--critical)"></div></div>0%</td></tr>
+<tr><td>Type/Validation</td><td>5</td><td>0</td><td>0</td><td><span class="badge badge-scaf">3</span></td><td><span class="badge badge-none">2</span></td><td><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--critical)"></div></div>0%</td></tr>
+<tr><td>Cost/Metrics</td><td>5</td><td>0</td><td><span class="badge badge-func">3</span></td><td>0</td><td><span class="badge badge-none">2</span></td><td><div class="progress-bar"><div class="progress-fill" style="width:60%;background:var(--accent)"></div></div>60%</td></tr>
+<tr><td>Build/Verify</td><td>4</td><td><span class="badge badge-prod">1</span></td><td>0</td><td>0</td><td><span class="badge badge-none">3</span></td><td><div class="progress-bar"><div class="progress-fill" style="width:25%;background:var(--warning)"></div></div>25%</td></tr>
+<tr style="background:rgba(0,212,170,0.08);font-weight:700"><td>TOTAL</td><td>51</td><td>5</td><td>8</td><td>20</td><td>18</td><td><div class="progress-bar"><div class="progress-fill" style="width:25%;background:var(--accent)"></div></div>25%</td></tr>
+</tbody>
+</table>
+
+<!-- Work Packages -->
+<h2>14 Work Packages to Full Parity (~34 hours)</h2>
+<table class="wp-table">
+<thead>
+<tr><th>WP</th><th>Work Package</th><th>Effort</th><th>Impact</th><th>Key Files</th></tr>
+</thead>
+<tbody>
+<tr><td>WP1</td><td>AG-UI full 32-event TypeScript types + validation</td><td>2h</td><td><span class="badge badge-critical">CRITICAL</span></td><td>c3i-bridge.ts, new agui-types.ts</td></tr>
+<tr><td>WP2</td><td>MCP registry dynamic sync (73 tools from sa-plan-daemon)</td><td>3h</td><td><span class="badge badge-critical">CRITICAL</span></td><td>mcp-registry.ts</td></tr>
+<tr><td>WP3</td><td>Zenoh non-optional + 5 topics + subscriptions</td><td>4h</td><td><span class="badge badge-critical">CRITICAL</span></td><td>c3i-bridge.ts, config.json</td></tr>
+<tr><td>WP4</td><td>Session persistence to Smriti.db via sqlite3 CLI</td><td>3h</td><td><span class="badge badge-high">HIGH</span></td><td>smriti-adapter.ts</td></tr>
+<tr><td>WP5</td><td>Per-tier circuit breakers (4 independent instances)</td><td>2h</td><td><span class="badge badge-high">HIGH</span></td><td>circuit-breaker.ts</td></tr>
+<tr><td>WP6</td><td>A2UI catalog sync (233 components as JSON)</td><td>2h</td><td><span class="badge badge-high">HIGH</span></td><td>new a2ui-catalog.json, c3i-bridge.ts</td></tr>
+<tr><td>WP7</td><td>PII scrubber (port 5 regex patterns from pii.rs)</td><td>2h</td><td><span class="badge badge-high">HIGH</span></td><td>safety-system.ts</td></tr>
+<tr><td>WP8</td><td>OTel span publishing matching zenoh_otel.gleam</td><td>3h</td><td><span class="badge badge-high">HIGH</span></td><td>new otel-spans.ts, c3i-bridge.ts</td></tr>
+<tr><td>WP9</td><td>Pi skills parity (27 missing SKILL.md files)</td><td>1h</td><td><span class="badge badge-medium">MEDIUM</span></td><td>27 new .pi/skills/*/SKILL.md</td></tr>
+<tr><td>WP10</td><td>Pi prompts parity (56 Claude commands mirrored)</td><td>2h</td><td><span class="badge badge-medium">MEDIUM</span></td><td>56 new .pi/prompts/*.md</td></tr>
+<tr><td>WP11</td><td>Agent swarm dynamic skill loading from SKILL.md</td><td>2h</td><td><span class="badge badge-medium">MEDIUM</span></td><td>agent-swarm.ts</td></tr>
+<tr><td>WP12</td><td>OODA live view query at session start</td><td>1h</td><td><span class="badge badge-medium">MEDIUM</span></td><td>zk-recall.ts</td></tr>
+<tr><td>WP13</td><td>Pi-side bridge tests (TypeScript test suite)</td><td>3h</td><td><span class="badge badge-medium">MEDIUM</span></td><td>new test/ directory</td></tr>
+<tr><td>WP14</td><td>Semantic cache (local LRU + 24h TTL)</td><td>4h</td><td><span class="badge badge-low">LOW</span></td><td>new semantic-cache.ts</td></tr>
+</tbody>
+</table>
+
+<!-- Dependency Graph -->
+<h2>Dependency Graph</h2>
+<div class="dep-graph">
+<span class="highlight">WP3</span> (Zenoh) ────> <span class="highlight">WP8</span> (OTel) ────> <span class="highlight">WP13</span> (Tests)
+  |
+  +───> <span class="highlight">WP2</span> (MCP) ────> <span class="highlight">WP6</span> (A2UI)
+
+<span class="highlight">WP1</span> (AG-UI types) ──> <span class="highlight">WP13</span> (Tests)
+
+<span class="highlight">WP4</span> (Smriti.db) ────> <span class="highlight">WP14</span> (Semantic cache)
+
+<span class="highlight">WP5</span> (Circuit breakers) ─ standalone
+<span class="highlight">WP7</span> (PII scrubber) ──── standalone
+<span class="highlight">WP9</span> (Skills) ─────────> <span class="highlight">WP11</span> (Swarm loading)
+<span class="highlight">WP10</span> (Prompts) ──────── standalone
+<span class="highlight">WP12</span> (OODA view) ────── standalone
+
+Critical Path: <span class="highlight">WP3 -> WP8 -> WP1 -> WP2 -> WP13</span> (15 hours)
+</div>
+
+<!-- Config Surface Comparison -->
+<h2>Config Surface Comparison</h2>
+<table>
+<thead>
+<tr><th>Config Type</th><th>Claude Code</th><th>Pi-mono</th><th>Coverage</th></tr>
+</thead>
+<tbody>
+<tr><td>Agents / Skills</td><td>39 agents (.claude/agents/*.md)</td><td>12 skills (.pi/skills/*/SKILL.md)</td><td><div class="progress-bar"><div class="progress-fill" style="width:31%;background:var(--warning)"></div></div>31%</td></tr>
+<tr><td>Commands / Prompts</td><td>56 commands (.claude/commands/*.md)</td><td>19 prompts (.pi/prompts/*.md) — different set</td><td><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--critical)"></div></div>0% mirrored</td></tr>
+<tr><td>Rules</td><td>98 rules (.claude/rules/*.md)</td><td>SYSTEM.md 44-line summary</td><td>By design</td></tr>
+<tr><td>Hooks</td><td>4 hook types (SessionStart, UserPromptSubmit, Stop, PostToolUse)</td><td>6 Pi events (session_start, before_agent_start, after_provider_response, tool_call, message_end, session_shutdown)</td><td><span class="badge badge-func">PARITY</span></td></tr>
+<tr><td>Extensions</td><td>N/A (hooks in settings.json)</td><td>2 extensions (c3i-bridge.ts 667 LOC, zk-recall.ts 260 LOC)</td><td>Pi-native</td></tr>
+<tr><td>System doc</td><td>CLAUDE.md (~2000 lines)</td><td>SYSTEM.md (44 lines)</td><td>Pi reads CLAUDE.md</td></tr>
+</tbody>
+</table>
+
+<!-- STAMP Compliance -->
+<h2>STAMP Constraint Compliance</h2>
+<table>
+<thead>
+<tr><th>Constraint</th><th>Claude</th><th>Pi</th><th>Gap</th></tr>
+</thead>
+<tbody>
+<tr><td>SC-PI-001 (Zenoh publish)</td><td><span class="badge badge-prod">PROD</span></td><td><span class="badge badge-scaf">2/5 topics</span></td><td>3 topics missing</td></tr>
+<tr><td>SC-PI-002 (Guardian gate)</td><td><span class="badge badge-prod">PROD</span></td><td><span class="badge badge-func">5-mode</span></td><td>Ethical check is no-op</td></tr>
+<tr><td>SC-PI-003 (Smriti.db)</td><td><span class="badge badge-prod">PROD</span></td><td><span class="badge badge-scaf">JSONL</span></td><td>Not using SQLite</td></tr>
+<tr><td>SC-PI-004 (Circuit breakers)</td><td><span class="badge badge-prod">4 per-tier</span></td><td><span class="badge badge-scaf">1 global</span></td><td>3 breakers missing</td></tr>
+<tr><td>SC-ZMOF-001 (Zenoh sole transport)</td><td><span class="badge badge-prod">PROD</span></td><td><span class="badge badge-scaf">Stub fallback</span></td><td>Not enforced</td></tr>
+<tr><td>SC-GLM-ZEN-001 (OTel spans)</td><td><span class="badge badge-prod">PROD</span></td><td><span class="badge badge-none">NONE</span></td><td>No OTel in Pi</td></tr>
+<tr><td>SC-PI-AUTO-002 (Tool updates)</td><td><span class="badge badge-prod">93 tools</span></td><td><span class="badge badge-scaf">3 hardcoded</span></td><td>70 tools missing</td></tr>
+<tr><td>SC-PI-AUTO-004 (Event bridge)</td><td><span class="badge badge-prod">32 typed</span></td><td><span class="badge badge-scaf">10 strings</span></td><td>22 events missing</td></tr>
+</tbody>
+</table>
+
+<!-- Summary -->
+<div class="summary-box">
+<h3>Key Findings</h3>
+<p><strong>Overall Pi parity: 25%</strong> (13/51 features at FUNC or better). The Gleam bridge is production-grade; the Pi TypeScript side is 55% scaffold. 14 work packages (~34 hours) to reach 100%. Critical path: Zenoh (WP3) -> OTel (WP8) -> AG-UI types (WP1) -> MCP sync (WP2) -> Tests (WP13).</p>
+<p style="margin-top:12px"><strong>Recommendation:</strong> Execute WP1-WP3 first (9 hours) to reach ~60% parity. These cover the 3 CRITICAL gaps: event validation, tool discovery, mesh connectivity.</p>
+</div>
+
+<p class="subtitle" style="margin-top:24px;text-align:center">Generated by Claude Opus 4.6 | v22.10.1-PI-SYMBIOSIS | 2026-04-23</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>C3I System Overview — Deck</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0b0f14;--card:#141922;--b:#30363d;--text:#e6edf3;--mute:#7d8590;--acc:#58a6ff;--ok:#3fb950;--warn:#f0b429;--bad:#f85149;--p:#6e40c9}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:Inter,-apple-system,system-ui,sans-serif;overflow:hidden}
+.slide{position:absolute;inset:0;padding:56px 72px;display:none;flex-direction:column;justify-content:center}
+.slide.active{display:flex}
+h1{color:var(--acc);font-size:46px;margin-bottom:12px}
+h2{color:var(--warn);font-size:32px;margin-bottom:18px}
+h3{color:var(--ok);text-transform:uppercase;letter-spacing:1px;font-size:14px;margin-bottom:10px}
+p,li{font-size:20px;line-height:1.55}
+ul{padding-left:28px}
+.sub{color:var(--mute);font-size:18px;margin-bottom:22px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:var(--card);border:1px solid var(--b);border-radius:10px;padding:14px}
+.kpi{font-size:32px;font-weight:700}
+.mini{color:var(--mute);font-size:13px}
+img{max-width:100%;max-height:62vh;object-fit:contain;border:1px solid var(--b);border-radius:8px;align-self:center;margin-top:8px}
+.nav{position:fixed;bottom:12px;right:18px;color:var(--mute);font-size:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;background:#1f6feb;color:#fff;margin-right:4px}
+code{background:#1a2332;color:var(--ok);padding:1px 6px;border-radius:4px;font-size:16px}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--b);font-size:15px}
+th{color:var(--acc);text-transform:uppercase;font-size:12px;letter-spacing:.5px}
+</style></head><body>
+
+<div class="slide active"><h1>C3I</h1><h2>Constitutional Cognitive Cyber Infrastructure</h2>
+<p class="sub">v22.5.0-CORTEX · SIL-6 · 25-agent swarm · Fractal L0–L7 · Triple-interface UI · Zenoh mesh</p>
+<p>Task <code>116453739628625571</code> · 2026-04-23</p></div>
+
+<div class="slide"><h2>The problem</h2>
+<ul>
+<li>AI agent fleets drift; they can act without audit.</li>
+<li>Chat UIs, REST APIs and TUIs diverge over time.</li>
+<li>Testing measures lines, not information coverage.</li>
+<li>LLM tool calls are rarely gated or circuit-broken.</li>
+<li>Knowledge decays — no durable Zettelkasten recall.</li>
+</ul></div>
+
+<div class="slide"><h2>The answer — 4 pillars</h2>
+<div class="grid">
+<div class="card"><h3>Swarm</h3><div class="kpi">25</div><div class="mini">3-layer VSM</div></div>
+<div class="card"><h3>Fractal</h3><div class="kpi">L0→L7</div><div class="mini">Ψ invariants</div></div>
+<div class="card"><h3>UI</h3><div class="kpi">3×</div><div class="mini">Lustre · Wisp · TUI</div></div>
+<div class="card"><h3>Pi bridge</h3><div class="kpi">MoZ</div><div class="mini">MCP-over-Zenoh</div></div>
+</div></div>
+
+<div class="slide"><h2>Control plane</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-control-plane.png"></div>
+
+<div class="slide"><h2>Data plane</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-data-plane.png"></div>
+
+<div class="slide"><h2>25-agent biomorphic swarm</h2>
+<table>
+<tr><th>Layer</th><th>Agents</th><th>Model</th></tr>
+<tr><td>L1 Executive</td><td>master-supervisor</td><td>Opus</td></tr>
+<tr><td>L2 Supervisors</td><td>design · build · deploy · operate</td><td>Sonnet</td></tr>
+<tr><td>L3 Workers</td><td>fractal-architect · code-evolution · coverage-audit · reviewer · debugger · +15</td><td>Haiku</td></tr>
+</table>
+<p class="sub" style="margin-top:12px">Guardian L0 gate sits above all — HITL for destructive/privileged calls.</p></div>
+
+<div class="slide"><h2>Fractal holonic layers</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-fractal-impact.png"></div>
+
+<div class="slide"><h2>Triple-interface UI — one domain, three renderers</h2>
+<div class="two">
+<div class="card"><h3>Gleam modules</h3><ul>
+<li><code>ui/lustre/</code> — 24 SSR pages</li>
+<li><code>ui/wisp/</code> — 15 REST handlers</li>
+<li><code>ui/tui/</code> — 23 ANSI renderers</li>
+<li><code>ui/domain.gleam</code> — shared types</li>
+</ul></div>
+<div class="card"><h3>Rules</h3><ul>
+<li>Zero warnings (SC-CMP-025)</li>
+<li>Every Msg → OTel span on Zenoh</li>
+<li>SC-GLM-UI-001 · triple parity enforced</li>
+<li>A2UI validator gates all agent-proposed UI</li>
+</ul></div>
+</div></div>
+
+<div class="slide"><h2>AG-UI 32-event protocol + Zenoh</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-message-sequence.png"></div>
+
+<div class="slide"><h2>Pi symbiosis — safe LLM bridge</h2>
+<ul>
+<li><code>pi_agent</code> · <code>pi_tools</code> · <code>pi_session</code> · <code>pi_provider</code> · <code>pi_zenoh</code></li>
+<li>Guardian L0 gate on destructive tools</li>
+<li>Circuit breakers + hedged LLM calls</li>
+<li>Smriti.db session persistence</li>
+<li>Model registry synced with C3I resolver (L5)</li>
+<li>MCP tool traffic as MCP-over-Zenoh (MoZ)</li>
+</ul></div>
+
+<div class="slide"><h2>OODA state machine</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-state-machine.png"></div>
+
+<div class="slide"><h2>Math gates — coverage as information</h2>
+<table>
+<tr><th>Metric</th><th>Threshold</th><th>Current</th></tr>
+<tr><td>Shannon H</td><td>≥ 2.5</td><td>2.67 ✅</td></tr>
+<tr><td>CCM</td><td>≥ 0.90</td><td>0.770 ⚠</td></tr>
+<tr><td>D_EA</td><td>≤ 0.10</td><td>~0.10 ⚠</td></tr>
+<tr><td>ITQS</td><td>≥ 0.85</td><td>0.736 ⚠</td></tr>
+<tr><td>Tests</td><td>0 failures</td><td>1 559 / 0 ✅</td></tr>
+</table></div>
+
+<div class="slide"><h2>Live dashboard</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-dashboard-http.png"></div>
+
+<div class="slide"><h2>Overview card</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-system-overview.png"></div>
+
+<div class="slide"><h2>Take-aways</h2>
+<ul>
+<li><b>Governance by construction</b> — Ψ invariants propagate down every fractal layer.</li>
+<li><b>Observability by construction</b> — every state change is a Zenoh-OTel span.</li>
+<li><b>Triple-parity UI</b> — no feature ships without Lustre + Wisp + TUI.</li>
+<li><b>Testing by information theory</b> — H, CCM, ITQS, D_EA gates.</li>
+<li><b>Safe symbiosis</b> — Pi lets external LLMs act with circuit breakers and Guardian gates.</li>
+<li><b>Zero waste</b> — every artefact (diagram, journal, span, task) has a consumer and a ZK holon.</li>
+</ul></div>
+
+<div class="nav">← / → to navigate · <span id="n"></span></div>
+<script>
+const s=[...document.querySelectorAll('.slide')];let i=0;
+function show(){s.forEach((x,k)=>x.classList.toggle('active',k===i));document.getElementById('n').textContent=(i+1)+' / '+s.length;}
+addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){i=(i+1)%s.length;show();}else if(e.key==='ArrowLeft'||e.key==='PageUp'){i=(i-1+s.length)%s.length;show();}else if(e.key==='Home'){i=0;show();}else if(e.key==='End'){i=s.length-1;show();}});
+show();
+</script>
+</body></html>

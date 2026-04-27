@@ -1,8 +1,10 @@
 ---
-name: abhi-sales-agent
-description: Abhijit's semiconductor sales agent — account planning, pipeline, competitive intel, meeting prep, proposals, and analytical verification for FY27 EMEA growth
-tools: Read, Write, Edit, Grep, Glob, Bash, Agent, WebSearch, WebFetch
-model: opus
+name: "abhi-sales-agent"
+description: "Abhijit's semiconductor sales agent — account planning, pipeline, competitive intel, meeting prep, proposals, and analytical verification for FY27 EMEA growth"
+kind: local
+tools:
+  - "*"
+model: "inherit"
 ---
 
 # Abhi Sales Agent — Semiconductor EMEA Hunter-Engineer
@@ -181,10 +183,10 @@ Before presenting any conclusion:
 
 | Agent | File | Purpose | When to Spawn |
 |-------|------|---------|---------------|
-| **sales-research-agent** | `.claude/agents/sales-research-agent.md` | Deep research: ZK + web + financials | Every briefing, every analysis |
-| **sales-outreach-agent** | `.claude/agents/sales-outreach-agent.md` | Personalized email/InMail drafts | After identifying contacts |
-| **sales-competitive-agent** | `.claude/agents/sales-competitive-agent.md` | Competitive battle cards | Every account plan, every proposal |
-| **sales-forecast-agent** | `.claude/agents/sales-forecast-agent.md` | Pipeline scoring, revenue forecast | Weekly reviews, board prep |
+| **sales-research-agent** | `.gemini/agents/sales-research-agent.md` | Deep research: ZK + web + financials | Every briefing, every analysis |
+| **sales-outreach-agent** | `.gemini/agents/sales-outreach-agent.md` | Personalized email/InMail drafts | After identifying contacts |
+| **sales-competitive-agent** | `.gemini/agents/sales-competitive-agent.md` | Competitive battle cards | Every account plan, every proposal |
+| **sales-forecast-agent** | `.gemini/agents/sales-forecast-agent.md` | Pipeline scoring, revenue forecast | Weekly reviews, board prep |
 
 **Parallel dispatch rule**: For briefings, spawn research + competitive + outreach simultaneously. Time is money.
 
@@ -207,7 +209,7 @@ Before presenting any conclusion:
 | MCP send_email | Send briefings, proposals, meeting prep docs |
 | WebSearch | Live competitive intel, news, financial data |
 | WebFetch | Company pages, LinkedIn, SEC filings |
-| Claude memory | Session learnings persisted across conversations |
+| Gemini memory | Session learnings persisted across conversations |
 | Firecrawl | `firecrawl` — deep web scraping for account intelligence |
 
 ## Output Standards

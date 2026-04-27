@@ -1,0 +1,51 @@
+{
+  "task_id": "116446487068884175",
+  "base_url": "https://vm-1.tail55d152.ts.net:4200/task-id/116446487068884175",
+  "generated_at_utc": "2026-04-22T05:02:05.983396+00:00",
+  "serve_runtime_journal": "/home/an/dev/ver/c3i/docs/journal",
+  "count": 7,
+  "links": [
+    {
+      "name": "20260422-045610-task-116446487068884175-ultrathink-symbiosis-analysis.html",
+      "type": "html",
+      "task_id": "116446487068884175",
+      "url": "https://vm-1.tail55d152.ts.net:4200/task-id/116446487068884175/20260422-045610-task-116446487068884175-ultrathink-symbiosis-analysis.html"
+    },
+    {
+      "name": "20260422-045610-task-116446487068884175-ultrathink-symbiosis-deck.html",
+      "type": "html",
+      "task_id": "116446487068884175",
+      "url": "https://vm-1.tail55d152.ts.net:4200/task-id/116446487068884175/20260422-045610-task-116446487068884175-ultrathink-symbiosis-deck.html"
+    },
+    {
+      "name": "20260422-045610-task-116446487068884175-ultrathink-symbiosis-journal.md",
+      "type": "md",
+      "task_id": "116446487068884175",
+      "url": "https://vm-1.tail55d152.ts.net:4200/task-id/116446487068884175/20260422-045610-task-116446487068884175-ultrathink-symbiosis-journal.md"
+    },
+    {
+      "name": "kpi.html",
+      "type": "html",
+      "task_id": "116446487068884175",
+      "url": "https://vm-1.tail55d152.ts.net:4200/task-id/116446487068884175/kpi.html"
+    },
+    {
+      "name": "session.html",
+      "type": "html",
+      "task_id": "116446487068884175",
+      "url": "https://vm-1.tail55d152.ts.net:4200/task-id/116446487068884175/session.html"
+    },
+    {
+      "name": "pi-symbiosis.html",
+      "type": "html",
+      "task_id": "116446487068884175",
+      "url": "https://vm-1.tail55d152.ts.net:4200/pi-symbiosis.html"
+    },
+    {
+      "name": "task-index",
+      "type": "html",
+      "task_id": "116446487068884175",
+      "url": "https://vm-1.tail55d152.ts.net:4200/task-id/116446487068884175"
+    }
+  ]
+}

@@ -1,8 +1,10 @@
 ---
-name: wallaby-coverage-engineer
-description: Writes and fixes E2E and unit tests to achieve 8-category gold standard coverage with Shannon entropy ≥ 2.5 bits, CCM ≥ 90%, and ITQS ≥ 0.85 per file. Supports BOTH Elixir/Wallaby (LiveView browser tests) AND Gleam/gleeunit (Lustre MVU + AG-UI + A2UI tests). For Gleam, tests Model/Msg/update/view patterns, AG-UI event handling (32 types), A2UI catalog validation, fractal layer widgets (L0-L7), and PROMETHEUS verification. Source-first: reads .gleam source before writing test selectors.
-tools: Read, Write, Edit, Grep, Glob, Bash(mix:*), Bash(git:*)
-model: sonnet
+name: "wallaby-coverage-engineer"
+description: "Writes and fixes E2E and unit tests to achieve 8-category gold standard coverage with Shannon entropy ≥ 2.5 bits, CCM ≥ 90%, and ITQS ≥ 0.85 per file. Supports BOTH Elixir/Wallaby (LiveView browser tests) AND Gleam/gleeunit (Lustre MVU + AG-UI + A2UI tests). For Gleam, tests Model/Msg/update/view patterns, AG-UI event handling (32 types), A2UI catalog validation, fractal layer widgets (L0-L7), and PROMETHEUS verification. Source-first: reads .gleam source before writing test selectors."
+kind: local
+tools:
+  - "*"
+model: "inherit"
 ---
 # Wallaby Coverage Engineer Agent (v21.3.0-SIL6)
 You are a specialized E2E browser test engineer for the Indrajaal SIL-6 Biomorphic system.
@@ -199,8 +201,8 @@ SC-COV-008 to SC-COV-022, SC-MATH-COV-001 to SC-MATH-COV-008,
 SC-HINT-001 to SC-HINT-008, AOR-COV-008 to AOR-COV-017
 # Reference Files
 - Gold standard: `test/indrajaal_web/live/operations/alarm_investigation_live_wallaby_test.exs`
-- Gold standard rules: `.claude/rules/fractal-coverage-gold-standard.md`
-- Math framework: `.claude/rules/fractal-coverage-mathematical-framework.md`
+- Gold standard rules: `.gemini/rules/fractal-coverage-gold-standard.md`
+- Math framework: `.gemini/rules/fractal-coverage-mathematical-framework.md`
 - FeatureCase: `test/support/feature_case.ex`
 - ITQS audit task: `lib/mix/tasks/wallaby_coverage_audit.ex`
 # Related Agents

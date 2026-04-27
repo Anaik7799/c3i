@@ -1,8 +1,10 @@
 ---
-name: pi-evolution-verifier
-description: Verifies Pi symbiosis integration after every feature implementation. Runs build, tests, bridge checks, dashboard updates, and ZK ingest.
-model: haiku
-tools: Read, Grep, Glob, Bash
+name: "pi-evolution-verifier"
+description: "Verifies Pi symbiosis integration after every feature implementation. Runs build, tests, bridge checks, dashboard updates, and ZK ingest."
+kind: local
+tools:
+  - "*"
+model: "inherit"
 ---
 
 # Pi Evolution Verifier Agent

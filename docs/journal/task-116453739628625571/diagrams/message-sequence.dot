@@ -1,0 +1,25 @@
+digraph MessageSequence {
+  rankdir=LR;
+  bgcolor="#0b0f14";
+  node [shape=box, style="rounded,filled", fontname="Inter", fontcolor="#e6edf3", color="#30363d"];
+  edge [color="#7d8590", fontname="Inter", fontcolor="#c9d1d9"];
+
+  User  [label="User\n(browser/TUI)", fillcolor="#1f6feb"];
+  UI    [label="Lustre/Wisp/TUI", fillcolor="#0969da"];
+  AGUI  [label="AG-UI 32-event\nRunStarted→StepStarted→\nToolCall→HITL→RunFinished", fillcolor="#9e6a03"];
+  Z     [label="Zenoh bus", fillcolor="#b45309", shape=cylinder];
+  Pi    [label="Pi Agent\n(tools, LLM)", fillcolor="#238636"];
+  Guard [label="Guardian\nL0 approve?", fillcolor="#da3633", shape=octagon];
+  OT    [label="OTel/ZK\ningest", fillcolor="#6e40c9", shape=cylinder];
+
+  User -> UI [label="1. intent"];
+  UI -> AGUI [label="2. RunStarted"];
+  AGUI -> Z  [label="3. publish"];
+  Z -> Pi    [label="4. dispatch"];
+  Pi -> Guard [label="5. L0 check", style=dashed];
+  Guard -> Pi [label="6. approve", style=dashed];
+  Pi -> Z    [label="7. ToolCall/Result"];
+  Z -> UI    [label="8. stream"];
+  UI -> User [label="9. render"];
+  Z -> OT    [label="10. span"];
+}

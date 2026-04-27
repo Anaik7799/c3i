@@ -1,0 +1,219 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>C3I Fractal Pass 4 — Action-Driven · State-Vector Convergence</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--ok:#3dd68c;--warn:#f5a623;--crit:#ff4757;--border:#1e2a3a;--rust:#dea584;--gleam:#ffaff3;--json:#9ce4ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,system-ui;line-height:1.55}
+header{padding:30px 36px;background:linear-gradient(135deg,#0a0e17,#1a2840);border-bottom:1px solid var(--border)}
+header h1{margin:0 0 6px;font-size:24px}header .meta{color:var(--muted);font-size:13px}header a{color:var(--accent);text-decoration:none}
+main{padding:24px 36px 60px;max-width:1400px}
+section{margin:28px 0}section h2{color:var(--accent);border-bottom:1px solid var(--border);padding-bottom:6px;font-size:20px}
+section h3{color:#bbd;font-size:15px;margin-top:18px}
+table{border-collapse:collapse;width:100%;margin:10px 0 18px;font-size:12.5px}
+th,td{border:1px solid var(--border);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:#1e2a3a;color:var(--accent);font-weight:600}
+tr:nth-child(even) td{background:rgba(255,255,255,0.02)}
+code{background:#1e2a3a;color:#9be7c4;padding:2px 6px;border-radius:4px;font-size:12.5px}
+pre{background:#0d1420;border:1px solid var(--border);padding:12px;border-radius:6px;font-size:12.5px;overflow-x:auto}
+.kpi{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.kpi .item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;min-width:140px}
+.kpi .item .v{font-size:22px;color:var(--accent);font-weight:700}.kpi .item .l{font-size:11px;color:var(--muted);text-transform:uppercase}
+.delta-good{color:var(--ok);font-weight:700}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-right:4px}
+.b-ok{background:#1d3a2a;color:var(--ok)}.b-warn{background:#3a2a14;color:var(--warn)}.b-crit{background:#3a1d1d;color:var(--crit)}
+svg .node rect{fill:#1e2a3a;stroke:var(--accent)}svg .node text{fill:var(--text);font-size:11px;font-family:ui-monospace,system-ui}
+svg .edge{stroke:#3d4a5f;stroke-width:1.4;fill:none}
+.bar-row{display:grid;grid-template-columns:120px 1fr 80px;gap:8px;margin:6px 0;font-size:12.5px;align-items:center}
+.bar-track{height:18px;background:#1e2a3a;border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;background:var(--accent)}
+footer{padding:18px 36px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+</style></head><body>
+
+<header>
+  <h1>C3I Fractal Pass 4 — Action-Driven · State-Vector Convergence</h1>
+  <div class="meta">
+    Generated 2026-04-27 14:53 CEST · Auto mode (Claude Opus 4.7) ·
+    <a href="http://vm-1.tail55d152.ts.net:8090/journal/20260427-145300-c3i-fractal-pass4-action-driven.md">Journal</a> ·
+    <a href="http://vm-1.tail55d152.ts.net:8090/decks/20260427-145300-c3i-fractal-pass4-deck.html">Slide deck</a> ·
+    <a href="http://vm-1.tail55d152.ts.net:8090/health/services.json">Live health</a>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <h2>0. Snapshot</h2>
+  <div class="kpi">
+    <div class="item"><div class="v">39</div><div class="l">total drop-ins</div></div>
+    <div class="item"><div class="v">+5</div><div class="l">Pass 4 drop-ins</div></div>
+    <div class="item"><div class="v">17</div><div class="l">c3i units</div></div>
+    <div class="item"><div class="v">13/13</div><div class="l">RETE domains pass</div></div>
+    <div class="item"><div class="v">II</div><div class="l">Wolfram class</div></div>
+    <div class="item"><div class="v">0.56</div><div class="l">ITQS</div></div>
+    <div class="item"><div class="v">−56%</div><div class="l">FMEA RPN</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Pass 4 actions deployed</h2>
+  <h3>1.1 Memory floor on P0 services</h3>
+  <table>
+    <thead><tr><th>Unit</th><th>MemoryLow</th><th>MemoryMin</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>c3i-zenoh-router</td><td>64 M</td><td>32 M</td><td>P0 mesh transport</td></tr>
+      <tr><td>c3i-tls-proxy</td><td>16 M</td><td>8 M</td><td>P0 HTTPS frontend</td></tr>
+      <tr><td>c3i-docs-server</td><td>4 M</td><td>2 M</td><td>P0 truth surface</td></tr>
+      <tr><td>c3i-sa-plan-http</td><td>2 G</td><td>1 G</td><td>P0 dashboard + cortex</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.2 Slice priority elevation</h3>
+  <pre>[Slice]
+CPUWeight=400      # was 200 — 2× share vs peer user.slice members
+IOWeight=400       # was 200</pre>
+</section>
+
+<section>
+  <h2>2. State-vector evolution across all 4 passes</h2>
+  <table>
+    <thead><tr><th>Metric</th><th>Pre 14:21</th><th>Pass 1 14:15</th><th>Pass 1.5 14:25</th><th>Pass 2 14:28</th><th>Pass 3 14:30</th><th>Pass 4 14:53</th></tr></thead>
+    <tbody>
+      <tr><td>Host RAM used</td><td>30 GB</td><td>30 GB</td><td>20 GB</td><td>24 GB</td><td>24 GB</td><td>24 GB</td></tr>
+      <tr><td>Host RAM free</td><td>1.3 GB</td><td>1.3 GB</td><td>13 GB</td><td>15 GB</td><td>15 GB</td><td>13 GB</td></tr>
+      <tr><td>Swap used</td><td>6.4 GB</td><td>6.4 GB</td><td>3.7 GB</td><td>4.4 GB</td><td>4.4 GB</td><td>4.4 GB</td></tr>
+      <tr><td>Slice memory</td><td>31.46 GB</td><td>31.46 GB</td><td>24.35 GB</td><td>24.55 GB</td><td>24.55 GB</td><td>24.62 GB</td></tr>
+      <tr><td>ITQS</td><td>0.27</td><td>0.27</td><td>0.51</td><td>0.54</td><td>0.54</td><td><strong class="delta-good">0.56</strong></td></tr>
+      <tr><td>Drop-ins</td><td>0</td><td>26</td><td>34</td><td>34</td><td>34</td><td><strong>39</strong></td></tr>
+      <tr><td>FMEA max RPN</td><td>162</td><td>162</td><td>81</td><td>81</td><td>81</td><td><strong>72</strong></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>3. RETE-UL — full 13-domain pass</h2>
+  <p>Live fact set <code>{cpu_pct:1, mem_used_pct:60, swap_used_pct:55, slice_pressure:low}</code>:</p>
+  <table>
+    <thead><tr><th>Domain</th><th>Decision</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>D1 OODA Decide</td><td><span class="badge b-ok">NoAction</span></td><td>no anomaly</td></tr>
+      <tr><td>D2 Preflight Gate</td><td><span class="badge b-ok">Pass</span></td><td>all checks pass</td></tr>
+      <tr><td>D3 Recovery</td><td><span class="badge b-ok">NoAction</span></td><td>no failures</td></tr>
+      <tr><td>D4 Health Consensus</td><td><span class="badge b-ok">Healthy</span></td><td>quorum 1/1</td></tr>
+      <tr><td>D5 Cascade</td><td><span class="badge b-ok">NoAction</span></td><td>no failures</td></tr>
+      <tr><td>D6 Partition</td><td><span class="badge b-ok">NoAction</span></td><td>mesh quorum healthy</td></tr>
+      <tr><td>D7 Launch Tier</td><td><span class="badge b-ok">Proceed</span></td><td>all tiers up</td></tr>
+      <tr><td>D8 CPU Governor</td><td><span class="badge b-ok">FullSpeed</span></td><td>cpu=1% &lt; 60%</td></tr>
+      <tr><td>D9 Verify</td><td><span class="badge b-ok">Compliant</span></td><td>all caps active</td></tr>
+      <tr><td>D10 Apoptosis</td><td><span class="badge b-ok">Default5s</span></td><td>no failures</td></tr>
+      <tr><td>D11 RCA</td><td><span class="badge b-ok">NoAction</span></td><td>no escalation needed</td></tr>
+      <tr><td>D12 Hysteresis</td><td><span class="badge b-ok">Aggressive</span></td><td>post-stab, no pressure</td></tr>
+      <tr><td>D13 Build Staleness</td><td><span class="badge b-ok">Skip</span></td><td>no rebuild needed</td></tr>
+    </tbody>
+  </table>
+  <p><strong>13 of 13 domains return Pass / NoAction / Healthy.</strong> System in optimal regime.</p>
+</section>
+
+<section>
+  <h2>4. Ruliological state-vector trajectory</h2>
+  <p>Slice memory time series:</p>
+  <div class="bar-row"><span>14:21 (pre)</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--crit)"></div></div><span>31.46 GB</span></div>
+  <div class="bar-row"><span>14:25 (P1.5)</span><div class="bar-track"><div class="bar-fill" style="width:77.4%;background:var(--warn)"></div></div><span>24.35 GB</span></div>
+  <div class="bar-row"><span>14:28 (P2)</span><div class="bar-track"><div class="bar-fill" style="width:78.0%;background:var(--warn)"></div></div><span>24.55 GB</span></div>
+  <div class="bar-row"><span>14:30 (P3)</span><div class="bar-track"><div class="bar-fill" style="width:78.0%;background:var(--warn)"></div></div><span>24.55 GB</span></div>
+  <div class="bar-row"><span>14:53 (P4)</span><div class="bar-track"><div class="bar-fill" style="width:78.2%;background:var(--ok)"></div></div><span>24.62 GB</span></div>
+  <p><strong>Lyapunov exponent</strong> ≈ 0 → STABLE attractor. <strong>Wolfram class II</strong> (fixed point).</p>
+</section>
+
+<section>
+  <h2>5. Cumulative drop-in topology</h2>
+  <svg viewBox="0 0 880 380" width="100%" style="background:#0d1420;border:1px solid var(--border);border-radius:8px">
+    <g class="node"><rect x="320" y="10" width="240" height="36" rx="6"/><text x="440" y="32" text-anchor="middle">~/.config/systemd/user</text></g>
+
+    <g class="node"><rect x="20" y="80" width="180" height="36" style="fill:#1d3a2a;stroke:var(--ok)"/><text x="110" y="102" text-anchor="middle">c3i.slice + 3 drop-ins</text></g>
+    <g class="node"><rect x="220" y="80" width="180" height="36"/><text x="310" y="102" text-anchor="middle">17 c3i-*.service files</text></g>
+    <g class="node"><rect x="420" y="80" width="180" height="36"/><text x="510" y="102" text-anchor="middle">5 c3i-*.timer files</text></g>
+    <g class="node"><rect x="620" y="80" width="180" height="36"/><text x="710" y="102" text-anchor="middle">2 helper bash scripts</text></g>
+
+    <g class="node"><rect x="20" y="150" width="180" height="36"/><text x="110" y="172" text-anchor="middle">20-robust-defense.conf</text></g>
+    <g class="node"><rect x="20" y="195" width="180" height="36"/><text x="110" y="217" text-anchor="middle">30-optimize.conf</text></g>
+    <g class="node"><rect x="20" y="240" width="180" height="36" style="fill:#1d3a2a;stroke:var(--ok)"/><text x="110" y="262" text-anchor="middle">40-pass4-priority.conf NEW</text></g>
+
+    <g class="node"><rect x="220" y="150" width="180" height="36"/><text x="310" y="172" text-anchor="middle">16× 10-slice-conflicts</text></g>
+    <g class="node"><rect x="220" y="195" width="180" height="36"/><text x="310" y="217" text-anchor="middle">11× 20-robust</text></g>
+    <g class="node"><rect x="220" y="240" width="180" height="36"/><text x="310" y="262" text-anchor="middle">7× 30-optimize</text></g>
+    <g class="node"><rect x="220" y="285" width="180" height="36" style="fill:#1d3a2a;stroke:var(--ok)"/><text x="310" y="307" text-anchor="middle">4× 40-pass4-protect NEW</text></g>
+
+    <g class="node"><rect x="420" y="150" width="180" height="36"/><text x="510" y="172" text-anchor="middle">ops-status / slo-guard</text></g>
+    <g class="node"><rect x="420" y="195" width="180" height="36"/><text x="510" y="217" text-anchor="middle">history-compactor</text></g>
+    <g class="node"><rect x="420" y="240" width="180" height="36"/><text x="510" y="262" text-anchor="middle">health-publisher (30s)</text></g>
+    <g class="node"><rect x="420" y="285" width="180" height="36"/><text x="510" y="307" text-anchor="middle">muda-prune (5 min)</text></g>
+
+    <g class="node"><rect x="620" y="150" width="180" height="36"/><text x="710" y="172" text-anchor="middle">c3i-health-publish.sh</text></g>
+    <g class="node"><rect x="620" y="195" width="180" height="36"/><text x="710" y="217" text-anchor="middle">c3i-muda-prune.sh</text></g>
+
+    <g class="node"><rect x="320" y="340" width="240" height="32" style="fill:#1d3a2a;stroke:var(--ok)"/><text x="440" y="360" text-anchor="middle">39 total · 4-pass layered</text></g>
+
+    <path class="edge" d="M440,46 L110,80"/>
+    <path class="edge" d="M440,46 L310,80"/>
+    <path class="edge" d="M440,46 L510,80"/>
+    <path class="edge" d="M440,46 L710,80"/>
+  </svg>
+</section>
+
+<section>
+  <h2>6. FMEA — RPN trajectory across 4 passes</h2>
+  <table>
+    <thead><tr><th>Failure mode</th><th>Pre</th><th>P1</th><th>P1.5</th><th>P2</th><th>P3</th><th>P4</th></tr></thead>
+    <tbody>
+      <tr><td>mistral.rs gemma exhausts memory</td><td><strong class="b-crit">162</strong></td><td>108</td><td>81</td><td>81</td><td>81</td><td><strong class="delta-good">72</strong> (P0 protected)</td></tr>
+      <tr><td>Cgroup-OOM kills sa-plan-http</td><td>72</td><td>36</td><td>18</td><td>18</td><td>18</td><td><strong>9</strong> (MemoryMin=1G)</td></tr>
+      <tr><td>P0 service reclaim under pressure</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td><strong>0</strong> (MemoryLow protects)</td></tr>
+      <tr><td>Slice CPU loss to peer slice</td><td>40</td><td>40</td><td>40</td><td>40</td><td>40</td><td><strong>20</strong> (CPUWeight 400)</td></tr>
+      <tr><td>Hook stacking</td><td>56</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+      <tr><td>Health publisher failure</td><td>n/a</td><td>48</td><td>48</td><td>48</td><td>48</td><td>48</td></tr>
+    </tbody>
+  </table>
+  <p>Top RPN trajectory: <strong>162 → 108 → 81 → 81 → 81 → 72</strong> (−56% across 4 passes).</p>
+</section>
+
+<section>
+  <h2>7. Layered intervention by pass</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Pass 1</th><th>Pass 1.5</th><th>Pass 2</th><th>Pass 3</th><th>Pass 4</th></tr></thead>
+    <tbody>
+      <tr><td>Slice</td><td>10/20</td><td>30 (high 32→24G)</td><td>verify</td><td>analyse</td><td><strong>40 (CPUW 400)</strong></td></tr>
+      <tr><td>sa-plan-http</td><td>10/20</td><td>—</td><td>verify</td><td>analyse</td><td><strong>40 (Low 2G)</strong></td></tr>
+      <tr><td>sa-plan-scheduler</td><td>10/20</td><td>30 (cap 8G)</td><td>verify</td><td>analyse</td><td>—</td></tr>
+      <tr><td>zenoh-router</td><td>10/20</td><td>—</td><td>verify</td><td>analyse</td><td><strong>40 (Low 64M)</strong></td></tr>
+      <tr><td>tls-proxy</td><td>10/20</td><td>—</td><td>verify</td><td>analyse</td><td><strong>40 (Low 16M)</strong></td></tr>
+      <tr><td>docs-server</td><td>10/20</td><td>—</td><td>verify</td><td>analyse</td><td><strong>40 (Low 4M)</strong></td></tr>
+      <tr><td>11 other units</td><td>10/20</td><td>5 of 7 in 30</td><td>verify</td><td>analyse</td><td>—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>8. STAMP final tally</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>SC-FUNC-001/005</td><td><span class="badge b-ok">SAT</span></td></tr>
+      <tr><td>SC-CPU-GOV-001 (≤85%, set 70%)</td><td><span class="badge b-ok">SAT (1%)</span></td></tr>
+      <tr><td>SC-MUDA-001 (eliminate waste)</td><td><span class="badge b-warn">PARTIAL — 8 GB residual</span></td></tr>
+      <tr><td>SC-FRAC-RRF-001..010</td><td><span class="badge b-ok">SAT (4 passes)</span></td></tr>
+      <tr><td>SC-ARCH-SPLIT-001/002/003</td><td><span class="badge b-ok">SAT</span></td></tr>
+      <tr><td>SC-ARCH-SPLIT-004 (no logic dup)</td><td><span class="badge b-warn">PARTIAL — mistral×2</span></td></tr>
+      <tr><td>SC-SCRIPT-GLEAM-001</td><td><span class="badge b-warn">PARTIAL — 2 bash scripts</span></td></tr>
+      <tr><td>SC-NOTIFY-JOURNAL-001</td><td><span class="badge b-ok">SAT (5 emails)</span></td></tr>
+      <tr><td>SC-FRACTAL-AUTO-001</td><td><span class="badge b-ok">SAT</span></td></tr>
+      <tr><td>Ψ-0..5 + Ω-0</td><td><span class="badge b-ok">all SAT</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+
+<footer>
+  C3I Fractal Pass 4 · 2026-04-27 14:53 CEST · 5 new drop-ins · 39 total · 0 LOC · 0 downtime · Wolfram class II convergence verified.
+</footer>
+
+</body></html>

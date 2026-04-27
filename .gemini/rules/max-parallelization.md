@@ -1,7 +1,7 @@
-# Maximum Parallelization (SC-PARALLEL-CLAUDE)
+# Maximum Parallelization (SC-PARALLEL-GEMINI)
 
 ## MANDATE
-**Claude MUST maximize parallelism in EVERY operation.** Serial execution when parallel is possible = Muda (waste).
+**Gemini MUST maximize parallelism in EVERY operation.** Serial execution when parallel is possible = Muda (waste).
 
 ## Rules
 | ID | Rule | Severity |

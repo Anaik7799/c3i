@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="system-ui,sans-serif">
+<rect width="800" height="500" fill="#0a0e17" rx="12"/>
+<text x="400" y="28" text-anchor="middle" fill="#00d4aa" font-size="16" font-weight="700">Fractal Layer Impact — FerrisKey IAM Integration</text>
+
+<!-- L0 -->
+<rect x="30" y="50" width="740" height="48" rx="6" fill="rgba(255,107,107,.08)" stroke="#ff6b6b" stroke-width="2"/>
+<text x="45" y="72" fill="#ff6b6b" font-size="12" font-weight="700">L0 CONSTITUTIONAL</text>
+<text x="200" y="72" fill="#ff6b6b" font-size="11">16 UCs</text>
+<text x="260" y="72" fill="#7a8fa6" font-size="9">Guardian+MFA | Psi-5 FerrisKey | E-Stop identity | 2oo3 consensus | Auth page | OIDC/RBAC</text>
+<rect x="700" y="58" width="60" height="24" rx="12" fill="rgba(255,107,107,.25)"/><text x="730" y="75" text-anchor="middle" fill="#ff6b6b" font-size="10" font-weight="700">37.5%</text>
+
+<!-- L1 -->
+<rect x="30" y="103" width="740" height="48" rx="6" fill="rgba(255,217,61,.06)" stroke="#ffd93d" stroke-width="1.5"/>
+<text x="45" y="125" fill="#ffd93d" font-size="12" font-weight="700">L1 ATOMIC/DEBUG</text>
+<text x="200" y="125" fill="#ffd93d" font-size="11">7 UCs</text>
+<text x="260" y="125" fill="#7a8fa6" font-size="9">Auth OTel spans | Event monitor | NIF FFI (4 new) | Trace correlation | Gemini attribution</text>
+<rect x="700" y="111" width="60" height="24" rx="12" fill="rgba(255,217,61,.2)"/><text x="730" y="128" text-anchor="middle" fill="#ffd93d" font-size="10" font-weight="700">69.2%</text>
+
+<!-- L2 -->
+<rect x="30" y="156" width="740" height="48" rx="6" fill="rgba(107,203,119,.06)" stroke="#6bcb77" stroke-width="1.5"/>
+<text x="45" y="178" fill="#6bcb77" font-size="12" font-weight="700">L2 COMPONENT</text>
+<text x="200" y="178" fill="#6bcb77" font-size="11">7 UCs</text>
+<text x="260" y="178" fill="#7a8fa6" font-size="9">Permission badges (5 variants) | Layer access chips | A2UI auth components | Google SSO button</text>
+<rect x="700" y="164" width="60" height="24" rx="12" fill="rgba(107,203,119,.2)"/><text x="730" y="181" text-anchor="middle" fill="#6bcb77" font-size="10" font-weight="700">52.9%</text>
+
+<!-- L3 -->
+<rect x="30" y="209" width="740" height="48" rx="6" fill="rgba(77,150,255,.06)" stroke="#4d96ff" stroke-width="1.5"/>
+<text x="45" y="231" fill="#4d96ff" font-size="12" font-weight="700">L3 TRANSACTION</text>
+<text x="200" y="231" fill="#4d96ff" font-size="11">10 UCs</text>
+<text x="260" y="231" fill="#7a8fa6" font-size="9">Credential vault migration | Telegram token exchange | Planning auth gate | State diff tracking</text>
+<rect x="700" y="217" width="60" height="24" rx="12" fill="rgba(77,150,255,.2)"/><text x="730" y="234" text-anchor="middle" fill="#4d96ff" font-size="10" font-weight="700">35.7%</text>
+
+<!-- L4 -->
+<rect x="30" y="262" width="740" height="48" rx="6" fill="rgba(155,89,182,.06)" stroke="#9b59b6" stroke-width="1.5"/>
+<text x="45" y="284" fill="#9b59b6" font-size="12" font-weight="700">L4 SYSTEM</text>
+<text x="200" y="284" fill="#9b59b6" font-size="11">12 UCs</text>
+<text x="260" y="284" fill="#7a8fa6" font-size="9">Container #17 boot | Service Directory | Health metadata | Container restart RBAC | CPU governor</text>
+<rect x="700" y="270" width="60" height="24" rx="12" fill="rgba(155,89,182,.2)"/><text x="730" y="287" text-anchor="middle" fill="#9b59b6" font-size="10" font-weight="700">25.0%</text>
+
+<!-- L5 -->
+<rect x="30" y="315" width="740" height="48" rx="6" fill="rgba(0,212,170,.06)" stroke="#00d4aa" stroke-width="1.5"/>
+<text x="45" y="337" fill="#00d4aa" font-size="12" font-weight="700">L5 COGNITIVE</text>
+<text x="200" y="337" fill="#00d4aa" font-size="11">10 UCs</text>
+<text x="260" y="337" fill="#7a8fa6" font-size="9">Per-user Gemini cost | OODA auth observation | MCP tool authz | Dark cockpit | Reasoning context</text>
+<rect x="700" y="323" width="60" height="24" rx="12" fill="rgba(0,212,170,.2)"/><text x="730" y="340" text-anchor="middle" fill="#00d4aa" font-size="10" font-weight="700">16.4%</text>
+
+<!-- L6 -->
+<rect x="30" y="368" width="740" height="48" rx="6" fill="rgba(231,76,60,.06)" stroke="#e74c3c" stroke-width="1.5"/>
+<text x="45" y="390" fill="#e74c3c" font-size="12" font-weight="700">L6 ECOSYSTEM</text>
+<text x="200" y="390" fill="#e74c3c" font-size="11">16 UCs</text>
+<text x="260" y="390" fill="#7a8fa6" font-size="9">Webhook bridge (dark cockpit) | SD-Zenoh sync | WIF for Pub/Sub | MoZ auth | Quorum identity</text>
+<rect x="700" y="376" width="60" height="24" rx="12" fill="rgba(231,76,60,.25)"/><text x="730" y="393" text-anchor="middle" fill="#e74c3c" font-size="10" font-weight="700">66.7%</text>
+
+<!-- L7 -->
+<rect x="30" y="421" width="740" height="48" rx="6" fill="rgba(243,156,18,.06)" stroke="#f39c12" stroke-width="1.5"/>
+<text x="45" y="443" fill="#f39c12" font-size="12" font-weight="700">L7 FEDERATION</text>
+<text x="200" y="443" fill="#f39c12" font-size="11">11 UCs</text>
+<text x="260" y="443" fill="#7a8fa6" font-size="9">Google SSO | Telegram federation | Multi-region SD | Gateway auth | Version vectors | Matrix</text>
+<rect x="700" y="429" width="60" height="24" rx="12" fill="rgba(243,156,18,.2)"/><text x="730" y="446" text-anchor="middle" fill="#f39c12" font-size="10" font-weight="700">47.6%</text>
+
+<!-- Summary bar -->
+<rect x="30" y="478" width="740" height="15" rx="3" fill="#141922"/>
+<text x="400" y="490" text-anchor="middle" fill="#7a8fa6" font-size="9">Total: 88 use cases | 88/255 components impacted (34.5%) | 24/24 guard grid cells | 8/8 health cascade layers | 34 STAMP constraints</text>
+</svg>

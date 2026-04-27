@@ -27,6 +27,218 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::runtime::Runtime;
+
+// ─── fastembed (pure-Rust ONNX embeddings) ─────────────────────────────────
+use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
+
+fn fastembed_model() -> Result<&'static Mutex<TextEmbedding>, String> {
+    static CELL: OnceCell<Mutex<TextEmbedding>> = OnceCell::new();
+    if let Some(m) = CELL.get() {
+        return Ok(m);
+    }
+    let opts = InitOptions::new(EmbeddingModel::NomicEmbedTextV15);
+    let model = TextEmbedding::try_new(opts)
+        .map_err(|e| format!("fastembed init: {}", e))?;
+    let _ = CELL.set(Mutex::new(model));
+    Ok(CELL.get().expect("just set"))
+}
+
+/// Encode a `Vec<f32>` as little-endian 4-byte chunks (the existing schema).
+fn encode_f32_blob(v: &[f32]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(v.len() * 4);
+    for f in v {
+        out.extend_from_slice(&f.to_le_bytes());
+    }
+    out
+}
+
+/// Decode a little-endian f32 BLOB back to a `Vec<f32>`.
+fn decode_f32_blob(bytes: &[u8]) -> Vec<f32> {
+    bytes
+        .chunks_exact(4)
+        .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+        .collect()
+}
+
+/// Cosine similarity between two equal-length vectors.
+fn cosine(a: &[f32], b: &[f32]) -> f32 {
+    if a.len() != b.len() || a.is_empty() {
+        return 0.0;
+    }
+    let mut dot = 0.0f32;
+    let mut na = 0.0f32;
+    let mut nb = 0.0f32;
+    for i in 0..a.len() {
+        dot += a[i] * b[i];
+        na += a[i] * a[i];
+        nb += b[i] * b[i];
+    }
+    let denom = na.sqrt() * nb.sqrt();
+    if denom == 0.0 {
+        0.0
+    } else {
+        dot / denom
+    }
+}
+
+/// Single-input embed. Returns `(:ok, json_array)` where json_array is the
+/// 768-element float list serialised as JSON so gleam can store it verbatim.
+#[rustler::nif(schedule = "DirtyCpu")]
+fn fastembed_embed_one(text: String) -> NifResult<(Atom, String)> {
+    let model = match fastembed_model() {
+        Ok(m) => m,
+        Err(e) => return Ok((atoms::error(), e)),
+    };
+    let m = model.lock();
+    let out = match m.embed(vec![text], None) {
+        Ok(v) => v,
+        Err(e) => return Ok((atoms::error(), format!("embed: {}", e))),
+    };
+    match out.into_iter().next() {
+        Some(vec) => Ok((atoms::ok(), serde_json::to_string(&vec).unwrap_or_default())),
+        None => Ok((atoms::error(), "empty embed".to_string())),
+    }
+}
+
+/// Embed-and-write: embed the given text with fastembed, encode as little-endian
+/// f32 BLOB, and upsert into holon_embeddings for `holon_id`. Returns
+/// `(:ok, bytes_written)`.
+#[rustler::nif(schedule = "DirtyIo")]
+fn fastembed_embed_and_store(
+    db_path: String,
+    holon_id: String,
+    text: String,
+) -> NifResult<(Atom, String)> {
+    let model = match fastembed_model() {
+        Ok(m) => m,
+        Err(e) => return Ok((atoms::error(), e)),
+    };
+    let vec = {
+        let m = model.lock();
+        match m.embed(vec![text], None) {
+            Ok(mut v) => match v.pop() {
+                Some(v) => v,
+                None => return Ok((atoms::error(), "empty embed".to_string())),
+            },
+            Err(e) => return Ok((atoms::error(), format!("embed: {}", e))),
+        }
+    };
+    let blob = encode_f32_blob(&vec);
+    let handle = match open_db(&db_path) {
+        Ok(h) => h,
+        Err(e) => return Ok((atoms::error(), e)),
+    };
+    let conn = handle.lock();
+    let rows = match conn.execute(
+        "INSERT OR REPLACE INTO holon_embeddings (holon_id, embedding, model, dims) VALUES (?1, ?2, ?3, ?4)",
+        rusqlite::params![holon_id, blob, "nomic-embed-text-v1.5", 768i64],
+    ) {
+        Ok(n) => n,
+        Err(e) => return Ok((atoms::error(), format!("sql: {}", e))),
+    };
+    Ok((atoms::ok(), format!("rows={} bytes={}", rows, blob.len())))
+}
+
+/// Rerank: given a query text and a list of candidate (holon_id, embedding_blob) pairs,
+/// return JSON array of `{holon_id, score}` sorted descending.
+/// The candidate list is encoded as JSON: `[{"id":"zk-...","emb":"<hex>"}, ...]`
+/// where hex is the BLOB encoded as lowercase hex chars.
+#[rustler::nif(schedule = "DirtyCpu")]
+fn fastembed_rerank_query(
+    db_path: String,
+    query_text: String,
+    candidate_uuids_json: String,
+) -> NifResult<(Atom, String)> {
+    // 1. Embed query.
+    let query_vec = {
+        let model = match fastembed_model() {
+            Ok(m) => m,
+            Err(e) => return Ok((atoms::error(), e)),
+        };
+        let m = model.lock();
+        match m.embed(vec![query_text], None) {
+            Ok(mut v) => match v.pop() {
+                Some(v) => v,
+                None => return Ok((atoms::error(), "empty query embed".to_string())),
+            },
+            Err(e) => return Ok((atoms::error(), format!("embed: {}", e))),
+        }
+    };
+
+    // 2. Parse candidate UUIDs.
+    let uuids: Vec<String> = match serde_json::from_str(&candidate_uuids_json) {
+        Ok(v) => v,
+        Err(e) => return Ok((atoms::error(), format!("json: {}", e))),
+    };
+
+    // 3. Fetch embeddings by BLOB from DB.
+    let handle = match open_db(&db_path) {
+        Ok(h) => h,
+        Err(e) => return Ok((atoms::error(), e)),
+    };
+    let conn = handle.lock();
+    let mut scores: Vec<(String, f32)> = Vec::with_capacity(uuids.len());
+    for uuid in &uuids {
+        if let Ok(blob) = conn.query_row::<Vec<u8>, _, _>(
+            "SELECT embedding FROM holon_embeddings WHERE holon_id = ?1",
+            [uuid],
+            |r| r.get(0),
+        ) {
+            let doc = decode_f32_blob(&blob);
+            // Guard: embed model may differ; skip length mismatch.
+            if doc.len() == query_vec.len() {
+                let s = cosine(&query_vec, &doc);
+                scores.push((uuid.clone(), s));
+            }
+        }
+    }
+    scores.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    let json = serde_json::to_string(
+        &scores
+            .into_iter()
+            .map(|(id, s)| serde_json::json!({"id": id, "score": s}))
+            .collect::<Vec<_>>(),
+    )
+    .unwrap_or_default();
+    Ok((atoms::ok(), json))
+}
+
+/// Batch embed — much faster per-doc when N > ~8.
+/// Input: a JSON-encoded array of strings `["text1","text2",...]`.
+/// Output: `(:ok, json)` where json is a JSON array of float arrays.
+#[rustler::nif(schedule = "DirtyCpu")]
+fn fastembed_embed_batch(texts_json: String) -> NifResult<(Atom, String)> {
+    let texts: Vec<String> = match serde_json::from_str(&texts_json) {
+        Ok(v) => v,
+        Err(e) => return Ok((atoms::error(), format!("json parse: {}", e))),
+    };
+    let model = match fastembed_model() {
+        Ok(m) => m,
+        Err(e) => return Ok((atoms::error(), e)),
+    };
+    let m = model.lock();
+    let out = match m.embed(texts, None) {
+        Ok(v) => v,
+        Err(e) => return Ok((atoms::error(), format!("embed: {}", e))),
+    };
+    match serde_json::to_string(&out) {
+        Ok(s) => Ok((atoms::ok(), s)),
+        Err(e) => Ok((atoms::error(), format!("ser: {}", e))),
+    }
+}
+
+/// Health probe for the embed subsystem.
+#[rustler::nif]
+fn fastembed_info() -> NifResult<(Atom, String)> {
+    let initialised = fastembed_model().is_ok();
+    let json = serde_json::json!({
+        "model": "nomic-embed-text-v1.5",
+        "dims": 768,
+        "backend": "fastembed-rs + ort",
+        "initialised": initialised,
+    });
+    Ok((atoms::ok(), json.to_string()))
+}
 use uuid::Uuid;
 use zenoh::qos::{CongestionControl, Priority};
 use zenoh::Session;
@@ -193,6 +405,209 @@ fn smriti_pool_stats() -> NifResult<(Atom, String)> {
     let pool = smriti_pool().lock();
     let keys: Vec<&String> = pool.keys().collect();
     let json = serde_json::json!({ "open_connections": keys.len(), "paths": keys });
+    Ok((atoms::ok(), json.to_string()))
+}
+
+// ─── Generic SQL NIFs (battle-hardened) ──────────────────────────────────────
+//
+// Exposed for SC-PASS8-IMPL-001 KMS operations. Every call:
+//   * reuses the pooled WAL+NORMAL connection
+//   * retries on `SQLITE_BUSY` / `SQLITE_LOCKED` up to 5 times with expo backoff
+//   * serialises bind parameters as `Vec<String>` from gleam (simple + safe)
+//   * returns rows as compact JSON (array of arrays); callers parse as needed
+//   * wraps every error in `(:err, reason_string)` — never panics the BEAM
+
+fn is_busy_err(e: &rusqlite::Error) -> bool {
+    use rusqlite::ErrorCode;
+    match e {
+        rusqlite::Error::SqliteFailure(f, _) => {
+            f.code == ErrorCode::DatabaseBusy || f.code == ErrorCode::DatabaseLocked
+        }
+        _ => false,
+    }
+}
+
+fn with_retry<T, F>(mut op: F) -> Result<T, String>
+where
+    F: FnMut() -> Result<T, rusqlite::Error>,
+{
+    let mut delay_ms = 10u64;
+    for attempt in 0..5u32 {
+        match op() {
+            Ok(v) => return Ok(v),
+            Err(e) if is_busy_err(&e) => {
+                std::thread::sleep(std::time::Duration::from_millis(delay_ms));
+                delay_ms = (delay_ms * 2).min(500);
+                if attempt == 4 {
+                    return Err(format!("sqlite busy after 5 retries: {}", e));
+                }
+            }
+            Err(e) => return Err(format!("sqlite error: {}", e)),
+        }
+    }
+    Err("sqlite retries exhausted".to_string())
+}
+
+fn row_to_json(row: &rusqlite::Row<'_>, col_count: usize) -> Result<serde_json::Value, rusqlite::Error> {
+    let mut arr = Vec::with_capacity(col_count);
+    for i in 0..col_count {
+        let v: rusqlite::types::Value = row.get::<usize, rusqlite::types::Value>(i)?;
+        arr.push(match v {
+            rusqlite::types::Value::Null => serde_json::Value::Null,
+            rusqlite::types::Value::Integer(n) => serde_json::json!(n),
+            rusqlite::types::Value::Real(f) => serde_json::json!(f),
+            rusqlite::types::Value::Text(s) => serde_json::Value::String(s),
+            rusqlite::types::Value::Blob(b) => serde_json::json!(base64_encode(&b)),
+        });
+    }
+    Ok(serde_json::Value::Array(arr))
+}
+
+fn base64_encode(bytes: &[u8]) -> String {
+    // Minimal base64 to avoid pulling another crate; blobs only (rare in KMS reads).
+    const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = Vec::with_capacity(bytes.len() * 4 / 3 + 4);
+    let mut i = 0;
+    while i + 3 <= bytes.len() {
+        let b0 = bytes[i] as usize;
+        let b1 = bytes[i + 1] as usize;
+        let b2 = bytes[i + 2] as usize;
+        out.push(TABLE[(b0 >> 2) & 0x3f]);
+        out.push(TABLE[((b0 << 4) | (b1 >> 4)) & 0x3f]);
+        out.push(TABLE[((b1 << 2) | (b2 >> 6)) & 0x3f]);
+        out.push(TABLE[b2 & 0x3f]);
+        i += 3;
+    }
+    let rem = bytes.len() - i;
+    if rem == 1 {
+        let b0 = bytes[i] as usize;
+        out.push(TABLE[(b0 >> 2) & 0x3f]);
+        out.push(TABLE[(b0 << 4) & 0x3f]);
+        out.push(b'=');
+        out.push(b'=');
+    } else if rem == 2 {
+        let b0 = bytes[i] as usize;
+        let b1 = bytes[i + 1] as usize;
+        out.push(TABLE[(b0 >> 2) & 0x3f]);
+        out.push(TABLE[((b0 << 4) | (b1 >> 4)) & 0x3f]);
+        out.push(TABLE[(b1 << 2) & 0x3f]);
+        out.push(b'=');
+    }
+    String::from_utf8(out).unwrap_or_default()
+}
+
+fn bind_params<'a>(
+    stmt: &'a mut rusqlite::Statement,
+    params: &'a [String],
+) -> Result<(), rusqlite::Error> {
+    for (idx, v) in params.iter().enumerate() {
+        stmt.raw_bind_parameter(idx + 1, v)?;
+    }
+    Ok(())
+}
+
+/// Generic SELECT/PRAGMA executor with retry + positional params.
+/// Returns `(:ok, json)` where json is `{"columns": [...], "rows": [[...],...]}`.
+#[rustler::nif(schedule = "DirtyIo")]
+fn smriti_query(
+    db_path: String,
+    sql: String,
+    params: Vec<String>,
+) -> NifResult<(Atom, String)> {
+    let handle = open_db(&db_path).map_err(|e| Error::Term(Box::new(e)))?;
+    let conn = handle.lock();
+    let res = with_retry(|| -> Result<String, rusqlite::Error> {
+        let mut stmt = conn.prepare(&sql)?;
+        let col_names: Vec<String> = stmt
+            .column_names()
+            .iter()
+            .map(|s| (*s).to_string())
+            .collect();
+        let col_count = col_names.len();
+        bind_params(&mut stmt, &params)?;
+        let mut rows = stmt.raw_query();
+        let mut out = Vec::new();
+        while let Some(row) = rows.next()? {
+            out.push(row_to_json(row, col_count)?);
+        }
+        let json = serde_json::json!({ "columns": col_names, "rows": out });
+        Ok(json.to_string())
+    });
+    match res {
+        Ok(json) => Ok((atoms::ok(), json)),
+        Err(e) => Ok((atoms::error(), e)),
+    }
+}
+
+/// Generic INSERT/UPDATE/DELETE/DDL executor with retry + positional params.
+/// Returns `(:ok, rows_affected_as_string)`.
+#[rustler::nif(schedule = "DirtyIo")]
+fn smriti_exec(
+    db_path: String,
+    sql: String,
+    params: Vec<String>,
+) -> NifResult<(Atom, String)> {
+    let handle = open_db(&db_path).map_err(|e| Error::Term(Box::new(e)))?;
+    let conn = handle.lock();
+    let res = with_retry(|| -> Result<usize, rusqlite::Error> {
+        let mut stmt = conn.prepare(&sql)?;
+        let mut ps: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(params.len());
+        for p in &params {
+            ps.push(p);
+        }
+        stmt.execute(rusqlite::params_from_iter(params.iter()))
+    });
+    match res {
+        Ok(n) => Ok((atoms::ok(), n.to_string())),
+        Err(e) => Ok((atoms::error(), e)),
+    }
+}
+
+/// Execute a batch of DDL/DML separated by semicolons.  Atomic: either the
+/// whole batch commits or nothing does (transaction-wrapped).
+#[rustler::nif(schedule = "DirtyIo")]
+fn smriti_exec_batch(db_path: String, sql_batch: String) -> NifResult<(Atom, String)> {
+    let handle = open_db(&db_path).map_err(|e| Error::Term(Box::new(e)))?;
+    let mut conn = handle.lock();
+    let res = with_retry(|| -> Result<usize, rusqlite::Error> {
+        let tx = conn.transaction()?;
+        tx.execute_batch(&sql_batch)?;
+        tx.commit()?;
+        Ok(0)
+    });
+    match res {
+        Ok(_) => Ok((atoms::ok(), "batch committed".to_string())),
+        Err(e) => Ok((atoms::error(), e)),
+    }
+}
+
+/// Health probe — returns JSON with pool size, path, wal+busy pragmas.
+#[rustler::nif]
+fn smriti_health(db_path: String) -> NifResult<(Atom, String)> {
+    let handle = match open_db(&db_path) {
+        Ok(h) => h,
+        Err(e) => return Ok((atoms::error(), e)),
+    };
+    let conn = handle.lock();
+    let journal: String = conn
+        .query_row("PRAGMA journal_mode", [], |r| r.get(0))
+        .unwrap_or_default();
+    let busy: i64 = conn
+        .query_row("PRAGMA busy_timeout", [], |r| r.get(0))
+        .unwrap_or(0);
+    let sync: i64 = conn
+        .query_row("PRAGMA synchronous", [], |r| r.get(0))
+        .unwrap_or(0);
+    let wal_pages: i64 = conn
+        .query_row("PRAGMA wal_checkpoint(PASSIVE)", [], |r| r.get::<usize, i64>(0))
+        .unwrap_or(-1);
+    let json = serde_json::json!({
+        "path": db_path,
+        "journal_mode": journal,
+        "busy_timeout_ms": busy,
+        "synchronous": sync,
+        "wal_checkpoint_pages": wal_pages,
+    });
     Ok((atoms::ok(), json.to_string()))
 }
 

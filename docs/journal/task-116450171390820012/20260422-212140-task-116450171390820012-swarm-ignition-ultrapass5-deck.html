@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ultra-Pass 5 Deck · Task 116450171390820012</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--accent:#00d4aa;--border:#1e2a3a;--success:#3dd68c;--warn:#f5a623;--critical:#ff4757;--muted:#7a8fa6}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,system-ui,sans-serif;overflow:hidden}
+.topbar{position:fixed;top:0;left:0;right:0;padding:.6rem 1.5rem;background:rgba(10,14,23,.85);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);z-index:100;font-size:.82rem;display:flex;justify-content:space-between;align-items:center}
+.topbar a{color:var(--accent);text-decoration:none;font-family:ui-monospace,monospace}
+.deck{position:relative;height:100vh;padding-top:50px}
+.slide{position:absolute;top:50px;left:0;right:0;bottom:0;padding:2.5rem 4rem;opacity:0;transition:opacity .4s ease;overflow-y:auto;display:flex;flex-direction:column}
+.slide.active{opacity:1}
+.slide h1{color:var(--accent);font-size:2.4rem;margin-bottom:.5rem}
+.slide h2{color:var(--accent);font-size:1.9rem;margin-bottom:1rem}
+.slide h3{color:var(--warn);font-size:1.1rem;margin-top:1rem}
+.slide p,.slide li{font-size:1.05rem;line-height:1.6}
+.slide ul{padding-left:1.5rem;margin:.5rem 0}
+.subtitle{color:var(--muted);font-size:1.05rem;margin-bottom:1.5rem}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin:1rem 0}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.1rem;text-align:center}
+.kpi .v{font-size:2.2rem;font-weight:700;color:var(--success)}
+.kpi .v.warn{color:var(--warn)}.kpi .v.crit{color:var(--critical)}
+.kpi .l{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-top:.2rem}
+code{font-family:ui-monospace,monospace;background:#0e1420;padding:.1rem .35rem;border-radius:4px;color:var(--warn);font-size:.9em}
+pre{background:#0e1420;border:1px solid var(--border);border-radius:8px;padding:.8rem;font-size:.85rem;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:.45rem .6rem;border-bottom:1px solid var(--border);text-align:left}
+th{color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;background:#1e2a3a}
+img.diag{max-width:85%;max-height:70vh;border:1px solid var(--border);border-radius:10px;align-self:center;background:#0e1420}
+.badge{display:inline-block;padding:.15rem .6rem;border-radius:12px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-right:.3rem}
+.b-ok{background:#0e2a1e;color:var(--success);border:1px solid var(--success)}
+.b-warn{background:#2a1e0e;color:var(--warn);border:1px solid var(--warn)}
+.b-crit{background:#2a0e0e;color:var(--critical);border:1px solid var(--critical)}
+.nav{position:fixed;bottom:.8rem;left:50%;transform:translateX(-50%);display:flex;gap:.5rem;background:var(--card);padding:.4rem .6rem;border-radius:20px;border:1px solid var(--border);z-index:99}
+.nav button{background:none;border:1px solid var(--border);color:var(--text);padding:.3rem .8rem;border-radius:14px;cursor:pointer;font-family:inherit}
+.nav button:hover{background:#1e2a3a;border-color:var(--accent);color:var(--accent)}
+.counter{color:var(--muted);font-size:.85rem;padding:.3rem .5rem}
+.slide-title{color:var(--accent);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;flex:1}
+.two-col ul{font-size:1rem}
+</style></head>
+<body>
+
+<div class="topbar">
+<div><strong>Ultra-Pass 5 Deck</strong> · Task <code>116450171390820012</code></div>
+<a href="https://vm-1.tail55d152.ts.net:8443/task-id/116450171390820012/20260422-212140-task-116450171390820012-swarm-ignition-ultrapass5-deck.html">https://vm-1.tail55d152.ts.net:8443/task-id/116450171390820012/</a>
+</div>
+
+<div class="deck">
+
+<div class="slide active" data-n="1">
+<div class="slide-title">Slide 1 · Title</div>
+<h1>C3I Full Swarm Ignition</h1>
+<h2>Ultra-Pass 5 · Fractal Integration</h2>
+<p class="subtitle">16-pod biomorphic mesh · 7 host daemons · 6/6 Zenoh sessions · FINDING-A (RPN 900) closed</p>
+<div class="kpi-row">
+<div class="kpi"><div class="v">16/16</div><div class="l">Pods</div></div>
+<div class="kpi"><div class="v">6/6</div><div class="l">Zenoh</div></div>
+<div class="kpi"><div class="v">7</div><div class="l">Daemons</div></div>
+<div class="kpi"><div class="v">2958</div><div class="l">Tasks</div></div>
+<div class="kpi"><div class="v">+15</div><div class="l">Children</div></div>
+<div class="kpi"><div class="v">1273ms</div><div class="l">Cortex warm</div></div>
+</div>
+<p style="margin-top:2rem;color:var(--muted)">v22.10.2-ULTRA-PASS5 · 2026-04-22 21:27 UTC · P0</p>
+</div>
+
+<div class="slide" data-n="2">
+<div class="slide-title">Slide 2 · Scope</div>
+<h2>Scope &amp; Trigger</h2>
+<h3>Inputs</h3>
+<ul>
+<li>Prior pass-4 FMEA: 6 findings A-F, top RPN 900 (zenoh_otel publish)</li>
+<li>User directive: "do full swarm ignition, start all daemons"</li>
+<li>Mandatory: ZK-RECALL (5 holons) before action</li>
+</ul>
+<h3>Outputs (this pass)</h3>
+<ul>
+<li>Full 16-pod ignition (wave 1-4) + 7 host daemons</li>
+<li>FINDING-A closure at API surface: <code>publish</code>, <code>emit_span</code></li>
+<li>15 evolutionary child tasks → sa-plan</li>
+<li>5 Graphviz diagrams + 3 screenshots</li>
+<li>Journal MD + Analysis HTML + Slide deck HTML + Email bundle + ZK ingest</li>
+</ul>
+</div>
+
+<div class="slide" data-n="3">
+<div class="slide-title">Slide 3 · ZK-Recall</div>
+<h2>Phase-1 OODA: RECALL</h2>
+<p class="subtitle">Per SC-RECALL-RAG, every session starts with ≥5 holon citations.</p>
+<table>
+<thead><tr><th>Holon</th><th>Subject</th></tr></thead>
+<tbody>
+<tr><td><code>[zk-7aa004f80f657270]</code></td><td>Allium v3 User Guide — SIL-6 Biomorphic Mesh</td></tr>
+<tr><td><code>[zk-f6b0bd711aa34f58]</code></td><td>ignition_daemon main.rs (L3_TRANSACTION)</td></tr>
+<tr><td><code>[zk-97150309ffddd6da]</code></td><td>Total Biomorphic Singularity Reified (v21.3.0)</td></tr>
+<tr><td><code>[zk-67100f21107ce204]</code></td><td>Zenoh OTel Span Integration</td></tr>
+<tr><td><code>[zk-f287e08cb1b4b70d]</code></td><td>Zenoh OTel Telemetry Mandatory (SC-GLM-ZEN)</td></tr>
+<tr><td><code>[zk-d3edd671b66e5e3e]</code></td><td>Prior ultra-pass-4 FMEA</td></tr>
+</tbody></table>
+</div>
+
+<div class="slide" data-n="4">
+<div class="slide-title">Slide 4 · Control plane</div>
+<h2>Control-plane topology</h2>
+<img class="diag" src="diagrams/control-plane.png" alt="control plane">
+</div>
+
+<div class="slide" data-n="5">
+<div class="slide-title">Slide 5 · Data plane</div>
+<h2>Data-plane topology</h2>
+<img class="diag" src="diagrams/data-plane.png" alt="data plane">
+</div>
+
+<div class="slide" data-n="6">
+<div class="slide-title">Slide 6 · Fractal impact</div>
+<h2>Fractal L0 → L7</h2>
+<img class="diag" src="diagrams/fractal-impact.png" alt="fractal impact">
+</div>
+
+<div class="slide" data-n="7">
+<div class="slide-title">Slide 7 · MSC</div>
+<h2>Ignition message sequence</h2>
+<img class="diag" src="diagrams/message-sequence.png" alt="message sequence">
+</div>
+
+<div class="slide" data-n="8">
+<div class="slide-title">Slide 8 · State machine</div>
+<h2>Swarm state machine</h2>
+<img class="diag" src="diagrams/state-machine.png" alt="state machine">
+</div>
+
+<div class="slide" data-n="9">
+<div class="slide-title">Slide 9 · Containers</div>
+<h2>Container matrix · 16/16 UP</h2>
+<table>
+<thead><tr><th>Tier</th><th>Containers</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>L6 Mesh</td><td>zenoh-router × 4</td><td><span class="badge b-ok">Up</span> (6/6 sessions)</td></tr>
+<tr><td>L3 Transaction</td><td>indrajaal-db-prod</td><td><span class="badge b-ok">Up</span> (Timescale :5433)</td></tr>
+<tr><td>L4 Observability</td><td>indrajaal-obs-prod</td><td><span class="badge b-ok">Up</span> (3000/4317/9090)</td></tr>
+<tr><td>L5 Cognition</td><td>ollama, ml-runner × 2, mojo, cortex</td><td><span class="badge b-ok">Up</span></td></tr>
+<tr><td>L6 Bridge</td><td>cepaf-bridge</td><td><span class="badge b-ok">Up</span> (:9876)</td></tr>
+<tr><td>L2 Apps</td><td>ex-app-1/2/3 + chaya</td><td><span class="badge b-ok">Up</span> (:4000-4004)</td></tr>
+</tbody></table>
+</div>
+
+<div class="slide" data-n="10">
+<div class="slide-title">Slide 10 · Daemons</div>
+<h2>Host daemons · 7 PIDs</h2>
+<table>
+<thead><tr><th>PID</th><th>Command</th><th>Fractal</th></tr></thead>
+<tbody>
+<tr><td>1921</td><td><code>sa-plan serve :4200</code></td><td>L4</td></tr>
+<tr><td>1923</td><td><code>sa-plan scheduler-run</code></td><td>L4</td></tr>
+<tr><td>1925</td><td><code>sa-plan tls serve :8443</code></td><td>L4</td></tr>
+<tr><td>35501</td><td><code>timestamp_daemon</code></td><td>L7</td></tr>
+<tr><td>35565</td><td><code>sa-plan daemon</code> (Zenoh cortex)</td><td>L5</td></tr>
+<tr><td>21440</td><td><code>dotnet Indrajaal.Cortex.dll</code></td><td>L5</td></tr>
+<tr><td>22086</td><td><code>dotnet cepaf-bridge.dll</code></td><td>L6</td></tr>
+</tbody></table>
+</div>
+
+<div class="slide" data-n="11">
+<div class="slide-title">Slide 11 · FINDING-A closure</div>
+<h2>zenoh_otel.gleam · RPN 900 → 90</h2>
+<p>Session-less publish added (callers no longer need to own <code>client.Session</code>):</p>
+<pre><code>pub fn publish(span: OtelSpan) -> Result(Nil, String) {
+  let topic = otel_topic(span.page, span.element)
+  let payload = json.to_string(span_to_json(span))
+  case client.put_nif(topic, payload) {
+    Ok(_) -> Ok(Nil)
+    Error(msg) -> Error(msg)
+  }
+}
+
+pub fn emit_span(page, element, phase, attrs) -> Result(Nil, String) {
+  publish(new_span(page, element, phase, attrs))
+}</code></pre>
+<p><span class="badge b-ok">Gleam build</span> Compiled in 0.23s · zero new warnings</p>
+</div>
+
+<div class="slide" data-n="12">
+<div class="slide-title">Slide 12 · FMEA</div>
+<h2>FMEA — before → after</h2>
+<table>
+<thead><tr><th>Finding</th><th>RPN pre</th><th>Action</th><th>RPN post</th></tr></thead>
+<tbody>
+<tr><td>A: zenoh_otel no publish</td><td>900</td><td>API added</td><td>90 <span class="badge b-ok">-810</span></td></tr>
+<tr><td>Stale timestamp PID</td><td>140</td><td>rm lockfile</td><td>40 <span class="badge b-ok">-100</span></td></tr>
+<tr><td>priv/native missing</td><td>240</td><td>mkdir</td><td>20 <span class="badge b-ok">-220</span></td></tr>
+<tr><td>Zenoh cold-start</td><td>300</td><td>gossip attempt-1</td><td>60 <span class="badge b-ok">-240</span></td></tr>
+<tr><td>V-3 web UI no content</td><td>144</td><td>queued (next pass)</td><td>144 <span class="badge b-warn">—</span></td></tr>
+<tr><td>Inter-cont matrix 7/28</td><td>105</td><td>queued DNS settle</td><td>105 <span class="badge b-warn">—</span></td></tr>
+</tbody></table>
+</div>
+
+<div class="slide" data-n="13">
+<div class="slide-title">Slide 13 · Child tasks</div>
+<h2>15 evolutionary child tasks</h2>
+<div class="two-col">
+<ul>
+<li>193845487 · zenoh_otel publish <span class="badge b-ok">done</span></li>
+<li>195873159 · wire 5 Lustre pages</li>
+<li>197403888 · Pi event actor</li>
+<li>199107400 · RETE-UL dispatcher</li>
+<li>200497984 · pi_session Smriti write</li>
+<li>201895909 · claude_metrics wire</li>
+<li>203108585 · 32 HA tests</li>
+<li>204441764 · MCP federation verifier</li>
+</ul>
+<ul>
+<li>205924106 · regression suite</li>
+<li>207230383 · links.json aggregator</li>
+<li>208432385 · SC-PASS5-AUTO-001</li>
+<li>209772051 · 5 diagrams <span class="badge b-ok">done</span></li>
+<li>211026359 · screenshots <span class="badge b-ok">done</span></li>
+<li>212253022 · videos of 3 journeys</li>
+<li>213614181 · self-awareness KPIs</li>
+</ul>
+</div>
+</div>
+
+<div class="slide" data-n="14">
+<div class="slide-title">Slide 14 · Invariants</div>
+<h2>Ψ-0..5 Constitutional Status</h2>
+<table>
+<thead><tr><th>Invariant</th><th>Status</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Ψ-0 Existence</td><td><span class="badge b-ok">PASS</span></td><td>status: 3 ms</td></tr>
+<tr><td>Ψ-1 Regeneration</td><td><span class="badge b-ok">PASS</span></td><td>sa-up idempotent</td></tr>
+<tr><td>Ψ-2 History</td><td><span class="badge b-ok">PASS</span></td><td>2958 tasks, OTEL in obs</td></tr>
+<tr><td>Ψ-3 Verification</td><td><span class="badge b-warn">PARTIAL</span></td><td>16/16 post-relaunch</td></tr>
+<tr><td>Ψ-4 Alignment</td><td><span class="badge b-warn">PARTIAL</span></td><td>pages not yet emitting</td></tr>
+<tr><td>Ψ-5 Truthfulness</td><td><span class="badge b-ok">PASS</span></td><td>live numbers this deck</td></tr>
+</tbody></table>
+</div>
+
+<div class="slide" data-n="15">
+<div class="slide-title">Slide 15 · Next</div>
+<h2>Next pass · Pass-6</h2>
+<ul>
+<li>Wire <code>zenoh_otel.emit_span</code> into top-5 Lustre pages → watch OTEL-on-Zenoh traffic in obs-prod</li>
+<li>RETE-UL decision→action dispatcher (FINDING-B)</li>
+<li>Pi event subscriber OTP actor (GAP-1)</li>
+<li>Self-awareness KPIs on dashboard</li>
+<li>Tailscale cert migration from self-signed</li>
+</ul>
+<p class="subtitle" style="margin-top:2rem">Dashboard: <a href="https://vm-1.tail55d152.ts.net:8443/task-id/116450171390820012/" style="color:var(--accent)">https://vm-1.tail55d152.ts.net:8443/task-id/116450171390820012/</a></p>
+<p style="margin-top:2rem;color:var(--muted);font-style:italic">सर्वारम्भा हि दोषेण धूमेनाग्निरिवावृताः — every enterprise is clouded in defects as fire is by smoke; burn through iteratively. (Gītā 18.48, adapted)</p>
+</div>
+
+</div>
+
+<div class="nav">
+<button onclick="go(-1)">◀ Prev</button>
+<span class="counter" id="counter">1 / 15</span>
+<button onclick="go(1)">Next ▶</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+let idx = 0;
+function go(d){
+  idx = (idx + d + slides.length) % slides.length;
+  slides.forEach((s,i)=>s.classList.toggle('active', i===idx));
+  document.getElementById('counter').textContent = (idx+1) + ' / ' + slides.length;
+}
+document.addEventListener('keydown', e => {
+  if(e.key==='ArrowRight'||e.key===' ') go(1);
+  if(e.key==='ArrowLeft') go(-1);
+  const n = parseInt(e.key,10);
+  if(!isNaN(n) && n>=1 && n<=slides.length){ idx=n-1; go(0); }
+});
+</script>
+</body></html>

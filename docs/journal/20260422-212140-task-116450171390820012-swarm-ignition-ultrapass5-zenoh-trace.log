@@ -1,0 +1,7 @@
+Script started on 2026-04-23 07:13:14+02:00 [COMMAND="timeout 12 ./sa-up listen -p 'indrajaal/**'" <not executed on terminal>]
+[indrajaal/l5/cog/intent/cron] ↳ {"id":"cron-1776921201","source":"heartbeat_daemon","type":"periodic_triage","timestamp_ms":1776921201517}
+[indrajaal/l4/sched/job/180/alarm] ↳ {"at":"2026-04-23T05:13:23.541527009+00:00","source":"sa-plan","urn":"urn:c3i:job:rete:180","event":"alarm","rule":"SchedHangHeartbeatMissing","kind":"hang_suspected","silent_ms":103182,"interval_ms_hint":5000}
+[indrajaal/l4/sched/job/180/alarm] ↳ {"at":"2026-04-23T05:13:24.219644534+00:00","source":"sa-plan","urn":"urn:c3i:job:rete:180","event":"alarm","rule":"SchedHangHeartbeatMissing","kind":"hang_suspected","silent_ms":103859,"interval_ms_hint":5000}
+[indrajaal/l4/sched/job/180/alarm] ↳ {"at":"2026-04-23T05:13:24.724655712+00:00","source":"sa-plan","urn":"urn:c3i:job:rete:180","event":"alarm","rule":"SchedHangHeartbeatMissing","kind":"hang_suspected","silent_ms":104365,"interval_ms_hint":5000}
+
+Script done on 2026-04-23 07:13:26+02:00 [COMMAND_EXIT_CODE="124"]

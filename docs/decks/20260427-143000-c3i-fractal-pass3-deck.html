@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><title>C3I Fractal Pass 3 — Deck</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--ok:#3dd68c;--warn:#f5a623;--crit:#ff4757;--border:#1e2a3a;--rust:#dea584;--gleam:#ffaff3;--json:#9ce4ff}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,system-ui}
+.deck{max-width:1080px;margin:0 auto;padding:30px 24px 60px}
+.slide{border:1px solid var(--border);border-radius:12px;padding:34px 42px;margin:24px 0;background:linear-gradient(140deg,#0c1320,#10182a);page-break-after:always;min-height:540px;position:relative}
+.slide .num{position:absolute;right:24px;top:16px;color:var(--muted);font-size:12px}
+.slide h2{color:var(--accent);margin:0 0 14px;font-size:25px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+th,td{border:1px solid var(--border);padding:6px 9px;text-align:left}th{background:#1e2a3a;color:var(--accent)}
+code{background:#1e2a3a;color:#9be7c4;padding:1px 5px;border-radius:4px;font-size:13px}
+pre{background:#0d1420;border:1px solid var(--border);padding:11px;border-radius:6px;font-size:12.5px}
+.kpi{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
+.kpi .item{background:var(--card);padding:13px 18px;border-radius:10px;border:1px solid var(--border);min-width:120px}
+.kpi .item .v{font-size:26px;color:var(--accent);font-weight:700}.kpi .item .l{font-size:11px;color:var(--muted);text-transform:uppercase}
+.tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;font-weight:600;margin:1px}
+.t-rust{background:#3a2a1c;color:var(--rust)}.t-gleam{background:#3a1c2c;color:var(--gleam)}.t-json{background:#1c2a3a;color:var(--json)}
+.bar{height:22px;background:#1e2a3a;border-radius:3px;display:flex;overflow:hidden;margin-top:10px}
+.bar .seg-rust{background:var(--rust)}.bar .seg-gleam{background:var(--gleam)}.bar .seg-json{background:var(--json)}
+.title-slide{display:flex;flex-direction:column;justify-content:center;padding:80px 60px}
+.title-slide h1{font-size:40px;color:var(--accent);margin:0 0 12px}
+.title-slide p{color:var(--muted);font-size:16px;margin:4px 0}
+</style></head><body>
+
+<div class="deck">
+
+<section class="slide title-slide"><span class="num">1 / 12</span>
+  <h1>C3I Fractal Pass 3</h1>
+  <p>Layers × Components × Implementation Tradeoff (Rust / Gleam / JSON)</p>
+  <p style="margin-top:30px">2026-04-27 14:30 CEST · Auto mode</p>
+  <p>96 cells classified · 5 anti-patterns · 0 code changes</p>
+</section>
+
+<section class="slide"><span class="num">2 / 12</span>
+  <h2>Implementation distribution (~17 c3i units)</h2>
+  <div class="bar">
+    <div class="seg-rust" style="width:50%"></div>
+    <div class="seg-gleam" style="width:35%"></div>
+    <div class="seg-json" style="width:15%"></div>
+  </div>
+  <p style="margin-top:12px">
+    <span class="tag t-rust">Rust ~50%</span> ops · cortex · safety · NIF<br>
+    <span class="tag t-gleam">Gleam ~35%</span> UI · types · federation · scripts<br>
+    <span class="tag t-json">JSON ~15%</span> config · agents · A2UI · drop-ins
+  </p>
+  <p>Per SC-ARCH-SPLIT — principled separation, observable in code.</p>
+</section>
+
+<section class="slide"><span class="num">3 / 12</span>
+  <h2>Tradeoff axes</h2>
+  <table>
+    <tr><th>Axis</th><th>Rust</th><th>Gleam</th><th>JSON</th></tr>
+    <tr><td>Speed</td><td>µs–ms</td><td>ms (BEAM)</td><td>n/a</td></tr>
+    <tr><td>Safety</td><td>★ borrow</td><td>★ ADT + isolation</td><td>★ schema</td></tr>
+    <tr><td>Hot reload</td><td>✗</td><td>★</td><td>★</td></tr>
+    <tr><td>Operability</td><td>dev only</td><td>dev</td><td>operator</td></tr>
+  </table>
+</section>
+
+<section class="slide"><span class="num">4 / 12</span>
+  <h2>L0 Constitutional — Rust dominant</h2>
+  <p>Safety logic: Guardian, supervisor, RETE rules, cortex.</p>
+  <p><span class="tag t-rust">Rust</span> for: state, health, recovery, OTel, rule eval, storage, ops</p>
+  <p><span class="tag t-gleam">Gleam</span> for: UI display (l0_constitutional.gleam)</p>
+  <p><span class="tag t-json">JSON</span> for: settings.json, ferriskey config</p>
+  <p><strong>Verdict:</strong> optimal — safety needs zero-cost abstractions.</p>
+</section>
+
+<section class="slide"><span class="num">5 / 12</span>
+  <h2>L2/L7 — Gleam dominant</h2>
+  <table>
+    <tr><th>Layer</th><th>Why Gleam</th></tr>
+    <tr><td>L2 Component</td><td>Lustre MVU, exhaustive ADTs, BEAM hot reload, supervisor trees</td></tr>
+    <tr><td>L7 Federation</td><td>Matrix protocol fits OTP actors, hot-swap room logic</td></tr>
+  </table>
+  <p>Both layers benefit from BEAM's distribution + isolation semantics.</p>
+</section>
+
+<section class="slide"><span class="num">6 / 12</span>
+  <h2>L3/L5/L6 — Rust core + Gleam UI</h2>
+  <p><span class="tag t-rust">Rust</span> owns the data: Smriti.db (SQLite WAL+FTS5), cortex (1980 LOC), zenoh-router, RAG, traces.</p>
+  <p><span class="tag t-gleam">Gleam</span> owns the presentation: wisp/router, cortex.gleam, mesh dashboards.</p>
+  <p>Bridge = NIF (atomic) + Zenoh MoZ (cross-process) + JSONL stdin (Pi).</p>
+</section>
+
+<section class="slide"><span class="num">7 / 12</span>
+  <h2>L4 System — Rust + JSON drop-ins</h2>
+  <p><strong>JSON-equivalent (INI) drop-ins are the fitness leader here:</strong></p>
+  <pre>~/.config/systemd/user/
+├── c3i.slice                      (primary)
+├── c3i.slice.d/
+│   ├── 20-robust-defense.conf     (mem swap discipline)
+│   └── 30-optimize.conf           (high 24G, max 28G)
+└── c3i-*.service.d/
+    ├── 10-slice-conflicts.conf    (membership + Conflicts=)
+    ├── 20-robust.conf             (OOM + restart governance)
+    └── 30-optimize.conf           (tightened MemoryHigh)</pre>
+  <p>34 drop-in files · 0 LOC · operator-friendly · independently revertable.</p>
+</section>
+
+<section class="slide"><span class="num">8 / 12</span>
+  <h2>Hot-reload coverage</h2>
+  <table>
+    <tr><th>Class</th><th>%</th><th>Mechanism</th></tr>
+    <tr><td><span class="tag t-gleam">Gleam BEAM</span></td><td>29 %</td><td>code swap, no restart</td></tr>
+    <tr><td><span class="tag t-rust">Rust</span></td><td>35 %</td><td>process restart needed</td></tr>
+    <tr><td><span class="tag t-json">JSON drop-ins</span></td><td>—</td><td>daemon-reload (instant)</td></tr>
+    <tr><td>Oneshots</td><td>35 %</td><td>fire on next timer</td></tr>
+  </table>
+  <p>UI tier (L2 + L7 = Gleam) = 100% hot-reloadable. Critical-path Rust accepts restart cost for memory safety.</p>
+</section>
+
+<section class="slide"><span class="num">9 / 12</span>
+  <h2>Anti-patterns identified</h2>
+  <table>
+    <tr><th>#</th><th>Pattern</th><th>Fix</th></tr>
+    <tr><td>1</td><td>mistral.rs in 2 binaries</td><td>Extract sa-plan-inference daemon (Rust 4-6h)</td></tr>
+    <tr><td>2</td><td>health-publish.sh in bash</td><td>Migrate to scripts-gleam (1h)</td></tr>
+    <tr><td>3</td><td>muda-prune.sh in bash</td><td>Migrate to scripts-gleam (1h)</td></tr>
+    <tr><td>4</td><td>settings.json hook 800-char</td><td>Replace with Gleam binary</td></tr>
+    <tr><td>5</td><td>No A2UI for slice/health</td><td>Add operator-friendly components</td></tr>
+  </table>
+</section>
+
+<section class="slide"><span class="num">10 / 12</span>
+  <h2>Storage strategy per layer</h2>
+  <table>
+    <tr><th>Layer</th><th>Store</th><th>Owner</th></tr>
+    <tr><td>L0-L1</td><td>stateless</td><td>—</td></tr>
+    <tr><td>L2</td><td>ETS</td><td><span class="tag t-gleam">Gleam BEAM</span></td></tr>
+    <tr><td>L3 + L5</td><td><strong>Smriti.db (SQLite WAL + FTS5)</strong></td><td><span class="tag t-rust">Rust</span></td></tr>
+    <tr><td>L4</td><td>cgroup state (kernel)</td><td><span class="tag t-json">systemd</span></td></tr>
+    <tr><td>L6</td><td>Zenoh PubSub (ephemeral)</td><td><span class="tag t-rust">Rust</span></td></tr>
+    <tr><td>L7</td><td>RocksDB</td><td><span class="tag t-gleam">Gleam (sutra)</span></td></tr>
+  </table>
+</section>
+
+<section class="slide"><span class="num">11 / 12</span>
+  <h2>Tradeoff verdict per layer</h2>
+  <table>
+    <tr><th>Layer</th><th>Best fit</th><th>Current</th><th>Verdict</th></tr>
+    <tr><td>L0</td><td>Rust</td><td>Rust</td><td>optimal</td></tr>
+    <tr><td>L1</td><td>Rust + bridge</td><td>Rust + erl_nif</td><td>optimal</td></tr>
+    <tr><td>L2</td><td>Gleam</td><td>Gleam</td><td>optimal</td></tr>
+    <tr><td>L3</td><td>Rust + Gleam UI</td><td>Rust + Gleam UI</td><td>optimal</td></tr>
+    <tr><td>L4</td><td>Rust + JSON</td><td>Rust + systemd</td><td>optimal</td></tr>
+    <tr><td>L5</td><td>Rust + Gleam</td><td>both</td><td>mistral split owed</td></tr>
+    <tr><td>L6</td><td>Rust</td><td>Rust</td><td>optimal</td></tr>
+    <tr><td>L7</td><td>Gleam</td><td>Gleam</td><td>optimal</td></tr>
+  </table>
+  <p>7 of 8 layers optimal. L5 alone has residual debt.</p>
+</section>
+
+<section class="slide"><span class="num">12 / 12</span>
+  <h2>Conclusion</h2>
+  <p>Architecture follows SC-ARCH-SPLIT principled separation:</p>
+  <ul>
+    <li><span class="tag t-rust">Rust</span> for ops, cortex, safety — zero-cost abstractions</li>
+    <li><span class="tag t-gleam">Gleam</span> for UI, types, federation — BEAM hot reload</li>
+    <li><span class="tag t-json">JSON</span> for config, agents — operator-mutable</li>
+  </ul>
+  <p>96 (layer × component) cells classified, 100 % coverage. Two architectural debts (mistral split, bash → Gleam migration) quantified, with concrete fix paths.</p>
+  <p style="margin-top:18px"><strong>Path to ITQS 0.85: one Rust refactor delivers +0.24 → 0.78 (near target).</strong></p>
+</section>
+
+</div></body></html>

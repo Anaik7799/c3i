@@ -39,7 +39,18 @@
     %% Metrics (3)
     metrics_counter_inc/3,
     metrics_histogram_observe/3,
-    metrics_snapshot/0
+    metrics_snapshot/0,
+    %% Generic SQL (4)  — SC-PASS8-IMPL-001
+    smriti_query/3,
+    smriti_exec/3,
+    smriti_exec_batch/2,
+    smriti_health/1,
+    %% fastembed (3) — SC-PASS8-IMPL-001
+    fastembed_embed_one/1,
+    fastembed_embed_batch/1,
+    fastembed_info/0,
+    fastembed_embed_and_store/3,
+    fastembed_rerank_query/3
 ]).
 
 -on_load(init/0).
@@ -117,3 +128,17 @@ ollama_generate(_, _, _, _) -> {ok, <<"stub">>}.
 metrics_counter_inc(_, _, _) -> {ok, 0}.
 metrics_histogram_observe(_, _, _) -> {ok, 0}.
 metrics_snapshot() -> {ok, <<"{\"counters\":{},\"histograms\":{}}">>}.
+
+%% SC-PASS8-IMPL-001 generic SQL stubs (replaced by Rust at load).
+smriti_query(_, _, _) -> {ok, <<"{\"columns\":[],\"rows\":[]}">>}.
+smriti_exec(_, _, _) -> {ok, <<"0">>}.
+smriti_exec_batch(_, _) -> {ok, <<"stub">>}.
+smriti_health(_) -> {ok, <<"{\"path\":\"stub\",\"journal_mode\":\"memory\"}">>}.
+
+%% SC-PASS8 fastembed stubs (replaced by Rust at load).
+fastembed_embed_one(_) -> {ok, <<"[]">>}.
+fastembed_embed_batch(_) -> {ok, <<"[]">>}.
+fastembed_info() -> {ok, <<"{\"initialised\":false}">>}.
+
+fastembed_embed_and_store(_, _, _) -> {ok, <<"stub">>}.
+fastembed_rerank_query(_, _, _) -> {ok, <<"[]">>}.

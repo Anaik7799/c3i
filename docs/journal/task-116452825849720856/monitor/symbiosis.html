@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>C3I · Symbiosis OODA Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root {
+    --bg:#0b0f14; --panel:#111821; --line:#1e2a37; --ink:#cfe7ff;
+    --muted:#6b7f93; --good:#4ade80; --warn:#fbbf24; --bad:#f87171; --accent:#60a5fa;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:13px;}
+  header{padding:12px 18px;border-bottom:1px solid var(--line);display:flex;gap:18px;align-items:center;}
+  header h1{margin:0;font-size:15px;letter-spacing:.5px;}
+  header .pulse{width:10px;height:10px;border-radius:50%;background:var(--good);box-shadow:0 0 8px var(--good);animation:p 1.2s infinite;}
+  @keyframes p{0%,100%{opacity:.4}50%{opacity:1}}
+  header .ts{color:var(--muted);margin-left:auto;font-size:12px;}
+  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:12px 18px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 12px;}
+  .card h3{margin:0 0 6px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:500;}
+  .card .v{font-size:22px;font-weight:600;}
+  .card .s{font-size:11px;color:var(--muted);margin-top:2px;}
+  .card.good .v{color:var(--good);} .card.warn .v{color:var(--warn);} .card.bad .v{color:var(--bad);}
+  .wide{grid-column:span 3;} .full{grid-column:span 6;}
+  table{width:100%;border-collapse:collapse;}
+  th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);font-size:12px;}
+  th{color:var(--muted);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+  .alarm-row{color:var(--warn);}
+  .alarm-row.critical{color:var(--bad);}
+  .ok{color:var(--good);}
+  .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:6px;}
+  .bar>span{display:block;height:100%;background:var(--accent);transition:width .4s ease;}
+  .bar.good>span{background:var(--good);} .bar.warn>span{background:var(--warn);} .bar.bad>span{background:var(--bad);}
+  .foot{padding:10px 18px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);}
+  code{color:var(--accent);}
+</style>
+</head>
+<body>
+<header>
+  <div class="pulse" id="pulse"></div>
+  <h1>C3I · ZK ↔ Pi ↔ Agent · Symbiosis OODA</h1>
+  <span class="ts" id="ts">waiting for snapshot…</span>
+</header>
+
+<section class="grid" id="cards">
+  <div class="card"><h3>holons</h3><div class="v" data-bind="observe.holons">–</div><div class="s" data-bind="observe.edges"> edges</div></div>
+  <div class="card" id="card-embed"><h3>embed coverage</h3><div class="v" data-bind="observe.embed_coverage_pct" data-suffix="%">–</div><div class="bar"><span id="bar-embed" style="width:0"></span></div></div>
+  <div class="card"><h3>sessions</h3><div class="v" data-bind="observe.sessions">–</div><div class="s"><span data-bind="observe.pi_sessions">–</span> pi · <span data-bind="observe.turn_spans">–</span> turns</div></div>
+  <div class="card"><h3>tokens total</h3><div class="v" data-bind="observe.tokens_total" data-fmt="n">–</div><div class="s"><span data-bind="orient.tokens_per_session" data-fmt="n">–</span> / session</div></div>
+  <div class="card" id="card-cost"><h3>cost · total</h3><div class="v" data-bind="observe.cost_total_usd" data-prefix="$" data-fmt="f2">–</div><div class="s">$<span data-bind="orient.cost_per_session_usd" data-fmt="f2">–</span> / session</div></div>
+  <div class="card" id="card-cache"><h3>cache hit</h3><div class="v" data-bind="orient.cache_hit_ratio" data-fmt="pct">–</div><div class="s"><span data-bind="orient.cache_entries">–</span> entries</div></div>
+
+  <div class="card wide"><h3>last session</h3>
+    <table><tbody>
+      <tr><th>agent</th><td data-bind="last_session.agent">–</td>
+          <th>provider</th><td data-bind="last_session.provider">–</td></tr>
+      <tr><th>model</th><td data-bind="last_session.model" colspan="3">–</td></tr>
+      <tr><th>in tok</th><td data-bind="last_session.tokens_in" data-fmt="n">–</td>
+          <th>out tok</th><td data-bind="last_session.tokens_out" data-fmt="n">–</td></tr>
+      <tr><th>cache read</th><td data-bind="last_session.cache_read" data-fmt="n">–</td>
+          <th>$ cost</th><td data-bind="last_session.cost_usd" data-prefix="$" data-fmt="f2">–</td></tr>
+      <tr><th>zk recalls</th><td data-bind="last_session.zk_recalls">–</td>
+          <th>hit ratio</th><td data-bind="last_session.cache_hit_ratio" data-fmt="pct">–</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="card wide"><h3>alarms · OODA Decide</h3>
+    <table><tbody id="alarms"><tr><td class="ok">no alarms</td></tr></tbody></table>
+  </div>
+
+  <div class="card full"><h3>raw snapshot</h3>
+    <pre id="raw" style="margin:0;white-space:pre-wrap;word-break:break-all;color:var(--muted);font-size:11px;max-height:140px;overflow:auto;">–</pre>
+  </div>
+</section>
+
+<footer class="foot">
+  polling <code id="src">./symbiosis.json</code> every <code id="poll">2</code> s · zenoh topic <code>indrajaal/l5/ooda/symbiosis</code>
+</footer>
+
+<script>
+const SRC = new URLSearchParams(location.search).get('src') || '/monitor/symbiosis.json';
+const POLL_MS = parseInt(new URLSearchParams(location.search).get('ms') || '2000', 10);
+document.getElementById('src').textContent = SRC;
+document.getElementById('poll').textContent = (POLL_MS/1000).toFixed(1);
+
+const dig = (o,p)=>p.split('.').reduce((a,k)=>a&&a[k]!=null?a[k]:null,o);
+const fmt = {
+  n: v => Number(v).toLocaleString(),
+  f2: v => Number(v).toFixed(2),
+  pct: v => (Number(v)*100).toFixed(1)+'%',
+};
+const classOf = (id, val, thresh, inv=false) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('good','warn','bad');
+  const hi = thresh.bad, mid = thresh.warn;
+  let cls = 'good';
+  if (inv) { if (val<hi) cls='bad'; else if (val<mid) cls='warn'; }
+  else    { if (val>hi) cls='bad'; else if (val>mid) cls='warn'; }
+  el.classList.add(cls);
+};
+
+async function refresh() {
+  try {
+    const r = await fetch(SRC, {cache:'no-store'});
+    if (!r.ok) throw new Error('http '+r.status);
+    const d = await r.json();
+    document.querySelectorAll('[data-bind]').forEach(el=>{
+      const v = dig(d, el.dataset.bind);
+      if (v == null) return;
+      const f = el.dataset.fmt;
+      const txt = f ? fmt[f](v) : String(v);
+      el.textContent = (el.dataset.prefix||'') + txt + (el.dataset.suffix||'');
+    });
+    // alarms
+    const tbody = document.getElementById('alarms');
+    const al = d.alarms || [];
+    if (al.length === 0) {
+      tbody.innerHTML = '<tr><td class="ok">✓ no alarms · all loops healthy</td></tr>';
+    } else {
+      tbody.innerHTML = al.map(a=>`<tr class="alarm-row ${a.startsWith('COST_')||a.startsWith('CACHE_HIT_LOW')?'critical':''}"><td>⚠ ${a}</td></tr>`).join('');
+    }
+    // progress bars
+    const cov = d.observe.embed_coverage_pct || 0;
+    const bar = document.getElementById('bar-embed');
+    bar.style.width = Math.min(100,cov) + '%';
+    bar.parentElement.className = 'bar ' + (cov<50?'bad':cov<80?'warn':'good');
+    // semantics for top cards
+    classOf('card-embed', cov, {warn:80,bad:50}, true);
+    classOf('card-cost',  d.orient.cost_per_session_usd, {warn:2,bad:5});
+    classOf('card-cache', d.orient.cache_hit_ratio, {warn:0.3,bad:0.1}, true);
+    // timestamp + pulse
+    const age = (Date.now()*1e6 - d.ts_nanos)/1e9;
+    document.getElementById('ts').textContent = `snapshot age: ${age.toFixed(1)} s · ts: ${d.ts_nanos}`;
+    document.getElementById('pulse').style.background = age < 10 ? 'var(--good)' : age < 60 ? 'var(--warn)' : 'var(--bad)';
+    document.getElementById('raw').textContent = JSON.stringify(d, null, 2);
+  } catch (e) {
+    document.getElementById('ts').textContent = 'error: ' + e.message;
+    document.getElementById('pulse').style.background = 'var(--bad)';
+  }
+}
+refresh();
+setInterval(refresh, POLL_MS);
+</script>
+</body>
+</html>

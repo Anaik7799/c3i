@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>C3I System Services — Topology, Planes, and Lifecycle (2026-04-27)</title>
+<style>
+  :root {
+    --bg:#0a0e17; --card:#141922; --text:#e0e6ed; --muted:#7a8fa6;
+    --accent:#00d4aa; --warn:#f5a623; --crit:#ff4757; --ok:#3dd68c;
+    --p0:#ff4757; --p1:#ffa502; --p2:#2ed573; --p3:#7a8fa6;
+    --border:#1e2a3a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--text);
+    font-family: -apple-system, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+    line-height:1.55;
+  }
+  header {
+    padding:32px 40px; background:linear-gradient(135deg,#0a0e17,#1a2840);
+    border-bottom:1px solid var(--border);
+  }
+  header h1 { margin:0 0 8px 0; font-size:28px; }
+  header .meta { color:var(--muted); font-size:13px; }
+  header .meta a { color:var(--accent); text-decoration:none; }
+  main { padding: 24px 40px 60px 40px; max-width:1400px; }
+  section { margin: 32px 0; }
+  section h2 { color:var(--accent); border-bottom:1px solid var(--border); padding-bottom:6px; font-size:20px; }
+  section h3 { color:#bbd; font-size:16px; margin-top:24px; }
+  table { border-collapse:collapse; width:100%; margin: 12px 0 20px 0; font-size:13px; }
+  th, td { border:1px solid var(--border); padding:8px 10px; text-align:left; vertical-align:top; }
+  th { background:#1e2a3a; color:var(--accent); font-weight:600; }
+  tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  code { background:#1e2a3a; color:#9be7c4; padding:2px 6px; border-radius:4px; font-size:12px; }
+  pre { background:#0d1420; border:1px solid var(--border); padding:14px; overflow-x:auto; border-radius:6px; font-size:12.5px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:14px; margin: 14px 0; }
+  .card {
+    background:var(--card); border:1px solid var(--border); border-radius:8px;
+    padding:14px; backdrop-filter: blur(6px);
+  }
+  .card h4 { margin:0 0 6px 0; color:var(--accent); font-size:14px; }
+  .card .meta { color:var(--muted); font-size:11.5px; }
+  .badge {
+    display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px;
+    font-weight:600; margin-right:4px;
+  }
+  .b-active { background:#1d3a2a; color:var(--ok); }
+  .b-inactive { background:#3a1d1d; color:var(--crit); }
+  .b-p0 { background:#3a1822; color:var(--p0); }
+  .b-p1 { background:#3a2a14; color:var(--p1); }
+  .b-p2 { background:#1a2a1a; color:var(--p2); }
+  .b-p3 { background:#1f262e; color:var(--p3); }
+  .b-control { background:#0e2a3a; color:#7adcff; }
+  .b-data { background:#3a280e; color:#ffd47a; }
+  .b-both { background:#2a1d3a; color:#c099ff; }
+  .legend { font-size:12px; color:var(--muted); margin: 8px 0; }
+  svg .node rect { fill:#1e2a3a; stroke:var(--accent); stroke-width:1; }
+  svg .node text { fill:var(--text); font-size:11px; font-family: ui-monospace, "SF Mono", monospace; }
+  svg .edge { stroke:#3d4a5f; stroke-width:1.2; fill:none; }
+  svg .edge-arrow { fill:#3d4a5f; }
+  .kpi { display:flex; gap:16px; flex-wrap:wrap; margin: 12px 0; }
+  .kpi .item { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px 14px; min-width:140px; }
+  .kpi .item .v { font-size:22px; color:var(--accent); font-weight:700; }
+  .kpi .item .l { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+  footer { padding:20px 40px; border-top:1px solid var(--border); color:var(--muted); font-size:12px; }
+  @media (max-width:768px) {
+    header, main { padding:18px; }
+    table { font-size:12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>C3I System Services — Topology, Planes &amp; Lifecycle</h1>
+  <div class="meta">
+    Generated 2026-04-27 13:35 CEST · 14 systemd user units · Auto mode ·
+    <a href="http://vm-1.tail55d152.ts.net:8090/journal/20260427-133500-c3i-system-services-comprehensive.md">Journal</a> ·
+    <a href="http://vm-1.tail55d152.ts.net:8090/decks/20260427-133500-c3i-system-services-deck.html">Slide deck</a>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <h2>1. Operational Snapshot</h2>
+  <div class="kpi">
+    <div class="item"><div class="v">14</div><div class="l">total units</div></div>
+    <div class="item"><div class="v">12</div><div class="l">active now</div></div>
+    <div class="item"><div class="v">9</div><div class="l">long-lived</div></div>
+    <div class="item"><div class="v">5</div><div class="l">oneshot</div></div>
+    <div class="item"><div class="v">8</div><div class="l">listening ports</div></div>
+    <div class="item"><div class="v">3</div><div class="l">operational floor</div></div>
+    <div class="item"><div class="v">≤30s</div><div class="l">cold-boot convergence</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>2. Service Catalogue (14 systemd user units)</h2>
+  <p class="legend">Tier T0 = foundation · T1 = core dashboard · T2 = federation/cognitive · T3 = self-healing OODA · T4 = oneshot diagnostics</p>
+
+  <h3>T0 — Foundation</h3>
+  <div class="grid">
+    <div class="card">
+      <h4>c3i-zenoh-router</h4>
+      <span class="badge b-active">active</span><span class="badge b-both">control + data</span><span class="badge b-p0">P0</span>
+      <div class="meta">Ports 7447 TCP/UDP, 8000 REST<br>podman docker.io/eclipse/zenoh:latest<br>Sole inter-component transport (SC-ZMOF-001)</div>
+    </div>
+  </div>
+
+  <h3>T1 — Core Dashboard</h3>
+  <div class="grid">
+    <div class="card">
+      <h4>c3i-sa-plan-http</h4>
+      <span class="badge b-active">active</span><span class="badge b-both">control + data</span><span class="badge b-p0">P0</span>
+      <div class="meta">Port 4200 · Rust 9,104 LOC<br>31 routes · 73 MCP tools<br>RSS 12.3 GB (mistral.rs gemma-3-4b)</div>
+    </div>
+    <div class="card">
+      <h4>c3i-sa-plan-default-scheduler</h4>
+      <span class="badge b-active">active</span><span class="badge b-control">control</span><span class="badge b-p1">P1</span>
+      <div class="meta">Oban-style queue · limit 8 · 2 s tick<br>RETE rule firing → action dispatch<br>RSS 13.8 GB</div>
+    </div>
+    <div class="card">
+      <h4>c3i-gleam-server</h4>
+      <span class="badge b-active">active</span><span class="badge b-data">data</span><span class="badge b-p1">P1</span>
+      <div class="meta">Ports 4100 + 4101 · Lustre/Wisp · BEAM<br>33 pages · 32 AG-UI events · 233 A2UI components<br>After=zenoh + sa-plan-http</div>
+    </div>
+    <div class="card">
+      <h4>c3i-tls-proxy</h4>
+      <span class="badge b-active">active</span><span class="badge b-data">data</span><span class="badge b-p0">P0</span>
+      <div class="meta">Port 8443 · self-signed Tailscale<br>HTTPS reverse proxy → 4100/4200<br>RSS 6 MB</div>
+    </div>
+  </div>
+
+  <h3>T2 — Federation &amp; Cognitive</h3>
+  <div class="grid">
+    <div class="card">
+      <h4>c3i-sutra</h4>
+      <span class="badge b-active">active</span><span class="badge b-data">data</span><span class="badge b-p2">P2</span>
+      <div class="meta">Port 6167 · Gleam Matrix server<br>Tuwunel parity · After=zenoh<br>Federation port 8448 (future)</div>
+    </div>
+    <div class="card">
+      <h4>c3i-pi-runtime</h4>
+      <span class="badge b-active">active</span><span class="badge b-both">control + data</span><span class="badge b-p2">P2</span>
+      <div class="meta">Pi-mono Node.js coding-agent<br>15 LLM providers · 14+73=87 federated tools<br>--mode rpc · sleep \| node trick</div>
+    </div>
+    <div class="card">
+      <h4>c3i-ferriskey</h4>
+      <span class="badge b-inactive">inactive</span><span class="badge b-control">control</span><span class="badge b-p2">P2</span>
+      <div class="meta">Port 8080 + postgres 5434<br>OIDC IAM<br>Blocked: ghcr.io 403 + postgres:17 short-name</div>
+    </div>
+  </div>
+
+  <h3>T3 — Self-Healing OODA Loops</h3>
+  <div class="grid">
+    <div class="card">
+      <h4>c3i-symbiosis-monitor</h4>
+      <span class="badge b-active">active</span><span class="badge b-control">control</span><span class="badge b-p1">P1</span>
+      <div class="meta">p9_symbiosis_monitor · ZK ↔ Pi ↔ Agent loop<br>Publishes Zenoh spans<br>indrajaal/l5/cog/symbiosis/**</div>
+    </div>
+    <div class="card">
+      <h4>c3i-robustness-gate</h4>
+      <span class="badge b-active">active</span><span class="badge b-control">control</span><span class="badge b-p3">P3</span>
+      <div class="meta">p10_robustness_gate · STAMP/FMEA/RETE<br>Continuous 52-rule eval<br>Gate decisions → Zenoh</div>
+    </div>
+    <div class="card">
+      <h4>c3i-rete-autofix</h4>
+      <span class="badge b-active">active</span><span class="badge b-control">control</span><span class="badge b-p3">P3</span>
+      <div class="meta">p10_rete_autofix · bounded embed backfill<br>Driven by RETE conclusions<br>After=robustness-gate</div>
+    </div>
+  </div>
+
+  <h3>T4 — Oneshot Diagnostics</h3>
+  <div class="grid">
+    <div class="card">
+      <h4>c3i-ops-status</h4>
+      <span class="badge b-control">control</span><span class="badge b-p3">P3</span>
+      <div class="meta">p10_ops_status · run-once snapshot<br>After=symbiosis+robustness+rete</div>
+    </div>
+    <div class="card">
+      <h4>c3i-slo-guard</h4>
+      <span class="badge b-control">control</span><span class="badge b-p3">P3</span>
+      <div class="meta">p10_slo_guard · SLO budget check<br>After=robustness-gate</div>
+    </div>
+    <div class="card">
+      <h4>c3i-history-compactor</h4>
+      <span class="badge b-control">control</span><span class="badge b-p3">P3</span>
+      <div class="meta">p10_history_compactor · monitor history rollup<br>After=symbiosis-monitor</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>3. Control Plane vs Data Plane</h2>
+  <table>
+    <thead>
+      <tr><th>Concern</th><th>Control Plane</th><th>Data Plane</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Mesh fabric</td><td>Zenoh admin/scout 7447</td><td>Zenoh pub/sub 7447 + REST 8000</td></tr>
+      <tr><td>HTTP</td><td>sa-plan-http /api/v1/plan/*</td><td>sa-plan dashboard · gleam SSR · tls-proxy 8443</td></tr>
+      <tr><td>AuthN/Z</td><td>ferriskey OIDC token issuance</td><td>ferriskey JWT validation</td></tr>
+      <tr><td>Federation</td><td>sutra room-state events</td><td>sutra Matrix event 6167</td></tr>
+      <tr><td>Cognition</td><td>pi-runtime tool dispatch · cortex OODA</td><td>pi LLM streams · cortex pipeline trace</td></tr>
+      <tr><td>Self-healing</td><td>symbiosis · robustness · rete-autofix · slo-guard</td><td>(none)</td></tr>
+      <tr><td>Telemetry</td><td>sched_telemetry rules</td><td>OTel spans (OoZ) on indrajaal/otel/spans/**</td></tr>
+      <tr><td>Job queue</td><td>sa-plan-scheduler RETE firing</td><td>Oban payloads in Smriti.db</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>4. Startup Sequence (Cold Boot → Convergence)</h2>
+  <pre>T+0s   network-online.target
+
+T+1s   ┌─ c3i-zenoh-router            (no deps)
+       ├─ c3i-sa-plan-http            (port 4200)
+       ├─ c3i-tls-proxy               (port 8443)
+       └─ c3i-ferriskey               (oneshot, blocked on image auth)
+
+T+3s   ┌─ c3i-sa-plan-default-scheduler   (After=sa-plan-http)
+       └─ c3i-symbiosis-monitor          (After=sa-plan-http)
+
+T+5s   ┌─ c3i-robustness-gate            (After=sa-plan-http + symbiosis-monitor)
+       └─ c3i-sutra                      (After=zenoh-router; port 6167)
+
+T+7s   ┌─ c3i-pi-runtime                 (After=zenoh-router)
+       ├─ c3i-rete-autofix               (After=robustness-gate + symbiosis-monitor)
+       └─ c3i-gleam-server               (After=sa-plan-http + zenoh-router; ports 4100/4101)
+
+T+30s  ┌─ c3i-ops-status                 (oneshot)
+       ├─ c3i-slo-guard                  (oneshot)
+       └─ c3i-history-compactor          (oneshot)</pre>
+</section>
+
+<section>
+  <h2>5. Boot Dependency Graph</h2>
+  <svg viewBox="0 0 900 480" width="100%" style="background:#0d1420;border:1px solid var(--border);border-radius:8px">
+    <defs>
+      <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+        <path class="edge-arrow" d="M0,0 L8,4 L0,8 z" />
+      </marker>
+    </defs>
+
+    <!-- Tier labels -->
+    <text x="20" y="40" fill="#7a8fa6" font-size="12">T0 Foundation</text>
+    <text x="20" y="120" fill="#7a8fa6" font-size="12">T1 Core dashboard</text>
+    <text x="20" y="220" fill="#7a8fa6" font-size="12">T2 Federation / Cognitive</text>
+    <text x="20" y="320" fill="#7a8fa6" font-size="12">T3 Self-healing OODA</text>
+    <text x="20" y="420" fill="#7a8fa6" font-size="12">T4 Oneshot diagnostics</text>
+
+    <!-- T0 -->
+    <g class="node"><rect x="120" y="20" width="160" height="36" rx="6"/><text x="200" y="42" text-anchor="middle">c3i-zenoh-router</text></g>
+
+    <!-- T1 -->
+    <g class="node"><rect x="120" y="100" width="160" height="36" rx="6"/><text x="200" y="122" text-anchor="middle">c3i-sa-plan-http</text></g>
+    <g class="node"><rect x="300" y="100" width="160" height="36" rx="6"/><text x="380" y="122" text-anchor="middle">c3i-tls-proxy</text></g>
+    <g class="node"><rect x="480" y="100" width="200" height="36" rx="6"/><text x="580" y="122" text-anchor="middle">c3i-sa-plan-scheduler</text></g>
+    <g class="node"><rect x="700" y="100" width="170" height="36" rx="6"/><text x="785" y="122" text-anchor="middle">c3i-gleam-server</text></g>
+
+    <!-- T2 -->
+    <g class="node"><rect x="120" y="200" width="160" height="36" rx="6"/><text x="200" y="222" text-anchor="middle">c3i-sutra</text></g>
+    <g class="node"><rect x="300" y="200" width="160" height="36" rx="6"/><text x="380" y="222" text-anchor="middle">c3i-pi-runtime</text></g>
+    <g class="node"><rect x="480" y="200" width="160" height="36" rx="6"/><text x="560" y="222" text-anchor="middle">c3i-ferriskey</text></g>
+
+    <!-- T3 -->
+    <g class="node"><rect x="120" y="300" width="200" height="36" rx="6"/><text x="220" y="322" text-anchor="middle">c3i-symbiosis-monitor</text></g>
+    <g class="node"><rect x="340" y="300" width="180" height="36" rx="6"/><text x="430" y="322" text-anchor="middle">c3i-robustness-gate</text></g>
+    <g class="node"><rect x="540" y="300" width="170" height="36" rx="6"/><text x="625" y="322" text-anchor="middle">c3i-rete-autofix</text></g>
+
+    <!-- T4 -->
+    <g class="node"><rect x="120" y="400" width="160" height="36" rx="6"/><text x="200" y="422" text-anchor="middle">c3i-ops-status</text></g>
+    <g class="node"><rect x="300" y="400" width="160" height="36" rx="6"/><text x="380" y="422" text-anchor="middle">c3i-slo-guard</text></g>
+    <g class="node"><rect x="480" y="400" width="190" height="36" rx="6"/><text x="575" y="422" text-anchor="middle">c3i-history-compactor</text></g>
+
+    <!-- Edges from zenoh -->
+    <path class="edge" d="M200,56 L200,200" marker-end="url(#arr)"/>
+    <path class="edge" d="M200,56 Q380,140 380,200" marker-end="url(#arr)"/>
+    <path class="edge" d="M200,56 Q500,140 785,100" marker-end="url(#arr)"/>
+
+    <!-- Edges from sa-plan-http -->
+    <path class="edge" d="M200,136 Q400,170 580,136" marker-end="url(#arr)"/>
+    <path class="edge" d="M200,136 Q220,200 220,300" marker-end="url(#arr)"/>
+    <path class="edge" d="M200,136 Q400,170 785,136" marker-end="url(#arr)"/>
+
+    <!-- Self-healing chain -->
+    <path class="edge" d="M320,318 L340,318" marker-end="url(#arr)"/>
+    <path class="edge" d="M520,318 L540,318" marker-end="url(#arr)"/>
+
+    <!-- Oneshots after T3 -->
+    <path class="edge" d="M220,336 L200,400" marker-end="url(#arr)"/>
+    <path class="edge" d="M430,336 L380,400" marker-end="url(#arr)"/>
+    <path class="edge" d="M220,336 L575,400" marker-end="url(#arr)"/>
+  </svg>
+</section>
+
+<section>
+  <h2>6. Critical Service Set (Operational Floor)</h2>
+  <table>
+    <thead><tr><th>Priority</th><th>Unit</th><th>If down</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge b-p0">P0</span></td><td>zenoh-router</td><td>All inter-component telemetry/MCP loses transport</td></tr>
+      <tr><td><span class="badge b-p0">P0</span></td><td>sa-plan-http</td><td>No dashboard / API / MCP server</td></tr>
+      <tr><td><span class="badge b-p0">P0</span></td><td>tls-proxy</td><td>No HTTPS via Tailscale</td></tr>
+      <tr><td><span class="badge b-p1">P1</span></td><td>gleam-server</td><td>UI degraded; only Rust dashboard</td></tr>
+      <tr><td><span class="badge b-p1">P1</span></td><td>sa-plan-scheduler</td><td>Job queue stalls</td></tr>
+      <tr><td><span class="badge b-p1">P1</span></td><td>symbiosis-monitor</td><td>OODA loop opens</td></tr>
+      <tr><td><span class="badge b-p2">P2</span></td><td>sutra · pi-runtime · ferriskey</td><td>Federation / chat / IAM degraded; static-token fallback</td></tr>
+      <tr><td><span class="badge b-p3">P3</span></td><td>rete-autofix · robustness-gate · oneshots</td><td>Manual remediation only</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Operational floor = {zenoh-router, sa-plan-http, tls-proxy}</strong>. With these three the system is observable and command-receivable; everything else is graceful degradation.</p>
+</section>
+
+<section>
+  <h2>7. Shutdown Sequence</h2>
+  <pre>1. Oneshots (T4)            already exited; RemainAfterExit=yes for ops-status
+2. Self-healing loops (T3)  SIGTERM → 90 s grace → SIGKILL
+3. Federation/Cognitive (T2) drain sessions; Sutra flushes RocksDB
+4. Core dashboard (T1)      sa-plan checkpoints Smriti.db (dying gasp, SC-SIL4-007)
+5. Foundation (T0)          podman stop c3i-zenoh-router; image -- rm
+
+Operator manual stop (reverse order avoids reconnect storms):
+  systemctl --user stop c3i-{ops-status,slo-guard,history-compactor}
+  systemctl --user stop c3i-{rete-autofix,robustness-gate,symbiosis-monitor}
+  systemctl --user stop c3i-{sutra,pi-runtime,ferriskey}
+  systemctl --user stop c3i-{gleam-server,sa-plan-default-scheduler,sa-plan-http,tls-proxy}
+  systemctl --user stop c3i-zenoh-router</pre>
+</section>
+
+<section>
+  <h2>8. STAMP Alignment Summary</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Constraint</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>SC-ZENOH-001</td><td>Zenoh NIF loaded on all nodes</td><td><span class="badge b-active">SAT</span></td></tr>
+      <tr><td>SC-ZENOH-002</td><td>Zenoh router reachable from app nodes</td><td><span class="badge b-active">SAT</span></td></tr>
+      <tr><td>SC-ZMOF-001</td><td>Zenoh sole transport for mesh</td><td><span class="badge b-active">SAT</span></td></tr>
+      <tr><td>SC-FUNC-005</td><td>Container stack auto-heals</td><td><span class="badge b-active">SAT</span></td></tr>
+      <tr><td>SC-PI-RUNTIME-001</td><td>Pi started via managed lifecycle</td><td><span class="badge b-active">SAT</span></td></tr>
+      <tr><td>SC-IAM-001</td><td>FerrisKey healthy before app containers</td><td><span class="badge b-inactive">BLOCKED on image auth</span></td></tr>
+      <tr><td>SC-SIL4-007</td><td>Dying gasp checkpoint before shutdown</td><td><span class="badge b-active">SAT (sa-plan)</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+
+<footer>
+  C3I System Services Documentation · Generated 2026-04-27 13:35 CEST · Auto mode (Claude Opus 4.7) ·
+  Per SC-FEAT-EVO / SC-JOURNAL / SC-NOTIFY-JOURNAL.
+</footer>
+
+</body>
+</html>

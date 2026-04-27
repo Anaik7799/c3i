@@ -1,0 +1,14 @@
+digraph Fractal {
+  rankdir=LR; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica"; compound=true;
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed"];
+  L0 [label="L0 Constitutional\nSafetyKernel + Guardian" fillcolor="#2a0e0e" color="#ff4757"];
+  L1 [label="L1 Atomic Debug\ntimestamp_daemon + OTEL" fillcolor="#2a1e0e" color="#f5a623"];
+  L2 [label="L2 Component\n57 Lustre + 34 Wisp + 50 TUI\n+ 4 Elixir app replicas" fillcolor="#0e2a2a" color="#00bfff"];
+  L3 [label="L3 Transaction\nsmriti.db + planning.db\n+ Timescale" fillcolor="#1e0e2a" color="#9b6cff"];
+  L4 [label="L4 System\nignition + scheduler\n+ sa-plan serve/tls" fillcolor="#0e2a1e" color="#00d4aa"];
+  L5 [label="L5 Cognition\nCortex Zenoh listener\n+ Ollama + Gemini" fillcolor="#2a1e0e" color="#f5a623"];
+  L6 [label="L6 Ecosystem\nZenoh 4x + cepaf-bridge\n+ cortex (F#)" fillcolor="#0e1e2a" color="#3dd68c"];
+  L7 [label="L7 Federation\ntimestamp_daemon NTP\n+ Tailscale + MoZ" fillcolor="#2a0e2a" color="#ff4788"];
+  L0 -> L1 -> L2 -> L3 -> L4 -> L5 -> L6 -> L7 [color="#00d4aa" penwidth=2];
+  L7 -> L0 [label="invariants propagate" style=dashed color="#ff4757"];
+}

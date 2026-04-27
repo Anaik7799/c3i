@@ -1,0 +1,90 @@
+<svg width="1920" height="1200" viewBox="0 0 1920 1200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#FFEC8B;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFB90F;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#DAA520;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B6508;stop-opacity:1" />
+    </linearGradient>
+    <style>
+      .bg { fill: #FFFFFF; }
+      .deco-line { stroke: url(#goldGrad); stroke-width: 1.5; fill: none; }
+      .speed-line { stroke: #050810; stroke-width: 0.5; opacity: 0.2; }
+      .layer-label { font-family: 'Roboto', sans-serif; font-weight: 900; font-size: 24px; fill: #050810; }
+      .fractal-node { fill: url(#goldGrad); stroke: #050810; stroke-width: 1; }
+      .accent-green { fill: #00C853; stroke: #050810; stroke-width: 1; }
+      .accent-ruby { fill: #D50000; stroke: #050810; stroke-width: 1; }
+      .jewel-facet { fill: white; opacity: 0.3; }
+    </style>
+  </defs>
+
+  <rect width="1920" height="1200" class="bg" />
+
+  <!-- Speed Lines Layer -->
+  <g transform="translate(960, 600)">
+    <circle r="800" fill="none" stroke="#F5F5F5" stroke-width="100" />
+    <path d="M -1000,0 L 1000,0 M 0,-1000 L 0,1000" class="speed-line" />
+    <path d="M -707,-707 L 707,707 M -707,707 L 707,-707" class="speed-line" />
+  </g>
+
+  <!-- Fractal Mesh (Enhanced) -->
+  <g transform="translate(960, 600)">
+    <!-- L7 Outer Rings -->
+    <circle cx="0" cy="0" r="520" class="deco-line" stroke-dasharray="2,4" />
+    <circle cx="0" cy="0" r="500" class="deco-line" stroke-width="3" />
+    
+    <!-- L6 Ecosystem Polygon -->
+    <polygon points="0,-450 428,-139 264,364 -264,364 -428,-139" class="deco-line" stroke-width="5" />
+
+    <!-- L0 Constitutional Jewel (Faceted) -->
+    <g transform="rotate(45)">
+      <rect x="-70" y="-70" width="140" height="140" class="fractal-node" />
+      <path d="M -70,-70 L 70,70 M -70,70 L 70,-70" stroke="white" stroke-width="0.5" opacity="0.5" />
+      <rect x="-35" y="-35" width="70" height="70" fill="white" opacity="0.2" />
+    </g>
+    <text x="0" y="8" text-anchor="middle" class="layer-label" style="fill: #050810; font-size: 22px;">Ω</text>
+
+    <!-- Radiating Layers with Nested Fractals -->
+    <g transform="rotate(0)">
+      <rect x="-40" y="-300" width="80" height="80" class="fractal-node" />
+      <rect x="-20" y="-280" width="40" height="40" fill="white" opacity="0.2" />
+      <text x="0" y="-250" text-anchor="middle" class="layer-label">L4</text>
+    </g>
+    <g transform="rotate(72)">
+      <rect x="-40" y="-300" width="80" height="80" class="fractal-node" />
+      <rect x="-20" y="-280" width="40" height="40" fill="white" opacity="0.2" />
+      <text x="0" y="-250" text-anchor="middle" class="layer-label">L5</text>
+    </g>
+    <g transform="rotate(144)">
+      <rect x="-40" y="-300" width="80" height="80" class="fractal-node" />
+      <rect x="-20" y="-280" width="40" height="40" fill="white" opacity="0.2" />
+      <text x="0" y="-250" text-anchor="middle" class="layer-label">L3</text>
+    </g>
+    <g transform="rotate(216)">
+      <rect x="-40" y="-300" width="80" height="80" class="fractal-node" />
+      <rect x="-20" y="-280" width="40" height="40" fill="white" opacity="0.2" />
+      <text x="0" y="-250" text-anchor="middle" class="layer-label">L2</text>
+    </g>
+    <g transform="rotate(288)">
+      <rect x="-40" y="-300" width="80" height="80" class="fractal-node" />
+      <rect x="-20" y="-280" width="40" height="40" fill="white" opacity="0.2" />
+      <text x="0" y="-250" text-anchor="middle" class="layer-label">L1</text>
+    </g>
+
+    <!-- Detailed Embellishments -->
+    <g opacity="0.9">
+      <path d="M 500,0 L 650,-150 L 800,0 L 650,150 Z" class="fractal-node" />
+      <path d="M -500,0 L -650,-150 L -800,0 L -650,150 Z" class="fractal-node" />
+    </g>
+    
+    <!-- Vivid Color Pulse Nodes -->
+    <circle cx="428" cy="-139" r="25" class="accent-green" />
+    <circle cx="-428" cy="-139" r="25" class="accent-ruby" />
+    <circle cx="264" cy="364" r="25" class="accent-green" />
+    <circle cx="-264" cy="364" r="25" class="accent-ruby" />
+  </g>
+
+  <text x="60" y="100" class="layer-label" style="font-size: 56px; letter-spacing: 4px;">THE GILDED MESH</text>
+  <text x="60" y="150" class="layer-label" style="font-size: 28px; font-weight: 300; opacity: 0.7;">Regression 20: Substrate Homeostasis Achieved</text>
+</svg>

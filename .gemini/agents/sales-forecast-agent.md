@@ -1,8 +1,10 @@
 ---
-name: sales-forecast-agent
-description: Pipeline analytics, revenue forecasting, and deal health scoring for FY27 EMEA semiconductor sales.
-tools: Read, Grep, Glob, Bash
-model: sonnet
+name: "sales-forecast-agent"
+description: "Pipeline analytics, revenue forecasting, and deal health scoring for FY27 EMEA semiconductor sales."
+kind: local
+tools:
+  - "*"
+model: "inherit"
 ---
 
 # Sales Forecast Agent

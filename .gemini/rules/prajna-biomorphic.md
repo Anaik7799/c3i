@@ -3,7 +3,7 @@ paths: lib/indrajaal/cockpit/**/*.ex, lib/indrajaal_web/live/prajna/**/*.ex, lib
 ---
 # Prajna Biomorphic Integration Rules
 # STAMP/AOR Reference
-> SC-PRAJNA-001 to SC-PRAJNA-007, AOR-PRAJNA-001 to AOR-PRAJNA-005 — see CLAUDE.md §5.0, §9.0
+> SC-PRAJNA-001 to SC-PRAJNA-007, AOR-PRAJNA-001 to AOR-PRAJNA-005 — see GEMINI.md §5.0, §9.0
 > SC-BIO-*, AOR-BIO-* — see biomorphic-mode.md (always loaded)
 > Key: Guardian pre-approval, Founder's Directive, Immutable Register, Sentinel sync 30s, two-step commit
 # Critical Modules (P0)
@@ -45,7 +45,7 @@ Glob("test/indrajaal/cockpit/prajna/*_test.exs")
 3. **State Mutability**: State changes not logged to Immutable Register - HIGH
 4. **Sentinel Isolation**: SmartMetrics runs independently of Sentinel - HIGH
 # TDG Requirements
-> Dual property tests (PropCheck PC. + StreamData SD.) mandatory — see CLAUDE.md §7.0, EP-GEN-014
+> Dual property tests (PropCheck PC. + StreamData SD.) mandatory — see GEMINI.md §7.0, EP-GEN-014
 # Color Rich & Interface Profiles (SC-HMI-010)
 - **Mandate**: Shift from Dark Cockpit to **Color Rich Mechanism**.
 - **Implementation**: Support 4 selectable profiles: Dark Cockpit, Color Rich, Google Compliant, Functionally Clean.

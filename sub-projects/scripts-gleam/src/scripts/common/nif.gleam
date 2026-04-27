@@ -126,3 +126,53 @@ pub fn ollama_generate(
   prompt: String,
   timeout_ms: Int,
 ) -> #(Atom, String)
+
+// ─── Generic Smriti/KMS SQL (battle-hardened, retry + WAL pool) ───────────
+// Added in pass-8 for SC-PASS8-IMPL-001. Positional params are strings —
+// the Rust side coerces to SQLite-typed values.
+
+@external(erlang, "scripts_nif", "smriti_query")
+pub fn smriti_query(
+  db_path: String,
+  sql: String,
+  params: List(String),
+) -> #(Atom, String)
+
+@external(erlang, "scripts_nif", "smriti_exec")
+pub fn smriti_exec(
+  db_path: String,
+  sql: String,
+  params: List(String),
+) -> #(Atom, String)
+
+@external(erlang, "scripts_nif", "smriti_exec_batch")
+pub fn smriti_exec_batch(db_path: String, sql_batch: String) -> #(Atom, String)
+
+@external(erlang, "scripts_nif", "smriti_health")
+pub fn smriti_health(db_path: String) -> #(Atom, String)
+
+// ─── fastembed (pure-Rust ONNX embeddings) ──────────────────────────────
+// 10-40× faster than Ollama /api/embeddings. SC-PASS8-IMPL-001.
+
+@external(erlang, "scripts_nif", "fastembed_embed_one")
+pub fn fastembed_embed_one(text: String) -> #(Atom, String)
+
+@external(erlang, "scripts_nif", "fastembed_embed_batch")
+pub fn fastembed_embed_batch(texts_json: String) -> #(Atom, String)
+
+@external(erlang, "scripts_nif", "fastembed_info")
+pub fn fastembed_info() -> #(Atom, String)
+
+@external(erlang, "scripts_nif", "fastembed_embed_and_store")
+pub fn fastembed_embed_and_store(
+  db_path: String,
+  holon_id: String,
+  text: String,
+) -> #(Atom, String)
+
+@external(erlang, "scripts_nif", "fastembed_rerank_query")
+pub fn fastembed_rerank_query(
+  db_path: String,
+  query_text: String,
+  candidate_uuids_json: String,
+) -> #(Atom, String)

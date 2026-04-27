@@ -2,7 +2,7 @@
 # सत्र प्रारम्भ प्रोतोकॉल
 
 ## Mandate (आदेश)
-**Every Claude session MUST bootstrap with Zettelkasten recall + Gleam compute verification.**
+**Every Gemini session MUST bootstrap with Zettelkasten recall + Gleam compute verification.**
 Memory-first, Zettelkasten-second, compute-third, act-fourth.
 
 ## STAMP Constraints
@@ -30,7 +30,7 @@ sa-plan-daemon status
 # 4. Build check
 cd lib/cepaf_gleam && gleam build
 # 5. Nav graph health via Gleam NIF
-gleam run -m cepaf_gleam/claude_compute
+gleam run -m cepaf_gleam/gemini_compute
 # Output: SCC=1 (all pages reachable), PageRank, boot DAG
 ```
 
@@ -64,7 +64,7 @@ sa-plan-daemon send-email --to Abhijit.Naik@bountytek.com ...
 | Chart | "Here's a table of values" | `vega_lite_preset()` -> JSON spec |
 
 ## Anti-Patterns (दोष निवारण)
-- ❌ Reading the entire CLAUDE.md (rules/ already loaded)
+- ❌ Reading the entire GEMINI.md (rules/ already loaded)
 - ❌ Skipping Zettelkasten search ("I'll figure it out from scratch")
 - ❌ Manual graph reasoning when NIF functions exist
 - ❌ ASCII art diagrams when skia/mermaid can render PNGs/SVGs

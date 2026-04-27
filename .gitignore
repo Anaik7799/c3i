@@ -25,3 +25,20 @@ target/
 # Prevent root clutter — generated/temp artifacts
 /*.skill
 /picked_files.txt
+
+# Devenv
+.devenv*
+devenv.local.nix
+devenv.local.yaml
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+sub-projects/work/gdrive/
+
+# ML model caches (large blobs, not source)
+sub-projects/scripts-gleam/.fastembed_cache/
+**/.fastembed_cache/
+**/huggingface/hub/

@@ -92,7 +92,7 @@ This rule derives from and enforces:
 | SC-SYNC-PLAN-020 | Sync audit trail MUST be maintained in ChayaEventLog | HIGH | Event logging |
 ---
 # 3.0 AOR Rules
-> AOR-SYNC-PLAN-001 to AOR-SYNC-PLAN-012 — defined in CLAUDE.md §9.0
+> AOR-SYNC-PLAN-001 to AOR-SYNC-PLAN-012 — defined in GEMINI.md §9.0
 > Key: NEVER import from markdown when DB has data. ALWAYS sync from Planning.db. `sa-plan update` is primary interface.
 > Recovery: Planning.db canonical on failure, regenerate Chaya from it, markdown import ONLY on cold start (empty DB).
 ---
@@ -350,8 +350,8 @@ chaya-status      # Note: "Done: M"
 # 12.0 Related Documents
 | Document | Location | Relationship |
 |----------|----------|--------------|
-| Todolist Access Control | `.claude/rules/todolist-access-control.md` | Access restrictions (SC-TODO-*) |
-| Holon State Sovereignty | CLAUDE.md §1.0 (Ω₇) | SQLite authoritative mandate |
+| Todolist Access Control | `.gemini/rules/todolist-access-control.md` | Access restrictions (SC-TODO-*) |
+| Holon State Sovereignty | GEMINI.md §1.0 (Ω₇) | SQLite authoritative mandate |
 | F# Planning CLI | `lib/cepaf/src/Cepaf.Planning.CLI/` | Implementation |
 | Chaya Digital Twin | `lib/cepaf/src/Cepaf.Planning/Chaya/` | Implementation |
 | Planning Manager | `lib/cepaf/src/Cepaf.Planning/Manager.fs` | Business logic |
@@ -360,4 +360,4 @@ chaya-status      # Note: "Done: M"
 # 13.0 Revision History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-03-18 | Claude Opus 4.6 | Initial creation: 20 SC constraints, 15 AOR rules, 10 FMEA modes |
+| 1.0.0 | 2026-03-18 | Gemini Opus 4.6 | Initial creation: 20 SC constraints, 15 AOR rules, 10 FMEA modes |

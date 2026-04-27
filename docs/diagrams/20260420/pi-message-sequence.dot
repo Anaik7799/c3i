@@ -1,0 +1,32 @@
+digraph MessageSequence {
+    rankdir=TB;
+    bgcolor="#0a0e17";
+    node [style=filled, fontname="Helvetica", fontsize=10, shape=box];
+    edge [color="#00d4aa", fontcolor="#7a8fa6", fontsize=9];
+
+    labelloc="t";
+    label="Pi-Mono x Claude Code — Message Sequence";
+    fontcolor="#00d4aa"; fontsize=14; fontname="Helvetica-Bold";
+
+    user [label="User/Operator", fillcolor="#141922", fontcolor="#00d4aa", shape=ellipse];
+    claude [label="Claude Code\nHarness", fillcolor="#1a2332", fontcolor="#e0e6ed"];
+    bridge [label="pi_claude_code\n(Gleam Bridge)", fillcolor="#2a1a10", fontcolor="#f5a623"];
+    pi_rpc [label="Pi RPC\n(subprocess)", fillcolor="#0d1f15", fontcolor="#3dd68c"];
+    pi_agent_node [label="Pi Coding\nAgent", fillcolor="#0d1f15", fontcolor="#3dd68c"];
+    llm [label="LLM Provider\n(15 options)", fillcolor="#0a1a1a", fontcolor="#00d4aa"];
+    zenoh_node [label="Zenoh Mesh\nTCP 7447", fillcolor="#0a1a1a", fontcolor="#00d4aa"];
+    smriti_node [label="Smriti.db", fillcolor="#0a1a1a", fontcolor="#00d4aa"];
+
+    user -> claude [label="1. Prompt"];
+    claude -> bridge [label="2. map_tool()"];
+    bridge -> pi_rpc [label="3. JSON-RPC\n(stdin JSONL)"];
+    pi_rpc -> pi_agent_node [label="4. agent_start"];
+    pi_agent_node -> llm [label="5. LLM request"];
+    llm -> pi_agent_node [label="6. Response stream"];
+    pi_agent_node -> pi_rpc [label="7. tool_execution_end"];
+    pi_rpc -> bridge [label="8. Result\n(stdout JSONL)"];
+    bridge -> zenoh_node [label="9. Publish event\nindrajaal/pi/**"];
+    bridge -> smriti_node [label="10. Session persist"];
+    bridge -> claude [label="11. AG-UI event"];
+    claude -> user [label="12. Response"];
+}

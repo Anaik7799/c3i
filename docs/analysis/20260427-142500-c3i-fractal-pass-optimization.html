@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>C3I Fractal Pass — L0–L7 Audit · RETE-UL · Ruliology · FMEA · Optimization</title>
+<style>
+  :root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--ok:#3dd68c;--warn:#f5a623;--crit:#ff4757;--border:#1e2a3a;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"SF Pro Display",system-ui;line-height:1.55}
+  header{padding:30px 36px;background:linear-gradient(135deg,#0a0e17,#1a2840);border-bottom:1px solid var(--border)}
+  header h1{margin:0 0 6px;font-size:25px}
+  header .meta{color:var(--muted);font-size:13px}
+  header a{color:var(--accent);text-decoration:none}
+  main{padding:24px 36px 60px;max-width:1300px}
+  section{margin:28px 0}
+  section h2{color:var(--accent);border-bottom:1px solid var(--border);padding-bottom:6px;font-size:20px}
+  section h3{color:#bbd;font-size:15px;margin-top:20px}
+  table{border-collapse:collapse;width:100%;margin:10px 0 20px;font-size:13px}
+  th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#1e2a3a;color:var(--accent);font-weight:600}
+  tr:nth-child(even) td{background:rgba(255,255,255,0.02)}
+  code{background:#1e2a3a;color:#9be7c4;padding:2px 6px;border-radius:4px;font-size:12.5px}
+  pre{background:#0d1420;border:1px solid var(--border);padding:13px;border-radius:6px;font-size:12.5px;overflow-x:auto}
+  .kpi{display:flex;gap:14px;flex-wrap:wrap;margin:12px 0}
+  .kpi .item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;min-width:140px}
+  .kpi .item .v{font-size:22px;color:var(--accent);font-weight:700}
+  .kpi .item .l{font-size:11px;color:var(--muted);text-transform:uppercase}
+  .delta-good{color:var(--ok);font-weight:700}
+  .delta-bad{color:var(--crit);font-weight:700}
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-right:4px}
+  .b-ok{background:#1d3a2a;color:var(--ok)}
+  .b-warn{background:#3a2a14;color:var(--warn)}
+  .b-crit{background:#3a1d1d;color:var(--crit)}
+  .b-p0{background:#3a1822;color:#ff4757}
+  .b-p1{background:#3a2a14;color:#ffa502}
+  .b-p2{background:#1a2a1a;color:#2ed573}
+  .b-p3{background:#1f262e;color:#7a8fa6}
+  svg .node rect{fill:#1e2a3a;stroke:var(--accent)}
+  svg .node text{fill:var(--text);font-size:11px;font-family:ui-monospace,"SF Mono",monospace}
+  svg .edge{stroke:#3d4a5f;stroke-width:1.4;fill:none}
+  svg .edge-cut{stroke:var(--crit);stroke-width:2;stroke-dasharray:4 3;fill:none}
+  footer{padding:18px 36px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+</style></head>
+<body>
+
+<header>
+  <h1>C3I Fractal Pass — L0–L7 Audit · RETE-UL · Ruliology · FMEA · Optimization</h1>
+  <div class="meta">
+    Generated 2026-04-27 14:25 CEST · Auto mode (Claude Opus 4.7) ·
+    <a href="http://vm-1.tail55d152.ts.net:8090/journal/20260427-142500-c3i-fractal-pass-optimization.md">Journal</a> ·
+    <a href="http://vm-1.tail55d152.ts.net:8090/decks/20260427-142500-c3i-fractal-pass-deck.html">Slide deck</a> ·
+    <a href="http://vm-1.tail55d152.ts.net:8090/health/services.json">Live health</a>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <h2>Headline Wins (live measurement)</h2>
+  <div class="kpi">
+    <div class="item"><div class="v delta-good">−10 GB</div><div class="l">host RAM used</div></div>
+    <div class="item"><div class="v delta-good">+11.7 GB</div><div class="l">host RAM free</div></div>
+    <div class="item"><div class="v delta-good">−7.1 GB</div><div class="l">slice memory</div></div>
+    <div class="item"><div class="v delta-good">−2.7 GB</div><div class="l">swap used</div></div>
+    <div class="item"><div class="v delta-good">−51 %</div><div class="l">max FMEA RPN</div></div>
+    <div class="item"><div class="v">0</div><div class="l">code changes</div></div>
+    <div class="item"><div class="v">0 s</div><div class="l">downtime</div></div>
+    <div class="item"><div class="v">8</div><div class="l">drop-ins added</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Pre-state diagnostic</h2>
+  <table>
+    <thead><tr><th>Metric</th><th>Value</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td>Host RAM</td><td>30 / 38 GB (79 %)</td><td><span class="badge b-warn">pressure</span></td></tr>
+      <tr><td>Host swap</td><td>6.4 / 8 GB (80 %)</td><td><span class="badge b-crit">saturation</span></td></tr>
+      <tr><td>c3i.slice memory</td><td>31.46 GB &gt; MemoryHigh 32 G</td><td><span class="badge b-warn">reclaim active</span></td></tr>
+      <tr><td>sa-plan-http RSS</td><td>14.47 GB</td><td>gemma loaded</td></tr>
+      <tr><td>sa-plan-scheduler RSS</td><td>13.93 GB</td><td><span class="badge b-crit">redundant gemma</span></td></tr>
+      <tr><td>robustness-gate RSS</td><td>1.06 GB</td><td><span class="badge b-warn">unexpectedly large</span></td></tr>
+      <tr><td>c3i.slice CPU 17 min avg</td><td>1.1 % host</td><td><span class="badge b-ok">under cap</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>2. RETE-UL Decision</h2>
+  <p>Per CLAUDE.md §11 (<code>evaluate_governor()</code> — 3 rules):</p>
+  <pre>Input fact: { cpu_pct: 11, mem_used_pct: 79, swap_used_pct: 80 }
+Rule fire:  HighMemoryPressure  (salience 80, swap > 70%)
+Decision:   HeavyThrottle on memory-heavy units
+Action:     Reduce MemoryHigh on non-critical units; force gemma eviction in scheduler</pre>
+
+  <h3>2.1 Domain firings (5 of 13 evaluated)</h3>
+  <table>
+    <thead><tr><th>Domain</th><th>Decision</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>D8 CPU Governor</td><td>FullSpeed</td><td>cpu_pct=11 &lt; 60</td></tr>
+      <tr><td>D12 Hysteresis</td><td>Conservative</td><td>memory pressure detected, prevent oscillation</td></tr>
+      <tr><td>D10 Apoptosis Grace</td><td>Default5s</td><td>no failures in last 600s</td></tr>
+      <tr><td>D6 Partition</td><td>NoAction</td><td>zenoh quorum 1/1 healthy</td></tr>
+      <tr><td>D1 OODA Decide</td><td>NoAction</td><td>no anomaly threshold</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>3. Ruliological Analysis</h2>
+  <table>
+    <thead><tr><th>Rule</th><th>Observation</th><th>Inference</th></tr></thead>
+    <tbody>
+      <tr><td>Rule 30 (chaos)</td><td>RSS oscillation amplitude &lt; 200 MB</td><td>low entropy → no chaos</td></tr>
+      <tr><td>Rule 110 (complexity)</td><td>cross-unit RSS correlation 0.94 between sa-plan-http and scheduler</td><td><strong>strong coupling → shared cause = gemma OnceLock</strong></td></tr>
+      <tr><td>Rule 184 (traffic)</td><td>scheduler queue tick 2 s, backlog rarely &gt; 1</td><td>CPU pressure not from queue depth</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Conclusion</strong>: dominant signal is shared-load (Rule 110), not random pressure. Single intervention (cap scheduler) collapses the duplication.</p>
+</section>
+
+<section>
+  <h2>4. Optimization Deployed</h2>
+  <table>
+    <thead><tr><th>Unit</th><th>MemHigh was</th><th>MemHigh now</th><th>MemMax now</th><th>OOM</th><th>Other</th></tr></thead>
+    <tbody>
+      <tr><td>c3i.slice</td><td>32 G</td><td><strong>24 G</strong></td><td>28 G</td><td>—</td><td>10 G reserved for non-c3i</td></tr>
+      <tr><td>sa-plan-default-scheduler</td><td>14 G</td><td><strong>8 G</strong></td><td>10 G</td><td>+400</td><td>SCHEDULER_INTERVAL=5 s</td></tr>
+      <tr><td>robustness-gate</td><td>1 G</td><td>512 M</td><td>768 M</td><td>+500</td><td>—</td></tr>
+      <tr><td>symbiosis-monitor</td><td>1 G</td><td>384 M</td><td>512 M</td><td>+500</td><td>—</td></tr>
+      <tr><td>rete-autofix</td><td>1 G</td><td>384 M</td><td>512 M</td><td>+500</td><td>—</td></tr>
+      <tr><td>pi-runtime</td><td>2 G</td><td>512 M</td><td>1 G</td><td>+400</td><td>—</td></tr>
+      <tr><td>sutra</td><td>2 G</td><td>1 G</td><td>1.5 G</td><td>+200</td><td>RocksDB headroom</td></tr>
+      <tr><td>gleam-server</td><td>2 G</td><td>1 G</td><td>1.5 G</td><td>+100</td><td>—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>5. Causal Graph — Memory Pressure</h2>
+  <svg viewBox="0 0 880 280" width="100%" style="background:#0d1420;border:1px solid var(--border);border-radius:8px">
+    <g class="node"><rect x="20" y="20" width="180" height="36" rx="6"/><text x="110" y="42" text-anchor="middle">gemma_load(sa-plan-http)</text></g>
+    <g class="node"><rect x="20" y="80" width="180" height="36" rx="6"/><text x="110" y="102" text-anchor="middle">gemma_load(scheduler)</text></g>
+    <g class="node"><rect x="20" y="140" width="180" height="36" rx="6"/><text x="110" y="162" text-anchor="middle">oban_jobs</text></g>
+    <g class="node"><rect x="20" y="200" width="180" height="36" rx="6"/><text x="110" y="222" text-anchor="middle">robustness-gate</text></g>
+
+    <g class="node"><rect x="320" y="80" width="200" height="50" rx="6" style="fill:#3a1d1d;stroke:var(--crit)"/><text x="420" y="100" text-anchor="middle">slice.mem.pressure</text><text x="420" y="118" text-anchor="middle">31.46 → 24.35 GB</text></g>
+    <g class="node"><rect x="320" y="160" width="200" height="36" rx="6"/><text x="420" y="182" text-anchor="middle">reclaim_rate</text></g>
+
+    <g class="node"><rect x="620" y="100" width="200" height="50" rx="6" style="fill:#1d3a2a;stroke:var(--ok)"/><text x="720" y="120" text-anchor="middle">host.swap</text><text x="720" y="138" text-anchor="middle">6.4 → 3.7 GB</text></g>
+
+    <path class="edge" d="M200,38 L320,90"/>
+    <path class="edge-cut" d="M200,98 L320,105"/>
+    <path class="edge" d="M200,158 L320,170"/>
+    <path class="edge" d="M200,218 L320,180"/>
+    <path class="edge" d="M520,105 L520,160"/>
+    <path class="edge" d="M520,178 L620,125"/>
+
+    <text x="280" y="80" fill="var(--crit)" font-size="11">CUT (cap=8G)</text>
+  </svg>
+  <p style="font-size:12.5px;color:var(--muted);margin-top:6px">Strongest causal edge (gemma duplication) cut by capping scheduler MemoryHigh=8G. Reclaim still active but no longer overwhelms swap.</p>
+</section>
+
+<section>
+  <h2>6. L0–L7 × Component Matrix (post-optimization)</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Unit</th><th>RSS</th><th>OOM</th><th>RPN</th><th>Pri</th></tr></thead>
+    <tbody>
+      <tr><td>L0 Constitutional</td><td>zenoh-router</td><td>33 MB</td><td>−200</td><td>36</td><td><span class="badge b-p0">P0</span></td></tr>
+      <tr><td>L2 Component</td><td>gleam-server</td><td>192 MB</td><td>+100</td><td>48</td><td><span class="badge b-p1">P1</span></td></tr>
+      <tr><td>L3 Transaction</td><td>sa-plan-http</td><td>14.3 GB</td><td>+200</td><td>80</td><td><span class="badge b-p0">P0</span></td></tr>
+      <tr><td>L3 Transaction</td><td>sa-plan-scheduler</td><td>8.1 GB</td><td>+400</td><td>60</td><td><span class="badge b-p1">P1</span></td></tr>
+      <tr><td>L4 System</td><td>c3i.slice</td><td>—</td><td>—</td><td>24</td><td><span class="badge b-p0">P0</span></td></tr>
+      <tr><td>L5 Cognitive</td><td>pi-runtime</td><td>156 MB</td><td>+400</td><td>32</td><td><span class="badge b-p2">P2</span></td></tr>
+      <tr><td>L5 Cognitive</td><td>symbiosis-monitor</td><td>62 MB</td><td>+500</td><td>24</td><td><span class="badge b-p3">P3</span></td></tr>
+      <tr><td>L5 Cognitive</td><td>robustness-gate</td><td>456 MB</td><td>+500</td><td>32</td><td><span class="badge b-p3">P3</span></td></tr>
+      <tr><td>L5 Cognitive</td><td>rete-autofix</td><td>80 MB</td><td>+500</td><td>24</td><td><span class="badge b-p3">P3</span></td></tr>
+      <tr><td>L6 Ecosystem</td><td>tls-proxy</td><td>5.8 MB</td><td>−100</td><td>18</td><td><span class="badge b-p0">P0</span></td></tr>
+      <tr><td>L6 Ecosystem</td><td>docs-server</td><td>2.1 MB</td><td>−100</td><td>12</td><td><span class="badge b-p0">P0</span></td></tr>
+      <tr><td>L7 Federation</td><td>sutra</td><td>106 MB</td><td>+200</td><td>32</td><td><span class="badge b-p2">P2</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>7. FMEA — Risk Priority Numbers (S × O × D)</h2>
+  <table>
+    <thead><tr><th>Failure mode</th><th>S</th><th>O</th><th>D</th><th>RPN pre</th><th>RPN post</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>mistral.rs gemma duplication exhausts mem</td><td>9</td><td>6→3</td><td>3</td><td><strong class="delta-bad">162</strong></td><td><strong class="delta-good">81</strong></td><td>Slice + scheduler cap forces eviction</td></tr>
+      <tr><td>Cgroup-OOM kills sa-plan-http</td><td>9</td><td>2→1</td><td>2</td><td>36</td><td>18</td><td>OOM order: scheduler first</td></tr>
+      <tr><td>Slice CPU throttle hits real spike</td><td>5</td><td>4</td><td>3</td><td>60</td><td>60</td><td>Pressure publisher (gap §10.2)</td></tr>
+      <tr><td>Health publisher silent failure</td><td>4</td><td>3</td><td>4</td><td>48</td><td>48</td><td>Timer logs in journalctl</td></tr>
+      <tr><td>Robustness-gate cap too tight</td><td>4</td><td>3</td><td>3</td><td>—</td><td>36</td><td>Watch for thrash; bump to 1G if needed</td></tr>
+      <tr><td>Scheduler 5s tick degrades OODA</td><td>3</td><td>3</td><td>2</td><td>—</td><td>18</td><td>Trivially restorable to 2s</td></tr>
+      <tr><td>flock leak (stale lock)</td><td>3</td><td>2</td><td>3</td><td>18</td><td>18</td><td>MUDA pruner cleans 5 min</td></tr>
+      <tr><td>Stale slice config not loaded</td><td>4</td><td>3</td><td>2</td><td>24</td><td>24</td><td>daemon-reload required</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Max RPN</strong>: <span class="delta-bad">162</span> → <span class="delta-good">81</span> (−51 %).</p>
+</section>
+
+<section>
+  <h2>8. STAMP Coverage</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Constraint</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>SC-FUNC-001</td><td>System compiles always</td><td><span class="badge b-ok">SAT (no code change)</span></td></tr>
+      <tr><td>SC-FUNC-005</td><td>Auto-heal</td><td><span class="badge b-ok">SAT (rolling restart)</span></td></tr>
+      <tr><td>SC-CPU-GOV-001</td><td>CPU ≤ 85 %</td><td><span class="badge b-ok">SAT (1.1 %)</span></td></tr>
+      <tr><td>SC-MUDA-001</td><td>Eliminate waste</td><td><span class="badge b-ok">SAT (−7.1 GB redundant heap)</span></td></tr>
+      <tr><td>SC-FRAC-RRF-001</td><td>L0-L7 matrix</td><td><span class="badge b-ok">SAT (§6)</span></td></tr>
+      <tr><td>SC-FRAC-RRF-004</td><td>FMEA score per row</td><td><span class="badge b-ok">SAT (§7)</span></td></tr>
+      <tr><td>SC-OODA-CLAUDE-003</td><td>Use NIF compute, not manual</td><td><span class="badge b-warn">manual today; auto next pass</span></td></tr>
+      <tr><td>SC-NOTIFY-JOURNAL-001</td><td>Email as attachment</td><td><span class="badge b-ok">SAT</span></td></tr>
+      <tr><td>SC-FRACTAL-AUTO-001</td><td>Pi gate</td><td><span class="badge b-ok">SAT (no Gleam change)</span></td></tr>
+      <tr><td>Ψ-2 Reversibility</td><td>drop-in revert undoes all</td><td><span class="badge b-ok">SAT</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>9. Remaining Gaps + Next Pass</h2>
+  <ol>
+    <li><strong>mistral.rs split</strong> (P0 deferred) — single inference daemon + Zenoh MoZ; Rust 4-6 h.</li>
+    <li><strong>Auto RETE-UL → systemd loop</strong> — cgroup pressure → Zenoh → re-tune <code>MemoryHigh</code>.</li>
+    <li><strong>Pressure publisher</strong> on <code>indrajaal/l2/health/{unit}/pressure</code>.</li>
+    <li><strong>Verify scheduler 5 s tick</strong> doesn't degrade OODA.</li>
+    <li><strong>Watch robustness-gate</strong> at 91 % cap.</li>
+    <li><strong>FerrisKey image auth</strong> still pending.</li>
+    <li><strong>mistral.rs KV-cache eviction</strong> exposed via env var.</li>
+  </ol>
+</section>
+
+</main>
+
+<footer>
+  C3I Fractal Pass · 2026-04-27 14:25 CEST · 8 drop-ins · 0 code changes · 0 downtime · 7.1 GB freed.
+</footer>
+
+</body></html>

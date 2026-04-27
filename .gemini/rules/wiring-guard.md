@@ -4,7 +4,7 @@
 
 **ALL Model type changes MUST update `testing/wiring_guard.gleam` FIRST.**
 
-This rule exists because AI code generation (Claude, Gemini, OpenCode) repeatedly breaks dynamic wiring by adding fields to Model types without updating all downstream constructors.
+This rule exists because AI code generation (Gemini, Gemini, OpenCode) repeatedly breaks dynamic wiring by adding fields to Model types without updating all downstream constructors.
 
 ## The Problem
 
@@ -49,7 +49,7 @@ If any Model changes, **this one file fails to compile FIRST** — not scattered
 |------|---------|
 | `testing/wiring_guard.gleam` | Canonical constructors for ALL Model types (source of truth) |
 | `test/wiring_guard_test.gleam` | Tests that verify all connections (9 tests, 71 verified connections) |
-| `.claude/rules/wiring-guard.md` | This rule |
+| `.gemini/rules/wiring-guard.md` | This rule |
 
 ## Verified Connections (71 total)
 

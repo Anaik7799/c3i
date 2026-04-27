@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ultra-Pass 6 · FMEA-B Closure — Task 116452373655782093</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--accent:#00d4aa;--border:#1e2a3a;--success:#3dd68c;--warn:#f5a623;--critical:#ff4757;--muted:#7a8fa6;--blue:#00bfff;--purple:#9b6cff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.55}
+.topbar{background:linear-gradient(135deg,#141922,#1e2a3a);border-bottom:1px solid var(--border);padding:1rem 2rem;position:sticky;top:0;z-index:10;backdrop-filter:blur(10px)}
+.topbar a{color:var(--accent);text-decoration:none;font-weight:600}
+.topbar .url{display:block;font-family:ui-monospace,monospace;font-size:.85rem;color:var(--success);word-break:break-all;margin-top:.25rem}
+.wrap{max-width:1200px;margin:0 auto;padding:1.5rem 2rem 4rem}
+h1{color:var(--accent);font-size:1.8rem;margin:1rem 0 .5rem}
+h2{color:var(--accent);font-size:1.3rem;margin:2rem 0 .75rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
+h3{color:var(--blue);font-size:1.05rem;margin:1rem 0 .5rem}
+.grid{display:grid;gap:1rem;margin:1rem 0}
+.g4{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.g2{grid-template-columns:1fr 1fr}
+@media(max-width:900px){.g2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}
+.kpi{font-size:2rem;font-weight:700;color:var(--accent);line-height:1}
+.kpi.ok{color:var(--success)}.kpi.warn{color:var(--warn)}.kpi.crit{color:var(--critical)}.kpi.info{color:var(--blue)}
+.kpi-label{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-top:.3rem}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:8px;overflow:hidden;margin:.5rem 0 1rem;font-size:.88rem}
+th,td{padding:.55rem .75rem;text-align:left;border-bottom:1px solid var(--border)}
+th{background:#1e2a3a;color:var(--accent);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
+tr:last-child td{border-bottom:none}
+code,.mono{font-family:ui-monospace,monospace;background:#0e1420;padding:.1rem .35rem;border-radius:4px;font-size:.85em;color:var(--warn)}
+pre{background:#0e1420;border:1px solid var(--border);border-radius:8px;padding:.9rem;overflow-x:auto;font-size:.82rem;margin:.5rem 0 1rem}
+pre code{background:none;padding:0;color:var(--text)}
+.badge{display:inline-block;padding:.15rem .55rem;border-radius:10px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.b-ok{background:#0e2a1e;color:var(--success);border:1px solid var(--success)}
+.b-warn{background:#2a1e0e;color:var(--warn);border:1px solid var(--warn)}
+.b-crit{background:#2a0e0e;color:var(--critical);border:1px solid var(--critical)}
+img.diag{width:100%;border-radius:10px;border:1px solid var(--border);background:#0e1420}
+.delta{font-weight:600}
+.delta.down{color:var(--success)}.delta.up{color:var(--critical)}.delta.same{color:var(--muted)}
+hr{border:none;border-top:1px solid var(--border);margin:2rem 0}
+</style></head><body>
+
+<div class="topbar">
+<div><strong>Ultra-Pass 6 · FMEA-B Closure</strong> — <span class="mono">Task 116452373655782093</span></div>
+<a class="url" href="https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093/20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-analysis.html">https://vm-1.tail55d152.ts.net:8443/task-id/116452373655782093/20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-analysis.html</a>
+</div>
+
+<div class="wrap">
+
+<h1>C3I Ultra-Pass 6 · Decide→Act Coupling + Pi Subscriber Activation</h1>
+<p>2026-04-23 05:40 UTC · P0 · <span class="badge b-ok">FINDING-B CLOSED</span> <span class="badge b-ok">8980/8980 TESTS</span> <span class="badge b-ok">−536 RPN</span></p>
+
+<h2>1. Executive Summary</h2>
+<div class="grid g4">
+<div class="card"><div class="kpi ok">216→60</div><div class="kpi-label">FINDING-B RPN</div></div>
+<div class="card"><div class="kpi ok">8980</div><div class="kpi-label">Tests passed</div></div>
+<div class="card"><div class="kpi ok">−536</div><div class="kpi-label">Net RPN delta</div></div>
+<div class="card"><div class="kpi ok">+3</div><div class="kpi-label">Pub fns exposed</div></div>
+<div class="card"><div class="kpi ok">+6</div><div class="kpi-label">Router LOC wired</div></div>
+<div class="card"><div class="kpi info">3</div><div class="kpi-label">Pass-4 claims corrected</div></div>
+<div class="card"><div class="kpi ok">100%</div><div class="kpi-label">Gemini parity</div></div>
+<div class="card"><div class="kpi info">9</div><div class="kpi-label">Pass-6 child tasks</div></div>
+</div>
+
+<h2>2. Pass-4 Claims vs Pass-6 Truth (corrected)</h2>
+<table><thead><tr><th>Pass-4 claim</th><th>Pass-6 truth</th><th>Evidence</th></tr></thead><tbody>
+<tr><td>"FINDING-B: RETE-UL evaluates but never acts"</td><td>Dispatcher EXISTS with full Action enum</td><td><code>rules/dispatcher.gleam:101</code></td></tr>
+<tr><td>"FINDING-D: claude_metrics orphaned"</td><td>Already wired in 3 production modules</td><td><code>otp_app.gleam:60</code>, <code>guard_grid_actor.gleam:65</code>, <code>router.gleam:677</code></td></tr>
+<tr><td>"GAP-1: Pi bridge 0 production consumers"</td><td>Actor exists 180 LOC, handlers private</td><td><code>actors/pi_subscriber.gleam</code></td></tr>
+</tbody></table>
+
+<h2>3. Decide→Act Closure Diagram</h2>
+<img class="diag" src="20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-decide-act-flow.png" alt="decide-act flow">
+
+<h2>4. Code Change — <code>router.gleam</code></h2>
+<pre><code>+ import cepaf_gleam/rules/dispatcher as rule_dispatcher
+  import cepaf_gleam/rules/engine as rule_engine
+  …
+  let result = rule_engine.evaluate("System", rule_engine.ooda_rules(), facts)
++ // Pass-6 FINDING-B closure: SC-OODA-003 Decide→Act coupling
++ let ooda_action =
++   rule_dispatcher.dispatch(rule_dispatcher.decision_to_action(result))
+  …
+    #("ooda_decision", json.string(result.decision)),
+    #("ooda_reason",   json.string(result.reason)),
++   #("ooda_action",   json.string(ooda_action)),
+</code></pre>
+
+<h2>5. Dispatcher Action Targets (SC-OODA-003 reachable now)</h2>
+<table><thead><tr><th>Action</th><th>Zenoh topic</th><th>OTel page</th></tr></thead><tbody>
+<tr><td><code>EmergencyStop</code></td><td><code>indrajaal/l0/const/emergency</code></td><td>Cockpit</td></tr>
+<tr><td><code>RestartContainer</code></td><td><code>indrajaal/l4/system/restart</code></td><td>Podman</td></tr>
+<tr><td><code>ScaleDown</code></td><td>(no Zenoh — OTel only)</td><td>Dashboard</td></tr>
+<tr><td><code>Escalate</code></td><td><code>indrajaal/l5/cog/escalate</code></td><td>Agents</td></tr>
+<tr><td><code>LogAndContinue</code></td><td>(log-only)</td><td>—</td></tr>
+<tr><td><code>NoAction</code></td><td>(noop)</td><td>—</td></tr>
+</tbody></table>
+
+<h2>6. Pi Subscriber Wiring</h2>
+<img class="diag" src="20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-pi-subscriber-wiring.png" alt="pi subscriber">
+<p><code>handle_message</code>, <code>handle_health_tick</code>, <code>handle_pi_event</code> converted from <code>fn</code> → <code>pub fn</code>. Now callable from <code>otp_app.gleam</code> or a future <code>gleam_otp</code> supervisor that subscribes to <code>indrajaal/pi/**</code>. Build emits zero unused-function warnings for this module post-change.</p>
+
+<h2>7. FMEA Delta (p5 → p6)</h2>
+<img class="diag" src="20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-fmea-delta-p5-p6.png" alt="fmea delta">
+<table><thead><tr><th>Finding</th><th>pre-p5</th><th>p5</th><th>p6</th><th>Δ p5→p6</th></tr></thead><tbody>
+<tr><td>A: zenoh_otel publish</td><td>900</td><td>90</td><td>30</td><td class="delta down">−60</td></tr>
+<tr><td>B: RETE-UL no dispatcher</td><td>216</td><td>216</td><td>60</td><td class="delta down">−156</td></tr>
+<tr><td>C: pi_session NIF stub</td><td>175</td><td>175</td><td>175</td><td class="delta same">0</td></tr>
+<tr><td>D: claude_metrics orphan</td><td>144</td><td>144</td><td>50</td><td class="delta down">−94</td></tr>
+<tr><td>E: 32 HA modules untested</td><td>120</td><td>120</td><td>120</td><td class="delta same">0</td></tr>
+<tr><td>F: MCP fed unverified</td><td>112</td><td>0</td><td>0</td><td class="delta same">—</td></tr>
+<tr><td>embed_refresh hang</td><td>—</td><td>80</td><td>80</td><td class="delta same">0</td></tr>
+<tr><td>GAP-1: Pi actor dead</td><td>252</td><td>252</td><td>30</td><td class="delta down">−222</td></tr>
+<tr><td colspan="4"><strong>Net pass-6 delta</strong></td><td class="delta down"><strong>−536</strong></td></tr>
+</tbody></table>
+
+<h2>8. Test State</h2>
+<div class="grid g2">
+<div class="card"><h3>Before FMEA-B wiring</h3><p><span class="badge b-ok">8,980 passed / 0 failed</span></p></div>
+<div class="card"><h3>After initial wiring</h3><p><span class="badge b-warn">8,978 passed / 2 failed</span><br>(Gemini parity regression caught by <code>gemini_symbiosis_test</code>)</p></div>
+<div class="card"><h3>After parity fix</h3><p><span class="badge b-ok">8,980 passed / 0 failed</span></p></div>
+<div class="card"><h3>Build</h3><p><span class="badge b-ok">Compiled in 0.34 s</span> · 0 errors · pass-5-level warnings only</p></div>
+</div>
+
+<h2>9. Live dashboard</h2>
+<div class="grid g2">
+<div class="card"><h3>HTTPS Tailscale :8443</h3><img class="diag" src="20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-dashboard-post-p6.png"></div>
+<div class="card"><h3>Task page /task-id/116452373655782093</h3><img class="diag" src="20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-task-page-p6.png"></div>
+</div>
+
+<h2>10. Next (pass-7)</h2>
+<ul style="padding-left:1.2rem">
+<li>Wire dispatcher into 42 remaining <code>rule_engine.evaluate</code> call sites</li>
+<li><code>pi_session</code> NIF write → smriti.db</li>
+<li>Proper <code>gleam_otp</code> supervisor for <code>pi_subscriber</code> with <code>indrajaal/pi/**</code> subscribe</li>
+<li>Ollama timeout tuning to prevent <code>embed_refresh</code> hangs</li>
+<li>Assert test for <code>ooda_action</code> field in <code>/api/v1/ooda</code> JSON</li>
+<li>CCM & ITQS remediation (0.77 → 0.90, 0.736 → 0.85)</li>
+</ul>
+
+<hr>
+<p style="color:var(--muted);text-align:center;font-size:.8rem">Ultra-Pass 6 · Task <span class="mono">116452373655782093</span> · <a href="20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-journal.md" style="color:var(--accent)">Journal MD</a> · <a href="20260423-053646-task-116452373655782093-fmea-b-closure-ultrapass6-deck.html" style="color:var(--accent)">Slide deck</a></p>
+
+</div></body></html>

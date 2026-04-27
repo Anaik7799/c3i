@@ -1,0 +1,11 @@
+Pass-8 URL verification · 2026-04-23T19:26:27Z
+────────────────────────────────────────────────
+200 10785  20260423-072528-task-116452825849720856-all-18-improvements-pass8-journal.md
+200 12232  20260423-072528-task-116452825849720856-all-18-improvements-pass8-analysis.html
+200 10533  20260423-072528-task-116452825849720856-all-18-improvements-pass8-deck.html
+200 340276  20260423-072528-task-116452825849720856-all-18-improvements-pass8-pass8-stack.png
+200 42082  20260423-072528-task-116452825849720856-all-18-improvements-pass8-fastembed-vs-ollama.png
+200 42566  20260423-072528-task-116452825849720856-all-18-improvements-pass8-sprint-roi.png
+200 340276  task-116452825849720856/diagrams/pass8-stack.png
+200 42082  task-116452825849720856/diagrams/fastembed-vs-ollama.png
+200 42566  task-116452825849720856/diagrams/sprint-roi.png

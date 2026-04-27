@@ -1,16 +1,10 @@
 ---
-name: fy27-sales-executor
-description: FY27 EMEA semiconductor sales execution agent — orchestrates account planning, pipeline management, competitive intelligence, and deal acceleration using ZK institutional memory
-model: sonnet
+name: "fy27-sales-executor"
+description: "FY27 EMEA semiconductor sales execution agent — orchestrates account planning, pipeline management, competitive intelligence, and deal acceleration using ZK institutional memory"
+kind: local
 tools:
-  - Read
-  - Write
-  - Edit
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-  - WebFetch
+  - "*"
+model: "inherit"
 ---
 
 # FY27 Sales Execution Agent

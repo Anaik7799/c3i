@@ -205,9 +205,9 @@ Every evolved page MUST map to ≥3 of the 10 Ultrathink focus areas:
 4. Remaining 23 pages by PageRank tier
 
 ## Reference
-- Rule: `.claude/rules/agentic-ui-responsive-design.md` (29 sections, SC-AGUI-UI-001..015)
-- Master prompt: `.claude/commands/c3i-page-evolution.md` (8 phases, 24 checks)
-- Agent: `.claude/agents/agentic-ui-designer.md`
+- Rule: `.gemini/rules/agentic-ui-responsive-design.md` (29 sections, SC-AGUI-UI-001..015)
+- Master prompt: `.gemini/commands/c3i-page-evolution.md` (8 phases, 24 checks)
+- Agent: `.gemini/agents/agentic-ui-designer.md`
 - Spec: `docs/architecture/planning-page-specification.md`
 - Journal: `docs/journal/20260411-planning-page-evolution.md`
 - Allium: `specs/allium/ignition.allium` (add ui.allium per page)

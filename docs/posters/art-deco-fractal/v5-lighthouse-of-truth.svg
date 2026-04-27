@@ -1,0 +1,324 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" font-family="'Didot', 'Bodoni MT', 'Playfair Display', Georgia, serif">
+<!-- ═══════════════════════════════════════════════════════════════
+     V5: THE LIGHTHOUSE OF TRUTH
+     The system as an Art Deco lighthouse. 8 sections = 8 fractal
+     layers. The beacon at the apex = L0 Constitutional (Truth).
+     Light rays sweep across the dark ocean of data. Ships in
+     harbor = 16 containers. The rotating beam = OODA cycle.
+     SC-SATYA: The system MUST speak only truth. SC-TRUTH: Stale
+     data is a lie. This lighthouse guides all to truth.
+
+     Palette: Obsidian, Burnished Gold, Chrome, Sapphire, Ruby
+     ═══════════════════════════════════════════════════════════════ -->
+<defs>
+  <linearGradient id="lh-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#0a1530"/><stop offset="40%" stop-color="#06080e"/>
+    <stop offset="100%" stop-color="#030406"/>
+  </linearGradient>
+  <radialGradient id="lh-beam" cx="50%" cy="15%" r="60%">
+    <stop offset="0%" stop-color="#c9a227" stop-opacity="0.25"/>
+    <stop offset="40%" stop-color="#c9a227" stop-opacity="0.05"/>
+    <stop offset="100%" stop-color="#c9a227" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="lh-water" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#0a1530" stop-opacity="0.8"/>
+    <stop offset="100%" stop-color="#030406"/>
+  </linearGradient>
+  <filter id="lh-gl"><feGaussianBlur stdDeviation="5" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="lh-gl-sm"><feGaussianBlur stdDeviation="2" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="lh-gl-xl"><feGaussianBlur stdDeviation="12" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>
+
+<!-- Sky -->
+<rect width="1200" height="1800" fill="url(#lh-sky)"/>
+<!-- Beacon light field -->
+<circle cx="600" cy="280" r="500" fill="url(#lh-beam)"/>
+
+<!-- Art Deco border -->
+<rect x="24" y="24" width="1152" height="1752" fill="none" stroke="#c9a227" stroke-width="2" opacity="0.35"/>
+<rect x="32" y="32" width="1136" height="1736" fill="none" stroke="#c9a227" stroke-width="0.5" opacity="0.18"/>
+<!-- Corner chevrons -->
+<g stroke="#c9a227" fill="none" opacity="0.3" stroke-width="1">
+  <path d="M24 80 L80 24"/><path d="M24 100 L100 24"/>
+  <path d="M1176 80 L1120 24"/><path d="M1176 100 L1100 24"/>
+  <path d="M24 1720 L80 1776"/><path d="M24 1700 L100 1776"/>
+  <path d="M1176 1720 L1120 1776"/><path d="M1176 1700 L1100 1776"/>
+</g>
+
+<!-- ═══════ TITLE ═══════ -->
+<text x="600" y="75" text-anchor="middle" fill="#c9a227" font-size="11" letter-spacing="10" opacity="0.5">C3I INDRAJAAL</text>
+<text x="600" y="120" text-anchor="middle" fill="#c9a227" font-size="46" font-weight="bold" letter-spacing="12" filter="url(#lh-gl)">THE BEACON</text>
+<text x="600" y="155" text-anchor="middle" fill="#a8b4c0" font-size="16" letter-spacing="8" font-weight="300">TRUTH THROUGH SELF-KNOWLEDGE</text>
+<text x="600" y="180" text-anchor="middle" fill="#c9a227" font-size="13" font-family="'Noto Sans Devanagari', serif" letter-spacing="3" opacity="0.5">सत्यमेव जयते — Truth alone triumphs</text>
+<line x1="250" y1="195" x2="950" y2="195" stroke="#c9a227" stroke-width="0.5" opacity="0.2"/>
+
+<!-- ═══════ LIGHT RAYS (from beacon, sweeping) ═══════ -->
+<g transform="translate(600, 340)" stroke="#c9a227" fill="none" opacity="0.1" stroke-width="1.5">
+  <line x1="0" y1="0" x2="-500" y2="-200"/>
+  <line x1="0" y1="0" x2="-420" y2="-280"/>
+  <line x1="0" y1="0" x2="-300" y2="-330"/>
+  <line x1="0" y1="0" x2="-150" y2="-340"/>
+  <line x1="0" y1="0" x2="0" y2="-340"/>
+  <line x1="0" y1="0" x2="150" y2="-340"/>
+  <line x1="0" y1="0" x2="300" y2="-330"/>
+  <line x1="0" y1="0" x2="420" y2="-280"/>
+  <line x1="0" y1="0" x2="500" y2="-200"/>
+</g>
+<!-- Wider sweeping beam (the OODA rotation) -->
+<g opacity="0.06">
+  <polygon points="600,340 100,200 200,180" fill="#c9a227"/>
+  <polygon points="600,340 1000,180 1100,200" fill="#c9a227"/>
+</g>
+
+<!-- ═══════ THE LIGHTHOUSE TOWER ═══════ -->
+<!-- 8 sections stacked, L7 at base → L0 beacon at top -->
+<!-- Tower tapers from 300px wide (base) to 120px (beacon) -->
+
+<!-- L7 FEDERATION — Foundation (y=1000-1080) -->
+<rect x="320" y="1000" width="560" height="80" fill="none" stroke="#c9a227" stroke-width="1.2" opacity="0.4"/>
+<rect x="325" y="1005" width="550" height="70" fill="#c9a227" opacity="0.04"/>
+<text x="350" y="1035" fill="#c9a227" font-size="11" letter-spacing="3" font-weight="bold">L7 FEDERATION</text>
+<text x="350" y="1055" fill="#a8b4c0" font-size="8" font-family="Inter, sans-serif" opacity="0.5">Gateway | HA election | Zero-downtime | Version vectors</text>
+<text x="860" y="1040" fill="#c9a227" font-size="9" text-anchor="end" opacity="0.4">Foundation</text>
+
+<!-- L6 ECOSYSTEM (y=905-995) -->
+<rect x="340" y="905" width="520" height="85" fill="none" stroke="#9b2335" stroke-width="1" opacity="0.35"/>
+<rect x="345" y="910" width="510" height="75" fill="#9b2335" opacity="0.03"/>
+<text x="365" y="940" fill="#9b2335" font-size="11" letter-spacing="3" font-weight="bold">L6 ECOSYSTEM</text>
+<text x="365" y="960" fill="#a8b4c0" font-size="8" font-family="Inter, sans-serif" opacity="0.5">Zenoh mesh | 4 routers | Quorum | A2A messaging</text>
+
+<!-- L5 COGNITIVE (y=815-900) -->
+<rect x="360" y="815" width="480" height="80" fill="none" stroke="#2a9d8f" stroke-width="1" opacity="0.4"/>
+<rect x="365" y="820" width="470" height="70" fill="#2a9d8f" opacity="0.03"/>
+<text x="385" y="850" fill="#2a9d8f" font-size="11" letter-spacing="3" font-weight="bold">L5 COGNITIVE</text>
+<text x="385" y="870" fill="#a8b4c0" font-size="8" font-family="Inter, sans-serif" opacity="0.5">OODA | 52 GRL rules | 6-tier inference | Cortex 9,104 LOC</text>
+
+<!-- L4 SYSTEM (y=730-810) -->
+<rect x="380" y="730" width="440" height="75" fill="none" stroke="#8a5cb8" stroke-width="1" opacity="0.35"/>
+<text x="400" y="762" fill="#8a5cb8" font-size="11" letter-spacing="3" font-weight="bold">L4 SYSTEM</text>
+<text x="400" y="782" fill="#a8b4c0" font-size="8" font-family="Inter, sans-serif" opacity="0.5">16 containers | 7-tier boot | CPU governor | Apoptosis</text>
+
+<!-- L3 TRANSACTION (y=650-725) -->
+<rect x="400" y="650" width="400" height="70" fill="none" stroke="#4d7fff" stroke-width="1" opacity="0.35"/>
+<text x="420" y="680" fill="#4d7fff" font-size="11" letter-spacing="3" font-weight="bold">L3 TRANSACTION</text>
+<text x="420" y="700" fill="#a8b4c0" font-size="8" font-family="Inter, sans-serif" opacity="0.5">SQLite | 2,609 holons | RAG | PipelineTracer</text>
+
+<!-- L2 COMPONENT (y=580-645) -->
+<rect x="420" y="580" width="360" height="60" fill="none" stroke="#4caf6a" stroke-width="1" opacity="0.35"/>
+<text x="440" y="607" fill="#4caf6a" font-size="11" letter-spacing="3" font-weight="bold">L2 COMPONENT</text>
+<text x="440" y="625" fill="#a8b4c0" font-size="8" font-family="Inter, sans-serif" opacity="0.5">233 A2UI types | Isomorphic render</text>
+
+<!-- L1 ATOMIC (y=510-575) -->
+<rect x="440" y="510" width="320" height="60" fill="none" stroke="#c9a227" stroke-width="1" opacity="0.4"/>
+<text x="460" y="537" fill="#c9a227" font-size="11" letter-spacing="3" font-weight="bold">L1 ATOMIC</text>
+<text x="460" y="555" fill="#a8b4c0" font-size="8" font-family="Inter, sans-serif" opacity="0.5">125 NIF functions | 10 Rust packages</text>
+
+<!-- L0 CONSTITUTIONAL — THE BEACON (y=340-505) -->
+<rect x="470" y="380" width="260" height="120" fill="none" stroke="#c9a227" stroke-width="2.5" opacity="0.6" filter="url(#lh-gl)"/>
+<rect x="476" y="386" width="248" height="108" fill="#c9a227" opacity="0.05"/>
+
+<!-- Beacon lens housing (above L0) -->
+<polygon points="600,250 490,380 710,380" fill="none" stroke="#c9a227" stroke-width="2" opacity="0.5" filter="url(#lh-gl-sm)"/>
+<polygon points="600,280 510,370 690,370" fill="none" stroke="#c9a227" stroke-width="0.8" opacity="0.25"/>
+
+<!-- THE BEACON LIGHT (the eye of truth) -->
+<circle cx="600" cy="330" r="40" fill="#c9a227" opacity="0.15" filter="url(#lh-gl-xl)"/>
+<circle cx="600" cy="330" r="25" fill="#c9a227" opacity="0.3" filter="url(#lh-gl)"/>
+<circle cx="600" cy="330" r="12" fill="#ffffff" opacity="0.6" filter="url(#lh-gl-sm)"/>
+<circle cx="600" cy="330" r="5" fill="#ffffff" opacity="0.9"/>
+<!-- Fresnel lens rings -->
+<circle cx="600" cy="330" r="18" fill="none" stroke="#c9a227" stroke-width="0.8" opacity="0.4"/>
+<circle cx="600" cy="330" r="32" fill="none" stroke="#c9a227" stroke-width="0.5" opacity="0.25"/>
+
+<!-- L0 text -->
+<text x="600" y="420" text-anchor="middle" fill="#c9a227" font-size="14" font-weight="bold" letter-spacing="4" filter="url(#lh-gl-sm)">L0 CONSTITUTIONAL</text>
+<text x="600" y="440" text-anchor="middle" fill="#a8b4c0" font-size="8" font-family="Inter, sans-serif">Guardian | Psi-0..5 | 2oo3 voting | INFINITE severity</text>
+<text x="600" y="458" text-anchor="middle" fill="#c9a227" font-size="9" font-family="'Noto Sans Devanagari', serif" opacity="0.5">सत्यम् — The light of truth never extinguishes</text>
+<text x="600" y="480" text-anchor="middle" fill="#9b2335" font-size="9" font-family="Inter, sans-serif" opacity="0.6">SC-SATYA-001: System MUST verify display=truth</text>
+
+<!-- ═══════ THE HARBOR (16 container ships) ═══════ -->
+<!-- Water line -->
+<line x1="60" y1="1085" x2="1140" y2="1085" stroke="#1a3a6a" stroke-width="1" opacity="0.3"/>
+<g stroke="#1a3a6a" fill="none" opacity="0.1" stroke-width="0.8">
+  <path d="M60 1090 Q150 1082, 240 1090 Q330 1098, 420 1090 Q510 1082, 600 1090 Q690 1098, 780 1090 Q870 1082, 960 1090 Q1050 1098, 1140 1090"/>
+  <path d="M60 1100 Q180 1092, 300 1100 Q420 1108, 540 1100 Q660 1092, 780 1100 Q900 1108, 1020 1100 Q1080 1092, 1140 1100"/>
+</g>
+
+<!-- Ships (simplified Art Deco vessel shapes) -->
+<g font-family="Inter, sans-serif" font-size="6" opacity="0.5">
+  <!-- Left fleet -->
+  <g transform="translate(120, 1110)">
+    <path d="M-20 0 L-15 -8 L15 -8 L20 0 Z" fill="none" stroke="#2a9d8f" stroke-width="0.8"/>
+    <line x1="0" y1="-8" x2="0" y2="-16" stroke="#2a9d8f" stroke-width="0.6"/>
+    <text x="0" y="12" text-anchor="middle" fill="#2a9d8f">ex-app-1</text>
+  </g>
+  <g transform="translate(200, 1120)">
+    <path d="M-18 0 L-13 -7 L13 -7 L18 0 Z" fill="none" stroke="#2a9d8f" stroke-width="0.8"/>
+    <line x1="0" y1="-7" x2="0" y2="-14" stroke="#2a9d8f" stroke-width="0.6"/>
+    <text x="0" y="12" text-anchor="middle" fill="#2a9d8f">ex-app-2</text>
+  </g>
+  <g transform="translate(280, 1115)">
+    <path d="M-16 0 L-12 -6 L12 -6 L16 0 Z" fill="none" stroke="#2a9d8f" stroke-width="0.8"/>
+    <text x="0" y="12" text-anchor="middle" fill="#2a9d8f">ex-app-3</text>
+  </g>
+  <g transform="translate(360, 1125)">
+    <path d="M-18 0 L-13 -7 L13 -7 L18 0 Z" fill="none" stroke="#4d7fff" stroke-width="0.8"/>
+    <text x="0" y="12" text-anchor="middle" fill="#4d7fff">db-prod</text>
+  </g>
+  <g transform="translate(440, 1118)">
+    <path d="M-16 0 L-12 -6 L12 -6 L16 0 Z" fill="none" stroke="#c9a227" stroke-width="0.8"/>
+    <text x="0" y="12" text-anchor="middle" fill="#c9a227">obs-prod</text>
+  </g>
+  <g transform="translate(520, 1112)">
+    <path d="M-20 0 L-15 -8 L15 -8 L20 0 Z" fill="none" stroke="#2a9d8f" stroke-width="1" filter="url(#lh-gl-sm)"/>
+    <line x1="0" y1="-8" x2="0" y2="-18" stroke="#2a9d8f" stroke-width="0.8"/>
+    <text x="0" y="12" text-anchor="middle" fill="#2a9d8f" font-weight="bold">cortex</text>
+  </g>
+  <g transform="translate(600, 1122)">
+    <path d="M-18 0 L-13 -7 L13 -7 L18 0 Z" fill="none" stroke="#8a5cb8" stroke-width="0.8"/>
+    <text x="0" y="12" text-anchor="middle" fill="#8a5cb8">bridge</text>
+  </g>
+  <g transform="translate(680, 1115)">
+    <path d="M-16 0 L-12 -6 L12 -6 L16 0 Z" fill="none" stroke="#9b2335" stroke-width="0.8"/>
+    <text x="0" y="12" text-anchor="middle" fill="#9b2335">zenoh-0</text>
+  </g>
+  <!-- Right fleet (smaller, farther) -->
+  <g transform="translate(760, 1125)" opacity="0.7">
+    <path d="M-12 0 L-9 -5 L9 -5 L12 0 Z" fill="none" stroke="#9b2335" stroke-width="0.6"/>
+    <text x="0" y="10" text-anchor="middle" fill="#9b2335" font-size="5">z-1</text>
+  </g>
+  <g transform="translate(820, 1120)" opacity="0.7">
+    <path d="M-12 0 L-9 -5 L9 -5 L12 0 Z" fill="none" stroke="#9b2335" stroke-width="0.6"/>
+    <text x="0" y="10" text-anchor="middle" fill="#9b2335" font-size="5">z-2</text>
+  </g>
+  <g transform="translate(880, 1128)" opacity="0.7">
+    <path d="M-12 0 L-9 -5 L9 -5 L12 0 Z" fill="none" stroke="#9b2335" stroke-width="0.6"/>
+    <text x="0" y="10" text-anchor="middle" fill="#9b2335" font-size="5">z-3</text>
+  </g>
+  <g transform="translate(940, 1118)" opacity="0.7">
+    <path d="M-14 0 L-10 -5 L10 -5 L14 0 Z" fill="none" stroke="#c9a227" stroke-width="0.6"/>
+    <text x="0" y="10" text-anchor="middle" fill="#c9a227" font-size="5">ollama</text>
+  </g>
+  <g transform="translate(1000, 1125)" opacity="0.6">
+    <path d="M-14 0 L-10 -5 L10 -5 L14 0 Z" fill="none" stroke="#c9a227" stroke-width="0.5"/>
+    <text x="0" y="10" text-anchor="middle" fill="#c9a227" font-size="5">mojo</text>
+  </g>
+  <g transform="translate(1060, 1120)" opacity="0.6">
+    <path d="M-12 0 L-9 -5 L9 -5 L12 0 Z" fill="none" stroke="#4caf6a" stroke-width="0.5"/>
+    <text x="0" y="10" text-anchor="middle" fill="#4caf6a" font-size="5">chaya</text>
+  </g>
+  <g transform="translate(1060, 1140)" opacity="0.5">
+    <path d="M-10 0 L-7 -4 L7 -4 L10 0 Z" fill="none" stroke="#8a5cb8" stroke-width="0.4"/>
+    <text x="0" y="8" text-anchor="middle" fill="#8a5cb8" font-size="4">ml-1 / ml-2</text>
+  </g>
+</g>
+
+<!-- ═══════ METRICS ═══════ -->
+<rect x="100" y="1170" width="1000" height="65" fill="none" stroke="#c9a227" stroke-width="1" opacity="0.25"/>
+<g font-family="Inter, sans-serif" text-anchor="middle">
+  <text x="200" y="1200" fill="#c9a227" font-size="28" font-weight="bold" font-family="serif">5,436</text>
+  <text x="200" y="1220" fill="#a8b4c0" font-size="8" letter-spacing="2">TESTS</text>
+  <text x="400" y="1200" fill="#a8b4c0" font-size="28" font-weight="bold" font-family="serif">336</text>
+  <text x="400" y="1220" fill="#a8b4c0" font-size="8" letter-spacing="2">MODULES</text>
+  <text x="600" y="1200" fill="#c9a227" font-size="28" font-weight="bold" font-family="serif">125</text>
+  <text x="600" y="1220" fill="#a8b4c0" font-size="8" letter-spacing="2">NIF FUNCTIONS</text>
+  <text x="800" y="1200" fill="#9b2335" font-size="28" font-weight="bold" font-family="serif">2,609</text>
+  <text x="800" y="1220" fill="#a8b4c0" font-size="8" letter-spacing="2">HOLONS</text>
+  <text x="1000" y="1200" fill="#2a9d8f" font-size="28" font-weight="bold" font-family="serif">73</text>
+  <text x="1000" y="1220" fill="#a8b4c0" font-size="8" letter-spacing="2">MCP TOOLS</text>
+</g>
+
+<!-- ═══════ EVOLUTION TIMELINE ═══════ -->
+<g transform="translate(100, 1260)">
+  <text x="500" y="0" text-anchor="middle" fill="#c9a227" font-size="10" letter-spacing="6">THE VOYAGE FROM DARKNESS TO LIGHT</text>
+  <line x1="0" y1="12" x2="1000" y2="12" stroke="#c9a227" stroke-width="0.5" opacity="0.15"/>
+  <!-- Progressive illumination: each version brighter -->
+  <g font-family="Inter, sans-serif" font-size="8">
+    <rect x="0" y="22" width="160" height="45" fill="none" stroke="#a8b4c0" stroke-width="0.6" opacity="0.2"/>
+    <text x="80" y="42" text-anchor="middle" fill="#a8b4c0" font-size="11" font-family="serif" opacity="0.5">Darkness</text>
+    <text x="80" y="58" text-anchor="middle" fill="#a8b4c0" font-size="7" opacity="0.3">Mar 29 | No light</text>
+
+    <rect x="185" y="20" width="170" height="47" fill="none" stroke="#4d7fff" stroke-width="0.6" opacity="0.25"/>
+    <text x="270" y="42" text-anchor="middle" fill="#4d7fff" font-size="11" font-family="serif">Spark</text>
+    <text x="270" y="58" text-anchor="middle" fill="#a8b4c0" font-size="7" opacity="0.4">v22.4.0 | First flame</text>
+
+    <rect x="380" y="18" width="170" height="49" fill="none" stroke="#c9a227" stroke-width="0.6" opacity="0.3"/>
+    <text x="465" y="42" text-anchor="middle" fill="#c9a227" font-size="11" font-family="serif">Flame</text>
+    <text x="465" y="58" text-anchor="middle" fill="#a8b4c0" font-size="7" opacity="0.4">v22.5.0 | 8,000 LOC</text>
+
+    <rect x="575" y="16" width="170" height="51" fill="none" stroke="#9b2335" stroke-width="0.6" opacity="0.3"/>
+    <text x="660" y="42" text-anchor="middle" fill="#9b2335" font-size="11" font-family="serif">Fire</text>
+    <text x="660" y="58" text-anchor="middle" fill="#a8b4c0" font-size="7" opacity="0.4">v22.6.0 | Truth awakens</text>
+
+    <rect x="770" y="14" width="230" height="53" fill="none" stroke="#c9a227" stroke-width="1.2" opacity="0.45" filter="url(#lh-gl-sm)"/>
+    <text x="885" y="40" text-anchor="middle" fill="#c9a227" font-size="14" font-family="serif" font-weight="bold" filter="url(#lh-gl-sm)">BEACON</text>
+    <text x="885" y="56" text-anchor="middle" fill="#c9a227" font-size="8" opacity="0.6">v22.6.1 DHARMA+ | Self-aware</text>
+  </g>
+</g>
+
+<!-- ═══════ FRESHNESS ESCALATION (truth monitoring) ═══════ -->
+<g transform="translate(100, 1345)" font-family="Inter, sans-serif" font-size="8">
+  <text x="500" y="0" text-anchor="middle" fill="#c9a227" font-size="9" letter-spacing="4" font-family="serif">TRUTH FRESHNESS PROTOCOL (SC-TRUTH)</text>
+  <g fill="#a8b4c0" opacity="0.5">
+    <rect x="0" y="12" width="220" height="22" rx="2" fill="none" stroke="#4caf6a" stroke-width="0.6" opacity="0.4"/>
+    <circle cx="15" cy="23" r="4" fill="#4caf6a" opacity="0.5"/>
+    <text x="30" y="26">FRESH (&lt;60s) Dark Cockpit</text>
+
+    <rect x="250" y="12" width="220" height="22" rx="2" fill="none" stroke="#c9a227" stroke-width="0.6" opacity="0.4"/>
+    <circle cx="265" cy="23" r="4" fill="#c9a227" opacity="0.5"/>
+    <text x="280" y="26">STALE (60-120s) Amber alert</text>
+
+    <rect x="500" y="12" width="220" height="22" rx="2" fill="none" stroke="#9b2335" stroke-width="0.6" opacity="0.4"/>
+    <circle cx="515" cy="23" r="4" fill="#9b2335" opacity="0.5"/>
+    <text x="530" y="26">DEGRADED (2-5m) Hot reload</text>
+
+    <rect x="750" y="12" width="250" height="22" rx="2" fill="none" stroke="#9b2335" stroke-width="1" opacity="0.5"/>
+    <circle cx="765" cy="23" r="4" fill="#9b2335" opacity="0.7"/>
+    <text x="780" y="26" fill="#9b2335">DEAD (&gt;5m) EMERGENCY halt</text>
+  </g>
+</g>
+
+<!-- ═══════ TENSOR ═══════ -->
+<text x="600" y="1420" text-anchor="middle" fill="#c9a227" font-size="12" font-family="Inter, sans-serif">Biomorphic Tensor: <tspan font-weight="bold" font-size="16">47/56</tspan> = <tspan font-weight="bold" font-size="16">83.9%</tspan></text>
+
+<!-- ═══════ TAGLINE ═══════ -->
+<line x1="200" y1="1445" x2="1000" y2="1445" stroke="#c9a227" stroke-width="0.8" opacity="0.2"/>
+<text x="600" y="1478" text-anchor="middle" fill="#c9a227" font-size="16" letter-spacing="10" font-weight="bold">INTEGRATED. OPTIMIZED. CONNECTED.</text>
+<line x1="200" y1="1492" x2="1000" y2="1492" stroke="#c9a227" stroke-width="0.8" opacity="0.2"/>
+
+<!-- ═══════ THE SEVEN WISDOMS (philosophical footer) ═══════ -->
+<g transform="translate(100, 1520)" font-family="Inter, sans-serif" font-size="8" fill="#a8b4c0" opacity="0.4">
+  <text x="500" y="0" text-anchor="middle" fill="#c9a227" font-size="9" letter-spacing="4" font-family="serif" opacity="0.6">FOUR PILLARS OF STRATEGIC WISDOM</text>
+  <text x="0" y="22" fill="#c9a227" opacity="0.5">Bhagavad Gita</text>
+  <text x="0" y="35">Nishkama Karma — act without attachment to outcome</text>
+  <text x="250" y="22" fill="#c9a227" opacity="0.5">Arthashastra</text>
+  <text x="250" y="35">Dandaniti — the science of governance over the mesh</text>
+  <text x="530" y="22" fill="#c9a227" opacity="0.5">Sun Tzu</text>
+  <text x="530" y="35">Know yourself, know the system — never be defeated</text>
+  <text x="780" y="22" fill="#c9a227" opacity="0.5">Musashi</text>
+  <text x="780" y="35">Do nothing which is of no use — Muda elimination</text>
+</g>
+
+<!-- ═══════ BOTTOM VERSE ═══════ -->
+<line x1="200" y1="1610" x2="1000" y2="1610" stroke="#c9a227" stroke-width="0.5" opacity="0.2"/>
+<text x="600" y="1640" text-anchor="middle" fill="#c9a227" font-size="16" font-family="'Noto Sans Devanagari', serif" letter-spacing="2">
+  ज्ञानेन तु तदज्ञानं येषां नाशितमात्मनः
+</text>
+<text x="600" y="1665" text-anchor="middle" fill="#a8b4c0" font-size="11" font-style="italic" font-weight="300" font-family="Inter, sans-serif">
+  By knowledge, the ignorance of the Self is destroyed — knowledge shines like the sun
+</text>
+<text x="600" y="1685" text-anchor="middle" fill="#a8b4c0" font-size="9" font-family="Inter, sans-serif" opacity="0.4">Bhagavad Gita 5.16</text>
+
+<!-- ═══════ SC-TRUTH INVIOLABLE ═══════ -->
+<text x="600" y="1720" text-anchor="middle" fill="#9b2335" font-size="10" font-family="Inter, sans-serif" letter-spacing="2" opacity="0.3">
+  STALE DATA IS A LIE. A LIE IN A SAFETY-CRITICAL SYSTEM KILLS. — SC-TRUTH-001
+</text>
+
+<text x="600" y="1758" text-anchor="middle" fill="#c9a227" font-size="8" font-family="Inter, sans-serif" letter-spacing="4" opacity="0.25">C3I INDRAJAAL v22.6.1-DHARMA | THE LIGHTHOUSE OF TRUTH | APRIL 2026</text>
+</svg>

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>C3I System Overview — Analysis</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0b0f14;--card:#141922;--b:#30363d;--text:#e6edf3;--mute:#7d8590;--acc:#58a6ff;--ok:#3fb950;--warn:#f0b429;--bad:#f85149;--p:#6e40c9}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);padding:32px;max-width:1400px;margin:0 auto;line-height:1.55}
+h1{color:var(--acc);font-size:28px;margin-bottom:4px}
+h2{color:var(--warn);font-size:20px;margin:28px 0 12px;border-bottom:1px solid var(--b);padding-bottom:6px}
+h3{color:var(--ok);font-size:14px;text-transform:uppercase;letter-spacing:.6px;margin:0 0 8px}
+.sub{color:var(--mute);margin-bottom:24px;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--b);border-radius:10px;padding:14px}
+.kpi{font-size:22px;font-weight:700}
+.mini{color:var(--mute);font-size:12px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--b);border-radius:10px;overflow:hidden;margin-bottom:18px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--b);font-size:13px}
+th{background:#1a2332;color:var(--acc);font-weight:600;text-transform:uppercase;font-size:11px;letter-spacing:.5px}
+tr:last-child td{border-bottom:none}
+img{max-width:100%;border:1px solid var(--b);border-radius:8px;display:block;margin:12px 0}
+code{background:#1a2332;color:var(--ok);padding:1px 6px;border-radius:4px;font-size:12px;font-family:ui-monospace,Menlo,monospace}
+.pass{color:var(--ok);font-weight:600}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+ul{padding-left:20px;line-height:1.8}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#1f6feb;color:#fff;margin-right:4px}
+.p-ok{background:#238636}.p-w{background:#9e6a03}.p-b{background:#da3633}.p-p{background:#6e40c9}
+</style></head><body>
+
+<h1>C3I — System Overview · Analysis</h1>
+<div class="sub">Task 116453739628625571 · v22.5.0-CORTEX · <a style="color:var(--acc)" href="https://vm-1.tail55d152.ts.net:8443/task-id/116453739628625571">live dashboard</a></div>
+
+<div class="grid">
+  <div class="card"><h3>Agents</h3><div class="kpi">25</div><div class="mini">1 Opus · 4 Sonnet · 20 Haiku</div></div>
+  <div class="card"><h3>Fractal layers</h3><div class="kpi">L0 → L7</div><div class="mini">8 self-similar holons</div></div>
+  <div class="card"><h3>UI pages</h3><div class="kpi">62</div><div class="mini">24 Lustre + 15 Wisp + 23 TUI</div></div>
+  <div class="card"><h3>AG-UI events</h3><div class="kpi">32</div><div class="mini">Run / Step / Tool / HITL</div></div>
+  <div class="card"><h3>A2UI catalog</h3><div class="kpi">16</div><div class="mini">allowlisted components</div></div>
+  <div class="card"><h3>Tests</h3><div class="kpi">1 559</div><div class="mini">0 failures</div></div>
+  <div class="card"><h3>Shannon H</h3><div class="kpi">2.67</div><div class="mini">gate ≥ 2.5 <span class="pass">PASS</span></div></div>
+  <div class="card"><h3>ITQS</h3><div class="kpi">0.736</div><div class="mini">gate ≥ 0.85 <span class="warn">WATCH</span></div></div>
+</div>
+
+<h2>1 · What the system is</h2>
+<p>C3I is a constitutionally-governed, SIL-6 multi-agent operating platform. It turns an AI agent fleet into
+an auditable control system by fusing a 25-agent biomorphic swarm, an 8-layer fractal holonic architecture,
+a triple-interface Gleam UI, and a symbiotic Pi bridge over a Zenoh / OTel mesh.</p>
+
+<h2>2 · Control plane — the 25-agent swarm</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-control-plane.png" alt="Control plane">
+<table>
+<tr><th>Layer</th><th>Agents</th><th>Model</th><th>Responsibility</th></tr>
+<tr><td>L1 Executive</td><td>master-supervisor</td><td>Opus</td><td>orchestration · Guardian keys</td></tr>
+<tr><td>L2 Supervisors</td><td>design / build / deploy / operate</td><td>Sonnet</td><td>domain coordination</td></tr>
+<tr><td>L3 Workers</td><td>fractal-architect · code-evolution · gleam-coverage-engineer · wallaby-coverage-engineer · coverage-audit-agent · code-reviewer · code-debugger · test-generator · sil6-validator · +11</td><td>Haiku</td><td>execution</td></tr>
+</table>
+
+<h2>3 · Data plane</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-data-plane.png" alt="Data plane">
+<div class="two">
+<div class="card"><h3>Triple-interface UI</h3><ul>
+<li>Lustre MVU — 24 SSR pages, no client JS</li>
+<li>Wisp — 15 typed REST handlers</li>
+<li>TUI + Split-Screen — 23 ANSI views</li>
+<li><code>ui/domain.gleam</code> — single type source</li>
+<li>Zero warnings (SC-CMP-025)</li>
+</ul></div>
+<div class="card"><h3>Mesh &amp; storage</h3><ul>
+<li>Zenoh pub/sub — <code>indrajaal/**</code></li>
+<li>OTel spans via <code>ui/zenoh_otel.gleam</code></li>
+<li>Smriti.db — Pi sessions, journals</li>
+<li>fy27-plan.db — tasks (SIL-6)</li>
+<li>Zettelkasten — FTS5 + fractal tags</li>
+</ul></div>
+</div>
+
+<h2>4 · Fractal layers (L0–L7)</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-fractal-impact.png" alt="Fractal layers">
+<table>
+<tr><th>Layer</th><th>Module</th><th>LOC</th><th>HITL</th><th>Role</th></tr>
+<tr><td><span class="pill p-b">L0</span></td><td>l0_constitutional.gleam</td><td>176</td><td class="bad">mandatory</td><td>Ψ invariants · Guardian gate</td></tr>
+<tr><td><span class="pill p-w">L1</span></td><td>l1_atomic_debug.gleam</td><td>118</td><td>opt</td><td>trace · assert</td></tr>
+<tr><td><span class="pill p-w">L2</span></td><td>l2_component.gleam</td><td>112</td><td>—</td><td>typed widgets · A2UI</td></tr>
+<tr><td><span class="pill p-ok">L3</span></td><td>l3_transaction.gleam</td><td>144</td><td>opt</td><td>Smriti sessions</td></tr>
+<tr><td><span class="pill p-ok">L4</span></td><td>l4_system.gleam</td><td>202</td><td>opt</td><td>circuit breakers · pods</td></tr>
+<tr><td><span class="pill">L5</span></td><td>l5_cognitive.gleam</td><td>149</td><td>opt</td><td>OODA · model resolver</td></tr>
+<tr><td><span class="pill">L6</span></td><td>l6_ecosystem.gleam</td><td>105</td><td>opt</td><td>extension bus · skills</td></tr>
+<tr><td><span class="pill p-p">L7</span></td><td>l7_federation.gleam</td><td>101</td><td>opt</td><td>MOM · Slack · Telegram</td></tr>
+</table>
+
+<h2>5 · Event & message flow</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-message-sequence.png" alt="Message sequence">
+<p>Every user intent → Lustre/Wisp/TUI emits <code>AG-UI RunStarted</code> → Zenoh → Pi agent dispatches tools
+(L0-gated by Guardian if destructive) → <code>ToolCall</code> / <code>ToolResult</code> stream back → UI
+re-renders → OTel span ingested into ZK.</p>
+
+<h2>6 · OODA cognitive state machine</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-state-machine.png" alt="State machine">
+<p>Observe → Orient → Decide → Act → Verify. Any Ψ-invariant failure or open circuit breaker diverts to
+Quarantine, where only a HITL clearance returns the system to Observe.</p>
+
+<h2>7 · Testing &amp; math gates</h2>
+<table>
+<tr><th>Metric</th><th>Formula</th><th>Threshold</th><th>Current</th><th>Status</th></tr>
+<tr><td>H</td><td>−Σ (n_i/N)·log₂(n_i/N)</td><td>≥ 2.5</td><td>2.67</td><td class="pass">PASS</td></tr>
+<tr><td>CCM</td><td>Σ w_i·cov_i / Σ w_i</td><td>≥ 0.90</td><td>0.770</td><td class="warn">WATCH</td></tr>
+<tr><td>D_EA</td><td>|exp\tst|/|exp|</td><td>≤ 0.10</td><td>~0.10</td><td class="warn">WATCH</td></tr>
+<tr><td>ITQS</td><td>0.25·H_n + 0.35·CCM + 0.25·(1-D_EA) + 0.15·FSI</td><td>≥ 0.85</td><td>0.736</td><td class="warn">WATCH</td></tr>
+<tr><td>Tests</td><td>gleeunit + Wallaby</td><td>0 failures</td><td>1 559 / 0</td><td class="pass">PASS</td></tr>
+</table>
+
+<h2>8 · Live dashboard (capture)</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-dashboard-http.png" alt="Live dashboard">
+
+<h2>9 · Task page (capture)</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-task-page.png" alt="Task page">
+
+<h2>10 · System overview card (capture)</h2>
+<img src="20260423-111728-task-116453739628625571-c3i-system-overview-system-overview.png" alt="Overview card">
+
+<h2>11 · STAMP / constitutional anchor</h2>
+<ul>
+<li>SC-GLM-UI-001 · triple-interface mandate</li>
+<li>SC-GLM-ZEN-001..003 · Zenoh OTel</li>
+<li>SC-AGUI · 32-event protocol</li>
+<li>SC-A2UI · allowlisted catalog</li>
+<li>SC-BIO-001 · 25-agent cap</li>
+<li>SC-HINT-001..008 · human-intent protection</li>
+<li>SC-PASS5-AUTO-001 · this pipeline</li>
+<li>SC-RECALL-RAG · ZK citations (this doc cites 10 holons)</li>
+<li>SC-MUDA-001 · zero waste</li>
+</ul>
+
+<h2>12 · ZK holons cited</h2>
+<p><code>zk-de7ca7e9a63571d9</code>, <code>zk-6ec2e84145874047</code>, <code>zk-c3b7a9f9daca60f3</code>,
+<code>zk-c8d9ce16675cdbae</code>, <code>zk-67d51df3850e95aa</code>, <code>zk-12597fb7e6ba901a</code>,
+<code>zk-3379a591f9350d32</code>, <code>zk-717079d52611c33a</code>, <code>zk-85fdab1485cad668</code>,
+<code>zk-08ae428c07d0d4b7</code>.</p>
+
+</body></html>

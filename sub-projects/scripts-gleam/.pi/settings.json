@@ -1,0 +1,4 @@
+{
+  "shellCommandPrefix": "source /home/an/dev/ver/c3i/sub-projects/scripts-gleam/.pi/shell-init.sh",
+  "defaultThinkingLevel": "medium"
+}

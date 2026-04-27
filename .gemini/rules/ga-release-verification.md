@@ -6,7 +6,7 @@ paths:
 ---
 # GA Release v21.2.1-SIL6 Verification Rules
 # STAMP/AOR Reference
-> SC-GA-001 to SC-GA-010 (all VERIFIED), AOR-GA-001 to AOR-GA-008 — see CLAUDE.md §5.0, §9.0
+> SC-GA-001 to SC-GA-010 (all VERIFIED), AOR-GA-001 to AOR-GA-008 — see GEMINI.md §5.0, §9.0
 > Key gates: 0 errors/warnings, 0 test failures, F# builds, containers operational, 95%+ coverage
 # 5-Order Effects Matrix
 # Compile Command (SC-CMD-004)
@@ -80,7 +80,7 @@ sa-status          # Check status
 sa-logs            # View logs
 ```
 # TDG Requirements
-> Dual property tests (PC. + SD.) mandatory — see CLAUDE.md §7.0, EP-GEN-014
+> Dual property tests (PC. + SD.) mandatory — see GEMINI.md §7.0, EP-GEN-014
 # FMEA Mitigations
 | Failure Mode | RPN | Mitigation |
 |--------------|-----|------------|
@@ -94,5 +94,5 @@ sa-logs            # View logs
 | Version | 21.2.1-SIL6 |
 | Created | 2026-01-03 |
 | Last Updated | 2026-03-19 |
-| Author | Claude Opus 4.6 |
+| Author | Gemini Opus 4.6 |
 | STAMP | SC-GA-001 to SC-GA-010, SC-CMD-001 to SC-CMD-029, 641+ constraints total |

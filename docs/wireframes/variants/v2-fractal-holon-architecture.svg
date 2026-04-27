@@ -1,0 +1,97 @@
+<svg width="2400" height="1600" viewBox="0 0 2400 1600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="emerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#004D40"/>
+      <stop offset="50%" stop-color="#00695C"/>
+      <stop offset="100%" stop-color="#00897B"/>
+    </linearGradient>
+    <style>
+      .bg { fill: #FAFAFA; }
+      .title { font-family: 'Georgia', serif; font-size: 80px; fill: #004D40; font-weight: bold; letter-spacing: 12px; }
+      .subtitle { font-family: 'Courier New', monospace; font-size: 24px; fill: #D84315; letter-spacing: 4px; }
+      .data-text { font-family: 'Roboto', sans-serif; font-size: 16px; fill: #37474F; }
+      .node-text { font-family: 'Georgia', serif; font-size: 22px; fill: #FFFFFF; font-weight: bold; }
+      .edge { stroke: #00695C; stroke-width: 2; fill: none; opacity: 0.5; }
+      .deco-box { fill: url(#emerald); stroke: #D84315; stroke-width: 4; }
+    </style>
+  </defs>
+  
+  <rect width="2400" height="1600" class="bg"/>
+  
+  <text x="120" y="150" class="title">THE FRACTAL HOLON ARCHITECTURE</text>
+  <text x="120" y="210" class="subtitle">VARIANT II / L0-L7 MESH TOPOLOGY / C3I DATA-VIZ</text>
+  
+  <g transform="translate(1200, 850)">
+    <!-- Central Node -->
+    <polygon points="0,-100 100,0 0,100 -100,0" class="deco-box"/>
+    <text x="0" y="8" text-anchor="middle" class="node-text">SMRITI</text>
+    <text x="0" y="40" text-anchor="middle" class="data-text" fill="white">2710 Tasks</text>
+    
+    <!-- L0 - L7 Nodes -->
+    <!-- L0 -->
+    <path d="M 0,-100 L 0,-300" class="edge"/>
+    <polygon points="0,-400 80,-300 0,-200 -80,-300" class="deco-box"/>
+    <text x="0" y="-292" text-anchor="middle" class="node-text">L0</text>
+    <text x="0" y="-330" text-anchor="middle" class="data-text" fill="white">Constitutional</text>
+    <text x="100" y="-300" class="data-text">Agents: safety-validator, sil6-validator</text>
+    <text x="100" y="-280" class="data-text">Rules: functional-invariant.md</text>
+    
+    <!-- L1 -->
+    <path d="M 70,-70 L 250,-250" class="edge"/>
+    <polygon points="250,-350 330,-250 250,-150 170,-250" class="deco-box"/>
+    <text x="250" y="-242" text-anchor="middle" class="node-text">L1</text>
+    <text x="250" y="-280" text-anchor="middle" class="data-text" fill="white">Atomic Debug</text>
+    <text x="350" y="-250" class="data-text">Skills: cepaf-zenoh-expert</text>
+    <text x="350" y="-230" class="data-text">Rules: zenoh-telemetry-mandatory</text>
+    
+    <!-- L2 -->
+    <path d="M 100,0 L 400,0" class="edge"/>
+    <polygon points="400,-100 480,0 400,100 320,0" class="deco-box"/>
+    <text x="400" y="8" text-anchor="middle" class="node-text">L2</text>
+    <text x="400" y="-30" text-anchor="middle" class="data-text" fill="white">Component</text>
+    <text x="500" y="0" class="data-text">Agents: build-supervisor</text>
+    <text x="500" y="20" class="data-text">Skills: gleam-expert</text>
+    
+    <!-- L3 -->
+    <path d="M 70,70 L 250,250" class="edge"/>
+    <polygon points="250,150 330,250 250,350 170,250" class="deco-box"/>
+    <text x="250" y="258" text-anchor="middle" class="node-text">L3</text>
+    <text x="250" y="220" text-anchor="middle" class="data-text" fill="white">Transaction</text>
+    <text x="350" y="250" class="data-text">Agents: holon-analyzer</text>
+    <text x="350" y="270" class="data-text">Rules: concurrent-bug-fix-protocol</text>
+    
+    <!-- L4 -->
+    <path d="M 0,100 L 0,300" class="edge"/>
+    <polygon points="0,200 80,300 0,400 -80,300" class="deco-box"/>
+    <text x="0" y="308" text-anchor="middle" class="node-text">L4</text>
+    <text x="0" y="270" text-anchor="middle" class="data-text" fill="white">System</text>
+    <text x="-100" y="300" text-anchor="end" class="data-text">Agents: deploy-supervisor</text>
+    <text x="-100" y="320" text-anchor="end" class="data-text">Skills: cepaf-podman-expert</text>
+    
+    <!-- L5 -->
+    <path d="M -70,70 L -250,250" class="edge"/>
+    <polygon points="-250,150 -170,250 -250,350 -330,250" class="deco-box"/>
+    <text x="-250" y="258" text-anchor="middle" class="node-text">L5</text>
+    <text x="-250" y="220" text-anchor="middle" class="data-text" fill="white">Cognitive</text>
+    <text x="-350" y="250" text-anchor="end" class="data-text">Agents: fmea-analyzer</text>
+    <text x="-350" y="270" text-anchor="end" class="data-text">Rules: biomorphic-mode.md</text>
+    
+    <!-- L6 -->
+    <path d="M -100,0 L -400,0" class="edge"/>
+    <polygon points="-400,-100 -320,0 -400,100 -480,0" class="deco-box"/>
+    <text x="-400" y="8" text-anchor="middle" class="node-text">L6</text>
+    <text x="-400" y="-30" text-anchor="middle" class="data-text" fill="white">Ecosystem</text>
+    <text x="-500" y="0" text-anchor="end" class="data-text">Agents: zenoh-mesh-analyzer</text>
+    <text x="-500" y="20" text-anchor="end" class="data-text">Skills: swarm-verification-expert</text>
+    
+    <!-- L7 -->
+    <path d="M -70,-70 L -250,-250" class="edge"/>
+    <polygon points="-250,-350 -170,-250 -250,-150 -330,-250" class="deco-box"/>
+    <text x="-250" y="-242" text-anchor="middle" class="node-text">L7</text>
+    <text x="-250" y="-280" text-anchor="middle" class="data-text" fill="white">Federation</text>
+    <text x="-350" y="-250" text-anchor="end" class="data-text">Agents: master-supervisor</text>
+    <text x="-350" y="-230" text-anchor="end" class="data-text">Rules: ultrathink-mandate.md</text>
+  </g>
+  
+  <text x="120" y="1500" class="data-text">Metrics: 30 Agents | 75 Rules | 18 Skills | 123 Artifacts Total | 100% Fractal Layer Coverage</text>
+</svg>

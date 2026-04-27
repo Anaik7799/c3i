@@ -1,0 +1,26 @@
+digraph PiSub {
+  rankdir=TB; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica";
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed" fillcolor="#141922" color="#1e2a3a"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=10];
+
+  PiBridge [label="pi-mono (TypeScript)\n3,494 LOC"];
+  ZR [label="Zenoh mesh\nindrajaal/pi/**"];
+  Sub [label="actors/pi_subscriber.gleam\nPiSubscriberState\nhandle_message (pub)" fillcolor="#0e2a1e" color="#3dd68c"];
+  Agent [label="bridge/pi_agent\nfederated_tool_count"];
+  Tools [label="bridge/pi_tools\n43 tools"];
+  Provider [label="bridge/pi_provider"];
+  ClaudeCode [label="bridge/pi_claude_code"];
+  Ze [label="bridge/pi_zenoh\nall_pi_topics()"];
+  OTel [label="ui/zenoh_otel\nemit(Bridge, ...)"];
+  Smriti [label="smriti.db\n(session persistence)"];
+
+  PiBridge -> ZR [label="pub events"];
+  ZR -> Sub [label="PiEvent(topic,payload)"];
+  Sub -> OTel [label="emit span"];
+  Sub -> Agent [label="health probe"];
+  Sub -> Tools [label="tool_count()"];
+  Sub -> Provider [label="tier_count()"];
+  Sub -> ClaudeCode [label="mapped_pi_event_count()"];
+  Sub -> Ze [label="all_pi_topics()"];
+  Sub -> Smriti [label="persist session" style=dashed color="#f5a623"];
+}

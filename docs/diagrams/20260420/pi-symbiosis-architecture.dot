@@ -1,0 +1,90 @@
+digraph PiSymbiosis {
+    rankdir=TB;
+    bgcolor="#0a0e17";
+    node [style=filled, fontname="Helvetica", fontsize=11, color="#1e2a3a"];
+    edge [color="#00d4aa", fontcolor="#7a8fa6", fontsize=9];
+
+    // Title
+    labelloc="t";
+    label="C3I x Pi-Mono Symbiosis Architecture\nv22.10.0-FULL-AUTONOMY | 2026-04-20";
+    fontcolor="#00d4aa";
+    fontsize=16;
+    fontname="Helvetica-Bold";
+
+    subgraph cluster_claude {
+        label="Claude Code Harness";
+        style=filled; fillcolor="#141922"; fontcolor="#00d4aa";
+        color="#1e2a3a";
+
+        claude_read [label="Read Tool", fillcolor="#1a2332", fontcolor="#e0e6ed"];
+        claude_write [label="Write Tool", fillcolor="#1a2332", fontcolor="#e0e6ed"];
+        claude_edit [label="Edit Tool", fillcolor="#1a2332", fontcolor="#e0e6ed"];
+        claude_bash [label="Bash Tool", fillcolor="#1a2332", fontcolor="#e0e6ed"];
+        claude_agent [label="Agent Tool", fillcolor="#1a2332", fontcolor="#e0e6ed"];
+        claude_grep [label="Grep/Glob", fillcolor="#1a2332", fontcolor="#e0e6ed"];
+    }
+
+    subgraph cluster_bridge {
+        label="Gleam Bridge Layer (L6)";
+        style=filled; fillcolor="#0f1520"; fontcolor="#f5a623";
+        color="#f5a623";
+
+        pi_claude_code [label="pi_claude_code.gleam\nEvent Mapper + Tool Federation", fillcolor="#2a1a10", fontcolor="#f5a623", shape=box];
+        pi_agent [label="pi_agent.gleam\n29 Pi Events", fillcolor="#1a2332", fontcolor="#e0e6ed", shape=box];
+        pi_tools [label="pi_tools.gleam\n87 Federated Tools", fillcolor="#1a2332", fontcolor="#e0e6ed", shape=box];
+        pi_session [label="pi_session.gleam\nJSONL -> SQLite", fillcolor="#1a2332", fontcolor="#e0e6ed", shape=box];
+        pi_provider [label="pi_provider.gleam\n6-Tier Cascade", fillcolor="#1a2332", fontcolor="#e0e6ed", shape=box];
+        pi_zenoh [label="pi_zenoh.gleam\nZenoh Publisher", fillcolor="#1a2332", fontcolor="#e0e6ed", shape=box];
+    }
+
+    subgraph cluster_pi {
+        label="Pi-Mono (TypeScript, 106K LOC)";
+        style=filled; fillcolor="#141922"; fontcolor="#3dd68c";
+        color="#3dd68c";
+
+        pi_ai [label="pi-ai\n27K LOC\n15 LLM Providers", fillcolor="#0d1f15", fontcolor="#3dd68c"];
+        pi_coding [label="pi-coding-agent\n46K LOC\nInteractive CLI", fillcolor="#0d1f15", fontcolor="#3dd68c"];
+        pi_tui [label="pi-tui\n11K LOC\nTerminal UI", fillcolor="#0d1f15", fontcolor="#3dd68c"];
+        pi_web [label="pi-web-ui\n15K LOC\nWeb Components", fillcolor="#0d1f15", fontcolor="#3dd68c"];
+        pi_rpc [label="RPC Protocol\nJSON-RPC/JSONL", fillcolor="#0d1f15", fontcolor="#3dd68c", shape=diamond];
+    }
+
+    subgraph cluster_c3i {
+        label="C3I Core (Gleam + Rust)";
+        style=filled; fillcolor="#141922"; fontcolor="#00d4aa";
+        color="#00d4aa";
+
+        agui [label="AG-UI\n32 Events", fillcolor="#0a1a1a", fontcolor="#00d4aa"];
+        zenoh [label="Zenoh Mesh\nTCP 7447", fillcolor="#0a1a1a", fontcolor="#00d4aa"];
+        smriti [label="Smriti.db\nSQLite KMS", fillcolor="#0a1a1a", fontcolor="#00d4aa"];
+        cortex [label="Rust Cortex\n31 modules\n9.1K LOC", fillcolor="#0a1a1a", fontcolor="#00d4aa"];
+        lustre [label="Lustre UI\n31 pages", fillcolor="#0a1a1a", fontcolor="#00d4aa"];
+        rete [label="RETE-UL\n52 GRL Rules", fillcolor="#0a1a1a", fontcolor="#00d4aa"];
+    }
+
+    // Claude -> Bridge
+    claude_read -> pi_claude_code [label="map_tool"];
+    claude_write -> pi_claude_code;
+    claude_bash -> pi_claude_code;
+    claude_agent -> pi_claude_code [label="RPC spawn"];
+
+    // Bridge internal
+    pi_claude_code -> pi_agent [label="event_map"];
+    pi_claude_code -> pi_tools [label="tool_fed"];
+    pi_agent -> pi_zenoh [label="publish"];
+    pi_session -> smriti [label="persist"];
+    pi_provider -> cortex [label="inference"];
+
+    // Pi -> Bridge
+    pi_rpc -> pi_claude_code [label="JSONL", style=dashed];
+    pi_coding -> pi_rpc;
+    pi_ai -> pi_coding;
+    pi_tui -> pi_coding;
+    pi_web -> pi_coding;
+
+    // Bridge -> C3I
+    pi_zenoh -> zenoh [label="pub/sub"];
+    pi_agent -> agui [label="32 events"];
+    pi_tools -> rete [label="tool calls"];
+    pi_tools -> lustre [label="UI update"];
+}

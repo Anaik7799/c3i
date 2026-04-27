@@ -120,7 +120,7 @@ Rust E2E binary (179+ tests across 25 sections A-Y):
 13-section journal: scope, pre-state, execution, RCA, fix taxonomy, patterns,
   verification matrix, files, architecture, gaps, metrics, STAMP, conclusion.
 Email via SMTP: sa-plan-daemon send-email (NEVER Gmail MCP).
-Update .claude/rules, .claude/agents, .claude/commands with cross-links.
+Update .gemini/rules, .gemini/agents, .gemini/commands with cross-links.
 
 ═══ VERIFICATION CRITERIA (ALL must pass) ═══
 [ ] Gleam build: 0 errors, 0 warnings in modified files
@@ -146,21 +146,21 @@ Update .claude/rules, .claude/agents, .claude/commands with cross-links.
 
 | Artifact | Path | Sections | STAMP |
 |----------|------|----------|-------|
-| **This prompt** | `.claude/commands/c3i-page-evolution.md` | 8 phases + verification | All SC-AGUI-UI-* |
-| **Rule** | `.claude/rules/agentic-ui-responsive-design.md` | 14 sections | SC-AGUI-UI-001..015 |
-| **Skill** | `.claude/commands/agentic-ui-evolve.md` | 10 phases + criteria | SC-AGUI-UI-001..015 |
-| **Agent** | `.claude/agents/agentic-ui-designer.md` | 5-step workflow | SC-AGUI-UI-001..015 |
+| **This prompt** | `.gemini/commands/c3i-page-evolution.md` | 8 phases + verification | All SC-AGUI-UI-* |
+| **Rule** | `.gemini/rules/agentic-ui-responsive-design.md` | 14 sections | SC-AGUI-UI-001..015 |
+| **Skill** | `.gemini/commands/agentic-ui-evolve.md` | 10 phases + criteria | SC-AGUI-UI-001..015 |
+| **Agent** | `.gemini/agents/agentic-ui-designer.md` | 5-step workflow | SC-AGUI-UI-001..015 |
 | **Spec** | `docs/architecture/planning-page-specification.md` | 15 sections | SC-GLM-UI-001 |
 | **Journal** | `docs/journal/20260411-planning-page-evolution.md` | 13 sections | SC-SYNC-DOC-002 |
-| **Gleam UI rule** | `.claude/rules/gleam-web-ui-development.md` | 16 sections | SC-GLM-UI-001..010 |
-| **UI graph testing** | `.claude/rules/ui-graph-testing.md` | DAG + LTS + prime paths | SC-UIGT-001..015 |
-| **Wiring guard** | `.claude/rules/wiring-guard.md` | Model constructor safety | SC-WIRE-001..007 |
-| **Muda waste** | `.claude/rules/muda-waste-reduction.md` | 7 wastes, zero warnings | SC-MUDA-001 |
-| **Ultrathink** | `.claude/rules/ultrathink-mandate.md` | 10 focus areas | SC-ULTRA-001 |
-| **Core protocols** | `.claude/rules/core-protocols.md` | Functional invariant | SC-FUNC-001 |
-| **Rust-Gleam split** | `.claude/rules/rust-gleam-split.md` | Architecture boundary | SC-ARCH-SPLIT-001..004 |
-| **Build & test** | `.claude/rules/build-and-test.md` | Compile env + CPU gov | SC-ENV-COMPILE |
-| **Zenoh telemetry** | `.claude/rules/zenoh-telemetry-mandatory.md` | OTel spans | SC-GLM-ZEN-001..003 |
+| **Gleam UI rule** | `.gemini/rules/gleam-web-ui-development.md` | 16 sections | SC-GLM-UI-001..010 |
+| **UI graph testing** | `.gemini/rules/ui-graph-testing.md` | DAG + LTS + prime paths | SC-UIGT-001..015 |
+| **Wiring guard** | `.gemini/rules/wiring-guard.md` | Model constructor safety | SC-WIRE-001..007 |
+| **Muda waste** | `.gemini/rules/muda-waste-reduction.md` | 7 wastes, zero warnings | SC-MUDA-001 |
+| **Ultrathink** | `.gemini/rules/ultrathink-mandate.md` | 10 focus areas | SC-ULTRA-001 |
+| **Core protocols** | `.gemini/rules/core-protocols.md` | Functional invariant | SC-FUNC-001 |
+| **Rust-Gleam split** | `.gemini/rules/rust-gleam-split.md` | Architecture boundary | SC-ARCH-SPLIT-001..004 |
+| **Build & test** | `.gemini/rules/build-and-test.md` | Compile env + CPU gov | SC-ENV-COMPILE |
+| **Zenoh telemetry** | `.gemini/rules/zenoh-telemetry-mandatory.md` | OTel spans | SC-GLM-ZEN-001..003 |
 
 ## Compliance Checks (automated)
 
@@ -205,47 +205,47 @@ grep "init()" lib/cepaf_gleam/src/cepaf_gleam/testing/wiring_guard.gleam | wc -l
 gleam build 2>&1 | grep "warning" | grep -v "test/" | wc -l | grep "^0$"
 
 # 10. STAMP reference check
-grep -c "SC-AGUI-UI" .claude/rules/agentic-ui-responsive-design.md
+grep -c "SC-AGUI-UI" .gemini/rules/agentic-ui-responsive-design.md
 
 # 11. Ultrathink alignment (SC-ULTRA-001)
-grep -c "Ultrathink\|Focus Area" .claude/rules/agentic-ui-responsive-design.md
+grep -c "Ultrathink\|Focus Area" .gemini/rules/agentic-ui-responsive-design.md
 
 # 12. AG-UI 32-event check
-grep -c "AG-UI\|AGUI" .claude/rules/agentic-ui-responsive-design.md
+grep -c "AG-UI\|AGUI" .gemini/rules/agentic-ui-responsive-design.md
 
 # 13. Zettelkasten integration check
-grep -c "Zettelkasten\|FTS5\|holon" .claude/rules/agentic-ui-responsive-design.md
+grep -c "Zettelkasten\|FTS5\|holon" .gemini/rules/agentic-ui-responsive-design.md
 
 # 14. Psi invariant check
-grep -c "Psi-\|Omega-0" .claude/rules/agentic-ui-responsive-design.md
+grep -c "Psi-\|Omega-0" .gemini/rules/agentic-ui-responsive-design.md
 
 # 15. Allium spec check
-grep -c "Allium\|allium" .claude/rules/agentic-ui-responsive-design.md
+grep -c "Allium\|allium" .gemini/rules/agentic-ui-responsive-design.md
 
 # 16. OODA + TPS/Jidoka check
-grep -c "OODA\|Jidoka\|Toyota" .claude/rules/agentic-ui-responsive-design.md
+grep -c "OODA\|Jidoka\|Toyota" .gemini/rules/agentic-ui-responsive-design.md
 
 # 17. Mathematical foundations check
-grep -c "Shannon\|PageRank\|Chinese Postman\|FMEA" .claude/rules/agentic-ui-responsive-design.md
+grep -c "Shannon\|PageRank\|Chinese Postman\|FMEA" .gemini/rules/agentic-ui-responsive-design.md
 
 # 18. Zenoh + NIF + MoZ check
-grep -c "Zenoh\|NIF\|MoZ" .claude/rules/agentic-ui-responsive-design.md
+grep -c "Zenoh\|NIF\|MoZ" .gemini/rules/agentic-ui-responsive-design.md
 
 # 19. VSM layer mapping check
-grep -c "S1\|S2\|S3\|S4\|S5" .claude/rules/agentic-ui-responsive-design.md
+grep -c "S1\|S2\|S3\|S4\|S5" .gemini/rules/agentic-ui-responsive-design.md
 
 # 20. Inter-page DAG check
-grep -c "PageRank\|G_nav\|SCC=1" .claude/rules/agentic-ui-responsive-design.md
+grep -c "PageRank\|G_nav\|SCC=1" .gemini/rules/agentic-ui-responsive-design.md
 
 # 21. SIL-6 checklist check
-grep -c "SIL-6\|SC-SIL4\|fail-safe\|2oo3\|dying gasp" .claude/rules/agentic-ui-responsive-design.md
+grep -c "SIL-6\|SC-SIL4\|fail-safe\|2oo3\|dying gasp" .gemini/rules/agentic-ui-responsive-design.md
 
 # 22. SOP check
-grep -c "Pre-Flight\|Post-Flight\|Failure Recovery" .claude/rules/agentic-ui-responsive-design.md
+grep -c "Pre-Flight\|Post-Flight\|Failure Recovery" .gemini/rules/agentic-ui-responsive-design.md
 
 # 23. Zettelkasten ingestion check
-grep -c "zettel ingest\|holon\|Zettelkasten" .claude/rules/agentic-ui-responsive-design.md
+grep -c "zettel ingest\|holon\|Zettelkasten" .gemini/rules/agentic-ui-responsive-design.md
 
 # 24. Section count (must be >= 29)
-grep -c "^## " .claude/rules/agentic-ui-responsive-design.md
+grep -c "^## " .gemini/rules/agentic-ui-responsive-design.md
 ```

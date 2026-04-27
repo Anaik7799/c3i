@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gleam/json vs serdes_json Analysis — Sutra Matrix Server</title>
+<style>
+:root { --bg: #0a0e17; --card: #141922; --text: #e0e6ed; --accent: #00d4aa; --border: #1e2a3a; --success: #3dd68c; --warning: #f5a623; --critical: #ff4757; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, system-ui, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+h1 { color: var(--accent); font-size: 2rem; margin-bottom: 0.5rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; }
+h2 { color: var(--accent); font-size: 1.4rem; margin: 2rem 0 1rem; }
+h3 { color: var(--warning); font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+.meta { color: #7a8fa6; margin-bottom: 2rem; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; background: var(--card); border-radius: 8px; overflow: hidden; }
+th { background: var(--border); color: var(--accent); padding: 0.75rem 1rem; text-align: left; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+tr:hover { background: rgba(0, 212, 170, 0.05); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+.badge-gleam { background: #2ed573; color: #000; }
+.badge-serdes { background: #ffa502; color: #000; }
+.badge-both { background: #00d4aa; color: #000; }
+.badge-na { background: #555; color: #fff; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 1rem 0; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+code { background: #1a2332; padding: 2px 6px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--accent); }
+pre { background: #1a2332; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 0.5rem 0; }
+pre code { padding: 0; background: none; }
+.flowchart { background: #1a2332; padding: 1.5rem; border-radius: 8px; font-family: monospace; white-space: pre; line-height: 1.4; }
+.stat { text-align: center; }
+.stat-number { font-size: 2.5rem; font-weight: 700; color: var(--accent); }
+.stat-label { font-size: 0.8rem; color: #7a8fa6; text-transform: uppercase; }
+.yes { color: var(--success); } .no { color: var(--critical); } .warn { color: var(--warning); }
+.summary-box { background: linear-gradient(135deg, #141922, #1e2a3a); border: 1px solid var(--accent); border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+
+<h1>gleam/json vs serdes_json Analysis</h1>
+<p class="meta">Sutra Matrix Server | 2026-04-19 | v22.10.1</p>
+
+<div class="summary-box">
+<strong>TL;DR:</strong> <code>gleam/json</code> for <strong>construction</strong> (typed values).
+<code>serdes_json</code> for <strong>composition</strong> (raw blob embedding).
+Both together is the most common pattern.
+</div>
+
+<div class="grid">
+<div class="card stat"><div class="stat-number">14</div><div class="stat-label">gleam/json functions</div></div>
+<div class="card stat"><div class="stat-number">45</div><div class="stat-label">serdes_json functions</div></div>
+<div class="card stat"><div class="stat-number">59</div><div class="stat-label">Total API surface</div></div>
+<div class="card stat"><div class="stat-number">0</div><div class="stat-label">Manual JSON concat</div></div>
+</div>
+
+<h2>Architecture Comparison</h2>
+<table>
+<tr><th>Aspect</th><th>gleam/json</th><th>serdes_json (NIF)</th></tr>
+<tr><td>Language</td><td>Gleam (pure BEAM)</td><td>Rust &rarr; NIF &rarr; BEAM</td></tr>
+<tr><td>Backend</td><td>Custom Gleam encoder</td><td>serde_json 1.x (industry standard)</td></tr>
+<tr><td>Type Safety</td><td class="yes">Compile-time (opaque Json type)</td><td class="warn">Runtime (String &rarr; String)</td></tr>
+<tr><td>Raw JSON Embedding</td><td class="no">NOT POSSIBLE (double-escapes)</td><td class="yes">NATIVE (parse_or_string)</td></tr>
+<tr><td>NIF Overhead</td><td class="yes">0 (in-process)</td><td class="warn">~1-5&micro;s per call</td></tr>
+<tr><td>Pretty Printing</td><td class="no">Not available</td><td class="yes">to_string_pretty()</td></tr>
+<tr><td>JSON Pointer</td><td class="no">Not available</td><td class="yes">pointer() RFC 6901</td></tr>
+<tr><td>Merge/Patch</td><td class="no">Not available</td><td class="yes">merge(), merge_patch() RFC 7396</td></tr>
+<tr><td>Diff</td><td class="no">Not available</td><td class="yes">diff() RFC 6902</td></tr>
+</table>
+
+<h2>Decision Framework</h2>
+
+<div class="flowchart">Is the value a pre-serialized JSON string from storage?
+&boxdr;&boxh; YES &rarr; <span class="badge badge-serdes">serdes_json</span> (object_raw, encode_event)
+&boxur;&boxh; NO &rarr; Are all values Gleam-typed (String, Int, Bool)?
+    &boxdr;&boxh; YES &rarr; <span class="badge badge-gleam">gleam/json</span> (json.object, json.string)
+    &boxur;&boxh; NO &rarr; Is it query/manipulation (pointer, merge, diff)?
+        &boxdr;&boxh; YES &rarr; <span class="badge badge-serdes">serdes_json</span>
+        &boxur;&boxh; NO &rarr; <span class="badge badge-gleam">gleam/json</span> (default)</div>
+
+<h2>Use Case Matrix</h2>
+<table>
+<tr><th>Use Case</th><th>gleam/json</th><th>serdes_json</th><th>Recommended</th><th>Reason</th></tr>
+<tr><td>Login response</td><td class="yes">&check;</td><td class="yes">&check;</td><td><span class="badge badge-gleam">gleam/json</span></td><td>All typed values</td></tr>
+<tr><td>Error response</td><td class="yes">&check;</td><td class="yes">&check;</td><td><span class="badge badge-gleam">gleam/json</span></td><td>Simple key-value</td></tr>
+<tr><td>whoami response</td><td class="yes">&check;</td><td class="yes">&check;</td><td><span class="badge badge-gleam">gleam/json</span></td><td>3 typed fields</td></tr>
+<tr><td>Capabilities</td><td class="yes">&check;</td><td class="yes">&check;</td><td><span class="badge badge-gleam">gleam/json</span></td><td>Nested but typed</td></tr>
+<tr><td>Sync response</td><td class="warn">&sim;</td><td class="yes">&check;</td><td><span class="badge badge-both">both</span></td><td>Structure + raw events</td></tr>
+<tr><td>Sliding sync</td><td class="warn">&sim;</td><td class="yes">&check;</td><td><span class="badge badge-both">both</span></td><td>Structure + raw events</td></tr>
+<tr><td>keys/query (device keys)</td><td class="no">&times;</td><td class="yes">&check;</td><td><span class="badge badge-serdes">serdes_json</span></td><td>Raw device key blobs</td></tr>
+<tr><td>keys/claim (OTKs)</td><td class="no">&times;</td><td class="yes">&check;</td><td><span class="badge badge-serdes">serdes_json</span></td><td>Raw OTK blobs</td></tr>
+<tr><td>Event encoding</td><td class="no">&times;</td><td class="yes">&check;</td><td><span class="badge badge-serdes">serdes_json</span></td><td>Raw content field</td></tr>
+<tr><td>Cross-signing keys</td><td class="no">&times;</td><td class="yes">&check;</td><td><span class="badge badge-serdes">serdes_json</span></td><td>Raw key blobs</td></tr>
+<tr><td>JSON validation</td><td class="no">&times;</td><td class="yes">&check;</td><td><span class="badge badge-serdes">serdes_json</span></td><td>Fast boolean check</td></tr>
+<tr><td>Pretty print</td><td class="no">&times;</td><td class="yes">&check;</td><td><span class="badge badge-serdes">serdes_json</span></td><td>Not in gleam/json</td></tr>
+<tr><td>JSON Pointer</td><td class="no">&times;</td><td class="yes">&check;</td><td><span class="badge badge-serdes">serdes_json</span></td><td>RFC 6901</td></tr>
+<tr><td>Merge/Diff</td><td class="no">&times;</td><td class="yes">&check;</td><td><span class="badge badge-serdes">serdes_json</span></td><td>RFC 6902/7396</td></tr>
+<tr><td>User input escaping</td><td class="yes">&check;</td><td class="yes">&check;</td><td><span class="badge badge-gleam">gleam/json</span></td><td>json.string() is type-safe</td></tr>
+</table>
+
+<h2>Performance Characteristics</h2>
+<table>
+<tr><th>Operation</th><th>gleam/json</th><th>serdes_json</th><th>Winner</th></tr>
+<tr><td>Simple object (5 keys)</td><td>~2&micro;s</td><td>~5&micro;s</td><td><span class="badge badge-gleam">gleam/json</span></td></tr>
+<tr><td>Nested object (3 levels)</td><td>~5&micro;s</td><td>~8&micro;s</td><td><span class="badge badge-gleam">gleam/json</span></td></tr>
+<tr><td>Large object (50 keys)</td><td>~15&micro;s</td><td>~12&micro;s</td><td><span class="badge badge-serdes">serdes_json</span></td></tr>
+<tr><td>Event encoding (raw content)</td><td class="no">N/A</td><td>~6&micro;s</td><td><span class="badge badge-serdes">serdes_json</span></td></tr>
+<tr><td>JSON validation</td><td>~20&micro;s</td><td>~3&micro;s</td><td><span class="badge badge-serdes">serdes_json</span></td></tr>
+<tr><td>JSON Pointer query</td><td class="no">N/A</td><td>~4&micro;s</td><td><span class="badge badge-serdes">serdes_json</span></td></tr>
+<tr><td>Merge two objects</td><td class="no">N/A</td><td>~8&micro;s</td><td><span class="badge badge-serdes">serdes_json</span></td></tr>
+</table>
+
+<h2>Security Analysis</h2>
+<table>
+<tr><th>Concern</th><th>gleam/json</th><th>serdes_json</th></tr>
+<tr><td>XSS via user input</td><td class="yes">SAFE &mdash; json.string() escapes</td><td class="yes">SAFE &mdash; escape() via serde</td></tr>
+<tr><td>JSON injection</td><td class="yes">IMPOSSIBLE &mdash; opaque type</td><td class="yes">SAFE &mdash; parse_or_string validates</td></tr>
+<tr><td>Double-escaping</td><td class="no">RISK &mdash; json.string() escapes raw blobs</td><td class="yes">SAFE &mdash; object_raw() embeds raw</td></tr>
+<tr><td>Brace imbalance</td><td class="yes">IMPOSSIBLE &mdash; type system</td><td class="yes">IMPOSSIBLE &mdash; serde guarantees</td></tr>
+<tr><td>NIF crash</td><td><span class="badge badge-na">N/A</span></td><td class="yes">SAFE &mdash; DirtyCpu, no unsafe</td></tr>
+</table>
+
+<h2>Key Insight</h2>
+<div class="summary-box">
+<p><strong>gleam/json is for CONSTRUCTION</strong> &mdash; building JSON from typed Gleam values.</p>
+<p><strong>serdes_json is for COMPOSITION</strong> &mdash; assembling JSON from pre-existing fragments.</p>
+<p><strong>Both together</strong> &mdash; gleam/json builds the skeleton, serdes_json fills in the raw protocol blobs.</p>
+</div>
+
+<h2>STAMP Constraints</h2>
+<table>
+<tr><th>ID</th><th>Constraint</th><th>Severity</th></tr>
+<tr><td>SC-JSON-001</td><td>ALL JSON responses MUST use gleam/json or serdes_json</td><td class="no">CRITICAL</td></tr>
+<tr><td>SC-JSON-002</td><td>Manual string concat for JSON is PROHIBITED</td><td class="no">CRITICAL</td></tr>
+<tr><td>SC-JSON-003</td><td>Raw JSON blobs MUST use serdes_json</td><td class="warn">HIGH</td></tr>
+<tr><td>SC-JSON-004</td><td>User-supplied strings MUST use json.string() or escape()</td><td class="no">INFINITE</td></tr>
+<tr><td>SC-JSON-005</td><td>gleam/json PREFERRED for simple typed responses</td><td class="warn">HIGH</td></tr>
+<tr><td>SC-JSON-006</td><td>serdes_json REQUIRED for pre-serialized blob embedding</td><td class="no">CRITICAL</td></tr>
+</table>
+
+<footer style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: #7a8fa6; text-align: center;">
+Sutra Matrix Server &mdash; gleam/json + serdes_json Analysis &mdash; 2026-04-19
+</footer>
+</body>
+</html>

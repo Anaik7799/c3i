@@ -1,7 +1,59 @@
+# --- Nix / direnv ---
+.direnv/
+result
+result-*
+
+# --- pi agent cruft ---
+# Keep the bootstrap scripts under .pi/bootstrap/*.sh for reproducibility,
+# but ignore their runtime logs & status artefacts.
+.pi/bootstrap/*.log
+.pi/bootstrap/*.tail
+.pi/bootstrap/*.rc
+.pi/bootstrap/*.size
+.pi/bootstrap/*.check
+.pi/last-output.txt
+.pi-probe.txt
+.pi-probe.sh
+
+# --- Gleam / BEAM ---
+build/
+_build/
 *.beam
 *.ez
-build/
 erl_crash.dump
-# NIF crate build artefacts — compiled .so is tracked under priv/ only
-native/*/target/
-native/*/Cargo.lock
+.rebar3
+# rebar.lock / manifest.toml SHOULD be committed (Gleam lockfiles)
+
+# --- Rust ---
+target/
+# proptest saves shrunk-case regressions here when a property test fails.
+# Re-running the test replays them; once green, delete the directory and
+# let them die. Do NOT commit them — they're environment-specific.
+proptest-regressions/
+
+# --- Node / pnpm ---
+node_modules/
+.pnpm-store/
+pnpm-debug.log*
+npm-debug.log*
+# keep pnpm-lock.yaml committed (reproducible installs)
+# but drop the old npm lockfile if one sneaks back in
+package-lock.json
+yarn.lock
+
+# --- skillfish scratch (we don't use .claude/; pi uses .pi/skills/) ---
+.claude/
+
+# --- secrets ---
+# Never commit raw secrets; the sops-encrypted files live under
+# secrets/ and SHOULD be committed once they exist, but until a
+# .sops.yaml policy is in place we gitignore the whole directory
+# to prevent accidents.
+/secrets/
+
+# --- Editor / OS ---
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

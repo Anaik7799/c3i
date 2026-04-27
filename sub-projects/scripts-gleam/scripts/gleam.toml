@@ -1,0 +1,19 @@
+name = "sys_scripts"
+version = "1.0.0"
+target = "erlang"
+
+# All system-operation and automation scripts for the `sys` workspace.
+# See ~/.pi/agent/AGENTS.md — "All scripting in Gleam".
+
+[dependencies]
+gleam_stdlib = ">= 0.44.0 and < 2.0.0"
+gleam_erlang = ">= 0.34.0 and < 2.0.0"
+argv = ">= 1.0.2 and < 2.0.0"
+simplifile = ">= 2.2.1 and < 3.0.0"
+shellout = ">= 1.7.0 and < 2.0.0"
+filepath = ">= 1.1.0 and < 2.0.0"
+envoy = ">= 1.0.2 and < 2.0.0"
+
+[dev_dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
+qcheck = ">= 1.0.0 and < 2.0.0"

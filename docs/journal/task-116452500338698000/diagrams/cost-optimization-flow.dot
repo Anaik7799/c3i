@@ -1,0 +1,30 @@
+digraph Cost {
+  rankdir=TB; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica";
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed" fillcolor="#141922" color="#1e2a3a"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=10];
+
+  Prompt [label="User prompt"];
+  Hook [label="PROMPT HOOK\n(Claude · Pi · Gemini)"];
+  Recall [label="zk-recall (stable prefix)\nquery-expand · FTS5 · semantic\n+ FY27 · graph-walk"];
+  Prefix [label="Stable system prefix\n+ ZK block\n= CACHEABLE" fillcolor="#0e2a1e" color="#3dd68c"];
+  Suffix [label="User text (variable)" fillcolor="#2a1e0e" color="#f5a623"];
+  LLM [label="LLM call"];
+  Resp [label="Response"];
+  Metrics [label="after_provider_response\nusage.cost.{input,output,cacheRead,cacheWrite,total}"];
+  DB [label="session_metrics\ntokens_* · cost_usd · cache_hit_ratio"];
+  Alarm [label="rules/engine\ncost>$10 | cache<0.5"];
+  Act [label="rules/dispatcher\nEscalate / EmbedRefresh / Refactor"];
+
+  Prompt -> Hook;
+  Hook -> Recall [label="recall=1"];
+  Recall -> Prefix;
+  Prompt -> Suffix;
+  Prefix -> LLM [label="cached prefix (90% discount)"];
+  Suffix -> LLM [label="fresh tokens (full price)"];
+  LLM -> Resp;
+  LLM -> Metrics;
+  Metrics -> DB;
+  DB -> Alarm;
+  Alarm -> Act;
+  Act -> Recall [label="feedback loop" style=dashed color="#3dd68c"];
+}

@@ -1,0 +1,62 @@
+digraph P8 {
+  rankdir=TB; bgcolor="#0a0e17"; fontcolor="#e0e6ed"; fontname="Helvetica"; compound=true;
+  node [style="filled,rounded" shape=box fontname="Helvetica" fontcolor="#e0e6ed" fillcolor="#141922" color="#1e2a3a"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontname="Helvetica" fontsize=10];
+
+  subgraph cluster_gleam { label="Gleam + OTP (pass-8 modules)"; color="#00d4aa"; fontcolor="#00d4aa";
+    P01 [label="#1 prefix_cache_warmer"];
+    P02 [label="#2 semantic_cache_fuzzy\n(cosine ≥ 0.92)" fillcolor="#0e2a1e" color="#3dd68c"];
+    P03 [label="#3 adaptive_router"];
+    P04 [label="#4 embed_backfill\n(fastembed NIF)" fillcolor="#0e2a1e" color="#3dd68c"];
+    P05 [label="#5 bge_rerank\n(BLOB cosine)" fillcolor="#0e2a1e" color="#3dd68c"];
+    P06 [label="#6 budget_middleware"];
+    P07 [label="#7 exact_match_cache"];
+    P10 [label="#10 shared_cache"];
+    P11 [label="#11 llmlingua_compress"];
+    P13 [label="#13 moe_router"];
+    P14 [label="#14 ctx_aware_router"];
+    P15 [label="#15 skill_scope_prompts"];
+    P16 [label="#16 old_msg_summarise"];
+    P17 [label="#17 edge_growth"];
+    P18 [label="#18 cost_delta_alarm"];
+    P19 [label="#19 per_turn_spans"];
+    P22 [label="#22 auto_lifeline"];
+    P24 [label="#24 cost_per_feature"];
+  }
+
+  subgraph cluster_coord { label="OTP coordinator"; color="#f5a623"; fontcolor="#f5a623";
+    Coord [label="kms_coord\n(gleam_otp actor)\ncircuit breaker\nrate-limit\nmetrics" fillcolor="#2a1e0e" color="#f5a623"];
+    Breaker [label="breaker.gleam\nClosed/Open/HalfOpen"];
+    Kms [label="kms.gleam\nquery/exec/batch"];
+  }
+
+  subgraph cluster_nif { label="Rust NIF (scripts_nif.so, 18 MB)"; color="#9b6cff"; fontcolor="#9b6cff";
+    Smr [label="smriti_query\nsmriti_exec\nsmriti_exec_batch\n(WAL + retry)"];
+    FE [label="fastembed_embed_one\nfastembed_embed_batch\nfastembed_embed_and_store\nfastembed_rerank_query\n(ONNX 768-dim)" fillcolor="#1e0e2a" color="#9b6cff"];
+    Ze [label="zenoh_put\nzenoh_get"];
+    Met [label="metrics_counter_inc\nmetrics_histogram_observe"];
+  }
+
+  subgraph cluster_storage { label="Storage (smriti.db · 166 MB WAL)"; color="#00bfff"; fontcolor="#00bfff";
+    Holons [label="holons · holon_edges\nholon_embeddings (BLOB f32)"];
+    Sess [label="session_metrics\npi_sessions\nsession_budget\nsession_turn_spans\ntask_session_link" fillcolor="#0e1e2a" color="#00bfff"];
+    Cache [label="prompt_cache\nsemantic_cache" fillcolor="#0e1e2a" color="#00bfff"];
+    Pricing [label="model_pricing\n(52 rows · 7 providers)"];
+  }
+
+  subgraph cluster_mesh { label="Zenoh mesh (indrajaal/l4/sre/** · l5/cog/**)"; color="#3dd68c"; fontcolor="#3dd68c";
+    Topics [label="cache/prefix_warmed\ncache/shared_catalogue\nalarm/cost_delta\nalarm/edges_low\nrouter/pick\nkms/embed_backfilled\n…"];
+  }
+
+  P01 -> Coord; P02 -> Coord; P03 -> Coord; P04 -> Coord; P05 -> Coord;
+  P06 -> Coord; P07 -> Coord; P10 -> Coord; P17 -> Coord; P18 -> Coord;
+  P19 -> Coord; P22 -> Coord; P24 -> Coord;
+  Coord -> Breaker [dir=both];
+  Coord -> Kms -> Smr;
+  P04 -> FE; P05 -> FE; P02 -> FE;
+  P01 -> Ze; P03 -> Ze; P13 -> Ze; P14 -> Ze; P15 -> Ze;
+  P18 -> Ze; P24 -> Ze; Coord -> Met;
+  Smr -> Holons; Smr -> Sess; Smr -> Cache; Smr -> Pricing;
+  FE -> Holons;
+  Ze -> Topics [label="pub"];
+}

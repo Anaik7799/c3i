@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pi x C3I User Journeys</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --card: #141922;
+    --text: #e0e6ed;
+    --muted: #7a8fa6;
+    --accent: #00d4aa;
+    --accent-dim: rgba(0, 212, 170, 0.15);
+    --border: #1e2a3a;
+    --success: #3dd68c;
+    --warning: #f5a623;
+    --critical: #ff4757;
+    --code-bg: #0d1117;
+    --provider-bar: #00d4aa;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .hero {
+    background: linear-gradient(135deg, #0d1117 0%, #141922 50%, #0a0e17 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,212,170,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+    margin-bottom: 0.5rem;
+  }
+  .hero .subtitle {
+    font-size: 1.1rem;
+    color: var(--muted);
+  }
+  .hero .version-badge {
+    display: inline-block;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(0,212,170,0.3);
+    border-radius: 20px;
+    padding: 0.25rem 1rem;
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    margin-top: 0.75rem;
+  }
+
+  /* Navigation */
+  .toc {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .toc a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .toc a:hover {
+    color: var(--accent);
+    border-color: var(--border);
+    background: var(--accent-dim);
+  }
+
+  /* Main content */
+  .content {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* Sections */
+  section {
+    margin-bottom: 3rem;
+  }
+  section h2 {
+    font-size: 1.5rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  section h2 .section-num {
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 0.75rem;
+    font-weight: 700;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  section h3 {
+    font-size: 1.1rem;
+    color: var(--text);
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  p, li {
+    color: var(--text);
+    margin-bottom: 0.75rem;
+  }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--text);
+    margin: 1rem 0;
+    max-height: 600px;
+    overflow-y: auto;
+  }
+  pre::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  pre::-webkit-scrollbar-track {
+    background: var(--code-bg);
+  }
+  pre::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.85em;
+    background: rgba(0,212,170,0.08);
+    color: var(--accent);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+  }
+  pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+  }
+  th {
+    background: var(--card);
+    color: var(--accent);
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  td {
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  tr:nth-child(even) td {
+    background: rgba(20, 25, 34, 0.5);
+  }
+
+  /* Provider bar chart */
+  .provider-bar-container {
+    margin: 1rem 0;
+  }
+  .provider-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.4rem;
+    gap: 0.75rem;
+  }
+  .provider-name {
+    width: 180px;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .provider-bar-wrap {
+    flex: 1;
+    height: 20px;
+    background: rgba(30, 42, 58, 0.5);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .provider-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, rgba(0,212,170,0.5) 100%);
+    border-radius: 4px;
+    transition: width 0.6s ease;
+    min-width: 2px;
+  }
+  .provider-count {
+    width: 50px;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* Journey cards */
+  .journey-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .journey-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px 0 0 3px;
+  }
+  .journey-card h3 {
+    margin-top: 0;
+    color: var(--accent);
+    font-size: 1rem;
+  }
+
+  /* Flow diagram (CSS-only) */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+  .flow-step {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .flow-step.highlight {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .flow-arrow {
+    color: var(--muted);
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  /* Tool grid */
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin: 1rem 0;
+  }
+  .tool-chip {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+  }
+  .tool-chip .tool-name {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .tool-chip .tool-desc {
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    justify-content: center;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    min-width: 140px;
+  }
+  .stat-card .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-card .stat-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 1.6rem; }
+    .content { padding: 1rem; }
+    .provider-name { width: 120px; font-size: 0.7rem; }
+    .stats-row { gap: 0.5rem; }
+    .stat-card { min-width: 100px; padding: 0.75rem; }
+    .stat-card .stat-value { font-size: 1.3rem; }
+    .flow { flex-direction: column; align-items: stretch; }
+    .flow-arrow { transform: rotate(90deg); text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<header class="hero">
+  <h1>Pi x C3I User Journeys</h1>
+  <p class="subtitle">AI Coding Agent integrated with SIL-6 Biomorphic Mesh</p>
+  <div class="version-badge">Pi v0.67.68 -- 839 models -- 23 providers -- 7 tools</div>
+</header>
+
+<!-- Navigation -->
+<nav class="toc">
+  <a href="#cli">1. CLI Interface</a>
+  <a href="#providers">2. Providers</a>
+  <a href="#journey-interactive">3. Interactive Session</a>
+  <a href="#journey-zenoh">4. Zenoh Bridge</a>
+  <a href="#journey-federation">5. Tool Federation</a>
+  <a href="#journey-session">6. Session Persistence</a>
+  <a href="#journey-hedged">7. Hedged Inference</a>
+</nav>
+
+<!-- Stats -->
+<div class="content">
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-value">839</div>
+      <div class="stat-label">Models</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">23</div>
+      <div class="stat-label">Providers</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">7</div>
+      <div class="stat-label">Built-in Tools</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">12</div>
+      <div class="stat-label">Self-Hosted (vLLM)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">6</div>
+      <div class="stat-label">Thinking Levels</div>
+    </div>
+  </div>
+
+  <!-- Section 1: CLI Interface -->
+  <section id="cli">
+    <h2><span class="section-num">1</span> Pi CLI Interface</h2>
+    <p>Pi is an AI coding assistant with file read, bash execution, structured edit, and write tools.
+       It supports 23 providers, 839 models, session persistence, extensions, skills, and themes.</p>
+
+    <h3>Full CLI Help Output</h3>
+    <pre><code>pi - AI coding assistant with read, bash, edit, write tools
+
+Usage:
+  pi [options] [@files...] [messages...]
+
+Commands:
+  pi install &lt;source&gt; [-l]     Install extension source and add to settings
+  pi remove &lt;source&gt; [-l]      Remove extension source from settings
+  pi uninstall &lt;source&gt; [-l]   Alias for remove
+  pi update [source]           Update installed extensions (skips pinned sources)
+  pi list                      List installed extensions from settings
+  pi config                    Open TUI to enable/disable package resources
+  pi &lt;command&gt; --help          Show help for install/remove/uninstall/update/list
+
+Options:
+  --provider &lt;name&gt;              Provider name (default: google)
+  --model &lt;pattern&gt;              Model pattern or ID (supports "provider/id" and optional ":&lt;thinking&gt;")
+  --api-key &lt;key&gt;                API key (defaults to env vars)
+  --system-prompt &lt;text&gt;         System prompt (default: coding assistant prompt)
+  --append-system-prompt &lt;text&gt;  Append text or file contents to the system prompt (can be used multiple times)
+  --mode &lt;mode&gt;                  Output mode: text (default), json, or rpc
+  --print, -p                    Non-interactive mode: process prompt and exit
+  --continue, -c                 Continue previous session
+  --resume, -r                   Select a session to resume
+  --session &lt;path&gt;               Use specific session file
+  --fork &lt;path&gt;                  Fork specific session file or partial UUID into a new session
+  --session-dir &lt;dir&gt;            Directory for session storage and lookup
+  --no-session                   Don't save session (ephemeral)
+  --models &lt;patterns&gt;            Comma-separated model patterns for Ctrl+P cycling
+                                 Supports globs (anthropic/*, *sonnet*) and fuzzy matching
+  --no-tools                     Disable all built-in tools
+  --tools &lt;tools&gt;                Comma-separated list of tools to enable (default: read,bash,edit,write)
+                                 Available: read, bash, edit, write, grep, find, ls
+  --thinking &lt;level&gt;             Set thinking level: off, minimal, low, medium, high, xhigh
+  --extension, -e &lt;path&gt;         Load an extension file (can be used multiple times)
+  --no-extensions, -ne           Disable extension discovery (explicit -e paths still work)
+  --skill &lt;path&gt;                 Load a skill file or directory (can be used multiple times)
+  --no-skills, -ns               Disable skills discovery and loading
+  --prompt-template &lt;path&gt;       Load a prompt template file or directory (can be used multiple times)
+  --no-prompt-templates, -np     Disable prompt template discovery and loading
+  --theme &lt;path&gt;                 Load a theme file or directory (can be used multiple times)
+  --no-themes                    Disable theme discovery and loading
+  --no-context-files, -nc        Disable AGENTS.md and CLAUDE.md discovery and loading
+  --export &lt;file&gt;                Export session file to HTML and exit
+  --list-models [search]         List available models (with optional fuzzy search)
+  --verbose                      Force verbose startup (overrides quietStartup setting)
+  --offline                      Disable startup network operations (same as PI_OFFLINE=1)
+  --help, -h                     Show this help
+  --version, -v                  Show version number
+
+Extensions can register additional flags (e.g., --plan from plan-mode extension).
+
+Examples:
+  # Interactive mode
+  pi
+
+  # Interactive mode with initial prompt
+  pi "List all .ts files in src/"
+
+  # Include files in initial message
+  pi @prompt.md @image.png "What color is the sky?"
+
+  # Non-interactive mode (process and exit)
+  pi -p "List all .ts files in src/"
+
+  # Multiple messages (interactive)
+  pi "Read package.json" "What dependencies do we have?"
+
+  # Continue previous session
+  pi --continue "What did we discuss?"
+
+  # Use different model
+  pi --provider openai --model gpt-4o-mini "Help me refactor this code"
+
+  # Use model with provider prefix (no --provider needed)
+  pi --model openai/gpt-4o "Help me refactor this code"
+
+  # Use model with thinking level shorthand
+  pi --model sonnet:high "Solve this complex problem"
+
+  # Limit model cycling to specific models
+  pi --models claude-sonnet,claude-haiku,gpt-4o
+
+  # Limit to a specific provider with glob pattern
+  pi --models "github-copilot/*"
+
+  # Cycle models with fixed thinking levels
+  pi --models sonnet:high,haiku:low
+
+  # Start with a specific thinking level
+  pi --thinking high "Solve this complex problem"
+
+  # Read-only mode (no file modifications possible)
+  pi --tools read,grep,find,ls -p "Review the code in src/"
+
+  # Export a session file to HTML
+  pi --export ~/.pi/agent/sessions/--path--/session.jsonl
+  pi --export session.jsonl output.html
+
+Environment Variables:
+  ANTHROPIC_API_KEY                - Anthropic Claude API key
+  ANTHROPIC_OAUTH_TOKEN            - Anthropic OAuth token (alternative to API key)
+  OPENAI_API_KEY                   - OpenAI GPT API key
+  AZURE_OPENAI_API_KEY             - Azure OpenAI API key
+  AZURE_OPENAI_BASE_URL            - Azure OpenAI base URL
+  AZURE_OPENAI_RESOURCE_NAME       - Azure OpenAI resource name
+  AZURE_OPENAI_API_VERSION         - Azure OpenAI API version (default: v1)
+  AZURE_OPENAI_DEPLOYMENT_NAME_MAP - Azure OpenAI model=deployment map
+  GEMINI_API_KEY                   - Google Gemini API key
+  GROQ_API_KEY                     - Groq API key
+  CEREBRAS_API_KEY                 - Cerebras API key
+  XAI_API_KEY                      - xAI Grok API key
+  OPENROUTER_API_KEY               - OpenRouter API key
+  AI_GATEWAY_API_KEY               - Vercel AI Gateway API key
+  ZAI_API_KEY                      - ZAI API key
+  MISTRAL_API_KEY                  - Mistral API key
+  MINIMAX_API_KEY                  - MiniMax API key
+  OPENCODE_API_KEY                 - OpenCode Zen/OpenCode Go API key
+  KIMI_API_KEY                     - Kimi For Coding API key
+  AWS_PROFILE                      - AWS profile for Amazon Bedrock
+  AWS_ACCESS_KEY_ID                - AWS access key for Amazon Bedrock
+  AWS_SECRET_ACCESS_KEY            - AWS secret key for Amazon Bedrock
+  AWS_BEARER_TOKEN_BEDROCK         - Bedrock API key (bearer token)
+  AWS_REGION                       - AWS region for Amazon Bedrock
+
+Available Tools (default: read, bash, edit, write):
+  read   - Read file contents
+  bash   - Execute bash commands
+  edit   - Edit files with find/replace
+  write  - Write files (creates/overwrites)
+  grep   - Search file contents (read-only, off by default)
+  find   - Find files by glob pattern (read-only, off by default)
+  ls     - List directory contents (read-only, off by default)</code></pre>
+
+    <h3>Built-in Tools</h3>
+    <div class="tool-grid">
+      <div class="tool-chip">
+        <div class="tool-name">read</div>
+        <div class="tool-desc">Read file contents</div>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">bash</div>
+        <div class="tool-desc">Execute bash commands</div>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">edit</div>
+        <div class="tool-desc">Edit files with find/replace</div>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">write</div>
+        <div class="tool-desc">Write files (creates/overwrites)</div>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">grep</div>
+        <div class="tool-desc">Search file contents (read-only)</div>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">find</div>
+        <div class="tool-desc">Find files by glob pattern (read-only)</div>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">ls</div>
+        <div class="tool-desc">List directory contents (read-only)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Providers -->
+  <section id="providers">
+    <h2><span class="section-num">2</span> Available Providers</h2>
+    <p>Pi ships with 839 models across 23 providers, plus 12 self-hosted vLLM model configurations
+       for GPU clusters (H100/H200/B200). Models can be cycled at runtime with <code>Ctrl+P</code>.</p>
+
+    <h3>Provider Model Distribution</h3>
+    <div class="provider-bar-container">
+      <div class="provider-row"><span class="provider-name">openrouter</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:100%"></div></div><span class="provider-count">248</span></div>
+      <div class="provider-row"><span class="provider-name">vercel-ai-gateway</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:62.1%"></div></div><span class="provider-count">154</span></div>
+      <div class="provider-row"><span class="provider-name">amazon-bedrock</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:36.7%"></div></div><span class="provider-count">91</span></div>
+      <div class="provider-row"><span class="provider-name">azure-openai</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:16.1%"></div></div><span class="provider-count">40</span></div>
+      <div class="provider-row"><span class="provider-name">openai</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:16.1%"></div></div><span class="provider-count">40</span></div>
+      <div class="provider-row"><span class="provider-name">opencode</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:13.7%"></div></div><span class="provider-count">34</span></div>
+      <div class="provider-row"><span class="provider-name">google</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:10.9%"></div></div><span class="provider-count">27</span></div>
+      <div class="provider-row"><span class="provider-name">mistral</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:10.5%"></div></div><span class="provider-count">26</span></div>
+      <div class="provider-row"><span class="provider-name">github-copilot</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:10.1%"></div></div><span class="provider-count">25</span></div>
+      <div class="provider-row"><span class="provider-name">xai</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:9.7%"></div></div><span class="provider-count">24</span></div>
+      <div class="provider-row"><span class="provider-name">anthropic</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:9.3%"></div></div><span class="provider-count">23</span></div>
+      <div class="provider-row"><span class="provider-name">huggingface</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:8.1%"></div></div><span class="provider-count">20</span></div>
+      <div class="provider-row"><span class="provider-name">groq</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:7.3%"></div></div><span class="provider-count">18</span></div>
+      <div class="provider-row"><span class="provider-name">google-vertex</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:5.2%"></div></div><span class="provider-count">13</span></div>
+      <div class="provider-row"><span class="provider-name">zai</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:5.2%"></div></div><span class="provider-count">13</span></div>
+      <div class="provider-row"><span class="provider-name">google-antigravity</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:3.6%"></div></div><span class="provider-count">9</span></div>
+      <div class="provider-row"><span class="provider-name">openai-codex</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:3.6%"></div></div><span class="provider-count">9</span></div>
+      <div class="provider-row"><span class="provider-name">opencode-go</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:3.6%"></div></div><span class="provider-count">9</span></div>
+      <div class="provider-row"><span class="provider-name">google-gemini-cli</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:2.4%"></div></div><span class="provider-count">6</span></div>
+      <div class="provider-row"><span class="provider-name">cerebras</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:1.6%"></div></div><span class="provider-count">4</span></div>
+      <div class="provider-row"><span class="provider-name">kimi-coding</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:0.8%"></div></div><span class="provider-count">2</span></div>
+      <div class="provider-row"><span class="provider-name">minimax</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:0.8%"></div></div><span class="provider-count">2</span></div>
+      <div class="provider-row"><span class="provider-name">minimax-cn</span><div class="provider-bar-wrap"><div class="provider-bar-fill" style="width:0.8%"></div></div><span class="provider-count">2</span></div>
+    </div>
+
+    <h3>Self-Hosted Models (vLLM GPU Clusters)</h3>
+    <table>
+      <thead>
+        <tr><th>Model</th><th>Family</th><th>GPU Config</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Qwen2.5-Coder-32B</td><td>Qwen</td><td>1-2x H100/H200</td></tr>
+        <tr><td>Qwen3-Coder-30B</td><td>Qwen</td><td>1-2x H100/H200</td></tr>
+        <tr><td>Qwen3-Coder-30B-FP8</td><td>Qwen</td><td>1x H100/H200</td></tr>
+        <tr><td>Qwen3-Coder-480B</td><td>Qwen</td><td>8x H200/H20</td></tr>
+        <tr><td>Qwen3-Coder-480B-FP8</td><td>Qwen</td><td>8x H200/H20</td></tr>
+        <tr><td>GPT-OSS-20B</td><td>OpenAI</td><td>1x H100/H200/B200</td></tr>
+        <tr><td>GPT-OSS-120B</td><td>OpenAI</td><td>1-8x H100/H200</td></tr>
+        <tr><td>GLM-4.5</td><td>ZAI</td><td>16x H100 / 8x H200</td></tr>
+        <tr><td>GLM-4.5-FP8</td><td>ZAI</td><td>8x H100 / 4x H200</td></tr>
+        <tr><td>GLM-4.5-Air-FP8</td><td>ZAI</td><td>2x H100 / 1x H200</td></tr>
+        <tr><td>GLM-4.5-Air</td><td>ZAI</td><td>2x H100/H200</td></tr>
+        <tr><td>Kimi-K2</td><td>Moonshot</td><td>16x H200/H20</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Section 3: Journey 1 - Interactive Coding Session -->
+  <section id="journey-interactive">
+    <h2><span class="section-num">3</span> User Journey 1: Interactive Coding Session</h2>
+    <p>The primary Pi workflow: launch an interactive session, select a model, write prompts, and let the agent use its tools to read, edit, and execute code.</p>
+
+    <div class="flow">
+      <div class="flow-step highlight">$ pi</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step">Select model (Ctrl+P)</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step">Write prompt</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step highlight">Agent uses tools</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step">Results displayed</div>
+    </div>
+
+    <div class="journey-card">
+      <h3>Step 1: Launch Pi</h3>
+      <p>User launches <code>pi</code> from the terminal. Pi loads AGENTS.md and CLAUDE.md context files,
+         discovers extensions and skills, and presents the interactive prompt.</p>
+      <pre><code>$ pi
+# or with a specific model:
+$ pi --model anthropic/claude-sonnet-4-20250514
+# or with thinking enabled:
+$ pi --model sonnet:high "Analyze the architecture"</code></pre>
+    </div>
+
+    <div class="journey-card">
+      <h3>Step 2: Model Selection</h3>
+      <p>Press <code>Ctrl+P</code> to cycle through available models at runtime. Pi supports glob patterns
+         and fuzzy matching. Models can be pre-filtered with <code>--models</code>:</p>
+      <pre><code># Cycle between specific models
+$ pi --models "claude-sonnet,gemini-2.5-pro,gpt-4o"
+
+# Cycle all models from a provider
+$ pi --models "anthropic/*"</code></pre>
+    </div>
+
+    <div class="journey-card">
+      <h3>Step 3: Agent Tool Execution</h3>
+      <p>The agent autonomously decides which tools to use based on the prompt. Default tools are
+         <code>read</code>, <code>bash</code>, <code>edit</code>, <code>write</code>.
+         Read-only mode available with <code>--tools read,grep,find,ls</code>.</p>
+      <pre><code>User: "Refactor the database module to use connection pooling"
+
+Agent actions:
+  1. read  -- Read current db.gleam source
+  2. grep  -- Search for connection patterns across codebase
+  3. edit  -- Apply structural refactoring with find/replace
+  4. bash  -- Run `gleam build` to verify compilation
+  5. bash  -- Run `gleam test` to verify tests pass
+  6. write -- Create new pool_config.gleam if needed</code></pre>
+    </div>
+
+    <div class="journey-card">
+      <h3>Step 4: Session Management</h3>
+      <p>Sessions are automatically saved as JSONL files. Resume any session with <code>--continue</code>,
+         <code>--resume</code> (picker), or <code>--fork</code> (branch from existing session).</p>
+      <pre><code># Continue the last session
+$ pi --continue "What were we working on?"
+
+# Pick a session to resume
+$ pi --resume
+
+# Fork a session into a new branch
+$ pi --fork &lt;session-uuid&gt;</code></pre>
+    </div>
+  </section>
+
+  <!-- Section 4: Journey 2 - Zenoh Bridge -->
+  <section id="journey-zenoh">
+    <h2><span class="section-num">4</span> User Journey 2: Pi + C3I Zenoh Bridge</h2>
+    <p>Pi agent events are bridged into the C3I mesh via <code>pi_agent.gleam</code>. Every Pi action
+       (tool call, message, error) is published as an OTel span on the Zenoh backplane, making Pi
+       a first-class citizen of the SIL-6 Biomorphic Mesh.</p>
+
+    <div class="flow">
+      <div class="flow-step">Pi event (tool call)</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step highlight">pi_agent.gleam bridge</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step">Zenoh publish</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step highlight">C3I Dashboard</div>
+    </div>
+
+    <div class="journey-card">
+      <h3>Bridge Architecture</h3>
+      <p>The Gleam bridge module at <code>bridge/pi_agent.gleam</code> translates Pi's JSONL session events
+         into C3I-native AG-UI 32-event protocol messages. These are published to Zenoh topics:</p>
+      <pre><code>Zenoh Topic Mapping:
+  indrajaal/pi/agent/tool_call    -- Pi tool invocations (read, edit, bash, write)
+  indrajaal/pi/agent/message      -- Pi assistant messages
+  indrajaal/pi/agent/error        -- Pi errors and failures
+  indrajaal/pi/agent/session      -- Session lifecycle (start, end, fork)
+  indrajaal/otel/spans/pi/{op}    -- OTel spans for distributed tracing</code></pre>
+    </div>
+
+    <div class="journey-card">
+      <h3>Dashboard Integration</h3>
+      <p>The C3I dashboard at port 4100 subscribes to <code>indrajaal/pi/agent/**</code> topics via WebSocket.
+         Pi tool calls appear in real-time on the Agents page alongside Cortex OODA loop events.
+         The weather bar reflects Pi activity in the cognitive (L5) layer health score.</p>
+    </div>
+  </section>
+
+  <!-- Section 5: Journey 3 - Tool Federation -->
+  <section id="journey-federation">
+    <h2><span class="section-num">5</span> User Journey 3: Tool Federation</h2>
+    <p>Pi can invoke C3I tools through the MoZ (MCP-over-Zenoh) bridge. When a user asks Pi to search
+       the Zettelkasten or check system health, Pi calls federated C3I tools that execute on the
+       Gleam/Rust backend and return results through the mesh.</p>
+
+    <div class="flow">
+      <div class="flow-step">User asks Pi to search ZK</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step">Pi calls c3i_knowledge_search</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step highlight">MoZ bridge (Zenoh JSON-RPC)</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step">sa-plan-daemon NIF</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step highlight">Results returned to Pi</div>
+    </div>
+
+    <div class="journey-card">
+      <h3>Federated Tool Catalog</h3>
+      <table>
+        <thead>
+          <tr><th>Pi Tool Call</th><th>C3I MCP Tool</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>c3i_knowledge_search</td><td>knowledge_search</td><td>Search 2,679 holons in Smriti.db FTS5</td></tr>
+          <tr><td>c3i_system_health</td><td>system_health</td><td>16-container mesh health status</td></tr>
+          <tr><td>c3i_plan_status</td><td>plan_status</td><td>Task counts by status</td></tr>
+          <tr><td>c3i_plan_search</td><td>plan_search</td><td>Full-text task search (max 100)</td></tr>
+          <tr><td>c3i_gleam_build</td><td>gleam_build</td><td>Trigger Gleam compilation</td></tr>
+          <tr><td>c3i_gleam_test</td><td>gleam_test</td><td>Run Gleam test suite</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="journey-card">
+      <h3>Transport Protocol</h3>
+      <pre><code>Pi extension sends JSON-RPC request:
+  Topic: indrajaal/mcp/req/knowledge_search/{request_id}
+  Body:  { "jsonrpc": "2.0", "method": "knowledge_search", "params": { "query": "OODA loop" } }
+
+C3I responds via Zenoh:
+  Topic: indrajaal/mcp/res/{request_id}
+  Body:  { "jsonrpc": "2.0", "result": { "holons": [...], "count": 12 } }
+
+Total round-trip: ~4ms (Zenoh pub/sub + Smriti FTS5 lookup)</code></pre>
+    </div>
+  </section>
+
+  <!-- Section 6: Journey 4 - Session Persistence -->
+  <section id="journey-session">
+    <h2><span class="section-num">6</span> User Journey 4: Session Persistence</h2>
+    <p>Pi sessions are persisted as JSONL files. The C3I bridge module <code>pi_session.gleam</code>
+       mirrors session state into Smriti.db, making Pi sessions recoverable across server restarts
+       and available for Zettelkasten recall.</p>
+
+    <div class="flow">
+      <div class="flow-step">Pi session (JSONL)</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step highlight">pi_session.gleam</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step">Smriti.db (SQLite)</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step highlight">Recoverable across restarts</div>
+    </div>
+
+    <div class="journey-card">
+      <h3>Persistence Flow</h3>
+      <pre><code>1. Pi writes session events to ~/.pi/agent/sessions/{path}/session.jsonl
+2. pi_session.gleam watches the JSONL file (or receives events via Zenoh)
+3. Each event is parsed and stored in Smriti.db:
+     - pi_sessions table: session metadata (model, provider, start time, token usage)
+     - pi_messages table: conversation turns (role, content, tool calls, timestamps)
+     - pi_tool_calls table: tool invocations (name, args, result, duration)
+4. On server restart, sessions are recoverable from Smriti.db
+5. Pi session summaries are indexed in the Zettelkasten FTS5 for recall</code></pre>
+    </div>
+
+    <div class="journey-card">
+      <h3>Session Recovery Commands</h3>
+      <pre><code># Resume last Pi session via Pi CLI
+$ pi --continue
+
+# Search past Pi sessions via C3I Zettelkasten
+$ sa-plan-daemon knowledge-search "pi session refactoring db module"
+
+# Export a Pi session to HTML for sharing
+$ pi --export ~/.pi/agent/sessions/abc123/session.jsonl report.html</code></pre>
+    </div>
+  </section>
+
+  <!-- Section 7: Journey 5 - Hedged Inference -->
+  <section id="journey-hedged">
+    <h2><span class="section-num">7</span> User Journey 5: Hedged Inference</h2>
+    <p>When Pi is configured to use the C3I inference cascade via <code>pi_provider.gleam</code>,
+       requests are hedged across multiple model tiers. The fastest successful response wins,
+       providing sub-second latency for simple queries and deep analysis for complex ones.</p>
+
+    <div class="flow">
+      <div class="flow-step">Pi request</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step highlight">pi_provider.gleam</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step">C3I 6-tier cascade</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-step highlight">Fastest response wins</div>
+    </div>
+
+    <div class="journey-card">
+      <h3>6-Tier Hedged Inference Cascade</h3>
+      <table>
+        <thead>
+          <tr><th>Tier</th><th>Model</th><th>Latency</th><th>Cost</th><th>Transport</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Gemini Direct (flash-lite)</td><td>~900ms</td><td>Free</td><td>HTTPS</td></tr>
+          <tr><td>2</td><td>OpenRouter (flash-preview)</td><td>~1.1s</td><td>$0.000009</td><td>HTTPS</td></tr>
+          <tr><td>3</td><td>Ollama gemma4 (port 11435)</td><td>~4s</td><td>Free</td><td>HTTP</td></tr>
+          <tr><td>4</td><td>Ollama gemma3 (port 11434)</td><td>~10s</td><td>Free</td><td>HTTP</td></tr>
+          <tr><td>5</td><td>RETE-UL rule engine (52 GRL)</td><td>&lt;1ms</td><td>Free</td><td>In-process</td></tr>
+          <tr><td>6</td><td>Static acknowledgment</td><td>&lt;1ms</td><td>Free</td><td>In-process</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:0.75rem;color:var(--muted);font-size:0.85rem">
+        Tiers 1+2 fire simultaneously via <code>tokio::join!</code>. First success wins.
+        4 independent circuit breakers (3 failures leads to 60s cooldown).
+        No-blackhole guarantee: 7 mechanisms ensure every request gets a response.</p>
+    </div>
+
+    <div class="journey-card">
+      <h3>How It Works</h3>
+      <pre><code>1. Pi sends inference request via pi_provider.gleam extension
+2. pi_provider.gleam publishes to Zenoh: indrajaal/mcp/req/inference/{id}
+3. sa-plan-daemon cortex.rs receives the request
+4. Hedged dispatch: Tier 1 (Gemini) || Tier 2 (OpenRouter) fire in parallel
+5. First successful response is returned via Zenoh: indrajaal/mcp/res/{id}
+6. If both fail: cascade to Tier 3 (local Ollama gemma4)
+7. If all cloud/local models fail: Tier 5 (RETE-UL rules) provides deterministic answer
+8. Response delivered back to Pi with PipelineTracer footer:
+   Pipeline: recv(0ms) > class(1ms) > ack(2ms) > infer(1200ms) > delivered(1400ms)</code></pre>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="text-align:center;padding:2rem 0;border-top:1px solid var(--border);margin-top:3rem;color:var(--muted);font-size:0.8rem">
+    <p>Pi v0.67.68 -- C3I v22.10.0 -- Generated from live CLI output</p>
+    <p style="margin-top:0.25rem">Source: <code>sub-projects/pi-mono/</code> -- Bridge: <code>bridge/pi_agent.gleam</code>, <code>pi_session.gleam</code>, <code>pi_provider.gleam</code></p>
+  </footer>
+</div>
+
+</body>
+</html>
