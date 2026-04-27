@@ -37,6 +37,7 @@ import cepaf_gleam/fractal/l0_constitutional.{
   resolve_request, trigger_emergency,
 }
 import cepaf_gleam/moz/client as moz_client
+import cepaf_gleam/rules/dispatcher as rule_dispatcher
 import cepaf_gleam/rules/engine as rule_engine
 import cepaf_gleam/symbiosis/tensor as symbiosis_tensor
 import cepaf_gleam/symbiosis/types as symbiosis_types
@@ -1419,6 +1420,11 @@ fn ooda_decide_json() -> String {
 
   let result = rule_engine.evaluate("System", rule_engine.ooda_rules(), facts)
 
+  // Pass-6 FINDING-B closure: dispatch the decision to an action
+  // (SC-OODA-003 Decide→Act coupling, task 116452374253040747)
+  let ooda_action =
+    rule_dispatcher.dispatch(rule_dispatcher.decision_to_action(result))
+
   // Also evaluate preflight
   let preflight_facts = [
     rule_engine.Fact("Preflight.InfraHealthy", case connected {
@@ -1443,6 +1449,7 @@ fn ooda_decide_json() -> String {
     #("engine_version", json.string(rule_engine.version())),
     #("ooda_decision", json.string(result.decision)),
     #("ooda_reason", json.string(result.reason)),
+    #("ooda_action", json.string(ooda_action)),
     #("preflight_decision", json.string(preflight.decision)),
     #("preflight_reason", json.string(preflight.reason)),
     #(

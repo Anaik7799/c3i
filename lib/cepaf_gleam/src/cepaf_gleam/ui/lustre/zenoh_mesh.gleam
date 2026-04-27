@@ -2,6 +2,8 @@
 /// Subscribes to Zenoh PubSub for real-time updates (SC-GLM-UI-005).
 /// Imports from zenoh/domain.gleam — no type duplication (SC-GLM-UI-009).
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-002, SC-GLM-UI-005, SC-GLM-UI-009
+import cepaf_gleam/ui/domain as ui_domain
+import cepaf_gleam/ui/zenoh_otel
 import cepaf_gleam/zenoh/domain.{
   type LifecycleState, type ZenohHealth, Connected, empty_health,
 }
@@ -39,6 +41,7 @@ pub fn init() -> ZenohModel {
 }
 
 pub fn update(model: ZenohModel, msg: ZenohMsg) -> ZenohModel {
+  zenoh_otel.emit(ui_domain.Zenoh, "update", zenoh_otel.Act)
   case msg {
     HealthUpdated(h) -> ZenohModel(..model, health: h)
     LifecycleChanged(s) -> ZenohModel(..model, lifecycle: s)

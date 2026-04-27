@@ -22,9 +22,14 @@
 //// RULE: After ANY Model/Msg type change, update this file FIRST.
 //// SC-WIRE-001: Wiring guard must compile before any other test.
 
+import cepaf_gleam/actors/pi_subscriber
 import cepaf_gleam/agui/events
 import cepaf_gleam/agui/tools
 import cepaf_gleam/agents/cortex
+import cepaf_gleam/auth/oidc
+import cepaf_gleam/auth/rbac
+import cepaf_gleam/bridge/pi_rpc
+import cepaf_gleam/bridge/pi_runtime
 import cepaf_gleam/fractal/l5_cognitive
 import cepaf_gleam/moz/client as moz
 import cepaf_gleam/ui/lustre/agents
@@ -60,6 +65,8 @@ import cepaf_gleam/ui/lustre/telemetry
 import cepaf_gleam/ui/lustre/voice_pipeline
 import cepaf_gleam/ui/lustre/zenoh_browser
 import cepaf_gleam/ui/lustre/zenoh_mesh
+import cepaf_gleam/ui/lustre/heartbeat_page
+import cepaf_gleam/ui/lustre/health_product_page
 import cepaf_gleam/chaos/apoptosis
 import cepaf_gleam/crdt/types as crdt
 import cepaf_gleam/eventsource/chain
@@ -112,9 +119,14 @@ pub fn verify_all_inits() -> Int {
   let _ = voice_pipeline.init()
   let _ = zenoh_browser.init()
   let _ = zenoh_mesh.init()
+  let _ = heartbeat_page.init()
+  let _ = health_product_page.init()
+
+  // Auth module — verify Lustre auth page init
+  // (auth page will be added when lustre/auth.gleam is created)
 
   // Return page count — if this changes, nav_graph needs updating
-  33
+  35
 }
 
 /// Verify cortex state construction (most complex, most fragile).
@@ -349,6 +361,47 @@ pub fn verify_inference_tier_invariants() -> Bool {
   True
 }
 
+/// Verify auth module type constructors (SC-WIRE-002).
+/// FerrisKey OIDC + RBAC types must construct without error.
+pub fn verify_auth_wiring() -> Bool {
+  // OidcConfig constructor
+  let _config = oidc.OidcConfig(
+    issuer_url: "http://localhost:8080/realms/c3i-dev",
+    jwks_url: "http://localhost:8080/realms/c3i-dev/protocol/openid-connect/certs",
+    client_id: "c3i-wisp-api",
+    required_audience: "c3i-wisp-api",
+  )
+
+  // TokenClaims constructor
+  let claims = oidc.TokenClaims(
+    sub: "user-123",
+    preferred_username: "admin",
+    email: "admin@test.com",
+    roles: ["c3i-admin"],
+    exp: 9_999_999_999,
+    iss: "http://localhost:8080/realms/c3i-dev",
+    aud: ["c3i-wisp-api"],
+    acr: "urn:ferriskey:mfa:totp",
+  )
+
+  // AuthenticatedUser constructor
+  let _user = rbac.AuthenticatedUser(
+    sub: claims.sub,
+    username: claims.preferred_username,
+    email: claims.email,
+    roles: claims.roles,
+    permission: rbac.FullAccess,
+    has_mfa: True,
+  )
+
+  // Verify role resolution
+  let perm = rbac.resolve_permission(["c3i-admin", "c3i-viewer"])
+  case perm {
+    rbac.FullAccess -> True
+    _ -> panic as "SC-WIRE-AUTH: c3i-admin should resolve to FullAccess"
+  }
+}
+
 /// Master verification — call from tests.
 /// Returns total verified connection count.
 pub fn verify_all() -> Int {
@@ -365,8 +418,44 @@ pub fn verify_all() -> Int {
   let _ = verify_a2ui_coverage()
   let _ = verify_inference_tier_invariants()
   let ultra = verify_ultra_modules()
+  let _ = verify_auth_wiring()
+
+  let pi = verify_pi_runtime_wiring()
 
   // Total verified connections
-  // 33 pages + 32 events + 6 models + 21 roundtrips + 3 strict + 9 ultra = 104
-  pages + events + 6 + roundtrips + 3 + ultra
+  // 35 pages + 32 events + 6 models + 21 roundtrips + 3 strict + 9 ultra + 1 auth + pi = 107 + pi
+  pages + events + 6 + roundtrips + 3 + ultra + 1 + pi
+}
+
+// =============================================================================
+// Pi Runtime Wiring (SC-WIRE-PI)
+// =============================================================================
+
+/// Verify Pi runtime and RPC types compile and construct correctly.
+pub fn verify_pi_runtime_wiring() -> Int {
+  // pi_runtime types
+  let rt = pi_runtime.init()
+  let _ = rt.status
+  let _ = rt.circuit
+  let _ = rt.config
+
+  // pi_runtime state transitions
+  let #(rt2, _) = pi_runtime.handle_command(rt, pi_runtime.Start)
+  let rt3 = pi_runtime.on_process_started(rt2, 1)
+  let _ = pi_runtime.is_available(rt3)
+  let _ = pi_runtime.status_string(rt3)
+  let _ = pi_runtime.dashboard_summary(rt3)
+
+  // pi_rpc commands
+  let cmd = pi_rpc.prompt(1, "test")
+  let _ = pi_rpc.serialize_command(cmd)
+  let _ = pi_rpc.command_id(cmd)
+  let _ = pi_rpc.supported_providers()
+
+  // pi_subscriber
+  let sub = pi_subscriber.init_state()
+  let _ = pi_subscriber.handle_message(sub, pi_subscriber.tick_msg())
+
+  // 4 connections: runtime, rpc, subscriber, bridge
+  4
 }

@@ -6,7 +6,7 @@
 
 C3I operates a 25-agent biomorphic swarm organized in 2 supervision layers. This document
 covers agents relevant to Gleam UI development, testing, and coverage. For the full agent
-inventory see `.claude/agents/`.
+inventory see `.gemini/agents/`.
 
 ---
 
@@ -51,12 +51,12 @@ The following root-level tools are the primary interfaces for system management:
 
 | Field | Value |
 |-------|-------|
-| File | `.claude/agents/fractal-architect.md` |
+| File | `.gemini/agents/fractal-architect.md` |
 | Model | opus |
 | Tools | Read, Grep, Glob, Bash |
 
 **Purpose.** Designs and validates the 7-layer fractal widget architecture (L0-L7) as defined
-in `CLAUDE.md §7.0`. Verifies self-similarity across layers, constitutional invariant propagation
+in `GEMINI.md §7.0`. Verifies self-similarity across layers, constitutional invariant propagation
 (Psi-0 through Psi-5), and health propagation (failures up, recovery down).
 
 **Scope.**
@@ -87,7 +87,7 @@ propagation audits, Jaccard consistency failures.
 
 | Field | Value |
 |-------|-------|
-| File | `.claude/agents/gleam-coverage-engineer.md` |
+| File | `.gemini/agents/gleam-coverage-engineer.md` |
 | Model | sonnet |
 | Tools | Read, Write, Edit, Grep, Glob, Bash(gleam:*), Bash(git:*) |
 
@@ -142,7 +142,7 @@ coverage, triple-interface (Lustre + Wisp + TUI) test coverage, Zenoh OTel span 
 
 | Field | Value |
 |-------|-------|
-| File | `.claude/agents/wallaby-coverage-engineer.md` |
+| File | `.gemini/agents/wallaby-coverage-engineer.md` |
 | Model | sonnet |
 | Tools | Read, Write, Edit, Grep, Glob, Bash(mix:*), Bash(git:*) |
 
@@ -175,7 +175,7 @@ Gleam), FMEA-driven test writing, two-step commit verification (arm/confirm/canc
 
 | Field | Value |
 |-------|-------|
-| File | `.claude/agents/coverage-audit-agent.md` |
+| File | `.gemini/agents/coverage-audit-agent.md` |
 | Model | sonnet |
 | Tools | All tools |
 
@@ -370,29 +370,29 @@ If any gate fails, return to step 3 or 4 with the audit report as input.
 | Gleam test suite | `lib/cepaf_gleam/test/` |
 | Comprehensive Regression | `lib/cepaf_gleam/test/comprehensive_ui_regression_test.gleam` |
 | Test Runner Script | `scripts/run-split-screen-tests.sh` |
-| Agent definitions | `.claude/agents/` |
+| Agent definitions | `.gemini/agents/` |
 
 ---
 
 ## Related Documents
 
-- `CLAUDE.md §3.0` — Triple-interface mandate (SC-GLM-UI-001)
-- `CLAUDE.md §5.0` — AG-UI 32-event protocol
-- `CLAUDE.md §6.0` — A2UI 16-component catalog
-- `CLAUDE.md §7.0` — Fractal widget architecture (L0-L7)
-- `CLAUDE.md §8.0` — 8-category gold standard and math gates
-- `CLAUDE.md §2.5` — Zenoh OTel Integration
-- `.claude/rules/gleam-web-ui-development.md` — Full SC-GLM-UI constraint text
-- `.claude/rules/ui-graph-testing.md` — Graph-theory UI testing (22-page digraph, LTS)
-- `.claude/rules/zenoh-telemetry-mandatory.md` — Zenoh OTel span publishing
-- `.claude/rules/zenoh-test-messaging.md` — Zenoh test observer protocol
-- `.claude/rules/biomorphic-mode.md` — 25-agent swarm, context budget, OODA loop
-- `.claude/rules/human-intent-protection.md` — SC-HINT-001..008
+- `GEMINI.md §3.0` — Triple-interface mandate (SC-GLM-UI-001)
+- `GEMINI.md §5.0` — AG-UI 32-event protocol
+- `GEMINI.md §6.0` — A2UI 16-component catalog
+- `GEMINI.md §7.0` — Fractal widget architecture (L0-L7)
+- `GEMINI.md §8.0` — 8-category gold standard and math gates
+- `GEMINI.md §2.5` — Zenoh OTel Integration
+- `.gemini/rules/gleam-web-ui-development.md` — Full SC-GLM-UI constraint text
+- `.gemini/rules/ui-graph-testing.md` — Graph-theory UI testing (22-page digraph, LTS)
+- `.gemini/rules/zenoh-telemetry-mandatory.md` — Zenoh OTel span publishing
+- `.gemini/rules/zenoh-test-messaging.md` — Zenoh test observer protocol
+- `.gemini/rules/biomorphic-mode.md` — 25-agent swarm, context budget, OODA loop
+- `.gemini/rules/human-intent-protection.md` — SC-HINT-001..008
 - `docs/GLEAM_UI_DEVELOPMENT_PROMPT.md` — Definitive session bootstrap prompt
 
 ---
 
 **Version**: 22.5.0-CORTEX
 **Last Updated**: 2026-04-10
-**Agent count**: 29 definitions in `.claude/agents/` (4 UI-specialist, 9 UI-supporting, 16 other)
+**Agent count**: 29 definitions in `.gemini/agents/` (4 UI-specialist, 9 UI-supporting, 16 other)
 **Test metrics**: 1,559 tests passed, 0 failures | H=2.67 bits | CCM=0.770 | ITQS=0.736 | 100% tab coverage

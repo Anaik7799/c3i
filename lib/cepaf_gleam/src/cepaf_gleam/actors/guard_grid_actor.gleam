@@ -62,6 +62,7 @@
 ////
 //// STAMP: SC-SIL4-001, SC-HA-001, SC-OODA-001, SC-FUNC-002, SC-FUNC-004
 
+import cepaf_gleam/ha/claude_metrics
 import cepaf_gleam/ha/guard_grid
 import cepaf_gleam/ha/guard_rules
 import cepaf_gleam/substrate/beam_cache
@@ -210,6 +211,10 @@ pub fn ooda_tick(state: GuardGridActorState) -> GuardGridActorState {
 
   // ── ACT ──────────────────────────────────────────────────────────────────
   execute_action(action, health, entropy, lyapunov, cascade)
+
+  // Record one MCP call per OODA cycle to the session metrics (SC-SATYA-002).
+  let _metrics =
+    claude_metrics.record_mcp_call(claude_metrics.init("guard_grid", 0))
 
   let new_cycle = state.cycle_count + 1
 

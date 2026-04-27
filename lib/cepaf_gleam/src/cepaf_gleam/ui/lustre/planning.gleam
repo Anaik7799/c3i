@@ -1,6 +1,8 @@
 /// Lustre component for Planning plane (SC-GLM-UI-001).
 /// Imports from planning domain — no type duplication (SC-GLM-UI-009).
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-002, SC-GLM-UI-009
+import cepaf_gleam/ui/domain.{Planning}
+import cepaf_gleam/ui/zenoh_otel
 import gleam/list
 import gleam/option.{None, Some}
 
@@ -42,6 +44,7 @@ pub fn init() -> PlanningModel {
 }
 
 pub fn update(model: PlanningModel, msg: PlanningMsg) -> PlanningModel {
+  zenoh_otel.emit(Planning, "update", zenoh_otel.Act)
   case msg {
     SetFilter(f) -> PlanningModel(..model, filter: f)
     SelectTask(id) -> PlanningModel(..model, selected_id: Some(id))

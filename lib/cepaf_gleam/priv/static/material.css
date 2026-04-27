@@ -357,14 +357,17 @@ hr, .md-divider {
 code, .mono, .id { font-family: var(--md-font-mono); font-size: 0.8125rem; }
 
 /* ─── Responsive Breakpoints (M3 Window Size Classes) ─── */
+/* Page content wrapper */
+.w-full { max-width: 100%; overflow-x: hidden; }
+
 /* Compact: <600px — Mobile First */
 @media (max-width: 599px) {
   .stats, .card-grid { grid-template-columns: 1fr; }
-  main { padding: 0.75rem; }
+  main { padding: 0.75rem; max-width: 100vw; overflow-x: hidden; }
   nav { padding: 0 0.25rem; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
   nav a { padding: 0.4rem 0.5rem; font-size: 0.75rem; white-space: nowrap; min-height: 44px; }
-  body { overflow-x: hidden; }
-  .section { overflow-x: hidden; }
+  table { font-size: 0.75rem; }
+  table th, table td { padding: 0.4rem 0.5rem; word-break: break-word; }
   .card-grid-wide { grid-template-columns: 1fr !important; }
 }
 /* Medium: 600-839px */

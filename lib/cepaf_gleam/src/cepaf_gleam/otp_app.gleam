@@ -59,6 +59,9 @@ import cepaf_gleam/actors/guard_grid_actor
 import cepaf_gleam/actors/observer_actor
 import cepaf_gleam/ha/claude_metrics
 import cepaf_gleam/ha/crdt
+import cepaf_gleam/ha/endocrine
+import cepaf_gleam/ha/immune_learning
+import cepaf_gleam/ha/sentinel
 import cepaf_gleam/prajna/bio
 import cepaf_gleam/prajna/circuit_breaker
 import cepaf_gleam/prajna/immune_system as prajna_immune
@@ -100,6 +103,12 @@ pub type AppState {
     observer: observer_actor.ObserverActorState,
     /// Guard-grid OODA actor — 10-second cognitive cycle.
     guard_grid: guard_grid_actor.GuardGridActorState,
+    /// Sentinel patrol — 10-second page truth patrol (35 pages).
+    sentinel_state: sentinel.SentinelState,
+    /// Endocrine system — 60-second hormonal EMA regulation.
+    endocrine_state: endocrine.EndocrineState,
+    /// Immune learning — continuous antibody synthesis.
+    immune_state: immune_learning.ImmuneMemory,
     /// True once start/0 has completed successfully.
     started: Bool,
   )
@@ -141,7 +150,19 @@ pub fn start() -> AppState {
   let grid = guard_grid_actor.init()
   io.println("[C3I] Guard grid OODA actor initialised (10 s cycle)")
 
-  // 5. Wire HA subsystems — publish initial state to ETS for API access
+  // 5. Sentinel patrol — truth checking across all pages
+  let sentinel_s = sentinel.init()
+  io.println("[C3I] Sentinel patrol initialised (35 pages)")
+
+  // 6. Endocrine system — slow hormonal regulation
+  let endocrine_s = endocrine.init()
+  io.println("[C3I] Endocrine system initialised (7 hormones)")
+
+  // 7. Immune learning — antibody synthesis from attack patterns
+  let immune_s = immune_learning.init()
+  io.println("[C3I] Immune learning initialised (antibody synthesis)")
+
+  // 8. Wire HA subsystems — publish initial state to ETS for API access
   let health_d = health_derivative.init(1.0)
   let _ = beam_cache.set_config("ha:health_velocity", "0.0")
   let _ = beam_cache.set_config("ha:health_acceleration", "0.0")
@@ -191,6 +212,9 @@ pub fn start() -> AppState {
     freshness: freshness,
     observer: observer,
     guard_grid: grid,
+    sentinel_state: sentinel_s,
+    endocrine_state: endocrine_s,
+    immune_state: immune_s,
     started: True,
   )
 }
@@ -223,10 +247,20 @@ pub fn tick(state: AppState) -> AppState {
     True -> observer_actor.tick(state.observer)
     False -> state.observer
   }
+  // Sentinel patrols every tick (1 page per 10s = 35-page circuit in ~6 min)
+  let #(new_sentinel, _sentinel_action) = sentinel.patrol_next(state.sentinel_state)
+  // Endocrine samples every 6th tick (60s cadence)
+  let new_endocrine = case state.guard_grid.cycle_count % 6 == 0 {
+    True -> endocrine.sample(state.endocrine_state, endocrine.CpuTrend, 0.5)
+    False -> state.endocrine_state
+  }
   AppState(
     freshness: new_freshness,
     observer: new_observer,
     guard_grid: new_grid,
+    sentinel_state: new_sentinel,
+    endocrine_state: new_endocrine,
+    immune_state: state.immune_state,
     started: True,
   )
 }

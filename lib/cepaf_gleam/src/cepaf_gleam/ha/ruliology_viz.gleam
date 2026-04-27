@@ -370,10 +370,3 @@ fn float4(v: Float) -> String {
   int.to_string(whole) <> "." <> frac_str
 }
 
-/// Generate a list of integers from `from` to `to` inclusive.
-fn int_range(from: Int, to: Int) -> List(Int) {
-  case from > to {
-    True -> []
-    False -> [from, ..int_range(from + 1, to)]
-  }
-}

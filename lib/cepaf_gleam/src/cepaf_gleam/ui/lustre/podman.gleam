@@ -9,6 +9,8 @@
 ///   moz_client.send_request(moz_state, "restart", params)  -- StartContainer
 ///   moz_client.send_request(moz_state, "drain",   params)  -- StopContainer
 /// Confirmation arrives as a ContainersLoaded msg from the SSE feed.
+import cepaf_gleam/ui/domain.{Podman}
+import cepaf_gleam/ui/zenoh_otel
 import gleam/list
 
 pub type PodmanModel {
@@ -49,6 +51,7 @@ pub fn init() -> PodmanModel {
 }
 
 pub fn update(model: PodmanModel, msg: PodmanMsg) -> PodmanModel {
+  zenoh_otel.emit(Podman, "update", zenoh_otel.Act)
   case msg {
     ContainersLoaded(cs) -> PodmanModel(..model, containers: cs)
     ImagesLoaded(imgs) -> PodmanModel(..model, images: imgs)

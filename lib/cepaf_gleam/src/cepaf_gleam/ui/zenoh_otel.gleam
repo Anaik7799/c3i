@@ -15,13 +15,14 @@
 ///
 /// STAMP: SC-GLM-CORE-001, SC-GLM-CORE-002, SC-GLM-CORE-003, SC-ZENOH-001
 import cepaf_gleam/ui/domain.{
-  type Page, Agents, Bicameral, Biomorphic, Bridge, Cockpit, ComponentDemo,
+  type Page, Agents, Auth, Bicameral, Biomorphic, Bridge, Cockpit, ComponentDemo,
   Config, Dashboard, Database, Evolution, Federation, Git, HealthGrid, Holon,
   HomeostasisPage, Immune, Integrity, Kms, Knowledge, Mcp, Metabolic, Planning,
   PlanningDashboard, Podman, Prajna, Singularity, Smriti, Substrate, Telemetry,
   Verification, Zenoh, page_to_path,
 }
 import cepaf_gleam/zenoh/client
+import gleam/int
 import gleam/json
 
 // ---------------------------------------------------------------------------
@@ -102,6 +103,7 @@ pub fn page_to_string(page: Page) -> String {
     Bicameral -> "bicameral"
     Singularity -> "singularity"
     ComponentDemo -> "component_demo"
+    Auth -> "auth"
   }
 }
 
@@ -116,8 +118,10 @@ fn generate_id() -> String
 fn system_time_nanos() -> String
 
 fn now_ms() -> Int {
-  let _nanos_str = system_time_nanos()
-  0
+  case int.parse(system_time_nanos()) {
+    Ok(nanos) -> nanos / 1_000_000
+    Error(_) -> 0
+  }
 }
 
 fn generate_trace_id() -> String {
@@ -180,6 +184,28 @@ pub fn publish_span(
   let topic = otel_topic(span.page, span.element)
   let payload = json.to_string(span_to_json(span))
   client.put(session, topic, payload)
+}
+
+/// Session-less publish — uses NIF ambient Zenoh session.
+/// Fire-and-forget; returns Ok(Nil) on accept, Error(msg) on NIF failure.
+/// Added by ULTRA-PASS5 to close FINDING-A (RPN=900).
+pub fn publish(span: OtelSpan) -> Result(Nil, String) {
+  let topic = otel_topic(span.page, span.element)
+  let payload = json.to_string(span_to_json(span))
+  case client.put_nif(topic, payload) {
+    Ok(_) -> Ok(Nil)
+    Error(msg) -> Error(msg)
+  }
+}
+
+/// Convenience: build + publish in one call.
+pub fn emit_span(
+  page: Page,
+  element: String,
+  phase: OodaPhase,
+  attributes: json.Json,
+) -> Result(Nil, String) {
+  publish(new_span(page, element, phase, attributes))
 }
 
 // ---------------------------------------------------------------------------
@@ -504,6 +530,35 @@ pub fn agent_span(
 ) -> Result(Nil, String) {
   let span = new_span(Mcp, "agent_" <> agent_id <> "_" <> action, phase, attrs)
   publish_span(session, span)
+}
+
+// ---------------------------------------------------------------------------
+// Session-free publishing (for Lustre pages that don't hold a Session)
+// Uses the global NIF Zenoh session (SC-GLM-ZEN-001)
+// ---------------------------------------------------------------------------
+
+/// Publish an OTel span using the global NIF Zenoh session.
+/// This is the PRIMARY entry point for Lustre pages — no Session needed.
+pub fn emit(page: Page, element: String, phase: OodaPhase) -> Nil {
+  let span = new_span(page, element, phase, json.object([]))
+  let topic = otel_topic(span.page, span.element)
+  let payload = json.to_string(span_to_json(span))
+  let _ = client.put_nif(topic, payload)
+  Nil
+}
+
+/// Emit with custom attributes.
+pub fn emit_with(
+  page: Page,
+  element: String,
+  phase: OodaPhase,
+  attrs: json.Json,
+) -> Nil {
+  let span = new_span(page, element, phase, attrs)
+  let topic = otel_topic(span.page, span.element)
+  let payload = json.to_string(span_to_json(span))
+  let _ = client.put_nif(topic, payload)
+  Nil
 }
 
 /// All 31 page topic prefixes (for observer subscription).

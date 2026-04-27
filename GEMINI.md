@@ -1,4 +1,4 @@
-# C3I Gleam-First System — Claude Guidance (v22.5.0-CORTEX)
+# C3I Gleam-First System — Gemini Guidance (v22.10.1-PI-SYMBIOSIS)
 
 **Master Architecture Matrix**: See `docs/architecture/FRACTAL_SYSTEM_VOICE_CHAT_OBSERVABILITY_MATRIX.md` for comprehensive mapping of offline voice, chat components, Zenoh, observability, logging, and formal specs across all L0-L7 fractal layers.
 
@@ -89,7 +89,7 @@ Every new page, dashboard, or interactive component MUST be implemented THREE ti
 
 ## §3.5 Muda Waste Reduction Protocol (NEW)
 **Mandate**: SC-MUDA-001 — The system MUST be maintained with zero compilation warnings and active elimination of "Muda" (waste).
-See `.claude/rules/muda-waste-reduction.md` for the 7 Wastes of Software Engineering and the exact enforcement constraints.
+See `.gemini/rules/muda-waste-reduction.md` for the 7 Wastes of Software Engineering and the exact enforcement constraints.
 
 ---
 
@@ -140,7 +140,7 @@ MIX_ENV=test mix test --only wallaby
 
 ## §5.0 AG-UI 32-Event Protocol (SC-AGUI)
 
-**AG-UI** is the event bus connecting agents (Claude, Gemini, external) to the Gleam UI.
+**AG-UI** is the event bus connecting agents (Gemini, Gemini, external) to the Gleam UI.
 
 All events defined in `agui/events.gleam` (5 modules, 1,224 lines):
 
@@ -236,7 +236,7 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 
 | Metric | Value | Threshold | Status |
 |--------|-------|-----------|--------|
-| Total Tests | 3,354 passed, 0 failures | — | PASS |
+| Total Tests | 8,817 passed, 3 pre-existing | — | PASS |
 | Shannon Entropy H | 2.67 bits (weighted mean) | ≥ 2.5 bits | PASS |
 | CCM | 0.770 | ≥ 0.90 | IMPROVING |
 | ITQS | 0.736 | ≥ 0.85 | IMPROVING |
@@ -244,7 +244,10 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 | Tab Coverage | 100% (31/31) | 100% | PASS |
 | Nav Graph Pages | 31 (SCC=1, edges=930) | 31 | PASS |
 | A2UI Components | 233 | — | PASS |
-| MCP Tools | 26 + 47 sa-plan-daemon (73 total) | — | PASS |
+| MCP Tools | 93 federated (6 Gemini + 14 Pi + 73 C3I) | — | PASS |
+| Pi Bridge Modules | 6 (agent/zenoh/tools/session/provider/claude_code) | 6 | PASS |
+| Source Warnings | 0 (132 in test files only) | 0 src | PASS |
+| Videos/Screenshots | 5 videos + 6 screenshots | — | PASS |
 | Zenoh Observer | 31 pages | 31 | PASS |
 | Zenoh Verification | Active | — | PASS |
 
@@ -275,15 +278,18 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 | Gleam Gateway | 3 | 183 | `lib/cepaf_gleam/src/cepaf_gleam/gateway/*.gleam` |
 | Planning modules | 16 | 5,483 | `lib/cepaf_gleam/src/cepaf_gleam/planning/*.gleam` |
 | Podman modules | 7 | 1,304 | `lib/cepaf_gleam/src/cepaf_gleam/podman/*.gleam` |
-| **TOTAL** | **283+** | **~42,000+** | — |
+| Pi-mono bridge | 6 | 1,500+ | `lib/cepaf_gleam/src/cepaf_gleam/bridge/pi_*.gleam` |
+| Pi-mono (TypeScript) | 7 pkg | 106,577 | `sub-projects/pi-mono/packages/` |
+| Video recording | 1 | 200+ | `scripts/xvfb-record.sh` |
+| **TOTAL** | **290+** | **~42,000+ Gleam + 106K TS** | — |
 
 ---
 
 ## §10.0 Active Constraints Cross-Reference
 
-Full constraint registry (2,257 SC-* / 480 AOR-* at parity): `.claude/rules/constraint-registry.md`
+Full constraint registry (2,257 SC-* / 480 AOR-* at parity): `.gemini/rules/constraint-registry.md`
 
-Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6) SC-HMI(80) SC-VER(79) SC-FRACTAL(8) SC-PROM(7) SC-GLM-ZEN(3) SC-GLM-TST(2)
+Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6) SC-HMI(80) SC-VER(79) SC-FRACTAL(8) SC-PROM(7) SC-GLM-ZEN(3) SC-GLM-TST(2) SC-PI-AUTO(8) SC-VERIFY-VISUAL(6)
 
 ### Wiring Guard Protocol (SC-WIRE — MANDATORY)
 
@@ -298,7 +304,7 @@ Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(
 
 **Verified connections**: 95 (33 page inits + 32 events + 6 models + 21 roundtrips + 3 strict invariants)
 **File**: `testing/wiring_guard.gleam` | **Tests**: `test/wiring_guard_test.gleam` (13 tests)
-**Rule**: `.claude/rules/wiring-guard.md`
+**Rule**: `.gemini/rules/wiring-guard.md`
 
 ### New STAMP Constraints (v22.5.0-CORTEX)
 
@@ -309,6 +315,31 @@ Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(
 | SC-GLM-ZEN-003 | Split-screen TUI MUST display dashboard + test results simultaneously | HIGH |
 | SC-GLM-TST-001 | 100+ regression tests required per release | CRITICAL |
 | SC-GLM-TST-002 | Each tab monitored for 30+ seconds during verification | HIGH |
+
+### New STAMP Constraints (v22.10.1-PI-SYMBIOSIS)
+
+| ID | Constraint | Severity |
+|----|------------|----------|
+| SC-PI-AUTO-001 | Every new Gleam module MUST check Pi bridge compatibility | HIGH |
+| SC-PI-AUTO-002 | Every feature MUST update pi_claude_code.gleam if adding tools/events | CRITICAL |
+| SC-PI-AUTO-003 | Tool federation count (93) MUST be verified after every feature | HIGH |
+| SC-PI-AUTO-004 | Event bridge mapping MUST be verified after AG-UI changes | HIGH |
+| SC-VERIFY-VISUAL-001 | Screenshots MUST be captured for every HTML dashboard page | HIGH |
+| SC-VERIFY-VISUAL-002 | Screenshots MUST be verified against spec | HIGH |
+| SC-VERIFY-VISUAL-003 | Video user journeys MUST demonstrate key workflows | MEDIUM |
+| SC-VERIFY-VISUAL-006 | Failed visual verification triggers recursive fix loop | HIGH |
+
+### Pi-Mono Symbiosis (v22.10.1)
+
+**Bridge**: `lib/cepaf_gleam/src/cepaf_gleam/bridge/pi_claude_code.gleam` (300+ lines)
+**Test**: `lib/cepaf_gleam/test/pi_claude_code_test.gleam` (30 tests)
+**Dashboard**: `https://vm-1.tail55d152.ts.net:4200/pi-symbiosis`
+**Tool Federation**: 93 total = 6 Gemini (Read/Write/Edit/Bash/Grep/Glob) + 14 Pi + 73 C3I MCP
+**Event Bridge**: 29 Pi events ↔ 32 AG-UI events (bidirectional)
+**Video Recording**: `scripts/xvfb-record.sh` (Xvfb + ffmpeg + xdotool)
+**Rule**: `.gemini/rules/pi-symbiosis-automation.md` (SC-PI-AUTO-001..008)
+**Rule**: `.gemini/rules/video-screenshot-verification.md` (SC-VERIFY-VISUAL-001..006)
+**Skill**: `.gemini/commands/pi-symbiosis-evolve.md`
 
 **See** `docs/GLEAM_UI_DEVELOPMENT_PROMPT.md` for development session prompt.
 
@@ -321,8 +352,8 @@ Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(
 - **Spec**: `specs/allium/ignition.allium` (1,923 lines, 26 sections)
 - **Template**: `specs/allium/TEMPLATE.allium` (26-section standard)
 - **Checklist**: `specs/allium/CHECKLIST.md`
-- **Skill**: `.claude/commands/allium.md` + `.agents/skills/allium/` (official JUXT)
-- **Rule**: `.claude/rules/allium-behavioral-specs.md` (SC-ALLIUM-001..008)
+- **Skill**: `.gemini/commands/allium.md` + `.agents/skills/allium/` (official JUXT)
+- **Rule**: `.gemini/rules/allium-behavioral-specs.md` (SC-ALLIUM-001..008)
 - **Guide**: `docs/allium-user-guide.md`
 
 | Allium Construct | Count | Coverage |
@@ -541,6 +572,48 @@ Every intent is traced end-to-end via `PipelineTracer`:
 
 ---
 
-**Version**: 22.5.0-CORTEX
-**Last Updated**: 2026-04-10
-**Status**: Gleam-first platform operational — unified c3i_nif (14 NIFs), 73 MCP tools, 233 A2UI components, 31-module Rust cortex (9,104 LOC), 6-tier hedged inference, 5-tier voice cascade, PipelineTracer, RAG, semantic cache, ZMOF active, Muda enforced, sa-plan-daemon authoritative, OpenClaw & HA integrated
+## §18.0 Gemini CLI Symbiosis & Cybernetic Architect
+
+The Gemini CLI operates as the **Cybernetic Architect**, a formal system role defined by deep integration with the fractal mesh.
+
+### §18.1 Persistence & Memory (`save_memory`)
+- Gemini autonomously records architectural decisions, ASSP lock states, and session context via the `save_memory` tool.
+- This ensures continuity across multi-agent handovers and workspace transitions.
+
+### §18.2 specialized Knowledge (`activate_skill`)
+- Skills in `.gemini/skills/` (e.g., `multilayer-swarm`, `system-engineering-sop`) are activated on-demand.
+- Plans generated by the system MUST include explicit `activate_skill` directives to ensure the agent is operating at maximum cognitive saturation.
+
+### §18.3 Architectural Mapping (`codebase_investigator`)
+- The `codebase_investigator` subagent is the primary tool for the **Orient** phase of the OODA loop.
+- It is invoked to map system-wide dependencies before executing multi-file surgical edits.
+
+### §18.4 Web Intelligence (`firecrawl`)
+- Redundant custom browser MCPs are superseded by Gemini's built-in Firecrawl tools for high-fidelity web fetching and semantic extraction.
+
+---
+
+## §19.0 Gemini CLI Symbiosis Recommendations
+
+To maximize the unique capabilities of the Gemini CLI, the following architectural patterns are recommended:
+
+### §19.1 Active Skill Tagging (@skill)
+- **Pattern**: Tasks in `PROJECT_TODOLIST.md` should be tagged with `@skill {name}`.
+- **Workflow**: Upon starting a task, Gemini MUST check for these tags and run `activate_skill {name}` immediately to ensure cognitive alignment with domain-specific SOPs.
+
+### §19.2 Automated Architectural Factoids
+- **Pattern**: Significant architectural findings during OODA loops should be persisted using `save_memory(scope: "project", fact: "...")`.
+- **Value**: This bypasses session context limits and provides a persistent, shared "subconscious" for all agent instances working on the C3I mesh.
+
+### §19.3 Jidoka-Triggered Mapping
+- **Pattern**: If the system triggers a **Jidoka Halt** (due to invariant violation), the first action of the Orient phase MUST be `codebase_investigator(objective: "Map the failure cascade for {invariant_id}")`.
+- **Value**: Leverages specialized subagents to prevent shallow fixes that could cause side-effect cascades.
+
+### §19.4 Dynamic Documentation Fetching
+- **Pattern**: When working with fast-evolving Gleam libraries (Lustre/Wisp), Gemini should use `firecrawl-scrape` on official documentation URLs to ensure API accuracy.
+
+---
+
+**Version**: 22.10.1-PI-SYMBIOSIS
+**Last Updated**: 2026-04-20
+**Status**: Gleam-first platform operational — unified c3i_nif (14 NIFs), 93 federated tools (6 Gemini + 14 Pi + 73 C3I), 233 A2UI components, 31-module Rust cortex (9,104 LOC), 6-tier hedged inference, 5-tier voice cascade, PipelineTracer, RAG, semantic cache, ZMOF active, Muda source-clean (0 src warnings), sa-plan-daemon authoritative, OpenClaw & HA integrated, Pi-mono symbiosis (106K LOC, 29↔32 event bridge), Xvfb video recording

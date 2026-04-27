@@ -32,7 +32,7 @@ pub fn write_file(path: String, content: String) -> Result(Nil, String) {
 fn erl_file_rename(old: String, new: String) -> Result(Nil, String)
 
 @external(erlang, "cepaf_gleam_ffi", "os_cmd")
-fn erl_os_cmd(cmd: String) -> BitArray
+fn erl_os_cmd(cmd: String) -> Result(BitArray, BitArray)
 
 pub fn write_file_atomic(path: String, content: String) -> Result(Nil, String) {
   let tmp_path = path <> ".tmp"
@@ -42,11 +42,24 @@ pub fn write_file_atomic(path: String, content: String) -> Result(Nil, String) {
   }
 }
 
+pub fn run_cmd(cmd: String) -> Result(String, String) {
+  case erl_os_cmd(cmd) {
+    Ok(result) -> {
+      case bit_array.to_string(result) {
+        Ok(s) -> Ok(s)
+        Error(_) -> Error("Command output invalid UTF-8")
+      }
+    }
+    Error(e) -> {
+      case bit_array.to_string(e) {
+        Ok(s) -> Error(s)
+        Error(_) -> Error("Command error invalid UTF-8")
+      }
+    }
+  }
+}
+
 pub fn git_sync(path: String, message: String) -> Result(String, String) {
   let cmd = "git add " <> path <> " && git commit -m \"" <> message <> "\""
-  let result = erl_os_cmd(cmd)
-  case bit_array.to_string(result) {
-    Ok(s) -> Ok(s)
-    Error(_) -> Error("Git output invalid UTF-8")
-  }
+  run_cmd(cmd)
 }

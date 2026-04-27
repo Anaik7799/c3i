@@ -6,7 +6,9 @@ const max_proof_history = 100
 
 const max_run_history = 100
 
+import cepaf_gleam/ui/domain.{Verification}
 import cepaf_gleam/ui/lustre/widgets/evolution_vector.{type EvolutionVectorData}
+import cepaf_gleam/ui/zenoh_otel
 import cepaf_gleam/ui/lustre/widgets/hs_ds_pane.{type HsDsData}
 import cepaf_gleam/verification/graph_verification.{type GraphCheck}
 import cepaf_gleam/verification/prometheus.{
@@ -74,6 +76,7 @@ pub fn update(
   model: VerificationModel,
   msg: VerificationMsg,
 ) -> VerificationModel {
+  zenoh_otel.emit(Verification, "update", zenoh_otel.Act)
   case msg {
     StartVerification -> VerificationModel(..model, running: True)
     ReportReceived(report) -> {

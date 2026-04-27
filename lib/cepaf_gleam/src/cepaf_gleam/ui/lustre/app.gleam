@@ -31,6 +31,7 @@ import cepaf_gleam/ui/domain.{
   type HealthStatus, type Page, type RenderContext, type TelemetryPoint,
   Critical, Dashboard, Degraded, Healthy, RenderContext, Unknown,
 }
+import cepaf_gleam/ui/zenoh_otel
 
 /// Lustre Model — application state for the c3i Web dashboard.
 pub type Model {
@@ -63,6 +64,7 @@ pub fn init() -> Model {
 
 /// Update function — processes messages and returns new model.
 pub fn update(model: Model, msg: Msg) -> Model {
+  zenoh_otel.emit(Dashboard, "update", zenoh_otel.Act)
   case msg {
     NavigateTo(page) -> Model(..model, selected_page: page)
     TelemetryReceived(point) ->

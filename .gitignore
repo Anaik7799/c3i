@@ -42,3 +42,17 @@ sub-projects/work/gdrive/
 sub-projects/scripts-gleam/.fastembed_cache/
 **/.fastembed_cache/
 **/huggingface/hub/
+
+# Pass 8 followup: runtime artefacts that shouldn't be committed
+.playwright-mcp/
+.c3i-context.json
+data/logs/
+data/script-output/
+data/smriti/Smriti.db
+data/smriti/
+docs/journal/monitor/
+**/_apalache-out/
+
+# Secrets — never commit (use .env / sops-nix)
+devenv.nix
+.devenv/

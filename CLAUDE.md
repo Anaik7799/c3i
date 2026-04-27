@@ -1,4 +1,4 @@
-# C3I Gleam-First System — Claude Guidance (v22.5.0-CORTEX)
+# C3I Gleam-First System — Claude Guidance (v22.10.1-PI-SYMBIOSIS)
 
 **Master Architecture Matrix**: See `docs/architecture/FRACTAL_SYSTEM_VOICE_CHAT_OBSERVABILITY_MATRIX.md` for comprehensive mapping of offline voice, chat components, Zenoh, observability, logging, and formal specs across all L0-L7 fractal layers.
 
@@ -236,7 +236,7 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 
 | Metric | Value | Threshold | Status |
 |--------|-------|-----------|--------|
-| Total Tests | 3,354 passed, 0 failures | — | PASS |
+| Total Tests | 9,055 passed, 1 pre-existing | — | PASS |
 | Shannon Entropy H | 2.67 bits (weighted mean) | ≥ 2.5 bits | PASS |
 | CCM | 0.770 | ≥ 0.90 | IMPROVING |
 | ITQS | 0.736 | ≥ 0.85 | IMPROVING |
@@ -244,7 +244,10 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 | Tab Coverage | 100% (31/31) | 100% | PASS |
 | Nav Graph Pages | 31 (SCC=1, edges=930) | 31 | PASS |
 | A2UI Components | 233 | — | PASS |
-| MCP Tools | 26 + 47 sa-plan-daemon (73 total) | — | PASS |
+| MCP Tools | 93 federated (6 Claude + 14 Pi + 73 C3I) | — | PASS |
+| Pi Bridge Modules | 6 (agent/zenoh/tools/session/provider/claude_code) | 6 | PASS |
+| Source Warnings | 0 (132 in test files only) | 0 src | PASS |
+| Videos/Screenshots | 5 videos + 6 screenshots | — | PASS |
 | Zenoh Observer | 31 pages | 31 | PASS |
 | Zenoh Verification | Active | — | PASS |
 
@@ -275,7 +278,12 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 | Gleam Gateway | 3 | 183 | `lib/cepaf_gleam/src/cepaf_gleam/gateway/*.gleam` |
 | Planning modules | 16 | 5,483 | `lib/cepaf_gleam/src/cepaf_gleam/planning/*.gleam` |
 | Podman modules | 7 | 1,304 | `lib/cepaf_gleam/src/cepaf_gleam/podman/*.gleam` |
-| **TOTAL** | **283+** | **~42,000+** | — |
+| Pi-mono bridge | 6 | 1,500+ | `lib/cepaf_gleam/src/cepaf_gleam/bridge/pi_*.gleam` |
+| Pi-mono (TypeScript) | 7 pkg | 106,577 | `sub-projects/pi-mono/packages/` |
+| Pi runtime bridge | 2 | 700+ | `lib/cepaf_gleam/src/cepaf_gleam/bridge/pi_runtime.gleam`, `pi_rpc.gleam` |
+| Pi runtime tests | 1 | 350+ | `lib/cepaf_gleam/test/pi_runtime_test.gleam` |
+| Video recording | 1 | 200+ | `scripts/xvfb-record.sh` |
+| **TOTAL** | **293+** | **~43,000+ Gleam + 106K TS** | — |
 
 ---
 
@@ -283,7 +291,7 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 
 Full constraint registry (2,257 SC-* / 480 AOR-* at parity): `.claude/rules/constraint-registry.md`
 
-Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6) SC-HMI(80) SC-VER(79) SC-FRACTAL(8) SC-PROM(7) SC-GLM-ZEN(3) SC-GLM-TST(2)
+Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6) SC-HMI(80) SC-VER(79) SC-FRACTAL(8) SC-PROM(7) SC-GLM-ZEN(3) SC-GLM-TST(2) SC-PI-AUTO(8) SC-VERIFY-VISUAL(6)
 
 ### Wiring Guard Protocol (SC-WIRE — MANDATORY)
 
@@ -310,6 +318,56 @@ Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(
 | SC-GLM-TST-001 | 100+ regression tests required per release | CRITICAL |
 | SC-GLM-TST-002 | Each tab monitored for 30+ seconds during verification | HIGH |
 
+### New STAMP Constraints (v22.10.1-PI-SYMBIOSIS)
+
+| ID | Constraint | Severity |
+|----|------------|----------|
+| SC-PI-AUTO-001 | Every new Gleam module MUST check Pi bridge compatibility | HIGH |
+| SC-PI-AUTO-002 | Every feature MUST update pi_claude_code.gleam if adding tools/events | CRITICAL |
+| SC-PI-AUTO-003 | Tool federation count (93) MUST be verified after every feature | HIGH |
+| SC-PI-AUTO-004 | Event bridge mapping MUST be verified after AG-UI changes | HIGH |
+| SC-VERIFY-VISUAL-001 | Screenshots MUST be captured for every HTML dashboard page | HIGH |
+| SC-VERIFY-VISUAL-002 | Screenshots MUST be verified against spec | HIGH |
+| SC-VERIFY-VISUAL-003 | Video user journeys MUST demonstrate key workflows | MEDIUM |
+| SC-VERIFY-VISUAL-006 | Failed visual verification triggers recursive fix loop | HIGH |
+
+### Pi-Mono Symbiosis (v22.10.1)
+
+**Bridge**: `lib/cepaf_gleam/src/cepaf_gleam/bridge/pi_claude_code.gleam` (300+ lines)
+**Test**: `lib/cepaf_gleam/test/pi_claude_code_test.gleam` (30 tests)
+**Dashboard**: `https://vm-1.tail55d152.ts.net:4200/pi-symbiosis`
+**Tool Federation**: 93 total = 6 Claude (Read/Write/Edit/Bash/Grep/Glob) + 14 Pi + 73 C3I MCP
+**Event Bridge**: 29 Pi events ↔ 32 AG-UI events (bidirectional)
+**Video Recording**: `scripts/xvfb-record.sh` (Xvfb + ffmpeg + xdotool)
+**Rule**: `.claude/rules/pi-symbiosis-automation.md` (SC-PI-AUTO-001..008)
+**Rule**: `.claude/rules/pi-runtime-activation.md` (SC-PI-RUNTIME-001..008)
+**Rule**: `.claude/rules/video-screenshot-verification.md` (SC-VERIFY-VISUAL-001..006)
+**Skill**: `.claude/commands/pi-symbiosis-evolve.md`
+**User Guide**: `docs/PI_RUNTIME_USER_GUIDE.md`
+
+### Pi Runtime Activation (v22.10.2-PI-RUNTIME)
+
+Pi-mono Node.js runtime is activatable from the BEAM mesh:
+- **Runtime Manager**: `bridge/pi_runtime.gleam` — process lifecycle, circuit breaker (3 fail → 60s), auto-restart (max 5x)
+- **RPC Client**: `bridge/pi_rpc.gleam` — JSONL protocol, 15 command types, 15 providers
+- **Subscriber Actor**: `actors/pi_subscriber.gleam` — OTP actor, event processing, health probes
+- **Tests**: `test/pi_runtime_test.gleam` — 42 tests (lifecycle, circuit breaker, RPC serialization)
+- **Wiring Guard**: 111 verified connections (was 107, +4 Pi runtime)
+- **Providers**: 15 (google, anthropic, openai, ollama, bedrock, mistralai, openrouter, groq, deepseek, xai, cerebras, qwen, sambanova, fireworks, together)
+
+**Quick Start**:
+```bash
+# One-shot (fastest)
+source sub-projects/pi-mono/load-env.sh
+node sub-projects/pi-mono/packages/coding-agent/dist/cli.js \
+  --provider google --model gemini-2.5-flash --print "Your prompt"
+
+# RPC daemon (persistent, for C3I integration)
+node sub-projects/pi-mono/packages/coding-agent/dist/cli.js \
+  --provider google --model gemini-2.5-flash --mode rpc
+```
+
+**See** `docs/PI_RUNTIME_USER_GUIDE.md` for comprehensive documentation.
 **See** `docs/GLEAM_UI_DEVELOPMENT_PROMPT.md` for development session prompt.
 
 ---
@@ -428,19 +486,21 @@ Telegram/GChat → long-poll → Zenoh intent → CLASSIFY
   └→ GATEWAY broadcast → Telegram + GChat (retry x1)
 ```
 
-### 6-Tier Inference Cascade
+### 7-Tier Inference Cascade
 
 | Tier | Model | Latency | Cost | Transport |
 |------|-------|---------|------|-----------|
 | 1 | Gemini Direct (gemini-3.1-flash-lite-preview) | ~900ms | Free | HTTPS |
 | 2 | OpenRouter (gemini-3-flash-preview) | ~1.1s | $0.000009 | HTTPS |
-| 3 | Ollama gemma4 (port 11435) | ~4s | Free | HTTP |
-| 4 | Ollama gemma3 (port 11434) | ~10s | Free | HTTP |
-| 5 | RETE-UL rule engine | <1ms | Free | In-process |
-| 6 | Static ack | <1ms | Free | In-process |
+| 3 | **mistral.rs gemma4 (in-process)** | **~500ms** | **Free** | **In-process (zero HTTP)** |
+| 4 | Ollama gemma4 (port 11435, fallback) | ~4s | Free | HTTP |
+| 5 | Ollama gemma3 (port 11434, last resort) | ~10s | Free | HTTP |
+| 6 | RETE-UL rule engine | <1ms | Free | In-process |
+| 7 | Static ack | <1ms | Free | In-process |
 
 **Hedged Parallel**: Tiers 1+2 fire simultaneously via `tokio::join!`. First success wins.
-**Circuit Breakers**: 4 independent `CircuitBreaker` instances (3 failures → 60s cooldown).
+**mistral.rs Primary Local**: Tier 3 uses `TextModelBuilder` with `google/gemma-4-4b-it` — zero HTTP overhead, ~10x faster than Ollama.
+**Circuit Breakers**: 5 independent `CircuitBreaker` instances (3 failures → 60s cooldown).
 **Persistent HTTP**: `OnceLock<reqwest::Client>` with 30s keepalive pinger eliminates TLS cold-start.
 **No-Blackhole Guarantee**: 7 mechanisms ensure every message gets a response.
 
@@ -541,6 +601,6 @@ Every intent is traced end-to-end via `PipelineTracer`:
 
 ---
 
-**Version**: 22.5.0-CORTEX
-**Last Updated**: 2026-04-10
-**Status**: Gleam-first platform operational — unified c3i_nif (14 NIFs), 73 MCP tools, 233 A2UI components, 31-module Rust cortex (9,104 LOC), 6-tier hedged inference, 5-tier voice cascade, PipelineTracer, RAG, semantic cache, ZMOF active, Muda enforced, sa-plan-daemon authoritative, OpenClaw & HA integrated
+**Version**: 22.10.1-PI-SYMBIOSIS
+**Last Updated**: 2026-04-20
+**Status**: Gleam-first platform operational — unified c3i_nif (14 NIFs), 93 federated tools (6 Claude + 14 Pi + 73 C3I), 233 A2UI components, 31-module Rust cortex (9,104 LOC), 6-tier hedged inference, 5-tier voice cascade, PipelineTracer, RAG, semantic cache, ZMOF active, Muda source-clean (0 src warnings), sa-plan-daemon authoritative, OpenClaw & HA integrated, Pi-mono symbiosis (106K LOC, 29↔32 event bridge), Xvfb video recording

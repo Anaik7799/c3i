@@ -38,6 +38,7 @@ pub type Page {
   Bicameral
   Singularity
   ComponentDemo
+  Auth
 }
 
 /// Health status shared across all interfaces.
@@ -136,6 +137,7 @@ pub fn page_to_path(page: Page) -> String {
     Bicameral -> "/bicameral"
     Singularity -> "/singularity"
     ComponentDemo -> "/components"
+    Auth -> "/auth"
   }
 }
 
@@ -173,6 +175,7 @@ pub fn page_to_label(page: Page) -> String {
     Bicameral -> "Bicameral Sign-Off"
     Singularity -> "Singularity Estimation"
     ComponentDemo -> "Component Demo"
+    Auth -> "Authentication"
   }
 }
 
@@ -210,6 +213,7 @@ pub fn page_fractal_layer(page: Page) -> FractalLayer {
     Bicameral -> L0Constitutional
     Singularity -> L7Federation
     ComponentDemo -> L2Component
+    Auth -> L0Constitutional
   }
 }
 

@@ -61,7 +61,7 @@ pub fn evaluate_knowledge(
   // Rule 2: OrphanedConstraint — constraint zettels with no inbound code edges
   let constraint_holons =
     list.filter(holons, fn(h) {
-      h.rhetorical == types.Axiom && list.length(h.stamp_refs) > 0
+      h.rhetorical == types.Axiom && h.stamp_refs != []
     })
   let orphaned_constraints =
     constraint_holons

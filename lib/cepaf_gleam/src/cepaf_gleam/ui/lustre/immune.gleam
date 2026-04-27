@@ -4,6 +4,8 @@
 import cepaf_gleam/immune/domain.{
   type Antibody, type ChaosAttack, type ImmuneEvent,
 }
+import cepaf_gleam/ui/domain as ui_domain
+import cepaf_gleam/ui/zenoh_otel
 import gleam/list
 
 pub type ImmuneModel {
@@ -34,6 +36,7 @@ pub fn init() -> ImmuneModel {
 }
 
 pub fn update(model: ImmuneModel, msg: ImmuneMsg) -> ImmuneModel {
+  zenoh_otel.emit(ui_domain.Immune, "update", zenoh_otel.Act)
   case msg {
     AntibodyAdded(ab) ->
       ImmuneModel(..model, antibodies: [ab, ..model.antibodies])

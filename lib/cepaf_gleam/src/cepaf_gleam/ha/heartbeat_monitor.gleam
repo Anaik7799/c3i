@@ -95,7 +95,6 @@ pub fn ping(state: HeartbeatState) -> #(HeartbeatState, HeartbeatResult) {
     True -> {
       let new_state =
         HeartbeatState(
-          ..state,
           rust_alive: True,
           last_pong_cycle: new_total,
           consecutive_failures: 0,

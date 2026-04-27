@@ -33,6 +33,8 @@
 ////
 //// STAMP: SC-SEC-001, SC-GLM-UI-003
 
+import cepaf_gleam/auth/oidc.{type TokenClaims}
+import cepaf_gleam/auth/rbac
 import envoy
 import gleam/http.{Delete, Patch, Post, Put}
 import gleam/http/request.{type Request as HttpRequest}
@@ -47,6 +49,8 @@ import gleam/string
 pub type AuthResult {
   /// Token was present, well-formed, and matched the configured secret.
   Authenticated(principal: String)
+  /// Authenticated via FerrisKey OIDC JWT with typed claims.
+  AuthenticatedOidc(claims: TokenClaims)
   /// No Authorization header was present.
   Unauthenticated
   /// Header was present but malformed or the token did not match.
@@ -96,6 +100,50 @@ pub fn validate_request(request: HttpRequest(String)) -> AuthResult {
 pub fn require_auth(request: HttpRequest(String)) -> Result(String, String) {
   case validate_request(request) {
     Authenticated(principal) -> Ok(principal)
+    AuthenticatedOidc(claims) -> Ok(claims.preferred_username)
+    Unauthenticated -> Error("no_token")
+    InvalidToken(reason) -> Error(reason)
+  }
+}
+
+/// Require OIDC authentication and return typed claims.
+/// Returns Error if FerrisKey is not enabled or token is invalid.
+pub fn require_oidc_auth(
+  request: HttpRequest(String),
+) -> Result(TokenClaims, String) {
+  case validate_request(request) {
+    AuthenticatedOidc(claims) -> Ok(claims)
+    Authenticated(_) -> Error("oidc_required")
+    Unauthenticated -> Error("no_token")
+    InvalidToken(reason) -> Error(reason)
+  }
+}
+
+/// Get the authenticated user context with resolved RBAC permissions.
+pub fn get_authenticated_user(
+  request: HttpRequest(String),
+) -> Result(rbac.AuthenticatedUser, String) {
+  case validate_request(request) {
+    AuthenticatedOidc(claims) -> {
+      let permission = rbac.resolve_permission(claims.roles)
+      Ok(rbac.AuthenticatedUser(
+        sub: claims.sub,
+        username: claims.preferred_username,
+        email: claims.email,
+        roles: claims.roles,
+        permission: permission,
+        has_mfa: oidc.has_mfa(claims),
+      ))
+    }
+    Authenticated(principal) ->
+      Ok(rbac.AuthenticatedUser(
+        sub: "static-token",
+        username: principal,
+        email: "",
+        roles: ["c3i-admin"],
+        permission: rbac.FullAccess,
+        has_mfa: False,
+      ))
     Unauthenticated -> Error("no_token")
     InvalidToken(reason) -> Error(reason)
   }
@@ -126,20 +174,60 @@ pub fn auth_error_json(reason: String) -> String {
 // ---------------------------------------------------------------------------
 
 /// Validate a raw Authorization header value against the configured token.
+///
+/// When FERRISKEY_ENABLED=true, attempts OIDC JWT validation first.
+/// Falls back to static token for backward compatibility (dev mode).
 fn validate_header(header_value: String) -> AuthResult {
   case string.starts_with(header_value, bearer_prefix) {
     False -> InvalidToken("authorization header must use Bearer scheme")
     True -> {
-      // Drop "Bearer " (7 chars) to obtain the raw token.
       let submitted_token = string.drop_start(header_value, 7)
-      let expected_token = configured_token()
-      case submitted_token == expected_token {
-        True -> Authenticated(api_principal)
-        False -> InvalidToken("token_mismatch")
+
+      // Try FerrisKey OIDC validation first when enabled
+      case ferriskey_enabled() {
+        True -> validate_oidc_token(submitted_token)
+        False -> validate_static_token(submitted_token)
       }
     }
   }
 }
+
+/// Validate JWT token against FerrisKey OIDC.
+fn validate_oidc_token(token: String) -> AuthResult {
+  let config = oidc.default_config()
+  let current_time = system_time_seconds()
+  case oidc.validate_token(token, config, current_time) {
+    Ok(claims) -> AuthenticatedOidc(claims)
+    Error(err) -> {
+      // Fall back to static token check (SC-AUTH-006: disable in prod)
+      case validate_static_token(token) {
+        Authenticated(p) -> Authenticated(p)
+        _ -> InvalidToken(oidc.error_to_string(err))
+      }
+    }
+  }
+}
+
+/// Validate against the static bearer token (original behavior).
+fn validate_static_token(submitted_token: String) -> AuthResult {
+  let expected_token = configured_token()
+  case submitted_token == expected_token {
+    True -> Authenticated(api_principal)
+    False -> InvalidToken("token_mismatch")
+  }
+}
+
+/// Check if FerrisKey OIDC is enabled.
+fn ferriskey_enabled() -> Bool {
+  case envoy.get("FERRISKEY_ENABLED") {
+    Ok("true") -> True
+    Ok("1") -> True
+    _ -> False
+  }
+}
+
+@external(erlang, "cepaf_gleam_ffi", "system_time_seconds")
+fn system_time_seconds() -> Int
 
 /// Read the expected token from the environment, falling back to the dev
 /// default when the variable is absent.

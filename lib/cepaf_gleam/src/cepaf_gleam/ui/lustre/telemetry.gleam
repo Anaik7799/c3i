@@ -1,6 +1,8 @@
 /// Lustre component for Telemetry plane (SC-GLM-UI-001).
 /// Manages spans, metrics, log levels, and active traces.
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-002, SC-GLM-UI-009
+import cepaf_gleam/ui/domain.{Telemetry}
+import cepaf_gleam/ui/zenoh_otel
 import gleam/list
 
 pub type TelemetryModel {
@@ -50,6 +52,7 @@ pub fn init() -> TelemetryModel {
 }
 
 pub fn update(model: TelemetryModel, msg: TelemetryMsg) -> TelemetryModel {
+  zenoh_otel.emit(Telemetry, "update", zenoh_otel.Act)
   case msg {
     SpanReceived(span) -> TelemetryModel(..model, spans: [span, ..model.spans])
     MetricUpdated(metric) ->

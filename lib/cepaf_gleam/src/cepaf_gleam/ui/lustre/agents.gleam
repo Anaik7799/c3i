@@ -1,6 +1,8 @@
 /// Lustre component for Agent Hierarchy plane (SC-GLM-UI-001).
 /// Tracks agent counts, efficiency, and deadlock detection.
 /// STAMP: SC-GLM-UI-001, SC-GLM-UI-002, SC-GLM-UI-009
+import cepaf_gleam/ui/domain.{Agents}
+import cepaf_gleam/ui/zenoh_otel
 import gleam/int
 
 pub type AgentsModel {
@@ -33,6 +35,7 @@ pub fn init() -> AgentsModel {
 }
 
 pub fn update(model: AgentsModel, msg: AgentsMsg) -> AgentsModel {
+  zenoh_otel.emit(Agents, "update", zenoh_otel.Act)
   case msg {
     HierarchyLoaded(total, execs, sups, wrks) ->
       AgentsModel(

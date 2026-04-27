@@ -233,3 +233,216 @@
 [indrajaal-ex-app-2] (STDOUT) bc24e76b95999f3cfc859656349f0eec8b0979b6b6209a1721df8c7f4e5fdb18
 [indrajaal-ex-app-3] (STDOUT) 1bf5b988215373c7d82bf7374d35943d623f29d2037deff8e8e12521d787dec1
 [indrajaal-chaya] (STDOUT) 99c3865c85b8825be36d6637c7faf7cf66223a480002073f6ecf9c5902040a90
+[zenoh-router-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ollama] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-mojo] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-db-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-obs-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-cortex] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[cepaf-bridge] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-chaya] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-mojo] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ollama] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-obs-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-db-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-cortex] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[cepaf-bridge] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-chaya] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-3] (STDOUT) 63eab37cf570adba794e226b6f70cc9b5b05f2166bc41963665cea856bbfb844
+[zenoh-router-2] (STDOUT) eece21434bc3bfa11f63f90d222486d0dda19e8c3384d35d0758cd8365d0921c
+[zenoh-router] (STDOUT) 553557c261805731a23ee75a7bd6e0be9db2f9321aa57761ee894abc33d3f6a6
+[indrajaal-cortex] (STDOUT) f0c14d4c7197ea48af8a59b91320379f94d7b624561d5856f67ce01cda03416c
+[indrajaal-ml-runner-2] (STDOUT) 9c1c8d364ca067a6971319dda190950e55c855c2d613a58dea18d11d153f392a
+[indrajaal-ml-runner-1] (STDOUT) 9449e81caa146a6d0fd6ab4069b319a51fb7092e3db900b7720d3cf49066f0b7
+[indrajaal-obs-prod] (STDOUT) f4614c7e4a4cff8acef446f946731fff1dc2fdadf0aee59d13a56d58f072257a
+[indrajaal-mojo] (STDOUT) 51508fdf487290270aa88099e66a35c48d956f1911941be5def76ceed3c4b5bf
+[cepaf-bridge] (STDOUT) 0a617f969b6292e377f39b55e1041fa2ea4ac0341080db9344321c79e0dbef0a
+[indrajaal-ex-app-1] (STDOUT) 03dfa50cfbc308e8afe3b4b13c04c7b79dc2eead839490bc9a3cfd4fdca8f550
+[indrajaal-chaya] (STDOUT) 456107ba11ee08e2c624aadfe870f80c8c5314ab7a5d0ca1a72c1c91b5df0032
+[zenoh-router-1] (STDOUT) 8ac16bfb800b5d6d8ece2f8c2652209388ac70348b85a498fd7eaee27b107155
+[indrajaal-ex-app-3] (STDOUT) 90743881f8f7d674bbe43c583296675a8cdd84d8c7fefc28427685810b222af7
+[indrajaal-db-prod] (STDOUT) be3fd07481eb4101905936c69438e5c026f882bb922f417fec01a2a72d95f65f
+[indrajaal-ollama] (STDOUT) cfd1046b312cebb4011dafb4ed3e7c3622e945a5e7e57377037e3345f10ae13f
+[indrajaal-ex-app-2] (STDOUT) 242c9e990594bfbe4145913753c70af7e7692146f64920fb6455ca533f1ce3e2
+[zenoh-router] (STDOUT) b5ecbc975513b9dd4bda269ec0928b1ac02a552e4cca7c801e76bf8e37ad8d7c
+[zenoh-router-1] (STDOUT) d510b0f7a82a57a85ad03ee424f10cdc5aac239d176f7ba8348f641d9180a646
+[zenoh-router-2] (STDOUT) 319b69efeb53b19b90cf2ffbf1b9d8028aa5c2b25946241939ef5b14a51dbe35
+[zenoh-router-3] (STDOUT) 452b8e3d3364e1c4aba16d612e37868b945684c782e7e595d8d97e124e27eaa7
+[indrajaal-ollama] (STDOUT) 4c85494bfe2580b4fa8bfbe80662b4d56252ee3debc14651ef34d8de91bac4c9
+[indrajaal-obs-prod] (STDOUT) 62758abc82be9c928c8c0398c46c4f96f2d1afbf108b64b621d5046de8a71afa
+[indrajaal-db-prod] (STDOUT) 20ee10bb099e1a2f6d3e18bd32fa12c3cb64cd19c289d404f5846281feb80170
+[indrajaal-mojo] (STDOUT) 598c4e294a76f92b154dca9addfd6a7e0653a754c8a809fefa539f4e86c32e8a
+[indrajaal-ml-runner-1] (STDOUT) 8144b7db76a9ee21c37af30da2faa2eb826fddba11decb6b50497b0416082c50
+[indrajaal-ml-runner-2] (STDOUT) e9965f82be9c8883b83c9ca4d6b87f34c9194d820a6e834f1297e6c08681f5b1
+[indrajaal-cortex] (STDOUT) c4f76db082162471e4c3c1e147e4b77d237f20b43d7e304151d75de46bda4b4d
+[indrajaal-ex-app-1] (STDOUT) badd49608f9e6847bd33299155cddcc2d52b3e171fdf8e4e7903ce5a1fa10ea4
+[cepaf-bridge] (STDOUT) 582e28d0866d5242f5d47ebc2b50f977be43e3535ec611bb06ccaca3ed93e207
+[indrajaal-ex-app-2] (STDOUT) 230fd2a71fa845dbe3b1d556ab6a629288355399297f0efe0d2168cad610e5f7
+[indrajaal-chaya] (STDOUT) d9b1df3c40c5bc77a7025a412590135f394b1f3bfdca6a93acdd88f79c95aa9a
+[indrajaal-ex-app-3] (STDOUT) c4e37686daebcc73932cc5ddf96184a7b4701a902bcb573c72ebd079ac1ce949
+[zenoh-router-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-mojo] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-db-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ollama] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-obs-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-cortex] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[cepaf-bridge] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-chaya] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-mojo] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ollama] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-db-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-obs-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-cortex] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[cepaf-bridge] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-chaya] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-mojo] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-db-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ollama] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-obs-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-cortex] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[cepaf-bridge] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-chaya] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-mojo] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ollama] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-db-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-obs-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-cortex] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[cepaf-bridge] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-chaya] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ollama] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-mojo] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-db-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-obs-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-cortex] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[cepaf-bridge] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ex-app-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-chaya] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-3] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-mojo] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ollama] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-db-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-obs-prod] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-2] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-cortex] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[indrajaal-ml-runner-1] (STDERR) Error: unable to find network with name or ID indrajaal-sil6-mesh: network not found
+[zenoh-router-2] (STDOUT) cd318a2bd49178ece32193f0c7a95b2dfbdfb6947af33ecff20e1e2672561a1a
+[zenoh-router] (STDOUT) 4bcc6bdc72244ed790e7c84a6d123a8cb1fd849cd38e013742f5363b109eecb7
+[zenoh-router-1] (STDOUT) 08e2062380ce4ba56137302fe4c3be293333f0291c4d4c4b26eee83509fb853c
+[indrajaal-ml-runner-2] (STDOUT) 1e80f999e207b0b1a9eaae7b21089af8f10aa3cf9093f614b2d09c7ec69a3916
+[zenoh-router-3] (STDOUT) d3d1cd7bd53497ff1f8cd6483375473a2eff7c2b88e59586350094a10cc6ba4b
+[indrajaal-obs-prod] (STDOUT) 3c5bf87b4521d4e2b64c34584b7d52a1a216eac5d7ab5339e37c93d06e4fbc91
+[indrajaal-db-prod] (STDOUT) 63918fa4e67a2252269685867d64c00976ddc4ca877d2abd0afd31d04856ec9c
+[indrajaal-mojo] (STDOUT) 7a4002a2c271a0fba6562cf2ae43720ed3241ac064d0c716a6cf078f7313a172
+[indrajaal-ml-runner-1] (STDOUT) 24065b9070ae0e19564c2eba47f642c25a7378c81c8d46e776c3d71a32d5269d
+[indrajaal-ex-app-1] (STDOUT) 21b1bab565b4c066b2dbd9860924a91075fdde0cede12cec96fb1a20265f2179
+[indrajaal-chaya] (STDOUT) 6460f017868ae37f94383bdd27ee0c7c899c78dc3a25a2e2dd3ef169997ec30f
+[indrajaal-cortex] (STDOUT) 88ded2d857ea02d61dcb3e4cf7527060c94781d837832afbec1531c948b65fd1
+[indrajaal-ollama] (STDOUT) 01787ffda9aac089b381c3feecff8d2dbbb5e232ee34b3a1f21e2720fb0701d2
+[zenoh-router-2] (STDOUT) 109b1fba85cf03da9dd0b7d71ecb6159e920993350800a3f61f75a91de788ccf
+[zenoh-router-3] (STDOUT) bbf0a3385741143369958c467810c652b5cb4a8bdc564492b0783f50b80258b8
+[zenoh-router-1] (STDOUT) 0eeeea2564a5fc21cf8c4da09ad5eb5741422c37fc087cf424acf1cf6e23349a
+[zenoh-router] (STDOUT) c12741b9251a7b4aca5f4afd2ca0e5474842c63c8eee043cd54a83f863ee31f5
+[indrajaal-db-prod] (STDOUT) 56bddc08cc76d09bc9c6826037ce0ac5ae49860382231369fe0f84ee68b21e1d
+[indrajaal-ollama] (STDOUT) 49d978a36f658733f44d93a31136b789517667cc3d9e7c00f94328a3120309e8
+[indrajaal-obs-prod] (STDOUT) 56a89aa5bb0f4ba671631b405d49f738dea7d8c61b7f2e6c31e2b5d3e5ef3fd9
+[indrajaal-mojo] (STDOUT) f482fd2d511b865dd6957046fb7c7c2e4015f9b104903eca3c1da946dd6a5821
+[indrajaal-cortex] (STDOUT) 606a99327a0c33b8b973c8f5a7982b2c3c9fd1408b441105648e0e17e0401448
+[indrajaal-ml-runner-2] (STDOUT) ba43679b3a3c1038233e7b948180bbea900f51eec0151df53dd3e338bb8b30d7
+[indrajaal-ex-app-1] (STDERR) Error: statfs /home/an/dev/ver/c3i/sub-projects/c3i/priv/native: no such file or directory
+[indrajaal-ml-runner-1] (STDOUT) c14fff3ac814dbf4f8640ae7fbb52351bcf580f6d69c3dfae34c3948d60b51ad
+[indrajaal-ex-app-2] (STDERR) Error: statfs /home/an/dev/ver/c3i/sub-projects/c3i/priv/native: no such file or directory
+[indrajaal-chaya] (STDERR) Error: statfs /home/an/dev/ver/c3i/sub-projects/c3i/priv/native: no such file or directory
+[indrajaal-ex-app-3] (STDERR) Error: statfs /home/an/dev/ver/c3i/sub-projects/c3i/priv/native: no such file or directory
+[cepaf-bridge] (STDOUT) 991ffb07fc15b92acc7488197852fb96852507f738376e84da96fe88eedf9492
+[zenoh-router-1] (STDOUT) 2d34788875e67e3295fa7d135e613374046800571ee89e28456dfcd170f8d5e6
+[zenoh-router-2] (STDOUT) 8c33f455eb77d4030a776be05a8ef2dd7167bed8e385875d61daa0c88d945d0b
+[zenoh-router-3] (STDOUT) c83fd280c42c6929bffb5f1dd4a8817642196192f3acaf342fd5a7d4b8c14423
+[zenoh-router] (STDOUT) d892721928a957c16b07c80c8bad8a2895d83f0b7d70098629d6f8a7cb0c8d09
+[indrajaal-ollama] (STDOUT) e50788933b207d7cd1a075b1b790a19e5ce76804175063c239b253d9568612ad
+[indrajaal-obs-prod] (STDOUT) d5fb5b073d335f95cc156d1e31a71d9b176c09b5f00381f2570f4e8d76ccc8ef
+[indrajaal-db-prod] (STDOUT) e44a1ac2110cd5ad9c13fff7823684ea340bbc75d66a74d9f66038c55e7d0060
+[indrajaal-mojo] (STDOUT) 4d57528cf9bd96b6bfc724f939e51d579e5a648d19f90442368c467e96a2af6b
+[indrajaal-ml-runner-1] (STDOUT) 4492d4098c0a63884cb610f3eccf28c2632ed8fb7816050096aa6dd5214ff5e9
+[indrajaal-ml-runner-2] (STDOUT) 6e8eacdc4289d91e993985107a04410ee57918e5b9642d139fd9eac0933353e6
+[indrajaal-ex-app-1] (STDOUT) c9edffcd371cc18a0a0db2b014cae2fc0950c3c0b9e4f3d88310cd8a66dfe585
+[indrajaal-cortex] (STDOUT) accf63bcf84a7cf0a86bfc26215a824f828ab899fe9e6cf6ad6437a1821eb6f2
+[indrajaal-ex-app-3] (STDOUT) f04cd2ab6450a69c1c0c818bb66e0da0dca7a0f3ddf272cd10155b363c4c58d2
+[indrajaal-chaya] (STDOUT) ad88922b8da6dabca7a29a0a2388a7f5a33759ca980bd97be099486dc33a8506
+[indrajaal-ex-app-2] (STDOUT) 73ad6d743661abbee1029dd9a9e5756298c39ebce2813d0b7ae4d1eaf6d4f3e4
+[zenoh-router-3] (STDOUT) c61e235d843891eedf0fb12649e80294270f738fbc776a6f32fb97c9f2490629
+[zenoh-router-1] (STDOUT) b5fc95dd1929904de1ce5ac1ffeb52bc61ee521f976a69111045bdb0ead30031
+[zenoh-router] (STDOUT) 988f1680c8d47149fe9f98ef83c189214a8cc640dc80795e120b1dcfefa55165
+[zenoh-router-2] (STDOUT) dd2ebf02941697e36152d1c90f1293a8cdd17228cc20daa723bf39b57f90bdc6
+[indrajaal-ollama] (STDOUT) b871814f7d61771301442e4437a549cfc0a79438641f72cd34a280182fdbde3c
+[indrajaal-obs-prod] (STDOUT) dfb1eebdd5c661cede4192e19c1491c8dc8b751c100c36271750ca3522d69a2d
+[indrajaal-db-prod] (STDOUT) c72ee391f8dd064e9c8dab6e749c8cc7901406b8e4bc29e6941d6fe494dc801c
+[indrajaal-mojo] (STDOUT) d00ae2796f8fb1f9b249d046d2d00830a320b31ebc84c94d8c2469ec4cafd389
+[indrajaal-ml-runner-2] (STDOUT) 7530bdbfb710779f4c77f4d7e0fd75f99029c13af09a59f531d22a53a4a38ba0
+[indrajaal-cortex] (STDOUT) a6d54b0dc18115e044d4d9a0908edcfce5b54043595a7d144a56eaf2002a0a0f
+[indrajaal-ml-runner-1] (STDOUT) 8ebe8f76af9e5c53d129fdb456f0d57e41c72e55e692bcf728a4d94de68ecd40
+[indrajaal-ex-app-1] (STDOUT) a2e96a3168f04ffebe9d5a5decc2a58a54b2fab4ff1f398e50df200b95d0ac3f
+[indrajaal-chaya] (STDOUT) 0a219ed862ae71ceea5ff4e558184d0db86bb283651a4459332bbe7c31ede7a9
+[cepaf-bridge] (STDOUT) 195c3ee14f5dc85a92b59fe402fc8b2568b84cacbf6e6b40514da693c732ffe7

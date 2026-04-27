@@ -6,6 +6,8 @@ import cepaf_gleam/cockpit/domain.{
   type Alarm, type AlarmLevel, type MeshNode, type ViewMode, Advisory, Caution,
   Connected, Critical, Normal, Warning,
 }
+import cepaf_gleam/ui/domain as ui_domain
+import cepaf_gleam/ui/zenoh_otel
 import cepaf_gleam/ui/lustre/widgets/biomorphic_matrix.{type BiomorphicData}
 import cepaf_gleam/ui/lustre/widgets/homeostasis_control.{
   type HomeostasisMsg, SetThreshold, TriggerEquilibrium,
@@ -61,6 +63,7 @@ pub fn init() -> CockpitModel {
 }
 
 pub fn update(model: CockpitModel, msg: CockpitMsg) -> CockpitModel {
+  zenoh_otel.emit(ui_domain.Cockpit, "update", zenoh_otel.Act)
   case msg {
     NodesUpdated(nodes) -> CockpitModel(..model, nodes: nodes)
     AlarmsUpdated(alarms) -> CockpitModel(..model, alarms: alarms)

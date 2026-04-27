@@ -9,6 +9,7 @@
 -export([file_read/1, file_write/2, file_rename/2]).
 -export([generate_id/0, os_cmd/1, identity/1]).
 -export([to_string/1, to_int/1, to_float/1, to_bool/1]).
+-export([system_time_seconds/0, base64_decode/1, url_encode/1, get_env/1]).
 
 %% @doc Execute a REST request over Podman Unix Domain Socket
 podman_uds_request(Path, Method, Endpoint, Body) ->
@@ -405,4 +406,27 @@ file_write(Path, Content) ->
     catch
         _:CatchReason ->
             {error, unicode:characters_to_binary(io_lib:format("file_write crash: ~p", [CatchReason]))}
+    end.
+
+%% Auth FFI functions (SC-AUTH-001)
+system_time_seconds() ->
+    erlang:system_time(second).
+
+base64_decode(Input) ->
+    try
+        Decoded = base64:decode(Input),
+        {ok, Decoded}
+    catch
+        _:_ -> {error, nil}
+    end.
+
+url_encode(Input) ->
+    uri_string:compose_query([{<<"v">>, Input}]),
+    %% Simple percent encoding
+    unicode:characters_to_binary(http_uri:encode(binary_to_list(Input))).
+
+get_env(Name) ->
+    case os:getenv(binary_to_list(Name)) of
+        false -> {error, nil};
+        Value -> {ok, unicode:characters_to_binary(Value)}
     end.

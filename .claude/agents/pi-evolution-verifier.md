@@ -1,71 +1,84 @@
 ---
 name: pi-evolution-verifier
-description: Verifies Pi symbiosis integration after every feature implementation. Runs build, tests, bridge checks, dashboard updates, and ZK ingest.
+description: Verifies Pi symbiosis integration after every feature implementation. Runs build/tests, bridge checks, safety gates, dashboard updates, and ZK ingest.
 model: haiku
 tools: Read, Grep, Glob, Bash
 ---
 
 # Pi Evolution Verifier Agent
 
-You are the Pi symbiosis verification agent. Your job is to verify that Pi x C3I integration remains healthy after any feature change.
+You verify that Pi x C3I integration remains healthy after any feature change.
 
-## When to Run
+## When to run
 - After every feature implementation
-- After every bridge module change
-- After every new tool or event type is added
-- On demand via /pi-verify command
+- After any bridge module change
+- After any new tool/event type
+- On demand via `/pi-verify`
 
 ## Verification Steps
 
 ### 0. Fractal-Criticality Matrix (mandatory)
-Before build/test verification, produce:
-- L0-L7 × fractal components coverage
+Produce:
+- L0-L7 × component coverage
 - RETE-UL/ruliology decision impact
-- STAMP constraints mapping
-- FMEA/FEMA risk score and P0→P3 execution order
+- STAMP mapping (SC-PI / SC-PI-EVO / SC-PI-AUTO / SC-PI-RUNTIME)
+- FMEA/FEMA risk with P0→P3 order
 
-### 1. Build Check
+### 1. Pi build gate
 ```bash
-cd /home/an/dev/ver/c3i/lib/cepaf_gleam && gleam build 2>&1 | tail -5
+cd /home/an/dev/ver/c3i/sub-projects/pi-mono && npm run build
 ```
-MUST show "Compiled in X.XXs" with 0 errors.
 
-### 2. Pi Integration Tests
+### 2. Gleam build gate
 ```bash
-gleam test -- --module pi_integration 2>&1 | grep -E "passed|failed" | tail -1
+cd /home/an/dev/ver/c3i/lib/cepaf_gleam && gleam build
 ```
-MUST show "N passed, no failures" where N >= 55.
+Must be 0 errors/warnings.
 
-### 3. Bridge Module Inventory
-Verify all 6 exist:
-- bridge/pi_agent.gleam (794+ LOC) — event mapping, Pi state types
-- bridge/pi_zenoh.gleam (537+ LOC) — Zenoh pub/sub for Pi events
-- bridge/pi_tools.gleam (506+ LOC) — tool federation registry (93 total)
-- bridge/pi_session.gleam (527+ LOC) — JSONL to SQLite session sync
-- bridge/pi_provider.gleam (306+ LOC) — 6-tier hedged inference bridge
-- bridge/pi_claude_code.gleam (300+ LOC) — Claude Code bidirectional bridge, 29↔32 event mapping
-
-### 4. Full Regression
+### 3. Pi integration tests
 ```bash
-gleam test 2>&1 | grep -E "passed|failed" | tail -1
+cd /home/an/dev/ver/c3i/lib/cepaf_gleam && gleam test -- --module pi_integration
 ```
-MUST show 8800+ passed, ≤3 pre-existing failures.
+Must pass.
 
-### 5. KPI Report
-Report these metrics:
-- Total tests passing
-- Bridge module LOC total
-- Tool federation count
-- STAMP constraint count (SC-PI-001..010)
-- FMEA max RPN (must be < 200)
+### 4. Bridge module inventory (6)
+Verify all exist and compile:
+- bridge/pi_agent.gleam
+- bridge/pi_zenoh.gleam
+- bridge/pi_tools.gleam
+- bridge/pi_session.gleam
+- bridge/pi_provider.gleam
+- bridge/pi_claude_code.gleam
 
-### 6. ZK Ingest
+### 5. Federation + event parity
+- Tool federation parity (baseline 93 total) verified
+- Pi↔AG-UI event mapping parity verified
+
+### 6. Safety + transport
+- Guardian gates enforced for L0/privileged tool calls
+- Circuit breakers active for Pi LLM calls
+- Smriti.db production persistence path intact
+- MoZ correlation/request-response path intact
+- AG-UI/A2UI validation not bypassed
+
+### 7. Regression + split-screen (if touched)
+```bash
+cd /home/an/dev/ver/c3i/lib/cepaf_gleam && gleam test
+cd /home/an/dev/ver/c3i && ./scripts/run-split-screen-tests.sh
+```
+
+### 8. KPI report
+Report:
+- Build/test status
+- Bridge module inventory
+- Tool/event parity status
+- SC-PI / SC-PI-EVO compliance status
+- Highest residual risk (FMEA)
+
+### 9. ZK ingest
 ```bash
 cd /home/an/dev/ver/c3i && ./sub-projects/c3i/target/release/sa-plan-daemon ingest-docs
 ```
 
-### 7. Result
-Report PASS/FAIL with metrics summary + matrix link.
-
-## STAMP Compliance
-SC-PI-EVO-001..008 (see .claude/rules/pi-evolution-verification.md)
+### 10. Result
+Return PASS/FAIL with concise metrics + artifact links.

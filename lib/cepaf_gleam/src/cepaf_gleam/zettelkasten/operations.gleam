@@ -14,14 +14,14 @@ import cepaf_gleam/zettelkasten/rules
 import cepaf_gleam/zettelkasten/search
 import cepaf_gleam/zettelkasten/trust
 import cepaf_gleam/zettelkasten/types.{
-  type Holon, type HolonEdge, type HolonLevel, type KnowledgeSource,
-  Anecdote, Atomic, Axiom, CacheLearningSource, CodeSource, DocumentSource,
-  Ecosystem, Evidence, Fast, GitCommitSource, Holon, HolonEdge, Hypothesis,
-  InteractionSource, ManualSource, Medium, Molecular, OodaDecisionSource,
-  Organism, PipelineTraceSource, SessionSummarySource, Slow,
+  type Holon, type HolonEdge,
+  Anecdote, Atomic, Axiom, CacheLearningSource,
+  Ecosystem, Evidence, Fast, GitCommitSource, Holon, Hypothesis,
+  InteractionSource, Medium, Molecular, OodaDecisionSource,
+  Organism, PipelineTraceSource, SessionSummarySource,
 }
 import gleam/list
-import gleam/option.{type Option, None, Some}
+import gleam/option.{None, Some}
 import gleam/string
 
 // =============================================================================
@@ -188,14 +188,14 @@ pub fn compliance_gaps(
   edges: List(HolonEdge),
 ) -> List(String) {
   let constraint_holons = list.filter(holons, fn(h) {
-    h.rhetorical == Axiom && list.length(h.stamp_refs) > 0
+    h.rhetorical == Axiom && h.stamp_refs != []
   })
   constraint_holons
   |> list.filter(fn(h) {
     let inbound_code = list.filter(edges, fn(e) {
       e.target_id == h.uuid && e.link_type == types.Code
     })
-    list.length(inbound_code) == 0
+    inbound_code == []
   })
   |> list.flat_map(fn(h) { h.stamp_refs })
 }
@@ -382,7 +382,7 @@ pub fn health_report(
   let m = metrics.compute(holons, edges)
   let health = metrics.health_grade(m)
   let alerts = rules.evaluate_knowledge(holons, edges)
-  let #(crit, high, med, low) = rules.count_by_severity(alerts)
+  let #(crit, high, med, _low) = rules.count_by_severity(alerts)
 
   "Knowledge Health: " <> metrics.health_label(health) <> "\n"
   <> "Holons: " <> int_to_string(m.total_holons) <> " (fresh:" <> int_to_string(m.fresh_count) <> " aging:" <> int_to_string(m.aging_count) <> " rotting:" <> int_to_string(m.rotting_count) <> ")\n"
