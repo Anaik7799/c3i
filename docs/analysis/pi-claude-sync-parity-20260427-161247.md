@@ -56,3 +56,30 @@ Validation run:
 .claude/scripts/check-pi-constants.sh
 [pi-const-check] PASS
 ```
+
+---
+
+## Continue Pass 4 Update (2026-04-27 16:14)
+Added GitHub Actions workflow for server-side enforcement:
+
+- Added: `.github/workflows/pi-constants-drift-guard.yml`
+  - Triggers on `pull_request` and `push` to `main/master`
+  - Runs `.claude/scripts/check-pi-constants.sh`
+
+This complements local pre-commit checks with CI-level merge protection.
+
+---
+
+## Continue Pass 5 Update (2026-04-27 16:15)
+Added script documentation for maintainability:
+
+- Added: `.claude/scripts/README.md`
+  - documents `check-pi-constants.sh` scope and behavior
+  - lists local hook + CI integration points
+  - defines safe baseline-update procedure (CLAUDE.md first, then `.claude/**`, then checker)
+
+Validation run:
+```bash
+.claude/scripts/check-pi-constants.sh
+[pi-const-check] PASS
+```

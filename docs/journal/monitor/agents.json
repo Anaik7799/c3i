@@ -1,1 +1,1 @@
-{"ts_nanos":1777299061767604693,"agents":[{"agent":"pi","sessions":77,"tokens":743795170,"cost_usd":621.5031,"zk_recalls":6252,"cache_hit":0.0992987012987013},{"agent":"claude","sessions":187,"tokens":0,"cost_usd":0.0,"zk_recalls":0,"cache_hit":0.0}]}
+{"ts_nanos":1777300057751945467,"agents":[{"agent":"pi","sessions":77,"tokens":743795170,"cost_usd":621.5031,"zk_recalls":6252,"cache_hit":0.0992987012987013},{"agent":"claude","sessions":191,"tokens":0,"cost_usd":0.0,"zk_recalls":0,"cache_hit":0.0}]}
