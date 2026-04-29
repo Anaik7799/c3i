@@ -1,0 +1,453 @@
+-- allium: 3
+-- specs/allium/gemma4_pipeline.allium — Gemma-4-E2B-it inference daemon
+-- Phase D, plan §9.1, SC-ALLIUM-001..008.
+--
+-- Encodes the 13-stage processing pipeline as Petri-net entities + rules,
+-- pairs each rule with the GR-* mistralrs-imposed constraints (§9.1.1) and
+-- the INF_GEMMA4 RETE-UL rules (§9.7), and declares cross-pass invariants.
+
+entity InferenceRequest {
+  id: String
+  method: Enum { health, metrics, modalities, infer_text,
+                 infer_image, infer_audio, infer_video, embed }
+  params: Json
+  deadline_ms: Integer
+
+  transitions method {
+    infer_text  -> DecodeText
+    infer_image -> DecodeImage
+    infer_audio -> DecodeAudio
+    infer_video -> DecodeVideoFrames
+    health      -> Response
+    metrics     -> Response
+    modalities  -> Response
+    embed       -> Response
+    terminal: Response
+  }
+}
+
+entity ConnState {
+  state: Enum { Idle, ReadingFrame, Parsing, AcquiringPermit,
+                Dispatching, Decoding, ModelInference, Encoding,
+                WritingFrame }
+
+  transitions state {
+    Idle             -> ReadingFrame
+    ReadingFrame     -> Parsing
+    Parsing          -> AcquiringPermit
+    AcquiringPermit  -> Dispatching
+    Dispatching      -> Decoding
+    Decoding         -> ModelInference
+    ModelInference   -> Encoding
+    Encoding         -> WritingFrame
+    WritingFrame     -> Idle
+    -- error edges:
+    Parsing          -> WritingFrame  -- parse fail → err response
+    AcquiringPermit  -> WritingFrame  -- queue full → err response
+    Decoding         -> WritingFrame  -- bad request → err response
+    ModelInference   -> WritingFrame  -- infer fail → err response
+    terminal: Idle
+  }
+}
+
+entity ModelState {
+  state: Enum { Cold, Loading, Ready, Inferring, Failed }
+  transitions state {
+    Cold      -> Loading
+    Loading   -> Ready
+    Ready     -> Inferring
+    Inferring -> Ready
+    Inferring -> Failed
+    Failed    -> Loading      -- circuit-breaker recovery
+    terminal: Ready
+  }
+}
+
+entity Permit {
+  available: Integer
+  in_flight: Integer
+  queue_depth: Integer
+  queue_full_count: Integer
+  max_inflight: Integer
+  max_queue: Integer
+}
+
+entity InferenceCtx {
+  -- mirrors Rust struct in §9.7.2 — RETE-UL working memory
+  method: String
+  deadline_ms: Integer
+  elapsed_ms: Integer
+  prompt_bytes: Integer
+  payload_bytes: Integer
+  image_dim: Optional<#(Integer, Integer)>
+  audio_samples: Optional<Integer>
+  audio_sample_rate: Optional<Integer>
+  video_frames: Optional<Integer>
+  permits: Permit
+  model_ready: Boolean
+  stub_mode: Boolean
+  consecutive_failures: Integer
+  last_failure_at_ms: Integer
+}
+
+-- ── Rules (13-stage pipeline edges) ──────────────────────────────────
+
+rule AcceptConnection {
+  when: ConnState.state == Idle
+  ensures: ConnState.state == ReadingFrame
+}
+
+rule ReadFrameOk {
+  when: ConnState.state == ReadingFrame
+  requires: frame.len <= 16 * 1024 * 1024
+  ensures: ConnState.state == Parsing
+}
+
+rule ReadFrameTooLarge {
+  when: ConnState.state == ReadingFrame
+  requires: frame.len > 16 * 1024 * 1024
+  ensures: Response.code == "INVALID_DATA"
+}
+
+rule ParseRequest {
+  when: ConnState.state == Parsing
+  requires: serde_json::from_slice(frame.body).is_ok()
+  ensures: ConnState.state == AcquiringPermit
+}
+
+rule ParseError {
+  when: ConnState.state == Parsing
+  requires: serde_json::from_slice(frame.body).is_err()
+  ensures: Response.code == "PARSE"
+}
+
+rule AcquirePermit {
+  when: ConnState.state == AcquiringPermit
+  requires: Permit.available > 0
+  ensures: ConnState.state == Dispatching
+       and Permit.in_flight = Permit.in_flight + 1
+       and Permit.available  = Permit.available - 1
+}
+
+rule QueueFull {
+  when: ConnState.state == AcquiringPermit
+  requires: Permit.available == 0
+        and Permit.queue_depth >= Permit.max_queue
+  ensures: Response.code == "QUEUE_FULL"
+       and Permit.queue_full_count = Permit.queue_full_count + 1
+}
+
+rule DispatchTimeout {
+  when: ConnState.state == Dispatching
+  requires: timer.elapsed > req.deadline_ms
+  ensures: Response.code == "DEADLINE"
+       and ModelState.state remains Inferring  -- detached, future survives
+}
+
+rule DispatchUnknown {
+  when: ConnState.state == Dispatching
+  requires: req.method ∉ {health, metrics, modalities,
+                          infer_text, infer_image, infer_audio,
+                          infer_video, embed}
+  ensures: Response.code == "UNKNOWN_METHOD"
+}
+
+rule MultimodalDecode {
+  when: ConnState.state == Decoding
+        and req.method ∈ {infer_image, infer_audio, infer_video}
+  requires: base64.valid(req.params.payload_b64)
+        and payload.size <= kind.cap
+  ensures: ConnState.state == ModelInference
+}
+
+rule MultimodalDecodeFail {
+  when: ConnState.state == Decoding
+        and req.method ∈ {infer_image, infer_audio, infer_video}
+  requires: not base64.valid(req.params.payload_b64)
+        or payload.size > kind.cap
+  ensures: Response.code == "BAD_REQUEST"
+}
+
+rule ModelInferOk {
+  when: ConnState.state == ModelInference
+        and ModelState.state == Ready
+  ensures: ModelState.state == Inferring
+       and  Response.code == "OK"
+       and  ConnState.state == Encoding
+}
+
+rule ModelInferFail {
+  when: ConnState.state == ModelInference
+  requires: mistralrs.error_thrown
+  ensures: Response.code == "INFER_FAIL"
+       and ConnState.state == Encoding
+}
+
+rule WriteFrame {
+  when: ConnState.state == WritingFrame
+  ensures: ConnState.state == Idle
+       and Permit.in_flight = Permit.in_flight - 1
+       and Permit.available  = Permit.available + 1
+}
+
+-- ── Gemma-4 input-processor rules (§9.1.1, mistralrs-imposed) ────────
+
+rule GR_IMG_001 {
+  when: req.method == infer_image
+  requires: image.height % 16 == 0 and image.width % 16 == 0
+  ensures: input_processor.accepts(image)
+}
+
+rule GR_IMG_002 {
+  when: req.method == infer_image
+  requires: image.size != #(384, 384)
+  ensures: image' == resize(image, #(384, 384))
+}
+
+rule GR_AUD_001 {
+  when: req.method == infer_audio
+  requires: audio.sample_rate != 16000
+  ensures: audio' == resample(audio, 16000)
+}
+
+rule GR_AUD_002 {
+  when: req.method == infer_audio
+  requires: audio.samples < 3200
+  ensures: Response.code == "BAD_REQUEST"  -- shape mismatch
+}
+
+rule GR_VID_001 {
+  when: req.method == infer_video
+  requires: req.params.frames_b64.len < 4
+  ensures: Response.code == "BAD_REQUEST"  -- shape mismatch
+}
+
+rule GR_VID_002 {
+  when: req.method == infer_video
+  requires: req.params.frames_b64.len > 32
+  ensures: Response.code == "BAD_REQUEST"  -- daemon cap
+}
+
+rule GR_TXT_001 {
+  when: req.method == infer_text
+  requires: tokens(req.params.prompt) > 8192
+  ensures: prompt' = truncate(prompt, 8192)
+}
+
+-- ── INF_GEMMA4 RETE-UL rules (§9.7.1, salience-ordered) ──────────────
+
+rule InfDeadlineExceeded {
+  salience: 100
+  when: ctx.elapsed_ms > req.deadline_ms
+  ensures: action == Reject(DEADLINE)
+}
+
+rule InfQueueSaturated {
+  salience: 95
+  when: ctx.permits.in_flight >= ctx.permits.max_inflight
+        and ctx.permits.queue_depth >= ctx.permits.max_queue
+  ensures: action == Reject(QUEUE_FULL)
+}
+
+rule InfPayloadTooLarge {
+  salience: 90
+  when: (ctx.method == infer_image and ctx.payload_bytes > 8 * 1024 * 1024)
+     or (ctx.method == infer_audio and ctx.payload_bytes > 16 * 1024 * 1024)
+     or (ctx.method == infer_video and ctx.video_frames > 32)
+  ensures: action == Reject(BAD_REQUEST)
+}
+
+rule InfPayloadEmpty {
+  salience: 90
+  when: ctx.prompt_bytes == 0
+        or (ctx.method != infer_text and ctx.payload_bytes == 0)
+  ensures: action == Reject(BAD_REQUEST)
+}
+
+rule InfAudioBelowMinSamples {
+  salience: 85
+  when: ctx.method == infer_audio
+        and ctx.audio_samples < 3200
+  ensures: action == Reject(BAD_REQUEST)  -- GR-AUD-002
+}
+
+rule InfVideoBelowMinFrames {
+  salience: 85
+  when: ctx.method == infer_video
+        and ctx.video_frames < 4
+  ensures: action == Reject(BAD_REQUEST)  -- GR-VID-001
+}
+
+rule InfModelNotReady {
+  salience: 80
+  when: not ctx.model_ready and not ctx.stub_mode
+  ensures: action == Reject(MODEL_LOADING)
+}
+
+rule InfCircuitBreakerOpen {
+  salience: 75
+  when: ctx.consecutive_failures > 3
+        and (now - ctx.last_failure_at_ms) < 60000
+  ensures: action == Reject(CIRCUIT_OPEN)
+}
+
+rule InfTryStub {
+  salience: 50
+  when: ctx.stub_mode
+  ensures: action == Bypass(stub_echo)
+}
+
+rule InfDispatchModel {
+  salience: 10
+  when: ctx.model_ready
+  ensures: action == Forward(mistralrs_send_chat_request)
+}
+
+rule InfRecordOK {
+  salience: 5
+  when: response.ok == true
+  ensures: stats.requests = stats.requests + 1
+}
+
+rule InfRecordErr {
+  salience: 5
+  when: response.ok == false
+  ensures: stats.errors = stats.errors + 1
+}
+
+-- ── Contracts ────────────────────────────────────────────────────────
+
+contract MistralrsRustApi {
+  load_model: () -> Result<Model, Error>
+       @uses MultimodalModelBuilder::new(...).build().await
+  send_chat_request: (req: RequestLike) -> Result<Response, Error>
+  add_image_message: (msgs: MultimodalMessages, role: Role,
+                      text: String, imgs: Vec<DynamicImage>) -> Unit
+  add_audio_message: (msgs: MultimodalMessages, role: Role,
+                      text: String, auds: Vec<AudioInput>) -> Unit
+  add_video_message: (msgs: MultimodalMessages, role: Role,
+                      text: String, vids: Vec<VideoInput>) -> Unit
+
+  @invariant SingletonModel
+    -- Model held in OnceLock<Model>; one build per process (SC-INFER-RUST-API-004)
+
+  @invariant DetachedDispatch
+    -- mistralrs futures spawned via tokio::spawn + oneshot so timeout
+    -- cannot drop them mid-flight (SC-INFER-RUST-API-005)
+
+  @forbidden mistralrs-server, mistralrs-pyo3, mistralrs-bench
+  @forbidden Model::stream_chat_request
+  @forbidden with_paged_attn, IsqBits::*
+}
+
+contract InferenceDaemon {
+  read_frame:  (conn: UnixStream) -> Result<Vec<u8>, IoError>
+  write_frame: (conn: UnixStream, body: &[u8]) -> Result<(), IoError>
+  dispatch:    (req: Request, stats: &Stats) -> Response
+
+  @invariant FrameSizeBound
+    -- read_frame rejects > 16 MiB
+
+  @invariant DetachedSpawn
+    -- dispatch uses tokio::spawn + oneshot so deadline cancellation
+    -- cannot drop the inner mistralrs future
+}
+
+-- ── Invariants (cross-pass) ──────────────────────────────────────────
+
+invariant UniqueResponse {
+  for req in InferenceRequest:
+    count(resp in Response : resp.id == req.id) == 1
+}
+
+invariant DeadlineDoesNotCorruptChannel {
+  -- SC-INFER-RUST-API-005 — z_live_infer_text_deadline_zero_rejects test
+  for r1, r2 in sequential(InferenceRequest):
+    if r1.outcome == DEADLINE then r2.outcome != CHANNEL_BROKEN
+}
+
+invariant ModelStateExclusive {
+  -- one Inferring transition at a time per OnceLock
+  count(m in ModelState : m.state == Inferring) <= 1
+}
+
+invariant CountersMonotonic {
+  for t1 < t2 in time:
+    Permit.queue_full_count(t2) >= Permit.queue_full_count(t1)
+    and stats.requests(t2) >= stats.requests(t1)
+    and stats.errors(t2)   >= stats.errors(t1)
+}
+
+invariant ShannonHFloor {
+  -- plan §5.0.2 — test corpus across (modality × outcome) cells
+  H(test_distribution) >= 2.5_bits
+}
+
+invariant CCMFloor {
+  -- coverage composite metric (C1-C8 weights, plan §5.0.1)
+  CCM(test_suite) >= 0.90
+}
+
+invariant DEABand {
+  -- expected vs actual divergence (plan §5.0.2)
+  abs(D_EA(planned, actual)) <= 0.10
+}
+
+-- ── Surfaces ─────────────────────────────────────────────────────────
+
+surface DaemonCli {
+  cmd: "sa-plan-daemon inference-serve --sock <path> --max-inflight N --max-queue N"
+  env: { SA_PLAN_INFER_STUB, SA_PLAN_INFER_LIVE_SOCK, SA_PLAN_INFER_MODEL }
+}
+
+surface UdsRpc {
+  transport: UnixStream
+  framing:   length-prefixed (u32 BE) JSON body
+  methods:   { health, metrics, modalities,
+               infer_text, infer_image, infer_audio, infer_video, embed }
+}
+
+-- ── Math constructs (plan §9.8) ──────────────────────────────────────
+
+math Lyapunov {
+  λ := lim_{T→∞} (1/T) Σ log(|δx_{t+1}| / |δx_t|)
+  -- x_t = (qps_t, latency_p99_t)
+  -- λ < 0  : stable attractor
+  -- λ ≈ 0  : marginally stable
+  -- λ > 0  : chaotic
+  @gate λ <= 0.5
+}
+
+math WolframClass {
+  -- 1-D CA over modality slot array under Rule 110
+  -- Class 1 (homogeneous)  → starvation
+  -- Class 2 (periodic)     → healthy steady-state
+  -- Class 3 (random)       → saturation
+  -- Class 4 (complex)      → edge-of-chaos, healthy mix
+  @gate observed_class ∈ {2, 4}
+}
+
+math Rule184Phase {
+  -- ASEP traffic-flow over queue depth
+  -- Phase transition expected at density ≈ 0.5
+  @gate transition_density ∈ [0.4, 0.6]
+}
+
+math ShannonH {
+  H(p) := - Σ p_i log2(p_i)
+  @gate H >= 2.5_bits
+}
+
+math CCM {
+  CCM := Σ(w_i × cov_i) / Σ w_i
+  -- weights from CLAUDE.md §8: C1=1.0, C2=1.5, ..., C8=3.0
+  @gate CCM >= 0.90
+}
+
+-- ── Open questions (resolved before implementation) ──────────────────
+
+-- Q1: Does mistralrs::AudioInput surface a typed error for samples<3200?
+--     A: TBD — Phase E live test will probe.
+-- Q2: Does mistralrs::VideoInput accept frames at sizes other than 384×384?
+--     A: Yes (vision projection rescales) — confirmed in v22.11.5 RPN175 fix.
+-- Q3: Streaming SSE deferral — see plan §15 cost-benefit; recommend defer.

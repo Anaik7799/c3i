@@ -1,11 +1,26 @@
 # Constraint Registry (Reconciled 2026-03-22, PARITY ACHIEVED)
-All SC-*/AOR-* constraint families. GEMINI.md + .gemini/rules/ is the authoritative superset.
+All SC-*/AOR-* constraint families. CLAUDE.md + .claude/rules/ is the authoritative superset.
 Individual constraint details live in code; this registry tracks families and ranges.
 
 ## Delta (2026-04-21)
 | Family | IDs | # | Description |
 |---|---|---|---|
 | SC-FRAC-RRF | 001-010 | 10 | Fractal layer/component matrix with RETE-UL+ruliology evidence, STAMP mapping, FMEA/FEMA scoring, and criticality-first execution |
+
+## Delta (2026-04-27)
+| Family | IDs | # | Description |
+|---|---|---|---|
+| SC-INFER-RUST-API | 001-008 | 8 | mistral.rs Rust-API-only mandate (no `mistralrs-server`/`pyo3`/`bench`; `MultimodalModelBuilder` + `Model::send_chat_request` + detached dispatch + `OnceLock` singleton). See `.claude/rules/mistral-rust-api-mandate.md` |
+| SC-TESTDATA | 001-006 | 6 | Universal test-data corpus contract — license, manifest, ground-truth, no-PII, size budget. See `.claude/rules/test-data-corpus.md` |
+| SC-TESTDATA-TXT | 001-005 | 5 | Text fixtures — UTF-8 ≤ 8K tokens, multilingual, refusal-bait coverage |
+| SC-TESTDATA-IMG | 001-006 | 6 | Image fixtures — gemma-4 native 384×384, format sweep, ≥4 categories, adversarial |
+| SC-TESTDATA-AUD | 001-006 | 6 | Audio fixtures — gemma-4 native 16 kHz mono PCM-16, ≥3 200 samples, codec sweep, no Common Voice |
+| SC-TESTDATA-VID | 001-006 | 6 | Video fixtures — ≥4 frames @ 384×384, FPS sweep, JSON storage, ≥1 real Kinetics |
+
+## Delta (2026-04-29)
+| Family | IDs | # | Description |
+|---|---|---|---|
+| SC-PD-RUST-ONLY | 001-010 | 10 | Planning-daemon test surface 100 % Rust mandate — no Python/JS/sh/Ruby/Perl under `native/planning_daemon/` (whisper.cpp vendored exception); fixture regen via `tests/fixture_regen.rs`. See `.claude/rules/planning-daemon-rust-only-tests.md` |
 # P0-SAFETY (CRITICAL)
 | Family | IDs | # | Description |
 |--------|-----|---|-------------|
