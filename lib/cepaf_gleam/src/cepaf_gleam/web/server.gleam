@@ -101,9 +101,15 @@ pub fn shutdown(state: ServerState) -> Nil {
 // WebSocket types — planning real-time push (SC-GLM-UI-010)
 // ---------------------------------------------------------------------------
 
-/// WebSocket connection state — tracks push count and last status for diff
+/// WebSocket connection state — tracks push count and last status for diff,
+/// plus the Tick subject so the handler can reschedule the next server tick
+/// onto the same mailbox the on_init selector is bound to.
 pub type WsState {
-  WsState(push_count: Int, last_status: String)
+  WsState(
+    push_count: Int,
+    last_status: String,
+    tick_subject: option.Option(process.Subject(WsMsg)),
+  )
 }
 
 /// Custom messages delivered to the WebSocket actor:
@@ -140,12 +146,16 @@ fn ws_on_init(
   // on each tick, producing a heartbeat-or-update cadence regardless of
   // whether the client also sends "ping" frames.
   let tick_subject = process.new_subject()
-  process.send_after(tick_subject, 1000, Tick)
+  let _ = process.send_after(tick_subject, 1000, Tick)
   let selector =
     process.new_selector()
     |> process.select(tick_subject)
   #(
-    WsState(push_count: 0, last_status: status),
+    WsState(
+      push_count: 0,
+      last_status: status,
+      tick_subject: option.Some(tick_subject),
+    ),
     option.Some(selector),
   )
 }
@@ -180,6 +190,7 @@ fn ws_handler(
               mist.continue(WsState(
                 push_count: state.push_count + 1,
                 last_status: status,
+                tick_subject: state.tick_subject,
               ))
             }
             False -> {
@@ -242,13 +253,26 @@ fn ws_handler(
           |> json.to_string()
       }
       let _ = mist.send_text_frame(conn, frame)
-      // Reschedule next tick.  We use process.self() so the message is
-      // delivered to the same actor mailbox already wired in on_init.
-      let _ = process.send_after(process.new_subject(), 1000, Tick)
+      // Reschedule next tick on the SAME tick_subject the on_init selector
+      // is bound to — otherwise Mist won't deliver the message to this
+      // actor's mailbox.  send_after(..) on a fresh subject is a no-op
+      // for selector delivery.
+      case state.tick_subject {
+        option.Some(s) -> {
+          let _ = process.send_after(s, 1000, Tick)
+          Nil
+        }
+        option.None -> Nil
+      }
       let next_state = case changed {
         True ->
-          WsState(push_count: state.push_count + 1, last_status: status)
-        False -> WsState(..state, push_count: state.push_count + 1)
+          WsState(
+            push_count: state.push_count + 1,
+            last_status: status,
+            tick_subject: state.tick_subject,
+          )
+        False ->
+          WsState(..state, push_count: state.push_count + 1)
       }
       mist.continue(next_state)
     }

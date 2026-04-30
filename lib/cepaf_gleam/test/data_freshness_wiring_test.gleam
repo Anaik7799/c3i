@@ -15,6 +15,7 @@ import cepaf_gleam/ui/web/dashboard_views
 import cepaf_gleam/ui/web/domain_views
 import cepaf_gleam/ui/web/page_views
 import cepaf_gleam/web/server
+import gleam/option
 import gleam/string
 import gleeunit/should
 
@@ -131,7 +132,8 @@ pub fn dashboard_view_delegates_correctly_test() {
 // ═══════════════════════════════════════════════════════════════
 
 pub fn ws_planning_state_constructable_test() {
-  let _state = server.WsState(push_count: 0, last_status: "")
+  let _state =
+    server.WsState(push_count: 0, last_status: "", tick_subject: option.None)
   True |> should.be_true()
 }
 

@@ -14,6 +14,7 @@
 
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ha/freshness_monitor
+import gleam/option
 import cepaf_gleam/ui/state.{
   CockpitEmergency, ThreatCritical, ThreatElevated, ThreatLow, ThreatNominal,
   ThreatNone, ThreatSevere,
@@ -189,7 +190,12 @@ pub fn freshness_monitor_multiple_checks_stay_fresh_test() {
 // ═══════════════════════════════════════════════════════════════
 
 pub fn ws_planning_state_compiles_test() {
-  let _state = server.WsState(push_count: 0, last_status: "{}")
+  let _state =
+    server.WsState(
+      push_count: 0,
+      last_status: "{}",
+      tick_subject: option.None,
+    )
   True |> should.be_true()
 }
 
