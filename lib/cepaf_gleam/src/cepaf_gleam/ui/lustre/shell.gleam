@@ -584,6 +584,14 @@ pub fn render_page(
         // Legacy inline fallback
         html.style([], css),
         html.script([], neuromorphic_script),
+        // Service-worker registration (offline cache for /planning, /, /dashboard).
+        // Authority: SC-PLANNING-EVO-001..010, planning_page.allium OfflineMode.
+        // Pure registration — non-fatal on unsupported browsers / non-https.
+        element.element(
+          "script",
+          [attribute.attribute("src", "/static/sw-register.js?v=22.11.7")],
+          [],
+        ),
       ]),
       html.body([], [
         render_nav(active_path),

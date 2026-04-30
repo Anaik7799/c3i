@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>/planning evolution — pass-2 analysis</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--border:#1e2a3a;--accent:#00d4aa;--ok:#3dd68c;--warn:#f5a623;--err:#ff4757}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Inter,sans-serif;line-height:1.55}
+header{padding:32px 24px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#10141d,#0a0e17)}
+h1{margin:0 0 6px;font-size:1.6rem}
+main{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:1fr;gap:24px}
+section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+h2{margin-top:0;color:var(--accent);text-transform:uppercase;letter-spacing:0.04em;font-size:1.1rem}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.kpi b{display:block;font-size:1.5rem}
+.kpi small{color:var(--muted)}
+.kpi div{background:#0f141e;border:1px solid var(--border);border-radius:10px;padding:14px}
+table{width:100%;border-collapse:collapse;font-size:0.93rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+th{text-align:left;color:var(--accent)}
+.b-ok{color:var(--ok)} .b-warn{color:var(--warn)} .b-err{color:var(--err)}
+img{max-width:100%;border:1px solid var(--border);border-radius:8px}
+figure{margin:14px 0}
+figcaption{color:var(--muted);font-size:0.85rem;padding-top:6px}
+code,pre{font-family:JetBrains Mono,monospace}
+pre{background:#0f141e;border:1px solid var(--border);border-radius:8px;padding:12px;overflow:auto}
+@media (max-width:768px){.kpi{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>/planning evolution — pass-2 closure</h1>
+  <div style="color:var(--muted);font-family:JetBrains Mono,monospace;font-size:0.85rem">
+    urn:c3i:task:misc:116492319530224001 · pass-2 · 2026-04-30 ·
+    <a href="http://vm-1.tail55d152.ts.net:4100/planning" style="color:var(--accent)">live page</a>
+  </div>
+</header>
+<main>
+
+<section><h2>Operator directive</h2>
+<p>"max parallelization, full fractal supervisors and agents, SIL-6 biomorphic, fast OODA, until goal completion, biomorphic evolutionary, criticality + FMEA + utility-based plan and execute" — close all 5 next-pass items from pass-1.</p>
+</section>
+
+<section><h2>Criticality plan</h2>
+<table>
+<tr><th>#</th><th>Gap</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Utility</th><th>P</th><th>Strategy</th></tr>
+<tr><td>3</td><td>Pi RPC persistent daemon</td><td>7</td><td>6</td><td>5</td><td><b>210</b></td><td>9</td><td><b>P0</b></td><td>code-evolution agent (parallel)</td></tr>
+<tr><td>2</td><td>Federated multi-region CPIG</td><td>8</td><td>3</td><td>8</td><td><b>192</b></td><td>8</td><td>P1</td><td>direct (Ed25519 + scripts-gleam)</td></tr>
+<tr><td>1</td><td>Firefox + WebKit Playwright</td><td>5</td><td>8</td><td>4</td><td>160</td><td>7</td><td>P1</td><td>direct (Playwright + npx)</td></tr>
+<tr><td>4</td><td>Drag-drop kanban + server-push</td><td>4</td><td>7</td><td>3</td><td>84</td><td>6</td><td>P2</td><td>code-evolution agent (parallel)</td></tr>
+<tr><td>5</td><td>Service-worker offline cache</td><td>5</td><td>4</td><td>4</td><td>80</td><td>5</td><td>P2</td><td>direct (sw.js + register)</td></tr>
+</table>
+</section>
+
+<section><h2>Pass-2 KPIs</h2>
+<div class="kpi">
+  <div><b class="b-ok">9 230</b><small>cepaf_gleam tests passed</small></div>
+  <div><b class="b-ok">16</b><small>scripts-gleam tests (+10 federation)</small></div>
+  <div><b class="b-ok">15/15</b><small>Playwright Chromium+Firefox+mobile-Chromium</small></div>
+  <div><b class="b-warn">10</b><small>WebKit cells env-blocked (libicudata)</small></div>
+  <div><b class="b-ok">−68 %</b><small>ΣFMEA RPN reduction (proj)</small></div>
+  <div><b class="b-ok">2</b><small>parallel sub-agents dispatched</small></div>
+  <div><b class="b-ok">+10</b><small>new property tests</small></div>
+  <div><b class="b-ok">3</b><small>new diagrams (graphviz → PNG)</small></div>
+</div>
+</section>
+
+<section><h2>Diagrams (pass-2)</h2>
+<figure><img src="diagrams/png/01-federation.png"><figcaption>1. Federated multi-region CPIG attestation (Ed25519 sign → Zenoh → 2-of-3 quorum)</figcaption></figure>
+<figure><img src="diagrams/png/02-service-worker.png"><figcaption>2. Service-worker cache strategy (cache-first / SWR / network-first / passthrough)</figcaption></figure>
+<figure><img src="diagrams/png/03-cross-browser.png"><figcaption>3. Cross-browser matrix (Chromium + Firefox green; WebKit env-blocked)</figcaption></figure>
+</section>
+
+<section><h2>Per-gap closure</h2>
+<table>
+<tr><th>#</th><th>Status</th><th>Authority</th><th>Evidence</th></tr>
+<tr><td>1 Firefox/WebKit</td><td class="b-ok">Firefox + mobile-Chromium ✓ · WebKit env-blocked</td><td>SC-PLANNING-EVO-004</td><td>tests/playwright/* + cross-browser-report.md</td></tr>
+<tr><td>2 Federated CPIG</td><td class="b-ok">single-mesh ✓ · multi-mesh activates with 3 peers</td><td>SC-CPIG-FED-001..010</td><td>scripts/verify/cpig_federation.gleam + 10 tests</td></tr>
+<tr><td>3 Pi RPC daemon</td><td class="b-warn">code-evolution agent in-flight</td><td>SC-PI-RUNTIME-001..008</td><td>bridge/pi_daemon.gleam + tests pending</td></tr>
+<tr><td>4 DnD kanban + server-push</td><td class="b-warn">code-evolution agent in-flight</td><td>SC-AGUI-UI-001..015</td><td>planning-grid.js +117 LOC + router/server pending</td></tr>
+<tr><td>5 Service worker</td><td class="b-ok">✓</td><td>SC-PLANNING-EVO + Allium OfflineMode</td><td>priv/static/sw.js + sw-register.js + shell.gleam</td></tr>
+</table>
+</section>
+
+<section><h2>How to reproduce</h2>
+<pre># Cross-browser regression
+cd /home/an/dev/ver/c3i/tests/playwright
+npm install
+PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 \
+  ./node_modules/.bin/playwright test \
+    --project=chromium --project=firefox --project=mobile-chromium
+
+# Federated CPIG
+cd /home/an/dev/ver/c3i/sub-projects/scripts-gleam
+gleam test                           # 16 passed (incl. 10 federation)
+gleam run -m scripts/verify/cpig_federation -- \
+  --score 33 --mesh-id mesh-eu-1 --region eu \
+  --seed 1111111111111111111111111111111111111111111111111111111111111111
+# → INSUFFICIENT got=1 need=2 (correct for single-mesh)
+</pre>
+</section>
+
+<section><h2>Cross-references</h2>
+<ul>
+  <li><a href="pass-2-journal.md">pass-2-journal.md</a> — narrative + 7 sections</li>
+  <li><a href="../journal.md">pass-1 journal</a> — original 13-section closure</li>
+  <li><a href="../playwright/cross-browser-report.md">cross-browser-report.md</a></li>
+  <li><a href="../../../../specs/allium/planning_page.allium">specs/allium/planning_page.allium</a> (OfflineMode now closed)</li>
+</ul>
+</section>
+</main>
+</body>
+</html>

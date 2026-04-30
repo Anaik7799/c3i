@@ -10,6 +10,7 @@
 -export([generate_id/0, os_cmd/1, identity/1]).
 -export([to_string/1, to_int/1, to_float/1, to_bool/1]).
 -export([system_time_seconds/0, base64_decode/1, url_encode/1, get_env/1]).
+-export([pi_port_open/3, pi_port_send/2, pi_port_close/1]).
 
 %% @doc Execute a REST request over Podman Unix Domain Socket
 podman_uds_request(Path, Method, Endpoint, Body) ->
@@ -429,4 +430,40 @@ get_env(Name) ->
     case os:getenv(binary_to_list(Name)) of
         false -> {error, nil};
         Value -> {ok, unicode:characters_to_binary(Value)}
+    end.
+
+%% @doc Open an Erlang port spawning the given executable with args and env.
+%% Args is a list of binaries; Env is a list of {binary, binary} tuples.
+%% Returns {ok, Port} on success, {error, Reason} on failure.
+pi_port_open(Cmd, Args, Env) ->
+    CmdStr = binary_to_list(Cmd),
+    ArgsList = [binary_to_list(A) || A <- Args],
+    EnvList = [{binary_to_list(K), binary_to_list(V)} || {K, V} <- Env],
+    try
+        Port = erlang:open_port(
+            {spawn_executable, CmdStr},
+            [stream, use_stdio, exit_status, binary,
+             {args, ArgsList}, {env, EnvList}]
+        ),
+        {ok, Port}
+    catch
+        _:Reason -> {error, unicode:characters_to_binary(io_lib:format("~p", [Reason]))}
+    end.
+
+%% @doc Send a binary line to the port (stdin of the subprocess).
+pi_port_send(Port, Data) ->
+    try
+        erlang:port_command(Port, Data),
+        ok
+    catch
+        _:_ -> {error, closed}
+    end.
+
+%% @doc Close the port (sends EOF / SIGTERM to subprocess).
+pi_port_close(Port) ->
+    try
+        erlang:port_close(Port),
+        ok
+    catch
+        _:_ -> ok
     end.

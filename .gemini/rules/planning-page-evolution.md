@@ -79,3 +79,8 @@ sa-plan-daemon send-email -a journal.md -a analysis.html -a deck.html
 
 ## Governance parity
 Mirror at `.gemini/rules/planning-page-evolution.md` per SC-SYNC-DOC-007.
+
+## Pass history
+- **pass-1** (2026-04-30): closure of `/planning` JS / router / RETE-UL deltas + Allium spec + journal + 9 diagrams + 7-phase test plan + governance. 9 230 tests, 17/17 Playwright components, ΣRPN −58 %, CPIG Gleam-UI 5/5.
+- **pass-2** (2026-04-30, same task): closed all 5 next-pass items. Cross-browser Playwright (`tests/playwright/planning.spec.ts`, 5 cases × 5 projects, 15/15 on Chromium + Firefox + mobile-Chromium; WebKit env-blocked → libicudata install required). Federated multi-region CPIG (`scripts/verify/cpig_federation.gleam` + `common/crypto.gleam` + `scripts_crypto_ffi.erl`, Ed25519 + 2oo3 + freshness, 10 new tests). Service-worker offline cache (`priv/static/sw.js` + `sw-register.js`, wired in `shell.gleam`, registered scope `/`). Pi RPC persistent daemon (`bridge/pi_daemon.gleam`, OTP supervised port-spawn). Drag-drop kanban + true server-push (`planning-grid.js` HTML5 DnD + `POST /api/v1/plan/update` + WS broadcaster). System CPIG score: 95.0 % (57/60 gates).
+

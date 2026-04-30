@@ -1,0 +1,20 @@
+digraph CrossBrowser {
+  rankdir=TB; bgcolor="#0a0e17";
+  node [fontname="Inter" style="filled,rounded" shape=box color="#1e2a3a" fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  spec [label="planning.spec.ts\n5 tests:\n• boot + DOM\n• view-mode mutex\n• DAG-Q parity\n• freshness\n• responsive 3-viewport" fillcolor="#141922" color="#00d4aa" fontcolor="#00d4aa"];
+
+  subgraph cluster_pass { label="PASSING (15/15 cells)"; color="#3dd68c"; fontcolor="#3dd68c";
+    chr [label="Chromium\nDesktop Chrome\n5/5"];
+    chr_m [label="mobile-Chromium\nPixel 5\n5/5"];
+    ff [label="Firefox\nDesktop Firefox\n5/5\n(material.css MIME filter)"];
+  }
+  subgraph cluster_block { label="ENV-BLOCKED (10/10 cells)"; color="#ff6b6b"; fontcolor="#ff6b6b";
+    wk [label="WebKit\nDesktop Safari\nlibicudata.so.74 missing\n(sudo apt install libicu74)"];
+    wk_m [label="mobile-WebKit\niPhone 12\nsame WebKit binary"];
+  }
+
+  spec -> chr; spec -> chr_m; spec -> ff;
+  spec -> wk [style=dashed]; spec -> wk_m [style=dashed];
+}

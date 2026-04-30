@@ -1,0 +1,31 @@
+digraph FederatedCPIG {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontname="Inter" style="filled,rounded" shape=box color="#1e2a3a" fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  subgraph cluster_eu { label="region: eu"; color="#4d96ff"; fontcolor="#7ab3ff";
+    eu_mesh [label="mesh-eu-1\nCPIG=33"];
+    eu_kp [label="Ed25519 keypair\n(seed-deterministic)"];
+    eu_sig [label="sign(canonical)" fillcolor="#0f141e"];
+  }
+  subgraph cluster_us { label="region: us-west"; color="#3dd68c"; fontcolor="#3dd68c";
+    us_mesh [label="mesh-us-1\nCPIG=33"];
+    us_sig [label="sign(canonical)" fillcolor="#0f141e"];
+  }
+  subgraph cluster_asia { label="region: asia"; color="#f39c12"; fontcolor="#f39c12";
+    asia_mesh [label="mesh-asia-1\nCPIG=28"];
+    asia_sig [label="sign(canonical)" fillcolor="#0f141e"];
+  }
+  zenoh [label="indrajaal/l7/fed/cpig/attest/<region>" fillcolor="#1e2a3a" color="#e74c3c" fontcolor="#e74c3c"];
+  validate [label="validate()\nverify sig + freshness ≤ 1h\n(SC-SMRITI-110)" fillcolor="#1e2a3a" color="#9b59b6" fontcolor="#c89cf2"];
+  quorum [label="quorum_2oo3()\nmedian-tally\n(SC-SIL4-006)" fillcolor="#1e2a3a" color="#9b59b6" fontcolor="#c89cf2"];
+  decision [label="Decision:\nQuorum(33,[eu,us-west])\n2-of-3 agree" fillcolor="#1e2a3a" color="#3dd68c" fontcolor="#3dd68c"];
+  splitbrain [label="SplitBrain → apoptosis\n(SC-CPIG-FED-007 / SC-SIL4-015)" fillcolor="#1e2a3a" color="#ff4757" fontcolor="#ff4757"];
+
+  eu_mesh -> eu_kp -> eu_sig -> zenoh;
+  us_mesh -> us_sig -> zenoh;
+  asia_mesh -> asia_sig -> zenoh;
+  zenoh -> validate -> quorum;
+  quorum -> decision [label="agree"];
+  quorum -> splitbrain [label="3-way disagree"];
+}

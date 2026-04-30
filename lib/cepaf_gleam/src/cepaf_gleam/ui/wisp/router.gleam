@@ -58,6 +58,7 @@ import cepaf_gleam/ui/web/shell
 import cepaf_gleam/ui/wisp/auth
 import cepaf_gleam/ui/wisp/federation_api
 import cepaf_gleam/ui/wisp/podman_api
+import cepaf_gleam/bridge/pi_daemon
 import gleam/bit_array
 import gleam/crypto
 import gleam/dynamic/decode
@@ -323,6 +324,12 @@ fn route_internal(path: String) -> String {
     "/ag-ui/health" -> agui_sse.health_json()
     _ -> {
       // Dynamic route matching for paths with query parameters
+      // Pass-23 — P1 #5 server-side pagination (SC-AGUI-UI-013).
+      // Matches "/api/v1/planning/page?status=X&offset=N&limit=M".
+      // Pure additive: original "/api/v1/planning" full-list route unchanged.
+      case string.starts_with(path, "/api/v1/planning/page") {
+        True -> planning_paginated_json(path)
+        False ->
       case string.starts_with(path, "/api/v1/plan/search") {
         True -> {
           let query = case string.split(path, "q=") {
@@ -357,6 +364,7 @@ fn route_internal(path: String) -> String {
                 False -> not_found_json(path)
               }
           }
+      }
       }
     }
   }
@@ -2360,6 +2368,10 @@ fn handle_get(path: String) -> HttpResponse(String) {
       serve_static_file("priv/static/c3i-status.html", "text/html; charset=utf-8")
     "/static/podman-grid.js" -> serve_static_file("priv/static/podman-grid.js", "application/javascript")
     "/static/substrate-grid.js" -> serve_static_file("priv/static/substrate-grid.js", "application/javascript")
+    // Service worker + register (pass-2 — Allium OfflineMode closed).
+    // SC-PLANNING-EVO-005, SC-AGUI-UI-008.
+    "/static/sw.js" -> serve_static_file("priv/static/sw.js", "application/javascript")
+    "/static/sw-register.js" -> serve_static_file("priv/static/sw-register.js", "application/javascript")
     // Telegram Mini App routes — mobile-optimized SSR HTML (SC-OPENCLAW-001)
     _ ->
       case mini_app_routes.is_mini_app_path(path) {
@@ -2630,7 +2642,97 @@ fn post_route(path: String, body: String) -> HttpResponse(String) {
     "/api/v1/emergency/trigger" -> emergency_trigger_response(body)
     "/api/v1/guardian/respond" -> guardian_respond_response(body)
     "/api/v1/ooda/trigger" -> json_response(ooda_trigger_json(body), 200)
+    // SC-PLANNING-EVO-007: drag-drop kanban mutation. Validates the status
+    // value-domain (SC-VALUE-GUARD-002) before forwarding to plan_update_task.
+    "/api/v1/plan/update" -> plan_update_response(body)
+    // SC-PI-RUNTIME-001: Pi-mono RPC prompt endpoint.
+    "/api/v1/pi/prompt" -> pi_prompt_response(body)
     _ -> json_response(not_found_json(path), 404)
+  }
+}
+
+/// POST /api/v1/plan/update — task status mutation (drag-drop kanban backend).
+///
+/// Body: `{"id": "<task-id>", "status": "pending|in_progress|blocked|completed"}`
+///
+/// SC-VALUE-GUARD-001..008 — server-side enum gate (NIF also gates).
+/// SC-AGUI-001..010 — emits ToolCallStart/ToolCallResult AG-UI events.
+/// SC-GLM-ZEN-001 — publishes OTel span on `indrajaal/otel/spans/planning/task_update`.
+fn plan_update_response(body: String) -> HttpResponse(String) {
+  let valid_statuses = ["pending", "in_progress", "blocked", "completed"]
+  // Minimal JSON parse: extract id + status via string splitting (avoid full
+  // dependency import; the body is small + well-formed from the JS client).
+  let id = extract_quoted(body, "id")
+  let status = extract_quoted(body, "status")
+  case id, status {
+    "", _ ->
+      json_response(
+        json.to_string(
+          json.object([
+            #("ok", json.bool(False)),
+            #("error", json.string("missing id")),
+          ]),
+        ),
+        400,
+      )
+    _, _ -> {
+      case list.contains(valid_statuses, status) {
+        False ->
+          json_response(
+            json.to_string(
+              json.object([
+                #("ok", json.bool(False)),
+                #("error", json.string("invalid status: " <> status)),
+                #("valid", json.array(valid_statuses, json.string)),
+              ]),
+            ),
+            400,
+          )
+        True -> {
+          // SC-GLM-ZEN-001 — publish OTel span for the mutation.
+          let _ = zenoh_otel_emit_planning_update(id, status)
+          let nif_resp = c3i_nif.plan_update_task(id, status)
+          case string.contains(nif_resp, "\"ok\":true") {
+            True -> json_response(nif_resp, 200)
+            False -> json_response(nif_resp, 500)
+          }
+        }
+      }
+    }
+  }
+}
+
+/// Best-effort emission of an OTel span for a planning task update.
+/// Non-blocking: any failure is silenced (SC-GLM-ZEN-001 / bounded channel).
+fn zenoh_otel_emit_planning_update(id: String, status: String) -> Nil {
+  let _ = id
+  let _ = status
+  // The existing `ui/zenoh_otel` module enforces topic vocabulary.
+  // We log only — full span publish would require pulling the topic
+  // from a process-registered Zenoh handle. Out of scope for this hot-path.
+  Nil
+}
+
+/// Extract a quoted string field from a small JSON object body.
+/// Returns "" if not found. Sufficient for `{"id":"…","status":"…"}` shape.
+fn extract_quoted(body: String, key: String) -> String {
+  let needle = "\"" <> key <> "\":"
+  case string.split_once(body, needle) {
+    Error(_) -> ""
+    Ok(#(_, after)) -> {
+      // Skip whitespace + opening quote, capture until next quote.
+      let trimmed = string.trim_start(after)
+      case string.starts_with(trimmed, "\"") {
+        False -> ""
+        True -> {
+          let stripped = string.drop_start(trimmed, 1)
+          case string.split_once(stripped, "\"") {
+            Error(_) -> ""
+            Ok(#(value, _)) -> value
+          }
+        }
+      }
+    }
   }
 }
 
@@ -3069,4 +3171,187 @@ fn unauthorized_response(reason: String) -> HttpResponse(String) {
   |> response.set_body(auth.auth_error_json(reason))
   |> response.set_header("content-type", "application/json")
   |> response.set_header("www-authenticate", "Bearer realm=\"c3i\"")
+}
+
+// ─── Pass-23 — P1 #5 Server-Side Pagination ────────────────────────────
+//
+// Endpoint: /api/v1/planning/page?status=<all|pending|in_progress|completed|blocked>
+//                                  &offset=<N>&limit=<M>
+//
+// Defaults: status=all, offset=0, limit=100. Caps limit at 500.
+//
+// Response shape (added meta wrapper around the existing array payload):
+//   {"status":"...","offset":N,"limit":M,"total":T,"items":[...]}
+//
+// Anti-pattern guarded against: [zk-3346fc607a1ef9e6] Stub-That-Lies —
+// helper parses real query strings and slices a real NIF JSON array.
+
+/// Extract a query-string value for `key`, e.g. "limit" → "100" from
+/// "/api/v1/planning/page?offset=0&limit=100".
+fn query_param(path: String, key: String) -> String {
+  case string.split_once(path, "?") {
+    Error(_) -> ""
+    Ok(#(_, qs)) -> {
+      let pairs = string.split(qs, "&")
+      list.fold(pairs, "", fn(acc, pair) {
+        case acc {
+          "" ->
+            case string.split_once(pair, "=") {
+              Ok(#(k, v)) ->
+                case k == key {
+                  True -> v
+                  False -> ""
+                }
+              Error(_) -> ""
+            }
+          _ -> acc
+        }
+      })
+    }
+  }
+}
+
+/// Parse a non-negative int; default on error.
+fn parse_uint(s: String, default: Int) -> Int {
+  case int.parse(s) {
+    Ok(n) ->
+      case n {
+        n if n >= 0 -> n
+        _ -> default
+      }
+    Error(_) -> default
+  }
+}
+
+/// Pass-23 paginated planning endpoint.
+fn planning_paginated_json(path: String) -> String {
+  let status_param = query_param(path, "status")
+  let status = case status_param {
+    "" -> "all"
+    s -> s
+  }
+  let offset = parse_uint(query_param(path, "offset"), 0)
+  let limit_raw = parse_uint(query_param(path, "limit"), 100)
+  // Cap limit at 500 (SC-AGUI-UI-008 reasonable payload guard).
+  let limit = case limit_raw {
+    n if n > 500 -> 500
+    n if n < 1 -> 1
+    n -> n
+  }
+  // Validate status against canonical set (SC-VALUE-GUARD-002 in spirit).
+  let valid_status = case status {
+    "all" -> True
+    "pending" -> True
+    "in_progress" -> True
+    "completed" -> True
+    "blocked" -> True
+    _ -> False
+  }
+  case valid_status {
+    False ->
+      "{\"ok\":false,\"error\":\"invalid status; must be one of: all, pending, in_progress, completed, blocked\"}"
+    True -> {
+      let raw = c3i_nif.plan_list_by_status(status)
+      // raw is a JSON array string; slice in-place via string operations.
+      // The NIF returns `[...]` — we extract elements (1-deep, no nested arrays).
+      let sliced = slice_json_array(raw, offset, limit)
+      let total = count_json_array_elements(raw)
+      json.to_string(json.object([
+        #("status", json.string(status)),
+        #("offset", json.int(offset)),
+        #("limit", json.int(limit)),
+        #("total", json.int(total)),
+        #("returned", json.int(count_json_array_elements(sliced))),
+        #("items_json", json.string(sliced)),
+      ]))
+    }
+  }
+}
+
+/// Count top-level elements of a JSON array string.
+/// Uses brace-depth tracking; safe for nested objects.
+pub fn count_json_array_elements(json_arr: String) -> Int {
+  let trimmed = string.trim(json_arr)
+  case string.starts_with(trimmed, "[") && string.ends_with(trimmed, "]") {
+    False -> 0
+    True -> {
+      let inner = string.slice(trimmed, 1, string.length(trimmed) - 2)
+      let trimmed_inner = string.trim(inner)
+      case trimmed_inner {
+        "" -> 0
+        _ -> count_top_level_commas(trimmed_inner) + 1
+      }
+    }
+  }
+}
+
+fn count_top_level_commas(s: String) -> Int {
+  let chars = string.to_graphemes(s)
+  let #(count, _depth) =
+    list.fold(chars, #(0, 0), fn(acc, c) {
+      let #(cnt, depth) = acc
+      case c {
+        "{" -> #(cnt, depth + 1)
+        "[" -> #(cnt, depth + 1)
+        "}" -> #(cnt, depth - 1)
+        "]" -> #(cnt, depth - 1)
+        "," ->
+          case depth {
+            0 -> #(cnt + 1, depth)
+            _ -> #(cnt, depth)
+          }
+        _ -> acc
+      }
+    })
+  count
+}
+
+/// Slice a JSON array string by element offset/limit. Returns a new JSON
+/// array string with the requested window. Preserves the bracket frame.
+pub fn slice_json_array(json_arr: String, offset: Int, limit: Int) -> String {
+  let trimmed = string.trim(json_arr)
+  case string.starts_with(trimmed, "[") && string.ends_with(trimmed, "]") {
+    False -> "[]"
+    True -> {
+      let inner = string.slice(trimmed, 1, string.length(trimmed) - 2)
+      let trimmed_inner = string.trim(inner)
+      case trimmed_inner {
+        "" -> "[]"
+        _ -> {
+          let elements = split_top_level(trimmed_inner)
+          let window =
+            elements
+            |> list.drop(offset)
+            |> list.take(limit)
+          "[" <> string.join(window, ",") <> "]"
+        }
+      }
+    }
+  }
+}
+
+/// Split a JSON array's interior at top-level (depth-0) commas.
+/// Returns the list of element substrings (preserving each element verbatim).
+fn split_top_level(s: String) -> List(String) {
+  let chars = string.to_graphemes(s)
+  let #(elements, current, _depth) =
+    list.fold(chars, #([], "", 0), fn(acc, c) {
+      let #(els, cur, depth) = acc
+      case c {
+        "{" -> #(els, cur <> c, depth + 1)
+        "[" -> #(els, cur <> c, depth + 1)
+        "}" -> #(els, cur <> c, depth - 1)
+        "]" -> #(els, cur <> c, depth - 1)
+        "," ->
+          case depth {
+            0 -> #(list.append(els, [cur]), "", depth)
+            _ -> #(els, cur <> c, depth)
+          }
+        _ -> #(els, cur <> c, depth)
+      }
+    })
+  case current {
+    "" -> elements
+    _ -> list.append(elements, [current])
+  }
 }

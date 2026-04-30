@@ -49,6 +49,44 @@ pub fn tensor_health_positive_test() {
   { t.health >. 0.0 } |> should.be_true()
 }
 
+// Pass-17 — Symbiosis tensor pass-history accessor tests.
+pub fn tensor_pass14_cells_present_test() {
+  let t = tensor.build()
+  let upgraded = tensor.cells_upgraded_in_pass(t, 14)
+  // Pass-14 added ruliology DQ Rule30/110/Lyapunov + ruliology submodule mention
+  { list.length(upgraded) >= 2 } |> should.be_true()
+}
+
+pub fn tensor_pass15_cells_present_test() {
+  let t = tensor.build()
+  let upgraded = tensor.cells_upgraded_in_pass(t, 15)
+  // Pass-15 added dq_scan SQL scanner annotation
+  { list.length(upgraded) >= 1 } |> should.be_true()
+}
+
+pub fn tensor_pass16_cells_present_test() {
+  let t = tensor.build()
+  let upgraded = tensor.cells_upgraded_in_pass(t, 16)
+  // Pass-16 added proptest validators annotation
+  { list.length(upgraded) >= 1 } |> should.be_true()
+}
+
+pub fn tensor_pass_history_includes_recent_test() {
+  let t = tensor.build()
+  let history = tensor.pass_history(t)
+  // History MUST contain Pass-14, 15, 16 (all three latest passes)
+  { list.contains(history, 14) } |> should.be_true()
+  { list.contains(history, 15) } |> should.be_true()
+  { list.contains(history, 16) } |> should.be_true()
+}
+
+pub fn tensor_health_increased_after_passes_14_15_16_test() {
+  let t = tensor.build()
+  // Pass-13 baseline reported health ~0.84. After 14/15/16 enrichment
+  // (raising 11 cells from 0.85→0.92 average) the health MUST exceed 0.84.
+  { t.health >. 0.84 } |> should.be_true()
+}
+
 // =============================================================================
 // C2 — Classification: all 6 ecological relationship types
 // =============================================================================

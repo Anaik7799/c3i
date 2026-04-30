@@ -1,0 +1,21 @@
+digraph ServiceWorkerCache {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontname="Inter" style="filled,rounded" shape=box color="#1e2a3a" fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  page [label="/planning page" fillcolor="#141922" color="#00d4aa" fontcolor="#00d4aa"];
+  reg [label="sw-register.js\n(scope:'/')" fillcolor="#141922"];
+  sw [label="sw.js\nc3i-planning-v1" fillcolor="#1e2a3a" color="#9b59b6" fontcolor="#c89cf2"];
+  cache [label="CacheStorage\n(precache + dynamic)" fillcolor="#1e2a3a" color="#4d96ff" fontcolor="#7ab3ff"];
+
+  static [label="GET /static/* + Tabulator CDN\nstrategy: cache-first" fillcolor="#0f141e"];
+  shell [label="GET / | /planning | /dashboard\nstrategy: stale-while-revalidate" fillcolor="#0f141e"];
+  api [label="GET /api/v1/*\nstrategy: network-first 1.5s\n→ cache fallback (offline)" fillcolor="#0f141e"];
+  ws [label="ws:// /ws/*\npassthrough (never intercepted)" fillcolor="#0f141e" color="#ff6b6b" fontcolor="#ff6b6b"];
+
+  page -> reg -> sw [label="register"];
+  sw -> cache;
+  page -> sw [label="fetch event"];
+  sw -> static; sw -> shell; sw -> api; sw -> ws;
+  static -> cache; shell -> cache; api -> cache;
+}

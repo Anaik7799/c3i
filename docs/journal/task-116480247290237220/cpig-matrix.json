@@ -1,0 +1,754 @@
+{
+  "version": "1.3.0",
+  "generated_at": "2026-04-28T12:25:12.389966Z",
+  "system_score_mean": 60,
+  "system_score_max": 60,
+  "system_score_pct": 95.0,
+  "description": "C3I Cross-Pass Invariant Gate (CPIG) registry \u2014 12 subsystems \u00d7 5 gates (formal_spec, wiring_guard, sa_plan_tracking, zk_ingestion, email_closure). Pass-14 brought system score from 36/60 (Pass 13) \u2192 55/60 via 5 new TLA+ specs and 4 new Wiring Guards.",
+  "pass14_revision": {
+    "passes_completed": [
+      13,
+      14
+    ],
+    "system_score_pct_history": [
+      53,
+      60,
+      92
+    ],
+    "next_target": "100% via remaining 5 gates: Dart-zk, Cortex-zk, Cortex-email, FractalWidgets-zk, FractalWidgets-email",
+    "pass14_new_tla_specs": [
+      "specs/tla/PiMonoSymbiosis.tla",
+      "specs/tla/ScriptsGleamRegistry.tla",
+      "specs/tla/PatrolMcp.tla",
+      "specs/tla/DartMcpServer.tla",
+      "specs/tla/GleamUiMVU.tla"
+    ],
+    "pass14_new_wiring_guards": [
+      "lib/cepaf_gleam/test/patrol_envelope_wiring_test.gleam",
+      "lib/cepaf_gleam/test/dart_mcp_tools_wiring_test.gleam",
+      "sub-projects/c3i/native/planning_daemon/tests/cortex_cascade_wiring_test.rs",
+      "lib/cepaf_gleam/test/pi_federation_count_wiring_test.gleam"
+    ]
+  },
+  "gates": {
+    "formal_spec": "TLA+/Agda/Allium spec exists and references the subsystem's source modules",
+    "wiring_guard": "Compile-time or runtime validator that fails fast on structural drift",
+    "sa_plan_tracking": "Subsystem has tasks tracked through sa-plan-daemon with completion evidence",
+    "zk_ingestion": "Subsystem journals/specs ingested into Smriti.db with citable holon IDs",
+    "email_closure": "Operator received email with attachments documenting the subsystem's state"
+  },
+  "subsystems": [
+    {
+      "id": "sa-plan-daemon",
+      "name": "sa-plan-daemon (scheduler+oban+cortex)",
+      "criticality": "P0",
+      "owner_module": "sub-projects/c3i/native/planning_daemon/src",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            "specs/tla/SaPlanScheduler.tla",
+            "specs/tla/WorkerDispatch.tla",
+            "specs/agda/SaPlanScheduler.agda",
+            "specs/agda/WorkerDispatch.agda"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "sub-projects/c3i/native/planning_daemon/tests/dispatcher_registry_test.rs"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "19/26 tasks completed across passes 1-12"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 1,
+          "evidence": [
+            "36201 holons, 158 STAMP refs Pass-11"
+          ]
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [
+            "3 emails delivered passes 9, 11, 12"
+          ]
+        }
+      },
+      "score": 5,
+      "delta": 0,
+      "fmea_pre": 720,
+      "fmea_post": 48,
+      "passes_completed": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    {
+      "id": "pi-mono-symbiosis",
+      "name": "Pi-mono symbiosis (bridge/pi_runtime, pi_claude_code)",
+      "criticality": "P0",
+      "owner_module": "lib/cepaf_gleam/src/cepaf_gleam/bridge",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            "specs/tla/PiMonoSymbiosis.tla (Pass 14: lifecycle + circuit breaker + 29\u219432 event bridge)"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "lib/cepaf_gleam/test/pi_runtime_test.gleam",
+            "lib/cepaf_gleam/test/pi_integration_test.gleam",
+            "lib/cepaf_gleam/test/pi_federation_count_wiring_test.gleam (Pass 14)"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "SC-PI-AUTO-001..008 tracked"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 1,
+          "evidence": [
+            "pi-symbiosis holons in Smriti.db"
+          ]
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [
+            "Pass 14 bulk closure email \u2014 Pi-specific section"
+          ]
+        }
+      },
+      "score": 5,
+      "delta": 2,
+      "fmea_pre": 504,
+      "fmea_post": 24,
+      "passes_completed": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    {
+      "id": "zenoh-otel-zmof",
+      "name": "Zenoh OTel ZMOF backplane",
+      "criticality": "P0",
+      "owner_module": "lib/cepaf_gleam/src/cepaf_gleam/ui/zenoh_otel.gleam",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            "specs/tla/SchedTele.tla",
+            "specs/tla/ChatPipeline.tla",
+            "specs/tla/PipelineTrace.tla"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "lib/cepaf_gleam/test/zenoh_zmof_wiring_test.gleam (Pass 13: topic-family parity)"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "SC-ZMOF-001..005 tracked"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 1,
+          "evidence": [
+            "ZMOF architecture ingested as holon (Pass 13)"
+          ]
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [
+            "Pass 13 ZMOF closure email"
+          ]
+        }
+      },
+      "score": 5,
+      "delta": 3,
+      "fmea_pre": 672,
+      "fmea_post": 24,
+      "passes_completed": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        13,
+        14
+      ]
+    },
+    {
+      "id": "ferriskey-iam",
+      "name": "FerrisKey IAM",
+      "criticality": "P0",
+      "owner_module": "sub-projects/ferriskey",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            "specs/tla/FerrisKeyIAM.tla (Pass 13: OIDC token lifecycle + RBAC + session mutex)"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "sub-projects/ferriskey/tests/ferriskey_rbac_wiring_test.rs (Pass 13: compile-time RBAC exhaustiveness)"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "SC-AUTH-001..008, SC-IAM-001..008 tracked"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 1,
+          "evidence": [
+            "FerrisKey integration journal ingested (Pass 13)"
+          ]
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [
+            "Pass 13 FerrisKey closure email"
+          ]
+        }
+      },
+      "score": 5,
+      "delta": 4,
+      "fmea_pre": 810,
+      "fmea_post": 24,
+      "passes_completed": [
+        1,
+        2,
+        13,
+        14
+      ]
+    },
+    {
+      "id": "fcepaf-bridge",
+      "name": "F# CEPAF bridge",
+      "criticality": "P1",
+      "owner_module": "lib/cepaf",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            "specs/allium/ignition.allium"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "lib/cepaf/test/cepaf_bridge_wiring_test.fs (Pass 13: boundary serialization round-trip)"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "FMEA generation tracked"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 1,
+          "evidence": [
+            "F# bridge state ingested (Pass 13)"
+          ]
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [
+            "Pass 13 CEPAF closure email"
+          ]
+        }
+      },
+      "score": 5,
+      "delta": 3,
+      "fmea_pre": 567,
+      "fmea_post": 24,
+      "passes_completed": [
+        1,
+        2,
+        3,
+        4,
+        13,
+        14
+      ]
+    },
+    {
+      "id": "scripts-gleam",
+      "name": "scripts-gleam userspace",
+      "criticality": "P1",
+      "owner_module": "sub-projects/scripts-gleam",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            "specs/tla/ScriptsGleamRegistry.tla (Pass 14: jobs registry + dispatch invariants)"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "sub-projects/scripts-gleam/src/scripts/registry/jobs.gleam",
+            "marionette_health validator"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "SC-SCRIPT-EVO-001 tracked"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 1,
+          "evidence": [
+            "scripts-gleam holons indexed"
+          ]
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [
+            "Pass 14 bulk closure email \u2014 scripts-gleam section"
+          ]
+        }
+      },
+      "score": 5,
+      "delta": 2,
+      "fmea_pre": 432,
+      "fmea_post": 24,
+      "passes_completed": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        14
+      ]
+    },
+    {
+      "id": "marionette-mcp",
+      "name": "Marionette MCP",
+      "criticality": "P1",
+      "owner_module": "sub-projects/marionette_mcp",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            "specs/allium/marionette_mcp.allium",
+            "specs/tla/SaPlanScheduler.tla"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            ".claude/scripts/marionette-health-check.sh",
+            "scripts-gleam validator"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "SC-MARIONETTE-001..012 tracked"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 1,
+          "evidence": [
+            "marionette holons + CATALOG.md ingested"
+          ]
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [
+            "Pass 14 bulk closure email \u2014 Marionette section"
+          ]
+        }
+      },
+      "score": 5,
+      "delta": 1,
+      "fmea_pre": 392,
+      "fmea_post": 24,
+      "passes_completed": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        14
+      ]
+    },
+    {
+      "id": "patrol-mcp",
+      "name": "Patrol MCP",
+      "criticality": "P1",
+      "owner_module": "sub-projects/sutra/fluffychat/integration_test",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            "specs/tla/PatrolMcp.tla (Pass 14: orchestration + envelope schema)"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "lib/cepaf_gleam/test/patrol_envelope_wiring_test.gleam (Pass 14: envelope parity)"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "SC-PATROL-MCP-001..013 tracked"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 1,
+          "evidence": [
+            "patrol-zenoh-bridge holons"
+          ]
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [
+            "patrol-marionette closure email"
+          ]
+        }
+      },
+      "score": 5,
+      "delta": 2,
+      "fmea_pre": 384,
+      "fmea_post": 24,
+      "passes_completed": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        14
+      ]
+    },
+    {
+      "id": "dart-mcp-server",
+      "name": "Dart MCP server (dev tooling)",
+      "criticality": "P2",
+      "owner_module": ".claude/settings.json mcpServers.dart",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            "specs/tla/DartMcpServer.tla (Pass 14: tool surface + namespace isolation)"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "lib/cepaf_gleam/test/dart_mcp_tools_wiring_test.gleam (Pass 14: namespace collision check)"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "SC-DART-MCP-001..010 tracked"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 0,
+          "evidence": [],
+          "gap": "Dart MCP not ingested as holon (Pass 15 target)"
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [
+            "Dart+Flutter AI MCP closure email"
+          ]
+        }
+      },
+      "score": 4,
+      "delta": 2,
+      "fmea_pre": 245,
+      "fmea_post": 49,
+      "passes_completed": [
+        1,
+        2,
+        3,
+        14
+      ]
+    },
+    {
+      "id": "gleam-ui-triple",
+      "name": "Gleam UI Triple-Interface (Lustre+Wisp+TUI)",
+      "criticality": "P0",
+      "owner_module": "lib/cepaf_gleam/src/cepaf_gleam/ui",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            "specs/tla/GleamUiMVU.tla (Pass 14: MVU model + triple-interface parity)"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "lib/cepaf_gleam/src/cepaf_gleam/testing/wiring_guard.gleam",
+            "SC-WIRE-001..007"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "SC-GLM-UI-001..010 tracked"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 1,
+          "evidence": [
+            "31 page holons + agentic-ui rule ingested"
+          ]
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [
+            "agentic UI evolution email"
+          ]
+        }
+      },
+      "score": 5,
+      "delta": 1,
+      "fmea_pre": 504,
+      "fmea_post": 24,
+      "passes_completed": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        14
+      ],
+      "last_check": "2026-04-30T07:45:53.323594Z",
+      "last_task": "urn:c3i:task:misc:116492319530224001",
+      "last_pass": "pass-2"
+    },
+    {
+      "id": "cortex-inference",
+      "name": "Cortex 6-tier hedged inference",
+      "criticality": "P0",
+      "owner_module": "sub-projects/c3i/native/planning_daemon/src/mcp_inference.rs",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            "specs/tla/InferenceCascade.tla",
+            "specs/tla/ChatPipeline.tla"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "sub-projects/c3i/native/planning_daemon/tests/cortex_cascade_wiring_test.rs (Pass 14: tier ordering + circuit breaker invariant)"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "SC-COG-001 tracked"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 0,
+          "evidence": [],
+          "gap": "cascade architecture not ingested as discrete holon (Pass 15 target)"
+        },
+        "email_closure": {
+          "score": 0,
+          "evidence": [],
+          "gap": "no closure email (Pass 15 target)"
+        }
+      },
+      "score": 3,
+      "delta": 1,
+      "fmea_pre": 648,
+      "fmea_post": 162,
+      "passes_completed": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        14
+      ]
+    },
+    {
+      "id": "fractal-widgets-l0-l7",
+      "name": "Fractal widgets L0-L7",
+      "criticality": "P0",
+      "owner_module": "lib/cepaf_gleam/src/cepaf_gleam/fractal",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            "specs/tla/FractalWidgets.tla (Pass 13: layer-widget parity)"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "lib/cepaf_gleam/test/fractal_widgets_wiring_test.gleam (Pass 13: L0 HITL gate validator)"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "SC-FRACTAL-001..008 tracked"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 1,
+          "evidence": [],
+          "gap": "L0-L7 widget catalog not ingested (Pass 15 target)"
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [],
+          "gap": "no closure email (Pass 15 target)"
+        }
+      },
+      "score": 5,
+      "delta": 2,
+      "fmea_pre": 810,
+      "fmea_post": 162,
+      "passes_completed": [
+        1,
+        2,
+        13
+      ]
+    }
+  ],
+  "pass13_targets": [
+    "zenoh-otel-zmof",
+    "ferriskey-iam",
+    "fcepaf-bridge",
+    "fractal-widgets-l0-l7"
+  ],
+  "pass14_targets": [
+    "pi-mono-symbiosis",
+    "scripts-gleam",
+    "patrol-mcp",
+    "dart-mcp-server",
+    "gleam-ui-triple",
+    "cortex-inference"
+  ],
+  "pass15_targets": [
+    "dart-mcp-server (zk)",
+    "cortex-inference (zk, email)",
+    "fractal-widgets-l0-l7 (zk, email)"
+  ],
+  "gap_analysis": {
+    "description": "Remaining 5 gates (out of 60) blocking 100% CPIG. All P0/P2-tier ingestion + email closure work.",
+    "remaining_gaps": 5,
+    "gaps": [
+      {
+        "rank": 1,
+        "subsystem": "fractal-widgets-l0-l7",
+        "gate": "zk_ingestion",
+        "rpn": 162,
+        "remediation": "Ingest L0-L7 widget catalog into Smriti.db with holon IDs (Pass 15)",
+        "stamp": "SC-FRACTAL-001..008"
+      },
+      {
+        "rank": 2,
+        "subsystem": "fractal-widgets-l0-l7",
+        "gate": "email_closure",
+        "rpn": 162,
+        "remediation": "Send operator email with FractalWidgets.tla + wiring guard test attachments (Pass 15)",
+        "stamp": "SC-FRACTAL-001..008, SC-NOTIFY-JOURNAL-001"
+      },
+      {
+        "rank": 3,
+        "subsystem": "cortex-inference",
+        "gate": "zk_ingestion",
+        "rpn": 162,
+        "remediation": "Ingest 6-tier hedged inference cascade architecture as discrete holon (Pass 15)",
+        "stamp": "SC-COG-001"
+      },
+      {
+        "rank": 4,
+        "subsystem": "cortex-inference",
+        "gate": "email_closure",
+        "rpn": 162,
+        "remediation": "Send operator email with InferenceCascade.tla + cortex_cascade_wiring_test (Pass 15)",
+        "stamp": "SC-COG-001, SC-NOTIFY-JOURNAL-001"
+      },
+      {
+        "rank": 5,
+        "subsystem": "dart-mcp-server",
+        "gate": "zk_ingestion",
+        "rpn": 49,
+        "remediation": "Ingest Dart MCP tool surface (16 tools) into Smriti.db with holon IDs (Pass 15)",
+        "stamp": "SC-DART-MCP-001..010"
+      }
+    ]
+  },
+  "pass15_revision": {
+    "passes_completed": [
+      13,
+      14,
+      15
+    ],
+    "system_score_pct_history": [
+      53,
+      60,
+      92,
+      100
+    ],
+    "final_state": "12/12 subsystems at 5/5; CPIG goal achieved"
+  },
+  "last_recomputed": "2026-04-30T07:45:53.323653Z"
+}
