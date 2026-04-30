@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# sa-model-router — agentic model selection based on cost + workload
+# Usage:
+#   sa-model-router cheapest              — cheapest model that matches tier
+#   sa-model-router recommend <tier> [ctx_min] [needs_vision]
+#                                         — recommend best model for constraints
+#   sa-model-router optimize              — show savings scenarios
+#   sa-model-router spend                 — cost rollup per provider/model
+#   sa-model-router price <model-id>      — lookup pricing
+#   sa-model-router providers             — list all providers
+set -eu
+KMS="${KMS_DB:-/home/an/dev/ver/c3i/sub-projects/c3i/data/kms/smriti.db}"
+CMD="${1:-spend}"; shift || true
+
+case "$CMD" in
+  cheapest|cheap)
+    echo "═══ Cheapest models per tier (USD per 1M input tokens) ═══"
+    sqlite3 -header -column "$KMS" \
+      "SELECT tier, model_id, provider, input_per_million AS in_usd, output_per_million AS out_usd, context_window AS ctx, CASE WHEN supports_cache=1 THEN 'Y' ELSE 'N' END AS cache FROM model_pricing WHERE tier='cheap' OR tier='local' ORDER BY input_per_million, output_per_million LIMIT 20;"
+    ;;
+  recommend|rec)
+    TIER="${1:-standard}"; CTX_MIN="${2:-128000}"; NEEDS_VISION="${3:-0}"
+    echo "═══ Recommendation · tier=$TIER · ctx≥$CTX_MIN · vision=$NEEDS_VISION ═══"
+    sqlite3 -header -column "$KMS" \
+      "SELECT model_id, provider, input_per_million AS in_usd, output_per_million AS out_usd, context_window AS ctx, supports_cache AS cache, supports_vision AS vis, notes FROM model_pricing WHERE tier='$TIER' AND context_window >= $CTX_MIN AND supports_vision >= $NEEDS_VISION ORDER BY input_per_million, output_per_million LIMIT 10;"
+    ;;
+  optimize|opt|savings)
+    echo "═══ Cost-optimization scenarios (current vs projected) ═══"
+    sqlite3 -header -column "$KMS" "SELECT * FROM v_cost_optimization;"
+    ;;
+  spend|cost)
+    echo "═══ Per-provider spend (all sessions) ═══"
+    sqlite3 -header -column "$KMS" "SELECT * FROM v_provider_usage;"
+    echo
+    echo "═══ Per-model spend (top 10) ═══"
+    sqlite3 -header -column "$KMS" "SELECT model, provider, sessions, tokens_total, cost_usd, avg_cache_hit, cost_per_mtok FROM v_model_usage ORDER BY cost_usd DESC LIMIT 10;"
+    ;;
+  price|lookup)
+    Q="${1:?price <model-id-or-substring>}"
+    sqlite3 -header -column "$KMS" \
+      "SELECT model_id, provider, input_per_million, output_per_million, cache_read_per_million, cache_write_per_million, context_window, tier, supports_cache FROM model_pricing WHERE model_id LIKE '%$Q%' OR family LIKE '%$Q%' ORDER BY input_per_million;"
+    ;;
+  providers|list)
+    sqlite3 -header -column "$KMS" \
+      "SELECT provider, COUNT(*) AS models, MIN(input_per_million) AS min_in, MAX(input_per_million) AS max_in, SUM(CASE WHEN supports_cache=1 THEN 1 ELSE 0 END) AS with_cache, SUM(CASE WHEN supports_vision=1 THEN 1 ELSE 0 END) AS with_vision FROM model_pricing GROUP BY provider ORDER BY 2 DESC;"
+    ;;
+  *)
+    echo "Usage: sa-model-router {cheapest|recommend|optimize|spend|price|providers}" >&2
+    exit 1
+    ;;
+esac

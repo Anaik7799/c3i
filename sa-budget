@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# sa-budget — session budget inspect + enforce
+# Usage: sa-budget check <session_id> <next_call_cost_estimate>
+#        sa-budget status
+#        sa-budget set <session_id> <cap_usd>
+set -eu
+KMS="${KMS_DB:-/home/an/dev/ver/c3i/sub-projects/c3i/data/kms/smriti.db}"
+CMD="${1:-status}"; shift || true
+case "$CMD" in
+  status)
+    sqlite3 -header -column "$KMS" "SELECT * FROM v_budget_status LIMIT 15;"
+    ;;
+  check)
+    SID="${1:?session_id}"; EST="${2:-0.10}"
+    CUR=$(sqlite3 "$KMS" "SELECT COALESCE(cost_usd,0) FROM session_metrics WHERE session_id='$SID';")
+    [ -z "$CUR" ] && CUR=0
+    CAP=$(sqlite3 "$KMS" "SELECT COALESCE(cap_usd,50.0) FROM session_budget WHERE session_id='$SID';")
+    [ -z "$CAP" ] && CAP=50.0
+    PROJ=$(echo "$CUR + $EST" | bc -l)
+    if [ "$(echo "$PROJ >= $CAP" | bc)" = 1 ]; then
+      echo "HALT: projected $PROJ >= cap $CAP"
+      exit 2
+    fi
+    echo "OK: $PROJ / $CAP"
+    ;;
+  set)
+    SID="${1:?session_id}"; CAP="${2:?cap_usd}"
+    sqlite3 "$KMS" "INSERT OR REPLACE INTO session_budget (session_id, cap_usd) VALUES ('$SID', $CAP);"
+    echo "Set $SID cap=$CAP"
+    ;;
+esac

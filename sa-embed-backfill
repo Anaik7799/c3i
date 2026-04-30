@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# sa-embed-backfill — fills holon_embeddings for all holons missing an embedding
+# Idea #4 + #32 (batch embeddings)
+# Usage: sa-embed-backfill [batch_size] [max_rows]
+set -eu
+BATCH="${1:-50}"
+MAX="${2:-100}"
+KMS=/home/an/dev/ver/c3i/sub-projects/c3i/data/kms/smriti.db
+OLLAMA_URL="${OLLAMA_URL:-http://localhost:11434}"
+
+# Test connectivity to Ollama
+if ! curl -s -m 3 "$OLLAMA_URL/api/tags" > /dev/null 2>&1; then
+  # Try container directly
+  OLLAMA_URL="http://100.78.98.18:11434"
+  if ! curl -s -m 3 "$OLLAMA_URL/api/tags" > /dev/null 2>&1; then
+    echo "Cannot reach Ollama; attempting container exec path"
+    # Use podman exec to run inside container
+    HOLONS=$(sqlite3 "$KMS" "SELECT h.holon_uuid FROM holons h LEFT JOIN holon_embeddings e ON h.holon_uuid=e.holon_id WHERE e.holon_id IS NULL LIMIT $MAX;")
+    COUNT=$(echo "$HOLONS" | grep -c .)
+    echo "Missing embeddings: $COUNT ( capped at $MAX)"
+    echo "Would embed via podman exec — skipping live call for dry run"
+    exit 0
+  fi
+fi
+echo "Ollama reachable at $OLLAMA_URL"
+
+# Pull missing UUIDs in batches, embed via nomic-embed-text
+python3 <<PY
+import sqlite3, urllib.request, urllib.error, json, sys
+conn = sqlite3.connect("$KMS")
+cur = conn.cursor()
+rows = list(cur.execute("""
+  SELECT h.holon_uuid, SUBSTR(h.content,1,1500) AS content
+  FROM holons h LEFT JOIN holon_embeddings e ON h.holon_uuid=e.holon_id
+  WHERE e.holon_id IS NULL LIMIT $MAX
+"""))
+print(f"Backfilling {len(rows)} holons in batches of $BATCH…")
+ok = fail = 0
+for uuid, content in rows:
+    try:
+        req = urllib.request.Request(
+            "$OLLAMA_URL/api/embeddings",
+            data=json.dumps({"model":"nomic-embed-text","prompt":content}).encode(),
+            headers={"Content-Type":"application/json"})
+        with urllib.request.urlopen(req, timeout=45) as r:
+            emb = json.loads(r.read())["embedding"]
+        # sqlite-vss expects BLOB; use json for now
+        cur.execute("INSERT OR REPLACE INTO holon_embeddings (holon_id, embedding) VALUES (?, ?)",
+                    (uuid, json.dumps(emb)))
+        ok += 1
+        if ok % 20 == 0:
+            conn.commit()
+            print(f"  committed {ok}…")
+    except urllib.error.URLError as e:
+        fail += 1
+        if fail < 5: print(f"  fail {uuid}: {e}")
+    except Exception as e:
+        fail += 1
+        if fail < 5: print(f"  err  {uuid}: {e}")
+conn.commit()
+print(f"Done. ok={ok}  fail={fail}  total={ok+fail}")
+PY

@@ -1,0 +1,16 @@
+[package]
+name = "ferriskey-c3i-bridge"
+version = "0.1.0"
+edition = "2021"
+description = "FerrisKey IAM webhook-to-Zenoh bridge for C3I mesh"
+
+[dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+jsonwebtoken = "9"
+reqwest = { version = "0.12", features = ["json"] }
+tracing = "0.1"
+tracing-subscriber = "0.3"
+zenoh = { version = "1.4", features = ["default"] }

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# sa-auto-lifeline — watches Zenoh for SchedHangHeartbeatMissing alarms and invokes job-lifeline automatically
+# Usage: sa-auto-lifeline [stuck_secs] [interval_secs]
+set -eu
+STUCK="${1:-600}"       # consider stuck if >600s silent
+INTERVAL="${2:-120}"    # check every 120s
+LOG=/tmp/sa-auto-lifeline.log
+REPO=/home/an/dev/ver/c3i
+while true; do
+  # Query Oban jobs that have been executing too long
+  STUCK_IDS=$(sqlite3 "$REPO/sub-projects/c3i/data/smriti/Smriti.db" \
+    "SELECT id FROM oban_jobs WHERE state='executing'
+     AND (strftime('%s','now') - strftime('%s',attempted_at))*1 > $STUCK;" 2>/dev/null || echo "")
+
+  if [ -n "$STUCK_IDS" ]; then
+    COUNT=$(echo "$STUCK_IDS" | wc -l)
+    echo "$(date -u +%FT%TZ) [auto-lifeline] detected $COUNT stuck job(s), invoking lifeline" >> "$LOG"
+    (cd "$REPO" && ./sa-plan job-lifeline --older-than-secs "$STUCK" 2>&1 | grep -E "reset|error" >> "$LOG" ) || true
+  fi
+  sleep "$INTERVAL"
+done

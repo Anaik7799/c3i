@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# sa-openrouter-sync — fetch OpenRouter account activity and write to session_metrics
+# Usage: sa-openrouter-sync [days_back]  (default 7)
+# Requires: OPENROUTER_API_KEY in env or in ~/.pi/agent/.env
+set -eu
+DAYS="${1:-7}"
+KMS="${KMS_DB:-/home/an/dev/ver/c3i/sub-projects/c3i/data/kms/smriti.db}"
+
+# Find OR key
+KEY="${OPENROUTER_API_KEY:-}"
+[ -z "$KEY" ] && [ -f /home/an/.pi/agent/auth.json ] && KEY=$(jq -r '.openrouter.apiKey // empty' /home/an/.pi/agent/auth.json 2>/dev/null)
+[ -z "$KEY" ] && [ -f ~/.pi/agent/auth.json ] && KEY=$(jq -r '.openrouter.apiKey // empty' ~/.pi/agent/auth.json 2>/dev/null)
+[ -z "$KEY" ] && [ -f .env ] && KEY=$(grep OPENROUTER_API_KEY .env | cut -d= -f2-)
+
+if [ -z "$KEY" ]; then
+  echo "ERROR: OPENROUTER_API_KEY not found. Set env or add to .pi/agent/auth.json." >&2
+  exit 1
+fi
+
+# Fetch activity
+echo "═══ Fetching OpenRouter activity (last $DAYS days) ═══"
+RESP=$(curl -s -m 15 -H "Authorization: Bearer $KEY" \
+  "https://openrouter.ai/api/v1/credits/activity?days=$DAYS")
+
+if [ -z "$RESP" ] || echo "$RESP" | grep -q '"error"'; then
+  echo "Response: $RESP"; exit 2
+fi
+
+# Parse + write
+echo "$RESP" | python3 -c "
+import json, sys, sqlite3, datetime as dt
+data = json.load(sys.stdin)
+conn = sqlite3.connect('$KMS')
+cur = conn.cursor()
+inserted = 0
+for tx in data.get('data', [])[:200]:
+    sid = 'or-' + tx.get('id', tx.get('created_at', ''))[:32]
+    model = tx.get('model', 'openrouter/unknown')
+    provider = 'openrouter'
+    ts = tx.get('created_at', '')
+    tokens_in = tx.get('tokens_prompt', 0) or 0
+    tokens_out = tx.get('tokens_completion', 0) or 0
+    total = tokens_in + tokens_out
+    cost = tx.get('total_cost', 0) or 0
+    try:
+        cur.execute('''INSERT OR REPLACE INTO session_metrics
+          (session_id, agent, started_at, tokens_input, tokens_output, tokens_total,
+           cost_usd, provider, model)
+          VALUES (?,?,?,?,?,?,?,?,?)''',
+          (sid, 'openrouter-api', ts, tokens_in, tokens_out, total, cost, provider, model))
+        inserted += cur.rowcount
+    except Exception as e:
+        print(f'  skip: {e}')
+conn.commit()
+print(f'Inserted {inserted} OpenRouter activity rows')
+"

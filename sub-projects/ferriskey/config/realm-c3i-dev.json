@@ -1,0 +1,194 @@
+{
+  "realm": "c3i-dev",
+  "enabled": true,
+  "displayName": "C3I Development",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "passwordPolicy": "length(12) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1)",
+  "defaultRoles": ["c3i-viewer"],
+  "roles": [
+    {
+      "name": "c3i-admin",
+      "description": "Full access to all fractal layers (L0-L7). MFA required for L0 operations.",
+      "composite": false,
+      "clientRole": false,
+      "attributes": {
+        "fractal_layers": ["L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7"],
+        "mfa_required": "true",
+        "permission_level": "FullAccess"
+      }
+    },
+    {
+      "name": "c3i-operator",
+      "description": "Operator access to L1-L7 fractal layers. Cannot perform L0 Constitutional operations.",
+      "composite": false,
+      "clientRole": false,
+      "attributes": {
+        "fractal_layers": ["L1", "L2", "L3", "L4", "L5", "L6", "L7"],
+        "mfa_required": "false",
+        "permission_level": "OperatorAccess"
+      }
+    },
+    {
+      "name": "c3i-viewer",
+      "description": "Read-only access to L4-L7 fractal layers.",
+      "composite": false,
+      "clientRole": false,
+      "attributes": {
+        "fractal_layers": ["L4", "L5", "L6", "L7"],
+        "mfa_required": "false",
+        "permission_level": "ViewerAccess"
+      }
+    },
+    {
+      "name": "c3i-service",
+      "description": "Machine-to-machine service account role.",
+      "composite": false,
+      "clientRole": false,
+      "attributes": {
+        "fractal_layers": ["L3", "L4", "L5", "L6"],
+        "mfa_required": "false",
+        "permission_level": "ServiceAccount"
+      }
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "c3i-wisp-api",
+      "name": "C3I Wisp REST API",
+      "description": "Confidential client for the Gleam Wisp API (port 4100)",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "redirectUris": ["https://localhost:4100/*"],
+      "webOrigins": ["https://localhost:4100"],
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "defaultClientScopes": ["openid", "profile", "email"],
+      "attributes": {
+        "access.token.lifespan": "3600",
+        "client.session.idle.timeout": "1800"
+      }
+    },
+    {
+      "clientId": "c3i-lustre-ui",
+      "name": "C3I Lustre Web UI",
+      "description": "Public client for browser-based Lustre SSR UI",
+      "enabled": true,
+      "publicClient": true,
+      "redirectUris": ["https://localhost:4100/*", "https://vm-1.tail55d152.ts.net:4100/*"],
+      "webOrigins": ["https://localhost:4100", "https://vm-1.tail55d152.ts.net:4100"],
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "defaultClientScopes": ["openid", "profile", "email"]
+    },
+    {
+      "clientId": "c3i-phoenix",
+      "name": "C3I Phoenix LiveView",
+      "description": "Confidential client for legacy Elixir/Phoenix app (port 4000)",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "redirectUris": ["https://localhost:4000/*"],
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "defaultClientScopes": ["openid", "profile", "email"]
+    },
+    {
+      "clientId": "sa-plan-daemon",
+      "name": "SA Plan Daemon Service Account",
+      "description": "Confidential client for Rust sa-plan-daemon (client credentials flow)",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "defaultClientScopes": ["openid"],
+      "attributes": {
+        "access.token.lifespan": "3600"
+      }
+    },
+    {
+      "clientId": "mcp-dispatch",
+      "name": "MCP Tool Dispatch Service Account",
+      "description": "Confidential client for MCP-over-Zenoh tool dispatch",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "defaultClientScopes": ["openid"]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "Abhijit.Naik@bountytek.com",
+      "firstName": "Abhijit",
+      "lastName": "Naik",
+      "realmRoles": ["c3i-admin"],
+      "requiredActions": ["CONFIGURE_TOTP"],
+      "credentials": [
+        {
+          "type": "password",
+          "temporary": true
+        }
+      ]
+    }
+  ],
+  "webhooks": [
+    {
+      "url": "http://ferriskey-c3i-bridge:9090/webhook",
+      "enabled": true,
+      "events": [
+        "login_success", "login_failure", "logout",
+        "user_created", "user_deleted",
+        "role_assigned", "role_unassigned",
+        "token_revoked",
+        "mfa_enrolled", "mfa_failure",
+        "admin_action",
+        "client_created", "client_deleted",
+        "credential_created", "credential_deleted",
+        "federation_linked"
+      ],
+      "headers": {
+        "X-Webhook-Source": "ferriskey-c3i"
+      }
+    }
+  ],
+  "smtpServer": {
+    "host": "",
+    "port": "587",
+    "from": "",
+    "fromDisplayName": "C3I Identity",
+    "ssl": false,
+    "starttls": true,
+    "auth": true,
+    "user": "",
+    "password": ""
+  }
+}

@@ -1,0 +1,76 @@
+# FerrisKey IAM + C3I Bridge compose for development
+# Usage: docker compose -f docker-compose.ferriskey.yml up -d
+#
+# STAMP: SC-IAM-001, SC-IAM-002, SC-AUTH-005
+
+services:
+  ferriskey-db:
+    image: postgres:17
+    container_name: indrajaal-ferriskey-db
+    environment:
+      POSTGRES_DB: ferriskey
+      POSTGRES_USER: ferriskey
+      POSTGRES_PASSWORD: ${FERRISKEY_DB_PASSWORD:-ferriskey-dev}
+    ports:
+      - "5434:5432"
+    volumes:
+      - ferriskey-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ferriskey"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - ferriskey-net
+
+  ferriskey:
+    image: ghcr.io/ferriskey/ferriskey:latest
+    container_name: indrajaal-ferriskey
+    depends_on:
+      ferriskey-db:
+        condition: service_healthy
+    environment:
+      FERRISKEY_DB_HOST: ferriskey-db
+      FERRISKEY_DB_PORT: "5432"
+      FERRISKEY_DB_NAME: ferriskey
+      FERRISKEY_DB_USER: ferriskey
+      FERRISKEY_DB_PASSWORD: ${FERRISKEY_DB_PASSWORD:-ferriskey-dev}
+      FERRISKEY_ADMIN_USER: admin
+      FERRISKEY_ADMIN_EMAIL: Abhijit.Naik@bountytek.com
+      FERRISKEY_ADMIN_PASSWORD: ${FERRISKEY_ADMIN_PASSWORD:-admin}
+      FERRISKEY_PORT: "8080"
+      FERRISKEY_ALLOWED_ORIGINS: "https://localhost:4100,https://vm-1.tail55d152.ts.net:4100"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - ferriskey-net
+
+  ferriskey-c3i-bridge:
+    build:
+      context: ../
+      dockerfile: containers/Containerfile.ferriskey-bridge
+    container_name: indrajaal-ferriskey-bridge
+    depends_on:
+      ferriskey:
+        condition: service_healthy
+    environment:
+      BRIDGE_BIND_ADDR: "0.0.0.0:9090"
+      ZENOH_ROUTER_ENDPOINT: "tcp/zenoh-router:7447"
+    ports:
+      - "9090:9090"
+    networks:
+      - ferriskey-net
+
+volumes:
+  ferriskey-db-data:
+
+networks:
+  ferriskey-net:
+    name: indrajaal-network
+    external: true

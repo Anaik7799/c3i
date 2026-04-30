@@ -1,0 +1,91 @@
+{
+  "realm": "c3i-prod",
+  "enabled": true,
+  "displayName": "C3I Production",
+  "sslRequired": "all",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": true,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 3,
+  "passwordPolicy": "length(14) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1) and notUsername and passwordHistory(5)",
+  "defaultRoles": ["c3i-viewer"],
+  "roles": [
+    {
+      "name": "c3i-admin",
+      "description": "Full access (L0-L7). MFA mandatory.",
+      "attributes": {
+        "fractal_layers": ["L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7"],
+        "mfa_required": "true",
+        "permission_level": "FullAccess"
+      }
+    },
+    {
+      "name": "c3i-operator",
+      "description": "Operator access (L1-L7).",
+      "attributes": {
+        "fractal_layers": ["L1", "L2", "L3", "L4", "L5", "L6", "L7"],
+        "mfa_required": "false",
+        "permission_level": "OperatorAccess"
+      }
+    },
+    {
+      "name": "c3i-viewer",
+      "description": "Read-only (L4-L7).",
+      "attributes": {
+        "fractal_layers": ["L4", "L5", "L6", "L7"],
+        "mfa_required": "false",
+        "permission_level": "ViewerAccess"
+      }
+    },
+    {
+      "name": "c3i-service",
+      "description": "Machine-to-machine (L3-L6).",
+      "attributes": {
+        "fractal_layers": ["L3", "L4", "L5", "L6"],
+        "mfa_required": "false",
+        "permission_level": "ServiceAccount"
+      }
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "c3i-wisp-api",
+      "name": "C3I Wisp REST API",
+      "enabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "serviceAccountsEnabled": false,
+      "attributes": { "access.token.lifespan": "1800" }
+    },
+    {
+      "clientId": "sa-plan-daemon",
+      "name": "SA Plan Daemon",
+      "enabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "attributes": { "access.token.lifespan": "1800" }
+    },
+    {
+      "clientId": "mcp-dispatch",
+      "name": "MCP Dispatch",
+      "enabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "attributes": { "access.token.lifespan": "900" }
+    }
+  ]
+}
