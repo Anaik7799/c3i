@@ -36,6 +36,7 @@ import gleam/string
 import scripts/common/args as cargs
 import scripts/common/crypto
 import scripts/common/fsx
+import simplifile
 import scripts/common/logx
 import scripts/common/zenoh
 
@@ -219,9 +220,82 @@ fn decision_summary(d: FederationDecision) -> String {
   }
 }
 
-/// Best-effort load of peer attestations — current scaffold reads none
-/// because no peer mesh is deployed yet.  Future: HTTP fetch from peer
-/// endpoints `https://<peer>:4200/api/v1/cpig/attestation`.
+/// Load peer attestations from `data/script-output/cpig-federation/peers/`.
+/// Each peer publishes its signed attestation to the same Zenoh topic; on
+/// a single host we materialise to disk for development quorum testing.
+/// Files older than the TTL or with bad signatures are filtered by
+/// `validate/1` downstream — this fn only does I/O + JSON parsing.
 fn load_peer_attestations() -> List(Attestation) {
-  []
+  let dir = "data/script-output/cpig-federation/peers"
+  case simplifile.read_directory(dir) {
+    Error(_) -> []
+    Ok(entries) ->
+      entries
+      |> list.filter(fn(name) { string.ends_with(name, ".json") })
+      |> list.filter_map(fn(name) {
+        let path = dir <> "/" <> name
+        case simplifile.read(path) {
+          Error(_) -> Error(Nil)
+          Ok(body) -> parse_attestation_json(body)
+        }
+      })
+  }
+}
+
+/// Parse the canonical attestation JSON shape (matches `attestation_to_json`).
+/// Field-by-field extraction; rejects on any missing field.
+fn parse_attestation_json(body: String) -> Result(Attestation, Nil) {
+  let mesh = extract_string(body, "mesh_id")
+  let region = extract_string(body, "region")
+  let score_s = extract_int_string(body, "score")
+  let ts_s = extract_int_string(body, "timestamp")
+  let sig = extract_string(body, "sig")
+  let pubh = extract_string(body, "public")
+  case mesh, region, sig, pubh {
+    "", _, _, _ | _, "", _, _ | _, _, "", _ | _, _, _, "" -> Error(Nil)
+    _, _, _, _ -> {
+      case int.parse(score_s), int.parse(ts_s) {
+        Ok(s), Ok(t) ->
+          Ok(Attestation(
+            mesh_id: mesh,
+            region: region,
+            score: s,
+            timestamp: t,
+            sig_hex: sig,
+            public_hex: pubh,
+          ))
+        _, _ -> Error(Nil)
+      }
+    }
+  }
+}
+
+fn extract_string(body: String, key: String) -> String {
+  let needle = "\"" <> key <> "\":\""
+  case string.split_once(body, needle) {
+    Error(_) -> ""
+    Ok(#(_, after)) ->
+      case string.split_once(after, "\"") {
+        Error(_) -> ""
+        Ok(#(value, _)) -> value
+      }
+  }
+}
+
+fn extract_int_string(body: String, key: String) -> String {
+  let needle = "\"" <> key <> "\":"
+  case string.split_once(body, needle) {
+    Error(_) -> ""
+    Ok(#(_, after)) -> {
+      let trimmed = string.trim_start(after)
+      case string.split_once(trimmed, ",") {
+        Ok(#(num, _)) -> string.trim(num)
+        Error(_) ->
+          case string.split_once(trimmed, "}") {
+            Ok(#(num, _)) -> string.trim(num)
+            Error(_) -> ""
+          }
+      }
+    }
+  }
 }

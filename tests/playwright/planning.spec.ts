@@ -146,13 +146,11 @@ test.describe('/planning structural', () => {
 // without the client sending a "ping" message.
 // ──────────────────────────────────────────────────────────────────────────
 test.describe('/planning WS server-driven push', () => {
-  // SKIP-RATIONALE (2026-04-30): server-tick code (web/server.gleam Tick custom
-  // message) is committed + unit-tested, but the running BEAM was started before
-  // the WsState type evolved (added tick_subject), so hot_reload returns 500 and
-  // the live server still runs the OLD client-driven-only handler.  A clean
-  // restart will activate the server-tick path and this test will pass.
-  // Until the operator restarts, mark skip rather than emit a false negative.
-  test.skip('emits welcome + ≥1 server tick within 2.5s, no client ping (requires server restart)', async ({ page }) => {
+  // Server-tick activated 2026-04-30 after operator-authorized restart of
+  // cepaf_gleam --serve.  Welcome frame announces server_push:true; subsequent
+  // frames carry source:"server_tick" within ~1 s without client cooperation.
+  // SC-AGUI-UI-011 / SC-PLANNING-EVO-009.
+  test('emits welcome + ≥1 server tick within 2.5s, no client ping', async ({ page }) => {
     await page.goto('/planning');
     const result = await page.evaluate(async () => {
       const url = location.protocol === 'https:'
