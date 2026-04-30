@@ -206,7 +206,7 @@
       "Bash(./target/release/sa-plan-daemon set-pref:*)",
       "Bash(./target/release/sa-plan-daemon daemon:*)",
       "Bash(./target/release/sa-plan-daemon sim-test:*)",
-      "Bash(./target/release/sa-plan-daemon gateway --channel gchat --text \"\ud83e\uddea **SimTest Results \\(2026-04-09\\)**:*)",
+      "Bash(./target/release/sa-plan-daemon gateway --channel gchat --text \"🧪 **SimTest Results \\(2026-04-09\\)**:*)",
       "Bash(ollama list:*)",
       "Bash(sh)",
       "Bash(ollama --version)",
@@ -220,7 +220,7 @@
       "Bash(timeout 120 tail -f /tmp/cortex-daemon.log)",
       "Bash(/dev/null sqlite3:*)",
       "Bash(./target/release/sa-plan-daemon send-email:*)",
-      "Bash(sub-projects/c3i/target/release/sa-plan-daemon send-email --to \"abhijitnaik7799@gmail.com\" --subject \"[c3i:2026-04-09-17:42] Full Session Journal + Architecture Docs \\(4 attachments\\)\" --body \"C3I Session Journal \u2014 2026-04-09:*)",
+      "Bash(sub-projects/c3i/target/release/sa-plan-daemon send-email --to \"abhijitnaik7799@gmail.com\" --subject \"[c3i:2026-04-09-17:42] Full Session Journal + Architecture Docs \\(4 attachments\\)\" --body \"C3I Session Journal — 2026-04-09:*)",
       "WebFetch(domain:ai.google.dev)",
       "WebFetch(domain:crates.io)",
       "WebFetch(domain:discuss.ai.google.dev)",
@@ -262,9 +262,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/an/dev/ver/c3i && STATUS=$(./sub-projects/c3i/target/release/sa-plan-daemon status 2>&1 | grep -E 'Active:|Pending:|Completed:' | head -3 | tr '\\n' ' ') && C3I_COUNT=$(./sub-projects/c3i/target/release/sa-plan-daemon knowledge-search 'stats' 2>&1 | grep -oE '[0-9]+ holons' | head -1) && FY27=$(cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten stats 2>&1 | head -3 | tr '\\n' ' ') && cd /home/an/dev/ver/c3i && LAST=$(./sub-projects/c3i/target/release/sa-plan-daemon session-summary 2>/dev/null | grep -oP '\"commits\":\\d+' | head -1) && REC=$(./sub-projects/c3i/target/release/sa-plan-daemon recommend 2>/dev/null | grep '>>> Start' | head -1) && echo \"{\\\"systemMessage\\\":\\\"C3I BOOTSTRAP: $STATUS | C3I-ZK: $C3I_COUNT | FY27-ZK: $FY27 | LAST: $LAST | NEXT: $REC | MANDATE: You MUST cite ZK holon IDs in every response. You MUST search ZK before proposing solutions. ZK recall fires on every prompt \u2014 READ and USE the results.\\\"}\"",
+            "command": "cd /home/an/dev/ver/c3i/sub-projects/c3i && /home/an/dev/ver/c3i/sub-projects/work/release/sa-plan-daemon bootstrap --agent claude 2>/dev/null | grep \"^{\" | tail -1",
             "timeout": 20,
-            "statusMessage": "C3I bootstrap + last session + task recommend..."
+            "statusMessage": "C3I bootstrap (Rust SC-BOOTSTRAP-001)"
           }
         ]
       },
@@ -278,6 +278,30 @@
             "statusMessage": "Pi-mono warm-up ping..."
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "GLOBALS=$(dart pub global list 2>/dev/null) && MMCP=$(echo \"$GLOBALS\" | grep -c marionette_mcp) && MCLI=$(echo \"$GLOBALS\" | grep -c marionette_cli) && DART_MCP=$(dart mcp-server --help >/dev/null 2>&1 && echo yes || echo no) && UPSTREAM=$(test -d /home/an/dev/ver/c3i/sub-projects/marionette_mcp/.git && echo yes || echo no) && echo \"{\\\"systemMessage\\\":\\\"MCP servers: dart=$DART_MCP marionette_mcp=$MMCP marionette_cli=$MCLI upstream=$UPSTREAM | 22+16 tools | rules: dart-flutter-ai-mcp + marionette-mcp-flutter-testing\\\"}\"",
+            "timeout": 10,
+            "async": true,
+            "statusMessage": "Marionette MCP readiness probe..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "P=$(jq -r '.tool_input.file_path // empty'); case \"$P\" in *lib/cepaf_gleam/priv/static/*.js) cd /home/an/dev/ver/c3i/sub-projects/scripts-gleam && gleam run -m scripts/verify/effect_ts_guard ;; *) exit 0 ;; esac",
+            "timeout": 30,
+            "statusMessage": "SC-EFFECT-TS-001 guard..."
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -285,7 +309,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/an/dev/ver/c3i && QUERY=$(jq -r '.prompt // empty' | head -c 500 | tr '\\n' ' ') && if [ -n \"$QUERY\" ]; then C3I=$(./sub-projects/c3i/target/release/sa-plan-daemon zk-recall \"$QUERY\" --session-id $$ --limit 15 2>/dev/null | grep -v '\\[2026\\|\u2554\\|\u2551\\|\u255a\\|Planning\\|SIL-6') && FY27=$(cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten search \"$QUERY\" 2>&1 | grep -E '^  \\[zk-|^  Path:|^  .*\u00bb' | head -10) && ALL=\"$C3I\" && if [ -n \"$FY27\" ]; then ALL=\"$ALL\\nFY27-ZK RECALL (sales/accounts):\\n$FY27\"; fi && if [ -n \"$ALL\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"$ALL\\\"}}\"; fi; fi",
+            "command": "cd /home/an/dev/ver/c3i && QUERY=$(jq -r '.prompt // empty' | head -c 500 | tr '\\n' ' ') && if [ -n \"$QUERY\" ]; then C3I=$(./sub-projects/c3i/target/release/sa-plan-daemon zk-recall \"$QUERY\" --session-id $$ --limit 15 2>/dev/null | grep -v '\\[2026\\|╔\\|║\\|╚\\|Planning\\|SIL-6') && FY27=$(cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten search \"$QUERY\" 2>&1 | grep -E '^  \\[zk-|^  Path:|^  .*»' | head -10) && ALL=\"$C3I\" && if [ -n \"$FY27\" ]; then ALL=\"$ALL\\nFY27-ZK RECALL (sales/accounts):\\n$FY27\"; fi && if [ -n \"$ALL\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"$ALL\\\"}}\"; fi; fi",
             "timeout": 12,
             "statusMessage": "ZK-RAG recall pipeline (C3I + FY27)..."
           }
@@ -307,10 +331,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "flock -n /tmp/c3i-stop-hook.lock -c '/home/an/dev/ver/intelitor-v5.2/.devenv/profile/bin/gleam run -m scripts/sysd/stop_hook' || echo '{\"systemMessage\":\"Stop-hook ingest already running, skipped (flock).\"}'",
+            "command": "cd /home/an/dev/ver/c3i/sub-projects/c3i && /home/an/dev/ver/c3i/sub-projects/work/release/sa-plan-daemon stop-hook --agent claude --scripts-gleam-dir /home/an/dev/ver/c3i/sub-projects/scripts-gleam --timeout-sec 50 2>/dev/null | grep \"^{\" | tail -1",
             "timeout": 60,
             "async": true,
-            "statusMessage": "Saving session + ingesting to dual Zettelkasten..."
+            "statusMessage": "Stop-hook ingest (Rust SC-BOOTSTRAP-004 with dead-man + explicit errors)"
           },
           {
             "type": "command",
@@ -349,6 +373,12 @@
             "timeout": 120,
             "async": true,
             "statusMessage": "Jidoka: running tests in background"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case $f in *.js|*.ts) if [ \"${f##*.}\" = \"js\" ]; then echo '{\"systemMessage\":\"SC-EFFECT-TS-001 VIOLATION: raw .js edit detected. Use Effect TypeScript + IIFE bundle only (operator-gated H-risk).\"}'; else echo '{\"systemMessage\":\"Effect-TS check: ensure SC-EFFECT-TS-001..007 and full IIFE collapse for JS/TS changes.\"}'; fi ;; esac; }",
+            "timeout": 10,
+            "statusMessage": "Effect-TS / IIFE guard"
           }
         ]
       },
@@ -357,7 +387,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if jq -r '.tool_input.command // \"\"' | grep -Eq 'feature-evolution|pi-symbiosis-evolve|fractal_feature_evolution_suite'; then echo '{\"systemMessage\":\"Fractal-criticality governance active: generate L0-L7\u00d7components\u00d7RETE-UL/ruliology\u00d7STAMP\u00d7FMEA/FEMA matrix via ./scripts/generate_fractal_criticality_matrix.sh <task-id> before closure (SC-FRAC-RRF-001..010).\"}'; fi",
+            "command": "if jq -r '.tool_input.command // \"\"' | grep -Eq 'feature-evolution|pi-symbiosis-evolve|fractal_feature_evolution_suite'; then echo '{\"systemMessage\":\"Fractal-criticality governance active: generate L0-L7×components×RETE-UL/ruliology×STAMP×FMEA/FEMA matrix via ./scripts/generate_fractal_criticality_matrix.sh <task-id> before closure (SC-FRAC-RRF-001..010).\"}'; fi",
             "timeout": 8,
             "statusMessage": "Fractal criticality governance gate"
           }
@@ -372,6 +402,12 @@
             "timeout": 5,
             "async": true,
             "statusMessage": "Publishing patrol/marionette event to Zenoh"
+          },
+          {
+            "type": "command",
+            "command": "TOOL=$(jq -r '.tool_name // \"\"') && SESSION=${CLAUDE_SESSION_ID:-default} && STATE_FILE=\"/tmp/marionette-discovery-${SESSION}.flag\" && case \"$TOOL\" in *get_interactive_elements*|*connect*|*list_custom_extensions*) touch \"$STATE_FILE\" ;; *tap*|*double_tap*|*long_press*|*enter_text*|*swipe*|*pinch_zoom*|*scroll_to*|*press_back_button*) if [ ! -f \"$STATE_FILE\" ]; then echo '{\"systemMessage\":\"⚠ SC-MARIONETTE-003: tap/text/gesture invoked WITHOUT a prior get_interactive_elements in this session. Selector-guessing anti-pattern [zk-bb4de67d97f807ac]. Run mcp__marionette__get_interactive_elements first.\"}'; fi ;; *disconnect*) rm -f \"$STATE_FILE\" ;; esac",
+            "timeout": 4,
+            "statusMessage": "SC-MARIONETTE-003 discovery-first guard"
           }
         ]
       }
@@ -390,6 +426,13 @@
     "marionette": {
       "type": "stdio",
       "command": "marionette_mcp"
+    },
+    "dart": {
+      "type": "stdio",
+      "command": "dart",
+      "args": [
+        "mcp-server"
+      ]
     }
   }
 }
