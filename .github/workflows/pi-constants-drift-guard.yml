@@ -1,0 +1,19 @@
+name: Pi Constants Drift Guard
+
+on:
+  pull_request:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  pi-constants-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure checker is executable
+        run: chmod +x .claude/scripts/check-pi-constants.sh
+
+      - name: Run Pi constants drift guard
+        run: .claude/scripts/check-pi-constants.sh

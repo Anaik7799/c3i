@@ -91,6 +91,16 @@ Every new page, dashboard, or interactive component MUST be implemented THREE ti
 **Mandate**: SC-MUDA-001 — The system MUST be maintained with zero compilation warnings and active elimination of "Muda" (waste).
 See `.claude/rules/muda-waste-reduction.md` for the 7 Wastes of Software Engineering and the exact enforcement constraints.
 
+## §3.6 Effect TypeScript + Full IIFE Collapse (Operator-Gated H-Risk)
+**Mandate**: all browser/runtime JavaScript behavior MUST be authored in Effect TypeScript and shipped via IIFE bundles.
+
+Authoritative rule: `.claude/rules/effect-ts-only-js.md`.
+
+Required constraints:
+- SC-EFFECT-TS-001..007
+- Full IIFE collapse for H-risk paths
+- No new raw `.js` logic; legacy JS is migration-only and must trend toward Effect TS
+
 ---
 
 ## §4.0 Build & Test Commands

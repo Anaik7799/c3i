@@ -262,7 +262,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/an/dev/ver/c3i/sub-projects/c3i && /home/an/dev/ver/c3i/sub-projects/work/release/sa-plan-daemon bootstrap --agent claude 2>/dev/null | grep \"^{\" | tail -1",
+            "command": "cd /home/an/dev/ver/c3i/sub-projects/c3i && /home/an/dev/ver/c3i/sub-projects/c3i/target/release/sa-plan-daemon bootstrap --agent claude 2>/dev/null | grep \"^{\" | tail -1",
             "timeout": 20,
             "statusMessage": "C3I bootstrap (Rust SC-BOOTSTRAP-001)"
           }
@@ -309,9 +309,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/an/dev/ver/c3i && QUERY=$(jq -r '.prompt // empty' | head -c 500 | tr '\\n' ' ') && if [ -n \"$QUERY\" ]; then C3I=$(./sub-projects/c3i/target/release/sa-plan-daemon zk-recall \"$QUERY\" --session-id $$ --limit 15 2>/dev/null | grep -v '\\[2026\\|╔\\|║\\|╚\\|Planning\\|SIL-6') && FY27=$(cd sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten && /home/an/dev/ver/c3i/sub-projects/work/fy27-zk-build/release/fy27-zettelkasten search \"$QUERY\" 2>&1 | grep -E '^  \\[zk-|^  Path:|^  .*»' | head -10) && ALL=\"$C3I\" && if [ -n \"$FY27\" ]; then ALL=\"$ALL\\nFY27-ZK RECALL (sales/accounts):\\n$FY27\"; fi && if [ -n \"$ALL\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"$ALL\\\"}}\"; fi; fi",
+            "command": "cd /home/an/dev/ver/c3i && QUERY=$(jq -r '.prompt // empty' | head -c 500 | tr '\\n' ' ') && if [ -n \"$QUERY\" ]; then ALL=$(./sub-projects/c3i/target/release/sa-plan-daemon zk-recall \"$QUERY\" --session-id $$ --limit 15 2>/dev/null | grep -v '\\[2026\\|╔\\|║\\|╚\\|Planning\\|SIL-6') && if [ -n \"$ALL\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"$ALL\\\"}}\"; fi; fi",
             "timeout": 12,
-            "statusMessage": "ZK-RAG recall pipeline (C3I + FY27)..."
+            "statusMessage": "ZK-RAG recall pipeline (C3I)..."
           }
         ]
       },
@@ -331,7 +331,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/an/dev/ver/c3i/sub-projects/c3i && /home/an/dev/ver/c3i/sub-projects/work/release/sa-plan-daemon stop-hook --agent claude --scripts-gleam-dir /home/an/dev/ver/c3i/sub-projects/scripts-gleam --timeout-sec 50 2>/dev/null | grep \"^{\" | tail -1",
+            "command": "cd /home/an/dev/ver/c3i/sub-projects/c3i && /home/an/dev/ver/c3i/sub-projects/c3i/target/release/sa-plan-daemon stop-hook --agent claude --scripts-gleam-dir /home/an/dev/ver/c3i/sub-projects/scripts-gleam --timeout-sec 50 2>/dev/null | grep \"^{\" | tail -1",
             "timeout": 60,
             "async": true,
             "statusMessage": "Stop-hook ingest (Rust SC-BOOTSTRAP-004 with dead-man + explicit errors)"

@@ -260,9 +260,22 @@
           {
             "type": "command",
             "name": "c3i-bootstrap-zk",
-            "description": "Fast C3I bootstrap banner.",
-            "command": "jq -n '{\"systemMessage\":\"C3I BOOTSTRAP: Gemini CLI project config loaded. Use ZK recall and cite holon IDs in final responses.\"}'",
-            "timeout": 1000
+            "description": "C3I tri-agent bootstrap — calls sa-plan-daemon bootstrap (mirrors Pi runBootstrap helper, [zk-3cfe58417d733208] multi-interface Rust pattern). Falls back to static banner if binary missing (SC-BOOTSTRAP-001, SC-PI-AUTO-001).",
+            "command": "/home/an/dev/ver/c3i/sub-projects/work/release/sa-plan-daemon bootstrap --agent gemini 2>/dev/null || jq -n '{\"systemMessage\":\"C3I BOOTSTRAP: sa-plan-daemon binary missing — fallback. Use ZK recall and cite holon IDs (agent=gemini).\"}'",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "name": "c3i-stop-hook-zk-ingest",
+            "description": "C3I tri-agent stop hook — runs ZK ingest with dead-man timeout (mirrors Claude Stop hook + Pi session_shutdown). Per [zk-3346fc607a1ef9e6] Stub-That-Lies: actually invokes the binary, no silent stub.",
+            "command": "/home/an/dev/ver/c3i/sub-projects/work/release/sa-plan-daemon stop-hook --agent gemini 2>/dev/null || jq -n '{\"systemMessage\":\"STOP-HOOK ✗ binary missing — ZK ingest skipped\"}'",
+            "timeout": 60000
           }
         ]
       }
@@ -275,5 +288,8 @@
   },
   "hooksConfig": {
     "enabled": true
+  },
+  "postToolUseHints": {
+    "effectTsIifeGuard": "For any JS/TS file edits, enforce SC-EFFECT-TS-001..007 and full IIFE collapse; raw .js logic additions are prohibited unless operator-gated H-risk waiver exists."
   }
 }

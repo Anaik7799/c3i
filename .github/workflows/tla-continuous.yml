@@ -1,0 +1,31 @@
+name: TLA+ Continuous Model Check
+on:
+  pull_request:
+    paths:
+      - 'specs/tla/**.tla'
+      - 'specs/tla/**.cfg'
+  schedule:
+    - cron: '0 2 * * 0'  # weekly Sunday 02:00 UTC
+jobs:
+  tlc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - name: Download TLC
+        run: |
+          wget -q https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar
+      - name: Run TLC on all .tla specs
+        run: |
+          FAIL=0
+          for spec in specs/tla/*.tla; do
+            cfg="${spec%.tla}.cfg"
+            if [ -f "$cfg" ]; then
+              echo "::group::TLC $spec"
+              java -jar tla2tools.jar -config "$cfg" "$spec" || FAIL=1
+              echo "::endgroup::"
+            fi
+          done
+          exit $FAIL

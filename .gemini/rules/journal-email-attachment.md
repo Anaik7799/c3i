@@ -13,6 +13,8 @@ This is NON-NEGOTIABLE. No exceptions. No "I'll send it later."
 | SC-NOTIFY-JOURNAL-002 | Use `sa-plan-daemon send-email -a <file.md>` for attachment | **CRITICAL** |
 | SC-NOTIFY-JOURNAL-003 | Email MUST be sent in the SAME turn as file creation | **CRITICAL** |
 | SC-NOTIFY-JOURNAL-004 | Multiple journals in one session → attach ALL in one email | **HIGH** |
+| SC-NOTIFY-HANDOFF-001 | Every closure/dissemination email MUST include operator handoff index HTML attachment | **INFINITE** |
+| SC-NOTIFY-HANDOFF-002 | Handoff index URL MUST be included in email body and links manifest | **CRITICAL** |
 
 ## Command
 ```bash
@@ -34,8 +36,27 @@ sa-plan-daemon send-email \
   -a docs/journal/file3.md
 ```
 
+## Operator Handoff Page (Mandatory)
+For every pass closure/dissemination, create/update a single operator index HTML (handoff page) linking journal, analysis, deck, closure delta/gate, diagrams, screenshots, and links manifest.
+
+Email attachment requirements for closure/dissemination:
+- attach the journal `.md`
+- attach the links manifest `.json`
+- attach the operator handoff index `.html` (**mandatory**)
+
+Example:
+```bash
+sa-plan-daemon send-email \
+  --to Abhijit.Naik@bountytek.com \
+  --subject "Closure Handoff" \
+  --body "Handoff index: <https-url-to-operator-index>" \
+  -a docs/journal/<journal>.md \
+  -a docs/journal/<task-links>.json \
+  -a docs/journal/<operator-index>.html
+```
+
 ## WHY
-Session 2026-04-17: 13 emails sent but NONE had journal attachments until explicitly asked. The `--attach` / `-a` flag existed but was never used. This rule ensures journals are ALWAYS delivered as readable attachments, not just body text summaries.
+Session 2026-04-17: 13 emails sent but NONE had journal attachments until explicitly asked. The `--attach` / `-a` flag existed but was never used. This rule ensures journals are ALWAYS delivered as readable attachments, not just body text summaries. It now also enforces a single handoff page to prevent fragmented closure packets.
 
 ## Anti-Pattern
 ```

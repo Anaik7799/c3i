@@ -1,20 +1,20 @@
-# Zettelkasten + Gleam Agent Integration for Claude (SC-ZK-CLAUDE)
+# Zettelkasten + Gleam Agent Integration for Claude (SC-ZK-GEMINI)
 # HIGHEST PRIORITY REQUIREMENT
 # CROSS-REF: `.claude/rules/zk-imperative-recall.md` (SC-ZK-IMP — mandatory citation protocol)
 
 ## SUPREME MANDATE
-**Claude MUST use the Zettelkasten for memory and Gleam NIF functions for computation. Every session. No exceptions.**
-**Claude MUST CITE holon IDs from ZK recall in every response. See SC-ZK-IMP-001..006.**
+**Gemini MUST use the Zettelkasten for memory and Gleam NIF functions for computation. Every session. No exceptions.**
+**Gemini MUST CITE holon IDs from ZK recall in every response. See SC-ZK-IMP-001..006.**
 
 ## STAMP Constraints
 | ID | Constraint | Severity |
 |----|------------|----------|
-| SC-ZK-CLAUDE-001 | Claude MUST search Zettelkasten BEFORE starting any task | CRITICAL |
-| SC-ZK-CLAUDE-002 | Claude MUST ingest documents to Zettelkasten AFTER completing work | CRITICAL |
-| SC-ZK-CLAUDE-003 | Claude MUST use Graphene NIF for graph analysis instead of manual reasoning | HIGH |
-| SC-ZK-CLAUDE-004 | Claude MUST use sa-plan-daemon for all task management | CRITICAL |
-| SC-ZK-CLAUDE-005 | Claude MUST check prior patterns in Zettelkasten before proposing solutions | HIGH |
-| SC-ZK-CLAUDE-006 | Claude MUST use coverage_math for test quality assessment | HIGH |
+| SC-ZK-GEMINI-001 | Gemini MUST search Zettelkasten BEFORE starting any task | CRITICAL |
+| SC-ZK-GEMINI-002 | Gemini MUST ingest documents to Zettelkasten AFTER completing work | CRITICAL |
+| SC-ZK-GEMINI-003 | Gemini MUST use Graphene NIF for graph analysis instead of manual reasoning | HIGH |
+| SC-ZK-GEMINI-004 | Gemini MUST use sa-plan-daemon for all task management | CRITICAL |
+| SC-ZK-GEMINI-005 | Gemini MUST check prior patterns in Zettelkasten before proposing solutions | HIGH |
+| SC-ZK-GEMINI-006 | Gemini MUST use coverage_math for test quality assessment | HIGH |
 
 ## Dual Zettelkasten Architecture
 The system operates TWO Zettelkasten databases in parallel:

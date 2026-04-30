@@ -222,6 +222,13 @@ TrainingGym.record_outcome(approved_proposal, :success)
 {:ok, block}
 end
 ```
+# Effect-TS H-Risk Enforcement (Mandatory)
+For any JavaScript/TypeScript feature touching browser/runtime surfaces:
+1. Use Effect TypeScript only (SC-EFFECT-TS-001..007).
+2. Bundle as IIFE via esbuild (full IIFE collapse).
+3. No new raw `.js` logic.
+4. Any exception requires explicit operator-gated H-risk waiver.
+
 # Quality Gates (Mandatory)
 Before ANY code change is committed:
 1. `NO_TIMEOUT=true PATIENT_MODE=enabled SKIP_ZENOH_NIF=0 WALLABY_ENABLED=true ELIXIR_ERL_OPTIONS="+S 16:16 +SDio 16" mix compile --jobs 16` - 0 errors, 0 warnings (SC-CMP-025)
