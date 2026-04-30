@@ -1,0 +1,18 @@
+{
+  "name": "c3i-planning-effect",
+  "version": "1.0.0",
+  "description": "Pass-29 — Effect-TS planning-grid IIFE collapse (operator-gated H-risk)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/planning-grid.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/planning-grid.bundled.js",
+    "build:dev": "esbuild src/planning-grid.ts --bundle --format=iife --target=es2020 --sourcemap --outfile=../static/planning-grid.bundled.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "effect": "^3.0.0"
+  }
+}

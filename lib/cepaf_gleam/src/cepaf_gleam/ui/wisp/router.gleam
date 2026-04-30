@@ -2651,6 +2651,72 @@ fn post_route(path: String, body: String) -> HttpResponse(String) {
   }
 }
 
+/// POST /api/v1/pi/prompt — send a prompt to the Pi-mono RPC daemon.
+///
+/// Body: `{"prompt": "<text>"}`
+///
+/// SC-PI-RUNTIME-001 — Pi process started via pi_runtime (not ad-hoc shell).
+/// SC-PI-RUNTIME-007 — JSONL protocol used internally.
+/// SC-GLM-UI-003 — returns typed JSON via gleam/json.
+fn pi_prompt_response(body: String) -> HttpResponse(String) {
+  let prompt = extract_quoted(body, "prompt")
+  case prompt {
+    "" ->
+      json_response(
+        json.to_string(json.object([
+          #("ok", json.bool(False)),
+          #("error", json.string("missing prompt field")),
+        ])),
+        400,
+      )
+    _ -> {
+      case pi_daemon.start_default() {
+        Error(reason) ->
+          json_response(
+            json.to_string(json.object([
+              #("ok", json.bool(False)),
+              #("error", json.string("daemon start failed: " <> reason)),
+            ])),
+            503,
+          )
+        Ok(daemon) -> {
+          let result = pi_daemon.send_prompt(daemon, prompt)
+          let _ = pi_daemon.stop(daemon)
+          case result {
+            Ok(response) ->
+              json_response(
+                json.to_string(json.object([
+                  #("ok", json.bool(True)),
+                  #("response", json.string(response)),
+                ])),
+                200,
+              )
+            Error(reason) ->
+              json_response(
+                json.to_string(json.object([
+                  #("ok", json.bool(False)),
+                  #("error", json.string(pi_error_to_string(reason))),
+                ])),
+                503,
+              )
+          }
+        }
+      }
+    }
+  }
+}
+
+/// Render `pi_daemon.PiError` as a string for JSON error responses.
+fn pi_error_to_string(err: pi_daemon.PiError) -> String {
+  case err {
+    pi_daemon.CircuitOpen -> "circuit_open"
+    pi_daemon.Timeout -> "timeout"
+    pi_daemon.NotRunning -> "not_running"
+    pi_daemon.RpcError(msg) -> "rpc_error: " <> msg
+    pi_daemon.ActorError(msg) -> "actor_error: " <> msg
+  }
+}
+
 /// POST /api/v1/plan/update — task status mutation (drag-drop kanban backend).
 ///
 /// Body: `{"id": "<task-id>", "status": "pending|in_progress|blocked|completed"}`
