@@ -28,8 +28,10 @@ import cepaf_gleam/agui/tools
 import cepaf_gleam/agents/cortex
 import cepaf_gleam/auth/oidc
 import cepaf_gleam/auth/rbac
+import cepaf_gleam/bridge/pi_daemon
 import cepaf_gleam/bridge/pi_rpc
 import cepaf_gleam/bridge/pi_runtime
+import cepaf_gleam/bridge/pi_supervisor
 import cepaf_gleam/fractal/l5_cognitive
 import cepaf_gleam/moz/client as moz
 import cepaf_gleam/ui/lustre/agents
@@ -458,6 +460,20 @@ pub fn verify_pi_runtime_wiring() -> Int {
   let sub = pi_subscriber.init_state()
   let _ = pi_subscriber.handle_message(sub, pi_subscriber.tick_msg())
 
-  // 4 connections: runtime, rpc, subscriber, bridge
-  4
+  // pi_daemon types — opaque PiDaemon, but verify its public functions
+  // exist + accept the expected RuntimeConfig (do not start a real port).
+  // Authority: SC-PI-RUNTIME-001..008, SC-WIRE-001..007.
+  let _ = pi_daemon.start  // function reference
+  let _ = pi_daemon.start_default
+  let _ = pi_daemon.send_prompt
+  let _ = pi_daemon.is_healthy
+  let _ = pi_daemon.dashboard_summary
+  let _ = pi_daemon.pid
+
+  // pi_supervisor — opaque PiSupervisor + start variants.
+  let _ = pi_supervisor.start
+  let _ = pi_supervisor.start_with_config
+
+  // 6 connections: runtime, rpc, subscriber, bridge, pi_daemon, pi_supervisor
+  6
 }

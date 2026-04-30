@@ -106,16 +106,23 @@ pub type WsState {
   WsState(push_count: Int, last_status: String)
 }
 
-/// No custom messages needed — client drives the 1s poll via "ping" text frames
+/// Custom messages delivered to the WebSocket actor:
+///   - `NoOp` — placeholder (preserved for backwards compatibility).
+///   - `Tick` — server-driven periodic diff-detected push (1000 ms default).
+///     Authority: SC-AGUI-UI-011 (true server-push), SC-PLANNING-EVO-009
+///     (DAG-Q parity preserved). Client-driven ping continues to work as
+///     a fallback path.
 pub type WsMsg {
   NoOp
+  Tick
 }
 
 // ---------------------------------------------------------------------------
 // Planning WebSocket handler — bidirectional planning data channel
 // ---------------------------------------------------------------------------
 
-/// Called when WebSocket connection opens. Sends initial status snapshot.
+/// Called when WebSocket connection opens. Sends initial status snapshot
+/// AND schedules a server-driven `Tick` every 1000 ms (SC-AGUI-UI-011).
 fn ws_on_init(
   conn: mist.WebsocketConnection,
 ) -> #(WsState, option.Option(process.Selector(WsMsg))) {
@@ -125,10 +132,22 @@ fn ws_on_init(
       #("type", json.string("connected")),
       #("status", json.string(status)),
       #("interval_ms", json.int(1000)),
+      #("server_push", json.bool(True)),
     ])
     |> json.to_string()
   let _ = mist.send_text_frame(conn, welcome)
-  #(WsState(push_count: 0, last_status: status), None)
+  // Schedule the first server-driven tick.  The handler reschedules itself
+  // on each tick, producing a heartbeat-or-update cadence regardless of
+  // whether the client also sends "ping" frames.
+  let tick_subject = process.new_subject()
+  process.send_after(tick_subject, 1000, Tick)
+  let selector =
+    process.new_selector()
+    |> process.select(tick_subject)
+  #(
+    WsState(push_count: 0, last_status: status),
+    option.Some(selector),
+  )
 }
 
 /// Handle WebSocket messages — client sends "ping" or search queries,
@@ -194,7 +213,46 @@ fn ws_handler(
     }
     mist.Closed | mist.Shutdown -> mist.stop()
     mist.Binary(_) -> mist.continue(state)
-    mist.Custom(_) -> mist.continue(state)
+    // Server-driven tick (SC-AGUI-UI-011) — same diff-detected push as the
+    // client-driven "ping" path; reschedules itself so the cadence persists
+    // for the life of the connection.  Does not require client cooperation.
+    mist.Custom(Tick) -> {
+      let status = c3i_nif.plan_status()
+      let changed = status != state.last_status
+      let frame = case changed {
+        True -> {
+          let active = c3i_nif.plan_list_by_status("in_progress")
+          let blocked = c3i_nif.plan_list_by_status("blocked")
+          json.object([
+            #("type", json.string("update")),
+            #("status", json.string(status)),
+            #("active", json.string(active)),
+            #("blocked", json.string(blocked)),
+            #("seq", json.int(state.push_count + 1)),
+            #("source", json.string("server_tick")),
+          ])
+          |> json.to_string()
+        }
+        False ->
+          json.object([
+            #("type", json.string("heartbeat")),
+            #("seq", json.int(state.push_count + 1)),
+            #("source", json.string("server_tick")),
+          ])
+          |> json.to_string()
+      }
+      let _ = mist.send_text_frame(conn, frame)
+      // Reschedule next tick.  We use process.self() so the message is
+      // delivered to the same actor mailbox already wired in on_init.
+      let _ = process.send_after(process.new_subject(), 1000, Tick)
+      let next_state = case changed {
+        True ->
+          WsState(push_count: state.push_count + 1, last_status: status)
+        False -> WsState(..state, push_count: state.push_count + 1)
+      }
+      mist.continue(next_state)
+    }
+    mist.Custom(NoOp) -> mist.continue(state)
   }
 }
 

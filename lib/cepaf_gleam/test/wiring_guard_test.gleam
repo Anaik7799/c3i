@@ -69,7 +69,7 @@ pub fn inference_tier_invariants_test() {
 }
 
 pub fn full_wiring_verification_test() {
-  // 36 pages + 32 events + 6 models + 21 roundtrips + 3 strict + 9 ultra + 1 auth + 4 pi = 112
+  // 36 pages + 32 events + 6 models + 21 roundtrips + 3 strict + 9 ultra + 1 auth + 6 pi = 114
   wiring_guard.verify_all()
-  |> should.equal(112)
+  |> should.equal(114)
 }

@@ -212,9 +212,19 @@ pub fn send_prompt(
   daemon: PiDaemon,
   prompt: String,
 ) -> Result(String, PiError) {
+  send_prompt_with_timeout(daemon, prompt, 30_000)
+}
+
+/// Same as `send_prompt` but with a caller-supplied timeout in milliseconds.
+/// Used by hermetic tests to verify the Timeout path without 30 s waits.
+pub fn send_prompt_with_timeout(
+  daemon: PiDaemon,
+  prompt: String,
+  timeout_ms: Int,
+) -> Result(String, PiError) {
   let reply_subject = process.new_subject()
   process.send(daemon.subject, SendPrompt(prompt, reply_subject))
-  case process.receive(reply_subject, 30_000) {
+  case process.receive(reply_subject, timeout_ms) {
     Ok(result) -> result
     Error(_timeout) -> Error(Timeout)
   }
