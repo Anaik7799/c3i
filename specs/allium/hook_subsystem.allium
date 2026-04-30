@@ -1,0 +1,304 @@
+-- allium: 3
+-- Bootstrap Hook Subsystem — behavioural specification
+-- STAMP: SC-BOOTSTRAP-001..005, SC-FRAC-RRF-001..010, SC-BIO-EVO-001..007
+-- ZK: [zk-66fa9254b], [zk-3cfe58417d733208], [zk-d1190ab5bbbc6398]
+-- Tri-agent symbiosis: Claude ⊕ Pi ⊕ Gemini
+
+spec HookSubsystem v1.0
+
+-- =====================================================================
+-- ENTITIES
+-- =====================================================================
+
+entity HookProcess {
+  kind: SessionStart | UserPromptSubmit | PostToolUse | Stop
+  agent: Claude | Pi | Gemini
+  state: Spawning | Reading | Emitting | Done | Failed
+  started_at: Timestamp
+  emitted: Boolean
+  transitions state {
+    Spawning -> Reading
+    Reading  -> Emitting | Failed
+    Emitting -> Done | Failed
+    terminal: {Done, Failed}
+  }
+  invariant: state = Done   => emitted = true
+  invariant: state = Failed => error_explicit = true
+}
+
+entity Snapshot {
+  payload: BootstrapState
+  age_ms: Duration
+  daemon_prob: Probability   -- Bayesian posterior, ‰
+  seq: u64                    -- seqlock counter
+  invariant: age_ms < 30s
+  invariant: daemon_prob in [0, 1000]
+  invariant: seq even => payload != null   -- writer protocol
+}
+
+entity DaemonHealth {
+  posterior: Probability      -- updated via Bayes
+  last_ping_ms: Duration
+  consecutive_misses: u32
+  invariant: posterior in [0, 1]
+  invariant: consecutive_misses >= 3 => posterior < 0.05
+}
+
+entity Lock {
+  path: FilePath
+  holder: SessionId | None
+  acquired_at: Timestamp
+  invariant: holder != None => age < 5min     -- dead-man
+}
+
+entity TelemetryRing {
+  slots: Array<RingSlot>      -- one per agent (Claude, Pi, Gemini)
+  invariant: lock-free
+  invariant: per-slot-monotonic-counter
+}
+
+-- =====================================================================
+-- CONTRACTS — DATA PLANE (hot path)
+-- =====================================================================
+
+contract DataPlane {
+  read_snapshot: () -> Snapshot
+  @latency p99 < 100us
+  @allocations = 0
+  @syscalls = 1                 -- mmap amortised, write only
+  @invariant: lockless
+  @invariant: never blocks on daemon
+  @invariant: cacheline-aligned
+  @invariant: NUMA-local
+
+  emit_telemetry: (HookOutcome) -> Unit
+  @latency p99 < 1us
+  @invariant: atomic-counter-only
+}
+
+-- =====================================================================
+-- CONTRACTS — CONTROL PLANE (cool path)
+-- =====================================================================
+
+contract ControlPlane {
+  update_snapshot: (BootstrapState) -> Unit
+  @latency p99 < 10ms
+  @frequency = 1Hz
+  @invariant: seqlock-write-protocol
+
+  bayesian_update: (Observation) -> DaemonHealth
+  @frequency = 0.5Hz
+  @invariant: posterior monotonically updated
+
+  pid_tune_cache_ttl: () -> Duration
+  @frequency = 0.1Hz             -- every 10s
+  @invariant: ttl_ms in [1000, 30000]
+
+  genetic_evolve: () -> Genome
+  @frequency = 1/day
+  @invariant: shadow-mode-before-promote
+
+  watchdog_kill: () -> Unit
+  @trigger: posterior < 0.05 OR consecutive_misses >= 3
+  @action: kill -9 daemon, systemd restart
+  @MTTR: 5s
+}
+
+-- =====================================================================
+-- CONTRACTS — TRI-AGENT SYMBIOSIS
+-- =====================================================================
+
+contract Symbiosis {
+  hook_invocation: (HookKind, Agent, SessionId) -> HookOutcome
+  @invariant: agent-uniformity (same handler regardless of agent)
+  @invariant: per-agent-telemetry-tag
+  @invariant: shared-snapshot-substrate
+
+  cross_agent_learning: () -> MDPPolicy
+  @invariant: aggregates-all-agent-transitions
+  @invariant: 3x-faster-convergence-vs-per-agent
+}
+
+-- =====================================================================
+-- INVARIANTS — TOP LEVEL
+-- =====================================================================
+
+invariant NoSilentFail {
+  for every hook process h:
+    h.outcome = Failed => h.error_explicit = true
+}
+
+invariant FailClosed {
+  for every observation sequence o1 ⊆ o2:
+    outcome_rank(state ∪ o2) <= outcome_rank(state ∪ o1)
+}
+
+invariant CrashIsolation {
+  for every hook process p:
+    p.crash does-not-corrupt(snapshot, lock, daemon)
+  for every daemon crash:
+    snapshot remains readable to hooks
+}
+
+invariant DataControlOrthogonal {
+  for every hook h:
+    data-plane-failure(h) does-not-cause control-plane-failure
+  for every control task:
+    control-plane-failure does-not-cause data-plane-failure
+}
+
+invariant SeqlockCorrectness {
+  for every reader R, writer W:
+    R observes either pre-W payload or post-W payload, never torn intermediate
+}
+
+invariant SixSigmaSLO {
+  P(hook_outcome = Failed) <= 3.4e-6
+}
+
+-- =====================================================================
+-- BIOMORPHIC PROPERTIES (SC-BIO-EVO-001..007)
+-- =====================================================================
+
+property Homeostasis {
+  cache_hit_rate maintained at 92% via PID controller
+  daemon_health maintained via Bayesian posterior
+}
+
+property Metabolism {
+  telemetry_budget enforced: 200MB/day raw, 30MB/day compressed
+  downsamples to 1/100 if disk pressure
+}
+
+property Growth {
+  RETE-UL rules grow per learned failure pattern (rule_induction)
+  test count grows monotonically
+}
+
+property Reproduction {
+  template-driven hook scaffolding: new hook kind => auto-generate handler
+  follows zk_recall.rs proven pattern
+}
+
+property Response {
+  hook latency p99 < 100us in data plane
+  daemon state-change reaction < 1ms via UDS notify
+}
+
+property Adaptation {
+  PID self-tunes cache TTL over ~50 hooks
+  GA evolves params over ~30 days
+}
+
+property Evolution {
+  hot-reload of handler logic without session restart
+  A/B shadow-mode promotion
+}
+
+-- =====================================================================
+-- SURFACES
+-- =====================================================================
+
+surface OperatorDashboard {
+  shows: [
+    hook_rate_per_agent,
+    p99_latency_data_plane,
+    p99_latency_control_plane,
+    cache_hit_rate,
+    daemon_health_bayesian,
+    entropy_alarm_state,
+    ga_fitness_trajectory,
+    mdp_value_convergence,
+    lyapunov_drift,
+    error_budget_remaining
+  ]
+  updates: 1Hz from control plane
+  requires: data-plane-not-disturbed
+}
+
+surface ZenohMeshBus {
+  publishes: [
+    "indrajaal/l5/cog/hook/<kind>/<run_id>",          -- OTel span per fire
+    "indrajaal/l4/system/bootstrap/health",           -- 1Hz heartbeat
+    "indrajaal/l4/system/bootstrap/lock/<id>",        -- lock telemetry
+    "indrajaal/l4/system/bootstrap/snapshot_age",     -- staleness gauge
+    "indrajaal/l5/cog/hook/entropy_alarm",            -- chaos detection
+    "indrajaal/l5/cog/hook/ga_fitness"                -- evolution metrics
+  ]
+  subscribes: [
+    "indrajaal/mcp/req/bootstrap_status/+",
+    "indrajaal/mcp/req/stop_hook_ingest/+",
+    "indrajaal/mcp/req/count_citations/+",
+    "indrajaal/mcp/req/clear_stale_lock/+"
+  ]
+}
+
+-- =====================================================================
+-- MATHEMATICAL CONSTRUCTS
+-- =====================================================================
+
+math {
+  bayesian_update(P, obs) =
+    P × L(obs|up) / (P × L(obs|up) + (1-P) × L(obs|down))
+
+  pid_step(err, ∫err, derr, Kp, Ki, Kd) =
+    Kp·err + Ki·∫err + Kd·derr
+
+  shannon_entropy(distribution) =
+    -Σᵢ pᵢ·log₂(pᵢ)
+
+  lyapunov_drift(metric_history) =
+    ∂(metric)/∂t over rolling window
+
+  ga_fitness(genome) =
+    α·success_rate + β·throughput - γ·cpu_cost - δ·p99_latency
+    where α=10, β=1, γ=0.1, δ=2
+
+  mdp_bellman(state, gamma) =
+    V*(s) = max_a [R(s,a) + γ Σ T(s'|s,a) V*(s')]
+
+  mutual_information(rule_fires, hook_outcome) =
+    H(outcome) - H(outcome | rule_fires)
+
+  cache_hit_rate(N, ttl) =
+    1 - exp(-N × ttl / 60)   -- Poisson arrivals
+
+  six_sigma_failure_budget =
+    3.4e-6 per opportunity = 10 failures/year at 3M ops/year
+}
+
+-- =====================================================================
+-- RULIOLOGY (Wolfram CA temporal fractal)
+-- =====================================================================
+
+ruliology {
+  scale 1ms  rule 184  variable queue_depth      threshold >10  action drop_oldest
+  scale 1s   rule 110  variable outcome_window   threshold osc  action quarantine
+  scale 1min rule 30   variable shannon_entropy  threshold >0.5 action P0_alarm
+  scale 1h   rule 90   variable kpi_rollup       threshold n/a  action dashboard_tile
+  scale 1d   rule 22   variable failure_sparsity threshold I<.01 action prune_rule
+}
+
+-- =====================================================================
+-- RETE-UL BINDINGS
+-- =====================================================================
+
+rete_ul {
+  domain hook v1
+  rules_data_plane: 3                -- D-1, D-2, D-3 (compiled to switch)
+  rules_control_plane: 10            -- C-1..C-10 (full RETE)
+  evaluator: lib/cepaf_gleam/src/cepaf_gleam/rules/engine.gleam
+}
+
+-- =====================================================================
+-- VSM 5-SYSTEM
+-- =====================================================================
+
+vsm {
+  S1 operations: per-hook execution
+  S2 coordination: UDS-serialised lock + token-bucket rate limit
+  S3 control: 60% PostToolUse, 30% UPS, 10% other
+  S3* audit: NDJSON /var/log/c3i/hooks.ndjson + Zenoh OTel
+  S4 intelligence: Markov chain on next-hook-given-current
+  S5 policy: refuse if (disk<5% ∨ cpu>95% ∨ daemon_post<0.1)
+}

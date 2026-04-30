@@ -1,0 +1,379 @@
+-- allium: 3
+-- Marionette MCP Flutter Testing — Behavioral Specification
+-- Covers: marionette_flutter binding, marionette_mcp server, marionette_cli,
+--         test orchestration loop, Zenoh telemetry, evidence persistence
+-- STAMP:  SC-MARIONETTE-001..012, SC-PATROL-MCP-001..013, SC-ZMOF-001,
+--         SC-ZK-IMP-001..006, SC-FEAT-EVO-013, SC-JNL-001..006
+-- Date:   2026-04-28
+-- Author: claude-opus-4-7
+
+-- =============================================================================
+-- §1. EXTERNAL ENTITIES
+-- =============================================================================
+
+external entity FlutterApp           -- the device under test (FluffyChat, …)
+external entity VmService            -- Dart VM Service exposed by FlutterApp
+external entity ClaudeAgent          -- AI orchestrator using mcp__marionette__*
+external entity GeminiAgent          -- alternate orchestrator
+external entity PiAgent              -- Pi-mono orchestrator
+external entity ZenohRouter          -- TCP 7447, indrajaal mesh
+external entity SmritiDb             -- SQLite store for session_metrics
+external entity Operator             -- the human
+
+-- =============================================================================
+-- §2. ENUMERATIONS
+-- =============================================================================
+
+enum Platform     { android | linux | chrome | macos | windows | ios }
+enum BuildMode    { debug | profile | release }
+enum SessionPhase { connecting | discovering | driving | capturing | disconnecting | terminal }
+enum TestPhase    { start | screenshot | passed | failed | quit }
+enum Tool {
+  connect | disconnect | get_interactive_elements |
+  tap | double_tap | long_press | enter_text |
+  swipe | pinch_zoom | press_back_button | scroll_to |
+  take_screenshots | get_logs | hot_reload |
+  list_custom_extensions | call_custom_extension
+}
+enum Severity { critical | high | medium | low }
+enum LogLevel  { trace | debug | info | warning | error | fatal }
+
+-- =============================================================================
+-- §3. VALUE TYPES
+-- =============================================================================
+
+value type WidgetMatcher {
+  by_key:        Optional<String>
+  by_text:       Optional<String>
+  by_type:       Optional<String>
+  by_coords:     Optional<(Float, Float)>
+  by_focused:    Boolean
+  -- precedence: focused > coords > key > text > type
+  invariant exactly_one_of: by_key | by_text | by_type | by_coords | by_focused
+}
+
+value type InteractiveElement {
+  matcher:    WidgetMatcher
+  bounds:     (Float, Float, Float, Float)   -- left, top, right, bottom
+  enabled:    Boolean
+  visible:    Boolean
+  scrollable: Boolean
+}
+
+value type Envelope {
+  at:           Timestamp                      -- ISO-8601 UTC
+  source:       String                         -- "claude-code" | "pi-runtime" | "gemini-cli"
+  urn:          String                         -- urn:c3i:test:marionette:<app>:<TID>
+  run_id:       Uuid
+  session_id:   Uuid
+  phase:        TestPhase
+  platform:     Platform
+  test_target:  String                         -- path or CATALOG.md#T###
+  duration_ms:  Integer
+  payload:      Map<String, Any>
+}
+
+value type FmeaRow {
+  failure_mode: String
+  severity:     Integer                        -- 1..10
+  occurrence:   Integer                        -- 1..10
+  detection:    Integer                        -- 1..10
+  rpn:          Integer                        -- = severity * occurrence * detection
+  mitigation:   String
+  invariant rpn_correct: rpn == severity * occurrence * detection
+}
+
+-- =============================================================================
+-- §4. ENTITIES (with identity & state machines)
+-- =============================================================================
+
+entity MarionetteSession {
+  id:                Uuid
+  vm_uri:            String
+  app:               String                    -- e.g. "fluffychat"
+  platform:          Platform
+  build_mode:        BuildMode
+  phase:             SessionPhase
+  discovery_seen:    Boolean                   -- has any discovery tool been called?
+  custom_extensions: List<String>
+  log_collector:     Optional<String>          -- "logging" | "logger" | "print" | none
+  started_at:        Timestamp
+  ended_at:          Optional<Timestamp>
+
+  transitions phase {
+    connecting     -> discovering
+    discovering    -> driving
+    driving        -> capturing
+    capturing      -> driving                  -- loop within a test
+    capturing      -> disconnecting
+    disconnecting  -> terminal
+    -- failure path: any -> capturing (forced screenshot+logs) -> disconnecting -> terminal
+    any            -> capturing
+    terminal       : terminal
+  }
+
+  invariant build_mode_debug_only:
+    phase != connecting implies build_mode == debug
+}
+
+entity TestCase {
+  id:           String                         -- "T037"
+  app:          String
+  group:        String                         -- "messaging"
+  title:        String
+  platforms:    Set<Platform>
+  marionette_sequence: List<Tool>
+  pass_criteria: String
+  expected_evidence: Set<String>               -- {"screenshot","logs","native_tree"}
+}
+
+entity TestRun {
+  id:            Uuid
+  test_case:     TestCase
+  session:       MarionetteSession
+  envelope_at_start: Envelope
+  screenshots:   List<String>
+  logs:          String
+  native_tree:   Optional<String>
+  outcome:       Optional<TestPhase>           -- passed | failed | quit
+  duration_ms:   Integer
+  evidence_dir:  String                        -- docs/cache/marionette/<run_id>/
+
+  invariant evidence_present_on_failure:
+    outcome == failed implies (
+      length(screenshots) > 0 and
+      length(logs) > 0 and
+      native_tree != none
+    )
+}
+
+entity Hook {
+  name:     String                             -- "discovery-first-guard"
+  scope:    String                             -- matcher
+  severity: Severity
+}
+
+-- =============================================================================
+-- §5. CONFIG
+-- =============================================================================
+
+config {
+  max_screenshot_size:        (Integer, Integer) = (1600, 1600)
+  log_capture_required:       Boolean = true
+  default_long_press_ms:      Integer = 600
+  default_double_tap_delay_ms: Integer = 100
+  zenoh_topic_template:       String  = "indrajaal/l5/test/marionette/{run_id}/{phase}"
+  evidence_root:              String  = "docs/cache/marionette/"
+  shannon_entropy_floor_bits: Float   = 2.5
+  ccm_floor:                  Float   = 0.90
+  fmea_rpn_action_threshold:  Integer = 200
+  discovery_first_grace_calls: Integer = 0      -- zero tolerance
+}
+
+-- =============================================================================
+-- §6. RULES
+-- =============================================================================
+
+rule DiscoveryFirstMandate {
+  when:  call: Tool issued in session: MarionetteSession
+  requires: call in {connect, get_interactive_elements, list_custom_extensions} or
+            session.discovery_seen == true
+  ensures: violation_logged_to_zenoh and warning_emitted
+  @guidance Maps to SC-MARIONETTE-003 + [zk-bb4de67d97f807ac]. Enforced by
+            PostToolUse hook in .claude/settings.json that maintains a
+            per-session flag file at /tmp/marionette-discovery-${SESSION}.flag.
+}
+
+rule ReleaseModeBlock {
+  when:  session: MarionetteSession transitions_to discovering
+  requires: session.build_mode == debug
+  ensures: continue
+  @guidance SC-MARIONETTE-005 + SC-PATROL-MCP-006. MarionetteBinding MUST be
+            guarded by `kDebugMode && !DISABLE_MARIONETTE` in main.dart.
+}
+
+rule FailurePathCapture {
+  when:  run: TestRun.outcome transitions_to failed
+  requires: run.screenshots not empty and run.logs not empty
+  ensures: native_tree captured before disconnect
+  @guidance SC-MARIONETTE-004 + SC-PATROL-MCP-008. Zero exceptions.
+}
+
+rule PlatformParity {
+  when:  case: TestCase has tag "*"
+  requires: {android, linux, chrome} subset case.platforms
+  ensures: triple-platform run scheduled
+  @guidance SC-PATROL-MCP-005. Starred tests must run on all three; CI fails otherwise.
+}
+
+rule ZenohEnvelopePublish {
+  when:  any phase transition occurs in MarionetteSession or TestRun
+  requires: envelope: Envelope is well_formed
+  ensures: published_to ZenohRouter at config.zenoh_topic_template
+  @guidance SC-MARIONETTE-012 + SC-ZMOF-001. Single vocabulary with Patrol.
+}
+
+rule LogCollectorPresence {
+  when:  session: MarionetteSession transitions_to discovering
+  requires: session.log_collector != none
+  ensures: get_logs returns non-trivial payload
+  @guidance SC-MARIONETTE-002. Apps that don't configure logCollector get the
+            built-in setup hint instead of real logs — degraded coverage.
+}
+
+rule CustomExtensionEnumeration {
+  when:  session: MarionetteSession transitions_to discovering
+  requires: list_custom_extensions called once_per_session
+  ensures: session.custom_extensions populated
+  @guidance SC-MARIONETTE-007. Result documented in app's MARIONETTE_EXTENSIONS.md.
+}
+
+rule HotReloadStatePreservation {
+  when:  hot_reload called in session: MarionetteSession with phase == driving
+  ensures: session.discovery_seen unchanged and session.id unchanged
+  @guidance hot_reload preserves Marionette state; flag-file MUST NOT be cleared.
+}
+
+-- =============================================================================
+-- §7. CONTRACTS
+-- =============================================================================
+
+contract MarionetteMcpServer {
+  connect: (uri: String) -> Result<MarionetteSession, ConnectError>
+  get_interactive_elements: () -> List<InteractiveElement>
+  tap: (matcher: WidgetMatcher) -> Result<Unit, TapError>
+  enter_text: (input: String, target: WidgetMatcher) -> Result<Unit, EnterTextError>
+  -- … 12 more tools, see Tool enum
+  @invariant Idempotent_get_interactive_elements
+  @invariant Stateless_across_disconnect
+}
+
+contract MarionetteBinding {
+  ensureInitialized: (config: MarionetteConfiguration) -> Singleton
+  registerExtension: (name: String, callback: ExtCallback) -> Unit
+  @invariant Singleton_per_process
+  @invariant Debug_mode_only
+}
+
+contract ZenohPublisher {
+  publish: (topic: String, envelope: Envelope) -> Result<Unit, PublishError>
+  @invariant At_least_once
+  @invariant Topic_matches_template
+}
+
+-- =============================================================================
+-- §8. INVARIANTS (system-wide, must always hold)
+-- =============================================================================
+
+invariant SingletonBinding {
+  for app in FlutterApps: count(MarionetteBinding.instances in app) <= 1
+}
+
+invariant DiscoveryBeforeDrive {
+  for session in MarionetteSessions:
+    for tool_call in session.tool_calls:
+      if tool_call.tool in {tap, double_tap, long_press, enter_text, swipe, pinch_zoom, scroll_to, press_back_button}
+      then exists earlier_call in session.tool_calls with
+           earlier_call.tool in {connect, get_interactive_elements, list_custom_extensions}
+}
+
+invariant EvidenceForFailure {
+  for run in TestRuns where run.outcome == failed:
+    run.screenshots not empty and
+    run.logs not empty and
+    run.native_tree != none
+}
+
+invariant ZenohEventCoverage {
+  for run in TestRuns:
+    {start, passed | failed, quit} subset run.envelopes.phases
+}
+
+invariant DebugBindingOnly {
+  for binding in MarionetteBindings:
+    binding.app.build_mode == debug
+}
+
+-- =============================================================================
+-- §9. SURFACES
+-- =============================================================================
+
+surface OperatorCommandLine {
+  /marionette-explore <app> <flow> [--platform=...] [--resume] [--record-video]
+  -> spawns marionette-explorer agent
+}
+
+surface ZenohMeshBus {
+  publishes: indrajaal/l5/test/marionette/<run_id>/<phase>
+  subscribes_for: dashboard live tile, FMEA aggregator, KPI rollup
+}
+
+surface DashboardTile {
+  endpoint: GET /test/marionette/live
+  shows: { active_sessions, test_pass_rate_24h, anti_pattern_violations,
+           discovery_first_violations, p0_failures, last_envelope }
+}
+
+surface CIRunner {
+  uses: marionette_cli (NOT raw VM Service) so Zenoh envelopes still flow
+  artefacts: docs/cache/marionette/<run_id>/{tree.json, screenshots/, logs.txt, video.mp4}
+}
+
+-- =============================================================================
+-- §10. MATHEMATICAL STRUCTURES
+-- =============================================================================
+
+math construct ShannonEntropy {
+  H(test_distribution) = -Σ p_i * log2(p_i)  for i in {16 tools}
+  threshold: H >= config.shannon_entropy_floor_bits   -- ≥ 2.5 bits
+}
+
+math construct CoverageCompositeMetric {
+  CCM = Σ(w_i * cov_i) / Σ w_i  for i in {tap, gesture, text, capture, custom_ext}
+  threshold: CCM >= config.ccm_floor                  -- ≥ 0.90
+}
+
+math construct FmeaRpn {
+  RPN = severity * occurrence * detection
+  action_required: RPN >= config.fmea_rpn_action_threshold   -- ≥ 200
+}
+
+math construct DiscoveryDistance {
+  D(call_n) = call_n.timestamp - last_discovery.timestamp     -- in calls
+  threshold: D <= grace_calls                                  -- = 0
+}
+
+math construct EvidenceSufficiency {
+  S(run) = (screenshots > 0) ∧ (logs > 0) ∧ (failure ⇒ native_tree ≠ ∅)
+}
+
+-- =============================================================================
+-- §11. RULIOLOGY (Wolfram-style behavioural rules)
+-- =============================================================================
+
+ruliology Rule110_ToolUsage {
+  -- detect emergence of complex test patterns from simple sequences
+  state: List<Tool>
+  evolution: window of 3 sequential tool calls -> classified pattern
+  patterns: {regression, exploration, replay, chaos, monitoring}
+}
+
+ruliology Rule30_FailureChaos {
+  -- detect chaotic failure cascades across runs
+  state: List<TestPhase>
+  signal: rolling_entropy(failed phases over 50 runs) > 1.5 bits => chaos
+  action: pause queue, emit P0 alert
+}
+
+ruliology Rule184_Backpressure {
+  -- detect Zenoh publish backpressure
+  state: queue_depth(indrajaal/l5/test/marionette/**)
+  signal: queue_depth > 100 => apply backpressure (drop oldest screenshot frames)
+}
+
+ruliology CausalGraph {
+  -- Each TestRun produces a node; edges = same selector reused, same custom_extension,
+  -- same fixture user. Used for blast-radius analysis on selector drift.
+  nodes: TestRun
+  edges: shared_selector | shared_extension | shared_fixture
+}
