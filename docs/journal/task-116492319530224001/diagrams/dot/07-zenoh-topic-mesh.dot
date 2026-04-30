@@ -1,0 +1,52 @@
+digraph PlanningZenohTopicMesh {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontname="JetBrains Mono" fontsize=10 style="filled,rounded" shape=box color="#1e2a3a" fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=8];
+
+  // Publishers
+  subgraph cluster_pub { label="Publishers"; color="#00d4aa"; fontcolor="#00d4aa";
+    p_router [label="wisp/router.gleam"];
+    p_ws [label="WsHandler"];
+    p_freshness [label="freshness_monitor"];
+    p_rules [label="rules/engine.gleam"];
+    p_saplan [label="sa-plan-daemon"];
+    p_pichk [label="page_checker"];
+    p_pi [label="Pi runtime"];
+  }
+  // Topics
+  subgraph cluster_topics { label="Zenoh topics (router :7447)"; color="#e74c3c"; fontcolor="#e74c3c";
+    t_otel [label="indrajaal/otel/spans/planning/{op}" fillcolor="#141922"];
+    t_page [label="indrajaal/l5/cog/page/planning" fillcolor="#141922"];
+    t_freshness [label="indrajaal/l0/const/freshness/{level}" fillcolor="#141922"];
+    t_rule [label="indrajaal/l5/cog/rule/{name}/{salience}" fillcolor="#141922"];
+    t_pichk [label="indrajaal/l5/spec/violation/planning" fillcolor="#141922"];
+    t_saplan [label="indrajaal/l4/sched/task/{id}/{phase}" fillcolor="#141922"];
+    t_pi [label="indrajaal/l5/agent/pi/{event}" fillcolor="#141922"];
+    t_health [label="indrajaal/health/{node}" fillcolor="#141922"];
+  }
+  // Subscribers
+  subgraph cluster_sub { label="Subscribers"; color="#9b59b6"; fontcolor="#9b59b6";
+    s_dashboard [label="cockpit dashboard\nlive tile"];
+    s_cortex [label="Rust cortex\n(RAG + ruliology)"];
+    s_kpi [label="KPI rollup\n(Lyapunov)"];
+    s_gemini [label="Gemini sub-agent"];
+    s_pisub [label="Pi subscriber"];
+  }
+
+  p_router -> t_otel; p_router -> t_page;
+  p_ws -> t_otel;
+  p_freshness -> t_freshness;
+  p_rules -> t_rule;
+  p_saplan -> t_saplan;
+  p_pichk -> t_pichk;
+  p_pi -> t_pi;
+
+  t_otel -> s_cortex;  t_otel -> s_dashboard;
+  t_page -> s_dashboard; t_page -> s_kpi;
+  t_freshness -> s_dashboard; t_freshness -> s_cortex;
+  t_rule -> s_cortex;  t_rule -> s_kpi;
+  t_pichk -> s_cortex;
+  t_saplan -> s_kpi; t_saplan -> s_gemini;
+  t_pi -> s_pisub; t_pi -> s_dashboard;
+  t_health -> s_dashboard;
+}

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deck — /planning evolution closure (urn:c3i:task:misc:116492319530224001)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--border:#1e2a3a;--accent:#00d4aa}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,'Inter',sans-serif;line-height:1.5}
+.deck{display:flex;flex-direction:column;gap:32px;padding:24px;max-width:1100px;margin:0 auto}
+.slide{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px;min-height:520px;display:flex;flex-direction:column;gap:14px}
+.slide h2{margin:0;font-size:1.6rem;color:var(--accent)}
+.slide h3{margin:0;font-size:1.05rem;color:var(--muted);font-weight:500}
+.bullets{font-size:1rem}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.kpi .b{background:#0f141e;border:1px solid var(--border);border-radius:10px;padding:12px}
+.kpi .b b{display:block;font-size:1.4rem}
+.kpi .b small{color:var(--muted)}
+img{max-width:100%;border:1px solid var(--border);border-radius:8px;background:#0a0e17}
+table{width:100%;border-collapse:collapse;font-size:0.92rem}
+th,td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:left}
+.foot{color:var(--muted);font-size:0.82rem;margin-top:auto}
+@page{size:landscape}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<div class="slide">
+<h2>1 · /planning evolution closure</h2>
+<h3>urn:c3i:task:misc:116492319530224001 · 2026-04-30</h3>
+<div class="bullets">
+  <p>Operator request: <i>"run gleam test, verify all the functionality with playwright, 100% feature coverage, commit, push, journal, html, slides, diagrams, email — critical-path approach"</i></p>
+  <ul>
+    <li>Full feature evolution per SC-FEAT-EVO-001..013</li>
+    <li>Critical-path P0→P1→P2 closure</li>
+    <li>Triple transport (WS+SSE+HTTP), four view modes, fractal filter, AI search</li>
+  </ul>
+</div>
+<div class="foot">Live: <a href="http://vm-1.tail55d152.ts.net:4100/planning" style="color:var(--accent)">http://vm-1.tail55d152.ts.net:4100/planning</a></div>
+</div>
+
+<div class="slide">
+<h2>2 · Headline KPIs</h2>
+<div class="kpi">
+  <div class="b"><b>9 225</b><small>tests passed (+1 113)</small></div>
+  <div class="b"><b>0</b><small>failures</small></div>
+  <div class="b"><b>32/32</b><small>page-spec drift=0</small></div>
+  <div class="b"><b>17/17</b><small>UI components</small></div>
+  <div class="b"><b>−58 %</b><small>ΣFMEA RPN</small></div>
+  <div class="b"><b>2.81 b</b><small>fractal entropy H</small></div>
+  <div class="b"><b>+1</b><small>Lyapunov λ</small></div>
+  <div class="b"><b>5/5</b><small>CPIG (post-email)</small></div>
+</div>
+</div>
+
+<div class="slide">
+<h2>3 · Architecture (L0–L7)</h2>
+<img src="diagrams/png/01-architecture.png" alt="Architecture">
+</div>
+
+<div class="slide">
+<h2>4 · Control & Data Plane</h2>
+<img src="diagrams/png/02-control-plane.png" alt="Control plane">
+<img src="diagrams/png/03-data-plane.png" alt="Data plane">
+</div>
+
+<div class="slide">
+<h2>5 · Message sequence + state machine</h2>
+<img src="diagrams/png/04-message-sequence.png" alt="Sequence">
+<img src="diagrams/png/05-state-machine.png" alt="State machine">
+</div>
+
+<div class="slide">
+<h2>6 · Fractal layers + Zenoh + OODA + Ruliology</h2>
+<img src="diagrams/png/06-fractal-layers.png" alt="Fractal">
+<img src="diagrams/png/07-zenoh-topic-mesh.png" alt="Zenoh">
+<img src="diagrams/png/08-ooda-cycle.png" alt="OODA">
+<img src="diagrams/png/09-ruliology-causal.png" alt="Ruliology">
+</div>
+
+<div class="slide">
+<h2>7 · Playwright evidence</h2>
+<img src="screenshots/planning-view-kanban.png" alt="Kanban view">
+<img src="screenshots/planning-view-timeline.png" alt="Timeline view">
+<img src="screenshots/planning-view-analytics.png" alt="Analytics view">
+</div>
+
+<div class="slide">
+<h2>8 · Top FMEA modes (post-mitigation)</h2>
+<table>
+<tr><th>#</th><th>Mode</th><th>RPN</th><th>Mitigation</th></tr>
+<tr><td>2</td><td>Stale data displayed as fresh</td><td>150 → 30</td><td>freshness_monitor L0 actor</td></tr>
+<tr><td>1</td><td>Hidden-views recurrence</td><td>128 → 32</td><td>page_checker cron + Playwright</td></tr>
+<tr><td>3</td><td>WS diff-push broken</td><td>120 → 30</td><td>DAG-Q triple transport</td></tr>
+<tr><td>10</td><td>Zenoh OTel span lost</td><td>120 → 30</td><td>bounded channel try_send</td></tr>
+<tr><td>9</td><td>5xx response</td><td>90 → 18</td><td>SC-PAGE-SPEC-004</td></tr>
+</table>
+</div>
+
+<div class="slide">
+<h2>9 · 7-phase test plan</h2>
+<table>
+<tr><th>Phase</th><th>Scope</th><th>Layers</th><th>Tooling</th></tr>
+<tr><td>1 Unit</td><td>NIF/types/classifier</td><td>L1 L2</td><td>gleeunit</td></tr>
+<tr><td>2 Property</td><td>10 invariants</td><td>L1 L2 L3</td><td>qcheck</td></tr>
+<tr><td>3 Wiring</td><td>guards + page-spec + value-guard</td><td>L0 L2 L3 L4</td><td>scripts/verify/*</td></tr>
+<tr><td>4 Integration</td><td>NIF↔SQLite, Wisp, WS, hot-reload, Pi</td><td>L1 L3 L4 L5</td><td>gleam test</td></tr>
+<tr><td>5 E2E</td><td>Playwright + Marionette + Patrol</td><td>L4 L5</td><td>mcp__*</td></tr>
+<tr><td>6 Chaos</td><td>10 fault injections</td><td>L0 L1 L4 L6</td><td>Mara + chaos_engine</td></tr>
+<tr><td>7 Federation</td><td>CPIG + multi-region voting</td><td>L7</td><td>cpig-validator</td></tr>
+</table>
+</div>
+
+<div class="slide">
+<h2>10 · Closure checklist</h2>
+<ul>
+  <li>✓ gleam build / test / wiring guard / page-spec / value-guard</li>
+  <li>✓ Playwright 17/17 across 3 viewports + 4 view modes</li>
+  <li>✓ Allium spec + fractal-criticality matrix + 9 diagrams + 7-phase test plan</li>
+  <li>✓ Journal (13 sections) + analysis HTML + slide deck</li>
+  <li>⏳ Governance parity (.claude / .gemini)</li>
+  <li>⏳ Link registry + ZK ingest + email + commit/push</li>
+  <li>⏳ CPIG matrix bump (Gleam-UI 4/5 → 5/5)</li>
+</ul>
+</div>
+
+<div class="slide">
+<h2>11 · Whats missing / next pass</h2>
+<ul>
+  <li>Firefox + WebKit Playwright runs (queued P2)</li>
+  <li>Federated multi-region CPIG attestation (single-mesh today)</li>
+  <li>Pi runtime persistent RPC daemon mode (per-shot today)</li>
+  <li>Marionette/Patrol parity for Flutter mirror (out of scope)</li>
+  <li>Service-worker offline cache (open question)</li>
+  <li>Drag-drop kanban + true server-push streaming</li>
+</ul>
+</div>
+
+</div>
+</body>
+</html>

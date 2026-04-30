@@ -50,7 +50,9 @@ import cepaf_gleam/ui/domain.{
   Zenoh, page_to_label, page_to_path,
 }
 import cepaf_gleam/ui/state as mesh_state
+import cepaf_gleam/ui/lustre/hook_subsystem as hook_subsystem_view
 import cepaf_gleam/ui/web/page_views
+import lustre/element
 import cepaf_gleam/ui/wisp/mini_app_routes
 import cepaf_gleam/ui/web/shell
 import cepaf_gleam/ui/wisp/auth
@@ -65,6 +67,7 @@ import gleam/http/response.{type Response as HttpResponse}
 import gleam/int
 import gleam/json
 import gleam/list
+import gleam/option
 import gleam/string
 
 @external(erlang, "cepaf_gleam_ffi", "system_time_nanos")
@@ -133,6 +136,12 @@ fn route_internal(path: String) -> String {
     // Claude session self-observation metrics (SC-SATYA-002, SC-EVO-KPI-001)
     "/api/v1/claude/session" ->
       module_guard.unwrap(module_guard.guard_json(claude_session_json(), "claude/session", "session_id"))
+    // Data quality + page-checker + cron status — foundation for the future
+    // /c3i-status 30-sec dashboard. Single endpoint pulls live counts via the
+    // existing plan_status NIF and aggregates with documented schedule names.
+    // SC-VALUE-GUARD-001..008 + SC-PAGE-SPEC-001..008 + SC-EVO-KPI-001.
+    "/api/v1/dq/status" ->
+      module_guard.unwrap(module_guard.guard_json(dq_status_json(), "dq/status", "summary"))
     // Data freshness / staleness check (SC-EVO-KPI-003)
     "/api/v1/health/freshness" ->
       module_guard.unwrap(module_guard.guard_json(data_freshness_json(), "health/freshness", "staleness"))
@@ -284,6 +293,31 @@ fn route_internal(path: String) -> String {
     // Workflow Monitor (WF-3) — durable execution history (SC-HA-001)
     "/api/v1/workflows" ->
       "{\"workflows\":[],\"message\":\"Use sa-plan-daemon workflow-list for full history\"}"
+    // Page-spec checker (SC-PAGE-SPEC-001..008) — every page MUST verify itself against its spec
+    "/api/v1/page-spec/planning" -> planning_page_spec_check()
+    "/api/v1/page-spec/dashboard" -> generic_page_spec_check("dashboard", "/dashboard", [
+      #("system_health", c3i_nif.system_health()),
+      #("system_dashboard", c3i_nif.system_dashboard()),
+      #("plan_status", c3i_nif.plan_status()),
+    ])
+    "/api/v1/page-spec/immune" -> generic_page_spec_check("immune", "/immune", [
+      #("system_immune", c3i_nif.system_immune()),
+      #("system_health", c3i_nif.system_health()),
+    ])
+    "/api/v1/page-spec/knowledge" -> generic_page_spec_check("knowledge", "/knowledge", [
+      #("knowledge_search", c3i_nif.knowledge_search("planning")),
+      #("plan_search", c3i_nif.plan_search("")),
+    ])
+    "/api/v1/page-spec/verification" -> generic_page_spec_check("verification", "/verification", [
+      #("system_verification", c3i_nif.system_verification()),
+      #("system_health", c3i_nif.system_health()),
+    ])
+    "/api/v1/page-spec/zenoh" -> generic_page_spec_check("zenoh", "/zenoh", [
+      #("system_zenoh", c3i_nif.system_zenoh()),
+      #("system_health", c3i_nif.system_health()),
+    ])
+    "/api/v1/page-spec/all" -> page_spec_all_check()
+    "/api/v1/page-spec" -> page_spec_index()
     // AG-UI protocol routes (SSE event streams)
     "/ag-ui/run" | "/ag-ui/events" -> agui_run_json(path)
     "/ag-ui/health" -> agui_sse.health_json()
@@ -298,16 +332,30 @@ fn route_internal(path: String) -> String {
           c3i_nif.plan_search(query)
         }
         False ->
-          case string.starts_with(path, "/api/v1/ai/chat") {
+          // SC-AGUI-UI-003 — real Zettelkasten search via existing
+          // c3i_nif::knowledge_search (FTS5 over Smriti.db). Unblocks
+          // the planning-grid.js fallback chain (was 404, now real ZK).
+          case string.starts_with(path, "/api/v1/zk/search") {
             True -> {
               let query = case string.split(path, "q=") {
-                [_, q] ->
-                  string.replace(q, "%20", " ") |> string.replace("+", " ")
-                _ -> "status"
+                [_, q] -> string.replace(q, "%20", " ")
+                _ -> ""
               }
-              ai_chat_response(query)
+              c3i_nif.knowledge_search(query)
             }
-            False -> not_found_json(path)
+            False ->
+              case string.starts_with(path, "/api/v1/ai/chat") {
+                True -> {
+                  let query = case string.split(path, "q=") {
+                    [_, q] ->
+                      string.replace(q, "%20", " ")
+                      |> string.replace("+", " ")
+                    _ -> "status"
+                  }
+                  ai_chat_response(query)
+                }
+                False -> not_found_json(path)
+              }
           }
       }
     }
@@ -387,6 +435,181 @@ fn ai_chat_response(query: String) -> String {
     #("search_results_raw", json.string(search_results)),
     #("ollama_prompt", json.string(prompt_json)),
     #("hint", json.string("POST this ollama_prompt to http://localhost:11435/api/generate for Gemma 4 response")),
+  ])
+  |> json.to_string()
+}
+
+/// Page-spec checker — verifies the /planning page renders as per spec (SC-PAGE-SPEC-001..008).
+/// Probes each required NIF data source and reports alignment score.
+/// EXPECTED set: declared in spec. AS-IS set: probed live. Score = |∩| / |∪|.
+fn planning_page_spec_check() -> String {
+  // EXPECTED — declared spec for /planning
+  let required_endpoints = [
+    "plan_status",
+    "plan_list_pending",
+    "plan_list_in_progress",
+    "plan_list_blocked",
+    "plan_list_completed",
+    "plan_search",
+    "knowledge_search",
+  ]
+  // AS-IS — probe each NIF; non-empty JSON = present
+  let probe = fn(name: String, payload: String) -> #(String, Bool) {
+    let ok = string.length(payload) > 2 && !string.contains(payload, "\"error\"")
+    #(name, ok)
+  }
+  let results = [
+    probe("plan_status", c3i_nif.plan_status()),
+    probe("plan_list_pending", c3i_nif.plan_list_pending()),
+    probe("plan_list_in_progress", c3i_nif.plan_list_by_status("in_progress")),
+    probe("plan_list_blocked", c3i_nif.plan_list_by_status("blocked")),
+    probe("plan_list_completed", c3i_nif.plan_list_by_status("completed")),
+    probe("plan_search", c3i_nif.plan_search("")),
+    probe("knowledge_search", c3i_nif.knowledge_search("planning")),
+  ]
+  let present_count = list.fold(results, 0, fn(acc, r) {
+    case r {
+      #(_, True) -> acc + 1
+      _ -> acc
+    }
+  })
+  let expected_count = list.length(required_endpoints)
+  // Jaccard: |∩|/|∪| — since AS-IS ⊆ EXPECTED, |∪| = expected_count
+  let score_pct = case expected_count {
+    0 -> 0
+    n -> present_count * 100 / n
+  }
+  let alignment_status = case score_pct {
+    s if s >= 95 -> "ALIGNED"
+    s if s >= 70 -> "DRIFT"
+    _ -> "MISALIGNED"
+  }
+  let probes_json = list.map(results, fn(r) {
+    let #(n, ok) = r
+    json.object([#("endpoint", json.string(n)), #("present", json.bool(ok))])
+  })
+  json.object([
+    #("page", json.string("planning")),
+    #("path", json.string("/planning")),
+    #("required_endpoints", json.array(required_endpoints, json.string)),
+    #("probes", json.preprocessed_array(probes_json)),
+    #("present", json.int(present_count)),
+    #("expected", json.int(expected_count)),
+    #("alignment_score_pct", json.int(score_pct)),
+    #("alignment_status", json.string(alignment_status)),
+    #("stamp", json.array(
+      ["SC-PAGE-SPEC-001", "SC-PAGE-SPEC-002", "SC-PAGE-SPEC-003"],
+      json.string,
+    )),
+    #("checked_at_ms", json.int(router_system_time_nanos() / 1_000_000)),
+  ])
+  |> json.to_string()
+}
+
+/// Generic page-spec checker — probes a list of pre-fetched NIF payloads.
+/// Caller passes #(endpoint_name, payload) tuples. Honest probe: empty/error → false.
+/// Anti-pattern guard: no "Stub That Lies" (zk-3346fc607a1ef9e6) — validates real data.
+fn generic_page_spec_check(
+  page: String,
+  path: String,
+  endpoints: List(#(String, String)),
+) -> String {
+  let results = list.map(endpoints, fn(e) {
+    let #(name, payload) = e
+    let ok = string.length(payload) > 2 && !string.contains(payload, "\"error\"")
+    #(name, ok)
+  })
+  let present_count = list.fold(results, 0, fn(acc, r) {
+    case r {
+      #(_, True) -> acc + 1
+      _ -> acc
+    }
+  })
+  let expected_count = list.length(endpoints)
+  let score_pct = case expected_count {
+    0 -> 0
+    n -> present_count * 100 / n
+  }
+  let alignment_status = case score_pct {
+    s if s >= 95 -> "ALIGNED"
+    s if s >= 70 -> "DRIFT"
+    _ -> "MISALIGNED"
+  }
+  let probes_json = list.map(results, fn(r) {
+    let #(n, ok) = r
+    json.object([#("endpoint", json.string(n)), #("present", json.bool(ok))])
+  })
+  let endpoint_names = list.map(endpoints, fn(e) { e.0 })
+  json.object([
+    #("page", json.string(page)),
+    #("path", json.string(path)),
+    #("required_endpoints", json.array(endpoint_names, json.string)),
+    #("probes", json.preprocessed_array(probes_json)),
+    #("present", json.int(present_count)),
+    #("expected", json.int(expected_count)),
+    #("alignment_score_pct", json.int(score_pct)),
+    #("alignment_status", json.string(alignment_status)),
+    #("stamp", json.array(
+      ["SC-PAGE-SPEC-001", "SC-PAGE-SPEC-002", "SC-PAGE-SPEC-003"],
+      json.string,
+    )),
+    #("checked_at_ms", json.int(router_system_time_nanos() / 1_000_000)),
+  ])
+  |> json.to_string()
+}
+
+/// Aggregate check across all 6 page-spec checkers — fleet alignment view.
+fn page_spec_all_check() -> String {
+  let checkers = [
+    #("planning", planning_page_spec_check()),
+    #("dashboard", generic_page_spec_check("dashboard", "/dashboard", [
+      #("system_health", c3i_nif.system_health()),
+      #("system_dashboard", c3i_nif.system_dashboard()),
+      #("plan_status", c3i_nif.plan_status()),
+    ])),
+    #("immune", generic_page_spec_check("immune", "/immune", [
+      #("system_immune", c3i_nif.system_immune()),
+      #("system_health", c3i_nif.system_health()),
+    ])),
+    #("knowledge", generic_page_spec_check("knowledge", "/knowledge", [
+      #("knowledge_search", c3i_nif.knowledge_search("planning")),
+      #("plan_search", c3i_nif.plan_search("")),
+    ])),
+    #("verification", generic_page_spec_check("verification", "/verification", [
+      #("system_verification", c3i_nif.system_verification()),
+      #("system_health", c3i_nif.system_health()),
+    ])),
+    #("zenoh", generic_page_spec_check("zenoh", "/zenoh", [
+      #("system_zenoh", c3i_nif.system_zenoh()),
+      #("system_health", c3i_nif.system_health()),
+    ])),
+  ]
+  // Embed each result raw — they are already JSON strings.
+  let entries = list.map(checkers, fn(c) {
+    let #(name, payload) = c
+    "\"" <> name <> "\":" <> payload
+  })
+  let body = string.join(entries, ",")
+  "{\"pages\":{" <> body <> "},\"total\":6,\"checked_at_ms\":"
+    <> int.to_string(router_system_time_nanos() / 1_000_000) <> "}"
+}
+
+/// Page-spec index — lists pages with available checkers.
+fn page_spec_index() -> String {
+  let checkers = [
+    "/api/v1/page-spec/planning",
+    "/api/v1/page-spec/dashboard",
+    "/api/v1/page-spec/immune",
+    "/api/v1/page-spec/knowledge",
+    "/api/v1/page-spec/verification",
+    "/api/v1/page-spec/zenoh",
+    "/api/v1/page-spec/all",
+  ]
+  json.object([
+    #("checkers", json.array(checkers, json.string)),
+    #("total", json.int(7)),
+    #("coverage", json.string("6/31 pages — 19.4%. Phase I lite expansion.")),
+    #("anti_pattern_guard", json.string("zk-3346fc607a1ef9e6 — empty/error envelopes correctly fail")),
   ])
   |> json.to_string()
 }
@@ -484,6 +707,133 @@ fn cockpit_json() -> String {
 /// Health endpoint — NIF-backed live data (SC-GLM-UI-007, SC-GLM-UI-003).
 fn health_json() -> String {
   c3i_nif.system_health()
+}
+
+/// Aggregated data-quality + page-checker + cron-schedule status.
+/// SC-VALUE-GUARD-001..008, SC-PAGE-SPEC-001..008, SC-EVO-KPI-001.
+/// This is the single endpoint the future /c3i-status 30-sec dashboard polls.
+/// Returns a structured JSON envelope with: live task counts (priority+status),
+/// the four DQ/page/formal cron schedule names + cadences, the canonical enum
+/// sets, and the link registry of documentation/diagram URLs from passes 7-10.
+fn dq_status_json() -> String {
+  json.object([
+    #("summary", json.string("dq+page-spec health snapshot")),
+    #("ts_ms", json.int(router_system_time_nanos() / 1_000_000)),
+    // Live counts — reuse the plan_status NIF that already powers /api/v1/dashboard
+    #("plan_status", json.string(c3i_nif.plan_status())),
+    // Canonical enum sets (mirrors db.rs::VALID_PRIORITIES / VALID_STATUSES)
+    #(
+      "canonical_priorities",
+      json.array(["P0", "P1", "P2", "P3"], json.string),
+    ),
+    #(
+      "canonical_statuses",
+      json.array(
+        ["pending", "in_progress", "completed", "blocked"],
+        json.string,
+      ),
+    ),
+    // Schedules registered in workflow_schedules — names match sa-plan-daemon
+    #(
+      "schedules",
+      json.array(
+        [
+          #("dq-hourly", "0 * * * *", "data_quality_scan", 100),
+          #("dq-canary", "*/5 * * * *", "data_quality_scan", 10),
+          #("page-check-3min", "*/3 * * * *", "page_checker", 95),
+          #("formal-check-weekly", "0 4 * * 1", "formal_check", 60),
+        ],
+        fn(s) {
+          let #(name, cron, module, priority) = s
+          json.object([
+            #("name", json.string(name)),
+            #("cron", json.string(cron)),
+            #("module", json.string(module)),
+            #("priority", json.int(priority)),
+          ])
+        },
+      ),
+    ),
+    // RETE-UL data_quality domain — 7 rules, gleeunit verified pass-10
+    #(
+      "rete_data_quality",
+      json.object([
+        #("rule_count", json.int(7)),
+        #(
+          "rules",
+          json.array(
+            [
+              #("EnforceEnumPriority", 100, "Reject"),
+              #("EnforceEnumStatus", 100, "Normalize"),
+              #("BlockSpamFixture", 95, "Reject"),
+              #("PageSpecAlignmentLow", 95, "BlockReleaseToProd"),
+              #("P0PriorityQuota", 90, "Backpressure"),
+              #("WindowOpenPopupBlocker", 80, "FallbackInPagePanel"),
+              #("PaginationBackpressure", 75, "DemandRemotePagination"),
+            ],
+            fn(r) {
+              let #(name, salience, decision) = r
+              json.object([
+                #("name", json.string(name)),
+                #("salience", json.int(salience)),
+                #("decision", json.string(decision)),
+              ])
+            },
+          ),
+        ),
+      ]),
+    ),
+    // Page-spec checker — 32 pages monitored every 3 min
+    #(
+      "page_spec",
+      json.object([
+        #("pages_monitored", json.int(32)),
+        #("cron", json.string("*/3 * * * *")),
+        #(
+          "registry_path",
+          json.string(
+            "sub-projects/scripts-gleam/src/scripts/verify/page_checker.gleam",
+          ),
+        ),
+      ]),
+    ),
+    // Documentation link registry (passes 7-10)
+    #(
+      "docs",
+      json.array(
+        [
+          #(
+            "audit-closure",
+            "https://vm-1.tail55d152.ts.net:8443/task-id/116489616652108372/task-116489616652108372/analysis.html",
+          ),
+          #(
+            "pass7-stop-the-line",
+            "https://vm-1.tail55d152.ts.net:8443/task-id/116489771707758565/task-116489771707758565/20260429-2015-data-quality-stop-the-line-fractal-rca-tps.md",
+          ),
+          #(
+            "pass9-fractal-closure",
+            "https://vm-1.tail55d152.ts.net:8443/task-id/116491660660910166/task-116491660660910166/analysis.html",
+          ),
+          #(
+            "pass10-rules-codification",
+            "https://vm-1.tail55d152.ts.net:8443/task-id/116491723408562128/task-116491723408562128/analysis.html",
+          ),
+        ],
+        fn(d) {
+          let #(name, url) = d
+          json.object([
+            #("name", json.string(name)),
+            #("url", json.string(url)),
+          ])
+        },
+      ),
+    ),
+    #("stamp_families", json.array(
+      ["SC-VALUE-GUARD-001..008", "SC-PAGE-SPEC-001..008", "SC-TRUTH-001..010"],
+      json.string,
+    )),
+  ])
+  |> json.to_string()
 }
 
 /// List all available pages with their paths and labels.
@@ -1926,9 +2276,15 @@ pub fn encode_health(status: HealthStatus) -> json.Json {
 
 /// Wisp HTTP handler wrapping the string-returning route() dispatcher.
 /// Adds proper HTTP semantics: headers, status codes, method dispatch.
+/// SC-AGUI-UI-003 — for routes that depend on query parameters
+/// (`/api/v1/zk/search?q=…`, `/api/v1/plan/search?q=…`, `/api/v1/ai/chat?q=…`)
+/// the query string is appended to the path so the route() splitter sees it.
 /// STAMP: SC-GLM-UI-006, SC-AGUI-002
 pub fn handle_request(req: HttpRequest(String)) -> HttpResponse(String) {
-  let path = req.path
+  let path = case req.query {
+    option.Some(q) -> req.path <> "?" <> q
+    option.None -> req.path
+  }
   let method = req.method
   case method {
     Get -> handle_get(path)
@@ -1938,6 +2294,17 @@ pub fn handle_request(req: HttpRequest(String)) -> HttpResponse(String) {
 }
 
 fn handle_get(path: String) -> HttpResponse(String) {
+  // SC-AGUI-UI / audit P3 #21 fix — strip cache-bust ?v=… for /static/ routes
+  // so `asset_cachebust_id()` query strings don't break exact-match routing.
+  // Live regression caught 2026-04-30 via Playwright probe: /static/planning-grid.js?v=… returned HTML 404.
+  let path = case string.starts_with(path, "/static/") {
+    True ->
+      case string.split_once(path, "?") {
+        Ok(#(base, _q)) -> base
+        Error(_) -> path
+      }
+    False -> path
+  }
   case path {
     "/ag-ui/events" ->
       sse_response(agui_sse.create_sse_stream_for_agent(
@@ -1971,6 +2338,9 @@ fn handle_get(path: String) -> HttpResponse(String) {
     "/api/v1/ai/status" -> json_response(ai_status_json(), 200)
     // Static file serving (JS, CSS for data grids)
     "/static/planning-grid.js" -> serve_static_file("priv/static/planning-grid.js", "application/javascript")
+    // Pass-12 P3 #21 — extracted RADICAL Command-Center Layout CSS (~5 KB)
+    // from inline string in planning-grid.js. Source-of-truth: this file.
+    "/static/planning-radical.css" -> serve_static_file("priv/static/planning-radical.css", "text/css")
     "/static/dashboard-grid.js" -> serve_static_file("priv/static/dashboard-grid.js", "application/javascript")
     // Page-specific agentic JS grids (PageRank top 8 — SC-AGUI-UI-001)
     "/static/verification-grid.js" -> serve_static_file("priv/static/verification-grid.js", "application/javascript")
@@ -1983,6 +2353,11 @@ fn handle_get(path: String) -> HttpResponse(String) {
     // (mirrors the sa-plan daemon static page). SC-SCHED-TELE-005.
     "/jobs/live" -> serve_static_file("priv/static/jobs-live.html", "text/html; charset=utf-8")
     "/jobs-live.html" -> serve_static_file("priv/static/jobs-live.html", "text/html; charset=utf-8")
+    // C3I 30-sec status dashboard (pass-12). Polls /api/v1/dq/status with
+    // /api/v1/planning fallback. Self-contained static HTML.
+    // SC-EVO-KPI-001 / SC-VALUE-GUARD-001..008 / SC-PAGE-SPEC-001..008.
+    "/c3i-status" | "/c3i-status.html" | "/static/c3i-status.html" ->
+      serve_static_file("priv/static/c3i-status.html", "text/html; charset=utf-8")
     "/static/podman-grid.js" -> serve_static_file("priv/static/podman-grid.js", "application/javascript")
     "/static/substrate-grid.js" -> serve_static_file("priv/static/substrate-grid.js", "application/javascript")
     // Telegram Mini App routes — mobile-optimized SSR HTML (SC-OPENCLAW-001)
@@ -2047,6 +2422,17 @@ fn route_html(path: String) -> String {
   case path {
     "/" | "/dashboard" ->
       shell.render_page("Dashboard", "dashboard", guard("dashboard", page_views.dashboard_view))
+    "/hook-subsystem" ->
+      shell.render_page(
+        "Hook Subsystem",
+        "hook-subsystem",
+        element.unsafe_raw_html(
+          "",
+          "div",
+          [],
+          hook_subsystem_view.view(hook_subsystem_view.init()),
+        ),
+      )
     "/planning" ->
       shell.render_page("Planning", "planning", guard("planning", page_views.planning_view))
     "/immune" ->

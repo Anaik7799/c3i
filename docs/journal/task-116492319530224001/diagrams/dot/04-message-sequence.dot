@@ -1,0 +1,30 @@
+digraph PlanningMessageSequence {
+  rankdir=TB; bgcolor="#0a0e17";
+  node [fontname="JetBrains Mono" fontsize=10 shape=plaintext fontcolor="#e0e6ed"];
+  edge [fontname="JetBrains Mono" fontsize=9 fontcolor="#7a8fa6"];
+
+  // lifeline columns
+  user [label="Operator" fontcolor="#00d4aa"];
+  browser [label="Browser\n(planning-grid.js)" fontcolor="#00d4aa"];
+  mist [label="Mist HTTP/WS\n:4100" fontcolor="#9b59b6"];
+  router [label="Wisp router\n+ rules engine" fontcolor="#4d96ff"];
+  nif [label="c3i_nif" fontcolor="#ffd93d"];
+  smriti [label="Smriti.db" fontcolor="#4d96ff"];
+  zenoh [label="Zenoh /\nOTel" fontcolor="#e74c3c"];
+
+  // 12 numbered steps
+  s01 [label="1. GET /planning"]; user -> browser [label="open"]; browser -> mist [label="HTTP/1.1 GET /planning"];
+  s02 [label="2. router → render"]; mist -> router [label="dispatch"]; router -> nif [label="plan_status()"]; nif -> smriti [label="SELECT counts"];
+  s03 [label="3. SSR HTML 200"]; smriti -> nif; nif -> router; router -> mist; mist -> browser [label="200 OK 56 KB HTML"];
+  s04 [label="4. JS load"]; browser -> mist [label="GET planning-grid.js"]; mist -> browser [label="200 109 KB JS"];
+  s05 [label="5. WS upgrade"]; browser -> mist [label="HTTP Upgrade /ws/planning"]; mist -> browser [label="101 Switching"];
+  s06 [label="6. WS init frame"]; mist -> browser [label="{type:connected,status:…}"];
+  s07 [label="7. ping (1 s)"]; browser -> mist [label="ping"]; mist -> nif [label="diff(status)"]; nif -> mist [label="json"];
+  s08 [label="8. heartbeat or update"]; mist -> browser [label="{heartbeat,seq}|{update,…}"];
+  s09 [label="9. user clicks Kanban"]; user -> browser [label="click [data-view=kanban]"]; browser -> browser [label="switchView()"];
+  s10 [label="10. AI search"]; user -> browser [label="Ctrl+K + 'planning'"]; browser -> mist [label="search frame"]; mist -> nif [label="plan_search"]; nif -> mist;
+  s11 [label="11. OTel span"]; router -> zenoh [label="indrajaal/otel/spans/planning/click"]; mist -> zenoh [label="ws/event"];
+  s12 [label="12. Operator drill-down"]; user -> browser [label="click row"]; browser -> browser [label="showTaskDetail()"];
+
+  s01 -> s02 -> s03 -> s04 -> s05 -> s06 -> s07 -> s08 -> s09 -> s10 -> s11 -> s12 [style=dotted color="#7a8fa6"];
+}

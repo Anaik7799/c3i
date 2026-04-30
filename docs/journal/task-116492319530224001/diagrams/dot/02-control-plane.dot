@@ -1,0 +1,28 @@
+digraph PlanningControlPlane {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontname="Inter" style="filled,rounded" shape=box color="#1e2a3a" fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  user [label="Operator action\n(click view-toggle / chip / search / Ctrl+K)" fillcolor="#141922" color="#00d4aa" fontcolor="#00d4aa"];
+  js [label="planning-grid.js\nswitchView() / setFilter() / aiSearch()" fillcolor="#141922"];
+  ws [label="WebSocket /ws/planning\n(send 'ping' or query)" fillcolor="#1e2a3a" color="#9b59b6" fontcolor="#c89cf2"];
+  router [label="Wisp router\nrouter.gleam (+400 LOC)" fillcolor="#1e2a3a" color="#4d96ff" fontcolor="#7ab3ff"];
+  rete [label="rules/engine.gleam\nUIRefreshRate / UIWsReconnect / UIKanbanAlert" fillcolor="#1e2a3a" color="#00d4aa" fontcolor="#00d4aa"];
+  guardian [label="Guardian L0 gate\n(2oo3 if mutation)" fillcolor="#1e2a3a" color="#ff6b6b" fontcolor="#ff6b6b"];
+  nif [label="c3i_nif: plan_status / list / search" fillcolor="#1e2a3a" color="#ffd93d" fontcolor="#ffd93d"];
+  saplan [label="sa-plan-daemon\n(audit OTel span)" fillcolor="#1e2a3a" color="#f39c12" fontcolor="#f39c12"];
+  zenoh [label="Zenoh router\nindrajaal/l5/cog/page/planning" fillcolor="#1e2a3a" color="#e74c3c" fontcolor="#e74c3c"];
+
+  user -> js [label="event"];
+  js -> ws [label="control msg"];
+  js -> router [label="REST fallback"];
+  ws -> rete [label="evaluate decision"];
+  rete -> guardian [label="if action ∈ L0"];
+  rete -> nif [label="read-only"];
+  guardian -> nif [label="approved"];
+  nif -> saplan [label="OTel"];
+  saplan -> zenoh [label="span publish"];
+  rete -> ws [label="response: action / heartbeat / update"];
+  ws -> js [label="frame"];
+  js -> user [label="DOM update"];
+}

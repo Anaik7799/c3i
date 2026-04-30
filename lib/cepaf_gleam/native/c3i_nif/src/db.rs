@@ -39,6 +39,38 @@ pub fn open_db() -> Result<Connection, String> {
     Ok(conn)
 }
 
+/// Resolve KMS database path (real Zettelkasten with `holons` + `holons_fts`).
+/// Separate from planning Smriti.db. SC-AGUI-UI-003.
+pub fn kms_db_path() -> String {
+    if let Ok(p) = std::env::var("KMS_DB_PATH") {
+        return p;
+    }
+    let candidates = [
+        "sub-projects/c3i/data/kms/smriti.db",
+        "../../sub-projects/c3i/data/kms/smriti.db",
+        "/home/an/dev/ver/c3i/sub-projects/c3i/data/kms/smriti.db",
+        // Legacy fallback — use planning DB so the handler returns empty
+        // rather than erroring when KMS is absent.
+        "sub-projects/c3i/data/smriti/Smriti.db",
+        "/home/an/dev/ver/c3i/sub-projects/c3i/data/smriti/Smriti.db",
+    ];
+    for c in &candidates {
+        if std::path::Path::new(c).exists() {
+            return c.to_string();
+        }
+    }
+    candidates[2].to_string()
+}
+
+/// Open KMS database (Zettelkasten holons). Read-mostly, WAL, 5s busy timeout.
+pub fn open_kms_db() -> Result<Connection, String> {
+    let conn = Connection::open(&kms_db_path())
+        .map_err(|e| format!("KMS SQLite open error: {}", e))?;
+    conn.execute("PRAGMA journal_mode=WAL", []).ok();
+    conn.busy_timeout(Duration::from_millis(5000)).ok();
+    Ok(conn)
+}
+
 /// Retry an operation with exponential backoff on lock contention.
 pub fn execute_with_backoff<F, T>(mut op: F) -> Result<T, String>
 where

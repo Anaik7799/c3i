@@ -1,0 +1,36 @@
+digraph PlanningRuliologyCausal {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontname="Inter" style="filled,rounded" shape=box color="#1e2a3a" fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  // sources
+  user_click [label="User: switchView()" fillcolor="#141922" color="#00d4aa" fontcolor="#00d4aa"];
+  user_filter [label="User: fractal chip" fillcolor="#141922" color="#00d4aa" fontcolor="#00d4aa"];
+  ws_tick [label="WS ping tick (1 s)" fillcolor="#141922" color="#9b59b6" fontcolor="#c89cf2"];
+  freshness_tick [label="freshness_monitor tick" fillcolor="#141922" color="#ff6b6b" fontcolor="#ff6b6b"];
+
+  // intermediate state
+  state_view [label="PageState.view" fillcolor="#1e2a3a"];
+  state_filter [label="activeFractalFilter" fillcolor="#1e2a3a"];
+  state_ws [label="WsConnection.state" fillcolor="#1e2a3a"];
+  state_freshness [label="FreshnessSignal.level" fillcolor="#1e2a3a"];
+
+  // outcomes
+  rule_30 [label="Wolfram Rule 30\nphase entropy → P0 alert ≥ 1.5 b" fillcolor="#1e2a3a" color="#ff4757" fontcolor="#ff4757"];
+  rule_110 [label="Wolfram Rule 110\nview-toggle window → classify" fillcolor="#1e2a3a" color="#00d4aa" fontcolor="#00d4aa"];
+  rule_184 [label="Wolfram Rule 184\nZenoh queue → backpressure" fillcolor="#1e2a3a" color="#f5a623" fontcolor="#f5a623"];
+  lyapunov [label="Lyapunov λ\nCPIG slope ≥ 0" fillcolor="#1e2a3a" color="#3dd68c" fontcolor="#3dd68c"];
+
+  // RETE-UL gate
+  rete [label="rules/engine.gleam\nUI domain\n(salience 60-95)" fillcolor="#1e2a3a" color="#9b59b6" fontcolor="#c89cf2"];
+
+  user_click -> state_view -> rule_110;
+  user_filter -> state_filter -> rule_110;
+  ws_tick -> state_ws -> rule_30;
+  freshness_tick -> state_freshness -> rule_184;
+  state_freshness -> rete -> lyapunov;
+  state_ws -> rete;
+  state_view -> rete;
+  state_filter -> rete;
+  rete -> {rule_30 rule_110 rule_184 lyapunov} [style=dashed];
+}

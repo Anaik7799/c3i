@@ -1,0 +1,22 @@
+digraph PlanningOODA {
+  bgcolor="#0a0e17";
+  node [fontname="Inter" style="filled,rounded" shape=ellipse color="#1e2a3a" fontcolor="#e0e6ed"];
+  edge [fontname="Inter" fontsize=9 color="#7a8fa6" fontcolor="#7a8fa6"];
+
+  observe [label="OBSERVE\nWS ping (1 s)\nTabulator data\nfreshness signal" fillcolor="#1e2a3a" color="#00d4aa" fontcolor="#00d4aa"];
+  orient  [label="ORIENT\nclassifyFractalLayer()\nactiveFractalFilter\nrecent change log\nZK recall (UserPromptSubmit)" fillcolor="#1e2a3a" color="#4d96ff" fontcolor="#7ab3ff"];
+  decide  [label="DECIDE\nrules/engine.gleam\nUIRefreshRate / UIWsReconnect /\nUICockpitEscalate / UIKanbanAlert" fillcolor="#1e2a3a" color="#9b59b6" fontcolor="#c89cf2"];
+  act     [label="ACT\nDOM update / cockpit mode change /\nGemma escalate / Guardian gate / Zenoh OTel publish" fillcolor="#1e2a3a" color="#ff6b6b" fontcolor="#ff6b6b"];
+  verify  [label="VERIFY (auto via hooks)\nPostToolUse → gleam build\nplaywright sweep, page_checker cron" fillcolor="#1e2a3a" color="#f39c12" fontcolor="#f39c12"];
+  learn   [label="LEARN\nZK ingest (Stop hook)\nholon ID emitted\nFMEA RPN updated" fillcolor="#1e2a3a" color="#3dd68c" fontcolor="#3dd68c"];
+
+  observe -> orient -> decide -> act -> verify -> learn -> observe;
+
+  // SLA budgets
+  observe -> orient [label="< 30 ms"];
+  orient -> decide  [label="< 100 ms"];
+  decide -> act     [label="< 50 ms"];
+  act -> verify     [label="< 1 s"];
+  verify -> learn   [label="< 30 s (test cycle)"];
+  learn -> observe  [label="< 10 s (ingest)"];
+}

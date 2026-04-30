@@ -1,0 +1,41 @@
+digraph PlanningStateMachine {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontname="Inter" style="filled,rounded" shape=ellipse color="#1e2a3a" fontcolor="#e0e6ed"];
+  edge [fontname="Inter" fontsize=9 color="#7a8fa6" fontcolor="#7a8fa6"];
+
+  init [label="init\n(SSR render)" fillcolor="#141922" color="#00d4aa" fontcolor="#00d4aa"];
+  grid [label="ViewMode = Grid\n(default)" fillcolor="#1e2a3a"];
+  kanban [label="ViewMode = Kanban\n(4 cols, ≤20 cards/col)" fillcolor="#1e2a3a"];
+  timeline [label="ViewMode = Timeline\n(time-axis Gantt)" fillcolor="#1e2a3a"];
+  analytics [label="ViewMode = Analytics\n(stats + dist)" fillcolor="#1e2a3a"];
+  detail [label="DetailPanel\n(5 actions)" fillcolor="#141922" color="#9b59b6" fontcolor="#c89cf2"];
+
+  // Freshness state machine (orthogonal)
+  fresh [label="freshness=fresh\n(< 60 s)" fillcolor="#1e2a3a" color="#3dd68c" fontcolor="#3dd68c"];
+  stale [label="freshness=stale\n(60-120 s)" fillcolor="#1e2a3a" color="#f5a623" fontcolor="#f5a623"];
+  degraded [label="freshness=degraded\n(120-300 s)" fillcolor="#1e2a3a" color="#ff6b81" fontcolor="#ff6b81"];
+  dead [label="freshness=dead\n(≥ 300 s)\nemergency cockpit" fillcolor="#1e2a3a" color="#ff4757" fontcolor="#ff4757"];
+
+  init -> grid [label="ready"];
+  grid -> kanban [label="data-view=kanban"];
+  grid -> timeline [label="data-view=timeline"];
+  grid -> analytics [label="data-view=analytics"];
+  kanban -> grid; kanban -> timeline; kanban -> analytics;
+  timeline -> grid; timeline -> kanban; timeline -> analytics;
+  analytics -> grid; analytics -> kanban; analytics -> timeline;
+
+  grid -> detail [label="row click"];
+  kanban -> detail [label="card click"];
+  timeline -> detail [label="bar click"];
+  detail -> grid [label="Esc"];
+
+  fresh -> stale [label=">60 s"];
+  stale -> fresh [label="ws frame"];
+  stale -> degraded [label=">120 s"];
+  degraded -> fresh [label="reload"];
+  degraded -> dead [label=">300 s"];
+  dead -> fresh [label="manual recovery"];
+
+  {rank=same; grid kanban timeline analytics}
+  {rank=same; fresh stale degraded dead}
+}

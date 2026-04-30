@@ -687,6 +687,121 @@ pub fn evaluate_layer_ui(layer: String, facts: List(Fact)) -> RuleResult {
   evaluate(layer, rules, facts)
 }
 
+// ─── Hook Subsystem Domain (SC-BOOTSTRAP-005) ────────────────────────────────
+// 3 data-plane rules (D-1..D-3) + 10 control-plane rules (C-1..C-10)
+// Allium spec: specs/allium/hook_subsystem.allium  §rete_ul
+
+pub fn hook_snapshot_rules() -> String {
+  "rule \"D1SnapshotFresh\" salience 100 {
+    when Hook.AgeMs < 5000 then
+      Hook.Decision = \"EmitCached\";
+      Hook.Reason = \"snapshot fresh: age < 5 s\";
+  }
+  rule \"D2SnapshotStaleHealthy\" salience 90 {
+    when Hook.AgeMs >= 5000 && Hook.DaemonProbHigh == true then
+      Hook.Decision = \"EmitCachedStale\";
+      Hook.Reason = \"snapshot stale but daemon healthy: emit with staleness tag\";
+  }
+  rule \"D3SnapshotStaleUnhealthy\" salience 80 {
+    when Hook.AgeMs >= 5000 && Hook.DaemonProbHigh == false then
+      Hook.Decision = \"EmbeddedFallback\";
+      Hook.Reason = \"snapshot stale and daemon unhealthy: use embedded fallback\";
+  }"
+}
+
+pub fn hook_control_rules() -> String {
+  "rule \"C1BayesianHealthLow\" salience 100 {
+    when Hook.DaemonPosteriorLow == true then
+      Hook.Decision = \"WatchdogKill\";
+      Hook.Reason = \"bayesian posterior < 0.05: trigger watchdog kill\";
+  }
+  rule \"C2EntropyAlarm\" salience 100 {
+    when Hook.EntropyHigh == true && Hook.DaemonPosteriorLow == false then
+      Hook.Decision = \"P0Alarm\";
+      Hook.Reason = \"shannon entropy > 0.5 on outcome window: P0 alarm\";
+  }
+  rule \"C3PIDError\" salience 90 {
+    when Hook.PIDError == true then
+      Hook.Decision = \"PIDTuneCache\";
+      Hook.Reason = \"pid error signal non-zero: retune cache TTL\";
+  }
+  rule \"C4LyapunovDrift\" salience 90 {
+    when Hook.LyapunovDrift == true then
+      Hook.Decision = \"LyapunovAlert\";
+      Hook.Reason = \"lyapunov metric drifting: escalate to operator\";
+  }
+  rule \"C5GACycle\" salience 80 {
+    when Hook.GACycleElapsed == true then
+      Hook.Decision = \"GeneticEvolve\";
+      Hook.Reason = \"ga cycle interval elapsed: evolve genome in shadow mode\";
+  }
+  rule \"C6MDPRefresh\" salience 80 {
+    when Hook.MDPTransitionsReady == true then
+      Hook.Decision = \"MDPRefresh\";
+      Hook.Reason = \"mdp transition table ready: recompute bellman values\";
+  }
+  rule \"C7RuleInduction\" salience 75 {
+    when Hook.MutualInfoHigh == true then
+      Hook.Decision = \"RuleInduction\";
+      Hook.Reason = \"mutual info rule-fires/outcome high: induce new RETE rule\";
+  }
+  rule \"C8ABShadowReady\" salience 70 {
+    when Hook.ShadowReady == true then
+      Hook.Decision = \"PromoteShadow\";
+      Hook.Reason = \"a/b shadow candidate ready: promote after validation\";
+  }
+  rule \"C9SmritiWriteFail\" salience 95 {
+    when Hook.SmritiWriteFailed == true then
+      Hook.Decision = \"SmritiAlert\";
+      Hook.Reason = \"smriti write failed: alert and halt hook ingest\";
+  }
+  rule \"C10PolicyRefuse\" salience 100 {
+    when Hook.PolicyRefuse == true then
+      Hook.Decision = \"RefuseHook\";
+      Hook.Reason = \"s5 policy: disk/cpu/daemon threshold exceeded, refuse hook\";
+  }"
+}
+
+/// Evaluate data-plane snapshot routing (D-1..D-3).
+/// age_ms:          milliseconds since last snapshot write
+/// daemon_prob_high: true when Bayesian posterior > 0.5
+pub fn evaluate_hook_snapshot(
+  age_ms: Int,
+  daemon_prob_high: Bool,
+) -> RuleResult {
+  evaluate("Hook", hook_snapshot_rules(), [
+    Fact("Hook.AgeMs", int_to_str(age_ms)),
+    Fact("Hook.DaemonProbHigh", bool_str(daemon_prob_high)),
+  ])
+}
+
+/// Evaluate control-plane hook governance (C-1..C-10).
+pub fn evaluate_hook_control(
+  daemon_posterior_low: Bool,
+  entropy_high: Bool,
+  pid_error: Bool,
+  lyapunov_drift: Bool,
+  ga_cycle_elapsed: Bool,
+  mdp_transitions_ready: Bool,
+  mutual_info_high: Bool,
+  shadow_ready: Bool,
+  smriti_write_failed: Bool,
+  policy_refuse: Bool,
+) -> RuleResult {
+  evaluate("Hook", hook_control_rules(), [
+    Fact("Hook.DaemonPosteriorLow", bool_str(daemon_posterior_low)),
+    Fact("Hook.EntropyHigh", bool_str(entropy_high)),
+    Fact("Hook.PIDError", bool_str(pid_error)),
+    Fact("Hook.LyapunovDrift", bool_str(lyapunov_drift)),
+    Fact("Hook.GACycleElapsed", bool_str(ga_cycle_elapsed)),
+    Fact("Hook.MDPTransitionsReady", bool_str(mdp_transitions_ready)),
+    Fact("Hook.MutualInfoHigh", bool_str(mutual_info_high)),
+    Fact("Hook.ShadowReady", bool_str(shadow_ready)),
+    Fact("Hook.SmritiWriteFailed", bool_str(smriti_write_failed)),
+    Fact("Hook.PolicyRefuse", bool_str(policy_refuse)),
+  ])
+}
+
 @external(erlang, "erlang", "integer_to_binary")
 fn int_to_str(i: Int) -> String
 
@@ -695,4 +810,90 @@ fn bool_str(b: Bool) -> String {
     True -> "true"
     False -> "false"
   }
+}
+
+// =============================================================================
+// SC-VALUE-GUARD-001 / SC-TRUTH-001 — Data Quality rule domain (7 rules).
+//
+// Codifies prevention of the bug class that produced 83 corrupt rows in the
+// /planning Tasks table:  status=`Completed` (capital), priority=`SUPREME`,
+// `--priority`, `high`; plus 65 SimTest fixture leaks; plus popup-blocker
+// fragility on rowClick; plus 600 KB JSON payload back-pressure; plus
+// page-spec alignment drift (per Phase I PageChecker).
+//
+// Routed via `rules/dispatcher.gleam::decision_to_action` so daemon workers
+// can act on each verdict without bespoke wiring.
+//
+// ZK lineage: [zk-907c636b4bbf0d73] silent-metric-drift · [zk-9ac52a4e020a0ff9]
+// Slurm-style priority quotas · [zk-bb4de67d97f807ac] selector-guessing /
+// runtime-truth-not-static-list family.
+// =============================================================================
+
+pub fn data_quality_rules() -> String {
+  "
+  rule \"EnforceEnumPriority\" salience 100 {
+    when Dq.PriorityInvalid == true then
+      Dq.Decision = \"Reject\";
+      Dq.Reason = \"SC-TRUTH-001 priority enum violation\";
+  }
+  rule \"EnforceEnumStatus\" salience 100 {
+    when Dq.StatusInvalid == true then
+      Dq.Decision = \"Normalize\";
+      Dq.Reason = \"SC-TRUTH-001 status enum violation\";
+  }
+  rule \"BlockSpamFixture\" salience 95 {
+    when Dq.IsFixtureSpam == true then
+      Dq.Decision = \"Reject\";
+      Dq.Reason = \"SC-MUDA-001 test fixture leaked to prod\";
+  }
+  rule \"PageSpecAlignmentLow\" salience 95 {
+    when Dq.PageAlignmentLow == true then
+      Dq.Decision = \"BlockReleaseToProd\";
+      Dq.Reason = \"SC-PAGE-SPEC-003 alignment below threshold\";
+  }
+  rule \"P0PriorityQuota\" salience 90 {
+    when Dq.P0QuotaExceeded == true then
+      Dq.Decision = \"Backpressure\";
+      Dq.Reason = \"Slurm-style P0 active quota exceeded (>=50)\";
+  }
+  rule \"WindowOpenPopupBlocker\" salience 80 {
+    when Dq.UntrustedRowClick == true then
+      Dq.Decision = \"FallbackInPagePanel\";
+      Dq.Reason = \"popup-blocker risk on synthetic rowClick\";
+  }
+  rule \"PaginationBackpressure\" salience 75 {
+    when Dq.PayloadOversize == true then
+      Dq.Decision = \"DemandRemotePagination\";
+      Dq.Reason = \"client memory + bandwidth; payload > 500 KB\";
+  }"
+}
+
+/// Evaluate data-quality + page-spec governance.
+/// Facts are *positive violation flags* (true = violation present) per the
+/// engine convention which only supports `== true` checks (mirrors hook rules).
+///   priority_invalid    — value failed validate_priority (db.rs / planning.rs)
+///   status_invalid      — value failed validate_status
+///   is_fixture_spam     — title matches SimTest pattern
+///   page_alignment_low  — page checker Jaccard score < 0.7
+///   p0_quota_exceeded   — active P0 task count >= 50 (Slurm)
+///   untrusted_rowclick  — JS rowClick fired without trusted user gesture
+///   payload_oversize    — /api/v1/planning JSON > 500 KB
+pub fn evaluate_data_quality(
+  priority_invalid: Bool,
+  status_invalid: Bool,
+  is_fixture_spam: Bool,
+  page_alignment_low: Bool,
+  p0_quota_exceeded: Bool,
+  untrusted_rowclick: Bool,
+  payload_oversize: Bool,
+) -> RuleResult {
+  evaluate("Dq", data_quality_rules(), [
+    Fact("Dq.PriorityInvalid", bool_str(priority_invalid)),
+    Fact("Dq.StatusInvalid", bool_str(status_invalid)),
+    Fact("Dq.IsFixtureSpam", bool_str(is_fixture_spam)),
+    Fact("Dq.PageAlignmentLow", bool_str(page_alignment_low)),
+    Fact("Dq.P0QuotaExceeded", bool_str(p0_quota_exceeded)),
+    Fact("Dq.UntrustedRowClick", bool_str(untrusted_rowclick)),
+    Fact("Dq.PayloadOversize", bool_str(payload_oversize)),
+  ])
 }

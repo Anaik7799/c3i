@@ -1,0 +1,371 @@
+-- allium: 3
+-- Planning page (`/planning`) — behavioural specification
+-- SC-ALLIUM-001..008 · SC-AGUI-UI-001..015 · SC-FRAC-RRF-002 · SC-PAGE-SPEC-001..008
+-- Task: urn:c3i:task:misc:116492319530224001 (2026-04-30)
+-- Authoritative pair to: lib/cepaf_gleam/src/cepaf_gleam/ui/wisp/router.gleam,
+--                        lib/cepaf_gleam/priv/static/planning-grid.js,
+--                        lib/cepaf_gleam/src/cepaf_gleam/rules/engine.gleam
+-- Drift between this spec and the code is information; weed/tend with juxt/allium.
+
+config {
+  page_path:                 String   = "/planning"
+  ws_path:                   String   = "/ws/planning"
+  sse_path:                  String   = "/api/v1/planning/stream"
+  status_endpoint:           String   = "/api/v1/plan/status"
+  freshness_endpoint:        String   = "/api/v1/health/freshness"
+  refresh_interval_idle_ms:  Integer  = 5000
+  refresh_interval_busy_ms:  Integer  = 500
+  ws_ping_interval_ms:       Integer  = 1000
+  ws_stale_threshold_ms:     Integer  = 3000
+  ws_dead_threshold_ms:      Integer  = 10000
+  freshness_warn_s:          Integer  = 60
+  freshness_dead_s:           Integer = 300
+  gemma_timeout_ms:          Integer  = 15000
+  gemma_models:              List String = ["gemma-3:4b", "gemma-4:9b"]
+  shannon_h_floor:           Decimal  = 2.5
+  ccm_floor:                 Decimal  = 0.90
+  itqs_floor:                Decimal  = 0.85
+  zenoh_topic_otel:          String   = "indrajaal/otel/spans/planning"
+  zenoh_topic_pageview:      String   = "indrajaal/l5/cog/page/planning"
+}
+
+-- =====================================================================
+-- Entities
+-- =====================================================================
+
+entity ViewMode {
+  kind: grid | kanban | timeline | analytics
+  -- exactly one is visible at a time
+}
+
+entity FractalFilter {
+  layer: none | L0 | L1 | L2 | L3 | L4 | L5 | L6 | L7
+  -- `none` means "All Layers"
+}
+
+entity PageState {
+  view: ViewMode
+  filter: FractalFilter
+  ws_status: connecting | connected | stale | dead
+  freshness: fresh | stale | degraded | dead
+  task_count_total: Integer
+  task_count_active: Integer
+  task_count_blocked: Integer
+  task_count_completed: Integer
+  task_count_pending: Integer
+  cockpit_mode: dark | dim | normal | bright | emergency
+  active_search_query: String
+
+  transitions view {
+    grid -> kanban
+    grid -> timeline
+    grid -> analytics
+    kanban -> grid
+    kanban -> timeline
+    kanban -> analytics
+    timeline -> grid
+    timeline -> kanban
+    timeline -> analytics
+    analytics -> grid
+    analytics -> kanban
+    analytics -> timeline
+    -- complete graph; no terminal state (always interactive)
+  }
+
+  transitions ws_status {
+    connecting -> connected
+    connecting -> dead
+    connected -> stale
+    stale -> connected
+    stale -> dead
+    dead -> connecting
+  }
+
+  transitions freshness {
+    fresh -> stale
+    stale -> degraded
+    degraded -> dead
+    -- and recovery edges
+    stale -> fresh
+    degraded -> fresh
+    dead -> fresh
+  }
+}
+
+entity Task {
+  id: String
+  priority: P0 | P1 | P2 | P3
+  status: pending | in_progress | blocked | completed
+  fractal_layer: L0 | L1 | L2 | L3 | L4 | L5 | L6 | L7
+  title: String
+  age_days: Integer
+}
+
+entity KanbanColumn {
+  status: pending | in_progress | blocked | completed
+  visible_card_cap: Integer = 20
+  cards: List Task
+}
+
+entity TimelineRow {
+  task: Task
+  start_day: Integer
+  bar_length_days: Integer
+}
+
+entity AnalyticsBlock {
+  kind: priority_distribution | fractal_distribution | total | completion_pct | active_now |
+        blocked_now | oldest_active | refreshes
+  value: String
+}
+
+entity WsConnection {
+  url: String
+  state: connecting | open | closing | closed
+  frames_received: Integer
+  last_frame_at_ms: Integer
+}
+
+entity FreshnessSignal {
+  endpoint: String
+  age_seconds: Integer
+  level: fresh | stale | degraded | dead
+}
+
+entity GemmaTier {
+  name: gemma_3 | gemma_4 | nif_search | static_ack
+  median_latency_ms: Integer
+  open: Boolean   -- circuit-breaker
+}
+
+-- =====================================================================
+-- Contracts (mapped to Gleam / Rust functions)
+-- =====================================================================
+
+contract PlanNif {
+  status:     ()                       -> {active: Integer, pending: Integer,
+                                            completed: Integer, blocked: Integer,
+                                            total: Integer}
+  list:       (status: String)         -> List Task
+  search:     (q: String, max: Integer) -> List Task
+  @invariant Stateless     -- pure read of Smriti.db
+  @invariant SubMillis     -- p99 < 1 ms
+}
+
+contract WsHandler {
+  on_open:    (conn: WsConnection)               -> WsConnection
+  on_ping:    (conn: WsConnection, status: String) -> WsConnection
+  on_search:  (conn: WsConnection, q: String)    -> WsConnection
+  diff_push:  (last: String, current: String)    -> {type: "update" | "heartbeat", body: String}
+  @invariant DiffOnly      -- send full payload only on change
+  @invariant BoundedChannel -- drop-on-overflow per SC-SCHED-TELE-MANDATORY
+}
+
+contract GemmaAdvisor {
+  ask: (query: String, ctx: PageState) -> String
+  @invariant Timeout15s
+  @invariant FallbackChain   -- Gemma3 -> Gemma4 -> NIF search -> static ack
+  @invariant CircuitBreaker  -- 3 failures -> 60 s cooldown (SC-PI-RUNTIME-002)
+}
+
+contract ZenohOTel {
+  publish_span: (page: String, op: String, payload: String) -> Unit
+  @invariant NonBlocking   -- try_send on bounded channel
+  @invariant TopicVocab    -- indrajaal/otel/spans/{page}/{operation}
+}
+
+contract Tabulator {
+  render:     (selector: String, rows: List Task) -> Unit
+  filter:     (selector: String, predicate: String) -> Integer
+  export:     (selector: String, format: csv | json) -> String
+  @invariant ResponsiveColumns
+}
+
+contract PageChecker {
+  check: (path: String) -> {status_code: Integer, alignment: Decimal}
+  @invariant Cadence_180s_max
+}
+
+-- =====================================================================
+-- Rules
+-- =====================================================================
+
+rule RefreshOnViewSwitch {
+  when:     state: PageState.view transitions_to *
+  ensures:  state.task_count_total == PlanNif.status().total
+  @guidance Switch view -> re-render with current data + fractal filter applied
+}
+
+rule WsDiffPush {
+  when:     conn: WsConnection.on_ping ∧ status_changed_since_last
+  ensures:  WsHandler.diff_push.type == "update"
+  @guidance Otherwise heartbeat-only frame (< 100 bytes)
+}
+
+rule FractalFilterApplies {
+  when:     state: PageState.filter ≠ none
+  ensures:  ∀ visible task t : t.fractal_layer = state.filter.layer
+  @guidance Filter applies across all 4 view modes
+}
+
+rule FreshnessEscalate {
+  when:     signal: FreshnessSignal.age_seconds ≥ config.freshness_warn_s
+  then:     state.freshness := stale
+            ∧ ws_reconnect()
+  @guidance L0 escalation: 60 s warn -> 120 s degraded -> 300 s emergency cockpit
+}
+
+rule GemmaFallbackChain {
+  when:     tier: GemmaTier.open = true ∨ Gemma.timeout_exceeded
+  then:     ask_next_tier()
+  @guidance gemma_3 -> gemma_4 -> nif_search -> static_ack (per CLAUDE.md §15)
+}
+
+rule WsReconnect {
+  when:     conn: WsConnection.state = closed ∧ user_intent_active
+  then:     reconnect_with_exponential_backoff(min=1000ms, max=30000ms)
+  @guidance Falls back to HTTP polling at 5 s if WS keeps failing
+}
+
+rule CockpitEscalateOnBlocked {
+  when:     state: PageState.task_count_blocked > 10
+  then:     state.cockpit_mode := bright
+  @guidance Andon principle (TPS) — surface attention proportional to risk
+}
+
+rule CockpitDarkOnHealthy {
+  when:     state: PageState.task_count_blocked == 0 ∧ state.freshness = fresh
+  then:     state.cockpit_mode := dark
+  @guidance Suppress nominal noise (Musashi: "do nothing useless")
+}
+
+-- =====================================================================
+-- Invariants (must be pure, machine-checkable)
+-- =====================================================================
+
+invariant ViewMutualExclusion {
+  for state in PageState:
+    exactly_one_of(grid_section.visible, kanban_section.visible,
+                   timeline_section.visible, analytics_section.visible)
+  @guidance closes ZK[zk-741220214a931009] regression class
+}
+
+invariant DataConsistency {
+  for ts in {WebSocket, SSE, HTTP_polling}:
+     ts.task_count_total == PlanNif.status().total ± 1
+  @guidance DAG-Q triple-transport parity (SC-AGUI-UI-012)
+}
+
+invariant EvidenceForFailure {
+  for run in PlaywrightRun:
+    run.outcome = failed ⟹ (run.screenshots > 0 ∧ run.console_log_captured)
+  @guidance SC-MARIONETTE-004 / SC-PATROL-MCP-008 sibling
+}
+
+invariant MonotonicSeq {
+  for f in WebSocketFrames:
+    f.seq > previous_frame.seq
+  @guidance SC-AGUI-UI-007 — change log immutability
+}
+
+invariant FractalChipEntropy {
+  H = -Σ(p_i log2(p_i)) over fractal_chip_clicks
+  H ≥ config.shannon_h_floor
+  @guidance prevents single-layer obsession; SC-MATH-COV-001
+}
+
+invariant ResponseTimeBudget {
+  for r in HTTP_request to status_endpoint:
+    r.duration_ms < 200
+  for r in WebSocket_round_trip:
+    r.duration_ms < 200
+}
+
+invariant ZenohSpanForEveryStateChange {
+  for t in PageState_transitions:
+    ∃ span ∈ Zenoh(zenoh_topic_otel) : span.t = t
+  @guidance SC-GLM-ZEN-001
+}
+
+-- =====================================================================
+-- Surfaces
+-- =====================================================================
+
+surface OperatorTriage {
+  rendered_by: lustre + wisp
+  primary_actions: [switch_view, filter_fractal, ai_search, click_to_detail, gemma_ask]
+  secondary_actions: [export_csv, export_json, hot_reload, drill_to_zk]
+}
+
+surface DeveloperInvestigation {
+  rendered_by: lustre
+  primary_actions: [analytics_drilldown, timeline_pan, change_log_replay]
+}
+
+surface AiAdvisor {
+  rendered_by: gemma_chat
+  routing: gemma_3 -> gemma_4 -> nif_search -> static_ack
+  context_injected: [page_state, recent_changes, zk_recall]
+}
+
+surface ZenohMeshBus {
+  topics: [zenoh_topic_otel, zenoh_topic_pageview,
+           "indrajaal/l5/cog/trace/{id}",
+           "indrajaal/l4/sched/page/planning/{phase}"]
+}
+
+-- =====================================================================
+-- Math constructs (referenced by tests + journal)
+-- =====================================================================
+
+math Shannon {
+  formula: H = -Σ(p_i × log2(p_i))
+  applied_to: fractal_chip_distribution, view_mode_distribution
+  threshold: H ≥ 2.5
+}
+
+math CCM {
+  formula: CCM = Σ(w_i × cov_i) / Σ(w_i)
+  applied_to: 17_components_x_3_viewports
+  threshold: CCM ≥ 0.90
+}
+
+math Lyapunov {
+  formula: λ = (score[t] − score[t-3]) / 3
+  applied_to: cpig_subsystem_score
+  threshold: λ ≥ 0  (no regression over 3-pass window)
+}
+
+math FMEA {
+  formula: RPN = Severity × Occurrence × Detection
+  threshold_action: RPN ≥ 200
+}
+
+math Wolfram_Rule_30 {
+  applied_to: failure_phase_sequence
+  alarm_threshold: rolling_H > 1.5  (50-run window)
+}
+
+math Wolfram_Rule_110 {
+  applied_to: 3_call_sliding_window_of_view_toggles
+  classification: regression | exploration | replay | chaos | monitoring
+}
+
+math Wolfram_Rule_184 {
+  applied_to: zenoh_queue_depth
+  action_on_backpressure: drop_oldest_screenshot_frames
+}
+
+-- =====================================================================
+-- Open questions (to be resolved or weeded)
+-- =====================================================================
+
+open_question CanvasHologram {
+  text: "Should the operator triage surface adopt OpenClaw's CRDT canvas hologram for multi-operator real-time?"
+  severity: P2
+}
+
+open_question OfflineMode {
+  text: "Service-worker offline cache with last-known status?"
+  severity: P3
+}

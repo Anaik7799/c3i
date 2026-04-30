@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>/planning evolution closure — Task 116492319530224001</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--border:#1e2a3a;--accent:#00d4aa;--p0:#ff4757;--p1:#ffa502;--p2:#2ed573;--p3:#7a8fa6;--l0:#ff6b6b;--l1:#ffd93d;--l2:#6bcb77;--l3:#4d96ff;--l4:#9b59b6;--l5:#00d4aa;--l6:#e74c3c;--l7:#f39c12;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Inter',sans-serif;line-height:1.55}
+header{padding:32px 24px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#10141d,#0a0e17)}
+h1{margin:0 0 6px;font-size:1.6rem}
+.urn{font-family:JetBrains Mono,monospace;color:var(--muted);font-size:0.85rem}
+.tail{color:var(--accent)}
+main{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:1fr;gap:24px}
+section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+section h2{margin-top:0;font-size:1.15rem;color:var(--accent);letter-spacing:0.04em;text-transform:uppercase}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.kpi{background:#0f141e;border:1px solid var(--border);border-radius:10px;padding:14px}
+.kpi b{display:block;font-size:1.5rem}
+.kpi small{color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:0.91rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+th{text-align:left;color:var(--accent)}
+tr:hover td{background:#0f141e}
+img{max-width:100%;border:1px solid var(--border);border-radius:8px;background:#0a0e17}
+.diagram{margin:16px 0}
+.diagram figcaption{color:var(--muted);font-size:0.88rem;padding:8px 0}
+.badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:0.78rem;font-family:JetBrains Mono,monospace;margin:2px}
+.b-pass{background:rgba(46,213,115,0.18);color:#2ed573;border:1px solid rgba(46,213,115,0.4)}
+.b-warn{background:rgba(245,166,35,0.18);color:#ffa502;border:1px solid rgba(245,166,35,0.4)}
+.b-l0{background:rgba(255,107,107,0.16);color:var(--l0);border:1px solid rgba(255,107,107,0.4)}
+.b-l1{background:rgba(255,217,61,0.16);color:var(--l1);border:1px solid rgba(255,217,61,0.4)}
+.b-l2{background:rgba(107,203,119,0.16);color:var(--l2);border:1px solid rgba(107,203,119,0.4)}
+.b-l3{background:rgba(77,150,255,0.16);color:var(--l3);border:1px solid rgba(77,150,255,0.4)}
+.b-l4{background:rgba(155,89,182,0.16);color:var(--l4);border:1px solid rgba(155,89,182,0.4)}
+.b-l5{background:rgba(0,212,170,0.16);color:var(--l5);border:1px solid rgba(0,212,170,0.4)}
+.b-l6{background:rgba(231,76,60,0.16);color:var(--l6);border:1px solid rgba(231,76,60,0.4)}
+.b-l7{background:rgba(243,156,18,0.16);color:var(--l7);border:1px solid rgba(243,156,18,0.4)}
+code,pre{font-family:JetBrains Mono,monospace}
+pre{background:#0f141e;border:1px solid var(--border);border-radius:8px;padding:12px;overflow:auto}
+@media (max-width:768px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>/planning page evolution closure</h1>
+  <div class="urn">urn:c3i:task:misc:116492319530224001 · 2026-04-30 · <a href="http://vm-1.tail55d152.ts.net:4100/planning" class="tail">live page</a></div>
+</header>
+<main>
+
+<section><h2>Verdict</h2>
+<p>All P0 + P1 gates pass. <b>9&nbsp;225 tests green</b> (+1 113 vs 8 112 baseline). 32/32 page-spec alignment. Triple-transport DAG-Q parity verified. Playwright 17/17 components green across 3 viewports.</p>
+<div class="kpi-grid">
+  <div class="kpi"><b>9 225</b><small>gleam tests passed</small></div>
+  <div class="kpi"><b>0</b><small>failures</small></div>
+  <div class="kpi"><b>32/32</b><small>page-spec alignment</small></div>
+  <div class="kpi"><b>0</b><small>value-guard violations</small></div>
+  <div class="kpi"><b>17/17</b><small>UI components verified</small></div>
+  <div class="kpi"><b>−58 %</b><small>ΣFMEA RPN reduction</small></div>
+  <div class="kpi"><b>2.81 b</b><small>Shannon H (fractal)</small></div>
+  <div class="kpi"><b>+1</b><small>Lyapunov λ</small></div>
+</div>
+</section>
+
+<section><h2>Fractal-criticality matrix</h2>
+<table>
+<tr><th>Layer</th><th>Score</th><th>Criticality</th><th>Component coverage</th></tr>
+<tr><td><span class="badge b-l0">L0 Constitutional</span></td><td>29/30</td><td>P0</td><td>Guardian + Ψ-invariants + freshness_monitor</td></tr>
+<tr><td><span class="badge b-l1">L1 Atomic / NIF</span></td><td>25/30</td><td>P0</td><td>c3i_nif (14 NIFs, planning ×6)</td></tr>
+<tr><td><span class="badge b-l2">L2 Component</span></td><td>26/30</td><td>P1</td><td>Lustre Model/Msg + A2UI catalog (233)</td></tr>
+<tr><td><span class="badge b-l3">L3 Transaction</span></td><td>29/30</td><td>P1</td><td>Wisp router + /api/v1/plan/* + Tasks SQL CHECK</td></tr>
+<tr><td><span class="badge b-l4">L4 System</span></td><td>28/30</td><td>P1</td><td>Mist HTTP/WS + Tabulator 6.3 + hot reload</td></tr>
+<tr><td><span class="badge b-l5">L5 Cognitive</span></td><td>28/30</td><td>P1</td><td>RETE-UL (52 GRL) + Cortex 6-tier + Gemma fallback</td></tr>
+<tr><td><span class="badge b-l6">L6 Ecosystem</span></td><td>26/30</td><td>P2</td><td>Zenoh OTel + page topic + dashboard fanout</td></tr>
+<tr><td><span class="badge b-l7">L7 Federation</span></td><td>24/30</td><td>P2</td><td>CPIG matrix + .claude/.gemini parity + sa-plan lineage</td></tr>
+</table>
+</section>
+
+<section><h2>Diagrams</h2>
+<figure class="diagram"><img src="diagrams/png/01-architecture.png" alt="Architecture"><figcaption>1. Architecture across L0–L7</figcaption></figure>
+<figure class="diagram"><img src="diagrams/png/02-control-plane.png" alt="Control plane"><figcaption>2. Control plane (operator → JS → WS → router → rules → guardian → NIF)</figcaption></figure>
+<figure class="diagram"><img src="diagrams/png/03-data-plane.png" alt="Data plane"><figcaption>3. Data plane (Smriti → NIF → router → triple transport → Tabulator)</figcaption></figure>
+<figure class="diagram"><img src="diagrams/png/04-message-sequence.png" alt="Message sequence"><figcaption>4. 12-step message sequence (boot → SSR → JS → WS → ping → drill-down)</figcaption></figure>
+<figure class="diagram"><img src="diagrams/png/05-state-machine.png" alt="State machine"><figcaption>5. ViewMode + Freshness state machines</figcaption></figure>
+<figure class="diagram"><img src="diagrams/png/06-fractal-layers.png" alt="Fractal layers"><figcaption>6. Per-layer responsibility + STAMP + FMEA RPN</figcaption></figure>
+<figure class="diagram"><img src="diagrams/png/07-zenoh-topic-mesh.png" alt="Zenoh topic mesh"><figcaption>7. Publishers / topics / subscribers (`indrajaal/otel/spans/planning/*` etc.)</figcaption></figure>
+<figure class="diagram"><img src="diagrams/png/08-ooda-cycle.png" alt="OODA"><figcaption>8. OODA cycle (Observe → Orient → Decide → Act → Verify → Learn) with budgets</figcaption></figure>
+<figure class="diagram"><img src="diagrams/png/09-ruliology-causal.png" alt="Ruliology"><figcaption>9. Ruliology causal graph: Wolfram Rule 30/110/184 + Lyapunov</figcaption></figure>
+</section>
+
+<section><h2>Playwright evidence</h2>
+<figure class="diagram"><img src="screenshots/planning-desktop-1400.png" alt="Desktop 1400"><figcaption>Desktop 1400×900 — full page</figcaption></figure>
+<figure class="diagram"><img src="screenshots/planning-view-kanban.png" alt="Kanban"><figcaption>Kanban view — 41 cards across 4 columns</figcaption></figure>
+<figure class="diagram"><img src="screenshots/planning-view-timeline.png" alt="Timeline"><figcaption>Timeline view — 100 rows, time-axis Apr 9 → Apr 30</figcaption></figure>
+<figure class="diagram"><img src="screenshots/planning-view-analytics.png" alt="Analytics"><figcaption>Analytics — totals + priority + fractal distribution</figcaption></figure>
+<figure class="diagram"><img src="screenshots/planning-tablet-768.png" alt="Tablet"><figcaption>Tablet 768×1024</figcaption></figure>
+<figure class="diagram"><img src="screenshots/planning-mobile-375.png" alt="Mobile"><figcaption>Mobile 375×812 (1-column)</figcaption></figure>
+</section>
+
+<section><h2>FMEA — top failure modes</h2>
+<table>
+<tr><th>#</th><th>Mode</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Mitigation</th></tr>
+<tr><td>1</td><td>View-toggle hidden-views recurrence</td><td>8</td><td>4</td><td>4</td><td>128</td><td>Playwright §B + page_checker cron</td></tr>
+<tr><td>2</td><td>Stale data displayed as fresh</td><td>10</td><td>3</td><td>5</td><td>150</td><td>freshness_monitor L0 actor</td></tr>
+<tr><td>3</td><td>WS diff-push broken</td><td>8</td><td>3</td><td>5</td><td>120</td><td>DAG-Q triple-transport invariant</td></tr>
+<tr><td>4</td><td>Tabulator empty after fractal filter</td><td>6</td><td>4</td><td>4</td><td>96</td><td>filter→render guard + Playwright row count</td></tr>
+<tr><td>5</td><td>Gemma timeout no fallback</td><td>5</td><td>5</td><td>3</td><td>75</td><td>Pi runtime breaker + NIF fallback</td></tr>
+<tr><td>6</td><td>Mobile touch target &lt; 44 px</td><td>4</td><td>4</td><td>3</td><td>48</td><td>Spec checklist + viewport sweep</td></tr>
+<tr><td>7</td><td>Hot reload kills WS</td><td>9</td><td>1</td><td>7</td><td>63</td><td>code:soft_purge + reload</td></tr>
+<tr><td>8</td><td>Tasks priority/status drift</td><td>9</td><td>2</td><td>4</td><td>72</td><td>SC-VALUE-GUARD-001..008 + scan</td></tr>
+<tr><td>9</td><td>5xx response</td><td>10</td><td>1</td><td>9</td><td>90</td><td>SC-PAGE-SPEC-004 P0 within 60 s</td></tr>
+<tr><td>10</td><td>Zenoh OTel span lost</td><td>5</td><td>4</td><td>6</td><td>120</td><td>SC-GLM-ZEN-001 + bounded channel</td></tr>
+</table>
+<p>ΣRPN before pack = 962 · ΣRPN after closure = 402 · <b>−58 %</b>.</p>
+</section>
+
+<section><h2>Math gates</h2>
+<pre>Shannon H_layer    = 2.81 bits ≥ 2.5     ✓ SC-MATH-COV-001
+CCM (17×3)         = 1.00     ≥ 0.90     ✓ SC-MATH-COV-002
+ITQS               = 0.92     ≥ 0.85     ✓ SC-MATH-COV-003
+D_EA               = 0.00     ≤ 0.10     ✓ SC-MATH-COV-004
+Lyapunov λ         = +1       ≥ 0        ✓ SC-FRAC-RRF-006
+ΣRPN reduction     = 58 %     ≥ 40 %     ✓ FMEA</pre>
+</section>
+
+<section><h2>Pi symbiosis status</h2>
+<p>93 federated tools (6 Claude + 14 Pi + 73 C3I MCP) · 29 Pi events ↔ 32 AG-UI events · circuit breakers OPEN-ready · `gleam test pi_integration` to be re-verified during closeout.</p>
+</section>
+
+<section><h2>Cross-references</h2>
+<ul>
+  <li><a href="journal.md">journal.md</a> — 13-section narrative</li>
+  <li><a href="fractal-criticality-matrix.md">fractal-criticality-matrix.md</a> — full RETE-UL/ruliology/FMEA</li>
+  <li><a href="playwright/playwright-report.md">playwright-report.md</a> — E2E run</li>
+  <li><a href="../../specs/allium/planning_page.allium">specs/allium/planning_page.allium</a> — formal spec</li>
+  <li><a href="../../test-plans/planning/README.md">7-phase test plan</a></li>
+</ul>
+</section>
+</main>
+</body>
+</html>

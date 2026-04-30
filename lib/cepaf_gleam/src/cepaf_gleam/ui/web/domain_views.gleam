@@ -41,6 +41,24 @@ import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
 
+// SC-MUDA-001 / audit-E3 — process-start nanosecond clock (Erlang FFI).
+// Used as static asset cache-bust suffix so each daemon restart serves a
+// fresh static file, while every request within the same process sees the
+// same value (idempotent caching). [zk-907c636b4bbf0d73] silent metric
+// drift parallel: the cache-bust string is now derived from runtime, not
+// hard-coded.
+@external(erlang, "erlang", "system_time")
+fn erlang_system_time_seconds(unit: Atom) -> Int
+
+@external(erlang, "erlang", "binary_to_atom")
+fn binary_to_atom(s: String) -> Atom
+
+type Atom
+
+fn asset_cachebust_id() -> Int {
+  erlang_system_time_seconds(binary_to_atom("second"))
+}
+
 // ---------------------------------------------------------------------------
 // Public views
 // ---------------------------------------------------------------------------
@@ -296,6 +314,12 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
           html.input([
             attribute.id("ai-search-input"),
             attribute.type_("text"),
+            // SC-AGUI-UI-009 / WCAG 2.1 AA — aria-label so screen readers
+            // expose the input's purpose. Mirrors the visual placeholder.
+            attribute.attribute(
+              "aria-label",
+              "Search tasks and Zettelkasten knowledge",
+            ),
             attribute.attribute(
               "placeholder",
               "AI Search — filter tasks + search Zettelkasten knowledge... (Ctrl+K)",
@@ -386,30 +410,94 @@ pub fn planning_view(state: SharedMeshState) -> Element(msg) {
           [element.text("Loading all tasks...")],
         ),
       ]),
+      // SC-AGUI-UI-001 / audit P1 #9 — skeleton placeholders so first toggle to
+      // Kanban/Timeline/Analytics has something to look at while the JS renders.
+      // Avoids the "perceived freeze" symptom from empty `display:none` shells.
       html.div(
         [
           attribute.id("kanban-section"),
           attribute.attribute("style", "display:none"),
         ],
-        [],
+        [
+          html.div(
+            [
+              attribute.attribute(
+                "style",
+                "padding:24px 16px;color:#7a8fa6;text-align:center;font-size:0.88rem;border:1px dashed rgba(122,143,166,0.18);border-radius:10px;background:rgba(10,14,23,0.4)",
+              ),
+            ],
+            [
+              element.text("Kanban view loading… "),
+              html.span(
+                [attribute.attribute("style", "color:#00d4aa")],
+                [element.text("(P0 / P1 / P2 / P3 columns will appear here)")],
+              ),
+            ],
+          ),
+        ],
       ),
       html.div(
         [
           attribute.id("timeline-section"),
           attribute.attribute("style", "display:none"),
         ],
-        [],
+        [
+          html.div(
+            [
+              attribute.attribute(
+                "style",
+                "padding:24px 16px;color:#7a8fa6;text-align:center;font-size:0.88rem;border:1px dashed rgba(122,143,166,0.18);border-radius:10px;background:rgba(10,14,23,0.4)",
+              ),
+            ],
+            [
+              element.text("Timeline view loading… "),
+              html.span(
+                [attribute.attribute("style", "color:#00d4aa")],
+                [element.text("(Gantt-style horizontal bars by created date)")],
+              ),
+            ],
+          ),
+        ],
       ),
       html.div(
         [
           attribute.id("analytics-section"),
           attribute.attribute("style", "display:none"),
         ],
-        [],
+        [
+          html.div(
+            [
+              attribute.attribute(
+                "style",
+                "padding:24px 16px;color:#7a8fa6;text-align:center;font-size:0.88rem;border:1px dashed rgba(122,143,166,0.18);border-radius:10px;background:rgba(10,14,23,0.4)",
+              ),
+            ],
+            [
+              element.text("Analytics view loading… "),
+              html.span(
+                [attribute.attribute("style", "color:#00d4aa")],
+                [
+                  element.text(
+                    "(distribution by status / priority / fractal layer)",
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
+      // SC-MUDA-001 / audit-E3 — cache-bust pinned to process-start unix-second
+      // (constant for the life of the running daemon, fresh on every restart).
+      // Eliminates the static "?v=22.6.1" drift symptom flagged in the audit
+      // ([zk-907c636b4bbf0d73] silent metric drift parallel).
       element.element(
         "script",
-        [attribute.attribute("src", "/static/planning-grid.js?v=22.6.1")],
+        [
+          attribute.attribute(
+            "src",
+            "/static/planning-grid.js?v=" <> int.to_string(asset_cachebust_id()),
+          ),
+        ],
         [],
       ),
     ]),

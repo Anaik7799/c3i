@@ -1337,6 +1337,8 @@ pub fn task_create_form() -> Element(msg) {
             [
               attribute.attribute("type", "text"),
               attribute.attribute("name", "title"),
+              // SC-AGUI-UI-009 / WCAG 2.1 AA — aria-label for SR users.
+              attribute.attribute("aria-label", "Task description"),
               attribute.attribute("placeholder", "Enter task description..."),
               attribute.attribute("required", "true"),
               attribute.attribute(
@@ -1364,6 +1366,8 @@ pub fn task_create_form() -> Element(msg) {
             "select",
             [
               attribute.attribute("name", "priority"),
+              // SC-AGUI-UI-009 / WCAG 2.1 AA — aria-label for SR users.
+              attribute.attribute("aria-label", "Task priority (P0 to P3)"),
               attribute.attribute(
                 "style",
                 "padding:8px 12px;background:#141922;border:1px solid #1e2a3a;border-radius:6px;color:#e0e6ed;",

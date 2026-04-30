@@ -1,0 +1,73 @@
+digraph PlanningArchitecture {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [fontname="Inter,Helvetica" fontsize=11 style="filled,rounded" shape=box color="#1e2a3a" fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  // L7 Federation
+  subgraph cluster_l7 { label="L7 Federation"; color="#f39c12"; fontcolor="#f39c12";
+    governance [label="CPIG matrix\n(.claude+.gemini parity)" fillcolor="#1e2a3a"];
+    saplan_task [label="sa-plan task\nurn:c3i:task:misc:116492319530224001" fillcolor="#1e2a3a"];
+  }
+  // L6 Ecosystem
+  subgraph cluster_l6 { label="L6 Ecosystem (Zenoh)"; color="#e74c3c"; fontcolor="#e74c3c";
+    router_z [label="Zenoh router :7447" fillcolor="#1e2a3a"];
+    otel [label="indrajaal/otel/spans/planning" fillcolor="#1e2a3a"];
+    page_topic [label="indrajaal/l5/cog/page/planning" fillcolor="#1e2a3a"];
+  }
+  // L5 Cognitive
+  subgraph cluster_l5 { label="L5 Cognitive"; color="#00d4aa"; fontcolor="#00d4aa";
+    rete [label="RETE-UL engine.gleam\n(52 GRL rules, 13 domains)" fillcolor="#1e2a3a"];
+    cortex [label="Rust cortex\n6-tier hedged inference" fillcolor="#1e2a3a"];
+    gemma [label="Gemma 3 → Gemma 4\n→ NIF search → ack" fillcolor="#1e2a3a"];
+  }
+  // L4 System
+  subgraph cluster_l4 { label="L4 System (BEAM :4100)"; color="#9b59b6"; fontcolor="#9b59b6";
+    mist [label="Mist HTTP/WS server" fillcolor="#1e2a3a"];
+    ws [label="WsHandler\n(diff-detected push)" fillcolor="#1e2a3a"];
+    sse [label="SSE /api/v1/planning/stream" fillcolor="#1e2a3a"];
+  }
+  // L3 Transaction
+  subgraph cluster_l3 { label="L3 Transaction"; color="#4d96ff"; fontcolor="#4d96ff";
+    router [label="Wisp router\n/api/v1/plan/* (+400 LOC)" fillcolor="#1e2a3a"];
+    smriti [label="Smriti.db (SQLite)\nTasks + WAL" fillcolor="#1e2a3a"];
+  }
+  // L2 Component
+  subgraph cluster_l2 { label="L2 Component"; color="#6bcb77"; fontcolor="#6bcb77";
+    domain [label="domain.gleam\n(Page, FractalLayer, Health)" fillcolor="#1e2a3a"];
+    a2ui [label="A2UI catalog\n(233 components)" fillcolor="#1e2a3a"];
+  }
+  // L1 Atomic
+  subgraph cluster_l1 { label="L1 Atomic / NIF"; color="#ffd93d"; fontcolor="#ffd93d";
+    nif [label="c3i_nif.so (14 NIFs)\nplan_status, plan_list, plan_search" fillcolor="#1e2a3a"];
+  }
+  // L0 Constitutional
+  subgraph cluster_l0 { label="L0 Constitutional"; color="#ff6b6b"; fontcolor="#ff6b6b";
+    guardian [label="Guardian + Ψ-invariants" fillcolor="#1e2a3a"];
+    freshness [label="freshness_monitor.gleam\n(60/120/300 s escalation)" fillcolor="#1e2a3a"];
+  }
+
+  // browser
+  browser [label="Operator browser\n(Chromium / mobile / tablet)" fillcolor="#141922" color="#00d4aa" fontcolor="#00d4aa"];
+  pwjs [label="planning-grid.js (108 KB)\nTabulator 6.3 + Lustre SSR" fillcolor="#141922" color="#00d4aa" fontcolor="#00d4aa"];
+
+  browser -> mist [label="GET /planning"];
+  mist -> router;
+  router -> nif -> smriti;
+  router -> pwjs [label="serve static"];
+  pwjs -> ws [label="ws://…/ws/planning\n(1 s ping)"];
+  pwjs -> sse [label="EventSource"];
+  pwjs -> router [label="HTTP poll fallback"];
+  ws -> nif [label="diff status"];
+  ws -> otel [label="OTel span"];
+  router -> page_topic;
+  rete -> ws [label="UI domain rules"];
+  rete -> cortex;
+  cortex -> gemma;
+  gemma -> nif [label="NIF search fallback"];
+  freshness -> ws [label="escalate"];
+  guardian -> router [label="L0 gate"];
+  saplan_task -> governance [style=dashed];
+  governance -> rete [style=dashed];
+  router_z -> otel; router_z -> page_topic;
+}

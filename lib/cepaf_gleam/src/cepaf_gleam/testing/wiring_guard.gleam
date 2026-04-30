@@ -67,6 +67,7 @@ import cepaf_gleam/ui/lustre/zenoh_browser
 import cepaf_gleam/ui/lustre/zenoh_mesh
 import cepaf_gleam/ui/lustre/heartbeat_page
 import cepaf_gleam/ui/lustre/health_product_page
+import cepaf_gleam/ui/lustre/hook_subsystem
 import cepaf_gleam/chaos/apoptosis
 import cepaf_gleam/crdt/types as crdt
 import cepaf_gleam/eventsource/chain
@@ -121,12 +122,13 @@ pub fn verify_all_inits() -> Int {
   let _ = zenoh_mesh.init()
   let _ = heartbeat_page.init()
   let _ = health_product_page.init()
+  let _ = hook_subsystem.init()
 
   // Auth module — verify Lustre auth page init
   // (auth page will be added when lustre/auth.gleam is created)
 
   // Return page count — if this changes, nav_graph needs updating
-  35
+  36
 }
 
 /// Verify cortex state construction (most complex, most fragile).
@@ -423,7 +425,7 @@ pub fn verify_all() -> Int {
   let pi = verify_pi_runtime_wiring()
 
   // Total verified connections
-  // 35 pages + 32 events + 6 models + 21 roundtrips + 3 strict + 9 ultra + 1 auth + pi = 107 + pi
+  // 36 pages + 32 events + 6 models + 21 roundtrips + 3 strict + 9 ultra + 1 auth + pi = 108 + pi
   pages + events + 6 + roundtrips + 3 + ultra + 1 + pi
 }
 

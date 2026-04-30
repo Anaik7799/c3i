@@ -117,6 +117,16 @@ pub fn plan_get_task(id: String) -> NifResult<String> {
 
 #[rustler::nif(schedule = "DirtyCpu")]
 pub fn plan_add_task(title: String, priority: String) -> NifResult<String> {
+    // SC-TRUTH-001 / SC-VALUE-GUARD-001 — enum gate at L1 NIF boundary.
+    // Mirrors the gate plan_update_task enforces (line 145).
+    // Defense-in-depth: planning_daemon::db::add_task is the L3 gate, this is L1.
+    let valid = ["P0", "P1", "P2", "P3"];
+    if !valid.contains(&priority.as_str()) {
+        return Ok(format!(
+            "{{\"ok\":false,\"error\":\"Invalid priority '{}'. Valid: {:?}\"}}",
+            priority, valid
+        ));
+    }
     let conn = open_db().map_err(|e| rustler::Error::Term(Box::new(e)))?;
     let id = uuid::Uuid::new_v4()
         .to_string()

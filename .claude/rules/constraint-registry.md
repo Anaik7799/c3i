@@ -21,6 +21,11 @@ Individual constraint details live in code; this registry tracks families and ra
 | Family | IDs | # | Description |
 |---|---|---|---|
 | SC-PD-RUST-ONLY | 001-010 | 10 | Planning-daemon test surface 100 % Rust mandate — no Python/JS/sh/Ruby/Perl under `native/planning_daemon/` (whisper.cpp vendored exception); fixture regen via `tests/fixture_regen.rs`. See `.claude/rules/planning-daemon-rust-only-tests.md` |
+
+## Delta (2026-04-30)
+| Family | IDs | # | Description |
+|---|---|---|---|
+| SC-PLANNING-EVO | 001-010 | 10 | `/planning` page evolution closure pattern — every PR touching `planning-grid.js`, `ui/wisp/router.gleam` planning routes, `rules/engine.gleam` UI domain, or `web/domain_views.gleam` MUST run the full pack (build/test/page-spec/value-guard/Playwright/Allium/diagrams/journal/HTML/deck/test-plan/governance/email/CPIG bump). See `.claude/rules/planning-page-evolution.md`. Closed by task `urn:c3i:task:misc:116492319530224001`. |
 # P0-SAFETY (CRITICAL)
 | Family | IDs | # | Description |
 |--------|-----|---|-------------|

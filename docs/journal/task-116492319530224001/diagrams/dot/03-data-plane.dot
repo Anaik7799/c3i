@@ -1,0 +1,28 @@
+digraph PlanningDataPlane {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontname="Inter" style="filled,rounded" shape=box color="#1e2a3a" fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  smriti [label="Smriti.db (SQLite WAL)\nTasks table\nCHECK(Status IN …)\nCHECK(Priority IN …)" fillcolor="#1e2a3a" color="#4d96ff" fontcolor="#7ab3ff"];
+  nif [label="c3i_nif.so\nplan_status / plan_list / plan_search" fillcolor="#1e2a3a" color="#ffd93d" fontcolor="#ffd93d"];
+  router [label="Wisp router\n/api/v1/plan/status\n/api/v1/plan/list\n/api/v1/plan/search" fillcolor="#1e2a3a" color="#4d96ff" fontcolor="#7ab3ff"];
+  ws [label="WsHandler\ndiff(status_json)" fillcolor="#1e2a3a" color="#9b59b6" fontcolor="#c89cf2"];
+  sse [label="SSE /api/v1/planning/stream" fillcolor="#1e2a3a" color="#9b59b6" fontcolor="#c89cf2"];
+  http [label="HTTP polling\n5s fallback" fillcolor="#1e2a3a" color="#9b59b6" fontcolor="#c89cf2"];
+  pwjs [label="planning-grid.js\nallTaskData[]\nactiveFractalFilter" fillcolor="#141922" color="#00d4aa" fontcolor="#00d4aa"];
+  tabu [label="Tabulator (3 grids)\nKanban (4 cols, 41 cards)\nTimeline (100 rows)\nAnalytics (14 blocks)" fillcolor="#141922" color="#00d4aa" fontcolor="#00d4aa"];
+  zk [label="Zettelkasten\nFTS5 / embeddings" fillcolor="#1e2a3a" color="#e74c3c" fontcolor="#e74c3c"];
+  freshness [label="freshness_monitor.gleam\n(L0 actor)" fillcolor="#1e2a3a" color="#ff6b6b" fontcolor="#ff6b6b"];
+
+  smriti -> nif [label="read"];
+  nif -> router; nif -> ws; nif -> sse;
+  router -> http -> pwjs;
+  router -> sse -> pwjs;
+  ws -> pwjs [label="diff frame\n(< 50 KB) /\nheartbeat (< 100 b)"];
+  pwjs -> tabu [label="render"];
+  pwjs -> zk [label="AI search"];
+  zk -> pwjs [label="results"];
+  freshness -> nif [label="poll every 1s"];
+  freshness -> ws [label="escalate"];
+  freshness -> pwjs [label="freshness banner"];
+}

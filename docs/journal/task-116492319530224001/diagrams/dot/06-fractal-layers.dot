@@ -1,0 +1,50 @@
+digraph PlanningFractalLayers {
+  rankdir=BT; bgcolor="#0a0e17";
+  node [fontname="Inter" style="filled,rounded" shape=box fontcolor="#e0e6ed"];
+
+  // L0 Constitutional
+  L0 [label="L0 Constitutional\nGuardian + Ψ-invariants + freshness_monitor (escalate 60/120/300 s)\nSTAMP: SC-SAFETY-001, SC-DMS-001, SC-TRUTH-001..010, SC-FUNC-001\nFMEA RPN: 150 (stale data displayed as fresh) → mitigated by L0 actor"
+      fillcolor="#1e2a3a" color="#ff6b6b" fontcolor="#ff6b6b"];
+
+  // L1 Atomic / NIF
+  L1 [label="L1 Atomic / NIF\nc3i_nif: plan_status / list / search (sub-ms)\nSTAMP: SC-NIF-001..006, SC-PD-RUST-ONLY-001..010\nFMEA RPN: 60 (NIF panic) → crash isolation"
+      fillcolor="#1e2a3a" color="#ffd93d" fontcolor="#ffd93d"];
+
+  // L2 Component
+  L2 [label="L2 Component\nLustre Model/Msg + A2UI catalog (233 components) + wiring_guard\nSTAMP: SC-WIRE-001..007, SC-A2UI-001..008\nFMEA RPN: 84 (Model field added without wiring update) → guard test"
+      fillcolor="#1e2a3a" color="#6bcb77" fontcolor="#6bcb77"];
+
+  // L3 Transaction
+  L3 [label="L3 Transaction\nWisp router (+400 LOC) → /api/v1/plan/* + Tasks SQL CHECK\nSTAMP: SC-VALUE-GUARD-001..008, SC-PAGE-SPEC-001..008\nFMEA RPN: 72 (value-domain drift) → CHECK + hourly scan"
+      fillcolor="#1e2a3a" color="#4d96ff" fontcolor="#7ab3ff"];
+
+  // L4 System
+  L4 [label="L4 System (BEAM :4100)\nMist HTTP/WS, Wisp routing, hot reload, Tabulator 6.3\nSTAMP: SC-AGUI-UI-001..015, SC-HA-RELOAD-001..008\nFMEA RPN: 128 (view-mode hidden views) → page-spec checker + Playwright"
+      fillcolor="#1e2a3a" color="#9b59b6" fontcolor="#c89cf2"];
+
+  // L5 Cognitive
+  L5 [label="L5 Cognitive\nRETE-UL engine.gleam (52 GRL rules, 13 domains) + Cortex hedged inference + Gemma fallback\nSTAMP: SC-COG-001, SC-OODA-CLAUDE-003, SC-PI-AUTO-005\nFMEA RPN: 75 (Gemma timeout no fallback) → 4-tier chain"
+      fillcolor="#1e2a3a" color="#00d4aa" fontcolor="#00d4aa"];
+
+  // L6 Ecosystem
+  L6 [label="L6 Ecosystem (Zenoh)\nindrajaal/otel/spans/planning + l5/cog/page/planning\nSTAMP: SC-ZMOF-001, SC-GLM-ZEN-001..003, SC-SCHED-TELE-MANDATORY\nFMEA RPN: 120 (OTel span lost) → bounded channel try_send"
+      fillcolor="#1e2a3a" color="#e74c3c" fontcolor="#e74c3c"];
+
+  // L7 Federation
+  L7 [label="L7 Federation\nCPIG matrix (Gleam-UI 4/5 → 5/5) + .claude / .gemini governance parity + sa-plan task lineage\nSTAMP: SC-CPIG-001..015, SC-FED-001..006, SC-CPIG-FED-001..010\nFMEA RPN: 50 (governance drift) → SC-SYNC-DOC-007"
+      fillcolor="#1e2a3a" color="#f39c12" fontcolor="#f39c12"];
+
+  L1 -> L0 [color="#ff6b6b" label="reads"];
+  L2 -> L1 [color="#ffd93d" label="invokes NIF"];
+  L3 -> L1 [color="#ffd93d" label="invokes NIF"];
+  L3 -> L2 [color="#6bcb77" label="uses domain types"];
+  L4 -> L3 [color="#4d96ff" label="dispatches"];
+  L5 -> L4 [color="#9b59b6" label="advises"];
+  L5 -> L1 [color="#ffd93d" label="rule reads"];
+  L6 -> L5 [color="#00d4aa" label="span"];
+  L6 -> L4 [color="#9b59b6" label="span"];
+  L7 -> L6 [color="#e74c3c" label="federates"];
+  L0 -> L4 [color="#ff6b6b" label="freshness escalate"];
+
+  edge [color="#7a8fa6"];
+}
