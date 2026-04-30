@@ -56,3 +56,60 @@ docs/journal/monitor/
 # Secrets — never commit (use .env / sops-nix)
 devenv.nix
 .devenv/
+
+# Pass-31 hygiene — runtime/dev-env drift (SC-DRIFT-001..008)
+# User shell + dev-env files (per-developer, not project state)
+.envrc
+.zshrc
+.env.bak.*
+.home/
+
+# Runtime DBs and locks
+# fy27-plan.db: zero-byte placeholder; real DB lives in sub-projects/work/gdrive/
+fy27-plan.db
+.claude/scheduled_tasks.lock
+.claude/settings.json.bak.*
+data/smriti/Smriti.db-shm
+data/smriti/Smriti.db-wal
+
+# Artifact-sync output listings (regenerated each daily-sync)
+/claude_agents.txt
+/claude_cmds.txt
+/claude_rules.txt
+/gemini_agents.txt
+/gemini_cmds.txt
+/gemini_rules.txt
+
+# Pi runtime workspace
+.pi/node_modules/
+.pi/.smriti-sessions.jsonl
+.pi/dist/
+.pi/.next/
+
+# Timestamped state snapshots (ephemeral)
+states/
+
+# Health monitor outputs (regenerated continuously)
+docs/health/
+
+# Runtime DB / RocksDB / vendored extracts
+sub-projects/sutra/tuwunel/data/
+sub-projects/sutra/sutra_server/
+.pi/zenoh-ts-extract/
+data/tmp/backup/
+data/tls/selfsigned/
+
+# Embedded git repos under sutra (each owns its own state)
+sub-projects/sutra/element-x-ios/
+sub-projects/sutra/matrix-rust-sdk/
+sub-projects/sutra/fluffychat/
+
+# Script output (regenerated each invocation)
+sub-projects/scripts-gleam/data/script-output/
+
+# Nested git repos that are NOT (yet) registered submodules
+# (treated as opaque worktrees — owned by their own .git)
+sub-projects/c3i/
+sub-projects/pi-mono/
+sub-projects/openclaw/
+sub-projects/marionette_mcp/
