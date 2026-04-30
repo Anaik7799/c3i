@@ -1,0 +1,16 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="#0b1020", fontname="Helvetica", label="Pi Runtime + Safety State Machine", labelloc=t];
+  node [shape=circle, style="filled", fillcolor="#172554", color="#60a5fa", fontcolor="#dbeafe", fontname="Helvetica"];
+  edge [color="#93c5fd", penwidth=1.5];
+  Stopped; Starting; Running; HalfOpen[label="HalfOpen"]; Open[label="BreakerOpen"]; ShuttingDown[label="Shutdown"]; Failed;
+  Stopped -> Starting [label="Start"];
+  Starting -> Running [label="spawn ok"];
+  Starting -> Failed [label="spawn fail"];
+  Running -> Open [label="3 failures"];
+  Open -> HalfOpen [label="60s cooldown"];
+  HalfOpen -> Running [label="success"];
+  HalfOpen -> Open [label="failure"];
+  Running -> ShuttingDown [label="SIGTERM"];
+  ShuttingDown -> Stopped [label="graceful stop"];
+  Running -> Failed [label=">5 restarts / crash loop"];
+}

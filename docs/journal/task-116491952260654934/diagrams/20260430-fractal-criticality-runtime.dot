@@ -1,0 +1,23 @@
+digraph G {
+  rankdir=LR;
+  bgcolor="#0b1020";
+  node [shape=box style="rounded,filled" fillcolor="#16213a" fontcolor="#e6edf3" color="#4ea1ff"];
+  edge [color="#7cc7ff" fontcolor="#9ad1ff"];
+
+  L0 [label="L0 Constitutional\nGuardian/HITL\nCriticality: Extreme"];
+  L1 [label="L1 Atomic Debug\nTool IO fingerprints\nCriticality: High"];
+  L2 [label="L2 Component\nAG-UI/A2UI validation\nCriticality: High"];
+  L3 [label="L3 Transaction\nSmriti + MoZ corr\nCriticality: Extreme"];
+  L4 [label="L4 System\nPi runtime + breakers\nCriticality: Extreme"];
+  L5 [label="L5 Cognitive\nOODA/model routing\nCriticality: High"];
+  L6 [label="L6 Ecosystem\nSkill/registry sync\nCriticality: High"];
+  L7 [label="L7 Federation\nGateways/version vectors\nCriticality: Medium"];
+
+  L0 -> L1 -> L2 -> L3 -> L4 -> L5 -> L6 -> L7;
+
+  Runtime [shape=ellipse fillcolor="#1e2b4d" label="Runtime optimization\n- fail-fast production paths\n- breaker bounded retries\n- actor lifecycle stabilized"];
+  Data [shape=ellipse fillcolor="#1e2b4d" label="Dataflow optimization\nintent→ZK→PII scrub→Pi RPC\n→AG-UI/A2UI→Zenoh→Smriti→UI"];
+
+  L4 -> Runtime;
+  L3 -> Data;
+}

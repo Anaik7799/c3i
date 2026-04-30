@@ -1,0 +1,40 @@
+digraph TelegramBroadcast {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", fontname="Helvetica", style="filled,rounded"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  subgraph cluster_l3 { label="L3 / L5 — DQ Scan + Eval"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    scan [label="run_dq_scan\n(Pass-15)", fillcolor="#141922"];
+    eval [label="evaluate()\nRule30 / Rule110 / Lyapunov\n(Pass-14)", fillcolor="#141922"];
+  }
+  subgraph cluster_pred { label="Pass-18 — Broadcast Predicate"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    pred [label="lyapunov_fired\n∧ ¬dry_run\n∧ ¬DQ_SCAN_NO_BROADCAST", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_l7 { label="L7 Federation — Operator Alarm"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    bcast [label="gateway::broadcast_message\n(parallel TG + GChat)", fillcolor="#141922"];
+    tg [label="Telegram\nbot API", fillcolor="#4d96ff", fontcolor="#fff"];
+    gc [label="GChat\nwebhook", fillcolor="#4d96ff", fontcolor="#fff"];
+    op [label="Operator\nphone/desktop", fillcolor="#f5a623", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_safety { label="Safety Constraints"; style=dashed; color="#ff4757"; fontcolor="#ff4757";
+    s1 [label="fire-and-forget\n(broadcast failure ≠ worker failure)", fillcolor="#141922"];
+    s2 [label="dry_run inhibits\n(test-mode safe)", fillcolor="#141922"];
+    s3 [label="env DQ_SCAN_NO_BROADCAST\n(operator killswitch)", fillcolor="#141922"];
+  }
+  subgraph cluster_tests { label="3 new e2e predicate tests"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    t1 [label="fires on 1→100 / 4h\n(growth)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    t2 [label="quiet on 100→1 / 4h\n(decay)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    t3 [label="quiet on 1→100 / 1min\n(window<3h)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+
+  scan -> eval; eval -> pred [label="alerts vec"];
+  pred -> bcast [label="if true"];
+  bcast -> tg; bcast -> gc;
+  tg -> op; gc -> op;
+  s1 -> bcast [style=dashed, color="#ff4757"];
+  s2 -> pred [style=dashed, color="#ff4757"];
+  s3 -> pred [style=dashed, color="#ff4757"];
+  t1 -> pred [style=dotted, color="#00d4aa"];
+  t2 -> pred [style=dotted, color="#00d4aa"];
+  t3 -> pred [style=dotted, color="#00d4aa"];
+}

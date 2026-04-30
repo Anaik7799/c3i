@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fractal Closure Pass Analysis</title>
+<style>body{font-family:Arial;background:#0b1020;color:#e6edf3;padding:24px} .card{border:1px solid #2c3d66;border-radius:10px;padding:12px;margin:10px 0;background:#141d33} table{width:100%;border-collapse:collapse} td,th{border:1px solid #2c3d66;padding:8px}</style></head>
+<body>
+<h1>Pi Symbiosis Fractal Closure Pass — Analysis</h1>
+<p>ZK refs: [zk-3346fc607a1ef9e6], [zk-a4c496db3af0645c], [zk-2a8fa8e4020acae4]</p>
+<div class="card"><h2>Outcome</h2><ul><li>P0 compile blocker fixed in <code>pi_daemon.gleam</code></li><li>Gleam build PASS</li><li>Pi integration module PASS</li><li>Pi mono build PASS</li><li>HTTP/HTTPS endpoints PASS</li></ul></div>
+<div class="card"><h2>Gate Table</h2><table><tr><th>Gate</th><th>Status</th></tr><tr><td>Plan ready</td><td>YES</td></tr><tr><td>P0 blocker closed</td><td>YES</td></tr><tr><td>Full fractal check L0-L7</td><td>YES</td></tr><tr><td>Runtime/Dataflow optimization check</td><td>YES</td></tr></table></div>
+<div class="card"><h2>Criticality & Utility</h2><p>Highest utility action was correcting actor API mismatch at L4, restoring executable closure path and truthful readiness.</p></div>
+</body></html>

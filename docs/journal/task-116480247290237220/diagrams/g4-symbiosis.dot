@@ -1,0 +1,63 @@
+// Full system symbiosis — Marionette MCP touchpoints across C3I subsystems
+digraph symbiosis {
+  rankdir=TB; bgcolor="#0a0e17"; fontname="Helvetica"; pad=0.5; nodesep=0.4; ranksep=0.55; compound=true;
+  node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=10 fontcolor="#e0e6ed" color="#1e2a3a" fillcolor="#141922"];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  subgraph cluster_marionette {
+    label="Marionette MCP (this integration)"; fontcolor="#00d4aa"; color="#00d4aa"; style=rounded;
+    M_clone   [label="upstream clone\nsub-projects/marionette_mcp/"];
+    M_rule    [label=".claude/rules/\nmarionette-mcp-flutter-testing.md"];
+    M_agent   [label=".claude/agents/\nmarionette-explorer.md"];
+    M_skill   [label=".claude/commands/\nmarionette-explore.md"];
+    M_allium  [label="specs/allium/\nmarionette_mcp.allium"];
+    M_hook    [label="settings.json hooks\n(SessionStart + PostToolUse)"];
+    M_catalog [label="FluffyChat\nintegration_test/marionette/CATALOG.md\n(200 tests)"];
+  }
+
+  // Existing C3I subsystems
+  Patrol     [label="Patrol MCP\n(.claude/rules/patrol-mcp-zenoh.md)" color="#3dd68c"];
+  Zenoh      [label="Zenoh router\nTCP 7447\nindrajaal/l5/test/marionette/**" color="#00d4aa"];
+  RuleEngine [label="rule_engine.rs\n52 + 10 GRL rules" color="#9b59b6"];
+  Ruliology  [label="ruliology.rs\nRule 30/110/184 + CausalGraph" color="#9b59b6"];
+  Smriti     [label="smriti.db\nsession_metrics" color="#4d96ff"];
+  Dashboard  [label="Lustre dashboard\n(planned tile)" color="#f5a623"];
+  Pi         [label="Pi-mono runtime\n(MoZ consumer)" color="#9b59b6"];
+  Gemini     [label="Gemini CLI\n(.gemini/rules/ mirror — A3)" color="#7a8fa6"];
+  CI         [label="build-supervisor\nCI runner — A4" color="#7a8fa6"];
+  ZK         [label="C3I-ZK + FY27-ZK\nknowledge ingest"];
+  FMEA       [label="FMEA aggregator\n(planned)" color="#f5a623"];
+  TLA        [label="Apalache TLA+\nstub — A2/A8" color="#7a8fa6"];
+  Cockpit    [label="Dark Cockpit\nweather bar"];
+
+  // Edges (existing)
+  M_hook -> Zenoh   [label="publish envelopes" color="#ffa502"];
+  M_hook -> M_agent [label="advisory feedback" color="#e74c3c" style=dashed];
+  M_rule -> M_agent;
+  M_rule -> M_skill;
+  M_rule -> M_hook;
+  M_allium -> M_rule [label="formal source"];
+  M_clone -> M_catalog [label="pubspec dep"];
+  M_catalog -> M_agent [label="iterates"];
+  M_catalog -> Patrol  [label="regression handoff"];
+
+  Zenoh -> RuleEngine [label="subscribe"];
+  Zenoh -> Ruliology  [label="event topics"];
+  Zenoh -> Dashboard  [label="live tile"];
+  Zenoh -> FMEA       [label="RPN rollup"];
+  Zenoh -> Pi         [label="MoZ"];
+  RuleEngine -> Zenoh [label="advisory" style=dashed color="#e74c3c"];
+
+  M_agent -> Smriti [label="session_metrics"];
+  M_agent -> ZK    [label="ingest journal"];
+
+  // Planned (dashed grey)
+  M_rule -> Gemini [label="parity mirror — A3" style=dashed color="#7a8fa6"];
+  M_rule -> CI     [label="A4" style=dashed color="#7a8fa6"];
+  M_allium -> TLA  [label="A2/A8" style=dashed color="#7a8fa6"];
+  Dashboard -> Cockpit;
+
+  // ranks
+  {rank=same; Zenoh; RuleEngine; Ruliology}
+  {rank=same; Pi; Gemini; CI}
+}

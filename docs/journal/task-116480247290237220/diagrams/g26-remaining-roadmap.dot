@@ -1,0 +1,63 @@
+digraph G26_RemainingRoadmap {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=10, fontcolor="#0a0e17"];
+  edge [fontname="Helvetica", fontsize=9, color="#7a8fa6"];
+  labelloc=t;
+  fontsize=14;
+  fontcolor="#00d4aa";
+  label="G26 — Remaining Roadmap (Pass 17 → 25) · 11 items by priority";
+
+  // Priority colors: P0=red, P1=amber, P2=accent, P3=mute
+  // Pass nodes
+  P17 [label="Pass 17\nRuntime Activation\n(first tick T+5s)", fillcolor="#3dd68c"];
+  P18 [label="Pass 18\nP0 closure", fillcolor="#3dd68c"];
+  P19 [label="Pass 19\nP1 closure", fillcolor="#f5a623"];
+  P20 [label="Pass 20\nP2 part 1", fillcolor="#00d4aa"];
+  P21 [label="Pass 21\nP2 part 2", fillcolor="#00d4aa"];
+  P22 [label="Pass 22\nP2 part 3", fillcolor="#00d4aa"];
+  P23 [label="Pass 23\nP3 part 1", fillcolor="#7a8fa6"];
+  P24 [label="Pass 24\nP3 part 2", fillcolor="#7a8fa6"];
+  P25 [label="Pass 25\nP3 closure", fillcolor="#7a8fa6"];
+
+  P17 -> P18 -> P19 -> P20 -> P21 -> P22 -> P23 -> P24 -> P25;
+
+  // Item nodes
+  I1  [label="① URL fix (P0)\n✓ COMPLETED Pass 18", fillcolor="#3dd68c"];
+  I2  [label="② cpig-validator-hourly\nfirst cron fire (P1)", fillcolor="#f5a623"];
+  I3  [label="③ Wiring Guards bulk\nevidence (P1)\n✓ COMPLETED Pass 18", fillcolor="#3dd68c"];
+  I4  [label="④ Apalache discharge\nAgda postulate (P1)", fillcolor="#f5a623"];
+  I5  [label="⑤ .gemini/skills/\nparity (P2)", fillcolor="#00d4aa"];
+  I6  [label="⑥ Zenoh telemetry\nlive subscriber (P2)", fillcolor="#00d4aa"];
+  I7  [label="⑦ FluffyChat L1\nmain.dart wiring (P2)", fillcolor="#00d4aa"];
+  I8  [label="⑧ Federated CPIG\ncross-mesh (P3)", fillcolor="#7a8fa6"];
+  I9  [label="⑨ Multi-region\nvoting (P3)", fillcolor="#7a8fa6"];
+  I10 [label="⑩ Continuous\nTLA+/Apalache CI (P3)", fillcolor="#7a8fa6"];
+  I11 [label="⑪ Pass-25 closure\nfederation event (P3)", fillcolor="#7a8fa6"];
+
+  // Distribute items
+  P18 -> I1  [color="#3dd68c"];
+  P18 -> I3  [color="#3dd68c"];
+  P19 -> I2  [color="#f5a623"];
+  P19 -> I4  [color="#f5a623"];
+  P20 -> I5  [color="#00d4aa"];
+  P21 -> I6  [color="#00d4aa"];
+  P22 -> I7  [color="#00d4aa"];
+  P23 -> I8  [color="#7a8fa6"];
+  P24 -> I9  [color="#7a8fa6"];
+  P24 -> I10 [color="#7a8fa6"];
+  P25 -> I11 [color="#7a8fa6"];
+
+  // Legend
+  subgraph cluster_legend {
+    label="Priority";
+    fontcolor="#00d4aa";
+    style=dashed;
+    color="#1e2a3a";
+    L0 [label="P0 done", fillcolor="#3dd68c"];
+    L1 [label="P1", fillcolor="#f5a623"];
+    L2 [label="P2", fillcolor="#00d4aa"];
+    L3 [label="P3", fillcolor="#7a8fa6"];
+    L0 -> L1 -> L2 -> L3 [style=invis];
+  }
+}

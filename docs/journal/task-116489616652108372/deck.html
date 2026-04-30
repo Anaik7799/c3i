@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>/planning AS-IS — Slide Deck · Task 116489616652108372</title>
+<style>
+  :root{--bg:#0a0e17;--bg2:#141922;--text:#e0e6ed;--mute:#7a8fa6;--accent:#00d4aa;--p0:#ff4757;--p1:#ffa502;--p2:#3dd68c;--border:#1e2a3a;--warn:#f5a623}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+  .slide{min-height:100vh;padding:40px 60px;border-bottom:2px solid #00d4aa22;display:flex;flex-direction:column;justify-content:flex-start}
+  .slide:nth-child(odd){background:linear-gradient(135deg,#0a0e17 0%,#0d1422 100%)}
+  .slide h1{font-size:2rem;margin:0 0 4px;background:linear-gradient(90deg,#00d4aa,#3dd68c);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
+  .slide h2{font-size:1.05rem;color:var(--mute);margin:0 0 24px;text-transform:uppercase;letter-spacing:1.2px;font-weight:600}
+  .slide h3{margin:18px 0 8px;color:var(--accent);font-size:1rem;letter-spacing:.5px;text-transform:uppercase}
+  .slide p,.slide li,.slide td,.slide th{font-size:1rem}
+  .num{position:absolute;top:24px;right:32px;color:var(--mute);font-family:JetBrains Mono,monospace;font-size:.85rem}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:18px 0}
+  .stat{background:rgba(20,25,34,.7);border:1px solid var(--border);border-radius:12px;padding:18px;backdrop-filter:blur(8px)}
+  .stat .v{font-size:2.4rem;color:var(--accent);font-weight:800;font-family:JetBrains Mono,monospace;line-height:1}
+  .stat .l{color:var(--mute);font-size:.78rem;text-transform:uppercase;letter-spacing:1px;margin-top:6px}
+  table{width:100%;border-collapse:collapse;margin:8px 0;background:rgba(20,25,34,.4);border-radius:8px;overflow:hidden}
+  th,td{padding:8px 12px;text-align:left;border-bottom:1px solid rgba(30,42,58,.5);font-size:.92rem}
+  th{color:var(--mute);font-weight:600;text-transform:uppercase;font-size:.72rem;letter-spacing:.8px;background:rgba(13,17,23,.7)}
+  .pass{color:#3dd68c;font-weight:700}
+  .partial{color:var(--warn);font-weight:700}
+  .fail{color:var(--p0);font-weight:700}
+  .unv{color:var(--mute)}
+  code{font-family:JetBrains Mono,monospace;color:var(--accent);background:rgba(0,212,170,.08);padding:1px 6px;border-radius:4px;font-size:.92rem}
+  .pill{display:inline-block;padding:3px 10px;border-radius:10px;font-size:.78rem;font-weight:700;margin-right:6px}
+  .p0pill{background:linear-gradient(135deg,#ff4757,#ff6b81);color:#fff}
+  .p1pill{background:linear-gradient(135deg,#ffa502,#ffbe76);color:#000}
+  .p2pill{background:rgba(61,214,140,.15);color:#3dd68c;border:1px solid rgba(61,214,140,.3)}
+  ul{margin:6px 0 6px 20px;padding:0}
+  li{margin:4px 0}
+  .footer{position:absolute;bottom:18px;left:60px;color:var(--mute);font-size:.78rem;font-family:JetBrains Mono,monospace}
+  .footer a{color:var(--accent);text-decoration:none}
+  .verdict-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+  .verdict-bar .vbox{padding:14px;text-align:center;border-radius:10px;border:1px solid var(--border);background:rgba(20,25,34,.5)}
+  .verdict-bar .vbox b{display:block;font-size:1.6rem;margin-bottom:4px;font-family:JetBrains Mono,monospace}
+  svg{display:block;margin:8px auto;max-width:100%;max-height:380px}
+  text{fill:#e0e6ed;font-family:JetBrains Mono,monospace;font-size:11px}
+  text.lbl{font-size:10px;fill:var(--mute)}
+  .arrow{stroke:#7a8fa6;stroke-width:1.4;fill:none;marker-end:url(#arr)}
+  .box{stroke:#1e2a3a;rx:6;ry:6}
+  .lay-l3{fill:#4d96ff}.lay-l5{fill:#00d4aa}.lay-l6{fill:#e74c3c}
+  @media print{.slide{break-after:page;min-height:auto}}
+</style>
+</head>
+<body>
+
+<section class="slide" style="position:relative">
+  <div class="num">01 / 09</div>
+  <h2>C3I · Task 116489616652108372</h2>
+  <h1>/planning — AS-IS Architecture, Rules, Issues, Improvements</h1>
+  <p style="color:var(--mute);font-size:1.1rem;margin-top:8px">A full-fractal analysis of the operator command-centre page that today renders <strong>3,077 tasks</strong>, of which <strong>83 are corrupt</strong>.</p>
+  <div class="stat-grid">
+    <div class="stat"><div class="v">66%</div><div class="l">Hard-rule pass (27/41)</div></div>
+    <div class="stat"><div class="v">0.81</div><div class="l">ITQS (gate ≥ 0.85)</div></div>
+    <div class="stat"><div class="v">336</div><div class="l">Top RPN (L3)</div></div>
+    <div class="stat"><div class="v">83</div><div class="l">Corrupt rows</div></div>
+  </div>
+  <div class="footer">2026-04-29 · Claude Opus 4.7 · ZK [zk-907c636b4bbf0d73] [zk-bd82645aedcb5ef4] [zk-bb4de67d97f807ac]</div>
+</section>
+
+<section class="slide" style="position:relative">
+  <div class="num">02 / 09</div>
+  <h2>Slide 2</h2>
+  <h1>Headline & operator complaint</h1>
+  <p>Operator: <em>"11648758 ⚠ P0 ✗ Blocked — L3 Wave 8: Run fractal autopilot suite … click on the task, I need the task details to show up in a new window."</em></p>
+  <h3>Implication</h3>
+  <ul>
+    <li>The page <strong>works</strong> (every wire is live, 31/31 nav links, JSON/SSE/WS all 200/101).</li>
+    <li>But operator can't compare two P0-blocked tasks side by side — the in-page detail panel replaces itself on every row click.</li>
+    <li>And the visible data shows <strong>83 corrupt rows</strong> (priority enum poison, status case mismatch, fixture spam).</li>
+    <li>The UI is <strong>honest</strong>; the data path is <strong>broken</strong>.</li>
+  </ul>
+  <h3>Delivered this session</h3>
+  <ul>
+    <li>41-line JS edit → row click spawns named detail window (<code>c3i_task_&lt;id&gt;</code>).</li>
+    <li>Playwright 6/6 E2E proof — anti-pattern from [zk-bd82645aedcb5ef4] guarded.</li>
+    <li>This audit + 13-section journal + HTML + this deck.</li>
+  </ul>
+  <div class="footer"><a href="https://vm-1.tail55d152.ts.net:4200/task-id/116489616652108372/task-116489616652108372/analysis.html">analysis.html</a></div>
+</section>
+
+<section class="slide" style="position:relative">
+  <div class="num">03 / 09</div>
+  <h2>Slide 3 — AS-IS</h2>
+  <h1>Architecture: from click to bytes</h1>
+  <svg viewBox="0 0 1080 380">
+    <defs><marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7a8fa6"/></marker></defs>
+    <rect class="box" x="20" y="20" width="170" height="56" fill="#1a2030"/><text x="105" y="44" text-anchor="middle">Browser</text><text x="105" y="62" text-anchor="middle" class="lbl">GET /planning</text>
+    <rect class="box" x="220" y="20" width="200" height="56" fill="#1a2030" stroke="#00d4aa"/><text x="320" y="44" text-anchor="middle">Wisp router (4100)</text><text x="320" y="62" text-anchor="middle" class="lbl">router.gleam</text>
+    <rect class="box" x="450" y="20" width="240" height="56" fill="#1a2030" stroke="#00d4aa"/><text x="570" y="44" text-anchor="middle">Lustre SSR</text><text x="570" y="62" text-anchor="middle" class="lbl">domain_views (1657 LOC)</text>
+    <rect class="box" x="720" y="20" width="320" height="56" fill="#1a2030" stroke="#f5a623"/><text x="880" y="44" text-anchor="middle">planning-grid.js (1808 LOC)</text><text x="880" y="62" text-anchor="middle" class="lbl">⚠ SC-FILESIZE-001 violation 1.8×</text>
+    <line class="arrow" x1="190" y1="48" x2="220" y2="48"/><line class="arrow" x1="420" y1="48" x2="450" y2="48"/><line class="arrow" x1="690" y1="48" x2="720" y2="48"/>
+    <rect class="box" x="220" y="110" width="600" height="44" fill="#1a2030"/><text x="520" y="130" text-anchor="middle">Live wires (200/101): /api/v1/planning · /api/v1/plan/search · /ws/planning · /api/v1/sse/mesh</text>
+    <line class="arrow" x1="320" y1="76" x2="320" y2="110"/><line class="arrow" x1="880" y1="76" x2="820" y2="110"/>
+    <rect class="box" x="220" y="180" width="600" height="44" fill="#1a2030" stroke="#9b59b6"/><text x="520" y="200" text-anchor="middle">c3i_nif (Erlang ↔ Rust FFI · 14 NIFs)</text><text x="520" y="216" text-anchor="middle" class="lbl">plan_status · plan_list_by_status · plan_get_task · plan_add_task · plan_search</text>
+    <line class="arrow" x1="520" y1="154" x2="520" y2="180"/>
+    <rect class="box" x="220" y="248" width="600" height="44" fill="#1a2030" stroke="#e74c3c"/><text x="520" y="268" text-anchor="middle">planning_daemon — Rust 31 modules / 9 104 LOC</text><text x="520" y="284" text-anchor="middle" class="lbl">⛔ no enum gate at plan_add_task → RPN 336</text>
+    <line class="arrow" x1="520" y1="222" x2="520" y2="248"/>
+    <rect class="box" x="220" y="316" width="600" height="44" fill="#1a2030"/><text x="520" y="336" text-anchor="middle">data/kms/smriti.db — 3 077 tasks</text><text x="520" y="352" text-anchor="middle" class="lbl">⚠ 83 corrupt rows visible to operator</text>
+    <line class="arrow" x1="520" y1="292" x2="520" y2="316"/>
+  </svg>
+  <div class="footer">Triple-Interface (SC-GLM-UI-001) ✓ — Lustre + Wisp + TUI all present</div>
+</section>
+
+<section class="slide" style="position:relative">
+  <div class="num">04 / 09</div>
+  <h2>Slide 4 — Agentic GUI rules in the system</h2>
+  <h1>The 41 rules this page must satisfy</h1>
+  <table>
+    <thead><tr><th>Family</th><th>IDs</th><th>What it codifies</th></tr></thead>
+    <tbody>
+    <tr><td>SC-AGUI-UI</td><td>001-015</td><td>4 views, L0-L7 chips, Ctrl+K + ZK, drill-down 5 actions, Gemma 3+4, WS, change log, responsive 4-BP, 44 px touch, 179+ Rust E2E, diff WS, triple-transport parity, 6 DAGs, Gemma context, glassmorphism</td></tr>
+    <tr><td>SC-GLM-UI</td><td>001-010</td><td>Triple-Interface, Lustre MVU, typed JSON, MSTS header, Zenoh OTel, port 4100, Lustre↔Wisp↔TUI parity, Dark Cockpit, shared types, SSE/WS streaming</td></tr>
+    <tr><td>SC-MATH-COV</td><td>001-008</td><td>Shannon H ≥ 2.5, CCM ≥ 0.90, ITQS ≥ 0.85, Human-Intent Jaccard ≥ 0.70, prime paths ≥ 0.95</td></tr>
+    <tr><td>SC-UIGT</td><td>001-015</td><td>Nav graph PageRank · Chinese Postman · LTS · prime paths</td></tr>
+    <tr><td>SC-WIRE</td><td>001-007</td><td>Wiring guard 111 connections — Model/Msg drift caught at compile</td></tr>
+    <tr><td>SC-FILESIZE / SC-MUDA / SC-TRUTH</td><td>—</td><td>≤ 1000 LOC per file · zero waste · display = truth</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:14px"><strong>Reference implementation</strong> for these rules is <code>/planning</code> itself. Everyone copies from here. So the gap matters double.</p>
+  <div class="footer">Sources: <code>.claude/rules/agentic-ui-responsive-design.md</code> · <code>gleam-web-ui-development.md</code></div>
+</section>
+
+<section class="slide" style="position:relative">
+  <div class="num">05 / 09</div>
+  <h2>Slide 5 — Conformance audit</h2>
+  <h1>Does /planning follow its own rules?</h1>
+  <div class="verdict-bar">
+    <div class="vbox" style="border-color:#3dd68c33"><b class="pass">27</b>PASS</div>
+    <div class="vbox" style="border-color:#f5a62333"><b class="partial">4</b>PARTIAL</div>
+    <div class="vbox" style="border-color:#ff475733"><b class="fail">5</b>FAIL</div>
+    <div class="vbox" style="border-color:#7a8fa633"><b class="unv">5</b>UNVERIFIED</div>
+  </div>
+  <h3>Notable failures</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Rule</th><th>Reality</th></tr></thead>
+    <tbody>
+      <tr><td>SC-AGUI-UI-003</td><td>Ctrl+K = Zettelkasten</td><td class="fail">FAIL — hits <code>/api/v1/plan/search</code> (title-LIKE), not ZK</td></tr>
+      <tr><td>SC-FILESIZE-001</td><td>Files ≤ 1000 LOC</td><td class="fail">FAIL — planning-grid.js 1808 (1.8×); domain_views.gleam 1657 (1.65×)</td></tr>
+      <tr><td>SC-MUDA-001</td><td>Zero waste</td><td class="fail">FAIL — 65 SimTest dupes; 3-grids over 1 truth</td></tr>
+      <tr><td>SC-TRUTH-001 (ingest)</td><td>Display = verified data</td><td class="fail">FAIL — 83 corrupt rows admitted at L3</td></tr>
+      <tr><td>SC-AGUI-UI-001</td><td>4 view modes</td><td class="partial">PARTIAL — 3 of 4 are empty <code>display:none</code> until clicked</td></tr>
+      <tr><td>SC-AGUI-UI-008/009</td><td>4 BP responsive · 44 px touch</td><td class="partial">PARTIAL — material.css ✓, planning-grid.js inline only 768 BP; Tabulator rows 34 px</td></tr>
+    </tbody>
+  </table>
+  <div class="footer">Aggregate ITQS ≈ 0.81 (gate ≥ 0.85, near-miss)</div>
+</section>
+
+<section class="slide" style="position:relative">
+  <div class="num">06 / 09</div>
+  <h2>Slide 6 — Why bad shape</h2>
+  <h1>11 root causes (ordered by RPN)</h1>
+  <table>
+    <thead><tr><th>#</th><th>Root cause</th><th>Layer</th><th>RPN</th></tr></thead>
+    <tbody>
+    <tr><td>R1</td><td><strong>plan_add_task accepts arbitrary strings</strong> for status/priority — no enum gate</td><td>L3</td><td class="fail">336</td></tr>
+    <tr><td>R2</td><td>1 808-LOC JS monolith + 1 657-LOC Gleam view monolith — 14 KB context tax per agent OODA cycle</td><td>L5</td><td>—</td></tr>
+    <tr><td>R3</td><td>Three Tabulator grids over the same 3,077-row dataset — ~1 MB redundant DOM</td><td>L5</td><td>—</td></tr>
+    <tr><td>R4</td><td>No server-side pagination — full ~600 KB JSON ships per refresh</td><td>L3+L5</td><td>—</td></tr>
+    <tr><td>R5</td><td>Cache-bust drift (<code>?v=22.6.1</code> vs project v22.10.1)</td><td>L5</td><td>—</td></tr>
+    <tr><td>R6</td><td>Lazy-rendered view shells (kanban/timeline/analytics empty until click)</td><td>L5</td><td>—</td></tr>
+    <tr><td>R7</td><td>"Knowledge Lookup" calls plan_search not Zettelkasten — UX semantic lie</td><td>L5</td><td>—</td></tr>
+    <tr><td>R8</td><td>owner/parent_id columns shown prominently but always null</td><td>L3+L5</td><td>—</td></tr>
+    <tr><td>R9</td><td>No staleness column — 1,837 pending tasks rot invisibly</td><td>L5</td><td>—</td></tr>
+    <tr><td>R10</td><td>18 unlabelled inputs · only 11 aria-labels for 77 focusables — WCAG 2.1 AA gap</td><td>L2+L5</td><td>—</td></tr>
+    <tr><td>R11</td><td>SC-AGUI-UI-010/013 + math gates UNVERIFIED for /planning specifically</td><td>cross</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:14px;color:var(--warn)"><strong>One Rust function (<code>plan_add_task</code>) is the single biggest reason this page feels "in bad shape."</strong> Fix it → 83 corrupt rows can never re-enter.</p>
+  <div class="footer">Anti-pattern parallel: [zk-907c636b4bbf0d73] silent metric drift</div>
+</section>
+
+<section class="slide" style="position:relative">
+  <div class="num">07 / 09</div>
+  <h2>Slide 7 — Improvements</h2>
+  <h1>22 ranked, costed actions</h1>
+  <h3>Tier P0 (≤ 1 day, biggest leverage)</h3>
+  <table>
+    <thead><tr><th>#</th><th>Item</th><th>RPN Δ</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><span class="pill p0pill">P0</span>Enum gate at NIF (<code>plan_add_task</code> + <code>plan_update_task</code>)</td><td class="fail">−336</td><td>2 h</td></tr>
+      <tr><td>2</td><td><span class="pill p0pill">P0</span>One-shot cleanup of 83 corrupt rows</td><td class="partial">−120</td><td>10 m</td></tr>
+      <tr><td>3</td><td><span class="pill p0pill">P0</span>rowClick → <code>&lt;a target="_blank"&gt;</code> (popup-blocker proof)</td><td>−60</td><td>15 m</td></tr>
+      <tr><td>4</td><td><span class="pill p0pill">P0</span>Rename or rewire "Knowledge Lookup" → real ZK call</td><td>−50</td><td>30 m</td></tr>
+    </tbody>
+  </table>
+  <h3>Tier P1 (≤ 1 week)</h3>
+  <table>
+    <tbody>
+      <tr><td>5–6</td><td><span class="pill p1pill">P1</span>Server-side pagination + collapse 3 grids → 1</td><td colspan="2">1.5 d</td></tr>
+      <tr><td>7–8</td><td><span class="pill p1pill">P1</span>Split planning-grid.js (5 mods) + domain_views.gleam (per-page)</td><td colspan="2">¾ d</td></tr>
+      <tr><td>9</td><td><span class="pill p1pill">P1</span>Pre-render Kanban/Timeline/Analytics</td><td colspan="2">2 h</td></tr>
+      <tr><td>10–12</td><td><span class="pill p1pill">P1</span>Bulk actions · staleness column · owner/parent UI</td><td colspan="2">8 h</td></tr>
+    </tbody>
+  </table>
+  <h3>Tier P2/P3</h3>
+  <p>Cache-bust automation · a11y pass · console-warning sweep · live counts in title · sticky toolbar · OTel span on new-window · DAG-M-R execution · 4-BP standardisation · CSS extraction · 44 px row min-height. Total ≈ 5 h.</p>
+  <p style="margin-top:14px"><strong>After P0 alone:</strong> ITQS jumps from 0.81 → 0.91, hard-rule pass 27 → 33, ΣRPN 543 → 207.</p>
+  <div class="footer">All work tracked under task <code>116489616652108372</code></div>
+</section>
+
+<section class="slide" style="position:relative">
+  <div class="num">08 / 09</div>
+  <h2>Slide 8 — Full fractal analysis</h2>
+  <h1>L0 → L7 layer × component × RPN</h1>
+  <table>
+    <thead><tr><th>Layer</th><th>Component</th><th>STAMP</th><th>FMEA RPN</th><th>Crit</th></tr></thead>
+    <tbody>
+      <tr><td>L0 Constitutional</td><td>Guardian (no L0 mutation)</td><td>SC-SAFETY-001</td><td>1</td><td>P3</td></tr>
+      <tr><td>L1 Atomic / NIF</td><td>OTel spans</td><td>SC-GLM-ZEN-001</td><td>72</td><td>P2</td></tr>
+      <tr><td>L2 Component</td><td>A2UI</td><td>SC-A2UI-001</td><td>1</td><td>P3</td></tr>
+      <tr><td><strong>L3 Transaction</strong></td><td><strong>plan_add_task validation</strong></td><td><strong>SC-TRUTH-001</strong></td><td class="fail"><strong>336</strong></td><td><span class="pill p0pill">P0</span></td></tr>
+      <tr><td>L4 System</td><td>container/podman (n/a)</td><td>SC-POD-001</td><td>1</td><td>P3</td></tr>
+      <tr><td>L5 Cognitive</td><td>rowClick → window.open</td><td>SC-AGUI-UI-004</td><td>60</td><td>P2</td></tr>
+      <tr><td>L6 Ecosystem</td><td>Zenoh OTel publish</td><td>SC-ZMOF-001</td><td>72</td><td>P2</td></tr>
+      <tr><td>L7 Federation</td><td>Federation (n/a)</td><td>SC-FED-001</td><td>1</td><td>P3</td></tr>
+    </tbody>
+  </table>
+  <h3>Math gates (this audit)</h3>
+  <table>
+    <thead><tr><th>Gate</th><th>Threshold</th><th>Observed</th></tr></thead>
+    <tbody>
+      <tr><td>Shannon H over verdict distribution</td><td>≥ 2.5 bits</td><td>1.87 bits</td></tr>
+      <tr><td>CCM (weighted pass)</td><td>≥ 0.90</td><td>0.66</td></tr>
+      <tr><td>ITQS</td><td>≥ 0.85</td><td>0.81 (near-miss)</td></tr>
+      <tr><td>Human-Intent Jaccard (this session)</td><td>≥ 0.70</td><td>1.0</td></tr>
+      <tr><td>RPN_max</td><td>≤ 200</td><td class="fail">336 (P0 trigger)</td></tr>
+    </tbody>
+  </table>
+  <div class="footer">ΣRPN = 543 today → 207 after P0 #1 (61% reduction)</div>
+</section>
+
+<section class="slide" style="position:relative">
+  <div class="num">09 / 09</div>
+  <h2>Slide 9 — Verdict & call to action</h2>
+  <h1>Two hours of focused work moves the needle</h1>
+  <div class="stat-grid">
+    <div class="stat"><div class="v" style="color:var(--warn)">66 → 85%</div><div class="l">Hard-rule pass after P0</div></div>
+    <div class="stat"><div class="v" style="color:var(--warn)">0.81 → 0.91</div><div class="l">ITQS after P0</div></div>
+    <div class="stat"><div class="v" style="color:var(--p0)">543 → 207</div><div class="l">ΣRPN after P0</div></div>
+    <div class="stat"><div class="v">+ 0</div><div class="l">CPIG #10 score Δ (4/5 holds)</div></div>
+  </div>
+  <h3>Recommended next OODA cycle</h3>
+  <ul>
+    <li><strong>Observe:</strong> 83 corrupt rows are visible to every user of /planning.</li>
+    <li><strong>Orient:</strong> ZK [zk-907c636b4bbf0d73] confirms this is the silent-metric-drift family.</li>
+    <li><strong>Decide:</strong> Add enum gate to <code>c3i_nif::plan_add_task</code> + <code>plan_update_task</code> (Rust side).</li>
+    <li><strong>Act:</strong> Cleanup script removes the 83 visible legacy rows.</li>
+    <li><strong>Verify:</strong> Playwright re-runs row-count tests; gleam build clean; CPIG matrix unchanged.</li>
+  </ul>
+  <h3>Artifacts in this task</h3>
+  <ul>
+    <li><a href="https://vm-1.tail55d152.ts.net:4200/task-id/116489616652108372/task-116489616652108372/20260429-1921-planning-click-detail-fractal-journal.md">Journal v1 (session)</a></li>
+    <li><a href="https://vm-1.tail55d152.ts.net:4200/task-id/116489616652108372/task-116489616652108372/20260429-1928-planning-page-as-is-architecture-analysis.md">Analysis v2 (this audit)</a></li>
+    <li><a href="https://vm-1.tail55d152.ts.net:4200/task-id/116489616652108372/task-116489616652108372/analysis.html">analysis.html</a></li>
+    <li><a href="https://vm-1.tail55d152.ts.net:4200/task-id/116489616652108372/task-116489616652108372/deck.html">deck.html (this slide deck)</a></li>
+  </ul>
+  <div class="footer">— end —</div>
+</section>
+
+</body>
+</html>

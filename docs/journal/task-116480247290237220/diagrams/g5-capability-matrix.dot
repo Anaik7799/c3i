@@ -1,0 +1,41 @@
+// G5 — capability matrix: 35 capabilities × 5 sources
+// Slurm + Temporal + Oban + Gleam/OTP + C3I AS-IS → Integrated substrate
+digraph capability_matrix {
+  rankdir=LR; bgcolor="#0a0e17"; fontname="Helvetica"; pad=0.5; nodesep=0.3; ranksep=0.7; compound=true;
+  node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=10 fontcolor="#e0e6ed" color="#1e2a3a" fillcolor="#141922"];
+  edge [color="#7a8fa6" fontsize=8];
+
+  subgraph cluster_sources {
+    label="Sources"; fontcolor="#00d4aa"; color="#00d4aa"; style=rounded;
+    SLURM     [label="Slurm\n(HPC)"          color="#e74c3c" fillcolor="#3a1418"];
+    TEMPORAL  [label="Temporal\n(workflow)"  color="#9b59b6" fillcolor="#2a143a"];
+    OBAN      [label="Oban\n(queue)"         color="#3dd68c" fillcolor="#143a25"];
+    OTP       [label="Gleam+OTP\n(BEAM)"     color="#f39c12" fillcolor="#3a2c14"];
+    ASIS      [label="C3I AS-IS\n(today)"    color="#4d96ff" fillcolor="#142a3a"];
+  }
+
+  subgraph cluster_target {
+    label="Integrated Substrate (target)"; fontcolor="#00d4aa"; color="#00d4aa"; style=rounded;
+    KERNEL    [label="sa-plan kernel\n(Rust, runtime-stable)\n12 capabilities" color="#00d4aa" fillcolor="#143a32"];
+    USERSPACE [label="scripts-gleam userspace\n(Gleam, freely recompiled)\n5 capabilities" color="#00d4aa" fillcolor="#143a32"];
+  }
+
+  // Slurm contributions
+  SLURM -> KERNEL [label="C3 dispatch · C5 arrays · C6 deps\nC7 resource · C8 prio · C9 fair-share\nC10 backfill · C11 QoS · C12 reserv\nC13 acct · C14 cgroup"];
+  // Temporal contributions
+  TEMPORAL -> USERSPACE [label="C19 heartbeat · C20 saga\nC21 signal · C22 query · C23 update"];
+  // Oban contributions
+  OBAN -> KERNEL [label="C1 queue · C2 cron · C31 unique\nC32 retry · C33 telemetry · C34 persist"];
+  // OTP contributions
+  OTP -> USERSPACE [label="C28 dist Erlang · C29 ETS · C30 hot reload"];
+  // AS-IS already provides
+  ASIS -> KERNEL [label="C1-C2 queues+cron\nC32-C35 retry/persist/pause"];
+  ASIS -> USERSPACE [label="scripts/common/*"];
+
+  // Net new
+  KERNEL -> end [label="11 Rust patches\nP1-P11 · ONE-TIME"];
+  USERSPACE -> end [label="10 Gleam modules\nrecompile freely"];
+  end [label="Substrate\nSlurm-grade + Temporal-flavoured\n+ Oban-foundational + OTP-native\n+ Gleam-extensible\n+ sa-plan-runtime-stable" color="#3dd68c" fillcolor="#143a25"];
+
+  {rank=same; SLURM TEMPORAL OBAN OTP ASIS}
+}

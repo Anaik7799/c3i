@@ -1,0 +1,64 @@
+// G7 — SIL-6 integration map: scheduler ⇆ SIL-6 invariants
+digraph sil6 {
+  rankdir=LR; bgcolor="#0a0e17"; fontname="Helvetica"; pad=0.4; nodesep=0.4; ranksep=0.6;
+  node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=10 fontcolor="#e0e6ed" color="#1e2a3a" fillcolor="#141922"];
+  edge [color="#7a8fa6" fontsize=8];
+
+  // SIL-6 elements (left)
+  subgraph cluster_sil6 {
+    label="SIL-6 Biomorphic invariants"; fontcolor="#ff4757"; color="#ff4757"; style=rounded;
+    GUARD [label="Guardian gate\nSC-SAFETY-001" color="#ff4757"];
+    Y2    [label="Ψ-2 Reversibility"];
+    Y3    [label="Ψ-3 Verification"];
+    DG    [label="dying-gasp\nSC-SIL4-007"];
+    OOO   [label="2oo3 voting\nSC-SIL4-006"];
+    QUO   [label="quorum floor(N/2)+1\nSC-SIL4-011"];
+    SB    [label="split-brain detection\nSC-SIL4-015"];
+    EM    [label="emergency stop <5s\nSC-SAFETY-022"];
+    WD    [label="state watchdog 100ms\nSC-WATCHDOG-001"];
+    TC    [label="tricameral consensus\nSC-CONSENSUS-001"];
+    BD    [label="boot DAG\nSC-SIL4-010"];
+    IR    [label="Immutable Register\nSC-FUNC-006"];
+  }
+
+  // Scheduler primitives (centre)
+  subgraph cluster_sched {
+    label="Integrated scheduler primitives"; fontcolor="#00d4aa"; color="#00d4aa"; style=rounded;
+    DEQ    [label="dequeue + dispatch" color="#00d4aa" fillcolor="#143a32"];
+    PRIO   [label="multifactor priority" color="#00d4aa" fillcolor="#143a32"];
+    PREMP  [label="QoS preemption" color="#00d4aa" fillcolor="#143a32"];
+    RESV   [label="reservation" color="#00d4aa" fillcolor="#143a32"];
+    CGRP   [label="cgroup wrap" color="#00d4aa" fillcolor="#143a32"];
+    ACCT   [label="per-job accounting" color="#00d4aa" fillcolor="#143a32"];
+    P0J    [label="P0 job\n--array=3" color="#00d4aa" fillcolor="#143a32"];
+    PAUSE  [label="scheduler-pause-all" color="#00d4aa" fillcolor="#143a32"];
+    TICK   [label="tick <100ms" color="#00d4aa" fillcolor="#143a32"];
+  }
+
+  // Scheduler-specific SIL constraints (right)
+  subgraph cluster_scsil {
+    label="SC-SCHED-SIL-001..008"; fontcolor="#f5a623"; color="#f5a623"; style=rounded;
+    SIL1 [label="-001 quorum gate"];
+    SIL2 [label="-002 P0 = 2oo3"];
+    SIL3 [label="-003 long-reserv consensus"];
+    SIL4 [label="-004 SIGTERM→SIGKILL apoptosis"];
+    SIL5 [label="-005 tick <100ms"];
+    SIL6 [label="-006 mutations to IR"];
+    SIL7 [label="-007 cgroup for L0 jobs"];
+    SIL8 [label="-008 boot DAG tier 7"];
+  }
+
+  // SIL-6 invariants → scheduler primitives → SC-SCHED-SIL constraints
+  GUARD -> DEQ -> SIL1; QUO -> DEQ; QUO -> SIL1;
+  Y2 -> PAUSE -> EM;  Y3 -> ACCT;
+  DG -> ACCT -> SIL6 -> IR;
+  OOO -> P0J -> SIL2;
+  SB -> PAUSE; PAUSE -> EM -> SIL1;
+  WD -> TICK -> SIL5;
+  TC -> RESV -> SIL3;
+  BD -> SIL8;
+  PREMP -> SIL4; CGRP -> SIL7;
+  PRIO -> TICK;
+
+  legend [shape=plaintext fontcolor="#7a8fa6" label="Every SIL-6 invariant has at least one scheduler primitive honouring it\nEvery scheduler primitive has at least one SC-SCHED-SIL constraint\nVertical traceability: invariant ↔ primitive ↔ SC-SCHED-SIL ↔ FMEA row"];
+}

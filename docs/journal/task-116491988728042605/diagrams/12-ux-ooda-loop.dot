@@ -1,0 +1,82 @@
+digraph ooda_loop {
+  rankdir=LR; bgcolor="#0a0e17"; fontname="JetBrains Mono"; fontcolor="#e0e6ed"; fontsize=11;
+  node [fontname="JetBrains Mono" fontsize=10 color="#1e2a3a" fontcolor="#e0e6ed" style="filled,rounded" shape=box];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  // Cycle nodes
+  Observe [label="OBSERVE\n(<30 ms agent tier)" fillcolor="#0d2812" fontcolor="#3dd68c" shape=ellipse];
+  Orient  [label="ORIENT\n(<100 ms intelligence tier)" fillcolor="#1a2030" fontcolor="#ffd93d" shape=ellipse];
+  Decide  [label="DECIDE\n(<50 ms cortex tier)" fillcolor="#101a30" fontcolor="#4d96ff" shape=ellipse];
+  Act     [label="ACT\n(<1000 ms strategy tier)" fillcolor="#1c1228" fontcolor="#9b59b6" shape=ellipse];
+  Verify  [label="VERIFY\n(TLA+ + RETE-UL invariants)" fillcolor="#2a1414" fontcolor="#e74c3c" shape=ellipse];
+
+  // OBSERVE inputs
+  O_DQ   [label="DQ scan canary\n(every 5 min)" fillcolor="#0a2a23"];
+  O_PC   [label="page-checker\n(every 3 min)" fillcolor="#0a2a23"];
+  O_OTEL [label="OTel spans\nindrajaal/otel/spans/**" fillcolor="#0a2a23"];
+  O_NIF  [label="plan_status NIF\n(<1 ms knowledge tier)" fillcolor="#0a2a23"];
+
+  // ORIENT mechanisms
+  Or_Cls [label="cortex.rs intent\nclassification" fillcolor="#1a2030"];
+  Or_RAG [label="RAG context\n(Smriti FTS5 ~4 ms)" fillcolor="#1a2030"];
+  Or_ZK  [label="Zettelkasten recall\n(SC-ZK-IMP-001)" fillcolor="#1a2030"];
+
+  // DECIDE engines
+  D_RETE [label="RETE-UL evaluator\n14 domains · 59 rules" fillcolor="#101a30"];
+  D_RUL  [label="ruliology Rule 30/110/184\n(future: data_quality mod)" fillcolor="#101a30"];
+  D_LLM  [label="6-tier hedged inference\n(only on escalation)" fillcolor="#101a30"];
+
+  // ACT effectors
+  A_REJ  [label="Reject ingest\n(L1 NIF / L3 Rust / L4 SQL gate)" fillcolor="#2a1414" fontcolor="#ff6b81"];
+  A_NORM [label="Normalize\n(lowercase status; preserve audit)" fillcolor="#2a2410" fontcolor="#f5a623"];
+  A_BPR  [label="Backpressure\n(Slurm P0 quota)" fillcolor="#1c1228" fontcolor="#9b59b6"];
+  A_FALL [label="FallbackInPagePanel\n(popup-blocker)" fillcolor="#1c1228"];
+  A_PAG  [label="DemandRemotePagination\n(>500 KB payload)" fillcolor="#1c1228"];
+  A_BLK  [label="BlockReleaseToProd\n(page-spec align <0.7)" fillcolor="#2a1414" fontcolor="#ff6b81"];
+
+  // VERIFY surfaces
+  V_TLA  [label="TLA+ DataQualityIngest\nI_VALID ∧ I_AUDIT ∧ I_GATES" fillcolor="#2a1414"];
+  V_TEST [label="gleeunit data_quality_rules_test\n7 rules verified" fillcolor="#2a1414"];
+  V_OTEL [label="OTel feedback span\n(closes the loop)" fillcolor="#2a1414"];
+
+  // Wiring — cycle
+  Observe -> Orient;
+  Orient  -> Decide;
+  Decide  -> Act;
+  Act     -> Verify;
+  Verify  -> Observe [label="closes loop\n(<200 ms total)" color="#3dd68c" fontcolor="#3dd68c"];
+
+  // Inputs to OBSERVE
+  O_DQ   -> Observe;
+  O_PC   -> Observe;
+  O_OTEL -> Observe;
+  O_NIF  -> Observe;
+
+  // ORIENT mechanisms
+  Orient -> Or_Cls [style=dashed];
+  Orient -> Or_RAG [style=dashed];
+  Orient -> Or_ZK  [style=dashed];
+
+  // DECIDE engines
+  Decide -> D_RETE [style=dashed];
+  Decide -> D_RUL  [style=dashed];
+  Decide -> D_LLM  [style=dashed];
+
+  // ACT effectors
+  Act -> A_REJ  [style=dashed];
+  Act -> A_NORM [style=dashed];
+  Act -> A_BPR  [style=dashed];
+  Act -> A_FALL [style=dashed];
+  Act -> A_PAG  [style=dashed];
+  Act -> A_BLK  [style=dashed];
+
+  // VERIFY surfaces
+  Verify -> V_TLA  [style=dashed];
+  Verify -> V_TEST [style=dashed];
+  Verify -> V_OTEL [style=dashed];
+
+  // Annotation
+  note [label="OODA cycle SLA (per CLAUDE.md §17 + SC-SWARM-VERIFY-030..034):\n  Agent tier        < 30 ms\n  Intelligence tier < 100 ms\n  Knowledge tier    < 1 ms (ETS / FTS5)\n  Cortex tier       < 50 ms\n  Strategy tier     < 1000 ms\n  TOTAL CYCLE       < 200 ms typical\n\nOperator-perspective binding:\n  /c3i-status dashboard polls every 30 s\n  Each poll observes the loop's last verdict via /api/v1/dq/status"
+        fillcolor="#0a0e17" fontcolor="#7a8fa6" shape=note];
+  V_OTEL -> note [style=invis];
+}

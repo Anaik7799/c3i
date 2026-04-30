@@ -1,0 +1,51 @@
+digraph federation_flow {
+  rankdir=LR; bgcolor="#0a0e17"; fontname="JetBrains Mono"; fontcolor="#e0e6ed"; fontsize=11;
+  node [fontname="JetBrains Mono" fontsize=10 color="#1e2a3a" fontcolor="#e0e6ed" style="filled,rounded" shape=box];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  // Lanes
+  subgraph cluster_local { label="Local mesh (this node)"; color="#00d4aa"; fontcolor="#00d4aa";
+    L_DQ   [label="Local DQ scan\n(dq-canary 5min)" fillcolor="#0a2a23"];
+    L_VAL  [label="local violations count\n(0 if canonical)" fillcolor="#101a30"];
+    L_CPIG [label="local CPIG score\n(SC-CPIG-FED-001)" fillcolor="#0a2a23"];
+  }
+  subgraph cluster_attest { label="Attestation"; color="#9b59b6"; fontcolor="#9b59b6";
+    A_SIGN [label="Ed25519 sign\n{mesh_id, score, ts}" fillcolor="#1c1228"];
+    A_PUB  [label="publish on\nindrajaal/l7/fed/cpig/attest/{peer}" fillcolor="#1c1228"];
+  }
+  subgraph cluster_peers { label="Peer regions (eu / us-west / asia)"; color="#e74c3c"; fontcolor="#e74c3c";
+    P_EU [label="EU region\n(receives + verifies)" fillcolor="#2a1414"];
+    P_US [label="US-West region" fillcolor="#2a1414"];
+    P_AS [label="Asia region" fillcolor="#2a1414"];
+  }
+  subgraph cluster_quorum { label="Multi-region quorum"; color="#f5a623"; fontcolor="#f5a623";
+    Q_VOTE [label="2oo3 vote\n(SC-SIL4-006)" fillcolor="#2a2410" shape=diamond];
+    Q_FED  [label="federated CPIG = median\n(SC-CPIG-FED-001)" fillcolor="#0d2812" fontcolor="#3dd68c"];
+  }
+  subgraph cluster_outcome { label="Outcome"; color="#4d96ff"; fontcolor="#4d96ff";
+    O_OK   [label="federated score ≥ local\n(no drift)" fillcolor="#0d2812" fontcolor="#3dd68c"];
+    O_DRIFT[label="|local − fed| > 5\n→ P0 alert (SC-CPIG-FED-005)" fillcolor="#2a1414" fontcolor="#ff6b81" shape=octagon];
+    O_GATE [label="Slurm-style admission gate\n(P0 quota check)" fillcolor="#101a30"];
+  }
+
+  // Wiring
+  L_DQ -> L_VAL;
+  L_VAL -> L_CPIG;
+  L_CPIG -> A_SIGN [label="every hour"];
+  A_SIGN -> A_PUB [label="OTel span"];
+  A_PUB -> P_EU [label="Zenoh fan-out\nTTL 3600 s"];
+  A_PUB -> P_US;
+  A_PUB -> P_AS;
+  P_EU -> Q_VOTE;
+  P_US -> Q_VOTE;
+  P_AS -> Q_VOTE;
+  Q_VOTE -> Q_FED [label="2-of-3 agree"];
+  Q_FED -> O_OK;
+  Q_FED -> O_DRIFT [label="|delta| > 5"];
+  Q_FED -> O_GATE [label="admission decision"];
+
+  // Annotation
+  note [label="Federation invariants:\n  · every attestation Ed25519-signed (SC-CPIG-FED-002)\n  · attestations expire 1 h (SC-SMRITI-110 + SC-CPIG-FED-003)\n  · 2oo3 quorum mandatory (SC-SIL4-006)\n  · |local − federated| > 5 → P0 (SC-CPIG-FED-005)\n  · split-brain → apoptosis (SC-SIL4-015 + SC-CPIG-FED-007)\n  · CPIG promotion requires unanimous regions (SC-CPIG-FED-010)\n\nLatency budget: <30 s for full attestation cycle"
+        fillcolor="#0a0e17" fontcolor="#7a8fa6" shape=note];
+  O_GATE -> note [style=invis];
+}

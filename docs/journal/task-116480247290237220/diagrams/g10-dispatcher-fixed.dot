@@ -1,0 +1,47 @@
+digraph G10DispatcherFixed {
+  rankdir=LR;
+  labelloc="t";
+  label="G10 — Post-Pass-10 Dispatcher Fixed (commit 106862017d)";
+  fontname="Helvetica";
+  fontsize=16;
+  bgcolor="#fafafa";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10];
+  edge [fontname="Helvetica", fontsize=9];
+
+  oban [label="oban_jobs table\nworker='gleam_run'", shape=cylinder, fillcolor="#fce4ec", color="#ad1457"];
+
+  subgraph cluster_workers {
+    label="workers.rs (AUTHORITATIVE — Pass-10 fix)";
+    style="rounded,filled";
+    fillcolor="#e8f5e9";
+    color="#1b5e20";
+    workers_disp [label="workers::dispatch", fillcolor="#a5d6a7"];
+    http_h  [label="http_probe ✓", fillcolor="#c8e6c9"];
+    file_h  [label="file_check ✓", fillcolor="#c8e6c9"];
+    gleam_h [label="gleam_run ✓\n★ NEW match arm ★", fillcolor="#66bb6a", color="#1b5e20", fontcolor="white", penwidth=2];
+    runproc [label="process_runner::run\n+ telemetry", fillcolor="#a5d6a7"];
+    workers_disp -> http_h   [color="#2e7d32"];
+    workers_disp -> file_h   [color="#2e7d32"];
+    workers_disp -> gleam_h  [color="#1b5e20", penwidth=3];
+    gleam_h -> runproc       [color="#1b5e20", penwidth=2];
+  }
+
+  subgraph cluster_sched {
+    label="scheduler.rs (legacy — still has handler for legacy callers)";
+    style="rounded,filled";
+    fillcolor="#f3e5f5";
+    color="#6a1b9a";
+    sched_disp [label="dispatch (workflow)", fillcolor="#e1bee7"];
+    gleam_in_sched [label="gleam_run ✓\n(parity)", fillcolor="#ce93d8"];
+    sched_disp -> gleam_in_sched;
+  }
+
+  ok [label="mark_completed\nstate='completed'", shape=cylinder, fillcolor="#c8e6c9", color="#1b5e20"];
+
+  oban -> workers_disp [label="claim → dispatch", color="#1b5e20", penwidth=2];
+  runproc -> ok        [label="exit=0", color="#2e7d32", penwidth=2];
+
+  note [label="Pass-10 commit: 106862017d\n• Added gleam_run match arm to workers.rs\n• Both dispatchers now have parity\n• workers.rs is authoritative for oban path",
+        shape=note, fillcolor="#dcedc8", color="#558b2f"];
+  ok -> note [style=invis];
+}

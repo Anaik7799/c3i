@@ -1,0 +1,40 @@
+digraph fmea_tree {
+  rankdir=LR; bgcolor="#0a0e17"; fontname="JetBrains Mono"; fontcolor="#e0e6ed"; fontsize=11;
+  node [fontname="JetBrains Mono" fontsize=10 color="#1e2a3a" fontcolor="#e0e6ed" style="filled,rounded" shape=box];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  Root [label="Root cause\nL5 Design: SC-WIRE protects\nTYPE drift not VALUE drift" fillcolor="#2a1414" fontcolor="#ff6b81" shape=octagon];
+
+  // Symptom layer
+  S1 [label="L1 Symptom\nGrey badges on /planning\n83 corrupt rows visible" fillcolor="#1a2030"];
+  S2 [label="L2 Surface\nplanning-grid.js:786\ncolour map lower-case only" fillcolor="#1a2030"];
+  S3 [label="L3 System\ndb::add_task arbitrary string\ndb::update_status arbitrary string" fillcolor="#1a2030"];
+  S4 [label="L4 Configuration\nNo enum gate at NIF or Rust\nPi-mono Completed leaked\nCLI parser bug --priority leaked" fillcolor="#1a2030"];
+
+  // Mitigations
+  M1 [label="L1 NIF whitelist\nplan_add_task valid={P0..P3}\nplan_update_task valid={4 statuses}" fillcolor="#2a2410" fontcolor="#ffd93d"];
+  M2 [label="L3 Rust validators\nvalidate_priority\nvalidate_status\nnormalize_status" fillcolor="#101a30" fontcolor="#4d96ff"];
+  M3 [label="L4 Schema CHECK\nALTER TABLE ⇒ recreate\nCHECK(Priority IN P0..P3)\nCHECK(Status IN 4)" fillcolor="#1f1228" fontcolor="#9b59b6"];
+  M4 [label="L4 Audit table\ndq_audit (83 entries from cleanup)" fillcolor="#1c1228" fontcolor="#9b59b6"];
+  M5 [label="L4 Cron defense (Oban+Slurm)\ndq-hourly + dq-canary 5min\npage-check 3min\n32/32 pages PASS live" fillcolor="#1c1228" fontcolor="#9b59b6"];
+  M6 [label="L5 RETE-UL data_quality\n7 rules salience 75-100\nEnforce/Block/Backpressure" fillcolor="#0a2a23" fontcolor="#00d4aa"];
+  M7 [label="L5 page_checker.gleam\n32 PageSpec records\nJaccard alignment ≥ 0.7" fillcolor="#0a2a23" fontcolor="#00d4aa"];
+  M8 [label="L5 UI fixes\n<a target=_blank> rowClick\nKnowledge Lookup → real ZK\nstaleness column status-aware\naria-label on inputs" fillcolor="#0a2a23" fontcolor="#00d4aa"];
+  M9 [label="L6 OTel propagation\nindrajaal/l3/dq/violations/{run_id}\nTelegram/GChat alerts (next phase)" fillcolor="#2a1414" fontcolor="#e74c3c"];
+
+  // Tree
+  Root -> S4 -> S3 -> S2 -> S1;
+  S4 -> M1 [color="#3dd68c" fontcolor="#3dd68c" label="closed"];
+  S3 -> M2 [color="#3dd68c" fontcolor="#3dd68c" label="closed"];
+  S3 -> M3 [color="#3dd68c" fontcolor="#3dd68c" label="closed"];
+  S1 -> M4 [color="#3dd68c" fontcolor="#3dd68c" label="closed"];
+  Root -> M5 [color="#3dd68c" fontcolor="#3dd68c" label="prevention"];
+  Root -> M6 [color="#3dd68c" fontcolor="#3dd68c" label="prevention"];
+  Root -> M7 [color="#3dd68c" fontcolor="#3dd68c" label="prevention"];
+  S1 -> M8 [color="#3dd68c" fontcolor="#3dd68c" label="UX repair"];
+  Root -> M9 [color="#f5a623" fontcolor="#f5a623" label="partial"];
+
+  // RPN summary
+  rpn [label="FMEA RPN\nbefore: 336 (S=8 O=7 D=6)\nafter:  ~12 (S=8 O=1 D=2)\nreduction: 96%" fillcolor="#0a0e17" fontcolor="#3dd68c" shape=note];
+  M9 -> rpn [style=invis];
+}

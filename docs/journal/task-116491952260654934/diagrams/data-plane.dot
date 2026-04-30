@@ -1,0 +1,24 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="#0b1020", fontname="Helvetica", labelloc=t, label="Pi x Claude Symbiosis — Data Plane"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", color="#22c55e", fillcolor="#13291f", fontcolor="#eafff3"];
+  edge [color="#86efac", penwidth=1.4];
+  User[label="User intent"];
+  Recall[label="ZK recall + FY27 recall"];
+  Pii[label="PII scrubber"];
+  Hedge[label="6-tier / 4-breaker inference"];
+  Events[label="AG-UI 32 events"];
+  A2[label="A2UI 233 catalog"];
+  Moz[label="MoZ req/res"];
+  Zenoh[label="Zenoh mesh"];
+  OTel[label="OoZ spans"];
+  Smriti[label="Smriti.db / session_metrics"];
+  UI[label="Lustre / Wisp / TUI / Pi web-ui"];
+  User -> Recall -> Pii -> Hedge -> Events -> Zenoh -> UI;
+  Hedge -> OTel -> Zenoh;
+  Hedge -> Moz -> Zenoh;
+  Events -> A2 -> UI;
+  Events -> Smriti;
+  Moz -> Smriti;
+  OTel -> Smriti;
+  Zenoh -> Smriti [label="audit / correlation"];
+}

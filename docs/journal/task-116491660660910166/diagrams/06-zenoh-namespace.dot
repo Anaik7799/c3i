@@ -1,0 +1,37 @@
+digraph zenoh_ns {
+  rankdir=LR; bgcolor="#0a0e17"; fontname="JetBrains Mono"; fontcolor="#e0e6ed"; fontsize=11;
+  node [fontname="JetBrains Mono" fontsize=10 color="#1e2a3a" fontcolor="#e0e6ed" style="filled,rounded" shape=box];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  Mesh [label="Zenoh router\ntcp/zenoh-router:7447" fillcolor="#2a1414" fontcolor="#e74c3c" shape=ellipse];
+
+  subgraph cluster_otel { label="OoZ — OTel-over-Zenoh"; color="#9b59b6"; fontcolor="#9b59b6";
+    OT1 [label="indrajaal/otel/spans/{page}/{op}\n(Lustre update/2 emit)" fillcolor="#1c1228"];
+    OT2 [label="indrajaal/l1/atomic/{nif}/{op}\n(NIF telemetry)" fillcolor="#1c1228"];
+    OT3 [label="indrajaal/l5/cog/trace/{id}\n(PipelineTracer batched)" fillcolor="#1c1228"];
+  }
+  subgraph cluster_dq { label="Data Quality (NEW pass-9)"; color="#00d4aa"; fontcolor="#00d4aa";
+    DQ1 [label="indrajaal/l3/dq/violations/{run_id}\n(scan worker output)" fillcolor="#0a2a23"];
+    DQ2 [label="indrajaal/l3/dq/cleanup/{run_id}\n(audit_log per-row delta)" fillcolor="#0a2a23"];
+    DQ3 [label="indrajaal/l5/spec/violation/{page}\n(page_checker drift)" fillcolor="#0a2a23"];
+  }
+  subgraph cluster_moz { label="MoZ — MCP-over-Zenoh"; color="#4d96ff"; fontcolor="#4d96ff";
+    MZ1 [label="indrajaal/mcp/req/{tool}/{id}" fillcolor="#101a30"];
+    MZ2 [label="indrajaal/mcp/res/{id}" fillcolor="#101a30"];
+  }
+  subgraph cluster_health { label="Health + cluster"; color="#ffd93d"; fontcolor="#ffd93d";
+    H1 [label="indrajaal/l2/health/{node}" fillcolor="#2a2410"];
+    H2 [label="indrajaal/cluster/events" fillcolor="#2a2410"];
+    H3 [label="indrajaal/sentinel/threats" fillcolor="#2a2410"];
+  }
+  subgraph cluster_l0 { label="L0 Constitutional"; color="#ff6b6b"; fontcolor="#ff6b6b";
+    K1 [label="indrajaal/l0/const/tool_gate" fillcolor="#2a1818"];
+    K2 [label="indrajaal/l0/const/emergency_stop" fillcolor="#2a1818"];
+  }
+
+  Mesh -> OT1; Mesh -> OT2; Mesh -> OT3;
+  Mesh -> DQ1 [color="#3dd68c"]; Mesh -> DQ2 [color="#3dd68c"]; Mesh -> DQ3 [color="#3dd68c"];
+  Mesh -> MZ1; Mesh -> MZ2;
+  Mesh -> H1; Mesh -> H2; Mesh -> H3;
+  Mesh -> K1; Mesh -> K2;
+}

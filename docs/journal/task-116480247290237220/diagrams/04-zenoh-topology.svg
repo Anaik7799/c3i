@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" font-family="ui-sans-serif,system-ui">
+  <rect width="100%" height="100%" fill="#0a0e17"/>
+  <text x="500" y="30" fill="#e0e6ed" font-size="20" font-weight="700" text-anchor="middle">Zenoh Topology — indrajaal/l5/test/marionette/**</text>
+
+  <!-- center router -->
+  <circle cx="500" cy="280" r="80" fill="#1e2a3a" stroke="#00d4aa" stroke-width="2"/>
+  <text x="500" y="270" fill="#e0e6ed" font-size="14" text-anchor="middle" font-weight="700">Zenoh router</text>
+  <text x="500" y="290" fill="#7a8fa6" font-size="11" text-anchor="middle">TCP 7447</text>
+  <text x="500" y="308" fill="#7a8fa6" font-size="11" text-anchor="middle">7-topic family</text>
+
+  <!-- producers -->
+  <g font-size="11">
+    <rect x="60" y="60" width="220" height="60" rx="8" fill="#1e2a3a" stroke="#ffa502"/>
+    <text x="170" y="85" fill="#e0e6ed" text-anchor="middle">PostToolUse hook</text>
+    <text x="170" y="105" fill="#7a8fa6" text-anchor="middle">.../start  .../passed  .../quit</text>
+
+    <rect x="60" y="140" width="220" height="60" rx="8" fill="#1e2a3a" stroke="#ffa502"/>
+    <text x="170" y="165" fill="#e0e6ed" text-anchor="middle">screenshot publisher</text>
+    <text x="170" y="185" fill="#7a8fa6" text-anchor="middle">.../screenshot</text>
+
+    <rect x="60" y="220" width="220" height="60" rx="8" fill="#1e2a3a" stroke="#ffa502"/>
+    <text x="170" y="245" fill="#e0e6ed" text-anchor="middle">discovery-first guard</text>
+    <text x="170" y="265" fill="#7a8fa6" text-anchor="middle">.../violation</text>
+
+    <rect x="60" y="300" width="220" height="60" rx="8" fill="#1e2a3a" stroke="#ffa502"/>
+    <text x="170" y="325" fill="#e0e6ed" text-anchor="middle">marionette_cli (CI)</text>
+    <text x="170" y="345" fill="#7a8fa6" text-anchor="middle">all phases via SC-MARIONETTE-008</text>
+  </g>
+
+  <!-- consumers -->
+  <g font-size="11">
+    <rect x="720" y="60" width="220" height="60" rx="8" fill="#1e2a3a" stroke="#9b59b6"/>
+    <text x="830" y="85" fill="#e0e6ed" text-anchor="middle">Dashboard tile</text>
+    <text x="830" y="105" fill="#7a8fa6" text-anchor="middle">live KPI rollup</text>
+
+    <rect x="720" y="140" width="220" height="60" rx="8" fill="#1e2a3a" stroke="#9b59b6"/>
+    <text x="830" y="165" fill="#e0e6ed" text-anchor="middle">RETE-UL rule_engine</text>
+    <text x="830" y="185" fill="#7a8fa6" text-anchor="middle">10 rules · advisory back-channel</text>
+
+    <rect x="720" y="220" width="220" height="60" rx="8" fill="#1e2a3a" stroke="#9b59b6"/>
+    <text x="830" y="245" fill="#e0e6ed" text-anchor="middle">FMEA aggregator</text>
+    <text x="830" y="265" fill="#7a8fa6" text-anchor="middle">RPN rollup</text>
+
+    <rect x="720" y="300" width="220" height="60" rx="8" fill="#1e2a3a" stroke="#9b59b6"/>
+    <text x="830" y="325" fill="#e0e6ed" text-anchor="middle">session_metrics writer</text>
+    <text x="830" y="345" fill="#7a8fa6" text-anchor="middle">smriti.db</text>
+
+    <rect x="720" y="380" width="220" height="60" rx="8" fill="#1e2a3a" stroke="#9b59b6"/>
+    <text x="830" y="405" fill="#e0e6ed" text-anchor="middle">Pi runtime · Gemini</text>
+    <text x="830" y="425" fill="#7a8fa6" text-anchor="middle">via MoZ (SC-ZMOF-001)</text>
+  </g>
+
+  <!-- arrows in -->
+  <g stroke="#ffa502" stroke-width="1.5" fill="none">
+    <path d="M280,90 Q400,180 420,260"/>
+    <path d="M280,170 Q400,220 425,275"/>
+    <path d="M280,250 Q400,260 425,285"/>
+    <path d="M280,330 Q400,310 425,300"/>
+  </g>
+  <!-- arrows out -->
+  <g stroke="#9b59b6" stroke-width="1.5" fill="none">
+    <path d="M580,255 Q650,170 720,90"/>
+    <path d="M580,275 Q650,200 720,170"/>
+    <path d="M580,290 Q650,250 720,250"/>
+    <path d="M580,300 Q650,310 720,330"/>
+    <path d="M580,310 Q650,360 720,410"/>
+  </g>
+
+  <!-- envelope schema box -->
+  <rect x="100" y="430" width="800" height="110" rx="8" fill="#0a0e17" stroke="#7a8fa6"/>
+  <text x="500" y="455" fill="#e0e6ed" font-size="13" text-anchor="middle">Envelope schema</text>
+  <text x="500" y="478" fill="#7a8fa6" font-size="10" text-anchor="middle" font-family="ui-monospace,monospace">{ at, source, urn:c3i:test:marionette:&lt;app&gt;:&lt;TID&gt;, run_id, session_id, phase, platform,</text>
+  <text x="500" y="495" fill="#7a8fa6" font-size="10" text-anchor="middle" font-family="ui-monospace,monospace">  test_target, duration_ms, payload }</text>
+  <text x="500" y="522" fill="#3dd68c" font-size="10" text-anchor="middle">phases ∈ { start · screenshot · passed · failed · quit · violation }</text>
+</svg>

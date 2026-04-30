@@ -1,0 +1,56 @@
+digraph cron_orchestration {
+  rankdir=LR; bgcolor="#0a0e17"; fontname="JetBrains Mono"; fontcolor="#e0e6ed"; fontsize=11;
+  node [fontname="JetBrains Mono" fontsize=10 color="#1e2a3a" fontcolor="#e0e6ed" style="filled,rounded" shape=box];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  // Lanes (vertical clusters)
+  subgraph cluster_clock { label="Clock"; color="#ffd93d"; fontcolor="#ffd93d"; rank=same;
+    Clock [label="cron tick\n(every minute)" fillcolor="#2a2410" shape=parallelogram];
+  }
+  subgraph cluster_scheduler { label="sa-plan-daemon scheduler"; color="#9b59b6"; fontcolor="#9b59b6";
+    Sched [label="scheduler.rs::run_scheduled\n(SC-HA-001 durable)" fillcolor="#1c1228"];
+    Match [label="cron-match check\nreads workflow_schedules" fillcolor="#1c1228" shape=diamond];
+  }
+  subgraph cluster_workers { label="workers.rs registry"; color="#4d96ff"; fontcolor="#4d96ff";
+    Disp [label="dispatch(worker, args)\nSC-DISP-REGISTRY-001..010" fillcolor="#101a30"];
+    GR [label="gleam_run worker\n(invokes gleam script)" fillcolor="#101a30"];
+  }
+  subgraph cluster_scripts { label="scripts-gleam"; color="#00d4aa"; fontcolor="#00d4aa";
+    DQ [label="data_quality_scan.gleam\n(hourly + 5min)" fillcolor="#0a2a23"];
+    PC [label="page_checker.gleam\n(every 3 min, 32 pages)" fillcolor="#0a2a23"];
+  }
+  subgraph cluster_targets { label="Probe targets"; color="#e74c3c"; fontcolor="#e74c3c";
+    SQL [label="sqlite3 -readonly Smriti.db\n(3 SELECT COUNT queries)" fillcolor="#2a1414"];
+    HTTP [label="curl http://…:4100/{page}\n(32 GET requests)" fillcolor="#2a1414"];
+  }
+  subgraph cluster_outcomes { label="Outcomes"; color="#3dd68c"; fontcolor="#3dd68c";
+    OK [label="0 violations / 32/32 pass\n→ NoAction (decision)" fillcolor="#0d2812"];
+    Drift [label="≥1 violation / drift > 5\n→ open P1 sa-plan task\n+ Telegram alert (deferred)" fillcolor="#2a1414" fontcolor="#ff6b81"];
+    Jidoka [label="failed_5xx > 0 OR total ≥ 50\n→ JIDOKA P0\n(stop-the-line)" fillcolor="#2a1414" fontcolor="#ff6b81" shape=octagon];
+  }
+
+  // Wiring
+  Clock -> Match;
+  Match -> Disp [label="match!"];
+  Disp -> GR;
+  GR -> DQ [label="dq-hourly | dq-canary"];
+  GR -> PC [label="page-check-3min"];
+  DQ -> SQL [label="os:cmd"];
+  PC -> HTTP [label="os:cmd"];
+  SQL -> OK [label="0/0/0"];
+  SQL -> Drift [label=">0"];
+  SQL -> Jidoka [label="≥50"];
+  HTTP -> OK [label="32/32 200"];
+  HTTP -> Drift [label="drift > 5"];
+  HTTP -> Jidoka [label="any 5xx"];
+
+  // Workflow events feedback
+  OK -> Sched [label="workflow_events: completed" style=dashed];
+  Drift -> Sched [label="workflow_events: drift_detected" style=dashed];
+  Jidoka -> Sched [label="workflow_events: jidoka_halt" style=dashed];
+
+  // Annotation
+  note [label="3 schedules active (verified live):\n  dq-hourly  (Oban: cron 0 * * * *, max-attempts 3)\n  dq-canary  (Slurm: */5 * * * *, max-attempts 1)\n  page-check (Slurm: */3 * * * *, max-attempts 1)\n\nLatency budget per tick:\n  scheduler match: <50 ms\n  worker dispatch: <100 ms\n  os:cmd execution: ~50 ms\n  total wall-clock per tick: <500 ms"
+        fillcolor="#0a0e17" fontcolor="#7a8fa6" shape=note];
+  Jidoka -> note [style=invis];
+}

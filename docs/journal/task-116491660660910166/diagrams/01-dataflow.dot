@@ -1,0 +1,57 @@
+digraph dataflow {
+  rankdir=LR; bgcolor="#0a0e17"; fontname="JetBrains Mono"; fontcolor="#e0e6ed"; fontsize=11;
+  node [fontname="JetBrains Mono" fontsize=10 color="#1e2a3a" fontcolor="#e0e6ed" style="filled,rounded" shape=box];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  subgraph cluster_browser { label="Browser"; color="#1e2a3a"; fontcolor="#7a8fa6";
+    UI [label="planning-grid.js\n1808 LOC" fillcolor="#1a2030"];
+    Tab [label="Tabulator 6.3\n3 grids" fillcolor="#1a2030"];
+  }
+  subgraph cluster_wisp { label="Wisp router (port 4100)"; color="#00d4aa"; fontcolor="#00d4aa";
+    R_GET   [label="GET /planning\n→ Lustre SSR" fillcolor="#1a2030"];
+    R_API   [label="GET /api/v1/planning\n/api/v1/zk/search\n/api/v1/plan/search" fillcolor="#1a2030"];
+    R_POST  [label="POST /planning/add\nPOST /planning/update" fillcolor="#1a2030"];
+    R_WS    [label="WS /ws/planning\nWS /ws/dashboard" fillcolor="#1a2030"];
+  }
+  subgraph cluster_l1 { label="L1 NIF gate (Gleam c3i_nif)"; color="#ffd93d"; fontcolor="#ffd93d";
+    NIF1 [label="plan_add_task\n[VALID:{P0..P3}]" fillcolor="#2a2410"];
+    NIF2 [label="plan_update_task\n[VALID:{4 statuses}]" fillcolor="#2a2410"];
+    NIF3 [label="plan_search\nplan_get_task\nknowledge_search (FTS5)" fillcolor="#1a2030"];
+  }
+  subgraph cluster_l3 { label="L3 Rust daemon (planning_daemon)"; color="#4d96ff"; fontcolor="#4d96ff";
+    D_ADD  [label="db::add_task\nvalidate_priority?" fillcolor="#101a30"];
+    D_UPD  [label="db::update_task_status\nvalidate_status?" fillcolor="#101a30"];
+    D_QRY  [label="db::get_all_tasks\ndb::get_task" fillcolor="#1a2030"];
+  }
+  subgraph cluster_smriti { label="Smriti.db"; color="#9b59b6"; fontcolor="#9b59b6";
+    Tasks [label="Tasks\nCHECK(Priority)\nCHECK(Status)\n(L4 schema gate)" fillcolor="#1f1228"];
+    Audit [label="dq_audit\n(SC-SAFETY-003)" fillcolor="#1f1228"];
+    Sched [label="workflow_schedules\n(Oban+Slurm crons)" fillcolor="#1f1228"];
+    FTS   [label="FTS5 KMS\n(ZK holons)" fillcolor="#1f1228"];
+  }
+  subgraph cluster_zenoh { label="Zenoh OTel mesh"; color="#e74c3c"; fontcolor="#e74c3c";
+    OTel [label="indrajaal/otel/spans/{page}/{op}\nindrajaal/l3/dq/violations/{run_id}\nindrajaal/l5/cog/trace/{id}" fillcolor="#2a1818"];
+  }
+
+  UI -> R_GET [label="GET HTML"];
+  UI -> Tab;
+  Tab -> R_API [label="JSON / SSE"];
+  UI -> R_API [label="fetch"];
+  UI -> R_POST [label="POST add/update"];
+  UI -> R_WS [label="WebSocket"];
+  R_API -> NIF3 [label="NIF call"];
+  R_POST -> NIF1; R_POST -> NIF2;
+  NIF1 -> D_ADD [label="passes L1 gate"];
+  NIF2 -> D_UPD [label="passes L1 gate"];
+  NIF3 -> D_QRY;
+  NIF3 -> FTS [label="zk/search"];
+  D_ADD -> Tasks [label="passes L3 gate\n+ L4 CHECK"];
+  D_UPD -> Tasks;
+  D_QRY -> Tasks;
+  D_ADD -> OTel [label="span"];
+  D_UPD -> OTel;
+  R_GET -> OTel [label="zenoh_otel.emit"];
+  Tasks -> Audit [label="dq_audit on cleanup" style=dashed];
+  Sched -> NIF3 [label="cron tick" style=dashed color="#f5a623"];
+  Sched -> D_QRY [label="dq_quality_scan" style=dashed color="#f5a623"];
+}

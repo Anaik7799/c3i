@@ -1,0 +1,36 @@
+digraph PageCheckerActor {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", fontname="Helvetica", style="filled,rounded"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  subgraph cluster_input { label="Input"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    cron [label="every 60s\n(or sub-second on outage)", fillcolor="#141922"];
+    http [label="HTTP probe\n→ status_code + served_html", fillcolor="#141922"];
+  }
+  subgraph cluster_actor { label="Pass-22 — page_checker.gleam (PURE)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    init [label="init() → CheckerState\nregistry: 6 top-PageRank specs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    align [label="alignment(spec, html)\n= |E ∩ A| / |E|\nJaccard score", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    build [label="build_report\nstatus + sections_found/total\n+ alignment_score", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    classify [label="classify(report)\n→ CheckerAction", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    tick [label="tick(state, reports)\n→ (state', actions)\n+ apoptosis on 3 outages", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_actions { label="CheckerAction (escalation)"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    a1 [label="NoAction\nscore ≥ 0.9", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    a2 [label="EmitOtelSpan\n0.7 ≤ score < 0.9 (Drift)", fillcolor="#f5a623", fontcolor="#0a0e17"];
+    a3 [label="OpenP1Task\nscore < 0.7 (Misaligned)\nSC-PAGE-SPEC-003", fillcolor="#ff6b81", fontcolor="#0a0e17"];
+    a4 [label="OpenP0Task\n5xx (Outage)\nSC-PAGE-SPEC-004", fillcolor="#ff4757", fontcolor="#fff"];
+    a5 [label="Apoptosis\n3 consecutive outages", fillcolor="#ff4757", fontcolor="#fff"];
+  }
+  subgraph cluster_tests { label="25 gleeunit tests (all pass)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    t [label="6 init/registry\n4 alignment math\n1 build_report\n4 classify→action\n1 escalation level\n3 tick state machine\n3 mean+counts\n+ 3 sub-cases", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+
+  cron -> http; http -> build;
+  init -> tick; build -> tick;
+  tick -> classify; classify -> a1; classify -> a2; classify -> a3; classify -> a4;
+  tick -> a5 [label="3+ outages"];
+  align -> build [style=dotted];
+  t -> tick [style=dotted, color="#00d4aa"];
+  t -> classify [style=dotted, color="#00d4aa"];
+  t -> align [style=dotted, color="#00d4aa"];
+}

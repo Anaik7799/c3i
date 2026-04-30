@@ -1,0 +1,66 @@
+digraph G24_CPIG_Roadmap {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=11, fontcolor="#e0e6ed", color="#1e2a3a", fillcolor="#0e1420"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontsize=10];
+  labelloc=t;
+  label=<<font color="#00d4aa" point-size="16"><b>G24 - CPIG Roadmap (Pass 12 → 15: 32/60 → 60/60)</b></font><br/><font color="#7a8fa6" point-size="10">cumulative System CPIG score progression — Pass 14 lands at 91.7%</font>>;
+
+  // Pass nodes (top row, score progression)
+  p12 [label=<<b>Pass 12</b><br/><font point-size="22" color="#f5a623">32 / 60</font><br/><font point-size="9" color="#7a8fa6">53% baseline</font>>, fillcolor="#101a26"];
+  p13 [label=<<b>Pass 13</b><br/><font point-size="22" color="#f5a623">36 / 60</font><br/><font point-size="9" color="#7a8fa6">60% — 4 P0 seeds</font>>, fillcolor="#101a26", color="#f5a623"];
+  p14 [label=<<b>Pass 14 (now)</b><br/><font point-size="22" color="#3dd68c">55 / 60</font><br/><font point-size="9" color="#7a8fa6">91.7% — 9 of 12 at 5/5</font>>, fillcolor="#101a26", color="#3dd68c", penwidth=2];
+  p15 [label=<<b>Pass 15</b><br/><font point-size="22" color="#00d4aa">60 / 60</font><br/><font point-size="9" color="#7a8fa6">100% — 5 final gates</font>>, fillcolor="#101a26", color="#00d4aa", penwidth=2];
+
+  p12 -> p13 [label="+ 4 TLA+ specs\n+ 4 Wiring Guards\n(FerrisKey, FractalWidgets,\nZenoh, CEPAF)", color="#f5a623"];
+  p13 -> p14 [label="+ 5 TLA+ specs\n+ 4 Wiring Guards\n(PiMono, ScriptsGleam,\nPatrol, DartMCP, GleamUI)", color="#3dd68c"];
+  p14 -> p15 [label="+ 5 final gates\n(Dart×zk, Cortex×{zk,email},\nFractalWidgets×{zk,email})", color="#00d4aa"];
+
+  // Pass 14 winners — moved from gaps to 5/5
+  subgraph cluster_p14_done {
+    label=<<font color="#3dd68c"><b>Pass 14 — Closed to 5/5</b></font>>;
+    style="rounded,dashed";
+    color="#3dd68c";
+    fontcolor="#3dd68c";
+    pi    [label="Pi-mono\n3/5 → 5/5", fillcolor="#0e1a14", color="#3dd68c"];
+    sg    [label="scripts-gleam\n3/5 → 5/5", fillcolor="#0e1a14", color="#3dd68c"];
+    pm    [label="Patrol MCP\n3/5 → 5/5", fillcolor="#0e1a14", color="#3dd68c"];
+    mm    [label="Marionette MCP\n4/5 → 5/5", fillcolor="#0e1a14", color="#3dd68c"];
+    gu    [label="Gleam UI\n4/5 → 5/5", fillcolor="#0e1a14", color="#3dd68c"];
+  }
+
+  // Pass 15 remaining — last 5 gates
+  subgraph cluster_p15_target {
+    label=<<font color="#ff4757"><b>Pass 15 — Last 5 gates to 100%</b></font>>;
+    style="rounded,dashed";
+    color="#ff4757";
+    fontcolor="#ff4757";
+    dm    [label="Dart MCP\n4/5 → 5/5\n(zk only)", fillcolor="#1a0a10", color="#ff4757"];
+    cx    [label="Cortex\n3/5 → 5/5\n(zk + email)", fillcolor="#1a0a10", color="#ff4757"];
+    fw    [label="Fractal Widgets\n3/5 → 5/5\n(zk + email)", fillcolor="#1a0a10", color="#ff4757"];
+  }
+
+  // Pass 14 closures
+  p13 -> pi [color="#3dd68c"];
+  p13 -> sg [color="#3dd68c"];
+  p13 -> pm [color="#3dd68c"];
+  p13 -> mm [color="#3dd68c"];
+  p13 -> gu [color="#3dd68c"];
+  pi -> p14 [color="#3dd68c"];
+  sg -> p14 [color="#3dd68c"];
+  pm -> p14 [color="#3dd68c"];
+  mm -> p14 [color="#3dd68c"];
+  gu -> p14 [color="#3dd68c"];
+
+  // Pass 15 path
+  p14 -> dm [color="#ff4757", style=bold, label="P15"];
+  p14 -> cx [color="#ff4757", style=bold];
+  p14 -> fw [color="#ff4757", style=bold];
+  dm -> p15 [color="#ff4757"];
+  cx -> p15 [color="#ff4757"];
+  fw -> p15 [color="#ff4757"];
+
+  // Goal node
+  goal [label=<<b>System CPIG: 100%</b><br/><font point-size="9">12/12 subsystems × 5 gates</font>>, fillcolor="#0a1a14", color="#00d4aa", shape=ellipse];
+  p15 -> goal [color="#00d4aa", style=bold];
+}

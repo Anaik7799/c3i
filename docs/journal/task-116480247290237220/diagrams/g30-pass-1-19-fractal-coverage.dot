@@ -1,0 +1,177 @@
+digraph G30_Pass1To19FractalCoverage {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [shape=box, style="filled", fontname="Helvetica", fontsize=10, fontcolor="#0a0e17", width=0.9, height=0.45];
+  edge [style=invis];
+  labelloc=t;
+  fontsize=14;
+  fontcolor="#00d4aa";
+  label="G30 — Pass 9 → Pass 19 × L0–L7 Fractal Coverage Matrix · cumulative arc";
+
+  // Use a grid: rows = passes (9..19), cols = L0..L7
+  // We'll represent each cell as a node; layout via subgraphs per row.
+  // Color: #3dd68c = touched, #1e2a3a = not touched
+  // Special: green-bright for primary layer of that pass
+
+  // Header row
+  subgraph cluster_header {
+    label="";
+    style=invis;
+    H_pass  [label="Pass", fillcolor="#00d4aa"];
+    H_L0    [label="L0\nConst.", fillcolor="#00d4aa"];
+    H_L1    [label="L1\nNIF", fillcolor="#00d4aa"];
+    H_L2    [label="L2\nCompo.", fillcolor="#00d4aa"];
+    H_L3    [label="L3\nTrans.", fillcolor="#00d4aa"];
+    H_L4    [label="L4\nSystem", fillcolor="#00d4aa"];
+    H_L5    [label="L5\nCog.", fillcolor="#00d4aa"];
+    H_L6    [label="L6\nEcosys.", fillcolor="#00d4aa"];
+    H_L7    [label="L7\nFed.", fillcolor="#00d4aa"];
+    rank=same; H_pass -> H_L0 -> H_L1 -> H_L2 -> H_L3 -> H_L4 -> H_L5 -> H_L6 -> H_L7;
+  }
+
+  // Helper macro pattern: each row = 9 nodes
+  // Pass 9 — design g1 (Allium spec, RETE rules)
+  P9_T  [label="Pass 9", fillcolor="#7a8fa6"];
+  P9_0  [label=" ", fillcolor="#1e2a3a"];
+  P9_1  [label="✓", fillcolor="#3dd68c"];
+  P9_2  [label="✓", fillcolor="#3dd68c"];
+  P9_3  [label=" ", fillcolor="#1e2a3a"];
+  P9_4  [label="✓", fillcolor="#3dd68c"];
+  P9_5  [label="✓", fillcolor="#3dd68c"];
+  P9_6  [label=" ", fillcolor="#1e2a3a"];
+  P9_7  [label=" ", fillcolor="#1e2a3a"];
+  { rank=same; P9_T; P9_0; P9_1; P9_2; P9_3; P9_4; P9_5; P9_6; P9_7; }
+
+  P10_T [label="Pass 10", fillcolor="#7a8fa6"];
+  P10_0 [label=" ", fillcolor="#1e2a3a"];
+  P10_1 [label="✓", fillcolor="#3dd68c"];
+  P10_2 [label=" ", fillcolor="#1e2a3a"];
+  P10_3 [label="✓", fillcolor="#3dd68c"];
+  P10_4 [label="✓", fillcolor="#3dd68c"];
+  P10_5 [label="✓", fillcolor="#3dd68c"];
+  P10_6 [label=" ", fillcolor="#1e2a3a"];
+  P10_7 [label=" ", fillcolor="#1e2a3a"];
+  { rank=same; P10_T; P10_0; P10_1; P10_2; P10_3; P10_4; P10_5; P10_6; P10_7; }
+
+  P11_T [label="Pass 11", fillcolor="#7a8fa6"];
+  P11_0 [label="✓", fillcolor="#3dd68c"];
+  P11_1 [label="✓", fillcolor="#3dd68c"];
+  P11_2 [label="✓", fillcolor="#3dd68c"];
+  P11_3 [label="✓", fillcolor="#3dd68c"];
+  P11_4 [label="✓", fillcolor="#3dd68c"];
+  P11_5 [label="✓", fillcolor="#3dd68c"];
+  P11_6 [label="✓", fillcolor="#3dd68c"];
+  P11_7 [label="✓", fillcolor="#3dd68c"];
+  { rank=same; P11_T; P11_0; P11_1; P11_2; P11_3; P11_4; P11_5; P11_6; P11_7; }
+
+  P12_T [label="Pass 12", fillcolor="#7a8fa6"];
+  P12_0 [label=" ", fillcolor="#1e2a3a"];
+  P12_1 [label=" ", fillcolor="#1e2a3a"];
+  P12_2 [label=" ", fillcolor="#1e2a3a"];
+  P12_3 [label="✓", fillcolor="#3dd68c"];
+  P12_4 [label="✓", fillcolor="#3dd68c"];
+  P12_5 [label="✓", fillcolor="#3dd68c"];
+  P12_6 [label=" ", fillcolor="#1e2a3a"];
+  P12_7 [label=" ", fillcolor="#1e2a3a"];
+  { rank=same; P12_T; P12_0; P12_1; P12_2; P12_3; P12_4; P12_5; P12_6; P12_7; }
+
+  P13_T [label="Pass 13", fillcolor="#7a8fa6"];
+  P13_0 [label="✓", fillcolor="#3dd68c"];
+  P13_1 [label=" ", fillcolor="#1e2a3a"];
+  P13_2 [label=" ", fillcolor="#1e2a3a"];
+  P13_3 [label="✓", fillcolor="#3dd68c"];
+  P13_4 [label="✓", fillcolor="#3dd68c"];
+  P13_5 [label="✓", fillcolor="#3dd68c"];
+  P13_6 [label=" ", fillcolor="#1e2a3a"];
+  P13_7 [label="✓", fillcolor="#3dd68c"];
+  { rank=same; P13_T; P13_0; P13_1; P13_2; P13_3; P13_4; P13_5; P13_6; P13_7; }
+
+  P14_T [label="Pass 14", fillcolor="#7a8fa6"];
+  P14_0 [label=" ", fillcolor="#1e2a3a"];
+  P14_1 [label=" ", fillcolor="#1e2a3a"];
+  P14_2 [label=" ", fillcolor="#1e2a3a"];
+  P14_3 [label="✓", fillcolor="#3dd68c"];
+  P14_4 [label="✓", fillcolor="#3dd68c"];
+  P14_5 [label="✓", fillcolor="#3dd68c"];
+  P14_6 [label="✓", fillcolor="#3dd68c"];
+  P14_7 [label="✓", fillcolor="#3dd68c"];
+  { rank=same; P14_T; P14_0; P14_1; P14_2; P14_3; P14_4; P14_5; P14_6; P14_7; }
+
+  P15_T [label="Pass 15", fillcolor="#7a8fa6"];
+  P15_0 [label="✓", fillcolor="#3dd68c"];
+  P15_1 [label=" ", fillcolor="#1e2a3a"];
+  P15_2 [label=" ", fillcolor="#1e2a3a"];
+  P15_3 [label=" ", fillcolor="#1e2a3a"];
+  P15_4 [label="✓", fillcolor="#3dd68c"];
+  P15_5 [label="✓", fillcolor="#3dd68c"];
+  P15_6 [label=" ", fillcolor="#1e2a3a"];
+  P15_7 [label="✓", fillcolor="#3dd68c"];
+  { rank=same; P15_T; P15_0; P15_1; P15_2; P15_3; P15_4; P15_5; P15_6; P15_7; }
+
+  P16_T [label="Pass 16", fillcolor="#7a8fa6"];
+  P16_0 [label=" ", fillcolor="#1e2a3a"];
+  P16_1 [label=" ", fillcolor="#1e2a3a"];
+  P16_2 [label=" ", fillcolor="#1e2a3a"];
+  P16_3 [label="✓", fillcolor="#3dd68c"];
+  P16_4 [label="✓", fillcolor="#3dd68c"];
+  P16_5 [label="✓", fillcolor="#3dd68c"];
+  P16_6 [label=" ", fillcolor="#1e2a3a"];
+  P16_7 [label=" ", fillcolor="#1e2a3a"];
+  { rank=same; P16_T; P16_0; P16_1; P16_2; P16_3; P16_4; P16_5; P16_6; P16_7; }
+
+  P17_T [label="Pass 17", fillcolor="#7a8fa6"];
+  P17_0 [label=" ", fillcolor="#1e2a3a"];
+  P17_1 [label=" ", fillcolor="#1e2a3a"];
+  P17_2 [label=" ", fillcolor="#1e2a3a"];
+  P17_3 [label="✓", fillcolor="#3dd68c"];
+  P17_4 [label="✓", fillcolor="#3dd68c"];
+  P17_5 [label=" ", fillcolor="#1e2a3a"];
+  P17_6 [label="✓", fillcolor="#3dd68c"];
+  P17_7 [label=" ", fillcolor="#1e2a3a"];
+  { rank=same; P17_T; P17_0; P17_1; P17_2; P17_3; P17_4; P17_5; P17_6; P17_7; }
+
+  P18_T [label="Pass 18", fillcolor="#7a8fa6"];
+  P18_0 [label=" ", fillcolor="#1e2a3a"];
+  P18_1 [label=" ", fillcolor="#1e2a3a"];
+  P18_2 [label="✓", fillcolor="#3dd68c"];
+  P18_3 [label="✓", fillcolor="#3dd68c"];
+  P18_4 [label="✓", fillcolor="#3dd68c"];
+  P18_5 [label=" ", fillcolor="#1e2a3a"];
+  P18_6 [label=" ", fillcolor="#1e2a3a"];
+  P18_7 [label=" ", fillcolor="#1e2a3a"];
+  { rank=same; P18_T; P18_0; P18_1; P18_2; P18_3; P18_4; P18_5; P18_6; P18_7; }
+
+  P19_T [label="Pass 19", fillcolor="#3dd68c"];
+  P19_0 [label=" ", fillcolor="#1e2a3a"];
+  P19_1 [label="★", fillcolor="#3dd68c"];
+  P19_2 [label=" ", fillcolor="#1e2a3a"];
+  P19_3 [label=" ", fillcolor="#1e2a3a"];
+  P19_4 [label="★", fillcolor="#3dd68c"];
+  P19_5 [label="★", fillcolor="#3dd68c"];
+  P19_6 [label="★", fillcolor="#3dd68c"];
+  P19_7 [label="★", fillcolor="#3dd68c"];
+  { rank=same; P19_T; P19_0; P19_1; P19_2; P19_3; P19_4; P19_5; P19_6; P19_7; }
+
+  // Vertical alignment hints (invisible edges)
+  H_pass -> P9_T -> P10_T -> P11_T -> P12_T -> P13_T -> P14_T -> P15_T -> P16_T -> P17_T -> P18_T -> P19_T;
+  H_L0 -> P9_0 -> P10_0 -> P11_0 -> P12_0 -> P13_0 -> P14_0 -> P15_0 -> P16_0 -> P17_0 -> P18_0 -> P19_0;
+  H_L1 -> P9_1 -> P10_1 -> P11_1 -> P12_1 -> P13_1 -> P14_1 -> P15_1 -> P16_1 -> P17_1 -> P18_1 -> P19_1;
+  H_L2 -> P9_2 -> P10_2 -> P11_2 -> P12_2 -> P13_2 -> P14_2 -> P15_2 -> P16_2 -> P17_2 -> P18_2 -> P19_2;
+  H_L3 -> P9_3 -> P10_3 -> P11_3 -> P12_3 -> P13_3 -> P14_3 -> P15_3 -> P16_3 -> P17_3 -> P18_3 -> P19_3;
+  H_L4 -> P9_4 -> P10_4 -> P11_4 -> P12_4 -> P13_4 -> P14_4 -> P15_4 -> P16_4 -> P17_4 -> P18_4 -> P19_4;
+  H_L5 -> P9_5 -> P10_5 -> P11_5 -> P12_5 -> P13_5 -> P14_5 -> P15_5 -> P16_5 -> P17_5 -> P18_5 -> P19_5;
+  H_L6 -> P9_6 -> P10_6 -> P11_6 -> P12_6 -> P13_6 -> P14_6 -> P15_6 -> P16_6 -> P17_6 -> P18_6 -> P19_6;
+  H_L7 -> P9_7 -> P10_7 -> P11_7 -> P12_7 -> P13_7 -> P14_7 -> P15_7 -> P16_7 -> P17_7 -> P18_7 -> P19_7;
+
+  // Legend
+  subgraph cluster_legend {
+    label="✓ touched · ★ Pass-19 deliverable · blank = not in this pass";
+    fontcolor="#00d4aa";
+    style=dashed;
+    color="#1e2a3a";
+    LK1 [label="touched", fillcolor="#3dd68c"];
+    LK2 [label="not touched", fillcolor="#1e2a3a", fontcolor="#7a8fa6"];
+    LK3 [label="header", fillcolor="#00d4aa"];
+    LK1 -> LK2 -> LK3 [style=invis];
+  }
+}

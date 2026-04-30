@@ -1,0 +1,42 @@
+digraph bulk_action_flow {
+  rankdir=TB; bgcolor="#0a0e17"; fontname="JetBrains Mono"; fontcolor="#e0e6ed"; fontsize=11;
+  node [fontname="JetBrains Mono" fontsize=10 color="#1e2a3a" fontcolor="#e0e6ed" style="filled,rounded" shape=box];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  S [label="Operator: select rows\n(Tabulator selectable:true)" fillcolor="#1a2030" shape=ellipse];
+  C [label="Selection counter updates\n('N selected' in footer)" fillcolor="#101a30" fontcolor="#3dd68c"];
+  B [label="Click ▶ Activate / ✗ Block / ✓ Complete\n(grid footer button)" fillcolor="#101a30" fontcolor="#00d4aa"];
+  Empty [label="alert: 'No rows selected'" fillcolor="#2a1414" fontcolor="#ff6b81" shape=octagon];
+  Confirm [label="confirm: 'Activate N tasks?'\nReversible via same buttons" fillcolor="#2a2410" fontcolor="#f5a623" shape=diamond];
+  Loop [label="forEach row:\n  fetch POST /api/v1/planning/update\n  body: {id, status: targetStatus}" fillcolor="#1a2030"];
+  L1 [label="L1 NIF whitelist gate\nplan_update_task" fillcolor="#2a2410" fontcolor="#ffd93d"];
+  L3 [label="L3 Rust validate_status\n+ normalize_status" fillcolor="#101a30" fontcolor="#4d96ff"];
+  L4 [label="L4 SQLite CHECK\n(Status IN 4)" fillcolor="#1f1228" fontcolor="#9b59b6"];
+  Done [label="row updated\nincrement done++ counter" fillcolor="#0d2812" fontcolor="#3dd68c"];
+  Failed [label="row failed\nincrement failed++ counter\n(network / gate rejection)" fillcolor="#2a1414" fontcolor="#ff6b81"];
+  Tally [label="all complete?\nlogChange('bulk_<status>',\n  done + ' ok, ' + failed + ' failed')" fillcolor="#1a2030" shape=diamond];
+  Refresh [label="grids.all.deselectRow()\nloadAndRefreshAll()" fillcolor="#0d2812" fontcolor="#3dd68c"];
+  Reload [label="WS pushes new state\nto every connected client" fillcolor="#2a1414" fontcolor="#e74c3c"];
+  E [label="Operator sees updated grid\n(change-log entry)" fillcolor="#1a2030" shape=ellipse];
+
+  S -> C;
+  C -> B;
+  B -> Empty [label="rows.length == 0"];
+  B -> Confirm [label="rows.length > 0"];
+  Confirm -> Loop [label="OK"];
+  Confirm -> C [label="Cancel" style=dashed];
+  Loop -> L1;
+  L1 -> L3 [label="ok"];
+  L1 -> Failed [label="reject (defense-in-depth)" color="#ff6b81"];
+  L3 -> L4 [label="ok"];
+  L3 -> Failed [label="reject" color="#ff6b81"];
+  L4 -> Done [label="ok"];
+  L4 -> Failed [label="CHECK fails" color="#ff6b81"];
+  Done -> Tally;
+  Failed -> Tally;
+  Tally -> Refresh [label="done + failed == rows.length"];
+  Tally -> Loop [label="more rows pending" style=dashed];
+  Refresh -> Reload;
+  Reload -> E;
+  E -> S [label="next selection cycle" style=dashed color="#3dd68c"];
+}

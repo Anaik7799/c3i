@@ -1,0 +1,32 @@
+// RETE-UL — Marionette test-tier rules ordered by salience
+digraph rete {
+  rankdir=TB; bgcolor="#0a0e17"; fontname="Helvetica"; pad=0.4; nodesep=0.45; ranksep=0.55;
+  node [shape=record fontname="Helvetica" fontsize=11 fontcolor="#e0e6ed" style="rounded,filled" color="#1e2a3a" fillcolor="#141922"];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  src [label="Zenoh subscription\nindrajaal/l5/test/marionette/**" color="#00d4aa" fillcolor="#1e2a3a"];
+
+  r95a [label="{MarionetteDiscoveryFirst | salience 95 | tap/text/gesture before any\\ndiscovery in session | warn + log}" color="#ff4757"];
+  r95b [label="{MarionetteReleaseBlock | salience 95 | build_mode != debug | refuse + apoptosis}" color="#ff4757"];
+  r90  [label="{MarionetteFailureCapture | salience 90 | failed run lacking evidence | force capture}" color="#ff4757"];
+  r85  [label="{MarionetteParityRequired | salience 85 | starred missing platforms | reschedule}" color="#f5a623"];
+  r80  [label="{MarionetteLogCollectorMissing | salience 80 | binding no logCollector | P2 advisory}" color="#f5a623"];
+  r75a [label="{MarionetteCustomExtRegistered | salience 75 | extensions but no doc | open task}" color="#f5a623"];
+  r75b [label="{MarionetteSelectorDrift | salience 75 | tree diff \>30 pct Hamming | flag P1 + pause}" color="#f5a623"];
+  r70  [label="{MarionetteBackpressure | salience 70 | queue \>100 msgs | drop screenshots}"];
+  r65  [label="{MarionetteFlakeQuarantine | salience 65 | TID failed 3/10 | quarantine + RCA}"];
+  r60  [label="{MarionetteEntropyFloor | salience 60 | weekly H \<2.5 bits | broaden mix}"];
+
+  agent [label="Marionette-explorer agent\n(advisory back-channel)" color="#9b59b6" fillcolor="#1e2a3a"];
+
+  src -> r95a; src -> r95b; src -> r90; src -> r85; src -> r80;
+  src -> r75a; src -> r75b; src -> r70; src -> r65; src -> r60;
+  r95a -> agent [label="advisory"];
+  r95b -> agent;
+  r90  -> agent;
+  r85  -> agent;
+  r75b -> agent;
+
+  {rank=same; r95a; r95b}
+  {rank=same; r75a; r75b}
+}

@@ -1,0 +1,31 @@
+digraph BridgePageSplit {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", fontname="Helvetica", style="filled,rounded"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  subgraph cluster_before { label="Before Pass-26"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    dv1 [label="domain_views.gleam\n1745 LOC\n11 view_X functions\n+ 7 private helpers", fillcolor="#141922"];
+  }
+  subgraph cluster_after { label="After Pass-26 (Phase 3a)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    dv2 [label="domain_views.gleam\n1700 LOC (-46)\nbridge_view → delegator", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    bp [label="pages/bridge_page.gleam\n140 LOC\nview() + 3 inline helpers", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_strategy { label="Strategy"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    s1 [label="1. Pick smallest view (bridge=46 LOC)", fillcolor="#141922"];
+    s2 [label="2. Inline-copy 3 helpers\n(page_header, count_in_json,\nparse_leading_int)", fillcolor="#141922"];
+    s3 [label="3. Replace original with\nthin delegator", fillcolor="#141922"];
+    s4 [label="4. Verify gleam build\n+ test 9349 pass", fillcolor="#141922"];
+  }
+  subgraph cluster_constraint { label="Constraint discovered"; style=dashed; color="#ff4757"; fontcolor="#ff4757";
+    c [label="Import-cycle risk:\npages/* importing\ndomain_views helpers\n→ cycle.\nSolution: inline-copy\nuntil shared\npage_helpers.gleam ships", fillcolor="#141922"];
+  }
+  subgraph cluster_next { label="Phase 3b/3c queue"; style=dashed; color="#f5a623"; fontcolor="#f5a623";
+    n [label="Future passes:\n• database_view (54 LOC)\n• holon_view (58 LOC)\n• git_view (82 LOC)\n• page_helpers shared module\n• planning_view (785 LOC, last)", fillcolor="#141922"];
+  }
+
+  dv1 -> dv2 [label="bridge_view body removed"];
+  dv1 -> bp [label="body extracted"];
+  s1 -> s2 -> s3 -> s4;
+  c -> bp [label="forces inline-copy", style=dashed];
+  bp -> n [label="pattern reused", style=dashed, color="#f5a623"];
+}

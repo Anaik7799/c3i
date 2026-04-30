@@ -1,0 +1,57 @@
+// G6 — CPM activity-on-node graph; critical path bold red
+digraph cpm {
+  rankdir=LR; bgcolor="#0a0e17"; fontname="Helvetica"; pad=0.4; nodesep=0.35; ranksep=0.5;
+  node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=10 fontcolor="#e0e6ed" color="#1e2a3a" fillcolor="#141922"];
+  edge [color="#7a8fa6" fontsize=8];
+
+  start [label="START\n(t=0)" shape=ellipse color="#3dd68c" fillcolor="#143a25"];
+  end   [label="END\n(t=7.0)" shape=ellipse color="#3dd68c" fillcolor="#143a25"];
+
+  // CRITICAL PATH (bold red)
+  A1  [label="A1 schema\n1.5d · CP" color="#ff4757" fillcolor="#3a1418" penwidth=2];
+  A2  [label="A2 accounting\n1d · CP"  color="#ff4757" fillcolor="#3a1418" penwidth=2];
+  A10 [label="A10 priority\n2d · CP"   color="#ff4757" fillcolor="#3a1418" penwidth=2];
+  A13 [label="A13 backfill\n2d · CP"   color="#ff4757" fillcolor="#3a1418" penwidth=2];
+  A19 [label="A19 docs\n0.5d · CP"     color="#ff4757" fillcolor="#3a1418" penwidth=2];
+
+  // non-CP activities
+  A3  [label="A3 gleam_run\n0.5d · slack 1.0"];
+  A4  [label="A4 schedule-add\n0.5d · slack 2.9"];
+  A5  [label="A5 marionette\nGleam port\n1.5d · slack 4.0"];
+  A6  [label="A6 jobs.gleam\n0.5d · slack 1.0"];
+  A7  [label="A7 register\n0.1d · slack 4.0"];
+  A8  [label="A8 array\n1.5d · slack 3.0"];
+  A9  [label="A9 deps\n1.5d · slack 3.0"];
+  A11 [label="A11 common\nGleam mods\n2d · slack 2.0"];
+  A12 [label="A12 CLIs\n1.5d · slack 3.0"];
+  A14 [label="A14 reserv\n1.5d · slack 3.0"];
+  A15 [label="A15 cgroup\n1d · slack 5.0"];
+  A16 [label="A16 saga/hb/sig\n2.5d · slack 2.0"];
+  A17 [label="A17 RETE-UL\n0.5d · slack 2.5"];
+  A18 [label="A18 TLA+\n1d · slack 3.0"];
+  A20 [label="A20 valid\n0.5d · slack 1.5"];
+
+  // edges
+  start -> A1 [color="#ff4757" penwidth=2];
+  start -> A3;
+  A1 -> A2 [color="#ff4757" penwidth=2];
+  A1 -> A4;
+  A1 -> A6;
+  A1 -> A8; A1 -> A9; A1 -> A12; A1 -> A15;
+  A2 -> A10 [color="#ff4757" penwidth=2];
+  A3 -> A5; A3 -> A6;
+  A4 -> A7;
+  A5 -> A7; A6 -> A7;
+  A6 -> A11;
+  A11 -> A16;
+  A10 -> A13 [color="#ff4757" penwidth=2];
+  A10 -> A17;
+  A11 -> A20;
+  A12 -> A14; A14 -> A18;
+  A13 -> A19 [color="#ff4757" penwidth=2];
+  A19 -> end [color="#ff4757" penwidth=2];
+  A18 -> end; A16 -> end; A20 -> end; A7 -> end;
+  A15 -> end; A8 -> end; A9 -> end; A17 -> end;
+
+  legend [shape=plaintext fontcolor="#7a8fa6" label="Critical Path = A1 → A2 → A10 → A13 → A19 = 7.0 days\nNon-CP activities have slack 1.0–5.0 days, parallelisable\n4 simultaneous workers handle the full network"];
+}

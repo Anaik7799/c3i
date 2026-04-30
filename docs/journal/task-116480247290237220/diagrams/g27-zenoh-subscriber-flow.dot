@@ -1,0 +1,49 @@
+digraph G27_ZenohSubscriberFlow {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=10, fontcolor="#0a0e17"];
+  edge [fontname="Helvetica", fontsize=9, color="#7a8fa6", fontcolor="#e0e6ed"];
+  labelloc=t;
+  fontsize=14;
+  fontcolor="#00d4aa";
+  label="G27 — Zenoh Subscriber Flow · cpig-validator → Zenoh → cpig_subscriber actor (Pass 19)";
+
+  // Source side (publisher)
+  Cron     [label="cron *:00\n(hourly)", fillcolor="#7a8fa6"];
+  Validator[label="cpig-validator-hourly\n(.claude/scripts/\ncpig-validator.sh)", fillcolor="#f5a623"];
+  Score    [label="cpig-matrix.json\nscore=60/60", fillcolor="#3dd68c"];
+
+  // Zenoh transport
+  Pub      [label="Zenoh PUT\nindrajaal/l4/cpig/score", fillcolor="#00d4aa"];
+  Router   [label="Zenoh router\n(TCP 7447)", fillcolor="#00d4aa"];
+  Topic    [label="topic =\nindrajaal/l4/cpig/score\npayload = {score,total,ts,passes}", fillcolor="#00d4aa", shape=note];
+
+  // Subscriber side (Pass 19)
+  Sub      [label="cpig_subscriber.gleam\nactor (OTP)\n[NEW Pass 19]", fillcolor="#3dd68c"];
+  State    [label="CpigState\n{last_score, last_ts,\n  history[8]}", fillcolor="#3dd68c"];
+  Log      [label="data/cpig-subscriber.log\n(append-only)", fillcolor="#7a8fa6"];
+  Guard    [label="cpig_subscriber_\nwiring_test.gleam\n[NEW Pass 19]", fillcolor="#3dd68c", shape=octagon];
+
+  // Flow
+  Cron -> Validator   [label="trigger"];
+  Validator -> Score  [label="emit JSON"];
+  Score -> Pub        [label="publish"];
+  Pub -> Router       [label="put()"];
+  Router -> Topic     [style=dashed, label="route"];
+  Topic -> Sub        [label="callback(payload)"];
+  Sub -> State        [label="update"];
+  Sub -> Log          [label="append"];
+  Guard -> Sub        [style=dashed, color="#3dd68c", label="verifies init/update"];
+
+  // Legend
+  subgraph cluster_legend {
+    label="Pass 19 additions in green · validator orange · transport teal";
+    fontcolor="#00d4aa";
+    style=dashed;
+    color="#1e2a3a";
+    LN [label="NEW Pass 19", fillcolor="#3dd68c"];
+    LP [label="pre-existing", fillcolor="#7a8fa6"];
+    LT [label="transport", fillcolor="#00d4aa"];
+    LN -> LP -> LT [style=invis];
+  }
+}

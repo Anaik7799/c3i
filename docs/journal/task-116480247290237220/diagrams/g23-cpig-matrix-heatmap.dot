@@ -1,0 +1,146 @@
+digraph G23_CPIG_Matrix {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=10, fontcolor="#e0e6ed", color="#1e2a3a"];
+  edge [color="#1e2a3a"];
+  labelloc=t;
+  label=<<font color="#00d4aa" point-size="16"><b>G23 · CPIG 12-Subsystem × 5-Gate Heatmap (Pass 14)</b></font><br/><font color="#7a8fa6" point-size="10">green=verified · red=missing · System CPIG: 55/60 (91.7%) · Δ from Pass 13: +19 gates</font>>;
+
+  // Header row
+  subgraph cluster_header {
+    style=invis;
+    h_sub  [label="Subsystem",         fillcolor="#0e1420", fontcolor="#00d4aa"];
+    h_spec [label="Formal Spec",       fillcolor="#0e1420", fontcolor="#00d4aa"];
+    h_wire [label="Wiring Guard",      fillcolor="#0e1420", fontcolor="#00d4aa"];
+    h_plan [label="sa-plan",           fillcolor="#0e1420", fontcolor="#00d4aa"];
+    h_zk   [label="ZK",                fillcolor="#0e1420", fontcolor="#00d4aa"];
+    h_mail [label="Email",             fillcolor="#0e1420", fontcolor="#00d4aa"];
+    h_sub -> h_spec -> h_wire -> h_plan -> h_zk -> h_mail [style=invis];
+    rank=same;
+  }
+
+  // Color legend: green=#3dd68c (verified), red=#ff4757 (missing)
+
+  // Row 1: sa-plan-daemon  ✓✓✓✓✓ 5/5 (Baseline, unchanged)
+  r1_sub  [label="★ sa-plan-daemon (5/5)", fillcolor="#0e1420", fontcolor="#3dd68c"];
+  r1_spec [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r1_wire [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r1_plan [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r1_zk   [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r1_mail [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  {rank=same; r1_sub; r1_spec; r1_wire; r1_plan; r1_zk; r1_mail;}
+  r1_sub -> r1_spec -> r1_wire -> r1_plan -> r1_zk -> r1_mail [style=invis];
+
+  // Row 2: Pi-mono ✓✓✓✓✓ 5/5 (P14: +2)
+  r2_sub  [label="★ Pi-mono (5/5) +2", fillcolor="#0e1420", fontcolor="#3dd68c"];
+  r2_spec [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r2_wire [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r2_plan [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r2_zk   [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r2_mail [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  {rank=same; r2_sub; r2_spec; r2_wire; r2_plan; r2_zk; r2_mail;}
+  r2_sub -> r2_spec -> r2_wire -> r2_plan -> r2_zk -> r2_mail [style=invis];
+
+  // Row 3: Zenoh OTel ✓✓✓✓✓ 5/5 (P13: +3)
+  r3_sub  [label="★ Zenoh OTel (5/5) +3", fillcolor="#0e1420", fontcolor="#3dd68c"];
+  r3_spec [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r3_wire [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r3_plan [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r3_zk   [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r3_mail [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  {rank=same; r3_sub; r3_spec; r3_wire; r3_plan; r3_zk; r3_mail;}
+  r3_sub -> r3_spec -> r3_wire -> r3_plan -> r3_zk -> r3_mail [style=invis];
+
+  // Row 4: FerrisKey ✓✓✓✓✓ 5/5 (P13: +4)
+  r4_sub  [label="★ FerrisKey (5/5) +4", fillcolor="#0e1420", fontcolor="#3dd68c"];
+  r4_spec [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r4_wire [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r4_plan [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r4_zk   [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r4_mail [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  {rank=same; r4_sub; r4_spec; r4_wire; r4_plan; r4_zk; r4_mail;}
+  r4_sub -> r4_spec -> r4_wire -> r4_plan -> r4_zk -> r4_mail [style=invis];
+
+  // Row 5: F# CEPAF ✓✓✓✓✓ 5/5 (P13: +3)
+  r5_sub  [label="★ F# CEPAF (5/5) +3", fillcolor="#0e1420", fontcolor="#3dd68c"];
+  r5_spec [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r5_wire [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r5_plan [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r5_zk   [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r5_mail [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  {rank=same; r5_sub; r5_spec; r5_wire; r5_plan; r5_zk; r5_mail;}
+  r5_sub -> r5_spec -> r5_wire -> r5_plan -> r5_zk -> r5_mail [style=invis];
+
+  // Row 6: scripts-gleam ✓✓✓✓✓ 5/5 (P14: +2)
+  r6_sub  [label="★ scripts-gleam (5/5) +2", fillcolor="#0e1420", fontcolor="#3dd68c"];
+  r6_spec [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r6_wire [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r6_plan [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r6_zk   [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r6_mail [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  {rank=same; r6_sub; r6_spec; r6_wire; r6_plan; r6_zk; r6_mail;}
+  r6_sub -> r6_spec -> r6_wire -> r6_plan -> r6_zk -> r6_mail [style=invis];
+
+  // Row 7: Marionette MCP ✓✓✓✓✓ 5/5 (P14: +1)
+  r7_sub  [label="★ Marionette MCP (5/5) +1", fillcolor="#0e1420", fontcolor="#3dd68c"];
+  r7_spec [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r7_wire [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r7_plan [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r7_zk   [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r7_mail [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  {rank=same; r7_sub; r7_spec; r7_wire; r7_plan; r7_zk; r7_mail;}
+  r7_sub -> r7_spec -> r7_wire -> r7_plan -> r7_zk -> r7_mail [style=invis];
+
+  // Row 8: Patrol MCP ✓✓✓✓✓ 5/5 (P14: +2)
+  r8_sub  [label="★ Patrol MCP (5/5) +2", fillcolor="#0e1420", fontcolor="#3dd68c"];
+  r8_spec [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r8_wire [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r8_plan [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r8_zk   [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r8_mail [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  {rank=same; r8_sub; r8_spec; r8_wire; r8_plan; r8_zk; r8_mail;}
+  r8_sub -> r8_spec -> r8_wire -> r8_plan -> r8_zk -> r8_mail [style=invis];
+
+  // Row 9: Gleam UI ✓✓✓✓✓ 5/5 (P14: +1)
+  r9_sub  [label="★ Gleam UI (5/5) +1", fillcolor="#0e1420", fontcolor="#3dd68c"];
+  r9_spec [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r9_wire [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r9_plan [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r9_zk   [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r9_mail [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  {rank=same; r9_sub; r9_spec; r9_wire; r9_plan; r9_zk; r9_mail;}
+  r9_sub -> r9_spec -> r9_wire -> r9_plan -> r9_zk -> r9_mail [style=invis];
+
+  // Row 10: Dart MCP ✓✓✓✗✓ 4/5 (P14: +2; one gap remaining: zk)
+  r10_sub  [label="Dart MCP (4/5) +2", fillcolor="#0e1420"];
+  r10_spec [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r10_wire [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r10_plan [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r10_zk   [label="✗", fillcolor="#ff4757", fontcolor="#0a0e17"];
+  r10_mail [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  {rank=same; r10_sub; r10_spec; r10_wire; r10_plan; r10_zk; r10_mail;}
+  r10_sub -> r10_spec -> r10_wire -> r10_plan -> r10_zk -> r10_mail [style=invis];
+
+  // Row 11: Cortex ✓✓✓✗✗ 3/5 (P14: +1; gaps: zk, email)
+  r11_sub  [label="Cortex (3/5) +1", fillcolor="#0e1420", fontcolor="#f5a623"];
+  r11_spec [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r11_wire [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r11_plan [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r11_zk   [label="✗", fillcolor="#ff4757", fontcolor="#0a0e17"];
+  r11_mail [label="✗", fillcolor="#ff4757", fontcolor="#0a0e17"];
+  {rank=same; r11_sub; r11_spec; r11_wire; r11_plan; r11_zk; r11_mail;}
+  r11_sub -> r11_spec -> r11_wire -> r11_plan -> r11_zk -> r11_mail [style=invis];
+
+  // Row 12: Fractal Widgets ✓✓✓✗✗ 3/5 (P13: +2; gaps: zk, email)
+  r12_sub  [label="Fractal Widgets (3/5) +2", fillcolor="#0e1420", fontcolor="#f5a623"];
+  r12_spec [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r12_wire [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r12_plan [label="✓", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  r12_zk   [label="✗", fillcolor="#ff4757", fontcolor="#0a0e17"];
+  r12_mail [label="✗", fillcolor="#ff4757", fontcolor="#0a0e17"];
+  {rank=same; r12_sub; r12_spec; r12_wire; r12_plan; r12_zk; r12_mail;}
+  r12_sub -> r12_spec -> r12_wire -> r12_plan -> r12_zk -> r12_mail [style=invis];
+
+  // Vertical chain to enforce row order
+  h_sub -> r1_sub -> r2_sub -> r3_sub -> r4_sub -> r5_sub -> r6_sub -> r7_sub -> r8_sub -> r9_sub -> r10_sub -> r11_sub -> r12_sub [style=invis];
+}

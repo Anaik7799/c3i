@@ -1,0 +1,80 @@
+digraph G29_FluffyChatMarionetteStack {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=10, fontcolor="#0a0e17"];
+  edge [fontname="Helvetica", fontsize=9, color="#7a8fa6", fontcolor="#e0e6ed"];
+  labelloc=t;
+  fontsize=14;
+  fontcolor="#00d4aa";
+  label="G29 — FluffyChat Marionette Stack (Pass 19 closes L1 wiring) · end-user → telemetry";
+
+  // Top: end user
+  User    [label="End User\nFluffyChat", fillcolor="#7a8fa6", shape=ellipse];
+
+  // Flutter app layer
+  subgraph cluster_app {
+    label="Flutter App Process (debug mode)";
+    fontcolor="#00d4aa";
+    style=dashed;
+    color="#1e2a3a";
+    UI      [label="Flutter Widget Tree\n(LlmChatView etc.)", fillcolor="#3dd68c"];
+    Main    [label="lib/main.dart\nMarionetteBinding\n.ensureInitialized()", fillcolor="#3dd68c"];
+    Bind    [label="MarionetteBinding\n+ LoggingLogCollector\n[NEW Pass 19]", fillcolor="#3dd68c"];
+    PubSpec [label="pubspec.yaml\nmarionette_flutter ^0.5.0\n+ logging dev_dep\n[NEW Pass 19]", fillcolor="#3dd68c", shape=note];
+  }
+
+  // VM Service
+  VM      [label="Dart VM Service Protocol\n(WebSocket :8181)", fillcolor="#f5a623"];
+
+  // MCP layer
+  subgraph cluster_mcp {
+    label="MCP Servers (16 marionette tools + Patrol)";
+    fontcolor="#00d4aa";
+    style=dashed;
+    color="#1e2a3a";
+    MM      [label="marionette_mcp\nconnect/tap/swipe/\nscreenshot/get_logs/\nhot_reload (16 tools)", fillcolor="#00d4aa"];
+    PM      [label="patrol_mcp\nrun/screenshot/\nnative-tree/status", fillcolor="#00d4aa"];
+  }
+
+  // C3I cortex + telemetry
+  Cortex  [label="C3I Cortex\n(Rust planning_daemon)", fillcolor="#f5a623"];
+  Bridge  [label="patrol-zenoh-bridge.sh\n→ envelope publisher", fillcolor="#7a8fa6"];
+  Zenoh   [label="Zenoh router\nindrajaal/l5/test/\nmarionette/<run>/<phase>", fillcolor="#00d4aa"];
+
+  // Test catalog
+  Catalog [label="CATALOG.md\n200 tests\n× Linux/Android/Web", fillcolor="#7a8fa6", shape=note];
+  Health  [label="marionette-health-check.sh\n53 gates × 11 groups\ncron */10 min", fillcolor="#7a8fa6", shape=octagon];
+
+  // Edges top-down
+  User -> UI       [label="taps / inputs"];
+  UI -> Main       [label="builds"];
+  Main -> Bind     [label="initializes"];
+  Bind -> VM       [label="exposes\nVM extensions"];
+  PubSpec -> Bind  [style=dashed, color="#3dd68c"];
+
+  VM -> MM         [label="attach"];
+  VM -> PM         [label="attach"];
+
+  MM -> Cortex     [label="MCP tool calls"];
+  PM -> Cortex     [label="MCP tool calls"];
+  PM -> Bridge     [label="CLI fallback"];
+  Bridge -> Zenoh  [label="put()"];
+  MM -> Zenoh      [style=dashed, label="OTel envelope"];
+
+  Catalog -> PM    [label="declarative test list", style=dashed];
+  Health -> MM     [label="probe", style=dashed, color="#3dd68c"];
+  Health -> PM     [label="probe", style=dashed, color="#3dd68c"];
+
+  // Legend
+  subgraph cluster_legend {
+    label="NEW Pass 19 (green) · pre-existing (gray/teal)";
+    fontcolor="#00d4aa";
+    style=dashed;
+    color="#1e2a3a";
+    LN [label="NEW Pass 19", fillcolor="#3dd68c"];
+    LP [label="pre-existing", fillcolor="#7a8fa6"];
+    LM [label="MCP/transport", fillcolor="#00d4aa"];
+    LV [label="VM bridge", fillcolor="#f5a623"];
+    LN -> LP -> LM -> LV [style=invis];
+  }
+}

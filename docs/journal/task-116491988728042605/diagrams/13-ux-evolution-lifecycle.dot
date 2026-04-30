@@ -1,0 +1,70 @@
+digraph evolution_lifecycle {
+  rankdir=TB; bgcolor="#0a0e17"; fontname="JetBrains Mono"; fontcolor="#e0e6ed"; fontsize=11;
+  node [fontname="JetBrains Mono" fontsize=10 color="#1e2a3a" fontcolor="#e0e6ed" style="filled,rounded" shape=box];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  // Stage 1 — Detect
+  D_AUDIT [label="Audit / RCA finds gap\n(operator triage or cron alert)" fillcolor="#2a1414" fontcolor="#ff6b81" shape=ellipse];
+  D_TASK  [label="sa-plan add task <P0..P3>\n(SC-TODO-001)" fillcolor="#1a2030"];
+
+  // Stage 2 — Plan
+  P_PLAN  [label="Plan in /home/an/.claude/plans/\n+ ZK recall ([zk-…])" fillcolor="#0a2a23" fontcolor="#3dd68c"];
+  P_MULT  [label="Spawn parallel agents\n(SC-PARALLEL-001..005)" fillcolor="#0a2a23"];
+
+  // Stage 3 — Implement
+  I_GATE  [label="L1 NIF + L3 Rust + L4 SQL CHECK\n3-gate ingest (SC-VALUE-GUARD)" fillcolor="#101a30"];
+  I_TEST  [label="gleeunit + proptest\n(SC-WIRE-001..007 + RETE)" fillcolor="#101a30"];
+  I_SPEC  [label="TLA+ / Allium spec\n(SC-VALUE-GUARD-008)" fillcolor="#101a30"];
+
+  // Stage 4 — Verify
+  V_BUILD [label="gleam build · cargo build\n0 errors / 0 warnings" fillcolor="#1c1228"];
+  V_PLAY  [label="Playwright probe\n([zk-bd82645aedcb5ef4] verify-not-trust)" fillcolor="#1c1228"];
+  V_CRON  [label="cron observation\n(canary + drift + page-checker)" fillcolor="#1c1228"];
+
+  // Stage 5 — Deploy
+  Dy_HOT  [label="hot reload\nsa-plan hot-reload --port 4100\n(soft_purge + load_file)" fillcolor="#2a2410" fontcolor="#ffd93d"];
+  Dy_VER  [label="post-reload Playwright\nconfirm endpoint live" fillcolor="#2a2410"];
+
+  // Stage 6 — Document
+  Doc_J [label="13-section journal\n(SC-JNL-005)" fillcolor="#1c1228"];
+  Doc_C [label="closure addendum\non audit artefacts" fillcolor="#1c1228"];
+  Doc_E [label="email + ZK ingest\n(SC-NOTIFY-JOURNAL-001)" fillcolor="#1c1228"];
+
+  // Stage 7 — Codify
+  Cd_RULE [label=".claude/rules/<name>.md\n+ STAMP family registered" fillcolor="#0a2a23" fontcolor="#3dd68c"];
+  Cd_CRON [label="sa-plan schedule-add\n(weekly drift detector)" fillcolor="#0a2a23"];
+  Cd_RETE [label="RETE-UL rule\n(prevention codified)" fillcolor="#0a2a23"];
+
+  // Cycle close
+  Done [label="goal reached\n(operator visible + measurable)" fillcolor="#0d2812" fontcolor="#3dd68c" shape=ellipse];
+
+  // Wiring
+  D_AUDIT -> D_TASK;
+  D_TASK  -> P_PLAN;
+  P_PLAN  -> P_MULT;
+  P_MULT  -> I_GATE;
+  P_MULT  -> I_TEST;
+  P_MULT  -> I_SPEC;
+  I_GATE  -> V_BUILD;
+  I_TEST  -> V_BUILD;
+  I_SPEC  -> V_BUILD;
+  V_BUILD -> V_PLAY;
+  V_PLAY  -> V_CRON;
+  V_CRON  -> Dy_HOT;
+  Dy_HOT  -> Dy_VER;
+  Dy_VER  -> Doc_J;
+  Doc_J   -> Doc_C;
+  Doc_C   -> Doc_E;
+  Doc_E   -> Cd_RULE;
+  Doc_E   -> Cd_CRON;
+  Doc_E   -> Cd_RETE;
+  Cd_RULE -> Done;
+  Cd_CRON -> Done;
+  Cd_RETE -> Done;
+  Done -> D_AUDIT [label="next gap discovered" style=dashed color="#3dd68c"];
+
+  // Annotation — cumulative outputs across passes
+  note [label="Lifecycle outputs across passes 7-13 (cumulative):\n  · 16/22 audit items closed\n  · 4 NEW capabilities (off-list)\n  · 8-layer prevention + observation stack\n  · 1 TLA+ formal spec · 7 RETE-UL tests\n  · 13 PNG diagrams (10 + 3 this pass)\n  · 4 cron schedules · 5 ingest gates\n  · 2 .claude/rules/ files codified\n  · 32-page page-checker substrate\n  · /api/v1/dq/status + /c3i-status live\n\nMetrics journey:\n  ITQS 0.81 → 0.91 (+0.10)\n  ΣRPN 543 → ~110 (-79%)\n  Hard-rule pass 27/41 → 39/41 (+29 pt)"
+        fillcolor="#0a0e17" fontcolor="#7a8fa6" shape=note];
+  Done -> note [style=invis];
+}

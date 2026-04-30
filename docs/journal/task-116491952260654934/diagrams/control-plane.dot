@@ -1,0 +1,32 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="#0b1020", fontname="Helvetica", labelloc=t, label="Pi x Claude Symbiosis — Control Plane"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", color="#00d4aa", fillcolor="#142033", fontcolor="#e6f1ff"];
+  edge [color="#7dd3fc", penwidth=1.4];
+  subgraph cluster_ext { label="External channels"; color="#334155"; Browser; TUI; Claude; PiUser[label="Pi CLI/TUI"]; Email; Telegram; }
+  subgraph cluster_ctrl { label="Supervisors / governance"; color="#334155";
+    Master[label="master-supervisor"];
+    Design[label="design-supervisor"];
+    Build[label="build-supervisor"];
+    Deploy[label="deploy-supervisor"];
+    Operate[label="operate-supervisor"];
+    Guardian[label="Guardian / L0"];
+    Rete[label="RETE-UL / ruliology"];
+    Wiring[label="wiring_guard"];
+  }
+  subgraph cluster_runtime { label="Runtime authorities"; color="#334155";
+    Plan[label="sa-plan-daemon"];
+    Cortex[label="Rust cortex"];
+    Gleam[label="cepaf_gleam"];
+    PiRt[label="Pi runtime"];
+    Model[label="model resolver"];
+    Dash[label="dashboards / SSR"];
+  }
+  Claude -> Master; PiUser -> Master; Browser -> Dash; TUI -> Dash;
+  Master -> Design; Master -> Build; Master -> Deploy; Master -> Operate;
+  Design -> Build; Build -> Deploy; Deploy -> Operate; Operate -> Design;
+  Master -> Guardian [label="approval"]; Guardian -> Plan [label="audit"]; Guardian -> PiRt [label="tool gate"];
+  Build -> Wiring [label="type/msg/tool parity"]; Build -> Rete [label="rule impacts"];
+  Plan -> Cortex; Cortex -> Gleam; Gleam -> Dash; PiRt -> Dash;
+  Model -> Cortex; Model -> PiRt; Plan -> Dash [label="task / KPI"];
+  Email -> Plan [label="send-email"]; Telegram -> Plan [label="gateway"];
+}

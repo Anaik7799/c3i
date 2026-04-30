@@ -1,0 +1,48 @@
+digraph detail_panel_states {
+  rankdir=LR; bgcolor="#0a0e17"; fontname="JetBrains Mono"; fontcolor="#e0e6ed"; fontsize=11;
+  node [fontname="JetBrains Mono" fontsize=10 color="#1e2a3a" fontcolor="#e0e6ed" style="filled,rounded" shape=box];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  Closed [label="Closed\n(panel.innerHTML = '')" fillcolor="#1a2030" shape=ellipse];
+  Loading [label="Loading\n(showTaskDetail rendering)" fillcolor="#2a2410" fontcolor="#ffd93d"];
+  Idle [label="Idle\n(8 action buttons visible)" fillcolor="#101a30" fontcolor="#00d4aa"];
+  KnowledgeBusy [label="Knowledge fetching\n(amber banner: Searching Zettelkasten)" fillcolor="#2a2410" fontcolor="#f5a623"];
+  KnowledgeShown [label="Knowledge result\n(green: Zettelkasten OR\namber: Title fallback)" fillcolor="#0d2812" fontcolor="#3dd68c"];
+  RelatedShown [label="Related tasks\n(client-side word-overlap)" fillcolor="#101a30"];
+  StampShown [label="STAMP refs\n(parsed from title regex)" fillcolor="#101a30"];
+  SubTasksShown [label="Sub-tasks\n(client filter parent_id == id)" fillcolor="#101a30"];
+  AiBusy [label="AI Analysis\n(Gemma 3 → Gemma 4 fallback)" fillcolor="#2a2410" fontcolor="#ffd93d"];
+  AiShown [label="AI Analysis result\n(model badge: gemma3 / gemma4)" fillcolor="#0d2812"];
+  StatusUpdating [label="Status updating\n(POST /api/v1/planning/update)" fillcolor="#2a1414" fontcolor="#ff6b81"];
+  StatusUpdated [label="Status updated\n(badge re-renders + log entry)" fillcolor="#0d2812" fontcolor="#3dd68c"];
+  Error [label="Error state\n(red banner: Knowledge unavailable / Update failed)" fillcolor="#2a1414" fontcolor="#ff6b81"];
+
+  Closed -> Loading [label="rowClick"];
+  Loading -> Idle;
+  Idle -> KnowledgeBusy [label="🔍 Knowledge"];
+  KnowledgeBusy -> KnowledgeShown [label="200 OK"];
+  KnowledgeBusy -> Error [label="404 + fallback also fails"];
+  Idle -> RelatedShown [label="🔗 Related"];
+  Idle -> StampShown [label="🛡 STAMP"];
+  Idle -> SubTasksShown [label="🌳 SubTasks"];
+  Idle -> AiBusy [label="✨ AI"];
+  AiBusy -> AiShown [label="response"];
+  AiBusy -> Error [label="timeout 15s"];
+  Idle -> StatusUpdating [label="✓ / ✗ / ▶ button"];
+  StatusUpdating -> StatusUpdated [label="200 OK"];
+  StatusUpdating -> Error [label="enum gate rejects"];
+  StatusUpdated -> Idle [label="WS push"];
+  KnowledgeShown -> Idle [label="next action"];
+  RelatedShown -> Idle [label="next action"];
+  StampShown -> Idle [label="next action"];
+  SubTasksShown -> Idle [label="next action"];
+  AiShown -> Idle [label="next action"];
+  Error -> Idle [label="dismiss"];
+  Idle -> Closed [label="✕ close"];
+  StatusUpdated -> Closed [label="auto-close"];
+
+  // Annotation
+  note [label="State machine for task-detail-panel\nimplements RETE-UL data_quality\nverdicts via async fetch chain"
+        fillcolor="#0a0e17" fontcolor="#7a8fa6" shape=note];
+  Idle -> note [style=invis];
+}

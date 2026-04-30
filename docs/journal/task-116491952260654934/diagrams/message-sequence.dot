@@ -1,0 +1,25 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="#0b1020", fontname="Helvetica", labelloc=t, label="Sequence — Prompt to Federated Outcome"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fillcolor="#1f2937", color="#f59e0b", fontcolor="#fff7ed"];
+  edge [color="#fbbf24", penwidth=1.4];
+  U[label="User"];
+  C[label="Claude / Pi"];
+  R[label="ZK recall"];
+  G[label="Guardian"];
+  P[label="Pi runtime"];
+  M[label="MoZ"];
+  Z[label="Zenoh"];
+  S[label="Smriti.db"];
+  D[label="Dashboard / TUI"];
+  U -> C [label="prompt"];
+  C -> R [label="context"];
+  C -> G [label="privileged op?"];
+  G -> P [label="allow/deny"];
+  C -> P [label="RPC / tool call"];
+  P -> M [label="tool req"];
+  M -> Z [label="pub/sub"];
+  P -> Z [label="events + OoZ"];
+  Z -> S [label="audit + metrics"];
+  Z -> D [label="live state"];
+  P -> D [label="result"];
+}

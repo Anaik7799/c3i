@@ -1,0 +1,39 @@
+digraph DqRuliology {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", color="#00d4aa", fontname="Helvetica", style=filled, fillcolor="#141922"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica"];
+
+  subgraph cluster_l1 { label="L1 NIF/Atomic"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    nif [label="plan_add_task NIF\nenum gate"];
+  }
+  subgraph cluster_l3 { label="L3 Transaction"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    rust [label="db.rs::add_task\nvalidate_priority/status"];
+    sql [label="SQLite CHECK\nTasks.Priority IN (P0..P3)"];
+    scan [label="scan_violations()"];
+  }
+  subgraph cluster_l5 { label="L5 Cognitive (NEW pass-14)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    dq30 [label="Rule 30\nShannon H\nover 24h"];
+    dq110 [label="Rule 110\ntitle-prefix\nclusters 1h"];
+    dql [label="Lyapunov λ\ncorrupt_count\n3h window"];
+    eval [label="evaluate()\nalert vec"];
+  }
+  subgraph cluster_l4 { label="L4 System"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    cron [label="dq-hourly cron\n+ canary 5min"];
+    zen [label="Zenoh\nindrajaal/l3/dq/violations"];
+  }
+  subgraph cluster_l7 { label="L7 Federation"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    alert [label="P0 sa-plan task\n+ Telegram broadcast"];
+  }
+
+  nif -> rust [label="task admit"];
+  rust -> sql [label="bind enums"];
+  sql -> scan [label="periodic"];
+  scan -> dq30 [label="DqEvent[]"];
+  scan -> dq110;
+  scan -> dql [label="CorruptSample[]"];
+  cron -> scan;
+  dq30 -> eval; dq110 -> eval; dql -> eval;
+  eval -> zen [label="alerts > 0"];
+  zen -> alert [label="P0"];
+}

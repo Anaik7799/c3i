@@ -1,0 +1,29 @@
+digraph Phase4bUtilsExtraction {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", fontname="Helvetica", style="filled,rounded"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  subgraph cluster_iife { label="planning-grid.js IIFE (untouched, 2007 LOC)"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    iife [label="(function() {…}\n private taskAge\n private classifyFractalLayer\n private fetchWithRetry\n private snapshotData\n private findChangedIds\n …", fillcolor="#141922"];
+  }
+  subgraph cluster_ext { label="Pass-28 Phase 4b — planning-utils.js"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    utils [label="window.__c3iPlanning.utils\n.taskAge\n.classifyFractalLayer\n.fetchWithRetry\n.snapshotData\n.findChangedIds\n.FRACTAL_LAYERS", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    selftest [label="6 self-tests embedded\n(opt-in via\nrunUtilsTests flag)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_load { label="Load order in planning_page.gleam"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    s1 [label="1. planning-chips-handler.js\n(Pass-27 Phase 4a)", fillcolor="#4d96ff", fontcolor="#fff"];
+    s2 [label="2. planning-utils.js\n(Pass-28 Phase 4b)", fillcolor="#4d96ff", fontcolor="#fff"];
+    s3 [label="3. planning-grid.js (IIFE)\noriginal monolith", fillcolor="#141922"];
+  }
+
+  iife -> utils [label="byte-equiv copy\n(IIFE keeps private)"];
+  utils -> selftest;
+  s1 -> s2 [label="namespace set up"];
+  s2 -> s3 [label="utils available\nbefore IIFE"];
+
+  subgraph cluster_pattern { label="Phase 4 split pattern"; style=dashed; color="#f5a623"; fontcolor="#f5a623";
+    p [label="Pattern proven 2× now:\n4a chip-handler\n4b utils\n→ pattern repeatable", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  p -> utils [style=dotted];
+  p -> s1 [style=dotted];
+}

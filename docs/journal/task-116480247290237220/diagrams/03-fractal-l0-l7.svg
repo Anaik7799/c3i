@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" font-family="ui-sans-serif,system-ui">
+  <rect width="100%" height="100%" fill="#0a0e17"/>
+  <text x="500" y="30" fill="#e0e6ed" font-size="20" font-weight="700" text-anchor="middle">Fractal Integration L0 → L7</text>
+  <g font-size="13" fill="#e0e6ed">
+    <rect x="40" y="60"  width="920" height="55" fill="#3a1418" stroke="#ff4757"/>
+    <text x="60"  y="93" font-weight="700" fill="#ff6b81">L0 Constitutional</text>
+    <text x="220" y="83" fill="#e0e6ed" font-size="12">Discovery-first invariant · Release-mode block</text>
+    <text x="220" y="103" fill="#7a8fa6" font-size="11">SC-MARIONETTE-003 · SC-MARIONETTE-005 · Allium DiscoveryBeforeDrive</text>
+
+    <rect x="40" y="125" width="920" height="55" fill="#3a2a14" stroke="#ffd93d"/>
+    <text x="60"  y="158" font-weight="700" fill="#ffd93d">L1 Atomic / NIF</text>
+    <text x="220" y="148" fill="#e0e6ed" font-size="12">16 VM service extensions in marionette_flutter binding</text>
+    <text x="220" y="168" fill="#7a8fa6" font-size="11">marionette.connect/tap/.../call_custom_extension</text>
+
+    <rect x="40" y="190" width="920" height="55" fill="#143a25" stroke="#3dd68c"/>
+    <text x="60"  y="223" font-weight="700" fill="#3dd68c">L2 Component</text>
+    <text x="220" y="213" fill="#e0e6ed" font-size="12">MarionetteConfiguration · LogCollector · maxScreenshotSize</text>
+    <text x="220" y="233" fill="#7a8fa6" font-size="11">SC-MARIONETTE-002 · SC-MARIONETTE-006 · -007</text>
+
+    <rect x="40" y="255" width="920" height="55" fill="#142a3a" stroke="#4d96ff"/>
+    <text x="60"  y="288" font-weight="700" fill="#4d96ff">L3 Transaction</text>
+    <text x="220" y="278" fill="#e0e6ed" font-size="12">Envelope · TestRun · flag-file state machine</text>
+    <text x="220" y="298" fill="#7a8fa6" font-size="11">SC-MARIONETTE-004 · -012 · /tmp/marionette-discovery-${SESSION}.flag</text>
+
+    <rect x="40" y="320" width="920" height="55" fill="#2a143a" stroke="#9b59b6"/>
+    <text x="60"  y="353" font-weight="700" fill="#9b59b6">L4 System</text>
+    <text x="220" y="343" fill="#e0e6ed" font-size="12">mcp__marionette__* · MoZ surface · marionette_cli (CI)</text>
+    <text x="220" y="363" fill="#7a8fa6" font-size="11">SC-MARIONETTE-008 · settings.json mcpServers</text>
+
+    <rect x="40" y="385" width="920" height="55" fill="#143a32" stroke="#00d4aa"/>
+    <text x="60"  y="418" font-weight="700" fill="#00d4aa">L5 Cognitive</text>
+    <text x="220" y="408" fill="#e0e6ed" font-size="12">marionette-explorer agent · /marionette-explore skill · 10 RETE-UL rules</text>
+    <text x="220" y="428" fill="#7a8fa6" font-size="11">salience 60–95 · Ruliology Rules 30/110/184 · CausalGraph</text>
+
+    <rect x="40" y="450" width="920" height="55" fill="#3a1c14" stroke="#e74c3c"/>
+    <text x="60"  y="483" font-weight="700" fill="#e74c3c">L6 Ecosystem</text>
+    <text x="220" y="473" fill="#e0e6ed" font-size="12">Zenoh family indrajaal/l5/test/marionette/** · Dashboard · FMEA</text>
+    <text x="220" y="493" fill="#7a8fa6" font-size="11">SC-MARIONETTE-009 · SC-ZMOF-001 parity</text>
+
+    <rect x="40" y="515" width="920" height="55" fill="#3a2c14" stroke="#f39c12"/>
+    <text x="60"  y="548" font-weight="700" fill="#f39c12">L7 Federation</text>
+    <text x="220" y="538" fill="#e0e6ed" font-size="12">Multi-app reuse · governance parity .gemini ↔ .claude</text>
+    <text x="220" y="558" fill="#7a8fa6" font-size="11">SC-SYNC-DOC-007 · per-app MARIONETTE_EXTENSIONS.md</text>
+  </g>
+</svg>

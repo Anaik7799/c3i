@@ -1,0 +1,38 @@
+digraph EffectTsCollapse {
+  rankdir=TB; bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", fontname="Helvetica", style="filled,rounded"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  subgraph cluster_src { label="priv/web-build/src/planning-grid.ts (300 LOC)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    types [label="§1 Task / FractalLayer\n/ PlanStatus / PaginatedResponse", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    sel [label="§2 Selectors const\n(typed, never guessed)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    cls [label="§3 classifyLayer + taskAge\nFRACTAL_LAYERS keyword map", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    api [label="§4 PlanningApi service\nEffect.tryPromise +\nSchedule.exponential x3", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    dom [label="§5 Dom service\nquery / setText / setClass", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    weather [label="§6 updateWeather\nEffect.gen — pure", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    refresh [label="§7 periodicRefresh\nSchedule.spaced + repeat", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    chips [label="§8 wireChips\nDOM listener via Effect", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    main [label="§10 program\nEffect.fork daemon fiber", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_build { label="esbuild --bundle --format=iife"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    bundle [label="priv/static/planning-grid.bundled.js\n244 KB minified · valid IIFE", fillcolor="#4d96ff", fontcolor="#fff"];
+  }
+  subgraph cluster_load { label="Load order in planning_page.gleam"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    s1 [label="planning-chips-handler.js\n(Pass-27 4a)", fillcolor="#141922"];
+    s2 [label="planning-utils.js\n(Pass-28 4b)", fillcolor="#141922"];
+    s3 [label="planning-grid.bundled.js\n(Pass-29 Effect-TS)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    s4 [label="planning-grid.js\n(legacy IIFE — coexists)", fillcolor="#141922"];
+  }
+  subgraph cluster_rules { label="New STAMP family"; style=dashed; color="#ff4757"; fontcolor="#ff4757";
+    r [label="SC-EFFECT-TS-001..005\nAll NEW browser JS\nMUST use Effect-TS\n(SC-AGUI-UI-013 sibling)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+
+  types -> sel; sel -> cls;
+  api -> weather; api -> refresh; api -> chips;
+  dom -> weather; dom -> chips;
+  weather -> main; refresh -> main; chips -> main;
+  main -> bundle [label="esbuild"];
+  bundle -> s3;
+  s1 -> s2 -> s3 -> s4;
+  bundle -> r [style=dashed, label="reference impl"];
+}

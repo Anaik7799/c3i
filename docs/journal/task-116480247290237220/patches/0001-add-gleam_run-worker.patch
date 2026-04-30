@@ -1,0 +1,34 @@
+--- a/sub-projects/c3i/native/planning_daemon/src/scheduler.rs
++++ b/sub-projects/c3i/native/planning_daemon/src/scheduler.rs
+@@ -123,6 +123,31 @@ pub async fn run_scheduled(workflow_type: &str) -> Result<(), IgnitionError> {
+             Ok(())
+         }
+ 
++        "gleam_run" => {
++            // SC-SCRIPT-GLEAM-001: invoke a gleam script under scripts-gleam.
++            // Args expected via env: GLEAM_RUN_MODULE (required), GLEAM_RUN_CWD (optional).
++            let module = std::env::var("GLEAM_RUN_MODULE")
++                .map_err(|_| IgnitionError::InternalError(
++                    "gleam_run requires GLEAM_RUN_MODULE env var (or args.module via job-enqueue)".into()))?;
++            let cwd = std::env::var("GLEAM_RUN_CWD").unwrap_or_else(|_| "sub-projects/scripts-gleam".to_string());
++            workflow::record_event(&run_id, "activity_started", "gleam_run",
++                &format!("module={} cwd={}", module, cwd))?;
++            let output = tokio::process::Command::new("gleam")
++                .arg("run").arg("-m").arg(&module)
++                .current_dir(&cwd)
++                .output().await
++                .map_err(|e| IgnitionError::InternalError(format!("spawn gleam: {}", e)))?;
++            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
++            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
++            if output.status.success() {
++                workflow::record_event(&run_id, "activity_completed", "gleam_run", &stdout)?;
++                Ok(())
++            } else {
++                workflow::record_event(&run_id, "activity_failed", "gleam_run", &stderr)?;
++                Err(IgnitionError::InternalError(format!("gleam run failed: {}", stderr)))
++            }
++        }
++
+         other => Err(IgnitionError::InternalError(format!(
+             "Unknown workflow type: '{}'. Valid: health_check, embed_refresh, zk_maintain",
+             other

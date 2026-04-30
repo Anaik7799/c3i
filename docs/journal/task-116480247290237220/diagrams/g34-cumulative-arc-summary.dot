@@ -1,0 +1,104 @@
+digraph G34_CumulativeArcSummary {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=10, fontcolor="#e0e6ed", color="#1e2a3a", penwidth=1.2];
+  edge [fontname="Helvetica", fontsize=9, color="#7a8fa6", fontcolor="#7a8fa6"];
+  labelloc=t;
+  fontsize=14;
+  fontcolor="#00d4aa";
+  label="G34 — Cumulative Class A→H Arc Summary · Pass 1 → Pass 20";
+
+  // Class nodes (taxonomic spine)
+  ClassA [label="Class A\nState Machine", fillcolor="#2c5e4a", fontcolor="#e0e6ed"];
+  ClassB [label="Class B\nDispatcher\nConsistency", fillcolor="#2c5e4a", fontcolor="#e0e6ed"];
+  ClassC [label="Class C\nFormal\nVerification", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  ClassD [label="Class D\nFull-System\n+ Matrix", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  ClassE [label="Class E\nRuntime\nEnforcement", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  ClassF [label="Class F\nRuntime Activ.\n+ Evidence", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  ClassG [label="Class G\nDefense-in-Depth\nObservability", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  ClassH [label="Class H\nFederation +\nMulti-Region", fillcolor="#ffd93d", fontcolor="#0a0e17"];
+
+  ClassA -> ClassB -> ClassC -> ClassD -> ClassE -> ClassF -> ClassG -> ClassH [label="cumulative arc", color="#3dd68c", fontcolor="#3dd68c"];
+
+  // Deliverables hanging off each class
+  subgraph cluster_A {
+    label="Pass 1-3"; fontcolor="#3dd68c"; style=dashed; color="#1e2a3a";
+    A1 [label="MarionetteSession.tla\n(invariants)", fillcolor="#141922"];
+    A2 [label="state-machine.dot", fillcolor="#141922"];
+  }
+  ClassA -> A1 [style=dashed, color="#3dd68c"];
+  ClassA -> A2 [style=dashed, color="#3dd68c"];
+
+  subgraph cluster_B {
+    label="Pass 4-5"; fontcolor="#3dd68c"; style=dashed; color="#1e2a3a";
+    B1 [label="dispatcher.gleam\nMarionette domain", fillcolor="#141922"];
+    B2 [label="rete-rule consistency", fillcolor="#141922"];
+  }
+  ClassB -> B1 [style=dashed, color="#3dd68c"];
+  ClassB -> B2 [style=dashed, color="#3dd68c"];
+
+  subgraph cluster_C {
+    label="Pass 6-9"; fontcolor="#3dd68c"; style=dashed; color="#1e2a3a";
+    C1 [label="13 TLA+ specs", fillcolor="#141922"];
+    C2 [label="2 Agda proofs", fillcolor="#141922"];
+    C3 [label="Allium spec\nmarionette_mcp.allium", fillcolor="#141922"];
+  }
+  ClassC -> C1 [style=dashed, color="#3dd68c"];
+  ClassC -> C2 [style=dashed, color="#3dd68c"];
+  ClassC -> C3 [style=dashed, color="#3dd68c"];
+
+  subgraph cluster_D {
+    label="Pass 10-13"; fontcolor="#3dd68c"; style=dashed; color="#1e2a3a";
+    D1 [label="CPIG matrix\n12 subsys × 5 gates", fillcolor="#141922"];
+    D2 [label="200-test catalog\nFluffyChat", fillcolor="#141922"];
+  }
+  ClassD -> D1 [style=dashed, color="#3dd68c"];
+  ClassD -> D2 [style=dashed, color="#3dd68c"];
+
+  subgraph cluster_E {
+    label="Pass 14-15"; fontcolor="#3dd68c"; style=dashed; color="#1e2a3a";
+    E1 [label="hooks +\nsa-plan validators", fillcolor="#141922"];
+    E2 [label="cron health-check\nevery 10 min", fillcolor="#141922"];
+  }
+  ClassE -> E1 [style=dashed, color="#3dd68c"];
+  ClassE -> E2 [style=dashed, color="#3dd68c"];
+
+  subgraph cluster_F {
+    label="Pass 16-17"; fontcolor="#3dd68c"; style=dashed; color="#1e2a3a";
+    F1 [label="cpig-validator-hourly\nsystemd-cron", fillcolor="#141922"];
+    F2 [label="evidence ledger\nZK ingest", fillcolor="#141922"];
+  }
+  ClassF -> F1 [style=dashed, color="#3dd68c"];
+  ClassF -> F2 [style=dashed, color="#3dd68c"];
+
+  subgraph cluster_G {
+    label="Pass 18-19"; fontcolor="#3dd68c"; style=dashed; color="#1e2a3a";
+    G1 [label="Zenoh OTel\nsubscriber scaffolding", fillcolor="#141922"];
+    G2 [label="61 wiring guards\n(Pi + .gemini parity)", fillcolor="#141922"];
+  }
+  ClassG -> G1 [style=dashed, color="#3dd68c"];
+  ClassG -> G2 [style=dashed, color="#3dd68c"];
+
+  subgraph cluster_H {
+    label="Pass 20 ★"; fontcolor="#ffd93d"; style=dashed; color="#1e2a3a";
+    H1 [label="FederatedCPIG.tla", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    H2 [label="MultiRegionCPIGVoting.tla", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    H3 [label="federated-cpig.md\nSC-CPIG-FED-001..010", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    H4 [label="federated_cpig_wiring_test.gleam\n(62/62 connections)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    H5 [label="cpig_subscriber.gleam\nreal Zenoh (env-gated)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  ClassH -> H1 [style=dashed, color="#ffd93d"];
+  ClassH -> H2 [style=dashed, color="#ffd93d"];
+  ClassH -> H3 [style=dashed, color="#ffd93d"];
+  ClassH -> H4 [style=dashed, color="#ffd93d"];
+  ClassH -> H5 [style=dashed, color="#ffd93d"];
+
+  subgraph cluster_legend {
+    label="legend"; fontcolor="#00d4aa"; style=dashed; color="#1e2a3a";
+    L1 [label="early class",      fillcolor="#2c5e4a", fontcolor="#e0e6ed"];
+    L2 [label="mid class",        fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    L3 [label="late class",       fillcolor="#00d4aa", fontcolor="#0a0e17"];
+    L4 [label="Pass 20 ★",        fillcolor="#ffd93d", fontcolor="#0a0e17"];
+    L1 -> L2 -> L3 -> L4 [style=invis];
+  }
+}

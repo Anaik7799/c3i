@@ -1,0 +1,54 @@
+digraph G11StateMachineFull {
+  rankdir=TB;
+  labelloc="t";
+  label="G11 — Consolidated 8-State oban_jobs Lifecycle (Pass-9 + Pass-10 paths)";
+  fontname="Helvetica";
+  fontsize=16;
+  bgcolor="#fafafa";
+  node [shape=ellipse, style="filled", fontname="Helvetica", fontsize=10];
+  edge [fontname="Helvetica", fontsize=9];
+
+  scheduled  [label="scheduled", fillcolor="#bbdefb"];
+  available  [label="available", fillcolor="#90caf9"];
+  executing  [label="executing", fillcolor="#fff59d", color="#f57f17", penwidth=2];
+  completed  [label="completed", fillcolor="#a5d6a7", color="#1b5e20", shape=doublecircle];
+  failed     [label="failed", fillcolor="#ffab91"];
+  retryable  [label="retryable", fillcolor="#ffcc80"];
+  discarded  [label="discarded", fillcolor="#ef9a9a", color="#b71c1c", shape=doublecircle];
+  cancelled  [label="cancelled", fillcolor="#cfd8dc", shape=doublecircle];
+
+  scheduled -> available  [label="scheduled_at ≤ now()"];
+  available -> executing  [label="claim_next_jobs()", color="#1565c0", penwidth=2];
+
+  executing -> completed  [label="mark_completed()\nexit=0", color="#2e7d32", penwidth=2];
+  executing -> failed     [label="mark_failed()\nexit≠0"];
+
+  // Pass-10 path: unknown_worker error
+  executing -> retryable  [label="★Pass-10★\nunknown_worker error\nor process_runner err",
+                          color="#f57f17", fontcolor="#e65100", penwidth=2, style=bold];
+
+  // Pass-9 path: lifeline reset for stuck threads
+  executing -> available  [label="★Pass-9★\nlifeline_reset_stuck()\nstuck > 5min",
+                          color="#6a1b9a", fontcolor="#4a148c", penwidth=2, style=dashed];
+
+  failed     -> retryable [label="attempt < max_attempts"];
+  retryable  -> available [label="retry_ready\n(backoff elapsed)"];
+  retryable  -> discarded [label="attempt ≥ max_attempts", color="#c62828"];
+  failed     -> discarded [label="permanent fail", color="#c62828"];
+
+  available  -> cancelled [label="user cancel"];
+  scheduled  -> cancelled [label="user cancel"];
+  executing  -> cancelled [label="kill signal"];
+
+  // Legend
+  subgraph cluster_legend {
+    label="Pass annotations";
+    style="rounded,filled";
+    fillcolor="#fff8e1";
+    color="#fbc02d";
+    fontsize=10;
+    p9   [label="Pass-9: lifeline reset\nstuck threads → available", shape=note, fillcolor="#e1bee7"];
+    p10  [label="Pass-10: dispatcher fix\nunknown_worker → retryable", shape=note, fillcolor="#fff59d"];
+    p9 -> p10 [style=invis];
+  }
+}

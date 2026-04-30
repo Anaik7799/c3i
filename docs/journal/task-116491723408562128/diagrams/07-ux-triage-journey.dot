@@ -1,0 +1,34 @@
+digraph triage_journey {
+  rankdir=TB; bgcolor="#0a0e17"; fontname="JetBrains Mono"; fontcolor="#e0e6ed"; fontsize=11;
+  node [fontname="JetBrains Mono" fontsize=10 color="#1e2a3a" fontcolor="#e0e6ed" style="filled,rounded" shape=box];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  S [label="Operator opens /planning\n(notification → inbox)" fillcolor="#1a2030" shape=ellipse];
+  W [label="Weather bar scan\n(Dark Cockpit if healthy)" fillcolor="#0d2812" fontcolor="#3dd68c"];
+  G [label="Glance: 15 blocked\n51 active · 1837 pending" fillcolor="#1a2030"];
+  B [label="Blocked grid\n(red border, top of page)" fillcolor="#2a1414" fontcolor="#ff6b81"];
+  P [label="Click P0 row → detail window\n(named c3i_task_X)" fillcolor="#101a30"];
+  D [label="Sub-window: 8 actions\nKnowledge · Related · STAMP\nSubTasks · AI · Complete · Block · Activate" fillcolor="#101a30" fontcolor="#00d4aa"];
+  K [label="Knowledge Lookup\n→ /api/v1/zk/search FTS5\n('SC-VALUE-GUARD' matches)" fillcolor="#1c1228" fontcolor="#9b59b6"];
+  R [label="STAMP Refs\n(SC-TRUTH-001 + SC-VALUE-GUARD-001)" fillcolor="#1c1228"];
+  A [label="Click ▶ Activate\nPOST /api/v1/planning/update" fillcolor="#0d2812" fontcolor="#3dd68c"];
+  V [label="Status badge: in_progress\n+ change-log entry +\nWS push to all clients" fillcolor="#0d2812" fontcolor="#3dd68c"];
+  E [label="Operator closes window\n(focus returns to main /planning)" fillcolor="#1a2030" shape=ellipse];
+
+  S -> W;
+  W -> G;
+  G -> B [label="prioritise red"];
+  B -> P;
+  P -> D;
+  D -> K [label="why is this blocked?"];
+  K -> R;
+  R -> A [label="confirmed: safe to activate"];
+  A -> V;
+  V -> E;
+  E -> S [label="repeat for next task" style=dashed color="#3dd68c"];
+
+  // Time budget annotation
+  t [label="Time budget per cycle: ~30 s\nKey latencies:\n- Page load: 170 ms\n- WS round-trip: <50 ms\n- ZK FTS5 search: <100 ms\n- Status update + WS push: <200 ms"
+     fillcolor="#0a0e17" fontcolor="#7a8fa6" shape=note];
+  E -> t [style=invis];
+}

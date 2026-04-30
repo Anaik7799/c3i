@@ -1,0 +1,26 @@
+digraph AgdaTotality {
+  rankdir=TB; bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", fontname="Helvetica", style="filled,rounded"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  subgraph cluster_triangle { label="Three-Tier Verification Triangle (NOW COMPLETE)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    a [label="AGDA — Pass-21\nstatic totality\n5 theorems · agda --safe exit 0", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p [label="PROPTEST — Pass-16\n10⁴ random samples\n11 properties", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    t [label="TLC — Pass-20\nbounded model check\n65 536 states · 0 errors", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_thms { label="Theorems proven (Agda)"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    th1 [label="soundPriority\n∀ p. validate p ≡ just p", fillcolor="#141922"];
+    th2 [label="soundStatus\n∀ s. validate s ≡ just s", fillcolor="#141922"];
+    th3 [label="idempotent\nf(f(s)) ≡ f(s)", fillcolor="#141922"];
+    th4 [label="identity\nf(s) ≡ s on canonical", fillcolor="#141922"];
+    th5 [label="gateAdmitSound\n∀ p s. admit (p,s) ≡ just (p,s)\n(16 cases × 1 refl each)", fillcolor="#141922"];
+  }
+  subgraph cluster_compose { label="Composition Result"; style=dashed; color="#ff4757"; fontcolor="#ff4757";
+    comp [label="DQ subsystem\n100% formally verified\n+ 32 runtime tests\n+ 9 property tests\n+ 9 formal-coverage tests", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+
+  a -> th1; a -> th2; a -> th3; a -> th4; a -> th5;
+  th1 -> comp; th2 -> comp; th3 -> comp; th4 -> comp; th5 -> comp;
+  p -> comp [label="runtime"];
+  t -> comp [label="state-space"];
+}

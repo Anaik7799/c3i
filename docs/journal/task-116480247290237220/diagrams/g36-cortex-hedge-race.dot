@@ -1,0 +1,56 @@
+// g36 — Pass 22: Cortex Hedged Race (tokio::join! tier 1+2)
+// Sequence-style lifelines for the hedged inference cascade
+digraph CortexHedgeRace {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  fontname="Helvetica";
+  fontcolor="#e0e6ed";
+  label="Pass 22 — Cortex Hedged Race (tokio::join! tier 1+2)\nWinner-take-all with circuit breaker accounting · hedge ≤ 1.1s";
+  labelloc="t";
+  fontsize=14;
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, fontcolor="#e0e6ed", color="#1e2a3a"];
+  edge [fontname="Helvetica", fontsize=10, fontcolor="#9be7d3", color="#7a8fa6"];
+
+  // Lifelines (column heads)
+  subgraph cluster_lifelines {
+    style=invis;
+    rank=same;
+    UI    [label="User Intent\n(Telegram/GChat)", fillcolor="#101a26", color="#00d4aa"];
+    CX    [label="cortex.rs\n(classify+hedge)", fillcolor="#142031", color="#00d4aa"];
+    T1    [label="Tier 1\nGemini Direct\n~900ms · free", fillcolor="#0e1a14", color="#3dd68c"];
+    T2    [label="Tier 2\nOpenRouter\n~1.1s · $0.000009", fillcolor="#1a1410", color="#f5a623"];
+    CB    [label="CircuitBreaker pool\n(5 instances · 3 fail → 60s cooldown)", fillcolor="#0a0e17", color="#9b59b6"];
+  }
+
+  // Numbered messages — green = winner path, red dashed = cancelled loser
+  UI -> CX [label="① intent received", color="#00d4aa", penwidth=2];
+  CX -> CX [label="② classify (RETE-UL)\nsimple? → DB reply <1ms"];
+  CX -> UI [label="③ ack ⏳ (immediate)", color="#3dd68c", style=dashed];
+  CX -> T1 [label="④ tokio::spawn t1\n(send_chat_request)", color="#3dd68c", penwidth=2];
+  CX -> T2 [label="⑤ tokio::spawn t2\n(send_chat_request)", color="#f5a623", penwidth=2];
+  CX -> CB [label="⑥ acquire breakers\n(t1 closed, t2 closed)"];
+
+  // The race
+  T1 -> CX [label="⑦ first response wins\n~900ms · 'Hello'", color="#3dd68c", penwidth=3];
+  CX -> T2 [label="⑧ cancel loser\n(drop oneshot rx)", color="#ff4757", style=dashed, penwidth=2];
+  T2 -> T2 [label="⑨ detached future\nstill completes\n(no leak)", color="#ff4757", style=dashed];
+  CX -> CB [label="⑩ mark_completed(t1, ok)\nmark_completed(t2, cancelled)"];
+  CX -> CX [label="⑪ PipelineTracer.finish\nbatch SQLite + Zenoh"];
+  CX -> UI [label="⑫ delivered\nGateway broadcast", color="#3dd68c", penwidth=3];
+
+  // Force horizontal layout
+  { rank=same; UI; CX; T1; T2; CB; }
+
+  // Legend
+  subgraph cluster_legend {
+    label="Legend";
+    fontcolor="#7a8fa6";
+    style=dashed;
+    color="#1e2a3a";
+    L1 [label="winner path", fillcolor="#0e1a14", color="#3dd68c"];
+    L2 [label="cancelled loser", fillcolor="#1a1410", color="#ff4757"];
+    L3 [label="hedge budget ≤ 1.1s\n(min(t1,t2) + cancel cost)", fillcolor="#101a26", color="#00d4aa"];
+    L1 -> L2 [style=invis];
+    L2 -> L3 [style=invis];
+  }
+}

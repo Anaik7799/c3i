@@ -1,0 +1,33 @@
+digraph RobustnessPack {
+  rankdir=TB; bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", color="#00d4aa", fontname="Helvetica", style="filled,rounded"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  subgraph cluster_in { label="Random Input Generators"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    gen_uni [label="\\PC{0,32}\nrandom unicode"];
+    gen_atk [label="attack vectors:\nempty, --priority, SUPREME, <script>"];
+    gen_pos [label="canonical idx 0..N\n(positive direction)"];
+    gen_evt [label="DqEvent[]/CorruptSample[]\nadversarial counts"];
+  }
+  subgraph cluster_props { label="Property Gates (10⁴ samples total)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    p1 [label="no_false_admit_priority\n¬canonical ⇒ Err", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p2 [label="no_false_admit_status\n¬canonical ⇒ Err", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p3 [label="no_false_admit_attack_strings\n10 attack patterns ⇒ Err", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p4 [label="no_false_reject_(priority|status)\ncanonical ⇒ Ok", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p5 [label="normalize_status_idempotent\nf(f(s)) = f(s)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p6 [label="normalize_recovers_canonical\nUPPER → lower canonical", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p7 [label="entropy_non_negative\n0 ≤ H ≤ log2(N)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p8 [label="lyapunov_determinism\nf(x) = f(x)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p9 [label="evaluate_never_panics\nadversarial-input fuzz", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_cb { label="Circuit Breaker (mcp_inference reused)"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    cb [label="fail_threshold=3\ncooldown=60s\ncontract documented"];
+  }
+
+  gen_uni -> p1; gen_uni -> p2;
+  gen_atk -> p3;
+  gen_pos -> p4;
+  gen_pos -> p5; gen_pos -> p6;
+  gen_evt -> p7; gen_evt -> p8; gen_evt -> p9;
+  cb -> p9 [label="composes\nwith dq_scan", style=dashed, color="#00d4aa", fontcolor="#00d4aa"];
+}

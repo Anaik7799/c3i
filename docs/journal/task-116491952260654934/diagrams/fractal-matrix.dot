@@ -1,0 +1,14 @@
+digraph G {
+  graph [rankdir=TB, bgcolor="#0b1020", fontname="Helvetica", label="Fractal L0–L7 × Critical Components", labelloc=t];
+  node [shape=record, style="rounded,filled", fontname="Helvetica", fillcolor="#1e293b", color="#a78bfa", fontcolor="#f8fafc"];
+  edge [color="#c4b5fd", arrowsize=0.8];
+  L0[label="{L0 Constitutional|Guardian|Emergency stop|Audit spans}"];
+  L1[label="{L1 Atomic|Tool IO traces|Payload fingerprints|Runtime hooks}"];
+  L2[label="{L2 Validation|AG-UI schemas|A2UI allowlist|TypeBox↔ADT}"];
+  L3[label="{L3 Transaction|Smriti sessions|MoZ correlation|Branch journals}"];
+  L4[label="{L4 System|Pi runtime|Circuit breakers|Split-screen hooks}"];
+  L5[label="{L5 Cognitive|OODA|Model resolver|Reasoning spans}"];
+  L6[label="{L6 Ecosystem|Zenoh mesh|Skill registry|Topology awareness}"];
+  L7[label="{L7 Federation|Gateway bridges|Version vectors|Critical span export}"];
+  L0 -> L1 -> L2 -> L3 -> L4 -> L5 -> L6 -> L7;
+}

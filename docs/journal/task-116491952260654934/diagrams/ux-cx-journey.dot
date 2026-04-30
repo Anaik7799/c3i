@@ -1,0 +1,13 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="#0b1020", fontname="Helvetica", label="UX/CX Journey — Operator Confidence Loop", labelloc=t];
+  node [shape=box, style="rounded,filled", fillcolor="#0f172a", color="#34d399", fontcolor="#ecfdf5", fontname="Helvetica"];
+  edge [color="#6ee7b7", penwidth=1.4];
+  Need[label="Need / mission intent"];
+  Prompt[label="Prompt / command"];
+  Context[label="Recall + validation"];
+  Action[label="Safe execution"];
+  Explain[label="Reasoning + evidence"];
+  Observe[label="Dashboards + TUI + screenshots"];
+  Trust[label="Operator trust / closure"];
+  Need -> Prompt -> Context -> Action -> Explain -> Observe -> Trust -> Need [label="fast OODA loop"];
+}

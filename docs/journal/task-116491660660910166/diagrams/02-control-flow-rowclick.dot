@@ -1,0 +1,31 @@
+digraph rowclick_seq {
+  rankdir=TB; bgcolor="#0a0e17"; fontname="JetBrains Mono"; fontcolor="#e0e6ed"; fontsize=11;
+  node [fontname="JetBrains Mono" fontsize=10 color="#1e2a3a" fontcolor="#e0e6ed" style="filled,rounded" shape=box];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  Op [label="Operator\nclick row 11648758" fillcolor="#1a2030" shape=ellipse];
+  Cell [label="ID-cell anchor\n<a href=/planning?task=X target=_blank ↗>" fillcolor="#101a30"];
+  Tab [label="Tabulator rowClick handler\n(planning-grid.js:382)" fillcolor="#101a30"];
+  Br [label="Browser branch\nlocation.search.indexOf('task=')" fillcolor="#1a2030" shape=diamond];
+  WO [label="window.open(\n  /planning?task=X,\n  c3i_task_X,\n  960×820)" fillcolor="#101a30" fontcolor="#3dd68c"];
+  In [label="showTaskDetail(d)\nin-page panel" fillcolor="#101a30" fontcolor="#f5a623"];
+  Sub [label="Sub-window load\n/planning?task=0062fc3f" fillcolor="#101a30"];
+  Auto [label="auto-open guard\n__c3iTaskAutoOpened" fillcolor="#1a2030" shape=diamond];
+  Find [label="allData.find(t.id == X)" fillcolor="#101a30"];
+  Title [label="document.title =\n'Task X — <title>'" fillcolor="#101a30" fontcolor="#3dd68c"];
+  Panel [label="task-detail-panel\n8 action buttons\n(Knowledge/Related/STAMP/\nSubTasks/AI/Complete/Block/Activate)" fillcolor="#101a30"];
+
+  Op -> Cell [label="middle/ctrl-click"];
+  Op -> Tab [label="left-click"];
+  Cell -> Sub [label="natively → new tab\n(popup-blocker proof)" color="#3dd68c"];
+  Tab -> Br;
+  Br -> In [label="already sub-window"];
+  Br -> WO [label="main window\n(named: focus dup)"];
+  WO -> Sub;
+  Sub -> Auto;
+  Auto -> Find [label="first load"];
+  Auto -> Panel [label="already opened\n(idempotent)" style=dashed];
+  Find -> Title;
+  Title -> Panel;
+  In -> Panel;
+}

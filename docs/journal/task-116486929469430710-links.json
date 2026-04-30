@@ -1,0 +1,43 @@
+{
+  "task_id": "116486929469430710",
+  "tailscale_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116486929469430710",
+  "generated_at_unix": 1777461709,
+  "related_artifacts": [
+    {
+      "path": "docs/analysis/bootstrap-subsystem/fractal-criticality-matrix.md",
+      "tailscale": "https://vm-1.tail55d152.ts.net:8443/docs/analysis/bootstrap-subsystem/fractal-criticality-matrix.md",
+      "size_bytes": 17094
+    },
+    {
+      "path": "docs/journal/20260429-bootstrap-subsystem-design.md",
+      "tailscale": "https://vm-1.tail55d152.ts.net:8443/docs/journal/20260429-bootstrap-subsystem-design.md",
+      "size_bytes": 10929
+    },
+    {
+      "path": "docs/journal/20260429-bootstrap-subsystem-milestone-v1.md",
+      "tailscale": "https://vm-1.tail55d152.ts.net:8443/docs/journal/20260429-bootstrap-subsystem-milestone-v1.md",
+      "size_bytes": 16783
+    },
+    {
+      "path": "docs/spec/bootstrap-subsystem/design.md",
+      "tailscale": "https://vm-1.tail55d152.ts.net:8443/docs/spec/bootstrap-subsystem/design.md",
+      "size_bytes": 12013
+    },
+    {
+      "path": "docs/spec/bootstrap-subsystem/requirements.md",
+      "tailscale": "https://vm-1.tail55d152.ts.net:8443/docs/spec/bootstrap-subsystem/requirements.md",
+      "size_bytes": 8792
+    },
+    {
+      "path": "docs/spec/bootstrap-subsystem/sre-runbook.md",
+      "tailscale": "https://vm-1.tail55d152.ts.net:8443/docs/spec/bootstrap-subsystem/sre-runbook.md",
+      "size_bytes": 6587
+    },
+    {
+      "path": "docs/spec/bootstrap-subsystem/test-plan.md",
+      "tailscale": "https://vm-1.tail55d152.ts.net:8443/docs/spec/bootstrap-subsystem/test-plan.md",
+      "size_bytes": 7814
+    }
+  ],
+  "artifact_count": 7
+}

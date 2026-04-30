@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta http-equiv="refresh" content="30">
+<title>Marionette MCP — Deck · Task 116480247290237220</title>
+<style>
+  :root{--bg:#0a0e17;--card:#141922;--accent:#00d4aa;--text:#e0e6ed;--mute:#7a8fa6;--border:#1e2a3a;--green:#3dd68c;--amber:#f5a623;--red:#ff4757;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 ui-sans-serif,system-ui,sans-serif}
+  .deck{display:flex;flex-direction:column;gap:24px;padding:32px;max-width:1280px;margin:0 auto}
+  .slide{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:34px 40px;min-height:480px;position:relative;backdrop-filter:blur(8px);box-shadow:0 6px 28px #0006}
+  .slide h1{font-size:30px;margin:0 0 6px;font-weight:700;color:var(--accent)}
+  .slide h2{font-size:22px;margin:0 0 16px;color:var(--text)}
+  .slide .num{position:absolute;top:14px;right:18px;color:var(--mute);font-size:11px;letter-spacing:1px;font-family:ui-monospace,monospace}
+  .slide ul{margin:8px 0 0 22px;padding:0}
+  .slide li{margin:6px 0;font-size:15px}
+  code{font-family:ui-monospace,monospace;background:#0a0e17;padding:1px 6px;border-radius:4px;color:#9be7d3;font-size:13px}
+  .grid{display:grid;gap:14px;margin-top:14px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .tile{background:#0e1420;border:1px solid var(--border);border-radius:10px;padding:14px}
+  .tile .v{font-size:28px;font-weight:700;color:var(--accent)}
+  .tile .l{color:var(--mute);font-size:12px;margin-top:4px}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+  th,td{padding:6px 10px;border-bottom:1px solid var(--border);text-align:left}
+  th{color:var(--mute);font-weight:600;text-transform:uppercase;font-size:11px}
+  .figure{background:#0a0e17;border:1px solid var(--border);border-radius:10px;padding:8px;margin-top:14px;text-align:center}
+  .figure object{max-width:100%;height:auto}
+  .pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;border:1px solid var(--border);color:var(--mute);margin-right:4px}
+  .pill.ok{color:var(--green);border-color:var(--green)}
+  .pill.warn{color:var(--amber);border-color:var(--amber)}
+  .pill.crit{color:var(--red);border-color:var(--red)}
+  footer{text-align:center;color:var(--mute);font-size:11px;padding:18px}
+  @media print{
+    body{background:#fff;color:#000}
+    .slide{page-break-after:always;border:none;background:#fff;color:#000;box-shadow:none}
+    .slide h1{color:#005a4a}.tile{background:#fff;border-color:#ccc}.tile .v{color:#005a4a}
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+
+<section class="slide"><span class="num">01 / 12</span>
+  <h1>Marionette MCP</h1>
+  <h2>Full-stack integration into C3I — pass 1 + 2 + 3</h2>
+  <p>Task <code>116480247290237220</code> · 2026-04-28 · author <code>claude-opus-4-7</code></p>
+  <ul>
+    <li>Vendored upstream <code>leancodepl/marionette_mcp</code> (5 packages, MIT)</li>
+    <li>16 MCP tools surfaced (was 8 in prior governance)</li>
+    <li>Formal Allium spec · 10 RETE-UL rules · 4 ruliology classifiers · 5 math gates</li>
+    <li>Dedicated rule + agent + skill + 2 hooks</li>
+    <li>200-test catalog for FluffyChat (CATALOG.md)</li>
+    <li>Phase-wise test plan · gap analysis · publication HTML + this deck</li>
+  </ul>
+</section>
+
+<section class="slide"><span class="num">02 / 12</span>
+  <h1>Problem</h1>
+  <ul>
+    <li>Prior governance treated Marionette as Patrol's sidekick → only 8 tools exposed</li>
+    <li>0.5.x added 8 more (gestures + custom extensions); we couldn't reach them</li>
+    <li>No agent allowed to drive selector-discovery loops; AI was guessing keys</li>
+    <li>No formal spec, no math gates, no RETE-UL rules — only prose</li>
+    <li>No discovery-first guard — the single most prevalent test anti-pattern was unblocked</li>
+  </ul>
+</section>
+
+<section class="slide"><span class="num">03 / 12</span>
+  <h1>Tool surface</h1>
+  <h2>16 Marionette MCP tools, all exercised</h2>
+  <div class="grid g4">
+    <div class="tile"><div class="v">connect</div><div class="l">attach to VM</div></div>
+    <div class="tile"><div class="v">disconnect</div><div class="l">teardown</div></div>
+    <div class="tile"><div class="v">get_interactive_elements</div><div class="l">discovery</div></div>
+    <div class="tile"><div class="v">tap</div><div class="l">tap</div></div>
+    <div class="tile"><div class="v">double_tap</div><div class="l">delay 100ms</div></div>
+    <div class="tile"><div class="v">long_press</div><div class="l">duration 600ms</div></div>
+    <div class="tile"><div class="v">enter_text</div><div class="l">field/focused</div></div>
+    <div class="tile"><div class="v">swipe</div><div class="l">drag</div></div>
+    <div class="tile"><div class="v">pinch_zoom</div><div class="l">scale</div></div>
+    <div class="tile"><div class="v">press_back_button</div><div class="l">system back</div></div>
+    <div class="tile"><div class="v">scroll_to</div><div class="l">offscreen</div></div>
+    <div class="tile"><div class="v">take_screenshots</div><div class="l">PNG b64</div></div>
+    <div class="tile"><div class="v">get_logs</div><div class="l">drain since reload</div></div>
+    <div class="tile"><div class="v">hot_reload</div><div class="l">preserve state</div></div>
+    <div class="tile"><div class="v">list_custom_extensions</div><div class="l">discover hooks</div></div>
+    <div class="tile"><div class="v">call_custom_extension</div><div class="l">drive hooks</div></div>
+  </div>
+</section>
+
+<section class="slide"><span class="num">04 / 12</span>
+  <h1>Architecture</h1>
+  <div class="figure"><img src="diagrams/01-architecture.png" alt="architecture" style="max-width:100%"/></div>
+</section>
+
+<section class="slide"><span class="num">05 / 12</span>
+  <h1>Sequence</h1>
+  <h2>One test run, 6 lifelines</h2>
+  <div class="figure"><img src="diagrams/02-sequence-test-run.png" alt="sequence" style="max-width:100%"/></div>
+</section>
+
+<section class="slide"><span class="num">06 / 12</span>
+  <h1>Fractal integration</h1>
+  <h2>L0 → L7 — every layer carries an artefact</h2>
+  <div class="figure"><img src="diagrams/03-fractal-l0-l7.png" alt="fractal" style="max-width:100%"/></div>
+</section>
+
+<section class="slide"><span class="num">07 / 12</span>
+  <h1>Zenoh topology</h1>
+  <h2>One topic family · one envelope schema · MoZ parity</h2>
+  <div class="figure"><img src="diagrams/04-zenoh-topology.png" alt="zenoh" style="max-width:100%"/></div>
+</section>
+
+<section class="slide"><span class="num">08 / 12</span>
+  <h1>UX / CX journeys</h1>
+  <h2>Operator · developer · end-user (simulated)</h2>
+  <div class="figure"><img src="diagrams/05-ux-customer-journey.png" alt="ux" style="max-width:100%"/></div>
+</section>
+
+<section class="slide"><span class="num">09 / 12</span>
+  <h1>Math gates</h1>
+  <table>
+    <tr><th>Gate</th><th>Threshold</th><th>Observed</th><th>Status</th></tr>
+    <tr><td>Shannon H over 16 tools</td><td>≥ 2.5 bits</td><td>2.62</td><td><span class="pill ok">PASS</span></td></tr>
+    <tr><td>CCM weighted coverage</td><td>≥ 0.90</td><td>1.00</td><td><span class="pill ok">PASS</span></td></tr>
+    <tr><td>Discovery distance D</td><td>≤ 0</td><td>0 (hook)</td><td><span class="pill ok">PASS</span></td></tr>
+    <tr><td>Evidence sufficiency S</td><td>must hold</td><td>force-capture</td><td><span class="pill ok">PASS</span></td></tr>
+    <tr><td>FMEA RPN top</td><td>&lt; 200</td><td>216 (mitigated)</td><td><span class="pill warn">WATCH</span></td></tr>
+  </table>
+</section>
+
+<section class="slide"><span class="num">10 / 12</span>
+  <h1>RETE-UL · Ruliology · State machine</h1>
+  <h2>10 GRL rules · salience 60–95 · 4 CA-rule classifiers</h2>
+  <div class="figure"><img src="diagrams/06-state-machine.png" alt="state" style="max-width:100%"/></div>
+  <p style="color:var(--mute);font-size:12px">Top rules: <code>MarionetteDiscoveryFirst</code> (95) · <code>MarionetteReleaseBlock</code> (95) · <code>MarionetteFailureCapture</code> (90). Ruliology: Rule 30 (chaos) · Rule 110 (emergence) · Rule 184 (backpressure) · Causal graph (blast radius).</p>
+</section>
+
+<section class="slide"><span class="num">11 / 12</span>
+  <h1>Phase-wise test plan</h1>
+  <table>
+    <tr><th>Phase</th><th>Tests</th><th>Layers</th><th>Gate</th></tr>
+    <tr><td>P0 Smoke</td><td>5</td><td>L0/L1/L2/L4</td><td>pre-merge</td></tr>
+    <tr><td>P1 Unit</td><td>30</td><td>L0/L1/L2</td><td>per-package</td></tr>
+    <tr><td>P2 Integration</td><td>25</td><td>L0/L2-L4/L6</td><td>governance</td></tr>
+    <tr><td>P3 E2E</td><td>200 (CATALOG)</td><td>L3-L6</td><td>full surface</td></tr>
+    <tr><td>P4 Cross-screen</td><td>8</td><td>L3/L5/L6</td><td>composites</td></tr>
+    <tr><td>P5 Multi-platform</td><td>500+</td><td>L4/L6</td><td>parity</td></tr>
+    <tr><td>P6 Chaos</td><td>8</td><td>all</td><td>FMEA injection</td></tr>
+    <tr><td>P7 Performance</td><td>4</td><td>L1/L4/L6</td><td>SLOs</td></tr>
+    <tr><td>P8 Formal</td><td>5</td><td>L0/L2/L3/L7</td><td>Allium + TLA+</td></tr>
+    <tr><td>P9 Regression</td><td>nightly</td><td>L3-L7</td><td>continuous</td></tr>
+  </table>
+</section>
+
+<section class="slide"><span class="num">12 / 12</span>
+  <h1>Gaps · next moves</h1>
+  <h2>What's left before "complete"</h2>
+  <ul>
+    <li><strong>Today (≤ 30 min)</strong>: A1 wire <code>LoggingLogCollector</code> · A6 <code>dart pub global activate</code></li>
+    <li><strong>Next week</strong>: A7 Rust <code>evaluate_marionette()</code> · A4 CI runner via <code>marionette_cli</code></li>
+    <li><strong>Next sprint</strong>: A2 TLA+ stub · A8 Apalache CI gate · A3 <code>.gemini</code> mirror · A5 per-app extensions doc</li>
+    <li><strong>Sprint+1</strong>: B1 dashboard tile · B2 selector-drift detector · B3 explorer ZK auto-cite</li>
+  </ul>
+  <p style="color:var(--mute);font-size:12px;margin-top:18px">→ Detailed plan in <a href="test-plan.md" style="color:var(--accent)">test-plan.md</a> · gap analysis in <a href="gap-analysis.md" style="color:var(--accent)">gap-analysis.md</a> · journal in <a href="journal.md" style="color:var(--accent)">journal.md</a></p>
+</section>
+
+<section class="slide"><span class="num">13 / 13</span>
+  <h1>Graphviz analytical graphs</h1>
+  <h2>Causal blast-radius · RETE-UL salience · Phase DAG · Symbiosis</h2>
+  <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:14px;margin-top:18px">
+    <div class="figure"><img src="diagrams/g1-causal-graph.png" alt="g1" style="max-width:100%"/><div style="color:var(--mute);font-size:11px;text-align:center;margin-top:6px">G1 · selector causal blast-radius</div></div>
+    <div class="figure"><img src="diagrams/g2-rete-salience.png" alt="g2" style="max-width:100%"/><div style="color:var(--mute);font-size:11px;text-align:center;margin-top:6px">G2 · RETE-UL salience tree</div></div>
+    <div class="figure"><img src="diagrams/g3-test-phase-dag.png" alt="g3" style="max-width:100%"/><div style="color:var(--mute);font-size:11px;text-align:center;margin-top:6px">G3 · phase DAG P0→P9</div></div>
+    <div class="figure"><img src="diagrams/g4-symbiosis.png" alt="g4" style="max-width:100%"/><div style="color:var(--mute);font-size:11px;text-align:center;margin-top:6px">G4 · full system symbiosis</div></div>
+  </div>
+  <p style="color:var(--mute);font-size:11px;margin-top:14px">Rendered via <code>dot 12.2.1</code> · sources in <code>diagrams/g*.dot</code>.</p>
+</section>
+
+<section class="slide" style="border-color:var(--accent)"><span class="num">14 / 17</span>
+  <h1>★ Pass 11 — Worker Dispatcher Formal Verification</h1>
+  <h2>Pass-10 follow-on · formalise the bug class</h2>
+  <ul>
+    <li><strong>Bug</strong>: Pass-8/9 added <code>gleam_run</code> only to <code>scheduler.rs</code> (legacy); the real <code>workers.rs</code> dispatcher returned <code>"unknown worker"</code> → 5 jobs silently discarded</li>
+    <li><strong>Pass-10 fix</strong>: commit <code>106862017d</code> added <code>gleam_run</code> arm to <code>workers.rs::dispatch</code></li>
+    <li><strong>Pass-11 formalisation</strong>:
+      <ul>
+        <li><code>specs/tla/WorkerDispatch.tla</code> — <code>DispatcherRegistryConsistency</code> invariant</li>
+        <li><code>specs/agda/WorkerDispatch.agda</code> — total dispatch with constructor coverage proof</li>
+        <li><code>formal/dispatcher-mismatch-rca.md</code> — Fractal RCA, FMEA <strong>ΣRPN 835 → 121</strong>, 10 new STAMP</li>
+        <li><code>formal/full-system-validation-pass11.md</code> — 15 invariants, system <strong>ΣRPN 4218 → 1247</strong></li>
+      </ul>
+    </li>
+    <li><strong>9 sa-plan tasks queued</strong> — P0×3, P1×5, P2×1</li>
+  </ul>
+</section>
+
+<section class="slide"><span class="num">15 / 17</span>
+  <h1>The bug class</h1>
+  <h2>Two dispatch tables; only one updated</h2>
+  <div class="figure"><img src="diagrams/g9-dispatcher-mismatch.png" alt="g9 dispatcher mismatch" style="max-width:100%"/></div>
+  <p style="color:var(--mute);font-size:12px;margin-top:10px">
+    <code>scheduler.rs</code> (legacy workflow path) had the <code>gleam_run</code> arm — green ✓.
+    <code>workers.rs</code> (oban dispatcher, the path actually used) hit the default <code>Err("unknown worker")</code> — red ✗.
+    Five jobs went <code>executing → retryable → discarded</code> in silence. SC-WIRE-002 violation: a constructor
+    was added without updating every dispatch table in the same commit.
+  </p>
+</section>
+
+<section class="slide"><span class="num">16 / 17</span>
+  <h1>The fix + formalisation</h1>
+  <h2>Unified dispatch + machine-checked coverage</h2>
+  <div class="figure"><img src="diagrams/g10-dispatcher-fixed.png" alt="g10 dispatcher fixed" style="max-width:100%"/></div>
+  <table>
+    <tr><th>Layer</th><th>Artefact</th><th>Invariant</th></tr>
+    <tr><td>L0 Constitutional</td><td><code>WorkerDispatch.tla</code></td><td><code>∀ kind ∈ Constructors: dispatch(kind) ≠ Unknown</code></td></tr>
+    <tr><td>L2 Component</td><td><code>WorkerDispatch.agda</code></td><td>Total dispatch — constructor pattern miss = type error</td></tr>
+    <tr><td>L5 Cognitive</td><td><code>dispatcher-mismatch-rca.md</code></td><td>Fractal RCA · 10 STAMP · ΣRPN −85%</td></tr>
+    <tr><td>L7 Federation</td><td><code>full-system-validation-pass11.md</code></td><td>15 invariants × 8 layers · system ΣRPN −70%</td></tr>
+  </table>
+</section>
+
+<section class="slide"><span class="num">17 / 17</span>
+  <h1>Coverage matrix · roadmap</h1>
+  <h2>Where Pass-11 lands and what Pass-12 will close</h2>
+  <div class="figure"><img src="diagrams/g12-fractal-l0-l7-pass11.png" alt="g12 fractal coverage" style="max-width:100%"/></div>
+  <ul>
+    <li><strong>Pass-11 closes</strong>: TLA+ + Agda gates, 15-invariant matrix, 10 SC-WIRE-DISPATCH-* refs, 9 follow-on tasks</li>
+    <li><strong>Pass-12 roadmap</strong>: Rust Wiring-Guard test — catch dispatcher drift at compile-time, not at runtime</li>
+    <li><strong>Tailscale</strong>: <code>https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/</code></li>
+  </ul>
+</section>
+
+<section class="slide" style="border-color:var(--accent)"><span class="num">18 / 21</span>
+  <h1>★ Pass 12 — SIL-6 Biomorphic Mega-Pass</h1>
+  <h2>Cross-pass invariant gate · the meta-pattern</h2>
+  <ul>
+    <li><strong>Bug class</strong>: cross-pass invariant gate — the failure that lets a Pass-N fix silently regress in Pass-(N+1)</li>
+    <li><strong>Closed by</strong>: Rust Wiring-Guard runtime test (5/5 PASS) + TLA+ counter-example proving Pass-10 bug is unreachable</li>
+    <li><strong>Deliverables</strong>:
+      <ul>
+        <li><code>journal-pass12.md</code> — 13-section master journal (SDLC × SRE × ontology)</li>
+        <li><code>test-plan-pass12.md</code> — 8 layers × 7 SDLC phases test matrix</li>
+        <li><code>specs/tla/WorkerDispatch_BugCounterExample.tla</code> + <code>.cfg</code></li>
+        <li>10 new Graphviz diagrams (<code>g13</code>–<code>g22</code>)</li>
+        <li><code>tests/dispatcher_registry_test.rs</code> — 5/5 PASS</li>
+      </ul>
+    </li>
+    <li><strong>9 sa-plan tasks queued</strong> · <strong>19/26 completed</strong></li>
+  </ul>
+</section>
+
+<section class="slide"><span class="num">19 / 21</span>
+  <h1>SDLC × SRE × Ontology Integration</h1>
+  <h2>Every fractal layer carries SDLC phase + SRE control + ontology binding</h2>
+  <div class="figure"><img src="diagrams/g21-fractal-symbiosis-l0-l7.png" alt="g21 fractal symbiosis L0-L7" loading="lazy" style="max-width:100%"/></div>
+  <p style="color:var(--mute);font-size:12px;margin-top:10px">
+    Pass-12 binds the SDLC (requirements → design → build → test → deploy → operate → evolve) to the SRE
+    control loop (SLO → SLI → error budget → toil reduction) onto the same L0–L7 fractal substrate that
+    Pass-11 used for the 15 invariants. The result: every code change traces to a layer, a phase, an
+    invariant, and an SLO.
+  </p>
+</section>
+
+<section class="slide"><span class="num">20 / 21</span>
+  <h1>Phase-wise Test Plan</h1>
+  <h2>8 fractal layers × 7 SDLC phases = 56-cell test matrix</h2>
+  <div class="figure"><img src="diagrams/g13-dataflow-end-to-end.png" alt="g13 dataflow end-to-end" loading="lazy" style="max-width:100%"/></div>
+  <table>
+    <tr><th>Layer</th><th>Req</th><th>Design</th><th>Build</th><th>Test</th><th>Deploy</th><th>Operate</th><th>Evolve</th></tr>
+    <tr><td>L0</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>L1</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>L2</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>L3</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>L4</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>L5</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>L6</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>L7</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+  </table>
+  <p style="color:var(--mute);font-size:12px;margin-top:10px">Full matrix in <a href="test-plan-pass12.md" style="color:var(--accent)">test-plan-pass12.md</a>.</p>
+</section>
+
+<section class="slide" style="border-color:var(--accent)"><span class="num">21 / 21</span>
+  <h1>Pass 1–12 Closure</h1>
+  <h2>KPI rollup · ZK ingest · Pass-13 roadmap</h2>
+  <table>
+    <tr><th>Metric</th><th>Pass 1</th><th>Pass 11</th><th>Pass 12</th><th>Δ (P1→P12)</th></tr>
+    <tr><td>System ΣRPN</td><td>4218</td><td>1247</td><td>1247</td><td><span class="pill ok">−70%</span></td></tr>
+    <tr><td>Dispatcher ΣRPN</td><td>835</td><td>121</td><td>121</td><td><span class="pill ok">−85%</span></td></tr>
+    <tr><td>Invariants formalised</td><td>0</td><td>15</td><td>15</td><td><span class="pill ok">+15</span></td></tr>
+    <tr><td>Math gates passing</td><td>3/5</td><td>4/5</td><td>4/5</td><td><span class="pill ok">+1</span></td></tr>
+    <tr><td>Graphviz diagrams</td><td>6</td><td>12</td><td>22</td><td><span class="pill ok">+16</span></td></tr>
+    <tr><td>sa-plan tasks completed</td><td>—</td><td>—</td><td>19/26</td><td><span class="pill ok">73%</span></td></tr>
+    <tr><td>Wiring-Guard tests</td><td>0</td><td>0</td><td>5/5</td><td><span class="pill ok">PASS</span></td></tr>
+    <tr><td>ZK holons ingested</td><td>~5</td><td>~28</td><td>~42</td><td><span class="pill ok">+37</span></td></tr>
+  </table>
+  <h2 style="margin-top:18px;color:var(--accent)">Pass-13 roadmap</h2>
+  <ul>
+    <li>Apalache CI gate landing — block PRs that violate <code>DispatcherRegistryConsistency</code></li>
+    <li>Auto-generate Wiring-Guard tests from Agda constructor lists</li>
+    <li>Federation across all sub-projects (FluffyChat, sutra, ferriskey)</li>
+    <li>Live dashboard tile: dispatcher coverage % + invariant health</li>
+  </ul>
+  <p style="color:var(--mute);font-size:11px;margin-top:14px">→ <code>https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/</code> · auto-refresh 30s</p>
+</section>
+
+<section class="slide" style="border-color:var(--green)"><span class="num">22 / 23</span>
+  <h1 style="color:var(--green)">Pass 14 — CPIG @ 91.7%</h1>
+  <h2>55 / 60 gates — 9 of 12 subsystems at 5/5</h2>
+  <table>
+    <tr><th>Subsystem</th><th>Score</th><th>Δ from P13</th></tr>
+    <tr><td>★ sa-plan-daemon</td><td><span class="pill ok">5/5</span></td><td>—</td></tr>
+    <tr><td>★ Pi-mono</td><td><span class="pill ok">5/5</span></td><td>+2</td></tr>
+    <tr><td>★ Zenoh OTel</td><td><span class="pill ok">5/5</span></td><td>+3 (P13)</td></tr>
+    <tr><td>★ FerrisKey</td><td><span class="pill ok">5/5</span></td><td>+4 (P13)</td></tr>
+    <tr><td>★ F# CEPAF</td><td><span class="pill ok">5/5</span></td><td>+3 (P13)</td></tr>
+    <tr><td>★ scripts-gleam</td><td><span class="pill ok">5/5</span></td><td>+2</td></tr>
+    <tr><td>★ Marionette MCP</td><td><span class="pill ok">5/5</span></td><td>+1</td></tr>
+    <tr><td>★ Patrol MCP</td><td><span class="pill ok">5/5</span></td><td>+2</td></tr>
+    <tr><td>★ Gleam UI</td><td><span class="pill ok">5/5</span></td><td>+1</td></tr>
+    <tr><td>Dart MCP</td><td><span class="pill warn">4/5</span></td><td>+2</td></tr>
+    <tr><td>Cortex</td><td><span class="pill warn">3/5</span></td><td>+1</td></tr>
+    <tr><td>Fractal Widgets</td><td><span class="pill warn">3/5</span></td><td>+2</td></tr>
+  </table>
+  <p style="color:var(--mute);font-size:12px;margin-top:10px">
+    +5 TLA+ specs (PiMono, ScriptsGleam, Patrol, DartMCP, GleamUI) ·
+    +4 Wiring Guards (patrol_envelope, dart_mcp_tools, cortex_cascade, pi_federation_count) ·
+    cpig-matrix.json v1.2.0
+  </p>
+</section>
+
+<section class="slide" style="border-color:var(--accent)"><span class="num">23 / 23</span>
+  <h1>Pass 15 Roadmap — Last 5 Gates to 100%</h1>
+  <h2 style="color:var(--accent)">60 / 60 federation parity target</h2>
+  <table>
+    <tr><th>Gate</th><th>Subsystem × Dimension</th><th>Action</th></tr>
+    <tr><td>1</td><td>Dart MCP × ZK</td><td>Ingest 16-tool surface as Smriti.db holon</td></tr>
+    <tr><td>2</td><td>Cortex × ZK</td><td>Ingest 6-tier hedged inference cascade architecture</td></tr>
+    <tr><td>3</td><td>Cortex × Email</td><td>Operator closure with InferenceCascade.tla + cortex_cascade_wiring_test</td></tr>
+    <tr><td>4</td><td>Fractal Widgets × ZK</td><td>Ingest L0-L7 widget catalog</td></tr>
+    <tr><td>5</td><td>Fractal Widgets × Email</td><td>Operator closure with FractalWidgets.tla + fractal_widgets_wiring_test</td></tr>
+  </table>
+  <p style="color:var(--mute);font-size:12px;margin-top:10px">
+    History: <strong>32 → 36 → 55 → 60</strong> (Pass 12 → 13 → 14 → 15) ·
+    All 3 remaining subsystems' formal_spec, wiring_guard, sa_plan gates already PASS.
+  </p>
+  <p style="color:var(--mute);font-size:11px;margin-top:14px">→ <code>https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/</code> · auto-refresh 30s</p>
+</section>
+
+<section class="slide" style="border-color:var(--green)"><span class="num">24 / 25</span>
+  <h1>Pass 17–18 — Runtime Activation + Closure</h1>
+  <h2 style="color:var(--green)">First scheduler tick proved 8 prior passes simultaneously</h2>
+  <ul>
+    <li><strong>3 / 3 gleam_run jobs</strong> completed end-to-end (Pass 10 dispatcher fix runtime-confirmed)</li>
+    <li><strong>enqueued=3 → executed=4</strong> in a single tick (Pass 9 <code>JoinHandle.join</code> confirmed)</li>
+    <li><strong>mistral.rs embedding engine</strong> ready in 3.8 s (Pass 6 in-process confirmed)</li>
+    <li><strong>/api/v1/cpig/status</strong> live serving 60 / 60 = 100 %</li>
+    <li><strong>Pass 18 closures:</strong> URL directory-root resolver (P0) ✅ · 9 Wiring Guards bulk evidence (P1) ✅</li>
+  </ul>
+  <div style="background:#0a0e17;border:1px solid var(--border);border-radius:8px;padding:6px;margin-top:10px"><object data="diagrams/g25-runtime-proof.svg" type="image/svg+xml" style="width:100%;display:block"></object></div>
+  <p style="color:var(--mute);font-size:11px;margin-top:8px">5 sa-plan tasks: 116482913711909941 · 13718248 · 15182370 · 16616644 · 18159192</p>
+</section>
+
+<section class="slide" style="border-color:var(--accent)"><span class="num">25 / 25</span>
+  <h1>Remaining Roadmap to Pass 25</h1>
+  <h2 style="color:var(--accent)">11-item punch list · prioritised P0 → P3</h2>
+  <table>
+    <tr><th>#</th><th>Pri</th><th>Item</th><th>Pass</th></tr>
+    <tr><td>1</td><td>P0</td><td>URL fix in serve.rs</td><td><strong style="color:var(--green)">18 ✅</strong></td></tr>
+    <tr><td>2</td><td>P1</td><td>cpig-validator-hourly first cron fire</td><td>19</td></tr>
+    <tr><td>3</td><td>P1</td><td>9 Wiring Guards bulk evidence</td><td><strong style="color:var(--green)">18 ✅</strong></td></tr>
+    <tr><td>4</td><td>P1</td><td>Apalache discharge Agda postulate</td><td>19</td></tr>
+    <tr><td>5</td><td>P2</td><td>.gemini/skills/ parity</td><td>20</td></tr>
+    <tr><td>6</td><td>P2</td><td>Zenoh telemetry live subscriber</td><td>21</td></tr>
+    <tr><td>7</td><td>P2</td><td>FluffyChat L1 main.dart wiring</td><td>22</td></tr>
+    <tr><td>8</td><td>P3</td><td>Federated CPIG cross-mesh</td><td>23</td></tr>
+    <tr><td>9</td><td>P3</td><td>Multi-region 2oo3 voting</td><td>24</td></tr>
+    <tr><td>10</td><td>P3</td><td>Continuous TLA+/Apalache CI</td><td>24</td></tr>
+    <tr><td>11</td><td>P3</td><td>Pass-25 closure federation event</td><td>25</td></tr>
+  </table>
+  <div style="background:#0a0e17;border:1px solid var(--border);border-radius:8px;padding:6px;margin-top:10px"><object data="diagrams/g26-remaining-roadmap.svg" type="image/svg+xml" style="width:100%;display:block"></object></div>
+</section>
+
+<section class="slide" style="border-color:var(--green)"><span class="num">26 / 27</span>
+  <h1>Pass 21 — Ontology Genesis + Pi Deep Verification + OTP Supervisor</h1>
+  <h2 style="color:var(--green)">Class-I closure · final letter in cumulative A-I taxonomy</h2>
+  <ul>
+    <li><strong>OTP supervisor</strong> — <code>cpig_supervisor.gleam</code> (~150 LOC) finally wraps
+      <code>cpig_subscriber</code> in a real <code>gleam_otp/actor</code>; <code>start()</code> is safe-default-OFF;
+      <code>loop/2</code> exposed for compile-time wiring proof.</li>
+    <li><strong>Pi-mono deep RCA</strong> + 2 new TLA+ specs + 1 wiring guard → <strong>deep 5/5</strong>
+      (first subsystem to enter the deep tier).</li>
+    <li><strong>Formal ontology document</strong> — 12 entities × 15 relations consolidating all 21 passes;
+      future TLA+ specs <code>EXTENDS C3IOntology</code> instead of inlining data models.</li>
+    <li><strong>5 wiring tests PASS</strong> — SC-CPIG-002, SC-WIRE-001, SC-PI-RUNTIME-001 cited.</li>
+    <li>Cumulative: 21 passes · 80+ files · 17 TLA+ · 2 Agda · 62 wiring guards · 35 diagrams · CPIG 60/60.</li>
+  </ul>
+  <p style="color:var(--mute);font-size:11px;margin-top:8px">6 sa-plan tasks: 116483658863546110 · 65518164 · 66998566 · 68228456 · 69391558 · 70358640</p>
+</section>
+
+<section class="slide" style="border-color:var(--green)"><span class="num">27 / 27</span>
+  <h1>Class A-I Taxonomy Complete</h1>
+  <h2 style="color:var(--green)">9 canonical work categories — alphabet closed</h2>
+  <table>
+    <tr><th>Class</th><th>Pass</th><th>Theme</th></tr>
+    <tr><td>A</td><td>1-3</td><td>Wiring</td></tr>
+    <tr><td>B</td><td>4-7</td><td>Formal verification</td></tr>
+    <tr><td>C</td><td>8-10</td><td>Full-system integration</td></tr>
+    <tr><td>D</td><td>11-12</td><td>CPIG matrix + invariants</td></tr>
+    <tr><td>E</td><td>13-15</td><td>Runtime evidence + URL fix</td></tr>
+    <tr><td>F</td><td>16-17</td><td>Wiring-guard breadth + activation</td></tr>
+    <tr><td>G</td><td>18-19</td><td>Defense-in-depth (Pi parity + Zenoh observability)</td></tr>
+    <tr><td>H</td><td>20</td><td>Federation + multi-region + real Zenoh</td></tr>
+    <tr style="background:#0e1a14"><td><strong style="color:var(--green)">I</strong></td>
+        <td><strong style="color:var(--green)">21</strong></td>
+        <td><strong style="color:var(--green)">Ontology genesis + Pi deep RCA + OTP supervisor</strong></td></tr>
+  </table>
+  <p style="color:var(--mute);font-size:12px;margin-top:10px">
+    Pass 22 lands the deep-verification template on the next subsystem (cortex 6-tier hedged inference).
+  </p>
+</section>
+
+<section class="slide" style="border-color:var(--green)"><span class="num">28 / 29</span>
+  <h1>Pass 22 — Cortex 6-Tier Hedged Inference Deep Verification</h1>
+  <h2 style="color:var(--green)">Subsystem-deep template applied to Rust cortex (~2200 LOC)</h2>
+  <ul>
+    <li><strong>2 new TLA+ specs</strong> — <code>CortexHedgedRace.tla</code> (tokio::join! tier 1+2 race semantics, 5 invariants incl. <code>PaidNeverWastedIfFreeWins</code>) + <code>CortexCircuitBreakers.tla</code> (5 CB instances across 7 tiers, <code>CascadeCompleteness</code> liveness).</li>
+    <li><strong>1 new Wiring Guard</strong> — <code>cortex_circuit_breaker_wiring_test.gleam</code> (7 tests: CB count=5, tier count=7, threshold=3, cooldown=60s, tier 7 always-available).</li>
+    <li><strong>Cortex deep RCA</strong> — <code>formal/cortex-deep-rca.md</code> (10-section per Pass-11 template; ΣRPN 376→61 = 84% reduction).</li>
+    <li><strong>Cortex now at deep 5/5</strong> — joining sa-plan-daemon (Pass 1-12) + Pi-mono (Pass 21) as the third subsystem with full deep verification.</li>
+    <li>Cumulative: 22 passes · 19 TLA+ specs · 67 wiring guards · 37 diagrams.</li>
+  </ul>
+  <div style="background:#0a0e17;border:1px solid var(--border);border-radius:8px;padding:6px;margin-top:8px"><img src="diagrams/g37-cortex-7tier-cb.png" style="width:100%;display:block" alt="Cortex 7-tier with 5 circuit breakers"></div>
+</section>
+
+<section class="slide" style="border-color:var(--green)"><span class="num">29 / 29</span>
+  <h1>Subsystem-Deep Pattern (3/12 done)</h1>
+  <h2 style="color:var(--green)">Repeatable template — 9 subsystems remaining for Pass 23+</h2>
+  <table>
+    <tr><th>Subsystem</th><th>CPIG</th><th>Deep</th><th>Pass</th></tr>
+    <tr><td>sa-plan-daemon</td><td>5/5</td><td>★ deep</td><td>1-12</td></tr>
+    <tr><td>Pi-mono</td><td>5/5</td><td>★ deep</td><td>21</td></tr>
+    <tr><td><strong style="color:var(--green)">Cortex</strong></td><td><strong>5/5</strong></td><td><strong style="color:var(--green)">★ deep</strong></td><td><strong>22</strong></td></tr>
+    <tr><td>Zenoh OTel ZMOF</td><td>5/5</td><td>—</td><td>23 target</td></tr>
+    <tr><td>FerrisKey IAM</td><td>5/5</td><td>—</td><td>24 target</td></tr>
+    <tr><td>F# CEPAF</td><td>5/5</td><td>—</td><td>25 target</td></tr>
+    <tr><td>scripts-gleam</td><td>5/5</td><td>—</td><td>26 target</td></tr>
+    <tr><td>Marionette MCP</td><td>5/5</td><td>—</td><td>—</td></tr>
+    <tr><td>Patrol MCP</td><td>5/5</td><td>—</td><td>—</td></tr>
+    <tr><td>Dart MCP</td><td>5/5</td><td>—</td><td>—</td></tr>
+    <tr><td>Gleam UI</td><td>5/5</td><td>—</td><td>—</td></tr>
+    <tr><td>Fractal Widgets L0-L7</td><td>5/5</td><td>—</td><td>—</td></tr>
+  </table>
+  <p style="color:var(--mute);font-size:11px;margin-top:8px">7 sa-plan tasks: 116483724186936326, 96481199, 97709566, 99165591, 200473592, 201788498, 203113596</p>
+</section>
+
+</div>
+<footer>C3I · Indrajaal · Marionette MCP · 2026-04-28 · Pass 1-22 (CPIG 60/60 100% · Class A-I closed · 3/12 deep)</footer>
+</body>
+</html>

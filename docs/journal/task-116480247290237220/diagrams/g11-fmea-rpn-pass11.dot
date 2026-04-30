@@ -1,0 +1,42 @@
+digraph G11FmeaRpn {
+  rankdir=TB;
+  labelloc="t";
+  label="G11 — Pass-11 FMEA RPN reduction (4218 → 1247, −70%)";
+  fontname="Helvetica";
+  fontsize=16;
+  bgcolor="#fafafa";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10];
+  edge [fontname="Helvetica", fontsize=9];
+
+  subgraph cluster_before {
+    label="Before Pass-11 (post Pass-10 fix, no formal proof)";
+    style="rounded,filled"; fillcolor="#ffebee"; color="#c62828";
+    b1 [label="Dispatcher mismatch\nS9 O7 D10\nRPN 630", fillcolor="#ef9a9a"];
+    b2 [label="Worker drop silently\nS9 O5 D9\nRPN 405", fillcolor="#ef9a9a"];
+    b3 [label="Stuck job lifeline gap\nS7 O6 D8\nRPN 336", fillcolor="#ef9a9a"];
+    b4 [label="Unknown registry drift\nS8 O5 D8\nRPN 320", fillcolor="#ef9a9a"];
+    b5 [label="Other 11 modes\nΣRPN 2527", fillcolor="#ffcdd2"];
+  }
+
+  subgraph cluster_after {
+    label="After Pass-11 (formal verification)";
+    style="rounded,filled"; fillcolor="#e8f5e9"; color="#2e7d32";
+    a1 [label="Dispatcher mismatch\nS9 O1 D2\nRPN 18", fillcolor="#a5d6a7"];
+    a2 [label="Worker drop silently\nS9 O2 D3\nRPN 54", fillcolor="#a5d6a7"];
+    a3 [label="Stuck job lifeline gap\nS7 O3 D4\nRPN 84", fillcolor="#c5e1a5"];
+    a4 [label="Unknown registry drift\nS8 O1 D2\nRPN 16", fillcolor="#a5d6a7"];
+    a5 [label="Other 11 modes\nΣRPN 1075", fillcolor="#dcedc8"];
+  }
+
+  total_b [label="ΣRPN before\n4218", shape=hexagon, fillcolor="#c62828", fontcolor="white"];
+  total_a [label="ΣRPN after\n1247 (−70%)", shape=hexagon, fillcolor="#2e7d32", fontcolor="white"];
+
+  b1 -> a1 [color="#558b2f", label="TLA+ inv"];
+  b2 -> a2 [color="#558b2f", label="Agda total"];
+  b3 -> a3 [color="#558b2f", label="lifeline reset"];
+  b4 -> a4 [color="#558b2f", label="STAMP +10"];
+  b5 -> a5 [color="#558b2f", label="full-system val"];
+
+  {b1 b2 b3 b4 b5} -> total_b [style=invis];
+  {a1 a2 a3 a4 a5} -> total_a [style=invis];
+}

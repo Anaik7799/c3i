@@ -1,0 +1,32 @@
+digraph TensorEnrichment {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", fontname="Helvetica", style="filled,rounded"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  subgraph cluster_p13 { label="Pass-13 baseline"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    p13 [label="3 Homeostasis cells\nL3/L4/L5 enriched", fillcolor="#141922"];
+  }
+  subgraph cluster_new { label="Pass-17 — 11 cells enriched"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    p14_meta [label="Metabolism L3/L5\nDQ scanner + ruliology", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p14_growth [label="Growth L0/L1/L3/L4/L5\nSC-PD-RUST-ONLY + 29 tests", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p15_meta [label="Metabolism L1\n14 NIFs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p16_adapt [label="Adaptation L1/L3/L5\nproptest + Wolfram-rule classifier", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_api { label="New accessors"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    api1 [label="cells_upgraded_in_pass(t, n)", fillcolor="#4d96ff", fontcolor="#fff"];
+    api2 [label="pass_history(t)\n→ [14, 15, 16]", fillcolor="#4d96ff", fontcolor="#fff"];
+  }
+  subgraph cluster_tests { label="5 new tests (gleeunit)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    t1 [label="pass14 cells present (≥2)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    t2 [label="pass15 cells present (≥1)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    t3 [label="pass16 cells present (≥1)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    t4 [label="history contains 14/15/16", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    t5 [label="health > 0.84\n(post-enrichment)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+
+  p13 -> p14_meta [style=dotted];
+  p14_meta -> api1; p14_growth -> api1; p15_meta -> api1; p16_adapt -> api1;
+  api1 -> api2;
+  api2 -> t1; api2 -> t2; api2 -> t3; api2 -> t4;
+  api1 -> t5 [label="composite\nhealth"];
+}

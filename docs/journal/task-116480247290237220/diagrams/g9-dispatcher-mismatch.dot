@@ -1,0 +1,45 @@
+digraph G9DispatcherMismatch {
+  rankdir=LR;
+  labelloc="t";
+  label="G9 — Pre-Pass-10 Dispatcher Mismatch (BROKEN)";
+  fontname="Helvetica";
+  fontsize=16;
+  bgcolor="#fafafa";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10];
+  edge [fontname="Helvetica", fontsize=9];
+
+  oban [label="oban_jobs table\nworker='gleam_run'", shape=cylinder, fillcolor="#fce4ec", color="#ad1457"];
+
+  subgraph cluster_sched {
+    label="scheduler.rs (legacy workflow path)";
+    style="rounded,filled";
+    fillcolor="#e8f5e9";
+    color="#2e7d32";
+    sched_disp [label="dispatch (workflow)", fillcolor="#c8e6c9"];
+    gleam_in_sched [label="gleam_run handler\n✓ present", fillcolor="#a5d6a7", color="#1b5e20"];
+    sched_disp -> gleam_in_sched [color="#2e7d32"];
+  }
+
+  subgraph cluster_workers {
+    label="workers.rs (oban dispatcher) — BROKEN";
+    style="rounded,filled";
+    fillcolor="#ffebee";
+    color="#c62828";
+    workers_disp [label="workers::dispatch", fillcolor="#ffcdd2"];
+    http_h  [label="http_probe ✓", fillcolor="#c8e6c9"];
+    file_h  [label="file_check ✓", fillcolor="#c8e6c9"];
+    gap     [label="gleam_run\n✗ MISSING", fillcolor="#ef5350", color="#b71c1c", fontcolor="white", penwidth=2];
+    err     [label="\"unknown worker\"\nerror returned", fillcolor="#b71c1c", fontcolor="white"];
+    workers_disp -> http_h;
+    workers_disp -> file_h;
+    workers_disp -> gap [color="#c62828", penwidth=2, style=dashed];
+    gap -> err [color="#b71c1c", penwidth=3];
+  }
+
+  oban -> workers_disp [label="claim → dispatch", color="#c62828", penwidth=2];
+  oban -> sched_disp   [label="(legacy, unused)", color="#9e9e9e", style=dotted];
+
+  note [label="Result: ALL gleam_run jobs failed\nwith 'unknown worker' error.\nLegacy scheduler.rs had the handler\nbut oban path didn't route through it.",
+        shape=note, fillcolor="#fff9c4", color="#f57f17"];
+  err -> note [style=invis];
+}

@@ -1,0 +1,65 @@
+digraph G28_GeminiClaudeParity {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=10, fontcolor="#0a0e17"];
+  edge [fontname="Helvetica", fontsize=9, color="#7a8fa6", fontcolor="#e0e6ed"];
+  labelloc=t;
+  fontsize=14;
+  fontcolor="#00d4aa";
+  label="G28 — .claude ↔ .gemini Parity (Pass 19) · SC-SYNC-DOC-007/008 enforcement";
+
+  // .claude side
+  subgraph cluster_claude {
+    label=".claude/ (authoritative)";
+    fontcolor="#00d4aa";
+    style=dashed;
+    color="#3dd68c";
+    CR  [label=".claude/rules/\n67 files", fillcolor="#3dd68c"];
+    CA  [label=".claude/agents/\n~25 files", fillcolor="#3dd68c"];
+    CC  [label=".claude/commands/\n~70 files", fillcolor="#3dd68c"];
+    CS  [label=".claude/settings.json\n(hooks)", fillcolor="#3dd68c"];
+  }
+
+  // .gemini side
+  subgraph cluster_gemini {
+    label=".gemini/ (mirror — Pass 19 closes drift)";
+    fontcolor="#f5a623";
+    style=dashed;
+    color="#f5a623";
+    GR  [label=".gemini/rules/\nin-sync", fillcolor="#3dd68c"];
+    GA  [label=".gemini/agents/\nin-sync", fillcolor="#3dd68c"];
+    GS  [label=".gemini/skills/\n[NEW — Pass 19]\n~70 files copied", fillcolor="#3dd68c"];
+    GST [label=".gemini/settings.json\nin-sync", fillcolor="#3dd68c"];
+  }
+
+  // Sync edges (bidirectional governance, but authoritative is claude → gemini)
+  CR  -> GR  [label="cp -r", color="#3dd68c", dir=both];
+  CA  -> GA  [label="cp -r", color="#3dd68c", dir=both];
+  CC  -> GS  [label="cp -r\n[Pass 19]", color="#3dd68c", penwidth=2];
+  CS  -> GST [label="manual port", color="#7a8fa6", dir=both];
+
+  // STAMP rules
+  S007 [label="SC-SYNC-DOC-007\nagent inventory parity", fillcolor="#00d4aa", shape=octagon];
+  S008 [label="SC-SYNC-DOC-008\ncommand inventory parity", fillcolor="#00d4aa", shape=octagon];
+
+  S007 -> CA [style=dashed, color="#00d4aa"];
+  S007 -> GA [style=dashed, color="#00d4aa"];
+  S008 -> CC [style=dashed, color="#00d4aa"];
+  S008 -> GS [style=dashed, color="#00d4aa"];
+
+  // Pre-Pass-19 status note
+  Drift [label="Pre-Pass-19 drift:\n.gemini/skills MISSING\n→ Pass 19 closes", fillcolor="#ff6b6b", shape=note];
+  Drift -> GS [style=dashed, color="#ff6b6b"];
+
+  // Legend
+  subgraph cluster_legend {
+    label="Color key";
+    fontcolor="#00d4aa";
+    style=dashed;
+    color="#1e2a3a";
+    L1 [label="in-sync", fillcolor="#3dd68c"];
+    L2 [label="drift (resolved)", fillcolor="#ff6b6b"];
+    L3 [label="STAMP gate", fillcolor="#00d4aa"];
+    L1 -> L2 -> L3 [style=invis];
+  }
+}

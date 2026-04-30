@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 540" font-family="ui-sans-serif,system-ui">
+  <defs>
+    <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#00d4aa"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e74c3c"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#0a0e17"/>
+  <text x="500" y="32" fill="#e0e6ed" font-size="20" font-weight="700" text-anchor="middle">MarionetteSession state machine (Allium §4)</text>
+
+  <!-- states -->
+  <g font-size="12" fill="#e0e6ed" text-anchor="middle">
+    <ellipse cx="120" cy="180" rx="80" ry="40" fill="#1e2a3a" stroke="#7a8fa6"/>
+    <text x="120" y="178">connecting</text>
+    <text x="120" y="195" fill="#7a8fa6" font-size="10">build_mode == debug</text>
+
+    <ellipse cx="320" cy="180" rx="80" ry="40" fill="#1e2a3a" stroke="#00d4aa"/>
+    <text x="320" y="178">discovering</text>
+    <text x="320" y="195" fill="#7a8fa6" font-size="10">flag-file primed</text>
+
+    <ellipse cx="520" cy="180" rx="80" ry="40" fill="#1e2a3a" stroke="#3dd68c"/>
+    <text x="520" y="178">driving</text>
+    <text x="520" y="195" fill="#7a8fa6" font-size="10">tap·gesture·text</text>
+
+    <ellipse cx="720" cy="180" rx="80" ry="40" fill="#1e2a3a" stroke="#ffa502"/>
+    <text x="720" y="178">capturing</text>
+    <text x="720" y="195" fill="#7a8fa6" font-size="10">screenshots+logs</text>
+
+    <ellipse cx="520" cy="380" rx="90" ry="40" fill="#1e2a3a" stroke="#9b59b6"/>
+    <text x="520" y="378">disconnecting</text>
+    <text x="520" y="395" fill="#7a8fa6" font-size="10">force capture (failure)</text>
+
+    <ellipse cx="850" cy="380" rx="80" ry="40" fill="#1e2a3a" stroke="#e74c3c"/>
+    <text x="850" y="378">terminal</text>
+    <text x="850" y="395" fill="#7a8fa6" font-size="10">flag cleared</text>
+  </g>
+
+  <!-- transitions -->
+  <g stroke="#00d4aa" stroke-width="2" fill="none">
+    <path d="M200,180 L240,180" marker-end="url(#arr2)"/>
+    <path d="M400,180 L440,180" marker-end="url(#arr2)"/>
+    <path d="M600,180 L640,180" marker-end="url(#arr2)"/>
+    <path d="M720,220 Q650,300 600,360" marker-end="url(#arr2)"/>
+    <path d="M520,220 Q600,300 600,360" marker-end="url(#arr2)"/>
+    <path d="M610,380 L770,380" marker-end="url(#arr2)"/>
+  </g>
+
+  <!-- loop driving <-> capturing -->
+  <g stroke="#3dd68c" stroke-width="2" fill="none">
+    <path d="M640,170 Q625,140 610,170" marker-end="url(#arr2)"/>
+    <text x="625" y="125" fill="#3dd68c" font-size="10" text-anchor="middle">capture</text>
+    <path d="M640,200 Q625,230 610,200"/>
+  </g>
+
+  <!-- failure (red) any -> capturing -->
+  <g stroke="#e74c3c" stroke-width="1.5" fill="none" stroke-dasharray="4,3">
+    <path d="M120,220 Q400,420 640,210" marker-end="url(#arrR)"/>
+    <text x="380" y="350" fill="#e74c3c" font-size="11">failure: any → capturing (force evidence)</text>
+  </g>
+
+  <!-- legend -->
+  <g font-size="11" fill="#7a8fa6">
+    <rect x="40" y="450" width="920" height="70" rx="6" fill="#0a0e17" stroke="#1e2a3a"/>
+    <text x="60" y="472" fill="#e0e6ed">Invariants:</text>
+    <text x="160" y="472">DiscoveryBeforeDrive · EvidenceForFailure · DebugBindingOnly · SingletonBinding · ZenohEventCoverage</text>
+    <text x="60" y="495" fill="#e0e6ed">Hot reload:</text>
+    <text x="160" y="495">preserves session.id and discovery_seen — flag-file untouched (HotReloadStatePreservation)</text>
+    <text x="60" y="513" fill="#e0e6ed">STAMP:</text>
+    <text x="160" y="513">SC-MARIONETTE-003 (discovery) · -004 (failure capture) · -005 (release block) · -012 (Zenoh envelope)</text>
+  </g>
+</svg>

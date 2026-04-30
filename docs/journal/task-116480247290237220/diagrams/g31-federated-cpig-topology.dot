@@ -1,0 +1,56 @@
+digraph G31_FederatedCPIGTopology {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=10, fontcolor="#e0e6ed", color="#1e2a3a", penwidth=1.2];
+  edge [fontname="Helvetica", fontsize=9, color="#7a8fa6", fontcolor="#7a8fa6"];
+  labelloc=t;
+  fontsize=14;
+  fontcolor="#00d4aa";
+  label="G31 — Federated CPIG Topology · 3-mesh peer attestation + 2oo3 quorum";
+
+  subgraph cluster_a {
+    label="Mesh A (region: eu-north)";
+    fontcolor="#3dd68c"; style=dashed; color="#1e2a3a";
+    A_cpig   [label="CPIG\nMatrix-A", fillcolor="#141922"];
+    A_attest [label="Ed25519\nAttester-A", fillcolor="#141922"];
+    A_cpig -> A_attest [label="sign"];
+  }
+
+  subgraph cluster_b {
+    label="Mesh B (region: us-east)";
+    fontcolor="#3dd68c"; style=dashed; color="#1e2a3a";
+    B_cpig   [label="CPIG\nMatrix-B", fillcolor="#141922"];
+    B_attest [label="Ed25519\nAttester-B", fillcolor="#141922"];
+    B_cpig -> B_attest [label="sign"];
+  }
+
+  subgraph cluster_c {
+    label="Mesh C (region: ap-south)";
+    fontcolor="#3dd68c"; style=dashed; color="#1e2a3a";
+    C_cpig   [label="CPIG\nMatrix-C", fillcolor="#141922"];
+    C_attest [label="Ed25519\nAttester-C", fillcolor="#141922"];
+    C_cpig -> C_attest [label="sign"];
+  }
+
+  Q [label="2oo3 Quorum\nDecision Node\n(SC-SIL4-006)", shape=hexagon, fillcolor="#00d4aa", fontcolor="#0a0e17", fontsize=11];
+
+  A_attest -> Q [label="Ed25519 score=0.92 at=2026-04-28T10:00Z", color="#3dd68c", fontcolor="#3dd68c"];
+  B_attest -> Q [label="Ed25519 score=0.88 at=2026-04-28T10:00Z", color="#3dd68c", fontcolor="#3dd68c"];
+  C_attest -> Q [label="Ed25519 score=0.91 at=2026-04-28T10:00Z", color="#3dd68c", fontcolor="#3dd68c"];
+
+  Federated [label="Federated CPIG\n(consensus)", shape=box3d, fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  Q -> Federated [label="quorum reached\n2oo3 ≥ 0.85"];
+
+  // peer cross-attestation
+  A_attest -> B_attest [style=dotted, color="#7a8fa6", label="peer-verify"];
+  B_attest -> C_attest [style=dotted, color="#7a8fa6", label="peer-verify"];
+  C_attest -> A_attest [style=dotted, color="#7a8fa6", label="peer-verify"];
+
+  subgraph cluster_legend {
+    label="legend"; fontcolor="#00d4aa"; style=dashed; color="#1e2a3a";
+    L1 [label="local sign", fillcolor="#141922"];
+    L2 [label="quorum vote", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    L3 [label="peer attestation", fillcolor="#1e2a3a"];
+    L1 -> L2 -> L3 [style=invis];
+  }
+}

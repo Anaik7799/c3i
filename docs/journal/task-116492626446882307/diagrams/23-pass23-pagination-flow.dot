@@ -1,0 +1,37 @@
+digraph PaginationFlow {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", fontname="Helvetica", style="filled,rounded"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  subgraph cluster_in { label="Client"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    cli [label="GET /api/v1/planning/page\n?status=pending&offset=20&limit=10", fillcolor="#141922"];
+  }
+  subgraph cluster_route { label="Pass-23 Wisp Router"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    match [label="dynamic route\nstarts_with(\"/api/v1/planning/page\")", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    parse [label="query_param\n+ parse_uint", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    valid [label="status ∈\n{all,pending,in_progress,\ncompleted,blocked}\n+ limit cap @500", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_nif { label="L1 NIF"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    nif [label="c3i_nif::plan_list_by_status\n→ JSON array string", fillcolor="#141922"];
+  }
+  subgraph cluster_slice { label="Pure helpers (16 tests)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    count [label="count_json_array_elements\n(brace-depth aware)\n7 tests", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    slice [label="slice_json_array\n(offset/limit window)\n8 tests + 1 round-trip", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_out { label="Response"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    resp [label="{status, offset, limit,\ntotal, returned, items_json}", fillcolor="#141922"];
+  }
+  subgraph cluster_safety { label="Safety"; style=dashed; color="#ff4757"; fontcolor="#ff4757";
+    s1 [label="invalid status →\n{ok:false, error:...}", fillcolor="#141922"];
+    s2 [label="limit > 500 →\ncapped to 500", fillcolor="#141922"];
+    s3 [label="offset > total →\nreturns []", fillcolor="#141922"];
+  }
+
+  cli -> match; match -> parse; parse -> valid;
+  valid -> nif [label="status passes"];
+  valid -> s1 [label="invalid status", style=dashed, color="#ff4757"];
+  nif -> count; nif -> slice;
+  slice -> resp; count -> resp;
+  s2 -> valid [style=dashed, color="#ff4757"];
+  s3 -> slice [style=dashed, color="#ff4757"];
+}

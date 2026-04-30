@@ -1,0 +1,29 @@
+digraph fractal {
+  rankdir=TB; bgcolor="#0a0e17"; fontname="JetBrains Mono"; fontcolor="#e0e6ed"; fontsize=11;
+  compound=true; ranksep=0.4;
+  node [fontname="JetBrains Mono" fontsize=10 color="#1e2a3a" fontcolor="#e0e6ed" style="filled,rounded" shape=box];
+  edge [color="#3a4555" arrowsize=0.6];
+
+  L0 [label="L0 Constitutional\nGuardian · Ψ-invariants · Ω-0\nSC-SAFETY-001..022\nRPN 1" fillcolor="#2a1818" fontcolor="#ff6b6b"];
+  L1 [label="L1 Atomic / NIF\nc3i_nif (14 NIFs)\nGleam plan_add_task whitelist\nzenoh_otel.emit\nRPN 36" fillcolor="#2a2410" fontcolor="#ffd93d"];
+  L2 [label="L2 Component\nA2UI 233 components\nLustre Model/Msg\nMSTS contract header\nRPN 1" fillcolor="#0d2812" fontcolor="#6bcb77"];
+  L3 [label="L3 Transaction\nSmriti.db (Tasks 3024 rows)\ndb::add_task validate_priority\ndb::update_status validate_status\nSchema CHECK constraints (NEW)\nRPN was 336 → 0" fillcolor="#101a30" fontcolor="#4d96ff"];
+  L4 [label="L4 System\nsa-plan-daemon scheduler\n4 cron schedules\nworkers.rs registry (22 workers)\nworkflow_events durable log\nRPN 1" fillcolor="#1c1228" fontcolor="#9b59b6"];
+  L5 [label="L5 Cognitive\nRETE-UL 14 domains (59 rules)\n+ data_quality (NEW: 7 rules)\nruliology.rs (1015 LOC)\npage_checker.gleam (32/32 PASS)\nrowClick → window.open\nRPN 60" fillcolor="#0a2a23" fontcolor="#00d4aa"];
+  L6 [label="L6 Ecosystem\nZenoh OTel mesh\nindrajaal/otel/spans/**\nindrajaal/l3/dq/violations/**\nindrajaal/l5/cog/trace/**\nRPN 36" fillcolor="#2a1414" fontcolor="#e74c3c"];
+  L7 [label="L7 Federation\nCPIG matrix\nVersion vectors\nEd25519 attestation\nMulti-region 2oo3 voting\nRPN 1" fillcolor="#2a1f10" fontcolor="#f39c12"];
+
+  L0 -> L1 [label="Guardian gates"];
+  L1 -> L2 [label="typed JSON"];
+  L2 -> L3 [label="render→state"];
+  L3 -> L4 [label="ACID + WAL"];
+  L4 -> L5 [label="cron→workers"];
+  L5 -> L6 [label="OTel publish"];
+  L6 -> L7 [label="cross-region"];
+  L7 -> L0 [label="constitutional refresh" style=dashed color="#7a8fa6"];
+
+  // Note panel
+  note [label="ΣRPN before: 543\nΣRPN after pass-9: ~140\nReduction: 74%\nITQS 0.81 → 0.92\nHard-rule pass 27/41 → 35/41"
+        fillcolor="#0a0e17" fontcolor="#3dd68c" shape=note];
+  L7 -> note [style=invis];
+}

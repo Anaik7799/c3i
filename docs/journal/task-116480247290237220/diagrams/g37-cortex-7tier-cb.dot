@@ -1,0 +1,98 @@
+// g37 — Pass 22: Cortex 7-Tier Cascade with 5 Circuit Breakers
+digraph Cortex7TierCB {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  fontname="Helvetica";
+  fontcolor="#e0e6ed";
+  label="Pass 22 — Cortex 7-Tier Cascade with 5 Circuit Breakers\nNo-blackhole guarantee · every message gets a response";
+  labelloc="t";
+  fontsize=14;
+  compound=true;
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, fontcolor="#e0e6ed"];
+  edge [fontname="Helvetica", fontsize=10, fontcolor="#9be7d3", color="#7a8fa6"];
+
+  Intent [label="Intent classified\n(complex)", shape=ellipse, fillcolor="#142031", color="#00d4aa"];
+
+  // Tier 1+2: hedged, both behind CB1/CB2
+  subgraph cluster_cb1 {
+    label="CB1 (Gemini Direct)";
+    style="rounded,dashed";
+    color="#9b59b6";
+    fontcolor="#9b59b6";
+    T1 [label="Tier 1\nGemini Direct\ngemini-3.1-flash-lite\n~900ms · free", fillcolor="#0e1a14", color="#3dd68c"];
+  }
+  subgraph cluster_cb2 {
+    label="CB2 (OpenRouter)";
+    style="rounded,dashed";
+    color="#9b59b6";
+    fontcolor="#9b59b6";
+    T2 [label="Tier 2\nOpenRouter\ngemini-3-flash-preview\n~1.1s · $0.000009", fillcolor="#1a1410", color="#f5a623"];
+  }
+
+  // Tier 3: in-process mistral.rs behind CB3
+  subgraph cluster_cb3 {
+    label="CB3 (mistral.rs)";
+    style="rounded,dashed";
+    color="#9b59b6";
+    fontcolor="#9b59b6";
+    T3 [label="Tier 3 ★ primary local\nmistral.rs gemma4 (in-process)\nMultimodalModelBuilder\n~500ms · free · zero HTTP", fillcolor="#101a26", color="#4d96ff"];
+  }
+
+  // Tier 4+5: Ollama HTTP behind shared CB4
+  subgraph cluster_cb4 {
+    label="CB4 (Ollama HTTP shared)";
+    style="rounded,dashed";
+    color="#9b59b6";
+    fontcolor="#9b59b6";
+    T4 [label="Tier 4\nOllama gemma4 :11435\n~4s · free · http", fillcolor="#1a140f", color="#f39c12"];
+    T5 [label="Tier 5\nOllama gemma3 :11434\n~10s · free · http", fillcolor="#1a140f", color="#f39c12"];
+    T4 -> T5 [label="fallback", style=dashed];
+  }
+
+  // Tier 6+7: synchronous behind CB5
+  subgraph cluster_cb5 {
+    label="CB5 (synchronous · always available)";
+    style="rounded,dashed";
+    color="#9b59b6";
+    fontcolor="#9b59b6";
+    T6 [label="Tier 6\nRETE-UL rule engine\n<1ms · in-process", fillcolor="#0e1a14", color="#00d4aa"];
+    T7 [label="Tier 7\nStatic ack\n<1ms · last resort", fillcolor="#0e1a14", color="#00d4aa"];
+    T6 -> T7 [label="fallback", style=dashed];
+  }
+
+  // Hedged race for tier 1+2
+  Intent -> T1 [label="tokio::join!\n(parallel)", color="#3dd68c", penwidth=2];
+  Intent -> T2 [label="tokio::join!\n(parallel)", color="#f5a623", penwidth=2];
+
+  // Cascade fallbacks
+  T1 -> T3 [label="① CB1 open or fail", color="#ff4757", style=dashed];
+  T2 -> T3 [label="② CB2 open or fail", color="#ff4757", style=dashed];
+  T3 -> T4 [label="③ CB3 open or fail", color="#ff4757", style=dashed];
+  T5 -> T6 [label="④ CB4 open / both Ollama down", color="#ff4757", style=dashed];
+  T7 -> Done [label="⑤ static reply\n(no-blackhole guarantee)", color="#00d4aa"];
+
+  // Success edges
+  T1 -> Done [label="✓ winner", color="#3dd68c", penwidth=2];
+  T2 -> Done [label="✓ winner", color="#f5a623", penwidth=2];
+  T3 -> Done [label="✓", color="#4d96ff", penwidth=2];
+  T4 -> Done [label="✓", color="#f39c12"];
+  T5 -> Done [label="✓", color="#f39c12"];
+  T6 -> Done [label="✓ rule match", color="#00d4aa"];
+
+  Done [label="Gateway broadcast\nTelegram + GChat\n(retry × 1)", shape=ellipse, fillcolor="#0e1a14", color="#3dd68c"];
+
+  // Legend
+  subgraph cluster_legend {
+    label="Legend (color = transport class)";
+    fontcolor="#7a8fa6";
+    style=dashed;
+    color="#1e2a3a";
+    rankdir=LR;
+    LG [label="free (Gemini)", fillcolor="#0e1a14", color="#3dd68c"];
+    LP [label="paid (OpenRouter)", fillcolor="#1a1410", color="#f5a623"];
+    LI [label="in-process (mistral.rs)", fillcolor="#101a26", color="#4d96ff"];
+    LH [label="http (Ollama)", fillcolor="#1a140f", color="#f39c12"];
+    LS [label="synchronous (RETE-UL/ack)", fillcolor="#0e1a14", color="#00d4aa"];
+    LG -> LP -> LI -> LH -> LS [style=invis];
+  }
+}

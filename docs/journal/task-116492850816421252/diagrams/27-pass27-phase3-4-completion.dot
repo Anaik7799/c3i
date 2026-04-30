@@ -1,0 +1,53 @@
+digraph Phase3and4Completion {
+  rankdir=TB; bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", fontname="Helvetica", style="filled,rounded"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  subgraph cluster_before { label="Pre-Pass-27"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    dv1 [label="domain_views.gleam\n1745 LOC monolith\n11 view fns + 7 helpers", fillcolor="#141922"];
+    pg1 [label="planning-grid.js\n2007 LOC monolith IIFE", fillcolor="#141922"];
+  }
+
+  subgraph cluster_helpers { label="Phase 3b (Pass-27)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    helpers [label="page_helpers.gleam\n7 shared functions\n(asset_cachebust_id,\npage_header, count_in_json,\nparse_leading_int,\nplanning_enhanced_css,\nprogress_ring, state_kv_block)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+
+  subgraph cluster_pages { label="Phase 3c+3d+3e (Pass-27)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    p_planning [label="planning_page.gleam\n808 LOC", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p_knowledge [label="knowledge_page.gleam", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p_prajna [label="prajna_page.gleam", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p_agents [label="agents_page.gleam", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p_smriti [label="smriti_page.gleam", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p_holon [label="holon_page.gleam", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p_config [label="config_page.gleam", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p_git [label="git_page.gleam", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p_database [label="database_page.gleam", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    p_bridge [label="bridge_page.gleam\n(Pass-26 Phase 3a)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+
+  subgraph cluster_after { label="Post-Pass-27"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    dv2 [label="domain_views.gleam\n114 LOC façade\n11 thin delegators", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+
+  subgraph cluster_2b { label="Phase 2b (Pass-27)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    chip_wire [label="status_filter_chips\nrendered above 3 grids\nin planning_page.gleam", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+
+  subgraph cluster_4a { label="Phase 4a (Pass-27)"; style=dashed; color="#f5a623"; fontcolor="#f5a623";
+    chips_js [label="planning-chips-handler.js\n100 LOC\nclick → /api/v1/planning/page\nURL pushState + CustomEvent\nNo-op when chip-row absent", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    pg2 [label="planning-grid.js\n2007 LOC unchanged\n(operator-gated H-risk\nfor full split)", fillcolor="#141922"];
+  }
+
+  dv1 -> helpers [label="extract\n7 helpers"];
+  dv1 -> p_planning [label="extract\nplanning_view"];
+  dv1 -> p_knowledge; dv1 -> p_prajna; dv1 -> p_agents; dv1 -> p_smriti;
+  dv1 -> p_holon; dv1 -> p_config; dv1 -> p_git; dv1 -> p_database;
+  dv1 -> p_bridge [style=dotted, color="#7a8fa6", label="Pass-26"];
+  dv1 -> dv2 [label="-93% LOC\n11 delegators"];
+  helpers -> p_planning; helpers -> p_knowledge; helpers -> p_prajna;
+  helpers -> p_agents; helpers -> p_smriti; helpers -> p_holon;
+  helpers -> p_config; helpers -> p_git; helpers -> p_database; helpers -> p_bridge;
+  p_planning -> chip_wire [label="renders chips above 3 grids"];
+  chip_wire -> chips_js [label="DOM contract", style=dashed];
+  pg1 -> pg2 [label="unchanged\n(safe)"];
+}

@@ -1,0 +1,153 @@
+// g35-c3i-cross-pass-ontology.dot
+// C3I Cross-Pass Ontology v1.0 (Passes 1-20)
+// Companion to docs/architecture/c3i-cross-pass-ontology.md
+digraph C3I_Ontology {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  fontname="Helvetica";
+  fontcolor="#e0e6ed";
+  labelloc="t";
+  label=<<FONT POINT-SIZE="22"><B>C3I Cross-Pass Ontology v1.0 (Passes 1-20)</B></FONT><BR/><FONT POINT-SIZE="11" COLOR="#7a8fa6">12 entity types · 15 relations · 7 invariants · meta-pattern INV-7</FONT>>;
+  pad=0.5;
+  nodesep=0.45;
+  ranksep=0.7;
+  splines=spline;
+  concentrate=false;
+
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="Helvetica",
+    fontsize=11,
+    fontcolor="#0a0e17",
+    penwidth=1.5,
+    margin="0.18,0.10"
+  ];
+
+  edge [
+    fontname="Helvetica",
+    fontsize=9,
+    fontcolor="#9bb0c7",
+    color="#3b4a63",
+    penwidth=1.2,
+    arrowsize=0.7
+  ];
+
+  // ===== CORE: Pass (the temporal axis) =====
+  subgraph cluster_core {
+    label=<<FONT COLOR="#e0e6ed" POINT-SIZE="13"><B>Core temporal axis</B></FONT>>;
+    style="rounded,dashed";
+    color="#3b4a63";
+    fontname="Helvetica";
+    Pass [label="Pass\n{number, class, date,\nscope, deliverables[]}", fillcolor="#4d96ff", fontcolor="#0a0e17"];
+  }
+
+  // ===== Subject entities (cyan/green family) =====
+  subgraph cluster_subjects {
+    label=<<FONT COLOR="#e0e6ed" POINT-SIZE="13"><B>Subjects</B></FONT>>;
+    style="rounded,dashed";
+    color="#3b4a63";
+    Subsystem  [label="Subsystem\n{id, name, criticality,\nowner, cpig_score}", fillcolor="#3dd68c"];
+    SaPlanTask [label="SaPlanTask\n{id, urn, status,\npriority}", fillcolor="#6bcb77"];
+    ZKHolon    [label="ZKHolon\n{id, level, tags[],\ncited_in_passes[]}", fillcolor="#00d4aa"];
+  }
+
+  // ===== Risk + Control entities (red/yellow family) =====
+  subgraph cluster_risk {
+    label=<<FONT COLOR="#e0e6ed" POINT-SIZE="13"><B>Risk &amp; control</B></FONT>>;
+    style="rounded,dashed";
+    color="#3b4a63";
+    FailureMode [label="FailureMode\n{id, S, O, D,\nRPN_pre, RPN_post}", fillcolor="#ff6b6b"];
+    Constraint  [label="Constraint\n{id (SC-/AOR-),\nseverity, rule_file}", fillcolor="#ffd93d"];
+    CPIGGate    [label="CPIGGate\n{subsystem, gate,\nscore 0|1, evidence}", fillcolor="#f5a623"];
+  }
+
+  // ===== Verification entities (purple family) =====
+  subgraph cluster_verif {
+    label=<<FONT COLOR="#e0e6ed" POINT-SIZE="13"><B>Verification</B></FONT>>;
+    style="rounded,dashed";
+    color="#3b4a63";
+    FormalSpec   [label="FormalSpec\n{type TLA+/Agda/Allium,\ninvariants[], TLC_status}", fillcolor="#9b59b6", fontcolor="#e0e6ed"];
+    WiringGuard  [label="WiringGuard\n{file, test_count,\nframework, STAMP_refs}", fillcolor="#b886d3", fontcolor="#0a0e17"];
+  }
+
+  // ===== Artifact entities (orange family) =====
+  subgraph cluster_artifacts {
+    label=<<FONT COLOR="#e0e6ed" POINT-SIZE="13"><B>Artifacts</B></FONT>>;
+    style="rounded,dashed";
+    color="#3b4a63";
+    Diagram       [label="Diagram\n{id g1..g35, type,\nfile_paths[]}", fillcolor="#f39c12"];
+    JournalEntry  [label="JournalEntry\n{pass, sections,\ninline_mermaid_count}", fillcolor="#e67e22", fontcolor="#e0e6ed"];
+    EmailClosure  [label="EmailClosure\n{recipient, subject,\nattachments[], status}", fillcolor="#e74c3c", fontcolor="#e0e6ed"];
+  }
+
+  // ===== Relations (15 named edges) =====
+  // R1 Pass DELIVERS the 5 artifact-class entities
+  Pass -> FormalSpec    [label="R1 DELIVERS"];
+  Pass -> WiringGuard   [label="R1 DELIVERS"];
+  Pass -> Diagram       [label="R1 DELIVERS"];
+  Pass -> JournalEntry  [label="R1 DELIVERS"];
+  Pass -> EmailClosure  [label="R1 DELIVERS"];
+
+  // R2 Pass CLOSES SaPlanTask
+  Pass -> SaPlanTask    [label="R2 CLOSES",     color="#6bcb77"];
+  // R3 Pass MITIGATES FailureMode
+  Pass -> FailureMode   [label="R3 MITIGATES",  color="#ff6b6b"];
+  // R4 Pass ENFORCES Constraint
+  Pass -> Constraint    [label="R4 ENFORCES",   color="#ffd93d"];
+  // R5 Pass INGESTS ZKHolon
+  Pass -> ZKHolon       [label="R5 INGESTS",    color="#00d4aa"];
+  // R15 Pass RECOMMENDS_NEXT Pass
+  Pass -> Pass          [label="R15 RECOMMENDS_NEXT", color="#4d96ff", style=dashed];
+
+  // R6 Subsystem HAS_GATE CPIGGate (5x)
+  Subsystem -> CPIGGate [label="R6 HAS_GATE (5x)", color="#f5a623"];
+  // R11 Subsystem DEPENDS_ON Subsystem
+  Subsystem -> Subsystem [label="R11 DEPENDS_ON", style=dashed, color="#3dd68c"];
+  // R12 FailureMode OCCURS_IN Subsystem
+  FailureMode -> Subsystem [label="R12 OCCURS_IN", color="#ff6b6b"];
+  // R13 Constraint APPLIES_TO Subsystem
+  Constraint -> Subsystem [label="R13 APPLIES_TO", color="#ffd93d"];
+
+  // R7 FormalSpec PROVES Constraint
+  FormalSpec -> Constraint [label="R7 PROVES", color="#9b59b6"];
+  // R8 WiringGuard ENFORCES_AT_BUILD Constraint
+  WiringGuard -> Constraint [label="R8 ENFORCES_AT_BUILD", color="#b886d3"];
+
+  // R9 JournalEntry CITES ZKHolon
+  JournalEntry -> ZKHolon [label="R9 CITES", color="#00d4aa"];
+  // R10 JournalEntry REFERENCES FormalSpec/WiringGuard/Diagram
+  JournalEntry -> FormalSpec  [label="R10 REFERENCES", color="#9b59b6", style=dotted];
+  JournalEntry -> WiringGuard [label="R10 REFERENCES", color="#b886d3", style=dotted];
+  JournalEntry -> Diagram     [label="R10 REFERENCES", color="#f39c12", style=dotted];
+
+  // R14 EmailClosure ATTACHES JournalEntry / FormalSpec
+  EmailClosure -> JournalEntry [label="R14 ATTACHES", color="#e74c3c"];
+  EmailClosure -> FormalSpec   [label="R14 ATTACHES", color="#e74c3c", style=dotted];
+
+  // ===== Legend =====
+  subgraph cluster_legend {
+    label=<<FONT COLOR="#e0e6ed" POINT-SIZE="12"><B>Legend</B></FONT>>;
+    style="rounded,filled";
+    color="#3b4a63";
+    fillcolor="#141922";
+    fontname="Helvetica";
+    rank=sink;
+
+    L_pass    [label="Pass (temporal)",   shape=box, style="rounded,filled", fillcolor="#4d96ff", fontcolor="#0a0e17"];
+    L_subj    [label="Subject",           shape=box, style="rounded,filled", fillcolor="#3dd68c"];
+    L_risk    [label="Risk / control",    shape=box, style="rounded,filled", fillcolor="#ff6b6b"];
+    L_constr  [label="Constraint / gate", shape=box, style="rounded,filled", fillcolor="#ffd93d"];
+    L_verif   [label="Verification",      shape=box, style="rounded,filled", fillcolor="#9b59b6", fontcolor="#e0e6ed"];
+    L_artif   [label="Artifact",          shape=box, style="rounded,filled", fillcolor="#f39c12"];
+    L_inv     [label=<<B>INV-7</B>: every subsystem rollout = 5 CPIG gates<BR/>(formal_spec → wiring_guard → sa_plan → zk → email)>,
+               shape=note, style="filled", fillcolor="#1e2a3a", fontcolor="#00d4aa", fontsize=10];
+
+    L_pass -> L_subj   [style=invis];
+    L_subj -> L_risk   [style=invis];
+    L_risk -> L_constr [style=invis];
+    L_constr -> L_verif [style=invis];
+    L_verif -> L_artif [style=invis];
+    L_artif -> L_inv   [style=invis];
+  }
+}

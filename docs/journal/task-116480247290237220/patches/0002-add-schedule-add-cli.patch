@@ -1,0 +1,77 @@
+--- a/sub-projects/c3i/native/planning_daemon/src/main.rs
++++ b/sub-projects/c3i/native/planning_daemon/src/main.rs
+@@ -336,7 +336,30 @@ enum Commands {
+     /// List all workflow schedules — seeds defaults if absent (WF-5)
+     #[command(name = "schedule-list")]
+     ScheduleList,
+ 
++    /// Add a new workflow schedule (cron-based) into workflow_schedules
++    #[command(name = "schedule-add")]
++    ScheduleAdd {
++        #[arg(long)]
++        name: String,
++        /// Cron expression (5-field, e.g. "*/10 * * * *")
++        #[arg(long)]
++        cron: String,
++        /// Worker / workflow_type (default: gleam_run)
++        #[arg(long, default_value = "gleam_run")]
++        worker: String,
++        /// Optional gleam module path (sets args.module)
++        #[arg(long)]
++        module: Option<String>,
++        /// Raw args JSON (default: "{}")
++        #[arg(long, default_value = "{}")]
++        args: String,
++        #[arg(long, default_value = "0")]
++        priority: i32,
++        #[arg(long, default_value = "3")]
++        max_attempts: i32,
++    },
++
+     /// Run the Oban+Temporal-style scheduler loop (enqueue cron-due jobs + drain queue)
+     #[command(name = "scheduler-run")]
+     SchedulerRun {
+@@ -1214,6 +1237,43 @@ async fn run_command(cli: Cli) -> Result<(), IgnitionError> {
+         Commands::ScheduleList => {
+             scheduler::cmd_schedule_list().await
+         },
++        Commands::ScheduleAdd { name, cron, worker, module, args, priority, max_attempts } => {
++            workflow::ensure_schema()?;
++            // Merge optional --module into args JSON.
++            let mut args_val: serde_json::Value = serde_json::from_str(&args)
++                .map_err(|e| IgnitionError::InternalError(format!("invalid --args JSON: {}", e)))?;
++            if let Some(m) = module.as_ref() {
++                if let Some(obj) = args_val.as_object_mut() {
++                    obj.insert("module".into(), serde_json::Value::String(m.clone()));
++                }
++            }
++            let args_str = args_val.to_string();
++            let conn = db::open_db()?;
++            // Lazy migration: ensure `args` column exists on workflow_schedules.
++            // (Original schema in workflow.rs:ensure_schema does not include it.)
++            let _ = conn.execute("ALTER TABLE workflow_schedules ADD COLUMN args TEXT", []);
++            conn.execute(
++                "INSERT INTO workflow_schedules
++                     (id, workflow_type, cron_expression, timeout_secs, retry_attempts, enabled, args)
++                 VALUES (?1, ?2, ?3, ?4, ?5, 1, ?6)
++                 ON CONFLICT(id) DO UPDATE SET
++                     workflow_type=excluded.workflow_type,
++                     cron_expression=excluded.cron_expression,
++                     retry_attempts=excluded.retry_attempts,
++                     args=excluded.args",
++                rusqlite::params![
++                    name,
++                    worker,
++                    cron,
++                    600i64,
++                    max_attempts as i64,
++                    args_str,
++                ],
++            ).map_err(|e| IgnitionError::SqliteError(e.to_string()))?;
++            println!("✅ schedule '{}' added (worker={}, cron={}, priority={}, max_attempts={})",
++                name, worker, cron, priority, max_attempts);
++            Ok(())
++        },
+         Commands::SchedulerRun { queue, limit, interval } => {
+             oban::cmd_scheduler_run(queue, limit, interval).await
+         },

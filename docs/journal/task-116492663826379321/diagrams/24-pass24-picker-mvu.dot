@@ -1,0 +1,37 @@
+digraph PickerMVU {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", fontname="Helvetica", style="filled,rounded"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  subgraph cluster_state { label="States (PickerModel.open × kind)"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    s_closed [label="Closed\n{open=False}", fillcolor="#141922"];
+    s_owner [label="Open(Owner)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    s_parent [label="Open(Parent)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    s_submitted [label="Submitted\n{open=False, submitted=True,\nselection retained}", fillcolor="#4d96ff", fontcolor="#fff"];
+  }
+
+  s_closed -> s_owner [label="OpenPicker(OwnerKind)"];
+  s_closed -> s_parent [label="OpenPicker(ParentKind)"];
+  s_owner -> s_closed [label="ClosePicker"];
+  s_parent -> s_closed [label="ClosePicker"];
+  s_owner -> s_owner [label="UpdateQuery / CandidatesLoaded /\nSelectOwner / SelectParent"];
+  s_parent -> s_parent [label="UpdateQuery / CandidatesLoaded /\nSelectOwner / SelectParent"];
+  s_owner -> s_submitted [label="Submit\n(if submittable)"];
+  s_parent -> s_submitted [label="Submit"];
+  s_submitted -> s_owner [label="OpenPicker(OwnerKind)"];
+  s_submitted -> s_closed [label="Reset"];
+
+  subgraph cluster_renders { label="Renders (triple interface)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    html [label="render_html\n(Lustre SSR)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    ansi [label="render_ansi\n(TUI)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    api [label="(future)\n/api/v1/picker/options\n?type=owner|parent", fillcolor="#f5a623", fontcolor="#0a0e17"];
+  }
+
+  s_owner -> html; s_owner -> ansi; s_owner -> api [style=dashed];
+  s_parent -> html; s_parent -> ansi; s_parent -> api [style=dashed];
+
+  subgraph cluster_tests { label="22 gleeunit tests (all pass)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    t [label="2 init\n3 open/close\n5 query/filter\n3 selection\n2 submit/reset\n5 render_html\n2 render_ansi", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  t -> s_owner [style=dotted, color="#00d4aa"];
+}

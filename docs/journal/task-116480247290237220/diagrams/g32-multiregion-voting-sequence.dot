@@ -1,0 +1,41 @@
+digraph G32_MultiRegionVotingSequence {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=10, fontcolor="#e0e6ed", color="#1e2a3a"];
+  edge [fontname="Helvetica", fontsize=9, color="#7a8fa6", fontcolor="#3dd68c"];
+  labelloc=t;
+  fontsize=14;
+  fontcolor="#00d4aa";
+  label="G32 — Multi-Region CPIG Voting Sequence · 12 numbered messages";
+
+  // lifelines (ordered top-to-bottom via subgraph rank)
+  Operator    [label="Operator\n(cpig-vote CLI)", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  Leader      [label="Leader Region\n(eu-north)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  Follower1   [label="Follower 1\n(us-east)", fillcolor="#141922"];
+  Follower2   [label="Follower 2\n(ap-south)", fillcolor="#141922"];
+  Quorum      [label="Quorum\nCounter", shape=hexagon, fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  Published   [label="Winning\nProposal\n(Zenoh: indrajaal/l7/fed/cpig/decision)", shape=box3d, fillcolor="#3dd68c", fontcolor="#0a0e17"];
+
+  { rank=same; Operator; Leader; Follower1; Follower2; Quorum; Published; }
+
+  // numbered sequence
+  Operator  -> Leader    [label="1. cpig-vote --proposal P"];
+  Leader    -> Leader    [label="2. validate proposal\n   (TLA+ inv check)", style=dashed];
+  Leader    -> Follower1 [label="3. broadcast P (Ed25519)"];
+  Leader    -> Follower2 [label="4. broadcast P (Ed25519)"];
+  Follower1 -> Follower1 [label="5. local CPIG\n   evaluate", style=dashed];
+  Follower2 -> Follower2 [label="6. local CPIG\n   evaluate", style=dashed];
+  Follower1 -> Quorum    [label="7. vote=approve sig=..."];
+  Follower2 -> Quorum    [label="8. vote=approve sig=..."];
+  Leader    -> Quorum    [label="9. vote=approve sig=..."];
+  Quorum    -> Quorum    [label="10. count: 3/3 ≥ 2oo3", style=dashed];
+  Quorum    -> Published [label="11. quorum-met → publish"];
+  Published -> Operator  [label="12. ack: decision=approved"];
+
+  subgraph cluster_legend {
+    label="legend"; fontcolor="#00d4aa"; style=dashed; color="#1e2a3a";
+    L1 [label="numbered = causal order", fillcolor="#141922"];
+    L2 [label="dashed = self-action", fillcolor="#1e2a3a"];
+    L1 -> L2 [style=invis];
+  }
+}

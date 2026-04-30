@@ -1,0 +1,30 @@
+// Test phase DAG — gate ordering across fractal layers
+digraph phase_dag {
+  rankdir=LR; bgcolor="#0a0e17"; fontname="Helvetica"; pad=0.4; nodesep=0.5; ranksep=0.7;
+  node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=11 fontcolor="#e0e6ed" color="#1e2a3a" fillcolor="#141922"];
+  edge [color="#00d4aa" fontcolor="#7a8fa6" fontsize=9];
+
+  P0 [label="P0 Smoke\n5 tests · ≤2m\nL0,L1,L2,L4" color="#3dd68c"];
+  P1 [label="P1 Unit\n30 tests · ≤5m\nL0,L1,L2"];
+  P2 [label="P2 Integration\n25 tests · ≤10m\nL0,L2,L3,L4,L6"];
+  P3 [label="P3 E2E\n200 (CATALOG)\nL3-L6" color="#00d4aa"];
+  P4 [label="P4 Cross-screen\n8 tests\nL3,L5,L6" color="#00d4aa"];
+  P5 [label="P5 Multi-platform\n500+ runs\nL4,L6" color="#00d4aa"];
+  P6 [label="P6 Chaos / FMEA\n8 tests\nall layers" color="#f5a623"];
+  P7 [label="P7 Performance\n4 SLOs\nL1,L4,L6"];
+  P8 [label="P8 Formal\n5 obligations\nL0,L2,L3,L7" color="#9b59b6"];
+  P9 [label="P9 Regression\nnightly CI\nL3-L7" color="#9b59b6"];
+
+  P0 -> P1 -> P2 -> P3 -> P4 -> P5 -> P6 -> P7 -> P8 -> P9;
+
+  // math gate annotations as side-edges
+  ge1 [shape=plaintext fontcolor="#7a8fa6" label="H≥2.0\nCCM≥0.85"];
+  ge2 [shape=plaintext fontcolor="#7a8fa6" label="H≥2.3\nCCM≥0.90"];
+  ge3 [shape=plaintext fontcolor="#7a8fa6" label="H≥2.5\nCCM≥0.90\nRPN<200"];
+  ge4 [shape=plaintext fontcolor="#7a8fa6" label="CCM=1.00\nRPN<100"];
+
+  P1 -> ge1 [style=dotted arrowhead=none];
+  P2 -> ge2 [style=dotted arrowhead=none];
+  P3 -> ge3 [style=dotted arrowhead=none];
+  P8 -> ge4 [style=dotted arrowhead=none];
+}

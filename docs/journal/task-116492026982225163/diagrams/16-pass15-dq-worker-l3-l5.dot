@@ -1,0 +1,35 @@
+digraph DqWorkerL3toL5 {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", color="#00d4aa", fontname="Helvetica", style=filled, fillcolor="#141922"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  subgraph cluster_user { label="L7 Operator/Cron"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    cron [label="hourly cron\n+ 5-min canary"];
+    cli [label="sa-plan job-enqueue\n--worker dq_scan"];
+  }
+  subgraph cluster_l4 { label="L4 System (oban + scheduler)"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    oban [label="oban_jobs row\nstate=available"];
+    sched [label="scheduler-tick\nor daemon loop"];
+    disp [label="workers::dispatch\n(SC-DISP-REGISTRY-001..010)"];
+  }
+  subgraph cluster_l3 { label="L3 Transaction (Smriti.db)"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    sqlq [label="SELECT ... WHERE Priority NOT IN\n('P0','P1','P2','P3') OR Status NOT IN ..."];
+    rows [label="row stream\n(Id,Title,Priority,Status,Created)"];
+  }
+  subgraph cluster_l5 { label="L5 Cognitive (Pass-14 ruliology_data_quality)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    ev [label="DqEvent[]\nCorruptSample[]"];
+    eval [label="evaluate()\nRule30 + Rule110 + Lyapunov"];
+    alerts [label="Vec<String>\nalerts JSON"];
+  }
+  subgraph cluster_out { label="L4/L7 Output"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    log [label="oban_jobs\nstate=completed\nresult=alerts JSON"];
+    zen [label="Zenoh\nindrajaal/l4/sched/oban/job/dq_scan"];
+    p0 [label="P0 task on alerts\n(via RETE-UL or operator)"];
+  }
+
+  cron -> cli; cli -> oban;
+  oban -> sched; sched -> disp; disp -> sqlq [label="run_dq_scan"];
+  sqlq -> rows; rows -> ev;
+  ev -> eval; eval -> alerts;
+  alerts -> log; log -> zen; zen -> p0 [label="if alerts > 0"];
+}

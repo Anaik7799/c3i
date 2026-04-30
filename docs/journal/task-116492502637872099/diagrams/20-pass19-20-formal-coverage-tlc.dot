@@ -1,0 +1,32 @@
+digraph FormalLayer {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", fontname="Helvetica", style="filled,rounded"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  subgraph cluster_unit { label="Unit (gleeunit + cargo test)"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    u1 [label="13 ruliology DQ tests\n(Pass-14)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    u2 [label="2 dq_scan registry\n(Pass-15)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    u3 [label="6 e2e (Pass-15+18)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    u4 [label="3 tlc_parse_tests\n(Pass-20)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_prop { label="Property (proptest 10⁴ samples)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    p1 [label="11 proptest props\n(Pass-16)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_form { label="Formal (TLC)"; style=dashed; color="#ff4757"; fontcolor="#ff4757";
+    f1 [label="Pass-19\nformal_coverage_execution\n9 property tests\n(Shannon H + CCM + ITQS\nbounded)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    f2 [label="Pass-20\ntlc_daily worker\n(SC-DISP-REGISTRY)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    f3 [label="DataQualityIngest_\nBounded.cfg\n→ 65 536 distinct states\ndepth 17 · 2s · 0 errors", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_full { label="Full TLC run\n(unbounded)"; style=dashed; color="#3a4555"; fontcolor="#7a8fa6";
+    f4 [label="DataQualityIngest.cfg\n→ 162M states explored\n0 invariant violations\n(partial proof, full needs hours)", fillcolor="#141922"];
+  }
+  subgraph cluster_install { label="Toolchain installed (Pass-19/20)"; style=dashed; color="#00d4aa"; fontcolor="#00d4aa";
+    t1 [label="tla2tools.jar v1.8.0\n(4.4 MB · MIT)", fillcolor="#4d96ff", fontcolor="#fff"];
+  }
+
+  u1 -> p1; u2 -> p1; u3 -> p1; p1 -> f1;
+  f1 -> f2; f2 -> f3 [label="invokes"];
+  f3 -> f4 [label="bounded\nsubset", style=dashed];
+  t1 -> f3; t1 -> f4;
+  u4 -> f2 [label="parser unit-tested"];
+}

@@ -1,0 +1,146 @@
+digraph G33_Pass1To20FractalCumulative {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [shape=box, style="filled", fontname="Helvetica", fontsize=10, fontcolor="#0a0e17", width=0.85, height=0.42];
+  edge [style=invis];
+  labelloc=t;
+  fontsize=14;
+  fontcolor="#00d4aa";
+  label="G33 — Pass 1 → Pass 20 × L0–L7 Fractal Cumulative Coverage Heatmap · 100% per layer by Pass 20";
+
+  // header
+  subgraph cluster_header {
+    label=""; style=invis;
+    H_pass [label="Pass", fillcolor="#00d4aa"];
+    H_L0   [label="L0\nConst.", fillcolor="#00d4aa"];
+    H_L1   [label="L1\nNIF",    fillcolor="#00d4aa"];
+    H_L2   [label="L2\nCompo.", fillcolor="#00d4aa"];
+    H_L3   [label="L3\nTrans.", fillcolor="#00d4aa"];
+    H_L4   [label="L4\nSystem", fillcolor="#00d4aa"];
+    H_L5   [label="L5\nCog.",   fillcolor="#00d4aa"];
+    H_L6   [label="L6\nEcosys.",fillcolor="#00d4aa"];
+    H_L7   [label="L7\nFed.",   fillcolor="#00d4aa"];
+    rank=same; H_pass -> H_L0 -> H_L1 -> H_L2 -> H_L3 -> H_L4 -> H_L5 -> H_L6 -> H_L7;
+  }
+
+  // Color palette for cumulative depth:
+  //   #1e2a3a = not yet touched
+  //   #2c5e4a = first touch
+  //   #3dd68c = reinforced (≥2)
+  //   #00d4aa = saturated (≥3)
+  //   #ffd93d = Pass-20 deliverable (★)
+
+  // P1
+  P1_T [label="Pass 1", fillcolor="#7a8fa6"];
+  P1_0 [label=" ", fillcolor="#1e2a3a"]; P1_1 [label=" ", fillcolor="#1e2a3a"]; P1_2 [label=" ", fillcolor="#1e2a3a"];
+  P1_3 [label=" ", fillcolor="#1e2a3a"]; P1_4 [label="✓", fillcolor="#2c5e4a"]; P1_5 [label="✓", fillcolor="#2c5e4a"];
+  P1_6 [label=" ", fillcolor="#1e2a3a"]; P1_7 [label=" ", fillcolor="#1e2a3a"];
+  { rank=same; P1_T; P1_0; P1_1; P1_2; P1_3; P1_4; P1_5; P1_6; P1_7; }
+
+  // P2
+  P2_T [label="Pass 2", fillcolor="#7a8fa6"];
+  P2_0 [label=" ", fillcolor="#1e2a3a"]; P2_1 [label="✓", fillcolor="#2c5e4a"]; P2_2 [label=" ", fillcolor="#1e2a3a"];
+  P2_3 [label="✓", fillcolor="#2c5e4a"]; P2_4 [label="✓", fillcolor="#3dd68c"]; P2_5 [label=" ", fillcolor="#2c5e4a"];
+  P2_6 [label=" ", fillcolor="#1e2a3a"]; P2_7 [label=" ", fillcolor="#1e2a3a"];
+  { rank=same; P2_T; P2_0; P2_1; P2_2; P2_3; P2_4; P2_5; P2_6; P2_7; }
+
+  // P3
+  P3_T [label="Pass 3", fillcolor="#7a8fa6"];
+  P3_0 [label="✓", fillcolor="#2c5e4a"]; P3_1 [label="✓", fillcolor="#3dd68c"]; P3_2 [label=" ", fillcolor="#1e2a3a"];
+  P3_3 [label="✓", fillcolor="#3dd68c"]; P3_4 [label="✓", fillcolor="#00d4aa"]; P3_5 [label="✓", fillcolor="#3dd68c"];
+  P3_6 [label=" ", fillcolor="#1e2a3a"]; P3_7 [label=" ", fillcolor="#1e2a3a"];
+  { rank=same; P3_T; P3_0; P3_1; P3_2; P3_3; P3_4; P3_5; P3_6; P3_7; }
+
+  // P4
+  P4_T [label="Pass 4", fillcolor="#7a8fa6"];
+  P4_0 [label="✓", fillcolor="#3dd68c"]; P4_1 [label="✓", fillcolor="#3dd68c"]; P4_2 [label="✓", fillcolor="#2c5e4a"];
+  P4_3 [label="✓", fillcolor="#00d4aa"]; P4_4 [label="✓", fillcolor="#00d4aa"]; P4_5 [label="✓", fillcolor="#00d4aa"];
+  P4_6 [label=" ", fillcolor="#1e2a3a"]; P4_7 [label="✓", fillcolor="#2c5e4a"];
+  { rank=same; P4_T; P4_0; P4_1; P4_2; P4_3; P4_4; P4_5; P4_6; P4_7; }
+
+  // P5
+  P5_T [label="Pass 5", fillcolor="#7a8fa6"];
+  P5_0 [label="✓", fillcolor="#3dd68c"]; P5_1 [label="✓", fillcolor="#00d4aa"]; P5_2 [label="✓", fillcolor="#3dd68c"];
+  P5_3 [label="✓", fillcolor="#00d4aa"]; P5_4 [label="✓", fillcolor="#00d4aa"]; P5_5 [label="✓", fillcolor="#00d4aa"];
+  P5_6 [label="✓", fillcolor="#2c5e4a"]; P5_7 [label="✓", fillcolor="#3dd68c"];
+  { rank=same; P5_T; P5_0; P5_1; P5_2; P5_3; P5_4; P5_5; P5_6; P5_7; }
+
+  // P6
+  P6_T [label="Pass 6", fillcolor="#7a8fa6"];
+  P6_0 [label="✓", fillcolor="#3dd68c"]; P6_1 [label="✓", fillcolor="#00d4aa"]; P6_2 [label="✓", fillcolor="#3dd68c"];
+  P6_3 [label="✓", fillcolor="#00d4aa"]; P6_4 [label="✓", fillcolor="#00d4aa"]; P6_5 [label="✓", fillcolor="#00d4aa"];
+  P6_6 [label="✓", fillcolor="#3dd68c"]; P6_7 [label="✓", fillcolor="#3dd68c"];
+  { rank=same; P6_T; P6_0; P6_1; P6_2; P6_3; P6_4; P6_5; P6_6; P6_7; }
+
+  // P7
+  P7_T [label="Pass 7", fillcolor="#7a8fa6"];
+  P7_0 [label="✓", fillcolor="#3dd68c"]; P7_1 [label="✓", fillcolor="#00d4aa"]; P7_2 [label="✓", fillcolor="#3dd68c"];
+  P7_3 [label="✓", fillcolor="#00d4aa"]; P7_4 [label="✓", fillcolor="#00d4aa"]; P7_5 [label="✓", fillcolor="#00d4aa"];
+  P7_6 [label="✓", fillcolor="#3dd68c"]; P7_7 [label="✓", fillcolor="#3dd68c"];
+  { rank=same; P7_T; P7_0; P7_1; P7_2; P7_3; P7_4; P7_5; P7_6; P7_7; }
+
+  // P8
+  P8_T [label="Pass 8", fillcolor="#7a8fa6"];
+  P8_0 [label="✓", fillcolor="#00d4aa"]; P8_1 [label="✓", fillcolor="#00d4aa"]; P8_2 [label="✓", fillcolor="#3dd68c"];
+  P8_3 [label="✓", fillcolor="#00d4aa"]; P8_4 [label="✓", fillcolor="#00d4aa"]; P8_5 [label="✓", fillcolor="#00d4aa"];
+  P8_6 [label="✓", fillcolor="#00d4aa"]; P8_7 [label="✓", fillcolor="#3dd68c"];
+  { rank=same; P8_T; P8_0; P8_1; P8_2; P8_3; P8_4; P8_5; P8_6; P8_7; }
+
+  // P9-P19 abbreviated as saturated
+  P9_T  [label="Pass 9-11",  fillcolor="#7a8fa6"];
+  P9_0  [label="✓",fillcolor="#00d4aa"]; P9_1  [label="✓",fillcolor="#00d4aa"]; P9_2  [label="✓",fillcolor="#00d4aa"];
+  P9_3  [label="✓",fillcolor="#00d4aa"]; P9_4  [label="✓",fillcolor="#00d4aa"]; P9_5  [label="✓",fillcolor="#00d4aa"];
+  P9_6  [label="✓",fillcolor="#00d4aa"]; P9_7  [label="✓",fillcolor="#00d4aa"];
+  { rank=same; P9_T; P9_0; P9_1; P9_2; P9_3; P9_4; P9_5; P9_6; P9_7; }
+
+  P12_T [label="Pass 12-15", fillcolor="#7a8fa6"];
+  P12_0 [label="✓",fillcolor="#00d4aa"]; P12_1 [label="✓",fillcolor="#00d4aa"]; P12_2 [label="✓",fillcolor="#00d4aa"];
+  P12_3 [label="✓",fillcolor="#00d4aa"]; P12_4 [label="✓",fillcolor="#00d4aa"]; P12_5 [label="✓",fillcolor="#00d4aa"];
+  P12_6 [label="✓",fillcolor="#00d4aa"]; P12_7 [label="✓",fillcolor="#00d4aa"];
+  { rank=same; P12_T; P12_0; P12_1; P12_2; P12_3; P12_4; P12_5; P12_6; P12_7; }
+
+  P16_T [label="Pass 16-19", fillcolor="#7a8fa6"];
+  P16_0 [label="✓",fillcolor="#00d4aa"]; P16_1 [label="✓",fillcolor="#00d4aa"]; P16_2 [label="✓",fillcolor="#00d4aa"];
+  P16_3 [label="✓",fillcolor="#00d4aa"]; P16_4 [label="✓",fillcolor="#00d4aa"]; P16_5 [label="✓",fillcolor="#00d4aa"];
+  P16_6 [label="✓",fillcolor="#00d4aa"]; P16_7 [label="✓",fillcolor="#00d4aa"];
+  { rank=same; P16_T; P16_0; P16_1; P16_2; P16_3; P16_4; P16_5; P16_6; P16_7; }
+
+  P20_T [label="Pass 20", fillcolor="#3dd68c"];
+  P20_0 [label="★",fillcolor="#ffd93d"]; P20_1 [label="✓",fillcolor="#00d4aa"]; P20_2 [label="✓",fillcolor="#00d4aa"];
+  P20_3 [label="✓",fillcolor="#00d4aa"]; P20_4 [label="★",fillcolor="#ffd93d"]; P20_5 [label="★",fillcolor="#ffd93d"];
+  P20_6 [label="★",fillcolor="#ffd93d"]; P20_7 [label="★",fillcolor="#ffd93d"];
+  { rank=same; P20_T; P20_0; P20_1; P20_2; P20_3; P20_4; P20_5; P20_6; P20_7; }
+
+  // Cumulative coverage row
+  CC_T [label="Cumulative", fillcolor="#00d4aa"];
+  CC_0 [label="100%", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  CC_1 [label="100%", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  CC_2 [label="100%", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  CC_3 [label="100%", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  CC_4 [label="100%", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  CC_5 [label="100%", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  CC_6 [label="100%", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  CC_7 [label="100%", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  { rank=same; CC_T; CC_0; CC_1; CC_2; CC_3; CC_4; CC_5; CC_6; CC_7; }
+
+  // alignment
+  H_pass -> P1_T -> P2_T -> P3_T -> P4_T -> P5_T -> P6_T -> P7_T -> P8_T -> P9_T -> P12_T -> P16_T -> P20_T -> CC_T;
+  H_L0   -> P1_0 -> P2_0 -> P3_0 -> P4_0 -> P5_0 -> P6_0 -> P7_0 -> P8_0 -> P9_0 -> P12_0 -> P16_0 -> P20_0 -> CC_0;
+  H_L1   -> P1_1 -> P2_1 -> P3_1 -> P4_1 -> P5_1 -> P6_1 -> P7_1 -> P8_1 -> P9_1 -> P12_1 -> P16_1 -> P20_1 -> CC_1;
+  H_L2   -> P1_2 -> P2_2 -> P3_2 -> P4_2 -> P5_2 -> P6_2 -> P7_2 -> P8_2 -> P9_2 -> P12_2 -> P16_2 -> P20_2 -> CC_2;
+  H_L3   -> P1_3 -> P2_3 -> P3_3 -> P4_3 -> P5_3 -> P6_3 -> P7_3 -> P8_3 -> P9_3 -> P12_3 -> P16_3 -> P20_3 -> CC_3;
+  H_L4   -> P1_4 -> P2_4 -> P3_4 -> P4_4 -> P5_4 -> P6_4 -> P7_4 -> P8_4 -> P9_4 -> P12_4 -> P16_4 -> P20_4 -> CC_4;
+  H_L5   -> P1_5 -> P2_5 -> P3_5 -> P4_5 -> P5_5 -> P6_5 -> P7_5 -> P8_5 -> P9_5 -> P12_5 -> P16_5 -> P20_5 -> CC_5;
+  H_L6   -> P1_6 -> P2_6 -> P3_6 -> P4_6 -> P5_6 -> P6_6 -> P7_6 -> P8_6 -> P9_6 -> P12_6 -> P16_6 -> P20_6 -> CC_6;
+  H_L7   -> P1_7 -> P2_7 -> P3_7 -> P4_7 -> P5_7 -> P6_7 -> P7_7 -> P8_7 -> P9_7 -> P12_7 -> P16_7 -> P20_7 -> CC_7;
+
+  subgraph cluster_legend {
+    label="depth: dark = first touch · bright = saturated · ★ = Pass 20 deliverable";
+    fontcolor="#00d4aa"; style=dashed; color="#1e2a3a";
+    LK1 [label="first",      fillcolor="#2c5e4a", fontcolor="#e0e6ed"];
+    LK2 [label="reinforced", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    LK3 [label="saturated",  fillcolor="#00d4aa", fontcolor="#0a0e17"];
+    LK4 [label="P20 ★",      fillcolor="#ffd93d", fontcolor="#0a0e17"];
+    LK1 -> LK2 -> LK3 -> LK4 [style=invis];
+  }
+}

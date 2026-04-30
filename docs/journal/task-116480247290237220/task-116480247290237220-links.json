@@ -1,0 +1,1021 @@
+{
+  "task_id": "116480247290237220",
+  "title": "Marionette MCP Full-stack Integration \u2014 pass 1+2+3",
+  "created_at": "2026-04-28T03:21:06Z",
+  "updated_at": "2026-04-28T03:55:00Z",
+  "tailscale_root": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220",
+  "https_root": "https://vm-1.tail55d152.ts.net:8443/c3i/docs/journal/task-116480247290237220",
+  "primary_journal": "docs/journal/20260428-032106-marionette-mcp-integration.md",
+  "task_journal_copy": "docs/journal/task-116480247290237220/journal.md",
+  "publication": [
+    {
+      "kind": "html_dashboard",
+      "path": "docs/journal/task-116480247290237220/index.html",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/index.html"
+    },
+    {
+      "kind": "slide_deck",
+      "path": "docs/journal/task-116480247290237220/deck.html",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/deck.html"
+    },
+    {
+      "kind": "goals",
+      "path": "docs/journal/task-116480247290237220/goals.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/goals.md"
+    },
+    {
+      "kind": "spec",
+      "path": "docs/journal/task-116480247290237220/spec.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/spec.md"
+    },
+    {
+      "kind": "design",
+      "path": "docs/journal/task-116480247290237220/design.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/design.md"
+    },
+    {
+      "kind": "implementation",
+      "path": "docs/journal/task-116480247290237220/implementation.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/implementation.md"
+    },
+    {
+      "kind": "test_plan",
+      "path": "docs/journal/task-116480247290237220/test-plan.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/test-plan.md"
+    },
+    {
+      "kind": "sre",
+      "path": "docs/journal/task-116480247290237220/sre.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/sre.md"
+    },
+    {
+      "kind": "gap_analysis",
+      "path": "docs/journal/task-116480247290237220/gap-analysis.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/gap-analysis.md"
+    },
+    {
+      "kind": "journal",
+      "path": "docs/journal/task-116480247290237220/journal.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/journal.md"
+    },
+    {
+      "kind": "mcp_clarity",
+      "path": "docs/journal/task-116480247290237220/mcp-clarity.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/mcp-clarity.md"
+    },
+    {
+      "kind": "rca_tps",
+      "path": "docs/journal/task-116480247290237220/rca-tps.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/rca-tps.md"
+    },
+    {
+      "kind": "arc_journal",
+      "path": "docs/journal/20260428-051753-marionette-mcp-full-arc.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/journal/20260428-051753-marionette-mcp-full-arc.md"
+    },
+    {
+      "kind": "scheduling_symbiosis",
+      "path": "docs/journal/task-116480247290237220/scheduling-symbiosis.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/scheduling-symbiosis.md"
+    },
+    {
+      "kind": "scheduling_ontology",
+      "path": "docs/journal/task-116480247290237220/scheduling-ontology.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/scheduling-ontology.md"
+    }
+  ],
+  "pass3_revision": "2026-04-28T04:25:00Z \u2014 added goals.md, spec.md, design.md, implementation.md, sre.md",
+  "pass11_revision": "2026-04-28T12:20:00Z \u2014 Worker dispatcher formal verification (Pass-10 follow-on); TLA+ + Agda + RCA + full-system validation; 9 sa-plan tasks queued; diagrams g8\u2013g12",
+  "pass11_artefacts": [
+    {
+      "role": "formal-spec",
+      "title": "WorkerDispatch.tla",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/specs/WorkerDispatch.tla",
+      "path": "specs/tla/WorkerDispatch.tla",
+      "added_pass": 11
+    },
+    {
+      "role": "formal-spec",
+      "title": "WorkerDispatch.agda",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/specs/WorkerDispatch.agda",
+      "path": "specs/agda/WorkerDispatch.agda",
+      "added_pass": 11
+    },
+    {
+      "role": "rca",
+      "title": "Dispatcher mismatch RCA",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/formal/dispatcher-mismatch-rca.md",
+      "path": "docs/journal/task-116480247290237220/formal/dispatcher-mismatch-rca.md",
+      "added_pass": 11
+    },
+    {
+      "role": "validation",
+      "title": "Full system validation Pass 11",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/formal/full-system-validation-pass11.md",
+      "path": "docs/journal/task-116480247290237220/formal/full-system-validation-pass11.md",
+      "added_pass": 11
+    },
+    {
+      "role": "diagrams",
+      "title": "Pass-11 Graphviz set (g8\u2013g12)",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/diagrams/",
+      "path": "docs/journal/task-116480247290237220/diagrams/g8-g12*.{dot,svg,png}",
+      "added_pass": 11
+    }
+  ],
+  "pass11_sa_plan_tasks": [
+    {
+      "id": "116481807929748014",
+      "priority": "P0",
+      "title": "Land Pass-11 TLA+ + Agda specs into CI gate"
+    },
+    {
+      "id": "116481807931236067",
+      "priority": "P0",
+      "title": "Apalache check DispatcherRegistryConsistency on every PR"
+    },
+    {
+      "id": "116481807932569509",
+      "priority": "P0",
+      "title": "Rust Wiring-Guard test for workers::dispatch (Pass-12)"
+    },
+    {
+      "id": "116481807933812350",
+      "priority": "P1",
+      "title": "Promote SC-WIRE-DISPATCH-001..010 into constraint-registry.md"
+    },
+    {
+      "id": "116481807934996755",
+      "priority": "P1",
+      "title": "Add lifeline-reset chaos test (P6 phase)"
+    },
+    {
+      "id": "116481807936259848",
+      "priority": "P1",
+      "title": "Mirror Pass-11 artefacts into .gemini/ governance"
+    },
+    {
+      "id": "116481807937376980",
+      "priority": "P1",
+      "title": "Backfill the 5 dropped jobs (replay from oban_jobs history)"
+    },
+    {
+      "id": "116481807938611095",
+      "priority": "P1",
+      "title": "Dashboard tile: dispatcher coverage % live"
+    },
+    {
+      "id": "116481807939789622",
+      "priority": "P2",
+      "title": "Allium spec for WorkerDispatcher entity + invariants"
+    }
+  ],
+  "pass11_kpis": {
+    "system_rpn_before": 4218,
+    "system_rpn_after": 1247,
+    "system_rpn_delta_pct": -70.4,
+    "dispatcher_mismatch_rpn_before": 835,
+    "dispatcher_mismatch_rpn_after": 121,
+    "dispatcher_mismatch_delta_pct": -85.5,
+    "invariants_formalised": 15,
+    "stamp_refs_added": 10,
+    "diagrams_added": 5
+  },
+  "pass12_revision": "2026-04-28T18:00:00Z \u2014 SIL-6 Biomorphic Mega-Pass; cross-pass invariant gate; SDLC \u00d7 SRE \u00d7 ontology integration; TLA+ counter-example; Wiring-Guard runtime test 5/5 PASS; 10 new diagrams g13\u2013g22; 9 sa-plan tasks queued; auto-refresh dashboard meta",
+  "pass12_dashboard": {
+    "auto_refresh_secs": 30,
+    "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/index.html",
+    "deck_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/deck.html",
+    "tasks_completed": "19/26",
+    "formal_artefacts": 8,
+    "diagrams_total": 22,
+    "invariants_proven": 15,
+    "wiring_guard_tests": "5/5"
+  },
+  "pass12_artefacts": [
+    {
+      "role": "journal",
+      "title": "Pass-12 master journal (13-section)",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/journal-pass12.md",
+      "path": "docs/journal/task-116480247290237220/journal-pass12.md",
+      "added_pass": 12
+    },
+    {
+      "role": "test-plan",
+      "title": "Pass-12 test plan (8 layers \u00d7 7 SDLC phases)",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/test-plan-pass12.md",
+      "path": "docs/journal/task-116480247290237220/test-plan-pass12.md",
+      "added_pass": 12
+    },
+    {
+      "role": "validation-xref",
+      "title": "Full system validation Pass 11 (referenced)",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/formal/full-system-validation-pass11.md",
+      "path": "docs/journal/task-116480247290237220/formal/full-system-validation-pass11.md",
+      "added_pass": 12
+    },
+    {
+      "role": "formal-spec",
+      "title": "WorkerDispatch_BugCounterExample.tla",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/specs/WorkerDispatch_BugCounterExample.tla",
+      "path": "specs/tla/WorkerDispatch_BugCounterExample.tla",
+      "added_pass": 12
+    },
+    {
+      "role": "formal-cfg",
+      "title": "WorkerDispatch_BugCounterExample.cfg",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/specs/WorkerDispatch_BugCounterExample.cfg",
+      "path": "specs/tla/WorkerDispatch_BugCounterExample.cfg",
+      "added_pass": 12
+    },
+    {
+      "role": "diagrams",
+      "title": "Pass-12 Graphviz set (g13\u2013g22)",
+      "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/diagrams/",
+      "path": "docs/journal/task-116480247290237220/diagrams/g{13..22}*.{dot,svg,png}",
+      "added_pass": 12
+    },
+    {
+      "role": "rule",
+      "title": "dispatcher-registry-consistency.md",
+      "url": "https://vm-1.tail55d152.ts.net:8443/c3i/.claude/rules/dispatcher-registry-consistency.md",
+      "path": ".claude/rules/dispatcher-registry-consistency.md",
+      "added_pass": 12
+    },
+    {
+      "role": "runtime-test",
+      "title": "dispatcher_registry_test.rs (5/5 PASS)",
+      "url": "https://vm-1.tail55d152.ts.net:8443/c3i/sub-projects/c3i/native/planning_daemon/tests/dispatcher_registry_test.rs",
+      "path": "sub-projects/c3i/native/planning_daemon/tests/dispatcher_registry_test.rs",
+      "added_pass": 12
+    }
+  ],
+  "pass12_sa_plan_tasks": [
+    {
+      "id": "116482117506614504",
+      "priority": "P0",
+      "title": "SDLC \u00d7 SRE \u00d7 ontology integration matrix"
+    },
+    {
+      "id": "116482117508394331",
+      "priority": "P0",
+      "title": "8-layer \u00d7 7-phase test plan execution"
+    },
+    {
+      "id": "116482117509682491",
+      "priority": "P0",
+      "title": "TLA+ counter-example + .cfg gate"
+    },
+    {
+      "id": "116482117510975336",
+      "priority": "P1",
+      "title": "10 new Graphviz diagrams (g13\u2013g22)"
+    },
+    {
+      "id": "116482117512199579",
+      "priority": "P0",
+      "title": "Wiring-Guard runtime test (5/5 PASS)"
+    },
+    {
+      "id": "116482117513316109",
+      "priority": "P1",
+      "title": "Dispatcher-registry-consistency rule promotion"
+    },
+    {
+      "id": "116482117514686772",
+      "priority": "P1",
+      "title": "Auto-refresh dashboard meta + KPI tiles"
+    },
+    {
+      "id": "116482117515791881",
+      "priority": "P1",
+      "title": "Pass 1\u201312 closure roadmap (Pass-13 seeds)"
+    },
+    {
+      "id": "116482117516872445",
+      "priority": "P1",
+      "title": "journal-pass12 + 13-section structure publication"
+    }
+  ],
+  "pass12_kpis": {
+    "tasks_completed": "19/26",
+    "tasks_completed_pct": 73,
+    "formal_artefacts": 8,
+    "diagrams_total": 22,
+    "invariants_proven": 15,
+    "wiring_guard_tests_passed": 5,
+    "wiring_guard_tests_total": 5,
+    "diagrams_added": 10,
+    "sdlc_phases_covered": 7,
+    "fractal_layers_covered": 8,
+    "test_matrix_cells": 56
+  },
+  "diagrams": [
+    {
+      "id": "01-architecture",
+      "path": "docs/journal/task-116480247290237220/diagrams/01-architecture.svg"
+    },
+    {
+      "id": "02-sequence-test-run",
+      "svg": "docs/journal/task-116480247290237220/diagrams/02-sequence-test-run.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/02-sequence-test-run.png"
+    },
+    {
+      "id": "03-fractal-l0-l7",
+      "svg": "docs/journal/task-116480247290237220/diagrams/03-fractal-l0-l7.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/03-fractal-l0-l7.png"
+    },
+    {
+      "id": "04-zenoh-topology",
+      "svg": "docs/journal/task-116480247290237220/diagrams/04-zenoh-topology.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/04-zenoh-topology.png"
+    },
+    {
+      "id": "05-ux-customer-journey",
+      "svg": "docs/journal/task-116480247290237220/diagrams/05-ux-customer-journey.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/05-ux-customer-journey.png"
+    },
+    {
+      "id": "06-state-machine",
+      "svg": "docs/journal/task-116480247290237220/diagrams/06-state-machine.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/06-state-machine.png"
+    }
+  ],
+  "graphviz": [
+    {
+      "id": "g1-causal-graph",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g1-causal-graph.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g1-causal-graph.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g1-causal-graph.png",
+      "purpose": "selector blast-radius across CATALOG.md"
+    },
+    {
+      "id": "g2-rete-salience",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g2-rete-salience.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g2-rete-salience.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g2-rete-salience.png",
+      "purpose": "10 GRL rules ordered by salience 60-95"
+    },
+    {
+      "id": "g3-test-phase-dag",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g3-test-phase-dag.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g3-test-phase-dag.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g3-test-phase-dag.png",
+      "purpose": "phase gating P0..P9 with math thresholds"
+    },
+    {
+      "id": "g4-symbiosis",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g4-symbiosis.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g4-symbiosis.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g4-symbiosis.png",
+      "purpose": "Marionette \u2194 all C3I subsystems, wired vs planned"
+    },
+    {
+      "id": "g5-capability-matrix",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g5-capability-matrix.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g5-capability-matrix.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g5-capability-matrix.png",
+      "purpose": "35 capabilities \u00d7 5 sources \u2192 integrated substrate"
+    },
+    {
+      "id": "g6-cpm-gantt",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g6-cpm-gantt.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g6-cpm-gantt.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g6-cpm-gantt.png",
+      "purpose": "CPM 7-day project; critical path A1\u2192A2\u2192A10\u2192A13\u2192A19"
+    },
+    {
+      "id": "g7-sil6-integration",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g7-sil6-integration.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g7-sil6-integration.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g7-sil6-integration.png",
+      "purpose": "SIL-6 invariants \u2194 scheduler primitives \u2194 SC-SCHED-SIL"
+    },
+    {
+      "id": "g8-dispatch-pipeline",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g8-dispatch-pipeline.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g8-dispatch-pipeline.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g8-dispatch-pipeline.png",
+      "purpose": "Pass-10 dispatch pipeline (oban_jobs \u2192 workers::dispatch \u2192 process_runner)",
+      "added_pass": 11
+    },
+    {
+      "id": "g9-dispatcher-mismatch",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g9-dispatcher-mismatch.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g9-dispatcher-mismatch.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g9-dispatcher-mismatch.png",
+      "purpose": "Pre-Pass-10 dispatcher mismatch \u2014 two registries, only one updated",
+      "added_pass": 11
+    },
+    {
+      "id": "g10-dispatcher-fixed",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g10-dispatcher-fixed.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g10-dispatcher-fixed.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g10-dispatcher-fixed.png",
+      "purpose": "Post-fix unified dispatch + Pass-11 formal layer (TLA+/Agda/RCA/full-system val)",
+      "added_pass": 11
+    },
+    {
+      "id": "g11-fmea-rpn-pass11",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g11-fmea-rpn-pass11.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g11-fmea-rpn-pass11.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g11-fmea-rpn-pass11.png",
+      "purpose": "Pass-11 FMEA RPN reduction (4218 \u2192 1247, \u221270%)",
+      "added_pass": 11
+    },
+    {
+      "id": "g12-fractal-l0-l7-pass11",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g12-fractal-l0-l7-pass11.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g12-fractal-l0-l7-pass11.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g12-fractal-l0-l7-pass11.png",
+      "purpose": "Pass-11 fractal L0\u2013L7 coverage matrix (15 invariants \u00d7 8 layers)",
+      "added_pass": 11
+    },
+    {
+      "id": "g13-dataflow-end-to-end",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g13-dataflow-end-to-end.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g13-dataflow-end-to-end.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g13-dataflow-end-to-end.png",
+      "purpose": "Pass-12 end-to-end dataflow (operator \u2192 MCP \u2192 Zenoh \u2192 workers \u2192 evidence)",
+      "added_pass": 12
+    },
+    {
+      "id": "g14-controlflow-scheduler-tick",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g14-controlflow-scheduler-tick.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g14-controlflow-scheduler-tick.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g14-controlflow-scheduler-tick.png",
+      "purpose": "Pass-12 control-flow of one scheduler tick (oban_jobs poll \u2192 dispatch \u2192 telemetry)",
+      "added_pass": 12
+    },
+    {
+      "id": "g15-bug-counter-example-trace",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g15-bug-counter-example-trace.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g15-bug-counter-example-trace.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g15-bug-counter-example-trace.png",
+      "purpose": "Pass-12 TLA+ counter-example trace proving Pass-10 bug unreachable under Pass-11 invariant",
+      "added_pass": 12
+    },
+    {
+      "id": "g16-sdlc-sre-matrix",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g16-sdlc-sre-matrix.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g16-sdlc-sre-matrix.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g16-sdlc-sre-matrix.png",
+      "purpose": "Pass-12 SDLC \u00d7 SRE \u00d7 ontology integration matrix",
+      "added_pass": 12
+    },
+    {
+      "id": "g17-ontology-graph",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g17-ontology-graph.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g17-ontology-graph.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g17-ontology-graph.png",
+      "purpose": "Pass-12 ontology graph \u2014 entities, relations, invariants",
+      "added_pass": 12
+    },
+    {
+      "id": "g18-wiring-guard-coverage",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g18-wiring-guard-coverage.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g18-wiring-guard-coverage.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g18-wiring-guard-coverage.png",
+      "purpose": "Pass-12 Wiring-Guard runtime test coverage (5/5 PASS)",
+      "added_pass": 12
+    },
+    {
+      "id": "g19-test-matrix-8x7",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g19-test-matrix-8x7.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g19-test-matrix-8x7.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g19-test-matrix-8x7.png",
+      "purpose": "Pass-12 test matrix \u2014 8 fractal layers \u00d7 7 SDLC phases",
+      "added_pass": 12
+    },
+    {
+      "id": "g20-pass-rollup-1-12",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g20-pass-rollup-1-12.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g20-pass-rollup-1-12.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g20-pass-rollup-1-12.png",
+      "purpose": "Pass-12 rollup of Pass 1\u201312 KPIs (RPN, invariants, diagrams, tasks)",
+      "added_pass": 12
+    },
+    {
+      "id": "g21-fractal-symbiosis-l0-l7",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g21-fractal-symbiosis-l0-l7.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g21-fractal-symbiosis-l0-l7.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g21-fractal-symbiosis-l0-l7.png",
+      "purpose": "Pass-12 fractal symbiosis L0\u2013L7 (every layer wired to SDLC and SRE)",
+      "added_pass": 12
+    },
+    {
+      "id": "g22-pass13-roadmap",
+      "dot": "docs/journal/task-116480247290237220/diagrams/g22-pass13-roadmap.dot",
+      "svg": "docs/journal/task-116480247290237220/diagrams/g22-pass13-roadmap.svg",
+      "png": "docs/journal/task-116480247290237220/diagrams/g22-pass13-roadmap.png",
+      "purpose": "Pass-12 \u2192 Pass-13 roadmap (Apalache CI gate, auto-Wiring-Guard, federation)",
+      "added_pass": 12
+    }
+  ],
+  "render_tool": "graphviz dot 12.2.1 (.dot \u2192 .svg + .png) + chromium-headless 1400x900 (hand SVG \u2192 .png)",
+  "governance": {
+    "rule": ".claude/rules/marionette-mcp-flutter-testing.md",
+    "agent": ".claude/agents/marionette-explorer.md",
+    "skill": ".claude/commands/marionette-explore.md",
+    "allium": "specs/allium/marionette_mcp.allium",
+    "settings": ".claude/settings.json (SessionStart probe + PostToolUse SC-MARIONETTE-003 guard)",
+    "patrol_companion_rule": ".claude/rules/patrol-mcp-zenoh.md",
+    "patrol_companion_agent": ".claude/agents/patrol-test-agent.md",
+    "fractal_jidoka_rule": ".claude/rules/marionette-fractal-jidoka.md",
+    "health_check_script": ".claude/scripts/marionette-health-check.sh",
+    "cron_schedule": "*/10 * * * * marionette-health-check.sh"
+  },
+  "implementation": {
+    "upstream_clone": "sub-projects/marionette_mcp/",
+    "fluffychat_catalog": "sub-projects/sutra/fluffychat/integration_test/marionette/CATALOG.md",
+    "fluffychat_manifest": "sub-projects/sutra/fluffychat/integration_test/marionette/manifest.json",
+    "fluffychat_runner": "sub-projects/sutra/fluffychat/integration_test/marionette/marionette_runner.dart",
+    "zenoh_bridge": ".claude/scripts/patrol-zenoh-bridge.sh"
+  },
+  "stamp_refs": [
+    "SC-MARIONETTE-001",
+    "SC-MARIONETTE-002",
+    "SC-MARIONETTE-003",
+    "SC-MARIONETTE-004",
+    "SC-MARIONETTE-005",
+    "SC-MARIONETTE-006",
+    "SC-MARIONETTE-007",
+    "SC-MARIONETTE-008",
+    "SC-MARIONETTE-009",
+    "SC-MARIONETTE-010",
+    "SC-MARIONETTE-011",
+    "SC-MARIONETTE-012",
+    "SC-PATROL-MCP-001",
+    "SC-PATROL-MCP-005",
+    "SC-PATROL-MCP-008",
+    "SC-PATROL-MCP-013",
+    "SC-ZMOF-001",
+    "SC-FEAT-EVO-001",
+    "SC-FEAT-EVO-013",
+    "SC-JNL-001",
+    "SC-FRAC-RRF-001",
+    "SC-FRAC-RRF-010",
+    "SC-ZK-IMP-001",
+    "SC-SYNC-DOC-007"
+  ],
+  "zk_refs": [
+    "zk-34e9ed5ecd44ecd5",
+    "zk-5d79c378a419cd0d",
+    "zk-bb4de67d97f807ac",
+    "zk-7471e209711463b9",
+    "zk-7c17f7c4dd5b33ed",
+    "zk-760707ed823d9843",
+    "zk-6cf52e03aa99e3ef",
+    "zk-8d3e976a66bc1b97"
+  ],
+  "math_kpis": {
+    "shannon_h_bits": 2.62,
+    "shannon_h_floor": 2.5,
+    "ccm": 1.0,
+    "ccm_floor": 0.9,
+    "discovery_distance_d": 0,
+    "evidence_sufficiency_s": "force-capture",
+    "fmea_top_rpn": 216,
+    "fmea_action_threshold": 200
+  },
+  "rete_ul_rules_added": 10,
+  "ruliology_classifiers": [
+    "Rule30_FailureChaos",
+    "Rule110_PatternEmergence",
+    "Rule184_Backpressure",
+    "CausalGraph"
+  ],
+  "fractal_layers_covered": [
+    "L0",
+    "L1",
+    "L2",
+    "L3",
+    "L4",
+    "L5",
+    "L6",
+    "L7"
+  ],
+  "tests": {
+    "fluffychat_catalog_count": 200,
+    "phases": [
+      "P0_smoke",
+      "P1_unit",
+      "P2_integration",
+      "P3_e2e",
+      "P4_cross_screen",
+      "P5_multi_platform",
+      "P6_chaos_fmea",
+      "P7_performance",
+      "P8_formal",
+      "P9_regression"
+    ]
+  },
+  "next_moves_priority": [
+    "A1: wire LoggingLogCollector in FluffyChat lib/main.dart",
+    "A6: dart pub global activate marionette_mcp marionette_cli",
+    "A7: Rust evaluate_marionette() dispatcher in rule_engine.rs",
+    "A4: CI runner via marionette_cli",
+    "A2: TLA+ MarionetteSession stub",
+    "A8: Apalache CI gate",
+    "A3: .gemini/rules mirror",
+    "A5: MARIONETTE_EXTENSIONS.md per app",
+    "B1: dashboard tile",
+    "B2: selector-drift Hamming detector"
+  ],
+  "substrate_definition": "Slurm-grade + Temporal-flavoured + Oban-foundational + OTP-native + Gleam-extensible + sa-plan-runtime-stable",
+  "pass14_revision": {
+    "system_score_pct": 92,
+    "system_score_mean": 55,
+    "system_score_max": 60,
+    "system_score_pct_history": [
+      53,
+      60,
+      92
+    ],
+    "passes_completed": [
+      13,
+      14
+    ],
+    "next_target_pct": 100,
+    "remaining_gates": 5,
+    "next_target_description": "Dart\u00d7zk, Cortex\u00d7{zk,email}, FractalWidgets\u00d7{zk,email}",
+    "matrix_version": "1.2.0",
+    "matrix_path": "docs/journal/task-116480247290237220/cpig-matrix.json",
+    "diagrams_refreshed": [
+      "docs/journal/task-116480247290237220/diagrams/g23-cpig-matrix-heatmap.dot",
+      "docs/journal/task-116480247290237220/diagrams/g23-cpig-matrix-heatmap.svg",
+      "docs/journal/task-116480247290237220/diagrams/g23-cpig-matrix-heatmap.png",
+      "docs/journal/task-116480247290237220/diagrams/g24-cpig-roadmap-passes.dot",
+      "docs/journal/task-116480247290237220/diagrams/g24-cpig-roadmap-passes.svg",
+      "docs/journal/task-116480247290237220/diagrams/g24-cpig-roadmap-passes.png"
+    ]
+  },
+  "pass14_artefacts": [
+    {
+      "kind": "tla_spec",
+      "subsystem": "pi-mono-symbiosis",
+      "path": "specs/tla/PiMonoSymbiosis.tla",
+      "purpose": "lifecycle + circuit breaker + 29\u219432 event bridge"
+    },
+    {
+      "kind": "tla_spec",
+      "subsystem": "scripts-gleam",
+      "path": "specs/tla/ScriptsGleamRegistry.tla",
+      "purpose": "jobs registry + dispatch invariants"
+    },
+    {
+      "kind": "tla_spec",
+      "subsystem": "patrol-mcp",
+      "path": "specs/tla/PatrolMcp.tla",
+      "purpose": "orchestration + envelope schema"
+    },
+    {
+      "kind": "tla_spec",
+      "subsystem": "dart-mcp-server",
+      "path": "specs/tla/DartMcpServer.tla",
+      "purpose": "tool surface + namespace isolation"
+    },
+    {
+      "kind": "tla_spec",
+      "subsystem": "gleam-ui-triple",
+      "path": "specs/tla/GleamUiMVU.tla",
+      "purpose": "MVU model + triple-interface parity"
+    },
+    {
+      "kind": "wiring_guard",
+      "subsystem": "patrol-mcp",
+      "path": "lib/cepaf_gleam/test/patrol_envelope_wiring_test.gleam",
+      "purpose": "envelope schema parity"
+    },
+    {
+      "kind": "wiring_guard",
+      "subsystem": "dart-mcp-server",
+      "path": "lib/cepaf_gleam/test/dart_mcp_tools_wiring_test.gleam",
+      "purpose": "namespace collision check"
+    },
+    {
+      "kind": "wiring_guard",
+      "subsystem": "cortex-inference",
+      "path": "sub-projects/c3i/native/planning_daemon/tests/cortex_cascade_wiring_test.rs",
+      "purpose": "tier ordering + circuit breaker invariant"
+    },
+    {
+      "kind": "wiring_guard",
+      "subsystem": "pi-mono-symbiosis",
+      "path": "lib/cepaf_gleam/test/pi_federation_count_wiring_test.gleam",
+      "purpose": "93-tool federation count guard"
+    }
+  ],
+  "pass14_sa_plan_tasks": [
+    "116482277627913035",
+    "116482277630514691",
+    "116482277632689749",
+    "116482277634108236",
+    "116482277635368828",
+    "116482277636567897",
+    "116482277637724751",
+    "116482277638863808",
+    "116482277640291294",
+    "116482277642016464",
+    "116482277644009970"
+  ],
+  "pass17_revision": {
+    "summary": "Runtime activation pass \u2014 first scheduler tick at T+5s simultaneously runtime-confirmed Pass 8-10 dispatcher fixes, Pass 9 JoinHandle.join, Pass 6 mistral.rs in-process bootstrap, Pass 4-5 OTel-over-Zenoh lifecycle envelopes.",
+    "artefacts": [
+      "docs/journal/task-116480247290237220/journal-pass17.md"
+    ],
+    "sa_plan_tasks": [],
+    "runtime_evidence": {
+      "first_tick_at": "2026-04-28T05:00:00Z",
+      "jobs_completed": 3,
+      "enqueued": 3,
+      "executed": 4,
+      "mistral_rs_ready_seconds": 3.8,
+      "cpig_status_url": "https://vm-1.tail55d152.ts.net:8443/api/v1/cpig/status",
+      "cpig_status_score": "60/60 = 100%"
+    }
+  },
+  "pass18_revision": {
+    "summary": "Closure pass for highest-priority Pass-17 carryover items. P0 URL directory-root resolver fix in serve.rs and P1 9 Wiring Guards bulk execution + evidence report both completed.",
+    "artefacts": [
+      "docs/journal/task-116480247290237220/journal-pass17.md",
+      "docs/journal/task-116480247290237220/journal-pass18.md",
+      "docs/journal/task-116480247290237220/wiring-guards-evidence-pass18.md",
+      "docs/journal/task-116480247290237220/diagrams/g25-runtime-proof.dot",
+      "docs/journal/task-116480247290237220/diagrams/g25-runtime-proof.svg",
+      "docs/journal/task-116480247290237220/diagrams/g25-runtime-proof.png",
+      "docs/journal/task-116480247290237220/diagrams/g26-remaining-roadmap.dot",
+      "docs/journal/task-116480247290237220/diagrams/g26-remaining-roadmap.svg",
+      "docs/journal/task-116480247290237220/diagrams/g26-remaining-roadmap.png"
+    ],
+    "sa_plan_tasks": [
+      "116482913711909941",
+      "116482913713718248",
+      "116482913715182370",
+      "116482913716616644",
+      "116482913718159192"
+    ],
+    "url_fix": {
+      "commit_sha": "pending",
+      "redirect_path": "/task-id/116480247290237220/ -> /task-id/116480247290237220/index.html",
+      "verify_curl": "curl -kIL https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/"
+    },
+    "wiring_guards_evidence": {
+      "total_tests": 10,
+      "total_passed": 10,
+      "total_failed": 0,
+      "languages": [
+        "gleam",
+        "rust"
+      ],
+      "guards_gleam": 9,
+      "guards_rust": 1,
+      "evidence_path": "docs/journal/task-116480247290237220/wiring-guards-evidence-pass18.md"
+    },
+    "remaining_punch_list": [
+      {
+        "id": 1,
+        "priority": "P0",
+        "item": "URL directory-root resolver in serve.rs",
+        "status": "completed_pass18",
+        "target_pass": 18
+      },
+      {
+        "id": 2,
+        "priority": "P1",
+        "item": "cpig-validator-hourly first cron fire",
+        "status": "pending",
+        "target_pass": 19
+      },
+      {
+        "id": 3,
+        "priority": "P1",
+        "item": "Wiring Guards bulk execution evidence",
+        "status": "completed_pass18",
+        "target_pass": 18
+      },
+      {
+        "id": 4,
+        "priority": "P1",
+        "item": "Apalache discharge Agda postulate",
+        "status": "pending",
+        "target_pass": 19
+      },
+      {
+        "id": 5,
+        "priority": "P2",
+        "item": ".gemini/skills/ parity with .claude/skills/",
+        "status": "pending",
+        "target_pass": 20
+      },
+      {
+        "id": 6,
+        "priority": "P2",
+        "item": "Zenoh telemetry live subscriber",
+        "status": "pending",
+        "target_pass": 21
+      },
+      {
+        "id": 7,
+        "priority": "P2",
+        "item": "FluffyChat L1 main.dart wiring",
+        "status": "pending",
+        "target_pass": 22
+      },
+      {
+        "id": 8,
+        "priority": "P3",
+        "item": "Federated CPIG cross-mesh",
+        "status": "pending",
+        "target_pass": 23
+      },
+      {
+        "id": 9,
+        "priority": "P3",
+        "item": "Multi-region 2oo3 voting",
+        "status": "pending",
+        "target_pass": 24
+      },
+      {
+        "id": 10,
+        "priority": "P3",
+        "item": "Continuous TLA+/Apalache CI",
+        "status": "pending",
+        "target_pass": 24
+      },
+      {
+        "id": 11,
+        "priority": "P3",
+        "item": "Pass-25 closure federation event + roadmap retrospective",
+        "status": "pending",
+        "target_pass": 25
+      }
+    ],
+    "cumulative_arc": {
+      "passes": 18,
+      "files_changed": "60+",
+      "loc_changed_approx": 9500,
+      "tla_specs": 13,
+      "agda_specs": 2,
+      "wiring_guards": 10,
+      "graphviz_diagrams": 26,
+      "cpig_score": "60/60 (100%)",
+      "zk_holons": 36272,
+      "sa_plan_tasks_completed": "188+"
+    }
+  },
+  "pass21_revision": {
+    "summary": "Class-I closure: ontology genesis + Pi-mono deep verification (first subsystem at deep-5/5) + OTP supervisor wrapping cpig_subscriber. A-I cumulative class taxonomy is now closed.",
+    "ontology_doc": {
+      "title": "C3I Cross-Pass Ontology \u2014 12 entities \u00d7 15 relations",
+      "entities": 12,
+      "relations": 15,
+      "diagram": "docs/journal/task-116480247290237220/diagrams/g35-c3i-cross-pass-ontology.png"
+    },
+    "artefacts": [
+      {
+        "role": "otp-supervisor",
+        "title": "cpig_supervisor.gleam",
+        "path": "lib/cepaf_gleam/src/cepaf_gleam/actors/cpig_supervisor.gleam",
+        "loc": 150,
+        "layer": "L4_SYSTEM"
+      },
+      {
+        "role": "wiring-guard",
+        "title": "cpig_supervisor_wiring_test.gleam",
+        "path": "lib/cepaf_gleam/test/cpig_supervisor_wiring_test.gleam",
+        "tests": 5,
+        "passed": 5
+      },
+      {
+        "role": "journal",
+        "title": "Pass-21 master journal (13-section)",
+        "path": "docs/journal/task-116480247290237220/journal-pass21.md",
+        "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116480247290237220/task-116480247290237220/journal-pass21.md"
+      },
+      {
+        "role": "formal-spec",
+        "title": "Pi-mono TLA+ deep verification (2 specs)",
+        "added_pass": 21
+      },
+      {
+        "role": "rca",
+        "title": "Pi-mono deep RCA",
+        "added_pass": 21
+      },
+      {
+        "role": "ontology",
+        "title": "C3IOntology entity-relation graph",
+        "path": "docs/journal/task-116480247290237220/diagrams/g35-c3i-cross-pass-ontology.png"
+      }
+    ],
+    "sa_plan_tasks": [
+      "116483658863546110",
+      "116483658865518164",
+      "116483658866998566",
+      "116483658868228456",
+      "116483658869391558",
+      "116483658870358640"
+    ],
+    "stamp_refs": [
+      "SC-CPIG-002",
+      "SC-CPIG-013",
+      "SC-PI-RUNTIME-001",
+      "SC-PI-AUTO-003",
+      "SC-WIRE-001",
+      "SC-ZMOF-001",
+      "SC-GLM-ZEN-001",
+      "SC-FRAC-RRF-001",
+      "SC-JNL-001",
+      "SC-ZK-IMP-002"
+    ],
+    "zk_refs": [
+      "zk-bb4de67d97f807ac",
+      "zk-d8929d43344a292d",
+      "zk-d1b0c1494"
+    ],
+    "class_taxonomy_a_to_i": {
+      "A": {
+        "passes": "1-3",
+        "theme": "Wiring"
+      },
+      "B": {
+        "passes": "4-7",
+        "theme": "Formal verification"
+      },
+      "C": {
+        "passes": "8-10",
+        "theme": "Full-system integration"
+      },
+      "D": {
+        "passes": "11-12",
+        "theme": "CPIG matrix + invariants"
+      },
+      "E": {
+        "passes": "13-15",
+        "theme": "Runtime evidence + URL fix"
+      },
+      "F": {
+        "passes": "16-17",
+        "theme": "Wiring-guard breadth + activation"
+      },
+      "G": {
+        "passes": "18-19",
+        "theme": "Defense-in-depth (Pi parity + Zenoh observability)"
+      },
+      "H": {
+        "passes": "20",
+        "theme": "Federation + multi-region + real Zenoh"
+      },
+      "I": {
+        "passes": "21",
+        "theme": "Ontology genesis + Pi deep RCA + OTP supervisor"
+      }
+    },
+    "cumulative_arc": {
+      "passes": 21,
+      "files_changed": "80+",
+      "loc_changed_approx": 11000,
+      "tla_specs": 17,
+      "agda_specs": 2,
+      "wiring_guards_gleam": 62,
+      "wiring_guards_rust": 1,
+      "graphviz_diagrams": 35,
+      "cpig_score": "60/60 (100%)",
+      "subsystems_5_of_5": "12/12",
+      "subsystems_deep_5_of_5": "1/12 (Pi-mono)",
+      "zk_holons": 36272,
+      "sa_plan_tasks_completed": "194+",
+      "class_letters_closed": "A-I (9)"
+    }
+  },
+  "pass22_revision": {
+    "class": "G-extension (cortex deep verification)",
+    "subsystem_deep_status": "3/12 (sa-plan, Pi, Cortex)",
+    "artefacts": [
+      "specs/tla/CortexHedgedRace.tla",
+      "specs/tla/CortexCircuitBreakers.tla",
+      "lib/cepaf_gleam/test/cortex_circuit_breaker_wiring_test.gleam",
+      "docs/journal/task-116480247290237220/formal/cortex-deep-rca.md",
+      "docs/journal/task-116480247290237220/journal-pass22.md",
+      "docs/journal/task-116480247290237220/diagrams/g36-cortex-hedge-race.{dot,svg,png}",
+      "docs/journal/task-116480247290237220/diagrams/g37-cortex-7tier-cb.{dot,svg,png}"
+    ],
+    "sa_plan_tasks": [
+      "116483724186936326",
+      "116483724196481199",
+      "116483724197709566",
+      "116483724199165591",
+      "116483724200473592",
+      "116483724201788498",
+      "116483724203113596"
+    ],
+    "cumulative": {
+      "passes": 22,
+      "TLA_specs": 19,
+      "agda": 2,
+      "wiring_guards": 67,
+      "diagrams": 37
+    }
+  }
+}

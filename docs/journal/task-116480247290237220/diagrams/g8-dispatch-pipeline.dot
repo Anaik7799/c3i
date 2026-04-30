@@ -1,0 +1,69 @@
+digraph G8DispatchPipeline {
+  rankdir=LR;
+  labelloc="t";
+  label="G8 — Pass-10 Dispatch Pipeline (oban_jobs → workers::dispatch → process_runner)";
+  fontname="Helvetica";
+  fontsize=16;
+  bgcolor="#fafafa";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10, fillcolor="#e3f2fd", color="#1565c0"];
+  edge [fontname="Helvetica", fontsize=9, color="#37474f"];
+
+  // Scheduler tier
+  subgraph cluster_sched {
+    label="L4-System: Scheduler";
+    style="rounded,filled";
+    fillcolor="#fff3e0";
+    color="#ef6c00";
+    tick    [label="scheduler-tick\n(every 1s)"];
+    claim   [label="claim_next_jobs()\nSQL: UPDATE oban_jobs\nSET state='executing'"];
+    lifeline[label="lifeline_reset_stuck()\nstuck>5min → available"];
+  }
+
+  // Worker dispatch tier (Pass-10 fix point)
+  subgraph cluster_worker {
+    label="L4-System: Worker Dispatcher (Pass-10 FIX)";
+    style="rounded,filled";
+    fillcolor="#e8f5e9";
+    color="#2e7d32";
+    spawn   [label="std::thread::spawn"];
+    dispatch[label="workers::dispatch(job)\n★ Pass-10 fix point ★", fillcolor="#fff59d", color="#f57f17", penwidth=2];
+    known   [label="known_workers_check\n{gleam_run, http_probe, ...}"];
+    match   [label="match arm lookup\nworker_name → handler", fillcolor="#fff59d", color="#f57f17"];
+    run     [label="run_gleam_run(job)"];
+  }
+
+  // Process runner tier
+  subgraph cluster_runner {
+    label="L4-System: ProcessRunner";
+    style="rounded,filled";
+    fillcolor="#f3e5f5";
+    color="#6a1b9a";
+    pr      [label="process_runner::run(RunSpec)\nspawn + timeout + heartbeat"];
+    onesh   [label="oneshot::send(result)"];
+  }
+
+  // Persistence
+  subgraph cluster_db {
+    label="L3-Transaction: Persistence";
+    style="rounded,filled";
+    fillcolor="#fce4ec";
+    color="#ad1457";
+    ok      [label="mark_completed()\nstate='completed'"];
+    fail    [label="mark_failed()\nstate='retryable'|'discarded'"];
+  }
+
+  // Edges (control = solid, data = dashed)
+  tick     -> claim    [label="tick"];
+  tick     -> lifeline [label="every 5s"];
+  claim    -> spawn    [label="job rows", style=dashed];
+  lifeline -> claim    [label="reset → re-claim", style=dashed, color="#558b2f"];
+  spawn    -> dispatch [label="thread"];
+  dispatch -> known    [label="lookup"];
+  known    -> match    [label="resolve"];
+  match    -> run      [label="gleam_run"];
+  match    -> fail     [label="unknown_worker", color="#c62828", style=dashed];
+  run      -> pr       [label="RunSpec", style=dashed];
+  pr       -> onesh    [label="exit"];
+  onesh    -> ok       [label="status=0"];
+  onesh    -> fail     [label="status≠0|timeout"];
+}

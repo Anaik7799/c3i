@@ -1,0 +1,37 @@
+digraph dq_state {
+  rankdir=LR; bgcolor="#0a0e17"; fontname="JetBrains Mono"; fontcolor="#e0e6ed"; fontsize=11;
+  node [fontname="JetBrains Mono" fontsize=10 color="#1e2a3a" fontcolor="#e0e6ed" style="filled,rounded" shape=box];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  // Ingest state
+  Ingress [label="Ingress\n(NIF / cli / Pi-mono)" fillcolor="#1a2030" shape=ellipse];
+  L1Gate [label="L1 NIF gate\nplan_add_task whitelist\nplan_update_task whitelist" fillcolor="#2a2410" fontcolor="#ffd93d"];
+  L3Gate [label="L3 Rust gate\ndb::validate_priority\ndb::validate_status" fillcolor="#101a30" fontcolor="#4d96ff"];
+  L4Gate [label="L4 Schema CHECK\nCHECK(Priority IN P0..P3)\nCHECK(Status IN 4)" fillcolor="#1f1228" fontcolor="#9b59b6"];
+  Stored [label="Tasks\n(canonical)" fillcolor="#0d1d12" fontcolor="#3dd68c"];
+  Reject [label="Rejected\n{ok:false,error}" fillcolor="#2a1414" fontcolor="#ff6b81" shape=octagon];
+
+  // Drift detection
+  Cron [label="cron tick\n5min canary\n3min page-checker\nhourly drift" fillcolor="#1a2030" fontcolor="#f5a623" shape=parallelogram];
+  Scan [label="data_quality_scan.gleam\n(sqlite3 -readonly counts)" fillcolor="#101a30"];
+  Cmp  [label="violations > 0?" fillcolor="#1a2030" shape=diamond];
+  P0   [label="opens P0/P1 sa-plan task\n+ Telegram alert\n+ OTel span" fillcolor="#2a1414" fontcolor="#ff6b81"];
+  Quiet [label="NoAction\n(SC-TRUTH-001 satisfied)" fillcolor="#0d1d12" fontcolor="#3dd68c"];
+
+  // Edges
+  Ingress -> L1Gate;
+  L1Gate -> Reject [label="invalid priority/status"];
+  L1Gate -> L3Gate [label="ok"];
+  L3Gate -> Reject [label="invalid (defense-in-depth)"];
+  L3Gate -> L4Gate [label="ok"];
+  L4Gate -> Reject [label="CHECK fails (3rd line)"];
+  L4Gate -> Stored [label="ok ⇒ persisted"];
+
+  Cron -> Scan;
+  Scan -> Cmp;
+  Cmp -> P0    [label="violations ≥ 1\n(Lyapunov ≥ 50 → Jidoka)"];
+  Cmp -> Quiet [label="0 violations"];
+
+  // Periodic scan reads stored
+  Stored -> Scan [label="reads counts" style=dashed];
+}

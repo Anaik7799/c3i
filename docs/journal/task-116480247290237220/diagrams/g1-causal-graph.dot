@@ -1,0 +1,58 @@
+// Causal graph — selector blast-radius across the 200-test catalog
+// Nodes = test groups (CATALOG.md). Edges = shared selector / shared extension / shared fixture.
+// Used by Ruliology CausalGraph classifier for blast-radius analysis on selector drift.
+digraph causal {
+  rankdir=LR; bgcolor="#0a0e17"; fontname="Helvetica"; pad=0.4; nodesep=0.4; ranksep=0.7;
+  node  [shape=box style="rounded,filled" fontname="Helvetica" fontsize=11 color="#1e2a3a" fillcolor="#141922" fontcolor="#e0e6ed"];
+  edge  [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  // Anchors (high in-degree → high blast-radius if their selectors drift)
+  Login        [fillcolor="#1e2a3a" color="#00d4aa" label="Auth/Login\nT1-T16"];
+  ChatList     [fillcolor="#1e2a3a" color="#00d4aa" label="ChatList/Nav\nT17-T36"];
+  ChatView     [fillcolor="#1e2a3a" color="#00d4aa" label="Messaging\nT37-T66"];
+  Media        [label="Media\nT67-T86"];
+  Encryption   [label="Encryption\nT87-T100"];
+  Calls        [label="Calls\nT101-T108"];
+  RoomMgmt     [label="Room mgmt\nT109-T128"];
+  Spaces       [label="Spaces\nT129-T136"];
+  Settings     [label="Settings\nT137-T156"];
+  Notif        [label="Notifications\nT157-T162"];
+  Search       [label="Search\nT163-T170"];
+  MultiAcct    [label="Multi-account\nT171-T176"];
+  Responsive   [label="Responsive\nT177-T188"];
+  Cross        [fillcolor="#1e2a3a" color="#f5a623" label="Cross-screen\nT189-T196"];
+  Misc         [label="Misc/custom\nT197-T200"];
+
+  // shared selectors (rooms list, message bubble, app bar)
+  Login -> ChatList     [label="post-login screen"];
+  ChatList -> ChatView  [label="open-room key"];
+  ChatList -> Search    [label="search-button key"];
+  ChatList -> MultiAcct [label="account-chooser"];
+  ChatList -> Spaces    [label="space-rail"];
+  ChatList -> Notif     [label="badge"];
+  ChatView -> Media     [label="message-bubble key"];
+  ChatView -> Encryption[label="lock-icon"];
+  ChatView -> Calls     [label="call-button"];
+  ChatView -> RoomMgmt  [label="header-tap"];
+  ChatView -> Search    [label="in-room search"];
+  RoomMgmt -> Encryption[label="device-list"];
+  RoomMgmt -> Spaces    [label="space settings"];
+  Settings -> Encryption[label="recovery key"];
+  Settings -> Notif     [label="rules"];
+  Settings -> MultiAcct [label="device list"];
+  Calls -> Notif        [label="ringing"];
+  Cross -> Login        [label="full lifecycle"];
+  Cross -> ChatList     [label=""];
+  Cross -> ChatView     [label=""];
+  Cross -> Encryption   [label=""];
+  Cross -> Calls        [label=""];
+  Cross -> Settings     [label=""];
+  Responsive -> ChatList[label="layout pivot"];
+  Responsive -> ChatView[label="layout pivot"];
+
+  // ruliology callouts
+  subgraph cluster_blastradius {
+    label="High blast-radius (top 3)"; fontcolor="#e74c3c"; color="#e74c3c"; style=dashed;
+    Login; ChatList; ChatView;
+  }
+}

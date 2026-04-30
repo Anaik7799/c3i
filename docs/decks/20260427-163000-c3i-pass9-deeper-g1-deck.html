@@ -1,0 +1,180 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><title>C3I Pass 9 — Deeper G1 Deck</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--ok:#3dd68c;--crit:#ff4757;--math:#c099ff;--border:#1e2a3a}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,system-ui}
+.deck{max-width:1080px;margin:0 auto;padding:30px 24px 60px}
+.slide{border:1px solid var(--border);border-radius:12px;padding:34px 42px;margin:24px 0;background:linear-gradient(140deg,#0c1320,#10182a);page-break-after:always;min-height:540px;position:relative}
+.slide .num{position:absolute;right:24px;top:16px;color:var(--muted);font-size:12px}
+.slide h2{color:var(--accent);margin:0 0 14px;font-size:25px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+th,td{border:1px solid var(--border);padding:6px 9px;text-align:left}th{background:#1e2a3a;color:var(--accent)}
+code{background:#1e2a3a;color:#9be7c4;padding:1px 5px;border-radius:4px;font-size:13px}
+pre{background:#0d1420;border:1px solid var(--border);padding:11px;border-radius:6px;font-size:12.5px;overflow-x:auto}
+.formula{background:#1a1428;border:1px solid var(--math);border-radius:6px;padding:8px 12px;margin:8px 0;font-family:Cambria,serif;font-style:italic;color:#dec0ff}
+.kpi{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
+.kpi .item{background:var(--card);padding:13px 18px;border-radius:10px;border:1px solid var(--border);min-width:120px}
+.kpi .item .v{font-size:26px;color:var(--accent);font-weight:700}.kpi .item .l{font-size:11px;color:var(--muted);text-transform:uppercase}
+.delta-good{color:var(--ok);font-weight:700}
+.title-slide{display:flex;flex-direction:column;justify-content:center;padding:80px 60px}
+.title-slide h1{font-size:38px;color:var(--accent);margin:0 0 12px}
+.title-slide p{color:var(--muted);font-size:16px;margin:4px 0}
+</style></head><body><div class="deck">
+
+<section class="slide title-slide"><span class="num">1 / 12</span>
+  <h1>C3I Pass 9 — Deeper G1</h1>
+  <p>Standalone Inference Daemon · Goals · Spec · Design · Impl · Test · SRE</p>
+  <p style="margin-top:30px">2026-04-27 16:30 CEST · DESIGN-ONLY pass</p>
+  <p>~6 h impl · −8 GB inference RAM · +200% Tier 3 throughput</p>
+</section>
+
+<section class="slide"><span class="num">2 / 12</span>
+  <h2>Why deeper G1?</h2>
+  <ul>
+    <li><strong>G1-minimal (Pass 7)</strong>: 5-LOC env gate skips gemma in scheduler — saved 12.6 GB.</li>
+    <li><strong>Limit</strong>: sa-plan-http still holds 14 GB gemma in-process; scheduler can't use Tier 3 (falls back to slower Tier 1/2).</li>
+    <li><strong>Architectural anti-pattern remains</strong>: inference is embedded, not a service.</li>
+  </ul>
+  <p>Pass 9 fixes this: extract <code>sa-plan-inference</code> daemon + UDS RPC, all clients share one gemma instance.</p>
+</section>
+
+<section class="slide"><span class="num">3 / 12</span>
+  <h2>Projected impact</h2>
+  <div class="kpi">
+    <div class="item"><div class="v delta-good">−8 GB</div><div class="l">inference RAM</div></div>
+    <div class="item"><div class="v delta-good">+8 GB</div><div class="l">host RAM free</div></div>
+    <div class="item"><div class="v delta-good">3×</div><div class="l">Tier 3 throughput</div></div>
+    <div class="item"><div class="v delta-good">−67%</div><div class="l">FMEA RPN</div></div>
+    <div class="item"><div class="v delta-good">0.91</div><div class="l">ITQS (target 0.85)</div></div>
+    <div class="item"><div class="v">~750</div><div class="l">LOC Rust</div></div>
+    <div class="item"><div class="v">~6 h</div><div class="l">effort</div></div>
+    <div class="item"><div class="v">&lt;30 s</div><div class="l">downtime</div></div>
+  </div>
+</section>
+
+<section class="slide"><span class="num">4 / 12</span>
+  <h2>7 Goals (G9-1..7)</h2>
+  <table>
+    <tr><th>Goal</th><th>Measurable</th></tr>
+    <tr><td>Single gemma per host</td><td>RSS sum ≤ 6 GB</td></tr>
+    <tr><td>All sa-plan binaries get Tier 3</td><td>scheduler p50 &lt; 700 ms</td></tr>
+    <tr><td>Independent restart</td><td>OOM-kill doesn't crash dashboard</td></tr>
+    <tr><td>Zero new deps</td><td>tokio + UDS only</td></tr>
+    <tr><td>Backwards compat</td><td>SA_PLAN_DISABLE_INFER still works</td></tr>
+    <tr><td>Observable</td><td>Zenoh metrics</td></tr>
+    <tr><td>Restart-safe</td><td>clients reconnect &lt; 1 s</td></tr>
+  </table>
+</section>
+
+<section class="slide"><span class="num">5 / 12</span>
+  <h2>Wire protocol (UDS, JSON-LP)</h2>
+  <pre>[u32 BE: payload length] [JSON payload]
+
+{
+  "id": "uuid-v7",
+  "method": "infer_text",
+  "params": {
+    "prompt": "...",
+    "max_tokens": 256
+  },
+  "deadline_ms": 30000
+}</pre>
+  <p>4 methods: <code>infer_text · embed · health · metrics</code></p>
+  <p>6 env vars: <code>SOCK · MODEL · QUANT · CTX · MAX_QUEUE · REMOTE</code></p>
+</section>
+
+<section class="slide"><span class="num">6 / 12</span>
+  <h2>Architecture</h2>
+  <pre>sa-plan-http   sa-plan-scheduler   pi-runtime   future-client
+     │                │                  │             │
+     └────────┬───────┴──────────┬───────┴──────┬──────┘
+              │                  │              │
+              ▼                  ▼              ▼
+         ┌──────────────────────────────────────┐
+         │  /run/c3i/inference.sock  (UDS)      │
+         └──────────────────┬───────────────────┘
+                            │
+                            ▼
+                ┌───────────────────────┐
+                │ sa-plan-inference     │
+                │  └─ mistralrs::Model  │  4.5 GB gemma
+                │  └─ tokio queue (32)  │
+                │  └─ 4 in-flight max   │
+                │  └─ Zenoh metrics     │
+                └───────────────────────┘</pre>
+</section>
+
+<section class="slide"><span class="num">7 / 12</span>
+  <h2>Queueing analysis (M/M/1 + parallel)</h2>
+  <div class="formula">ρ = λ/μ; W = 1/(μ−λ); L = ρ/(1−ρ)</div>
+  <p>Steady: λ=0.3, μ=1, ρ=0.3 ✓</p>
+  <p>Burst: λ=2, μ=1, ρ=2.0 → unstable</p>
+  <p>With 4-way parallelism: μ_eff=3 → ρ_burst=0.67 ✓ stable</p>
+  <p>Backpressure: max-queue=32, RST on overflow → bounded latency tail.</p>
+</section>
+
+<section class="slide"><span class="num">8 / 12</span>
+  <h2>FMEA — top RPN values</h2>
+  <table>
+    <tr><th>Mode</th><th>S</th><th>O</th><th>D</th><th>RPN</th></tr>
+    <tr><td><strong>Network namespace mismatch</strong></td><td>6</td><td>3</td><td>4</td><td><strong>72</strong></td></tr>
+    <tr><td>Queue overflow</td><td>4</td><td>4</td><td>2</td><td>32</td></tr>
+    <tr><td>Daemon OOM</td><td>8</td><td>3</td><td>1</td><td>24</td></tr>
+    <tr><td>UDS leak</td><td>5</td><td>2</td><td>2</td><td>20</td></tr>
+    <tr><td>Protocol skew</td><td>6</td><td>1</td><td>3</td><td>18</td></tr>
+    <tr><td>Two daemons race</td><td>8</td><td>1</td><td>2</td><td>16</td></tr>
+    <tr><td>Client hang</td><td>7</td><td>2</td><td>1</td><td>14</td></tr>
+  </table>
+  <p>All RPN &lt; 100 with mitigations applied. Top mode (NS) fixed by host-shared <code>/run/user/$UID/c3i/</code>.</p>
+</section>
+
+<section class="slide"><span class="num">9 / 12</span>
+  <h2>Implementation — 10 ordered steps</h2>
+  <table>
+    <tr><th>#</th><th>Step</th><th>LOC</th></tr>
+    <tr><td>1</td><td>protocol.rs</td><td>+120</td></tr>
+    <tr><td>2</td><td>server.rs (UDS listener)</td><td>+250</td></tr>
+    <tr><td>3</td><td>client.rs (RPC + retry)</td><td>+180</td></tr>
+    <tr><td>4</td><td>bin/sa-plan-inference.rs</td><td>+60</td></tr>
+    <tr><td>5</td><td>mcp_inference.rs dispatch</td><td>~30</td></tr>
+    <tr><td>6</td><td>systemd unit</td><td>+25</td></tr>
+    <tr><td>7</td><td>SA_PLAN_INFER_REMOTE drop-ins</td><td>+5</td></tr>
+    <tr><td>8</td><td>metrics.rs (Zenoh)</td><td>+150</td></tr>
+    <tr><td>9</td><td>health_publish.gleam</td><td>+20</td></tr>
+    <tr><td>10</td><td>RETE D16 rules</td><td>+50</td></tr>
+  </table>
+</section>
+
+<section class="slide"><span class="num">10 / 12</span>
+  <h2>Test plan — 5 categories</h2>
+  <ul>
+    <li><strong>Unit</strong>: protocol roundtrip, retry, circuit breaker, queue overflow</li>
+    <li><strong>Integration</strong>: e2e via UDS, daemon-restart-survives</li>
+    <li><strong>Performance</strong>: Criterion benches; remote ≤ in-process × 1.10</li>
+    <li><strong>Property</strong>: proptest — protocol never panics on arbitrary bytes</li>
+    <li><strong>Chaos / SRE drill</strong>: kill -9, OOM injection, sustained burst</li>
+  </ul>
+</section>
+
+<section class="slide"><span class="num">11 / 12</span>
+  <h2>SRE alarms (Zenoh subscribe)</h2>
+  <table>
+    <tr><th>Alarm</th><th>Threshold</th><th>Action</th></tr>
+    <tr><td>p99_ms &gt; 5000 / 60s</td><td>latency</td><td>quant rollback</td></tr>
+    <tr><td>queue_depth &gt; 16 / 30s</td><td>load</td><td>scale / shard</td></tr>
+    <tr><td>rss &gt; 7 GB</td><td>leak</td><td>restart drain</td></tr>
+    <tr><td>rst &gt; 100/min</td><td>backpressure</td><td>client throttle</td></tr>
+    <tr><td>daemon_unreachable</td><td>UDS broken</td><td>recovery runbook</td></tr>
+  </table>
+</section>
+
+<section class="slide"><span class="num">12 / 12</span>
+  <h2>Conclusion</h2>
+  <p><strong>Pass 9 = design closure for what Pass 5 sketched and Pass 7 partially shipped.</strong></p>
+  <p>G1-minimal got us 70% (12.6 GB on scheduler). G1-deeper captures the remaining 30% (8 GB on sa-plan-http) and adds <em>capability</em> — scheduler + pi-runtime regain Tier 3 access.</p>
+  <p>Total cost: ~750 LOC Rust + ~6 h focused work + &lt; 30 s deploy downtime.</p>
+  <p>ITQS projection: 0.78 → <strong>0.91</strong> (above target 0.85).</p>
+  <p style="margin-top:18px;color:var(--accent)"><strong>Awaiting operator authorisation for the implementation sprint.</strong></p>
+</section>
+
+</div></body></html>

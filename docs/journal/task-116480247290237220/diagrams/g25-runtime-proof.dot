@@ -1,0 +1,38 @@
+digraph G25_RuntimeProof {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=10, color="#1e2a3a", fillcolor="#141922", fontcolor="#e0e6ed"];
+  edge [fontname="Helvetica", fontsize=9, color="#7a8fa6", fontcolor="#9be7d3"];
+  labelloc=t;
+  fontsize=14;
+  fontcolor="#00d4aa";
+  label="G25 — Pass 17 First Scheduler Tick (T+0 to T+5s, runtime-confirmed)";
+
+  // Lifelines
+  subgraph cluster_op {label="Operator"; style=filled; color="#0e1420"; fontcolor="#00d4aa"; OP [label="curl /api/v1/cpig/status",fillcolor="#9b59b6",fontcolor="#fff"];}
+  subgraph cluster_tls {label="sa-plan-daemon\n(TLS serve :8443)"; style=filled; color="#0e1420"; fontcolor="#00d4aa"; TLS [label="serve.rs\nURL resolver",fillcolor="#3dd68c",fontcolor="#0a0e17"];}
+  subgraph cluster_sched {label="sa-plan-daemon\n(scheduler-run)"; style=filled; color="#0e1420"; fontcolor="#00d4aa"; SCH [label="scheduler::run\ntick loop",fillcolor="#f5a623",fontcolor="#0a0e17"];}
+  subgraph cluster_db {label="oban_jobs (smriti.db)"; style=filled; color="#0e1420"; fontcolor="#00d4aa"; DB [label="SQLite WAL"];}
+  subgraph cluster_disp {label="workers::dispatch"; style=filled; color="#0e1420"; fontcolor="#00d4aa"; DSP [label="JoinHandle.join\n(Pass 9 fix)",fillcolor="#00d4aa",fontcolor="#0a0e17"];}
+  subgraph cluster_mistral {label="mistral.rs"; style=filled; color="#0e1420"; fontcolor="#00d4aa"; MR [label="embedding engine\nready 3.8s",fillcolor="#00d4aa",fontcolor="#0a0e17"];}
+  subgraph cluster_zenoh {label="Zenoh telemetry"; style=filled; color="#0e1420"; fontcolor="#00d4aa"; ZN [label="indrajaal/l4/sched/**"];}
+
+  // 12 numbered messages
+  OP  -> TLS [label="01 GET /api/v1/cpig/status"];
+  TLS -> DB  [label="02 SELECT cpig matrix"];
+  DB  -> TLS [label="03 60/60=100% rows"];
+  TLS -> OP  [label="04 200 OK + JSON"];
+  SCH -> DB  [label="05 SELECT pending jobs (T+1s)"];
+  DB  -> SCH [label="06 enqueued=3"];
+  SCH -> DSP [label="07 dispatch gleam_run x3"];
+  DSP -> MR  [label="08 init embedding"];
+  MR  -> DSP [label="09 ready 3.8s"];
+  DSP -> SCH [label="10 executed=4 (3+1 cron)"];
+  SCH -> DB  [label="11 UPDATE state=completed"];
+  SCH -> ZN  [label="12 publish lifecycle envelopes"];
+
+  // Outcome cluster
+  OUT [label="✓ Pass 8-10 simultaneously proved\n✓ enqueued=3 executed=4\n✓ first tick at T+5s",
+       shape=note, fillcolor="#0e1a14", color="#3dd68c", fontcolor="#3dd68c"];
+  ZN -> OUT [style=dashed];
+}

@@ -1,0 +1,37 @@
+digraph CriticalPath {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [fontcolor="#e0e6ed", fontname="Helvetica", style="filled,rounded", shape=box];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Helvetica", fontsize=10];
+
+  done [label="DONE pass-14\nRuliology mod data_quality\n13 tests · 200 LOC", fillcolor="#3dd68c", color="#3dd68c", fontcolor="#0a0e17"];
+
+  // Critical path P0 — independent, parallelizable
+  p1_5 [label="P1 #5\nServer-side pagination\n/api/v1/planning?offset=&limit=\n1d · RPN 280", fillcolor="#ff4757", color="#ff4757", fontcolor="#fff"];
+  p1_6 [label="P1 #6\nCollapse 3 grids → 1\n+ filter chips\n½d · RPN 250", fillcolor="#ff4757", color="#ff4757", fontcolor="#fff"];
+
+  // P1 — refactor risk, sequential after #5/#6
+  p1_7 [label="P1 #7\nSplit planning-grid.js\n1894 → 5 modules\n2h · RPN 200", fillcolor="#f5a623", color="#f5a623", fontcolor="#0a0e17"];
+  p1_8 [label="P1 #8\nSplit domain_views.gleam\n1657 per-page\n½d · RPN 180", fillcolor="#f5a623", color="#f5a623", fontcolor="#0a0e17"];
+  p1_12 [label="P1 #12\nOwner + parent-id\npicker UI\n4h · RPN 160", fillcolor="#f5a623", color="#f5a623", fontcolor="#0a0e17"];
+
+  // Cross-cutting (parallelizable)
+  cc1 [label="CC: Native DQ workers\n(Rust)", fillcolor="#4d96ff", color="#4d96ff", fontcolor="#fff"];
+  cc2 [label="CC: Robustness pack\nproptest + breaker + Telegram", fillcolor="#4d96ff", color="#4d96ff", fontcolor="#fff"];
+  cc3 [label="CC: PageChecker actor\n+ 32 spec files", fillcolor="#4d96ff", color="#4d96ff", fontcolor="#fff"];
+  cc4 [label="CC: Symbiosis tensor\nfull expansion (~40 cells)", fillcolor="#4d96ff", color="#4d96ff", fontcolor="#fff"];
+  cc5 [label="CC: Agda totality proof\n+ TLC daily exec", fillcolor="#4d96ff", color="#4d96ff", fontcolor="#fff"];
+
+  p2_19 [label="P2 #19\nDAG-M-R + Shannon-H\nformal coverage exec\n½d · RPN 110", fillcolor="#7a8fa6", color="#7a8fa6", fontcolor="#fff"];
+
+  done -> p1_5 [label="next critical"];
+  done -> cc1  [label="composes"];
+  done -> cc4  [label="extends L5"];
+  p1_5 -> p1_6 [label="enables"];
+  p1_6 -> p1_7 [label="reduces blast"];
+  p1_7 -> p1_8 [label="same pattern"];
+  p1_8 -> p1_12;
+  cc1 -> cc2 [label="hardens"];
+  cc3 -> p2_19 [label="provides facts"];
+  cc4 -> p2_19 [label="provides metrics"];
+}
