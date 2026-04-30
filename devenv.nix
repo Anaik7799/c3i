@@ -60,7 +60,33 @@
     # E2E Browser Testing (SC-COV-008)
     # Toggles: google-chrome-stable | google-chrome-unstable | chromium
     WALLABY_CHROME_PATH = "google-chrome-unstable";
+
+    # ----- Imported from .zshrc (single source of truth) -----
+    # Planning Database (SQLite Source of Truth)
+    PLANNING_DB_PATH = "/home/an/dev/ver/c3i/sub-projects/c3i/data/smriti/planning.db";
+
+    # Observability (OTLP/HTTP)
+    OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:4318";
+    OTEL_SERVICE_NAME = "cepaf-gleam-orchestrator";
+
+    # Zenoh IPC (client mode — SC-ZENOH-001)
+    ZENOH_MODE = "client";
+    ZENOH_CONNECT = "tcp/localhost:7447";
+
+    # Podman Configuration
+    PODMAN_SOCKET = "/run/user/1000/podman/podman.sock";
+    PODMAN_API_VERSION = "5.7.0";
+
+    # Google Cloud
+    GOOGLE_CLOUD_PROJECT = "durable-limiter-457011-u7";
+
+    # ⚠️ SECRETS — sourced from .env via dotenv.enable=true, NEVER inlined.
+    # See .env (gitignored) for actual values. Rotation: see .env header comments.
+    # Migration: 2026-04-27 — moved out of devenv.nix after GitHub Push Protection
+    # blocked a commit containing them. devenv.nix is now gitignored as well.
   };
+
+  # dotenv.enable=true is set below — secrets above are loaded from .env at activation.
 
   packages = with pkgs; [
     git
@@ -78,7 +104,8 @@
     which
     zig
     dart
-    flutter332
+    flutter  # 3.41.6 — meets fluffychat floor (sdk: ">=3.11.1 <4.0.0")
+              # bumped from flutter332 per [zk-a75ddfe95d164e7d] for Patrol
     dotnet-sdk_10
     rustc
     cargo
@@ -106,6 +133,7 @@
     # Additional Language Servers (SC-LSP-001)
     nodePackages.yaml-language-server  # YAML LSP (OpenAPI, K8s, etc.)
     haskellPackages.Agda               # Agda proof assistant (with agda-mode)
+    agdaPackages.standard-library      # Agda stdlib v2.3 (SC-BOOTSTRAP-005 formal verification)
     graphviz                           # DOT graph language tools
     # Nix Language Support (SC-LSP-002)
     nil                                # Nix LSP (modern, incremental)
@@ -126,6 +154,7 @@
     # Note: Quint LSP via `npx @informalsystems/quint-language-server`
     # Formal verification (SC-SCHED-TELE-TLA-001)
     tlaplus                            # TLA+ toolkit (includes TLC model checker)
+    tlaps                              # TLA+ Proof System (TLAPM) — SC-BOOTSTRAP-005
     # Apalache is not in nixpkgs — install via `./scripts/install_apalache.sh`
     # or manually: https://github.com/apalache-mc/apalache/releases
   ];

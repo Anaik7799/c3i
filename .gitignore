@@ -84,10 +84,10 @@ data/smriti/Smriti.db-wal
 /gemini_rules.txt
 
 # Pi runtime workspace
-.pi/node_modules/
-.pi/.smriti-sessions.jsonl
-.pi/dist/
-.pi/.next/
+# Pass-31 hygiene: full .pi/ excluded — contains live API keys (config.json,
+# config.example.json). Bring back into git only after secrets are extracted
+# to .env / sops-nix and example file uses placeholder shape (SC-SEC-049).
+.pi/
 
 # Timestamped state snapshots (ephemeral)
 states/
