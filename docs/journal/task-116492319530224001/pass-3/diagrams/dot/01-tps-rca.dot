@@ -1,0 +1,24 @@
+digraph TPS_RCA {
+  rankdir=TB; bgcolor="#0a0e17";
+  node [fontname="Inter" style="filled,rounded" shape=box color="#1e2a3a" fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  subgraph cluster_problem { label="OBSERVED DEFECT"; color="#ff6b6b"; fontcolor="#ff6b6b";
+    p [label="WebKit Playwright fails:\n9 missing system libs" fillcolor="#1e2a3a"];
+  }
+
+  w1 [label="WHY 1\nplaywright install ships browser only" fillcolor="#1e2a3a"];
+  w2 [label="WHY 2\napt install requires sudo (denied)" fillcolor="#1e2a3a"];
+  w3 [label="WHY 3\ndistro libs use newer ABI sonames\n(.so.16 vs .so.2; .so.0.11 vs .so.0.8)" fillcolor="#1e2a3a"];
+  w4 [label="WHY 4\npiecemeal LD_LIBRARY_PATH chasing\n7 libs × 7 trial-and-error attempts" fillcolor="#1e2a3a" color="#f5a623" fontcolor="#f5a623"];
+  w5 [label="ROOT CAUSE (WHY 5)\nMuda — motion + over-processing.\nDep set is a closed graph,\nnot a sequence of point fixes." fillcolor="#1e2a3a" color="#ff4757" fontcolor="#ff4757"];
+
+  jidoka [label="JIDOKA STOP\n(autonomation:\nstop on defect, fix root cause)" fillcolor="#141922" color="#00d4aa" fontcolor="#00d4aa"];
+  fix [label="ABI-pinned closed Nix derivation\n(icu74 + libxml2_13 + libjxl@0.8.2 + ...)\nsymlinked into webkit/lib" fillcolor="#141922" color="#3dd68c" fontcolor="#3dd68c"];
+  poka [label="Poka-yoke\nidempotent setup-webkit-libs.sh\nldd verification under wrapper LD_PATH" fillcolor="#141922" color="#3dd68c" fontcolor="#3dd68c"];
+
+  p -> w1 -> w2 -> w3 -> w4 -> w5;
+  w5 -> jidoka -> fix -> poka;
+  poka -> done [label="30/30"];
+  done [label="30/30 cross-browser PASS\n0 missing libs\nzero sudo" fillcolor="#1e2a3a" color="#3dd68c" fontcolor="#3dd68c"];
+}

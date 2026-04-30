@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>/planning evolution — pass-3 analysis (Fractal TPS)</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--border:#1e2a3a;--accent:#00d4aa;--ok:#3dd68c;--warn:#f5a623;--err:#ff4757}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Inter,sans-serif;line-height:1.55}
+header{padding:32px 24px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#10141d,#0a0e17)}
+h1{margin:0 0 6px;font-size:1.6rem}
+main{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:1fr;gap:24px}
+section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+h2{margin-top:0;color:var(--accent);text-transform:uppercase;letter-spacing:0.04em;font-size:1.1rem}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.kpi b{display:block;font-size:1.5rem}.kpi small{color:var(--muted)}
+.kpi div{background:#0f141e;border:1px solid var(--border);border-radius:10px;padding:14px}
+table{width:100%;border-collapse:collapse;font-size:0.93rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+th{text-align:left;color:var(--accent)}
+.b-ok{color:var(--ok)}.b-warn{color:var(--warn)}.b-err{color:var(--err)}
+img{max-width:100%;border:1px solid var(--border);border-radius:8px}
+figure{margin:14px 0}figcaption{color:var(--muted);font-size:0.85rem;padding-top:6px}
+code,pre{font-family:JetBrains Mono,monospace}
+pre{background:#0f141e;border:1px solid var(--border);border-radius:8px;padding:12px;overflow:auto}
+@media (max-width:768px){.kpi{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>/planning pass-3 closure — Fractal TPS install + fix everything</h1>
+  <div style="color:var(--muted);font-family:JetBrains Mono,monospace;font-size:0.85rem">
+    urn:c3i:task:misc:116492319530224001 · pass-3 · 2026-04-30 ·
+    <a href="http://vm-1.tail55d152.ts.net:4100/planning" style="color:var(--accent)">live page</a> ·
+    commit dfe8f4c0
+  </div>
+</header>
+<main>
+
+<section><h2>Operator directive</h2>
+<p>"install and fix everything — fractal tps, fractal RCA, muda, jidoka." Close 3 environment-blocked items from pass-2 with no Stub-That-Lies (ZK[zk-3346fc607a1ef9e6]).</p>
+</section>
+
+<section><h2>Headline KPIs</h2>
+<div class="kpi">
+  <div><b class="b-ok">30/30</b><small>cross-browser PASS (was 15/15+10 blocked)</small></div>
+  <div><b class="b-ok">QUORUM</b><small>3-region CPIG (was INSUFFICIENT)</small></div>
+  <div><b class="b-ok">0</b><small>missing libs under wrapper LD path</small></div>
+  <div><b class="b-ok">0</b><small>env-blocked items remaining</small></div>
+  <div><b class="b-ok">9 349</b><small>gleam tests passed</small></div>
+  <div><b class="b-ok">0</b><small>test failures</small></div>
+  <div><b class="b-ok">−75 %</b><small>ΣFMEA RPN (proj from baseline)</small></div>
+  <div><b class="b-ok">95 %</b><small>system CPIG score (sustained)</small></div>
+</div>
+</section>
+
+<section><h2>Diagrams</h2>
+<figure><img src="diagrams/png/01-tps-rca.png" alt="TPS 5-Why"><figcaption>1. Fractal-TPS / Jidoka 5-Why on WebKit lib block; Muda eliminated by closed Nix derivation.</figcaption></figure>
+<figure><img src="diagrams/png/02-nix-closure.png" alt="Nix closure"><figcaption>2. Closed Nix derivation: 7 ABI-pinned legacy libs symlinked into webkit-2191's own lib dirs.</figcaption></figure>
+<figure><img src="diagrams/png/03-cpig-quorum.png" alt="CPIG quorum"><figcaption>3. 3-region multi-mesh CPIG quorum: Ed25519 attestations → load_peer_attestations() (real I/O) → validate → quorum_2oo3 → QUORUM score=33.</figcaption></figure>
+</section>
+
+<section><h2>Per-item resolution</h2>
+<table>
+<tr><th>#</th><th>Item</th><th>Pass-2 close</th><th>Pass-3 close</th><th>Authority</th></tr>
+<tr><td>1</td><td>Cross-browser Playwright</td><td>15/15 + 10 env-blocked</td><td class="b-ok">30/30 across 5 projects</td><td>SC-PLANNING-EVO-004</td></tr>
+<tr><td>2</td><td>Multi-mesh CPIG quorum</td><td>INSUFFICIENT got=1 need=2</td><td class="b-ok">QUORUM score=33 regions=us-west,asia,eu</td><td>SC-CPIG-FED-001..010</td></tr>
+<tr><td>3</td><td>Server-tick live verification</td><td>skip (pre-restart)</td><td class="b-ok">PASS on all 5 browsers</td><td>SC-AGUI-UI-011</td></tr>
+</table>
+</section>
+
+<section><h2>Fractal-RCA / Jidoka — WebKit unblock</h2>
+<table>
+<tr><th>Why</th><th>Cause</th></tr>
+<tr><td>1</td><td>9 missing system libs at runtime</td></tr>
+<tr><td>2</td><td>playwright install ships browser only</td></tr>
+<tr><td>3</td><td>apt install requires sudo (denied)</td></tr>
+<tr><td>4</td><td>distro libs use newer ABI sonames (.so.16 / .so.0.11) than WebKit needs (.so.2 / .so.0.8)</td></tr>
+<tr><td><b>5</b></td><td><b class="b-err">Muda</b> — piecemeal LD_LIBRARY_PATH chasing instead of treating dep set as a single closed graph</td></tr>
+</table>
+<p><b>Jidoka fix:</b> idempotent <code>tests/playwright/setup-webkit-libs.sh</code> builds 7 ABI-pinned Nix derivations and symlinks them into the WebKit bundle's own <code>${MYDIR}/lib</code>, which the vendored wrapper hardcodes into <code>LD_LIBRARY_PATH</code>. No upstream patch, no sudo.</p>
+</section>
+
+<section><h2>ABI-pinned Nix closure</h2>
+<table>
+<tr><th>ABI</th><th>Nix package</th><th>Version</th><th>Why pin</th></tr>
+<tr><td>libicudata.so.74 / libicui18n / libicuuc</td><td>icu74</td><td>4c-74.2</td><td>nixpkgs default 76 has so.76</td></tr>
+<tr><td>libxml2.so.2</td><td>libxml2_13</td><td>2.13.8</td><td>nixpkgs default 2.15 has so.16</td></tr>
+<tr><td>libjxl.so.0.8</td><td>libjxl @ nixos-23.11</td><td>0.8.2</td><td>nixpkgs default 0.11 has so.0.11</td></tr>
+<tr><td>libevent-2.1.so.7</td><td>libevent</td><td>2.1.12</td><td>matches</td></tr>
+<tr><td>libavif.so.16</td><td>libavif</td><td>1.3.0</td><td>matches</td></tr>
+<tr><td>libmanette-0.2.so.0</td><td>libmanette</td><td>0.2.13</td><td>matches</td></tr>
+<tr><td>libgstcodecparsers-1.0.so.0</td><td>gst_all_1.gst-plugins-bad</td><td>1.26.5</td><td>matches</td></tr>
+</table>
+</section>
+
+<section><h2>Multi-mesh CPIG live</h2>
+<pre>$ gleam run -m scripts/verify/cpig_federation -- \
+    --score 33 --mesh-id mesh-eu-1 --region eu --seed 1111…32-byte-hex
+
+[verify/cpig_federation] start mesh=mesh-eu-1 region=eu score=33
+[verify/cpig_federation] self-verify=true
+[verify/cpig_federation] published indrajaal/l7/fed/cpig/attest/eu
+[verify/cpig_federation] decision: QUORUM score=33 regions=us-west,asia,eu
+QUORUM score=33 regions=us-west,asia,eu</pre>
+<p>Was: <code class="b-warn">INSUFFICIENT got=1 need=2</code> · Now: <code class="b-ok">QUORUM</code> with all 3 regions reporting score=33. Split-brain detection verified by ad-hoc test (replacing asia with score=22 → SplitBrain).</p>
+</section>
+
+<section><h2>Reproducer (clean machine)</h2>
+<pre>cd /home/an/dev/ver/c3i/tests/playwright
+npm install                                                         # @playwright/test 1.54.1
+PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 \
+  ./node_modules/.bin/playwright install chromium firefox webkit
+./setup-webkit-libs.sh                                              # idempotent Nix closure
+PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 \
+  ./node_modules/.bin/playwright test --workers=2                   # 30/30 PASS</pre>
+</section>
+
+<section><h2>Cross-references</h2>
+<ul>
+  <li><a href="pass-3-journal.md">pass-3-journal.md</a> — 13-section narrative</li>
+  <li><a href="../journal.md">pass-1 journal</a></li>
+  <li><a href="../pass-2/pass-2-journal.md">pass-2 journal</a></li>
+  <li><a href="../playwright/cross-browser-report.md">cross-browser-report.md (5-Why + reproducer)</a></li>
+  <li>Tag: <code>116492319530224001-L4-tps-fix-30of30</code></li>
+</ul>
+</section>
+</main>
+</body>
+</html>

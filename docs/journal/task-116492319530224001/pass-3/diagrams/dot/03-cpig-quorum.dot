@@ -1,0 +1,29 @@
+digraph CPIG_Quorum_Live {
+  rankdir=LR; bgcolor="#0a0e17";
+  node [fontname="Inter" style="filled,rounded" shape=box color="#1e2a3a" fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6" fontcolor="#7a8fa6" fontsize=9];
+
+  subgraph cluster_eu { label="region: eu (mesh-eu-1)"; color="#4d96ff"; fontcolor="#7ab3ff";
+    eu_a [label="attestation\nscore=33\nEd25519 sig" fillcolor="#0f141e"];
+    eu_pub [label="public_hex" fillcolor="#0f141e"];
+  }
+  subgraph cluster_us { label="region: us-west (mesh-us-west-1)"; color="#3dd68c"; fontcolor="#3dd68c";
+    us_a [label="attestation\nscore=33\nEd25519 sig" fillcolor="#0f141e"];
+    us_pub [label="public_hex" fillcolor="#0f141e"];
+  }
+  subgraph cluster_asia { label="region: asia (mesh-asia-1)"; color="#f39c12"; fontcolor="#f39c12";
+    asia_a [label="attestation\nscore=33\nEd25519 sig" fillcolor="#0f141e"];
+    asia_pub [label="public_hex" fillcolor="#0f141e"];
+  }
+
+  zenoh [label="indrajaal/l7/fed/cpig/attest/<region>" fillcolor="#1e2a3a" color="#e74c3c" fontcolor="#e74c3c"];
+  fs [label="data/script-output/cpig-federation/peers/\neu.json   us-west.json   asia.json" fillcolor="#1e2a3a" color="#9b59b6" fontcolor="#c89cf2"];
+  load [label="load_peer_attestations()\n(real I/O — no Stub-That-Lies)\nparse_attestation_json/1\nextract_string + extract_int_string" fillcolor="#141922"];
+  validate [label="validate(att):\n  signature ✓\n  freshness ≤ 1 h ✓" fillcolor="#1e2a3a" color="#9b59b6" fontcolor="#c89cf2"];
+  quorum [label="quorum_2oo3()\nregion-grouped tally" fillcolor="#1e2a3a" color="#9b59b6" fontcolor="#c89cf2"];
+  decision [label="DECISION:\nQUORUM score=33\nregions=us-west,asia,eu" fillcolor="#1e2a3a" color="#3dd68c" fontcolor="#3dd68c"];
+
+  eu_a -> zenoh; us_a -> zenoh; asia_a -> zenoh;
+  eu_a -> fs; us_a -> fs; asia_a -> fs;
+  fs -> load -> validate -> quorum -> decision;
+}

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deck — /planning pass-3 (Fractal TPS)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--border:#1e2a3a;--accent:#00d4aa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Inter,sans-serif;line-height:1.5}
+.deck{display:flex;flex-direction:column;gap:32px;padding:24px;max-width:1100px;margin:0 auto}
+.slide{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px;min-height:520px;display:flex;flex-direction:column;gap:14px}
+.slide h2{margin:0;font-size:1.5rem;color:var(--accent)}.slide h3{margin:0;color:var(--muted);font-weight:500}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.kpi .b{background:#0f141e;border:1px solid var(--border);border-radius:10px;padding:12px}
+.kpi .b b{display:block;font-size:1.4rem}.kpi .b small{color:var(--muted)}
+img{max-width:100%;border:1px solid var(--border);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:0.92rem}
+th,td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:left}
+.foot{color:var(--muted);font-size:0.82rem;margin-top:auto}
+@page{size:landscape}
+</style></head>
+<body>
+<div class="deck">
+
+<div class="slide">
+<h2>1 · /planning pass-3 — Fractal TPS install + fix everything</h2>
+<h3>urn:c3i:task:misc:116492319530224001 · 2026-04-30 · commit dfe8f4c0</h3>
+<p>Operator: <i>"install and fix everything — fractal tps, fractal RCA, muda, jidoka."</i></p>
+<ul>
+  <li>Close 3 environment-blocked items from pass-2</li>
+  <li>Apply Toyota Production System: Jidoka stop-on-defect, Muda waste elimination, fractal-RCA</li>
+  <li>No Stub-That-Lies (ZK[zk-3346fc607a1ef9e6])</li>
+</ul>
+<div class="foot">Live: <a href="http://vm-1.tail55d152.ts.net:4100/planning" style="color:var(--accent)">http://vm-1.tail55d152.ts.net:4100/planning</a></div>
+</div>
+
+<div class="slide">
+<h2>2 · Headline KPIs</h2>
+<div class="kpi">
+  <div class="b"><b>30/30</b><small>cross-browser PASS</small></div>
+  <div class="b"><b>QUORUM</b><small>3-region CPIG</small></div>
+  <div class="b"><b>0</b><small>missing libs</small></div>
+  <div class="b"><b>0</b><small>env-blocked items</small></div>
+  <div class="b"><b>9 349</b><small>gleam tests</small></div>
+  <div class="b"><b>0</b><small>failures</small></div>
+  <div class="b"><b>−75 %</b><small>ΣRPN proj</small></div>
+  <div class="b"><b>95 %</b><small>system CPIG</small></div>
+</div>
+</div>
+
+<div class="slide">
+<h2>3 · Fractal-RCA / Jidoka 5-Why on WebKit</h2>
+<img src="diagrams/png/01-tps-rca.png" alt="TPS RCA">
+</div>
+
+<div class="slide">
+<h2>4 · Closed Nix derivation (eliminates Muda)</h2>
+<img src="diagrams/png/02-nix-closure.png" alt="Nix closure">
+</div>
+
+<div class="slide">
+<h2>5 · Multi-mesh CPIG quorum live</h2>
+<img src="diagrams/png/03-cpig-quorum.png" alt="CPIG quorum">
+</div>
+
+<div class="slide">
+<h2>6 · Per-item resolution</h2>
+<table>
+<tr><th>#</th><th>Item</th><th>Pass-2 close</th><th>Pass-3 close</th></tr>
+<tr><td>1</td><td>Cross-browser Playwright</td><td>15/15 + 10 env-blocked</td><td>30/30 across 5 projects</td></tr>
+<tr><td>2</td><td>Multi-mesh CPIG quorum</td><td>INSUFFICIENT</td><td>QUORUM score=33 regions=us-west,asia,eu</td></tr>
+<tr><td>3</td><td>Server-tick live</td><td>skip-pending-restart</td><td>PASS on all 5 browsers</td></tr>
+</table>
+</div>
+
+<div class="slide">
+<h2>7 · ABI-pinned Nix closure</h2>
+<table>
+<tr><th>ABI need</th><th>Nix package</th><th>Version</th><th>Why pin</th></tr>
+<tr><td>libicudata.so.74</td><td>icu74</td><td>4c-74.2</td><td>nixpkgs default 76 has so.76</td></tr>
+<tr><td>libxml2.so.2</td><td>libxml2_13</td><td>2.13.8</td><td>nixpkgs default 2.15 has so.16</td></tr>
+<tr><td>libjxl.so.0.8</td><td>libjxl @ nixos-23.11</td><td>0.8.2</td><td>nixpkgs default 0.11 has so.0.11</td></tr>
+<tr><td>libevent / libavif / libmanette / libgstcodecparsers</td><td>matches</td><td>—</td><td>nixpkgs current ABI matches</td></tr>
+</table>
+</div>
+
+<div class="slide">
+<h2>8 · Patterns + anti-patterns</h2>
+<h3>Patterns (kept)</h3>
+<ul>
+  <li>ABI-pinned legacy Nix via fetchTarball of older channels</li>
+  <li>Wrapper-aware lib placement (symlink into ${MYDIR}/lib instead of LD_LIBRARY_PATH)</li>
+</ul>
+<h3>Anti-patterns avoided</h3>
+<ul>
+  <li>Yak-shave / piecemeal LD_LIBRARY_PATH (Muda)</li>
+  <li>Stub-That-Lies <code>load_peer_attestations() -&gt; []</code> (corrected with real I/O)</li>
+  <li>Patching upstream Playwright wrapper (denied; chose data-side fix)</li>
+</ul>
+</div>
+
+<div class="slide">
+<h2>9 · Reproducer</h2>
+<pre style="background:#0f141e;border:1px solid var(--border);padding:12px;border-radius:8px;overflow:auto">cd /home/an/dev/ver/c3i/tests/playwright
+npm install
+PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 \
+  ./node_modules/.bin/playwright install chromium firefox webkit
+./setup-webkit-libs.sh                         # idempotent Nix closure
+PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 \
+  ./node_modules/.bin/playwright test --workers=2
+# → 30/30 PASS
+
+cd /home/an/dev/ver/c3i/sub-projects/scripts-gleam
+gleam run -m scripts/verify/cpig_federation -- \
+  --score 33 --mesh-id mesh-eu-1 --region eu --seed 1111…32-byte-hex
+# → QUORUM score=33 regions=us-west,asia,eu</pre>
+</div>
+
+<div class="slide">
+<h2>10 · Closure summary</h2>
+<ul>
+  <li>✓ All 3 env-blocked items resolved with real working code</li>
+  <li>✓ No sudo, no upstream patches, no stubs</li>
+  <li>✓ 30/30 cross-browser, QUORUM live, server-tick verified</li>
+  <li>✓ Tag: <code>116492319530224001-L4-tps-fix-30of30</code></li>
+  <li>Lineage: pass-1 (85e324b8) → pass-2 (ba495457) → pass-2-fu (4f59a96b) → ws-fix (d184ed7e) → <b>pass-3 (dfe8f4c0)</b></li>
+</ul>
+</div>
+
+</div></body></html>
