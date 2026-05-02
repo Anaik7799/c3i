@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deck — Mesh Rebuild + RCA Pass-2</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--border:#1e2a3a;--accent:#00d4aa;--ok:#3dd68c;--warn:#f5a623;--crit:#ff4757}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+.deck{display:flex;flex-direction:column;gap:0}
+.slide{min-height:100vh;padding:48px 64px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;justify-content:center}
+.slide h1{color:var(--accent);font-size:2.4em;margin-bottom:12px;border-bottom:2px solid var(--accent);padding-bottom:8px}
+.slide h2{color:var(--text);font-size:1.4em;margin:16px 0 8px;color:var(--muted)}
+.slide h3{color:var(--accent);font-size:1.1em;margin:12px 0 6px}
+.slide p,.slide li{font-size:1.05em;margin:8px 0}
+.slide ul{padding-left:24px}
+.slide table{width:100%;border-collapse:collapse;margin:16px 0;background:var(--card);border-radius:6px;overflow:hidden;font-size:.95em}
+.slide th,.slide td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.slide th{background:#1e2a3a;color:var(--accent)}
+.num{position:absolute;top:24px;right:32px;color:var(--muted);font-size:.9em}
+.slide{position:relative}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.crit{color:var(--crit)}
+.kpi{font-size:3em;color:var(--accent);font-weight:700}
+.zk{font-family:JetBrains Mono,monospace;color:var(--muted);font-size:.85em;background:#0a0e17;padding:6px 10px;border-left:3px solid var(--accent);margin:6px 0}
+.cover{background:linear-gradient(135deg,#0a0e17,#1e2a3a)}
+.cover h1{font-size:3em;border:none}
+.cover .subtitle{color:var(--muted);font-size:1.3em;margin-top:16px}
+@media(max-width:768px){.slide{padding:24px;min-height:auto}.slide h1{font-size:1.8em}.kpi{font-size:2em}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<section class="slide cover">
+<div class="num">1 / 10</div>
+<h1>Mesh Rebuild + Fractal RCA Pass-2</h1>
+<p class="subtitle">From "are there any lost containers" to 12/16 mesh + functional ignition CLI + full closure</p>
+<p class="subtitle" style="margin-top:24px">2026-05-02 · task <code style="color:var(--accent)">116503330407891617</code> · ~2h30m wall</p>
+<p class="subtitle" style="margin-top:32px;font-size:1em">[zk-69783e4b5df9cc48] [zk-3b32a0637bc76ed6] [zk-c268eeb314fb5f17]</p>
+</section>
+
+<section class="slide">
+<div class="num">2 / 10</div>
+<h1>The Cascade</h1>
+<ul>
+<li>"are there any lost containers" → <strong>162 orphan overlay dirs</strong> [zk-8f102ed7793aba03]</li>
+<li>Aggressive prune (operator authorized) → <strong>585 GB freed</strong> but 277+ images deleted</li>
+<li>Full rebuild needed → discovered <code>ignition build</code> CLI was a stub</li>
+<li>Patched CLI (Rust) → first build OOM'd → patched again to subprocess shellout</li>
+<li>40 GiB swap activated (operator) → fixed Dockerfile (workspace members) → all 9 images built</li>
+<li><code>ignition launch</code> succeeded — but only 12/16 containers stayed Up</li>
+<li>4 Elixir replicas SIGSEGV → fractal RCA Pass-1 → Pass-2 with mechanical evidence</li>
+</ul>
+</section>
+
+<section class="slide">
+<div class="num">3 / 10</div>
+<h1>Pre vs Post</h1>
+<table>
+<tr><th>Gate</th><th>Pre</th><th>Post</th><th>Δ</th></tr>
+<tr><td>Storage used</td><td>345 GB</td><td>~50 GB</td><td class="ok">−295 GB</td></tr>
+<tr><td>Distinct images</td><td>307</td><td>14</td><td class="ok">−293</td></tr>
+<tr><td>Orphan overlays</td><td>180</td><td>4</td><td class="ok">−176</td></tr>
+<tr><td>Genome containers Up</td><td>1</td><td>12 / 16</td><td class="ok">+11</td></tr>
+<tr><td>Swap</td><td>8 GiB</td><td>40 GiB</td><td class="ok">+32 GiB</td></tr>
+<tr><td><code>ignition build</code></td><td>stub</td><td>functional</td><td class="ok">shipped</td></tr>
+<tr><td>Elixir SIGSEGV</td><td>yes</td><td>RCA done, fix deferred</td><td class="warn">unchanged</td></tr>
+</table>
+</section>
+
+<section class="slide">
+<div class="num">4 / 10</div>
+<h1>What we built</h1>
+<h3>L1 — CLI patch (Rust, ~90 LOC)</h3>
+<p><code>cmd_build</code> walks <code>sil6_genome_entries()</code>, dispatches by <code>ImageCategory</code>, supports <code>--container</code> and <code>--force</code>. Two iterations: REST API (OOM'd) → subprocess <code>nice -n 15 podman build</code> (works).</p>
+<h3>L1 — Dockerfile patch (2 lines)</h3>
+<p>Added <code>COPY indrajaal_ark/</code> and <code>COPY mcp/</code> — workspace had 10 declared members, original Dockerfile only covered 8. Same anti-pattern family as [zk-c14e1d23afff486c] implicit-invariant.</p>
+<h3>L4 — System ops</h3>
+<p>40 GiB swap, networks recreated, systemd squatter unit disabled, port 7447 race won by genome <code>zenoh-router</code>.</p>
+</section>
+
+<section class="slide">
+<div class="num">5 / 10</div>
+<h1>Fractal RCA Pass-2: Pass-1 corrections</h1>
+<p>Mechanical evidence corrects 3 Pass-1 errors (Stub-That-Lies guard [zk-3346fc607a1ef9e6]):</p>
+<table>
+<tr><th>Pass-1 claim</th><th>Mechanical truth</th></tr>
+<tr><td>zenoh-rs 1.9</td><td>actually <strong>1.7</strong> per <code>Cargo.toml</code></td></tr>
+<tr><td>Crash inside NIF body</td><td>NIF body returns in &lt;1ms; crash is in spawned Tokio task</td></tr>
+<tr><td>Cross-thread Erlang env via callback PID</td><td><code>_callback_pid</code> is <strong>unused</strong>; messages queue to crossbeam channel</td></tr>
+</table>
+<p style="margin-top:16px"><strong>New top hypothesis:</strong> <code>session.declare_subscriber().await</code> dereferences zombie <code>Arc&lt;Session&gt;</code> created when no peer reachable.</p>
+</section>
+
+<section class="slide">
+<div class="num">6 / 10</div>
+<h1>5-Why (refined)</h1>
+<ol>
+<li>ex-app-1 SIGSEGV exit 139 — <span class="ok">verified inspect</span></li>
+<li>BEAM dies right after <code>DatabaseProxy Initializing</code> log — <span class="ok">log evidence</span></li>
+<li>NIF subscribe returns fast, just <code>runtime.spawn</code> — <span class="ok">source proof</span></li>
+<li>Crash is in spawned async <code>session.declare_subscriber().await</code> — <span class="ok">only async path</span></li>
+<li><code>Arc&lt;Session&gt;</code> may be zombie (zenoh-router was port-blocked at session-create) — <span class="warn">EXP-A will falsify</span></li>
+</ol>
+<p>SIGSEGV (sig 11) ≠ Rust panic (would be SIGABRT 6) → C-level deref, not unwind.</p>
+</section>
+
+<section class="slide">
+<div class="num">7 / 10</div>
+<h1>Anti-pattern audit (10 items)</h1>
+<table>
+<tr><th>State</th><th>Items</th></tr>
+<tr><td class="ok">AVOIDED (4)</td><td>Stub-That-Lies, Selector-guessing, Inline-blocking, Cross-thread Erlang env</td></tr>
+<tr><td class="crit">PRESENT (5)</td><td>Exit-code = success · No load-time NIF smoke · Workspace ↔ Dockerfile drift · Common-mode failure · No circuit breaker</td></tr>
+<tr><td class="warn">MAYBE (1)</td><td>Race on launch ordering (EXP-A will resolve)</td></tr>
+</table>
+<p style="margin-top:16px">Score: 5/10 PRESENT → mitigation surface is large. Each maps to a proposed SC-* family.</p>
+</section>
+
+<section class="slide">
+<div class="num">8 / 10</div>
+<h1>Three falsifiable next-pass experiments</h1>
+<table>
+<tr><th>#</th><th>Experiment</th><th>Cost</th></tr>
+<tr><td><strong>EXP-A</strong></td><td>Stagger replica start by 30s after router gossip stabilizes</td><td class="ok">~2 min, no rebuild</td></tr>
+<tr><td>EXP-B</td><td>Probe zenoh-rs version inside <code>eclipse/zenoh:latest</code>; repin if drift</td><td class="warn">~30 min + rebuild</td></tr>
+<tr><td>EXP-C</td><td>Add NIF load-time smoke <code>RUN iex --eval ':code.ensure_loaded(...)'</code></td><td class="warn">~5 min + rebuild</td></tr>
+</table>
+<p style="margin-top:16px">Recommended order: <strong>A → B → C</strong>. EXP-A predicted outcome bifurcates the next investigation cleanly.</p>
+</section>
+
+<section class="slide">
+<div class="num">9 / 10</div>
+<h1>Proposed new STAMP families</h1>
+<h3>SC-NIF-LOAD-001..008</h3>
+<ul>
+<li>Every NIF MUST have <code>:code.ensure_loaded</code> smoke step in consuming Dockerfile</li>
+<li>Async-I/O NIFs MUST gate readiness behind sync probe NIF</li>
+<li>Replica startup staggered ≥5s for Andon between common-mode failures</li>
+</ul>
+<h3>SC-WIRE-CARGO-DOCKERFILE-001</h3>
+<p>Wiring guard: workspace <code>members = [...]</code> ↔ Dockerfile <code>COPY ...</code> parity check at build time. Mirrors Gleam's <code>wiring_guard.gleam</code> for Model fields.</p>
+<h3>SC-IGNITE-LAUNCH-READINESS-001</h3>
+<p>Wave verification beyond image digest: TCP + HTTP health probe before "Tier healthy".</p>
+</section>
+
+<section class="slide">
+<div class="num">10 / 10</div>
+<h1>Conclusion + Closure</h1>
+<p><strong>Infrastructure ready</strong> — mesh genome rebuilt from 0 to 9 images, ignition CLI now operator-complete, swap 40 GiB, port conflicts resolved, 12/16 containers Up.</p>
+<p><strong>Bug bounded</strong> — Elixir SIGSEGV localized to <code>session.declare_subscriber().await</code> in <code>zenoh_nif</code>, with three falsifiable experiments queued.</p>
+<p><strong>Governance gaps surfaced</strong> — three new SC-* families proposed.</p>
+<p><strong>Closure pack:</strong></p>
+<ul>
+<li>📓 journal.md (13-section RCA)</li>
+<li>📊 analysis.html (operator handoff index)</li>
+<li>🎯 deck.html (this slide deck)</li>
+<li>🔗 links.json (machine manifest)</li>
+<li>📧 email to Abhijit.Naik@bountytek.com with all attachments</li>
+<li>🧠 ZK ingest after delivery</li>
+</ul>
+<p class="zk" style="margin-top:24px">ZK: 14 holons cited · CPIG aligned · SC-NOTIFY-JOURNAL-001 satisfied</p>
+</section>
+
+</div>
+</body>
+</html>

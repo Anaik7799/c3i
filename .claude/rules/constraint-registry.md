@@ -2,6 +2,25 @@
 All SC-*/AOR-* constraint families. CLAUDE.md + .claude/rules/ is the authoritative superset.
 Individual constraint details live in code; this registry tracks families and ranges.
 
+## Delta (2026-05-02 — NIF/FFI panic guard parity)
+| Family | IDs | # | Description |
+|---|---|---|---|
+| SC-NIF-LOAD | 006-010 | 5 | NIF/FFI panic guard mandate — every NIF or `extern "C" fn` in a crate that pulls `zenoh + tokio` MUST wrap entry-point bodies in `catch_unwind(AssertUnwindSafe(...))` to convert latent zenoh-rs/tokio panics from BEAM SIGSEGV (signal 11) into recoverable `{:error, "<nif> panic: <msg>"}` terms. Single source of truth in `lib.rs` per crate (no inline duplicates). Pure-CPU NIFs (no tokio/zenoh/reqwest/hyper) are exempt. Reference impls: `zenoh_ffi/src/lib.rs:438` (`ffi_guard!` macro, prior art since SC-ZENOH-FFI-001) and `zenoh_nif/src/lib.rs:51` (`ffi_guard_term`/`ffi_guard_atom` helpers, Pass-4 2026-05-02). See `.claude/rules/nif-ffi-panic-guard.md`. Live-verified: BEAM exit 0 (was 139) with `publish` NIF executed. Tracked by task `urn:c3i:task:misc:116503330407891617`. |
+| AOR-NIF-LOAD | 001-005 | 5 | NEVER add new `#[rustler::nif]` to zenoh_nif without ffi_guard_*; NEVER add `extern "C" fn` to zenoh_ffi without ffi_guard! macro; NEVER let panic="unwind" silently bypass guard; ALWAYS test new guarded NIFs with live BEAM probe (image rebuild + podman run + capture exit code); NEVER introduce DISABLE_*_NIF env-var bypasses (operator mandate is NIF-always-on). |
+
+## Delta (2026-05-01c — FP-Rust 12-library mandate)
+| Family | IDs | # | Description |
+|---|---|---|---|
+| SC-FP-RUST | 001-020 | 20 | Functional Programming Rust mandate — 12-library curated stack (frunk, rpds+archery, winnow, tower, derive_more, nutype, recursion, proptest, kani-verifier, itertools, rayon, either) replacing dead fp-core.rs. 12 atomic KPIs (FP-1..FP-12) + 4 composites (FP_TOTAL ≥ 0.80, FP_VAULT ≥ 0.90, FP_HOTPATH ≥ 0.75, FP_DRIFT λ ≥ 0). 5-pass adoption sequence with go/no-go gates. Vault attack-surface budget: derive_more + nutype + proptest + kani only. RETE-UL Domain 14 fp_discipline (6 rules salience 70-100). CPIG subsystem #13 fp_discipline. See `.claude/rules/functional-programming-rust.md`. Tracked by task `urn:c3i:task:misc:116499874901057156`. |
+| AOR-FP-RUST | 001-015 | 15 | NEVER add fp-core/lens-rs/effing-mad/eff/stm (dead crates); NEVER use Box<dyn Trait> where enum_dispatch fits; NEVER author optics/effects/STM/free-monad libs; ALWAYS adopt nutype on vault FIRST; ALWAYS run criterion bench before rpds on hot path; ALWAYS test refinement validators with proptest both ways; ALWAYS update pi_claude_code.gleam federation count; ALWAYS run cargo-tree tongsuo grep after every dep change; ALWAYS write closure pack per pass. |
+
+## Delta (2026-05-01b — IAM as NIF + GCP IAM federation)
+| Family | IDs | # | Description |
+|---|---|---|---|
+| SC-FERRISKEY-NIF | 001-010 | 10 | FerrisKey IAM embedded as NIF inside cepaf_gleam (`lib/cepaf_gleam/native/ferriskey_nif/`). NIF cdylib loads on BEAM start, single OnceCell<tokio::Runtime>, DirtyCpu/DirtyIo per workload, JWKS cache TTL ≤ 5 min, JWT validate p99 ≤ 2 ms, audit span per write op, SQLite WAL + 30 s busy_timeout, signing-key rotation ≤ 90 d with 7-d overlap, panic isolation, vault-backed signing keys (no plaintext outside SQLite). See `.claude/rules/iam-ferriskey-nif.md`. Plan `/home/an/.claude/plans/integrate-iam-feeriskey-golden-pebble.md`. |
+| SC-GCP-IAM | 001-020 | 20 | Full Google Cloud IAM federation: Workload Identity Federation as OIDC trustor (issuer = Wisp `/.well-known/openid-configuration`), RFC 8693 STS exchange, service-account impersonation (no SA keys on disk — vault-backed), Cloud Identity SCIM 2.0 inbound + outbound (Admin SDK + Cloud Identity Groups), IAM Recommender, Policy Troubleshooter, Policy Analyzer, Organization Policy, allow-policy etag-locked + 2oo3 Guardian-gated, deny-policy emergency-stop p99 ≤ 5 s, basic-role ban, region-pinned `europe-north1` (GDPR EU residency), CMEK keyring distinct from FerrisKey signing-key vault, VPC Service Controls perimeter for `*.googleapis.com` egress. Vendored upstream at `sub-projects/ferriskey-vendored/` (Apache-2.0, sha 2317b30c). |
+| AOR-IAM-NIF | 001-008 | 8 | NEVER call FerrisKey out-of-process for hot-path; ALWAYS read GCP SA keys via vault_bridge.get; ALWAYS audit::emit before returning from a write NIF; ALWAYS pin `europe-north1`; NEVER add basic GCP IAM roles in TF; ALWAYS update wiring_guard + ferriskey_nif_wiring_test in same commit; ALWAYS gate destructive SCIM + setIamPolicy via 2oo3 Guardian; ALWAYS use etag for iam_policy_set. |
+
 ## Delta (2026-04-21)
 | Family | IDs | # | Description |
 |---|---|---|---|
@@ -22,10 +41,18 @@ Individual constraint details live in code; this registry tracks families and ra
 |---|---|---|---|
 | SC-PD-RUST-ONLY | 001-010 | 10 | Planning-daemon test surface 100 % Rust mandate — no Python/JS/sh/Ruby/Perl under `native/planning_daemon/` (whisper.cpp vendored exception); fixture regen via `tests/fixture_regen.rs`. See `.claude/rules/planning-daemon-rust-only-tests.md` |
 
+## Delta (2026-05-01)
+| Family | IDs | # | Description |
+|---|---|---|---|
+| SC-PAGE-SPEC | 001-008 | 8 | Per-page spec conformance checker — every page MUST expose `/api/v1/page-spec/{name}`; alignment ≥ 95% ALIGNED, ≥ 70% DRIFT, < 70% MISALIGNED triggers P1; anti-pattern guard against [zk-3346fc607a1ef9e6] "Stub That Lies"; 31/31 pages covered via dynamic dispatch (6 explicit + 25 baseline). Live at `http://vm-1.tail55d152.ts.net:4100/api/v1/page-spec/all` |
+
 ## Delta (2026-04-30)
 | Family | IDs | # | Description |
 |---|---|---|---|
 | SC-PLANNING-EVO | 001-010 | 10 | `/planning` page evolution closure pattern — every PR touching `planning-grid.js`, `ui/wisp/router.gleam` planning routes, `rules/engine.gleam` UI domain, or `web/domain_views.gleam` MUST run the full pack (build/test/page-spec/value-guard/Playwright/Allium/diagrams/journal/HTML/deck/test-plan/governance/email/CPIG bump). See `.claude/rules/planning-page-evolution.md`. Closed by task `urn:c3i:task:misc:116492319530224001`. |
+| SC-VAULT | 001-025 | 25 | Secrets vault: RustyVault NIF inside `lib/cepaf_gleam/`, sealed-at-boot, KEK chain (TPM/passphrase/Cloud KMS), variable per-secret TTL, fail-closed at MaxTTL, GCP Secret Manager + Cloud KMS as cloud root, 1-week offline tolerance. See `.claude/rules/secrets-vault.md`. Tracked by task `urn:c3i:task:misc:116494073339521648`. |
+| SC-VAULT-CRYPTO | 001 | 1 | Tongsuo absence gate — `cargo tree | grep -iE 'tongsuo|sm[234]'` MUST be empty in vault-adjacent crates. Build-blocking. See `.claude/rules/secrets-vault.md`. |
+| AOR-VAULT | 001-015 | 15 | Operator action rules for vault: never add `[patch.crates-io]` redirecting openssl, never call `db::get_preference("secrets",_)` after Slice E, never write secret values to JSON/TOML/YAML, etc. |
 # P0-SAFETY (CRITICAL)
 | Family | IDs | # | Description |
 |--------|-----|---|-------------|

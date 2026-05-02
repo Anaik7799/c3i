@@ -1,6 +1,12 @@
 # Constraint Registry (Reconciled 2026-03-22, PARITY ACHIEVED)
-All SC-*/AOR-* constraint families. GEMINI.md + .gemini/rules/ is the authoritative superset (mirror parity per SC-SYNC-DOC-007).
+All SC-*/AOR-* constraint families. GEMINI.md + .claude/rules/ is the authoritative superset.
 Individual constraint details live in code; this registry tracks families and ranges.
+
+## Delta (2026-05-02 — NIF/FFI panic guard parity)
+| Family | IDs | # | Description |
+|---|---|---|---|
+| SC-NIF-LOAD | 006-010 | 5 | NIF/FFI panic guard mandate — every NIF or `extern "C" fn` in a crate that pulls `zenoh + tokio` MUST wrap entry-point bodies in `catch_unwind(AssertUnwindSafe(...))` to convert latent zenoh-rs/tokio panics from BEAM SIGSEGV (signal 11) into recoverable `{:error, "<nif> panic: <msg>"}` terms. See `.gemini/rules/nif-ffi-panic-guard.md`. Live-verified Pass-4 2026-05-02. Tracked by task `urn:c3i:task:misc:116503330407891617`. |
+| AOR-NIF-LOAD | 001-005 | 5 | NEVER add new `#[rustler::nif]` to zenoh_nif without ffi_guard_*; NEVER add `extern "C" fn` to zenoh_ffi without ffi_guard! macro; NEVER let panic="unwind" silently bypass guard; ALWAYS test new guarded NIFs with live BEAM probe; NEVER introduce DISABLE_*_NIF env-var bypasses. |
 
 ## Delta (2026-04-21)
 | Family | IDs | # | Description |
@@ -22,10 +28,18 @@ Individual constraint details live in code; this registry tracks families and ra
 |---|---|---|---|
 | SC-PD-RUST-ONLY | 001-010 | 10 | Planning-daemon test surface 100 % Rust mandate — no Python/JS/sh/Ruby/Perl under `native/planning_daemon/` (whisper.cpp vendored exception); fixture regen via `tests/fixture_regen.rs`. See `.claude/rules/planning-daemon-rust-only-tests.md` |
 
+## Delta (2026-05-01)
+| Family | IDs | # | Description |
+|---|---|---|---|
+| SC-PAGE-SPEC | 001-008 | 8 | Per-page spec conformance checker — every page MUST expose `/api/v1/page-spec/{name}`; alignment ≥ 95% ALIGNED, ≥ 70% DRIFT, < 70% MISALIGNED triggers P1; anti-pattern guard against [zk-3346fc607a1ef9e6] "Stub That Lies"; 31/31 pages covered via dynamic dispatch (6 explicit + 25 baseline). Live at `http://vm-1.tail55d152.ts.net:4100/api/v1/page-spec/all` |
+
 ## Delta (2026-04-30)
 | Family | IDs | # | Description |
 |---|---|---|---|
 | SC-PLANNING-EVO | 001-010 | 10 | `/planning` page evolution closure pattern — every PR touching `planning-grid.js`, `ui/wisp/router.gleam` planning routes, `rules/engine.gleam` UI domain, or `web/domain_views.gleam` MUST run the full pack (build/test/page-spec/value-guard/Playwright/Allium/diagrams/journal/HTML/deck/test-plan/governance/email/CPIG bump). See `.claude/rules/planning-page-evolution.md`. Closed by task `urn:c3i:task:misc:116492319530224001`. |
+| SC-VAULT | 001-025 | 25 | Secrets vault: RustyVault NIF inside `lib/cepaf_gleam/`, sealed-at-boot, KEK chain (TPM/passphrase/Cloud KMS), variable per-secret TTL, fail-closed at MaxTTL, GCP Secret Manager + Cloud KMS as cloud root, 1-week offline tolerance. See `.claude/rules/secrets-vault.md`. Tracked by task `urn:c3i:task:misc:116494073339521648`. |
+| SC-VAULT-CRYPTO | 001 | 1 | Tongsuo absence gate — `cargo tree | grep -iE 'tongsuo|sm[234]'` MUST be empty in vault-adjacent crates. Build-blocking. See `.claude/rules/secrets-vault.md`. |
+| AOR-VAULT | 001-015 | 15 | Operator action rules for vault: never add `[patch.crates-io]` redirecting openssl, never call `db::get_preference("secrets",_)` after Slice E, never write secret values to JSON/TOML/YAML, etc. |
 # P0-SAFETY (CRITICAL)
 | Family | IDs | # | Description |
 |--------|-----|---|-------------|

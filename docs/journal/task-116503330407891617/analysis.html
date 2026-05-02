@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Operator Handoff — Mesh Rebuild + RCA Pass-2 (task-116503330407891617)</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--border:#1e2a3a;--accent:#00d4aa;--ok:#3dd68c;--warn:#f5a623;--crit:#ff4757;--p0:#ff4757;--p1:#ffa502}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:24px;line-height:1.5}
+h1,h2,h3{color:var(--accent);margin-top:1.5em}
+h1{font-size:1.8em;border-bottom:2px solid var(--accent);padding-bottom:8px}
+.meta{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 16px;margin:16px 0}
+.meta code{background:#0a0e17;padding:2px 6px;border-radius:3px;font-size:.9em;color:var(--accent)}
+table{width:100%;border-collapse:collapse;margin:12px 0;background:var(--card);border-radius:6px;overflow:hidden}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);font-size:.9em}
+th{background:#1e2a3a;color:var(--accent);font-weight:600}
+tr:last-child td{border-bottom:none}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.crit{color:var(--crit);font-weight:600}
+.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:16px 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px}
+.card h3{margin-top:0;font-size:1.1em}
+.kpi{font-size:2em;font-weight:700;color:var(--accent);display:block;margin:4px 0}
+.kpi-label{color:var(--muted);font-size:.85em;text-transform:uppercase;letter-spacing:.5px}
+.weather{padding:14px 18px;border-radius:8px;margin:16px 0;font-weight:600;display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#1e2a3a,#141922);border-left:4px solid var(--warn)}
+.zk{background:#0a0e17;border-left:3px solid var(--accent);padding:8px 12px;margin:8px 0;font-family:JetBrains Mono,monospace;font-size:.85em;color:var(--muted)}
+.zk b{color:var(--accent)}
+ul{padding-left:20px}li{margin:4px 0}
+.links a{color:var(--accent);text-decoration:none;display:block;padding:6px 0;border-bottom:1px dotted var(--border)}
+.links a:hover{background:#1e2a3a;padding-left:8px}
+@media(max-width:768px){.grid{grid-template-columns:1fr}body{padding:12px}}
+</style>
+</head>
+<body>
+<h1>Mesh Rebuild + Fractal RCA Pass-2 — Operator Handoff</h1>
+
+<div class="meta">
+  <div><b>Task:</b> <code>urn:c3i:task:misc:116503330407891617</code></div>
+  <div><b>Date:</b> 2026-05-02 · <b>Operator:</b> abhi · <b>Wall time:</b> ~2h30m</div>
+  <div><b>Tailscale URLs:</b>
+    <a href="https://vm-1.tail55d152.ts.net:4200/task-id/116503330407891617/">handoff index</a> ·
+    <a href="https://vm-1.tail55d152.ts.net:4200/task-id/116503330407891617/journal.md">journal</a> ·
+    <a href="https://vm-1.tail55d152.ts.net:4200/task-id/116503330407891617/deck.html">slides</a>
+  </div>
+</div>
+
+<div class="weather">
+  ⚠️ <b>Mesh degraded:</b> 12 of 16 containers Up · 4 Elixir replicas SIGSEGV (RCA Pass-2 complete, fix deferred)
+</div>
+
+<h2>Headline KPIs</h2>
+<div class="grid">
+  <div class="card"><span class="kpi-label">Storage reclaimed</span><span class="kpi">585 GB</span><span class="muted">Orphan overlay-container cleanup (180 → 4)</span></div>
+  <div class="card"><span class="kpi-label">Images rebuilt</span><span class="kpi">9 / 9</span><span class="muted">All distinct genome images present</span></div>
+  <div class="card"><span class="kpi-label">Mesh containers Up</span><span class="kpi">12 / 16</span><span class="muted">4 Elixir replicas crash at NIF subscribe</span></div>
+  <div class="card"><span class="kpi-label">Swap</span><span class="kpi">40 GiB</span><span class="muted">Resized from 8 GiB; 19 GiB free RAM</span></div>
+  <div class="card"><span class="kpi-label">CLI patches shipped</span><span class="kpi">2</span><span class="muted">cmd_build wired + subprocess shellout</span></div>
+  <div class="card"><span class="kpi-label">RCA passes</span><span class="kpi">2</span><span class="muted">Pass-1 speculative · Pass-2 evidence-grounded</span></div>
+</div>
+
+<h2>Verification Matrix (pre → post)</h2>
+<table>
+<tr><th>Gate</th><th>Pre</th><th>Post</th><th>Δ</th></tr>
+<tr><td>Container storage</td><td>345 GB</td><td>~50 GB</td><td class="ok">−295 GB</td></tr>
+<tr><td>Distinct images</td><td>307</td><td>14</td><td class="ok">−293</td></tr>
+<tr><td>Orphan overlay dirs</td><td>180</td><td>4</td><td class="ok">−176</td></tr>
+<tr><td>Genome containers Up</td><td>1</td><td>12</td><td class="ok">+11</td></tr>
+<tr><td>Swap</td><td>8 GiB</td><td>40 GiB</td><td class="ok">+32 GiB</td></tr>
+<tr><td><code>ignition build</code> CLI</td><td>stub</td><td>functional</td><td class="ok">shipped</td></tr>
+<tr><td>Dockerfile.sopv51-app</td><td>missing 2 COPY</td><td>covers 10/10 members</td><td class="ok">shipped</td></tr>
+<tr><td>Elixir SIGSEGV</td><td>yes (pre-existing)</td><td>yes (RCA done, fix deferred)</td><td class="warn">unchanged</td></tr>
+<tr><td>Closure pack</td><td>—</td><td>journal+HTML+deck+email</td><td class="ok">shipped</td></tr>
+</table>
+
+<h2>Files modified</h2>
+<table>
+<tr><th>Path</th><th>Δ</th></tr>
+<tr><td><code>sub-projects/c3i/native/ignition_daemon/src/main.rs</code></td><td><code>cmd_build</code> stub → 90-LOC genome walker w/ subprocess <code>podman build</code></td></tr>
+<tr><td><code>sub-projects/c3i/Dockerfile.sopv51-app</code></td><td>+2 COPY lines (<code>indrajaal_ark/</code>, <code>mcp/</code>)</td></tr>
+<tr><td><code>sub-projects/c3i/target/release/ignition</code></td><td>recompiled twice</td></tr>
+<tr><td><code>/swap.img</code></td><td>8 GiB → 40 GiB (operator sudo)</td></tr>
+<tr><td><code>~/.config/systemd/user/.../c3i-zenoh-router.service</code></td><td>disabled</td></tr>
+<tr><td><code>docs/journal/task-116503330407891617/*</code></td><td>NEW closure pack</td></tr>
+</table>
+
+<h2>Anti-pattern audit (10 items)</h2>
+<table>
+<tr><th>#</th><th>Anti-pattern</th><th>State</th></tr>
+<tr><td>1</td><td>Stub-That-Lies <a href="#" class="muted">[zk-3346fc607a1ef9e6]</a></td><td class="ok">AVOIDED — Pass-2 mechanical evidence</td></tr>
+<tr><td>2</td><td>Selector-guessing <a href="#" class="muted">[zk-bb4de67d97f807ac]</a></td><td class="ok">AVOIDED — read source</td></tr>
+<tr><td>3</td><td>Exit-code = success <a href="#" class="muted">[zk-0747977e6188617f]</a></td><td class="crit">PRESENT — mix compile green ≠ NIF safe</td></tr>
+<tr><td>4</td><td>No load-time NIF smoke test</td><td class="crit">PRESENT</td></tr>
+<tr><td>5</td><td>Inline blocking <a href="#" class="muted">[zk-c14e1d23afff486c]</a></td><td class="ok">AVOIDED — NIF spawns and returns</td></tr>
+<tr><td>6</td><td>Cross-thread Erlang env</td><td class="ok">AVOIDED — channel-based polling</td></tr>
+<tr><td>7</td><td>Implicit invariant between two lists</td><td class="warn">POSSIBLE — zenoh-rs version pin vs router</td></tr>
+<tr><td>8</td><td>Common-mode failure</td><td class="crit">PRESENT — 4/4 replicas crash identically</td></tr>
+<tr><td>9</td><td>Race on launch ordering</td><td class="warn">MAYBE — EXP-A will falsify</td></tr>
+<tr><td>10</td><td>No circuit breaker around first NIF call</td><td class="crit">PRESENT</td></tr>
+</table>
+
+<h2>Three falsifiable experiments (next pass)</h2>
+<table>
+<tr><th>#</th><th>Experiment</th><th>If hypothesis true</th><th>If false</th></tr>
+<tr><td>EXP-A</td><td>Stagger replica start by 30 s after router gossip</td><td>Container stays Up — race confirmed</td><td>Crash same way → not race</td></tr>
+<tr><td>EXP-B</td><td><code>grep zenoh /workspace/Cargo.toml</code> in <code>eclipse/zenoh:latest</code>; repin if drift</td><td>Crash gone after rebuild</td><td>Not version</td></tr>
+<tr><td>EXP-C</td><td>Add NIF load-time smoke <code>RUN iex --eval ':code.ensure_loaded(...)'</code> to Dockerfile</td><td>Smoke passes → crash at subscribe</td><td>Smoke fails → ABI/glibc</td></tr>
+</table>
+<p class="muted">EXP-A is cheapest (no rebuild). Recommended order: A → B → C.</p>
+
+<h2>ZK lineage cited</h2>
+<div class="zk"><b>[zk-8f102ed7793aba03]</b> orphan-overlay incident (515 GB precedent)</div>
+<div class="zk"><b>[zk-c14e1d23afff486c]</b> inline-blocking + implicit-invariant anti-pattern family</div>
+<div class="zk"><b>[zk-bb4de67d97f807ac]</b> selector-guessing — verify don't guess</div>
+<div class="zk"><b>[zk-3346fc607a1ef9e6]</b> Stub-That-Lies — mechanical evidence required</div>
+<div class="zk"><b>[zk-64869517268fbd88]</b> L1 NIF crash → BEAM exit cascade</div>
+<div class="zk"><b>[zk-ce2f25a1acfaf609]</b> 8×7 fractal layer × SDLC matrix</div>
+<div class="zk"><b>[zk-7e99dea1193a7d78]</b> 5-Level Fractal RCA template</div>
+<div class="zk"><b>[zk-bbe1f69637632215]</b> 8-Level fractal RCA template</div>
+<div class="zk"><b>[zk-43c99d0fa61a4254]</b> 10-item anti-pattern checklist</div>
+<div class="zk"><b>[zk-69783e4b5df9cc48]</b> closure-pack pattern: journal + HTML + slides + email + ZK</div>
+<div class="zk"><b>[zk-0747977e6188617f]</b> exit-code ≠ success</div>
+<div class="zk"><b>[zk-90eeda9991729f57]</b> non-overlapping parallel agent dispatch</div>
+<div class="zk"><b>[zk-3b32a0637bc76ed6]</b> session continuation directive pattern</div>
+<div class="zk"><b>[zk-c268eeb314fb5f17]</b> ZK lineage cited across session</div>
+
+<h2>Companion artifacts</h2>
+<div class="links">
+  <a href="journal.md">📓 journal.md (13-section RCA narrative)</a>
+  <a href="deck.html">🎯 deck.html (slide deck)</a>
+  <a href="links.json">🔗 links.json (machine-readable manifest)</a>
+</div>
+
+<p class="muted" style="margin-top:32px;border-top:1px solid var(--border);padding-top:12px">
+Generated 2026-05-02 · sa-plan task <code>urn:c3i:task:misc:116503330407891617</code> · ZK ingestion next
+</p>
+</body>
+</html>

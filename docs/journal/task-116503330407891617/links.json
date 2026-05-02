@@ -1,0 +1,65 @@
+{
+  "task_urn": "urn:c3i:task:misc:116503330407891617",
+  "task_id": "116503330407891617",
+  "title": "Mesh Rebuild + Fractal RCA Pass-2",
+  "date": "2026-05-02",
+  "operator": "abhi",
+  "tailscale_base": "https://vm-1.tail55d152.ts.net:4200/task-id/116503330407891617/",
+  "artifacts": {
+    "journal_md": "https://vm-1.tail55d152.ts.net:4200/task-id/116503330407891617/journal.md",
+    "analysis_html": "https://vm-1.tail55d152.ts.net:4200/task-id/116503330407891617/analysis.html",
+    "deck_html": "https://vm-1.tail55d152.ts.net:4200/task-id/116503330407891617/deck.html",
+    "links_json": "https://vm-1.tail55d152.ts.net:4200/task-id/116503330407891617/links.json"
+  },
+  "files_modified": [
+    "sub-projects/c3i/native/ignition_daemon/src/main.rs",
+    "sub-projects/c3i/Dockerfile.sopv51-app",
+    "sub-projects/c3i/target/release/ignition (recompiled)",
+    "/swap.img (8GiB -> 40GiB)",
+    "~/.config/systemd/user/default.target.wants/c3i-zenoh-router.service (disabled)"
+  ],
+  "kpis": {
+    "wall_time_minutes": 150,
+    "storage_reclaimed_gb": 585,
+    "images_built": 7,
+    "images_pulled": 1,
+    "images_tagged": 6,
+    "rust_loc_added": 90,
+    "dockerfile_lines_added": 2,
+    "ignition_recompiles": 2,
+    "containers_up_post_launch": 12,
+    "containers_genome_total": 16,
+    "rca_passes": 2,
+    "anti_patterns_audited": 10,
+    "anti_patterns_present": 5,
+    "anti_patterns_avoided": 4,
+    "fmea_rpn_total_pass2": 1252,
+    "zk_holons_cited": 14
+  },
+  "zk_lineage": [
+    "zk-8f102ed7793aba03",
+    "zk-c14e1d23afff486c",
+    "zk-bb4de67d97f807ac",
+    "zk-3346fc607a1ef9e6",
+    "zk-64869517268fbd88",
+    "zk-ce2f25a1acfaf609",
+    "zk-7e99dea1193a7d78",
+    "zk-bbe1f69637632215",
+    "zk-43c99d0fa61a4254",
+    "zk-69783e4b5df9cc48",
+    "zk-0747977e6188617f",
+    "zk-90eeda9991729f57",
+    "zk-3b32a0637bc76ed6",
+    "zk-c268eeb314fb5f17"
+  ],
+  "next_pass_experiments": [
+    {"id": "EXP-A", "description": "Stagger replica start by 30s after router gossip stabilizes", "cost_minutes": 2, "rebuild_required": false},
+    {"id": "EXP-B", "description": "Probe zenoh-rs version inside eclipse/zenoh:latest; repin if drift", "cost_minutes": 30, "rebuild_required": true},
+    {"id": "EXP-C", "description": "Add NIF load-time smoke test to Dockerfile.sopv51-app", "cost_minutes": 5, "rebuild_required": true}
+  ],
+  "proposed_stamp_families": [
+    "SC-NIF-LOAD-001..008 (NIF load-time gates)",
+    "SC-WIRE-CARGO-DOCKERFILE-001 (workspace<->COPY parity)",
+    "SC-IGNITE-LAUNCH-READINESS-001 (health probes in launch waves)"
+  ]
+}
