@@ -312,6 +312,12 @@
           "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case $f in *.rs|*/Cargo.toml|Cargo.toml) echo '{\"systemMessage\":\"SC-FP-RUST-001..020 active: generated/modified Rust must use fp-core (`fp-core = 0.1.9`) where applicable, target >=95% functional style, isolate IO/FFI, and avoid new unwrap/expect/panic paths.\"}' ;; esac; }",
           "timeout": 10,
           "statusMessage": "fp-core Rust universal guard"
+        },
+        {
+          "type": "command",
+          "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case \"$f\" in */.claude/rules/*|*/.gemini/rules/*|*/.agents/rules/*|*/.claude/skills/*|*/.gemini/skills/*|*/.agents/skills/*|*/.claude/agents/*|*/.gemini/agents/*|*/.agents/agents/*|*/settings.json|*/settings.local.json|*/docs/webhooks/*) echo '{\"systemMessage\":\"Full symbiosis parity gate: mirror rules, skills, agents, hooks, webhooks, task state, and evidence across Claude/Gemini/.agents/Codex/Pi/C3I; enforce Effect TS, fp-core Rust, Safe Rust, and Gleam/Rust-only automation.\"}' ;; esac; }",
+          "timeout": 10,
+          "statusMessage": "Full symbiosis parity guard"
         }
       ]
     }
@@ -397,6 +403,12 @@
           "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case $f in *.rs|*/Cargo.toml|Cargo.toml) echo '{\"systemMessage\":\"fp-core Rust check: enforce SC-FP-RUST-001..020, use fp_core traits/modules where applicable, keep errors in Result/Option, use folds/iterators/trait composition, no new unwrap/expect/panic in runtime Rust.\"}' ;; esac; }",
           "timeout": 10,
           "statusMessage": "fp-core Rust universal guard"
+        },
+        {
+          "type": "command",
+          "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case \"$f\" in */.claude/rules/*|*/.gemini/rules/*|*/.agents/rules/*|*/.claude/skills/*|*/.gemini/skills/*|*/.agents/skills/*|*/.claude/agents/*|*/.gemini/agents/*|*/.agents/agents/*|*/settings.json|*/settings.local.json|*/docs/webhooks/*) echo '{\"systemMessage\":\"Full symbiosis post-check: run jq/link checks, verify mirrors, avoid gdrive, and record task/journal evidence before closure.\"}' ;; esac; }",
+          "timeout": 10,
+          "statusMessage": "Full symbiosis evidence guard"
         }
       ]
     },
