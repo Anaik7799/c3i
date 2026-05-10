@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dirty Worktree Audit Deck</title>
+  <style>
+    :root {
+      --bg: #020617;
+      --slide: #0f172a;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --ok: #34d399;
+      --warn: #f59e0b;
+      --risk: #fb7185;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .deck {
+      scroll-snap-type: y mandatory;
+      overflow-y: auto;
+      height: 100vh;
+    }
+    section {
+      min-height: 100vh;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 8vh 9vw;
+      border-bottom: 1px solid var(--border);
+      background:
+        radial-gradient(circle at 85% 15%, rgba(56,189,248,.16), transparent 30%),
+        linear-gradient(145deg, var(--slide), #020617);
+    }
+    h1 { font-size: clamp(2.5rem, 6vw, 5.4rem); margin: 0 0 24px; line-height: .95; }
+    h2 { font-size: clamp(2rem, 4vw, 3.6rem); margin: 0 0 28px; }
+    h3 { color: var(--accent); font-size: 1.4rem; margin: 0 0 12px; }
+    p, li, td, th { font-size: clamp(1.05rem, 1.5vw, 1.4rem); line-height: 1.45; }
+    .muted { color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      background: rgba(15, 23, 42, .82);
+      min-height: 150px;
+    }
+    code {
+      color: #bfdbfe;
+      background: rgba(2, 6, 23, .7);
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 2px 7px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(15, 23, 42, .82);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    th, td {
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: 0; }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .risk { color: var(--risk); }
+    .footer {
+      position: fixed;
+      bottom: 12px;
+      right: 18px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+  </style>
+</head>
+<body>
+<div class="deck">
+  <section>
+    <h1>Functional Runtime Governance + Dirty Worktree Audit</h1>
+    <p class="muted">2026-05-10 · C3I root + pi-mono + nested C3I daemon · sa-plan task 116548743475798483</p>
+    <p>Purpose: document what was committed, what remains dirty, what the dirty files are doing, and what must not be bulk-committed.</p>
+  </section>
+
+  <section>
+    <h2>Publication Artifacts</h2>
+    <table>
+      <tr><th>Artifact</th><th>Path</th></tr>
+      <tr><td>Journal</td><td><code>docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-journal.md</code></td></tr>
+      <tr><td>HTML</td><td><code>docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-analysis.html</code></td></tr>
+      <tr><td>Slides</td><td><code>docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-deck.html</code></td></tr>
+      <tr><td>Email</td><td><code>docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-email.md</code></td></tr>
+      <tr><td>Index</td><td><code>docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-index.html</code></td></tr>
+      <tr><td>Links</td><td><code>docs/journal/task-116548743475798483-links.json</code></td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Closure State</h2>
+    <div class="grid">
+      <div class="card"><h3 class="ok">C3I committed</h3><p><code>95fdb705</code><br/>Functional runtime governance rules, skills, agents, hooks.</p></div>
+      <div class="card"><h3 class="ok">Pi-mono committed</h3><p><code>3c88aa7</code>, <code>e29dee2</code><br/>Effect code + governance parity.</p></div>
+      <div class="card"><h3 class="warn">Dirty remains</h3><p>C3I root and nested repos still contain unrelated/parallel work.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dirty State Counts</h2>
+    <table>
+      <tr><th>Worktree</th><th>Dirty State</th><th>Meaning</th></tr>
+      <tr><td><code>/home/an/dev/ver/c3i</code></td><td><code>124 M</code>, <code>1 D</code>, <code>121 ??</code>, <code>1 m</code></td><td>Large parallel worktree; not staged.</td></tr>
+      <tr><td><code>pi-mono</code></td><td><code>1 M</code></td><td>Generated model registry only.</td></tr>
+      <tr><td><code>sub-projects/c3i</code></td><td>many modified/untracked</td><td>Independent nested repo with vault/Rust/Elixir work.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Dirty Category 1: Model Registry</h2>
+    <div class="card">
+      <h3><code>packages/ai/src/models.generated.ts</code></h3>
+      <ul>
+        <li>Adds/updates provider model entries such as Claude 4.6, GPT-5.5, Kimi, and DeepSeek.</li>
+        <li>Changes pricing/cache/context metadata.</li>
+        <li>Generated-data risk: can alter routing and cost estimates.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dirty Category 2: Gemini Mirror Drift</h2>
+    <div class="card">
+      <h3 class="risk">High-risk semantic drift</h3>
+      <ul>
+        <li>Sampled `.gemini` files now reference Claude semantics.</li>
+        <li>Example: Gemini command text says <code>SC-ZK-CLAUDE-001</code>.</li>
+        <li>Do not commit without Gemini identity repair.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dirty Category 3: Vault/IAM/FerrisKey</h2>
+    <div class="card">
+      <ul>
+        <li>Gleam MCP vault tools and secret API routes.</li>
+        <li>Wisp/UI/TUI IAM and secret-management surfaces.</li>
+        <li>Native FerrisKey/RustyVault NIF/FFI work.</li>
+        <li>Security-critical: requires secret scans, auth tests, NIF/Rust checks.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dirty Category 4: Runtime Artifacts</h2>
+    <div class="card">
+      <ul>
+        <li>Monitor JSON, SLO state, logs, screenshots, diagrams, DB WAL/SHM files.</li>
+        <li>Often environment-specific and not source.</li>
+        <li>Commit only curated artifacts; clean or ignore the rest.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Nested C3I Daemon</h2>
+    <div class="card">
+      <ul>
+        <li>Rust planning daemon vault CLI/actions, audit, workers, AES-GCM/zeroize.</li>
+        <li>Elixir AI/KMS changes and tests.</li>
+        <li>Must be committed independently.</li>
+        <li>New Rust mandate requires fp-core compliance before committing touched Rust logic.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Verification Already Passed</h2>
+    <ul>
+      <li><code>npm run check</code> passed in pi-mono.</li>
+      <li>Pi-mono browser smoke checks passed.</li>
+      <li>C3I root pre-commit passed Pi constants drift and vault secret scan.</li>
+      <li>Hook JSON validated with <code>jq empty</code>.</li>
+      <li>No pi-mono TypeScript <code>fp-ts</code>/<code>TaskEither</code> code references remain.</li>
+      <li>Durable <code>sa-plan ingest-docs</code>: 66 holons created, 823 STAMP refs, 0 errors.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Current-Pass Link State</h2>
+    <table>
+      <tr><th>Gate</th><th>Status</th></tr>
+      <tr><td>Local files + manifest JSON</td><td class="ok">PASS</td></tr>
+      <tr><td>Relative links in handoff index</td><td class="ok">PASS</td></tr>
+      <tr><td>Localhost route</td><td class="risk">UNAVAILABLE: connection refused on 127.0.0.1:4200</td></tr>
+      <tr><td>Tailscale route</td><td class="risk">UNAVAILABLE: DNS failed for vm-1.tail55d152.ts.net</td></tr>
+      <tr><td>sa-plan status/sync</td><td class="risk">BLOCKED: SQLite open error</td></tr>
+      <tr><td>GDrive</td><td class="ok">SKIPPED per operator directive</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Second Detailed Pass</h2>
+    <div class="grid">
+      <div class="card"><h3>Link Validation</h3><p><code>link-validation.md</code> defines local, relative, localhost, customer, internal, and unavailable states.</p></div>
+      <div class="card"><h3>Task Management</h3><p><code>task-management-integration.md</code> maps sa-plan tasks, workflows, jobs, schedules, queues, ZK, and email evidence.</p></div>
+      <div class="card"><h3>Git Boundary</h3><p>Commands now reject staged <code>gdrive/</code> paths and preserve unrelated dirty files.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Recommended Next Actions</h2>
+    <table>
+      <tr><th>Pass</th><th>Action</th></tr>
+      <tr><td>A</td><td>Regenerate and verify pi-mono model registry.</td></tr>
+      <tr><td>B</td><td>Repair Gemini mirror identity drift.</td></tr>
+      <tr><td>C</td><td>Slice vault/IAM work into security-reviewed commits.</td></tr>
+      <tr><td>D</td><td>Run nested C3I daemon fp-core compliance pass.</td></tr>
+      <tr><td>E</td><td>Clean generated runtime/log/DB sidecar artifacts.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Decision</h2>
+    <p class="risk">Do not bulk commit the remaining dirty state.</p>
+    <p>Proceed with split, verified, domain-specific passes. Functional-runtime governance itself is complete and committed.</p>
+  </section>
+</div>
+<div class="footer">Scroll vertically · 20260510 dirty worktree audit</div>
+</body>
+</html>

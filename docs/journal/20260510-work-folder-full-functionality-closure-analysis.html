@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work Folder Full Functionality Closure</title>
+<style>
+:root{color-scheme:dark;--bg:#101418;--panel:#182028;--panel2:#202a34;--text:#eef5ff;--muted:#abc0d6;--ok:#7ee787;--warn:#ffd166;--bad:#ff7b72;--accent:#79c0ff;--line:#334155}*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#0b1020,#121820 45%,#0f172a);font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text)}main{max-width:1180px;margin:0 auto;padding:28px}a{color:var(--accent)}code{background:#0b1220;border:1px solid var(--line);border-radius:6px;padding:.1rem .35rem;color:#dbeafe}.hero,.card{background:rgba(24,32,40,.92);border:1px solid var(--line);border-radius:18px;padding:22px;margin:18px 0;box-shadow:0 14px 38px rgba(0,0,0,.28)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:.25rem .7rem;margin:.15rem;color:var(--muted);background:#111827}.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}table{width:100%;border-collapse:collapse;margin:12px 0;background:rgba(15,23,42,.5)}th,td{text-align:left;border:1px solid var(--line);padding:9px;vertical-align:top}th{background:#1f2937}pre{white-space:pre-wrap;background:#0b1220;border:1px solid var(--line);border-radius:12px;padding:14px;overflow:auto}.nav a{display:block;text-decoration:none;background:#0f172a;border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0}.small{color:var(--muted);font-size:.92rem}</style>
+</head>
+<body>
+<main>
+<section class="hero">
+<h1>Work Folder Full Functionality Closure</h1>
+<p><strong>Task:</strong> <code>116549202653302790</code> · <strong>URN:</strong> <code>urn:c3i:task:misc:116549202653302790</code> · <strong>Priority:</strong> P1 · <strong>Date:</strong> 2026-05-10 Europe/Stockholm</p>
+<p><span class="pill ok">Rust format/test/build passed</span><span class="pill ok">Gleam 201/201 passed</span><span class="pill ok">SQLite quick_check ok</span><span class="pill ok">Dry-run side effects safe</span><span class="pill warn">Routes expected, not claimed live</span><span class="pill ok">Email sent with attachments</span><span class="pill ok">GDrive skipped</span></p>
+</section>
+
+<section class="card">
+<h2>Bundle Inventory</h2>
+<div class="grid nav">
+<a href="20260510-work-folder-full-functionality-closure-journal.md"><strong>Journal</strong><br><span class="small">13-section closure log</span></a>
+<a href="20260510-work-folder-full-functionality-closure-analysis.html"><strong>Analysis</strong><br><span class="small">This operator report</span></a>
+<a href="20260510-work-folder-full-functionality-closure-deck.html"><strong>Slides</strong><br><span class="small">Scrollable HTML deck</span></a>
+<a href="20260510-work-folder-full-functionality-closure-email.md"><strong>Email</strong><br><span class="small">Sent evidence and command</span></a>
+<a href="20260510-work-folder-full-functionality-closure-index.html"><strong>Index</strong><br><span class="small">Handoff start page</span></a>
+<a href="task-116549202653302790-links.json"><strong>Manifest</strong><br><span class="small">Links and validation map</span></a>
+</div>
+</section>
+
+<section class="card">
+<h2>Executive Summary</h2>
+<p>The work folder was rerun through the relevant Rust, Gleam, SQLite, daemon, ignition, dry-run side-effect, and CLI smoke gates. Known blocked items were fixed or converted into explicit non-blocking gaps. Publication artifacts are local/static and use relative links for same-bundle navigation. The closure email was sent to <code>abhijit.naik@bountytek.com</code> with absolute-path attachments. No GDrive upload occurred.</p>
+</section>
+
+<section class="card">
+<h2>Task-Management Evidence</h2>
+<table><thead><tr><th>Surface</th><th>Evidence</th><th>Status</th></tr></thead><tbody>
+<tr><td>Task create</td><td><code>./sa-plan add "Work folder full functionality closure: tests, blockers, journal artifacts" P1</code></td><td class="ok">Task <code>116549202653302790</code> created</td></tr>
+<tr><td>Task lifecycle</td><td><code>./sa-plan update 116549202653302790 in_progress</code></td><td class="ok">Moved to in-progress before artifact work</td></tr>
+<tr><td>Task completion</td><td><code>./sa-plan update 116549202653302790 completed && ./sa-plan sync</code></td><td class="ok">Completed and synchronized after local validation</td></tr>
+<tr><td>Sync</td><td><code>./sa-plan sync</code></td><td class="ok">PROJECT_TODOLIST synchronized in approved context</td></tr>
+<tr><td>Ingest dry-run</td><td><code>./sa-plan ingest-docs --dry-run</code></td><td class="ok">Dry-run completed with zero errors in current pass evidence</td></tr>
+<tr><td>Email</td><td><code>./sa-plan send-email ...</code></td><td class="ok">Sent with absolute-path attachments after vault-backed SMTP rebuild</td></tr>
+<tr><td>GDrive</td><td>No upload command</td><td class="ok">Skipped by directive</td></tr>
+</tbody></table>
+</section>
+
+<section class="card">
+<h2>Validation Matrix</h2>
+<table><thead><tr><th>Gate</th><th>Command</th><th>Outcome</th></tr></thead><tbody>
+<tr><td>Rust format</td><td><code>cargo fmt --check</code></td><td class="ok">Pass</td></tr>
+<tr><td>Rust tests</td><td><code>cargo test --locked</code></td><td class="ok">Pass; 0 tests; 27 warnings</td></tr>
+<tr><td>Rust release</td><td><code>cargo build --release --locked</code></td><td class="ok">Pass; 27 warnings</td></tr>
+<tr><td>Gleam</td><td><code>gleam test</code></td><td class="ok">201 passed, no failures</td></tr>
+<tr><td>DB integrity</td><td><code>sqlite3 data/work.db 'PRAGMA quick_check;'</code></td><td class="ok">ok</td></tr>
+<tr><td>Daemon</td><td><code>./release/sa-plan-daemon status</code></td><td class="ok">Pass</td></tr>
+<tr><td>Fitness</td><td><code>./release/sa-plan-daemon fitness</code></td><td class="warn">Command pass; grade D capability gap</td></tr>
+<tr><td>Ignition</td><td><code>./release/ignition status</code></td><td class="ok">Pass</td></tr>
+<tr><td>Side effects</td><td>backup/restore/briefing/email/calendar dry-runs</td><td class="ok">Pass; no external writes</td></tr>
+<tr><td>Strict smoke</td><td>task/contact/deal/ingest/search/review/prefs in <code>/tmp</code></td><td class="ok">Pass after current CLI contract discovery</td></tr>
+</tbody></table>
+</section>
+
+<section class="card">
+<h2>Fractal Layer Closure</h2>
+<table><thead><tr><th>Layer</th><th>Closure</th><th>Component</th></tr></thead><tbody>
+<tr><td>L0 Constitutional</td><td>No GDrive, no unverified route claims, Rust/Gleam-only publication tooling.</td><td>Rules and staging boundary</td></tr>
+<tr><td>L1 Atomic</td><td>FTS triggers, dry-run flags, local file checks, JSON parse checks.</td><td>Rust functions and manifest fields</td></tr>
+<tr><td>L2 Component</td><td>CLI components and artifact channels work independently.</td><td>work-plan, journal/report/deck/email</td></tr>
+<tr><td>L3 Transaction</td><td>Safe sequences for side-effect probes and task lifecycle.</td><td>dry-run commands, sa-plan update/sync</td></tr>
+<tr><td>L4 System</td><td>Work surface and C3I git root stay distinct and coordinated.</td><td><code>/work</code>, <code>/c3i</code></td></tr>
+<tr><td>L5 Cognitive</td><td>Journal and skills encode reusable handoff procedure.</td><td>journal-artifact-publisher</td></tr>
+<tr><td>L6 Ecosystem</td><td>Claude/Gemini/.agents mirrors maintain provider parity.</td><td>skills/rules/agents</td></tr>
+<tr><td>L7 Federation</td><td>Bundle can be handed off locally or served later without breaking local links.</td><td>index, manifest, email attachments</td></tr>
+</tbody></table>
+</section>
+
+<section class="card">
+<h2>Risk Register</h2>
+<table><thead><tr><th>Risk</th><th>Severity</th><th>Disposition</th></tr></thead><tbody>
+<tr><td>Existing unrelated dirty repository state</td><td>Medium</td><td>Stage by exact pathspec only.</td></tr>
+<tr><td>Rust warnings</td><td>Low/medium</td><td>Non-blocking hygiene follow-up.</td></tr>
+<tr><td>Fitness grade D</td><td>Medium</td><td>Command pass; create separate capability-quality task if needed.</td></tr>
+<tr><td>Routes not checked</td><td>Low for local handoff</td><td>Manifest marks remote routes expected-not-verified.</td></tr>
+<tr><td>Email sent</td><td>Closed</td><td>Recipient provided; attachment resend verified exit zero.</td></tr>
+</tbody></table>
+</section>
+
+<section class="card">
+<h2>How To Verify</h2>
+<pre>cd /home/an/dev/ver/c3i
+jq empty docs/journal/task-116549202653302790-links.json
+for f in \
+  docs/journal/20260510-work-folder-full-functionality-closure-journal.md \
+  docs/journal/20260510-work-folder-full-functionality-closure-analysis.html \
+  docs/journal/20260510-work-folder-full-functionality-closure-deck.html \
+  docs/journal/20260510-work-folder-full-functionality-closure-email.md \
+  docs/journal/20260510-work-folder-full-functionality-closure-index.html \
+  docs/journal/task-116549202653302790-links.json; do test -f "$f" || exit 1; done
+git diff --cached --name-only | rg '(^|/)gdrive(/|$)' && exit 1 || true</pre>
+</section>
+</main>
+</body>
+</html>

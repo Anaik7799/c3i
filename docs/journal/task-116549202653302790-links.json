@@ -1,0 +1,172 @@
+{
+  "task_id": "116549202653302790",
+  "task_urn": "urn:c3i:task:misc:116549202653302790",
+  "title": "Work folder full functionality closure: tests, blockers, journal artifacts",
+  "date": "2026-05-10",
+  "timezone": "Europe/Stockholm",
+  "operator": "codex",
+  "priority": "P1",
+  "status": "local_static_bundle_ready_sa_plan_completed_sync_verified",
+  "bundle_slug": "20260510-work-folder-full-functionality-closure",
+  "local_base": "docs/journal",
+  "localhost_base_http": "http://127.0.0.1:4200/c3i/docs/journal",
+  "customer_base_https": "https://vm-1.tail55d152.ts.net/c3i/docs/journal",
+  "tailscale_base_https": "https://vm-1.tail55d152.ts.net:8443/c3i/docs/journal",
+  "gdrive": {
+    "requested": false,
+    "skipped": true,
+    "reason": "Operator explicitly requested skip gdrive folder."
+  },
+  "artifacts": [
+    {
+      "kind": "journal",
+      "path": "docs/journal/20260510-work-folder-full-functionality-closure-journal.md",
+      "relative_href": "20260510-work-folder-full-functionality-closure-journal.md",
+      "localhost_url": "http://127.0.0.1:4200/c3i/docs/journal/20260510-work-folder-full-functionality-closure-journal.md",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/docs/journal/20260510-work-folder-full-functionality-closure-journal.md",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/c3i/docs/journal/20260510-work-folder-full-functionality-closure-journal.md",
+      "exists_local": true,
+      "route_status": "local_verified_routes_expected_not_verified_current_pass"
+    },
+    {
+      "kind": "analysis_html",
+      "path": "docs/journal/20260510-work-folder-full-functionality-closure-analysis.html",
+      "relative_href": "20260510-work-folder-full-functionality-closure-analysis.html",
+      "localhost_url": "http://127.0.0.1:4200/c3i/docs/journal/20260510-work-folder-full-functionality-closure-analysis.html",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/docs/journal/20260510-work-folder-full-functionality-closure-analysis.html",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/c3i/docs/journal/20260510-work-folder-full-functionality-closure-analysis.html",
+      "exists_local": true,
+      "route_status": "local_verified_routes_expected_not_verified_current_pass"
+    },
+    {
+      "kind": "deck_html",
+      "path": "docs/journal/20260510-work-folder-full-functionality-closure-deck.html",
+      "relative_href": "20260510-work-folder-full-functionality-closure-deck.html",
+      "localhost_url": "http://127.0.0.1:4200/c3i/docs/journal/20260510-work-folder-full-functionality-closure-deck.html",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/docs/journal/20260510-work-folder-full-functionality-closure-deck.html",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/c3i/docs/journal/20260510-work-folder-full-functionality-closure-deck.html",
+      "exists_local": true,
+      "route_status": "local_verified_routes_expected_not_verified_current_pass"
+    },
+    {
+      "kind": "email_draft",
+      "path": "docs/journal/20260510-work-folder-full-functionality-closure-email.md",
+      "relative_href": "20260510-work-folder-full-functionality-closure-email.md",
+      "localhost_url": "http://127.0.0.1:4200/c3i/docs/journal/20260510-work-folder-full-functionality-closure-email.md",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/docs/journal/20260510-work-folder-full-functionality-closure-email.md",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/c3i/docs/journal/20260510-work-folder-full-functionality-closure-email.md",
+      "exists_local": true,
+      "route_status": "local_verified_routes_expected_not_verified_current_pass"
+    },
+    {
+      "kind": "handoff_index",
+      "path": "docs/journal/20260510-work-folder-full-functionality-closure-index.html",
+      "relative_href": "20260510-work-folder-full-functionality-closure-index.html",
+      "localhost_url": "http://127.0.0.1:4200/c3i/docs/journal/20260510-work-folder-full-functionality-closure-index.html",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/docs/journal/20260510-work-folder-full-functionality-closure-index.html",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/c3i/docs/journal/20260510-work-folder-full-functionality-closure-index.html",
+      "exists_local": true,
+      "route_status": "local_verified_routes_expected_not_verified_current_pass"
+    },
+    {
+      "kind": "links_manifest",
+      "path": "docs/journal/task-116549202653302790-links.json",
+      "relative_href": "task-116549202653302790-links.json",
+      "localhost_url": "http://127.0.0.1:4200/c3i/docs/journal/task-116549202653302790-links.json",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/docs/journal/task-116549202653302790-links.json",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/c3i/docs/journal/task-116549202653302790-links.json",
+      "exists_local": true,
+      "route_status": "local_verified_routes_expected_not_verified_current_pass"
+    }
+  ],
+  "sa_plan": {
+    "add": {
+      "command": "./sa-plan add \"Work folder full functionality closure: tests, blockers, journal artifacts\" P1",
+      "status": "verified_current_pass",
+      "task_id": "116549202653302790"
+    },
+    "update_in_progress": {
+      "command": "./sa-plan update 116549202653302790 in_progress",
+      "status": "verified_current_pass"
+    },
+    "status": {
+      "command": "./sa-plan status",
+      "status": "verified_current_pass_in_approved_context"
+    },
+    "sync": {
+      "command": "./sa-plan sync",
+      "status": "verified_current_pass_project_todolist_synchronized"
+    },
+    "ingest_docs_dry_run": {
+      "command": "./sa-plan ingest-docs --dry-run",
+      "status": "verified_current_pass_7457_files_zero_errors"
+    },
+    "completion": {
+      "command": "./sa-plan update 116549202653302790 completed && ./sa-plan sync",
+      "status": "verified_current_pass_task_completed_and_project_todolist_synchronized"
+    },
+    "email": {
+      "command": "./sa-plan send-email --to abhijit.naik@bountytek.com --subject \"C3I Work Folder Full Functionality Closure — Journal Bundle Ready\" --body ... -a ...",
+      "status": "sent_current_pass_absolute_attachment_resend_verified_exit_zero",
+      "recipient": "abhijit.naik@bountytek.com",
+      "send_log": "/tmp/c3i-work-closure-email-resend.log",
+      "attachments": [
+        "/home/an/dev/ver/c3i/docs/journal/20260510-work-folder-full-functionality-closure-journal.md",
+        "/home/an/dev/ver/c3i/docs/journal/20260510-work-folder-full-functionality-closure-analysis.html",
+        "/home/an/dev/ver/c3i/docs/journal/20260510-work-folder-full-functionality-closure-deck.html",
+        "/home/an/dev/ver/c3i/docs/journal/20260510-work-folder-full-functionality-closure-index.html",
+        "/home/an/dev/ver/c3i/docs/journal/task-116549202653302790-links.json"
+      ]
+    },
+    "gdrive_upload": {
+      "command": "./sa-plan gdrive-upload ...",
+      "status": "skipped_by_operator_directive"
+    }
+  },
+  "validation": {
+    "rust_format": "passed_cargo_fmt_check",
+    "rust_tests": "passed_cargo_test_locked_0_tests_27_warnings",
+    "rust_release_build": "passed_cargo_build_release_locked_27_warnings",
+    "gleam_tests": "passed_201_tests",
+    "sqlite_quick_check": "ok",
+    "daemon_status": "passed",
+    "daemon_fitness": "command_passed_score_0_539_grade_D_quality_gap",
+    "ignition_status": "passed",
+    "side_effect_dry_runs": "passed_backup_restore_briefing_email_calendar_no_external_writes",
+    "strict_cli_smoke": "passed_task_contact_deal_ingest_search_review_set_pref_get_pref",
+    "local_files": "verified_current_pass",
+    "relative_links": "verified_current_pass",
+    "json_manifest": "verified_current_pass",
+    "localhost_routes": "expected_not_verified_current_pass",
+    "customer_routes": "expected_not_verified_current_pass",
+    "internal_routes": "expected_not_verified_current_pass",
+    "email_sent": true,
+    "email_sent_to": "abhijit.naik@bountytek.com",
+    "email_attachment_resend": "verified_absolute_paths_current_pass",
+    "gdrive_touched": false,
+    "current_pass_blockers": []
+  },
+  "plan_task_management_surfaces": {
+    "PROJECT_TODOLIST": "sync_verified_current_pass",
+    "workflow": "not_applicable_no_workflow_run_requested",
+    "scheduler_jobs": "not_applicable_no_schedule_or_job_mutation_requested",
+    "zk_rag": "ingest_docs_dry_run_verified_zero_errors",
+    "send_email": "sent_current_pass_vault_backed_smtp_absolute_attachments"
+  },
+  "fractal_layers": {
+    "L0_constitutional": "no_gdrive_no_false_route_claims_rust_gleam_only_publication_tooling",
+    "L1_atomic": "fts_triggers_dry_run_flags_file_checks_json_checks",
+    "L2_component": "work_plan_cli_and_journal_report_deck_email_components",
+    "L3_transaction": "safe_side_effect_sequences_and_sa_plan_lifecycle",
+    "L4_system": "work_surface_and_c3i_git_root_coordinated",
+    "L5_cognitive": "journal_skills_and_ingest_dry_run_capture_reusable_knowledge",
+    "L6_ecosystem": "claude_gemini_agents_codex_compatible_surfaces",
+    "L7_federation": "local_bundle_ready_for_later_served_routes_without_broken_local_links"
+  },
+  "next_actions": [
+    "Stage exact pass files only and verify no gdrive path is staged.",
+    "Send email only after a concrete recipient is provided.",
+    "Create a separate hygiene task if the 27 Rust warnings or fitness grade D must be resolved.",
+    "Run route curl checks only if served handoff is required."
+  ]
+}

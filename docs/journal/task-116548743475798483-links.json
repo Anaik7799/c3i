@@ -1,0 +1,222 @@
+{
+  "task_id": "116548743475798483",
+  "task_urn": "urn:c3i:task:misc:116548743475798483",
+  "title": "Journal artifact bundle: functional runtime dirty worktree audit",
+  "date": "2026-05-10",
+  "timezone": "Europe/Stockholm",
+  "priority": "P1",
+  "status": "completed_historical_static_bundle_ready_current_sa_plan_blocked",
+  "operator": "operator",
+  "local_base": "/home/an/dev/ver/c3i",
+  "localhost_base_http": "http://127.0.0.1:4200/task-id/116548743475798483",
+  "customer_base_https": "https://vm-1.tail55d152.ts.net/c3i/task-id/116548743475798483",
+  "internal_base_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116548743475798483",
+  "route_status_summary": {
+    "local_files": "verified",
+    "relative_links": "verified",
+    "localhost_http": "unavailable_connection_refused_2026-05-10",
+    "customer_tailscale_https": "unavailable_dns_resolution_failed_2026-05-10",
+    "internal_tailscale_https": "expected_not_verified_current_pass",
+    "working_link_scope": "local_static_bundle_links_verified; served_http_and_tailscale_links_unavailable_current_pass"
+  },
+  "gdrive": {
+    "skipped": true,
+    "reason": "Operator explicitly requested: skip gdrive folder."
+  },
+  "artifacts": {
+    "journal_md": {
+      "path": "docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-journal.md",
+      "relative_href": "20260510-functional-runtime-governance-dirty-worktree-audit-journal.md",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-journal.md",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-journal.md",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-journal.md",
+      "exists_local": true,
+      "route_status": "local_verified_remote_unavailable_current_pass"
+    },
+    "analysis_html": {
+      "path": "docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-analysis.html",
+      "relative_href": "20260510-functional-runtime-governance-dirty-worktree-audit-analysis.html",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-analysis.html",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-analysis.html",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-analysis.html",
+      "exists_local": true,
+      "route_status": "local_verified_remote_unavailable_current_pass"
+    },
+    "deck_html": {
+      "path": "docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-deck.html",
+      "relative_href": "20260510-functional-runtime-governance-dirty-worktree-audit-deck.html",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-deck.html",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-deck.html",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-deck.html",
+      "exists_local": true,
+      "route_status": "local_verified_remote_unavailable_current_pass"
+    },
+    "email_md": {
+      "path": "docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-email.md",
+      "relative_href": "20260510-functional-runtime-governance-dirty-worktree-audit-email.md",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-email.md",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-email.md",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-email.md",
+      "exists_local": true,
+      "route_status": "local_verified_remote_unavailable_current_pass"
+    },
+    "handoff_index_html": {
+      "path": "docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-index.html",
+      "relative_href": "20260510-functional-runtime-governance-dirty-worktree-audit-index.html",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-index.html",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-index.html",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116548743475798483/20260510-functional-runtime-governance-dirty-worktree-audit-index.html",
+      "exists_local": true,
+      "route_status": "local_verified_remote_unavailable_current_pass"
+    },
+    "links_json": {
+      "path": "docs/journal/task-116548743475798483-links.json",
+      "relative_href": "task-116548743475798483-links.json",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116548743475798483/task-116548743475798483-links.json",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116548743475798483/task-116548743475798483-links.json",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116548743475798483/task-116548743475798483-links.json",
+      "exists_local": true,
+      "route_status": "local_verified_remote_unavailable_current_pass"
+    }
+  },
+  "skills": {
+    "claude": ".claude/skills/journal-artifact-publisher/SKILL.md",
+    "gemini": ".gemini/skills/journal-artifact-publisher/SKILL.md",
+    "agents": ".agents/skills/journal-artifact-publisher/SKILL.md",
+    "codex_home_existing": "/home/an/.codex/skills/journal-artifact-publisher/SKILL.md"
+  },
+  "skill_references": {
+    "artifact_contract": ".claude/skills/journal-artifact-publisher/references/artifact-contract.md",
+    "journal_template": ".claude/skills/journal-artifact-publisher/references/journal-template.md",
+    "html_report": ".claude/skills/journal-artifact-publisher/references/html-report.md",
+    "slide_deck": ".claude/skills/journal-artifact-publisher/references/slide-deck.md",
+    "email_payload": ".claude/skills/journal-artifact-publisher/references/email-payload.md",
+    "sa_plan_workflow": ".claude/skills/journal-artifact-publisher/references/sa-plan-workflow.md",
+    "link_validation": ".claude/skills/journal-artifact-publisher/references/link-validation.md",
+    "task_management_integration": ".claude/skills/journal-artifact-publisher/references/task-management-integration.md"
+  },
+  "rules": {
+    "claude": ".claude/rules/journal-artifact-bundle.md",
+    "gemini": ".gemini/rules/journal-artifact-bundle.md",
+    "agents": ".agents/rules/journal-artifact-bundle.md"
+  },
+  "agents": {
+    "claude": ".claude/agents/journal-artifact-publisher.md",
+    "gemini": ".gemini/agents/journal-artifact-publisher.md",
+    "agents": ".agents/agents/journal-artifact-publisher.md"
+  },
+  "commands": {
+    "claude": ".claude/commands/journal-bundle.md",
+    "gemini": ".gemini/commands/journal-bundle.md",
+    "agents": ".agents/commands/journal-bundle.md"
+  },
+  "sa_plan": {
+    "historical_add": "./sa-plan add \"Journal artifact bundle: functional runtime dirty worktree audit\" P1",
+    "historical_sync": "./sa-plan sync",
+    "historical_ingest_docs_dry_run": "./sa-plan ingest-docs --dry-run",
+    "historical_ingest_docs": "./sa-plan ingest-docs",
+    "current_status_recheck": {
+      "command": "./sa-plan status",
+      "status": "blocked_current_pass",
+      "error": "SQLite error: unable to open database file"
+    },
+    "current_sync_recheck": {
+      "status": "not_run_after_status_failure",
+      "reason": "Avoided mutating planner state after status command failed."
+    },
+    "send_email_template": "./sa-plan send-email --to \"Abhijit.Naik@bountytek.com\" --subject \"C3I journal bundle ready for git: functional runtime governance + dirty worktree audit\" --body \"$(cat docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-email.md)\" -a docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-journal.md -a docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-analysis.html -a docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-deck.html -a docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-index.html -a docs/journal/task-116548743475798483-links.json"
+  },
+  "plan_task_management_surfaces": {
+    "task_commands": [
+      "status",
+      "add",
+      "update",
+      "sync",
+      "recommend"
+    ],
+    "workflow_commands": [
+      "workflow-list",
+      "workflow-run",
+      "workflow-start",
+      "workflow-describe",
+      "workflow-executions"
+    ],
+    "scheduler_commands": [
+      "schedule-list",
+      "scheduler-tick",
+      "job-list",
+      "queue-list"
+    ],
+    "knowledge_commands": [
+      "ingest-docs",
+      "knowledge-search",
+      "zk-recall",
+      "count-citations"
+    ]
+  },
+  "validation": {
+    "local_files_checked": true,
+    "json_checked": true,
+    "relative_links_checked": true,
+    "sa_plan_sync_historical": true,
+    "sa_plan_status_current_pass": false,
+    "sa_plan_status_current_error": "SQLite error: unable to open database file",
+    "ingest_docs_dry_run_historical": true,
+    "ingest_docs_completed_historical": true,
+    "initial_ingest_docs_result_historical": {
+      "files_processed": 7312,
+      "holons_created": 66,
+      "stamp_refs_found": 823,
+      "skipped_dedup": 7423,
+      "errors": 0,
+      "total_holons_in_kms": 37636
+    },
+    "final_ingest_docs_result_after_manifest_patch_historical": {
+      "files_processed": 7312,
+      "holons_created": 15,
+      "stamp_refs_found": 2,
+      "skipped_dedup": 7446,
+      "errors": 0,
+      "total_holons_in_kms": 37636
+    },
+    "localhost_route_current_pass": false,
+    "localhost_route_error": "Failed to connect to 127.0.0.1 port 4200: Could not connect to server",
+    "tailscale_route_current_pass": false,
+    "tailscale_route_error": "Could not resolve host: vm-1.tail55d152.ts.net",
+    "email_sent_current_pass": false,
+    "email_send_reason": "Email draft and command prepared; current sa-plan status path failed before send.",
+    "gdrive_skipped": true,
+    "second_detailed_pass": {
+      "completed": true,
+      "added_references": [
+        ".claude/skills/journal-artifact-publisher/references/link-validation.md",
+        ".claude/skills/journal-artifact-publisher/references/task-management-integration.md"
+      ],
+      "updated_surfaces": [
+        ".claude/skills/journal-artifact-publisher/SKILL.md",
+        ".gemini/skills/journal-artifact-publisher/SKILL.md",
+        ".agents/skills/journal-artifact-publisher/SKILL.md",
+        ".claude/rules/journal-artifact-bundle.md",
+        ".gemini/rules/journal-artifact-bundle.md",
+        ".agents/rules/journal-artifact-bundle.md",
+        ".claude/commands/journal-bundle.md",
+        ".gemini/commands/journal-bundle.md",
+        ".agents/commands/journal-bundle.md"
+      ],
+      "git_add_boundary_rechecked": true,
+      "gdrive_staged_paths": 0
+    },
+    "tooling_constraint": "Rust/Gleam-only publication tooling; no Python/Node helper scripts."
+  },
+  "git": {
+    "requested_add_to_git": true,
+    "staging_boundary": "Only journal bundle artifacts and journal-publisher skills/rules/agents/commands; skip gdrive and unrelated dirty files.",
+    "staged_expected_paths_count_after_second_pass": 26
+  },
+  "next_actions": {
+    "planner_repair": "Fix the current sa-plan SQLite open error, then rerun ./sa-plan status, ./sa-plan sync, and ./sa-plan ingest-docs --dry-run.",
+    "route_repair": "Restore sa-plan HTTP/Tailscale route service, then update route statuses from unavailable to verified only after curl checks pass.",
+    "email_dispatch": "Send email with journal, analysis, deck, index, and manifest attached after sa-plan send-email is available.",
+    "git_commit": "Commit only the staged journal bundle and journal-publisher governance files if the operator requests a commit."
+  }
+}

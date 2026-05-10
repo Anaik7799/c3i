@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Journal Bundle Handoff — Task 116548743475798483</title>
+  <style>
+    :root {
+      color-scheme: dark light;
+      --bg: #020617;
+      --panel: #0f172a;
+      --panel2: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --ok: #34d399;
+      --warn: #f59e0b;
+      --risk: #fb7185;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top right, rgba(56, 189, 248, .14), transparent 34rem),
+        linear-gradient(135deg, #020617, #0f172a);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+    main { max-width: 1180px; margin: 0 auto; padding: 42px 24px 76px; }
+    h1 { font-size: clamp(2rem, 5vw, 4.4rem); line-height: .95; margin: 0 0 14px; }
+    h2 { margin-top: 38px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    a { color: #7dd3fc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      background: #020617;
+      border: 1px solid #1f2937;
+      color: #bfdbfe;
+      border-radius: 7px;
+      padding: 2px 6px;
+    }
+    .meta, .card, table, pre {
+      background: rgba(15, 23, 42, .9);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 16px 60px rgba(0,0,0,.25);
+    }
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+      padding: 18px;
+      margin: 24px 0;
+    }
+    .meta span { color: var(--muted); display: block; font-size: .93rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .card { padding: 18px; }
+    .card h3 { margin-top: 0; }
+    table { border-collapse: collapse; width: 100%; overflow: hidden; }
+    th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { background: rgba(17, 24, 39, .92); }
+    tr:last-child td { border-bottom: 0; }
+    pre { padding: 16px; overflow: auto; }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .risk { color: var(--risk); }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Journal Bundle Handoff</h1>
+  <p>Task-linked handoff index for the functional-runtime governance and dirty-worktree audit bundle.</p>
+
+  <section class="meta">
+    <div><span>Task ID</span><code>116548743475798483</code></div>
+    <div><span>Task URN</span><code>urn:c3i:task:misc:116548743475798483</code></div>
+    <div><span>Status</span><strong class="warn">static bundle ready; current sa-plan route blocked</strong></div>
+    <div><span>GDrive</span><strong class="ok">skipped per operator directive</strong></div>
+    <div><span>Second Pass</span><strong class="ok">link + task-management references added</strong></div>
+    <div><span>Local Base</span><code>/home/an/dev/ver/c3i</code></div>
+    <div><span>Manifest</span><code>docs/journal/task-116548743475798483-links.json</code></div>
+  </section>
+
+  <h2>Artifacts</h2>
+  <section class="grid">
+    <article class="card">
+      <h3>Journal</h3>
+      <p>13-section Markdown journal with current-pass validation and degraded sa-plan evidence.</p>
+      <p><a href="20260510-functional-runtime-governance-dirty-worktree-audit-journal.md">Open journal</a></p>
+    </article>
+    <article class="card">
+      <h3>HTML Analysis</h3>
+      <p>Operator report covering closure state, dirty worktree categories, risks, and next actions.</p>
+      <p><a href="20260510-functional-runtime-governance-dirty-worktree-audit-analysis.html">Open analysis</a></p>
+    </article>
+    <article class="card">
+      <h3>Slides</h3>
+      <p>Scrollable HTML deck for review or handoff presentation.</p>
+      <p><a href="20260510-functional-runtime-governance-dirty-worktree-audit-deck.html">Open deck</a></p>
+    </article>
+    <article class="card">
+      <h3>Email</h3>
+      <p>Email draft with attachment list and send command template.</p>
+      <p><a href="20260510-functional-runtime-governance-dirty-worktree-audit-email.md">Open email draft</a></p>
+    </article>
+    <article class="card">
+      <h3>Links Manifest</h3>
+      <p>JSON manifest with local paths, route status, skills/rules/agents, and sa-plan evidence.</p>
+      <p><a href="task-116548743475798483-links.json">Open manifest</a></p>
+    </article>
+  </section>
+
+  <h2>Validation State</h2>
+  <table>
+    <thead><tr><th>Gate</th><th>Status</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>Local files</td><td class="ok">PASS</td><td>All bundle files exist under <code>docs/journal/</code>.</td></tr>
+      <tr><td>Manifest JSON</td><td class="ok">PASS</td><td><code>jq empty docs/journal/task-116548743475798483-links.json</code></td></tr>
+      <tr><td>Local relative links</td><td class="ok">PASS</td><td>This index links artifacts with same-directory relative paths.</td></tr>
+      <tr><td>Localhost route</td><td class="risk">UNAVAILABLE</td><td><code>127.0.0.1:4200</code> connection refused during current pass.</td></tr>
+      <tr><td>Tailscale route</td><td class="risk">UNAVAILABLE</td><td><code>vm-1.tail55d152.ts.net</code> DNS failed during current pass.</td></tr>
+      <tr><td>sa-plan</td><td class="risk">BLOCKED</td><td><code>./sa-plan status</code> returned SQLite open error.</td></tr>
+      <tr><td>Git boundary</td><td class="warn">BOUNDED</td><td>Stage only journal bundle and journal-publisher skills/rules/agents/commands.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Second-Pass Governance Additions</h2>
+  <table>
+    <thead><tr><th>Reference</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>.claude/skills/journal-artifact-publisher/references/link-validation.md</code></td><td>Defines working local links, route liveness checks, and unavailable/expected/verified route states.</td></tr>
+      <tr><td><code>.claude/skills/journal-artifact-publisher/references/task-management-integration.md</code></td><td>Defines sa-plan task, todo, workflow, scheduler, job, queue, knowledge, session, recommendation, and email evidence mapping.</td></tr>
+      <tr><td>Claude/Gemini/.agents rules</td><td>Require explicit degraded-mode evidence and reject staged <code>gdrive/</code> paths.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Verification Commands</h2>
+  <pre><code>cd /home/an/dev/ver/c3i
+jq empty docs/journal/task-116548743475798483-links.json
+for f in \
+  docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-journal.md \
+  docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-analysis.html \
+  docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-deck.html \
+  docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-email.md \
+  docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-index.html \
+  docs/journal/task-116548743475798483-links.json; do
+  test -f "$f" || exit 1
+done</code></pre>
+
+  <h2>Next Actions</h2>
+  <table>
+    <thead><tr><th>Priority</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>P0</td><td>Repair <code>sa-plan status</code> SQLite open error, then rerun status/sync/ingest checks.</td></tr>
+      <tr><td>P0</td><td>Restore/verify sa-plan HTTP and Tailscale Serve routes, then update manifest route statuses to <code>verified</code>.</td></tr>
+      <tr><td>P1</td><td>Send email with journal, analysis, deck, index, and manifest attached after sa-plan email path is available.</td></tr>
+      <tr><td>P1</td><td>Keep unrelated dirty files out of this git add/commit boundary.</td></tr>
+    </tbody>
+  </table>
+</main>
+</body>
+</html>

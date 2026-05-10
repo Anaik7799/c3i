@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work Folder Closure Handoff Index</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1120;--panel:#111827;--line:#334155;--text:#f8fafc;--muted:#b6c2d1;--ok:#86efac;--warn:#fde68a;--accent:#93c5fd}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}main{max-width:1050px;margin:0 auto;padding:30px}.hero,.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;margin:16px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}a{color:var(--accent)}.nav a{display:block;text-decoration:none;background:#020617;border:1px solid var(--line);border-radius:14px;padding:14px}.ok{color:var(--ok)}.warn{color:var(--warn)}code{background:#020617;border:1px solid var(--line);border-radius:6px;padding:.1rem .35rem}pre{white-space:pre-wrap;background:#020617;border:1px solid var(--line);border-radius:12px;padding:14px;overflow:auto}table{width:100%;border-collapse:collapse}td,th{border:1px solid var(--line);padding:9px;text-align:left;vertical-align:top}th{background:#1f2937}.small{color:var(--muted)}</style>
+</head>
+<body>
+<main>
+<section class="hero">
+<h1>Work Folder Closure Handoff Index</h1>
+<p><strong>Task:</strong> <code>116549202653302790</code> · <strong>URN:</strong> <code>urn:c3i:task:misc:116549202653302790</code> · <strong>Priority:</strong> P1</p>
+<p><strong>Status:</strong> local/static bundle ready; sa-plan completed; route serving expected-not-verified; email sent with absolute-path attachments; GDrive skipped; commit not claimed.</p>
+</section>
+<section class="card">
+<h2>Open Artifacts</h2>
+<div class="grid nav">
+<a href="20260510-work-folder-full-functionality-closure-journal.md"><strong>Journal</strong><br><span class="small">Detailed 13-section execution record</span></a>
+<a href="20260510-work-folder-full-functionality-closure-analysis.html"><strong>Analysis HTML</strong><br><span class="small">Operator report with matrices</span></a>
+<a href="20260510-work-folder-full-functionality-closure-deck.html"><strong>Slides HTML</strong><br><span class="small">Scrollable review deck</span></a>
+<a href="20260510-work-folder-full-functionality-closure-email.md"><strong>Email Draft</strong><br><span class="small">Send-gated handoff email</span></a>
+<a href="task-116549202653302790-links.json"><strong>Links Manifest</strong><br><span class="small">Paths, routes, validation</span></a>
+</div>
+</section>
+<section class="card">
+<h2>Local Verification</h2>
+<pre>cd /home/an/dev/ver/c3i
+jq empty docs/journal/task-116549202653302790-links.json
+for f in \
+  docs/journal/20260510-work-folder-full-functionality-closure-journal.md \
+  docs/journal/20260510-work-folder-full-functionality-closure-analysis.html \
+  docs/journal/20260510-work-folder-full-functionality-closure-deck.html \
+  docs/journal/20260510-work-folder-full-functionality-closure-email.md \
+  docs/journal/20260510-work-folder-full-functionality-closure-index.html \
+  docs/journal/task-116549202653302790-links.json; do test -f "$f" || exit 1; done
+link_pattern='href'
+for link in $(rg -o "$link_pattern"'="[^"]+"' docs/journal/20260510-work-folder-full-functionality-closure-index.html docs/journal/20260510-work-folder-full-functionality-closure-analysis.html docs/journal/20260510-work-folder-full-functionality-closure-deck.html | sed 's/.*="//;s/"$//'); do case "$link" in http*) : ;; *) test -f "docs/journal/$link" || exit 1 ;; esac; done</pre>
+</section>
+<section class="card">
+<h2>Route Status</h2>
+<table><tr><th>Route class</th><th>Status</th><th>Reason</th></tr><tr><td>Local path</td><td class="ok">verified</td><td>Files exist under <code>docs/journal/</code>.</td></tr><tr><td>Relative HTML href</td><td class="ok">verified</td><td>Same-bundle hrefs resolve locally.</td></tr><tr><td>Localhost HTTP</td><td class="warn">expected_not_verified_current_pass</td><td>No route check claimed in artifact.</td></tr><tr><td>Customer HTTPS</td><td class="warn">expected_not_verified_current_pass</td><td>No route check claimed in artifact.</td></tr><tr><td>Internal HTTPS</td><td class="warn">expected_not_verified_current_pass</td><td>No route check claimed in artifact.</td></tr></table>
+</section>
+<section class="card">
+<h2>sa-plan / Git / Email State</h2>
+<table><tr><th>Surface</th><th>State</th></tr><tr><td>sa-plan</td><td>Task created, moved in-progress, completed, synced, and included in ingest dry-run evidence.</td></tr><tr><td>Git</td><td>Stage exact pass files only; no commit claimed.</td></tr><tr><td>Email</td><td>Sent to <code>abhijit.naik@bountytek.com</code>; absolute-path resend attached journal, analysis, deck, index, and links manifest.</td></tr><tr><td>GDrive</td><td>Skipped by directive.</td></tr></table>
+</section>
+</main>
+</body>
+</html>

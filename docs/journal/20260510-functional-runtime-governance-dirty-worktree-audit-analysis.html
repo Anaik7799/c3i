@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Functional Runtime Governance + Dirty Worktree Audit</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel2: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #60a5fa;
+      --ok: #34d399;
+      --warn: #fbbf24;
+      --risk: #fb7185;
+      --border: #374151;
+    }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, var(--bg), #020617);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 40px 24px 72px;
+    }
+    h1, h2, h3 { line-height: 1.15; }
+    h1 { font-size: 2.4rem; margin: 0 0 12px; }
+    h2 { margin-top: 40px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    h3 { color: var(--accent); margin-top: 28px; }
+    .meta, .card, table {
+      background: rgba(17, 24, 39, 0.88);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 16px 60px rgba(0,0,0,.25);
+    }
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      padding: 18px;
+      margin: 20px 0 28px;
+    }
+    .meta div { color: var(--muted); }
+    .meta strong { display: block; color: var(--text); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .card { padding: 18px; }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .risk { color: var(--risk); }
+    code {
+      background: #020617;
+      border: 1px solid #1f2937;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #bfdbfe;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      overflow: hidden;
+      margin: 16px 0 24px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 11px 12px;
+      vertical-align: top;
+      text-align: left;
+    }
+    th { background: rgba(31, 41, 55, .85); color: #f9fafb; }
+    tr:last-child td { border-bottom: 0; }
+    .callout {
+      border-left: 4px solid var(--warn);
+      padding: 12px 16px;
+      background: rgba(251, 191, 36, .08);
+      border-radius: 8px;
+      margin: 16px 0;
+    }
+    .critical {
+      border-left-color: var(--risk);
+      background: rgba(251, 113, 133, .08);
+    }
+    ul { padding-left: 22px; }
+    footer { color: var(--muted); margin-top: 48px; font-size: .95rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Functional Runtime Governance + Dirty Worktree Audit</h1>
+  <p>This report captures the post-governance commit state and explains what the remaining dirty files are doing.</p>
+
+  <section class="meta">
+    <div><strong>Date</strong>2026-05-10</div>
+    <div><strong>Timezone</strong>Europe/Stockholm</div>
+    <div><strong>C3I Commit</strong><code>95fdb705</code></div>
+    <div><strong>Pi-mono Commits</strong><code>3c88aa7</code>, <code>e29dee2</code></div>
+    <div><strong>sa-plan Task</strong><code>116548743475798483</code></div>
+    <div><strong>Links Manifest</strong><code>docs/journal/task-116548743475798483-links.json</code></div>
+    <div><strong>Handoff Index</strong><code>docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-index.html</code></div>
+    <div><strong>Current Route Status</strong><code>unavailable</code></div>
+  </section>
+
+  <section>
+    <h2>Executive Summary</h2>
+    <div class="grid">
+      <div class="card">
+        <h3 class="ok">Closed</h3>
+        <p>Effect TS, fp-core Rust, and multilayer functional-runtime governance were committed in C3I root and pi-mono.</p>
+      </div>
+      <div class="card">
+        <h3 class="warn">Dirty</h3>
+        <p>C3I root still has <code>124 M</code>, <code>1 D</code>, <code>121 ??</code>, and one dirty nested repo marker.</p>
+      </div>
+      <div class="card">
+        <h3 class="risk">Do Not Bulk Commit</h3>
+        <p>The dirty files span generated model data, Gemini mirror drift, vault/IAM runtime work, logs, and nested Rust/Elixir work.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Publication Bundle</h2>
+    <table>
+      <thead><tr><th>Artifact</th><th>Path</th></tr></thead>
+      <tbody>
+        <tr><td>Journal</td><td><code>docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-journal.md</code></td></tr>
+        <tr><td>Analysis HTML</td><td><code>docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-analysis.html</code></td></tr>
+        <tr><td>Slide deck</td><td><code>docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-deck.html</code></td></tr>
+        <tr><td>Email draft</td><td><code>docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-email.md</code></td></tr>
+        <tr><td>Handoff index</td><td><code>docs/journal/20260510-functional-runtime-governance-dirty-worktree-audit-index.html</code></td></tr>
+        <tr><td>Links manifest</td><td><code>docs/journal/task-116548743475798483-links.json</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Current-Pass Link + sa-plan Validation</h2>
+    <table>
+      <thead><tr><th>Gate</th><th>Status</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <tr><td>Local file links</td><td class="ok">PASS</td><td>All bundle artifacts exist under <code>docs/journal/</code>; the handoff index uses same-directory relative links.</td></tr>
+        <tr><td>Manifest JSON</td><td class="ok">PASS</td><td><code>jq empty docs/journal/task-116548743475798483-links.json</code></td></tr>
+        <tr><td>Localhost route</td><td class="risk">UNAVAILABLE</td><td><code>127.0.0.1:4200</code> returned connection refused during this pass.</td></tr>
+        <tr><td>Tailscale/customer route</td><td class="risk">UNAVAILABLE</td><td><code>vm-1.tail55d152.ts.net</code> DNS resolution failed during this pass.</td></tr>
+        <tr><td>sa-plan current status</td><td class="risk">BLOCKED</td><td><code>./sa-plan status</code> returned <code>SQLite error: unable to open database file</code>.</td></tr>
+        <tr><td>GDrive</td><td class="ok">SKIPPED</td><td>No <code>gdrive/</code> files are part of this bundle or staging boundary.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Second Detailed Pass Additions</h2>
+    <table>
+      <thead><tr><th>Addition</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>references/link-validation.md</code></td><td>Defines working-link classes, route checks, failure statuses, and manifest semantics.</td></tr>
+        <tr><td><code>references/task-management-integration.md</code></td><td>Defines task, todo, workflow, scheduler, job, queue, knowledge, session, recommendation, and email evidence mapping.</td></tr>
+        <tr><td>Rules/commands updated</td><td>Reject staged <code>gdrive/</code> paths and separate historical evidence from current-pass planner evidence.</td></tr>
+        <tr><td>Artifacts updated</td><td>Handoff index, manifest, journal, report, deck, and email now expose degraded route/planner state explicitly.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Committed Work</h2>
+    <table>
+      <thead><tr><th>Repo</th><th>Commit</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>/home/an/dev/ver/c3i</code></td><td><code>95fdb705</code></td><td>Rules, skills, agents, hooks, and .agents mirrors for Effect TS + fp-core Rust.</td></tr>
+        <tr><td><code>pi-mono</code></td><td><code>3c88aa7</code></td><td>Effect dependency, C3I bridge, vault client, and governance mirrors.</td></tr>
+        <tr><td><code>pi-mono</code></td><td><code>e29dee2</code></td><td>Effect runtime parity and fp-core canonical rule reference alignment.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Dirty Worktree Interpretation</h2>
+    <table>
+      <thead><tr><th>Area</th><th>What It Is Doing</th><th>Risk</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>pi-mono/packages/ai/src/models.generated.ts</code></td>
+          <td>Generated provider model registry refresh: model IDs, pricing, cache costs, context windows.</td>
+          <td class="warn">May change routing and pricing behavior.</td>
+          <td>Regenerate deterministically and commit separately.</td>
+        </tr>
+        <tr>
+          <td><code>.gemini/**</code></td>
+          <td>Mass Gemini mirror rewrite; samples replace Gemini wording with Claude references.</td>
+          <td class="risk">High identity drift risk.</td>
+          <td>Repair Gemini semantics before any commit.</td>
+        </tr>
+        <tr>
+          <td><code>lib/cepaf_gleam/**</code></td>
+          <td>Vault/IAM/FerrisKey feature work: MCP tools, secret API, Wisp routes, UI, tests, NIF/FFI.</td>
+          <td class="risk">Security-critical runtime and secret paths.</td>
+          <td>Split into reviewed feature slices with secret scans.</td>
+        </tr>
+        <tr>
+          <td><code>docs/journal/monitor/**</code>, logs, DB sidecars</td>
+          <td>Runtime status, SLO state, logs, screenshots, generated operational artifacts.</td>
+          <td class="warn">Mostly environment-specific/generated.</td>
+          <td>Commit only curated artifacts; ignore or clean sidecars.</td>
+        </tr>
+        <tr>
+          <td><code>sub-projects/c3i</code></td>
+          <td>Nested repo with vault CLI/actions, AES-GCM/zeroize, audit, workers, Elixir AI/KMS changes.</td>
+          <td class="risk">Independent repo + Rust fp-core compliance needed.</td>
+          <td>Audit and commit nested repo independently.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Verification Evidence</h2>
+    <ul>
+      <li><code>npm run check</code> passed in pi-mono after Effect refactor.</li>
+      <li>Pi-mono commit hooks passed formatting, lint, typecheck, and browser smoke checks.</li>
+      <li>C3I root pre-commit passed Pi constants drift guard and vault secret scan.</li>
+      <li><code>jq empty</code> passed for Claude, Gemini, .agents, and pi-mono hook JSON.</li>
+      <li>No pi-mono TypeScript <code>fp-ts</code>, <code>TaskEither</code>, or <code>ReaderTaskEither</code> references remain under packages.</li>
+      <li>Durable <code>sa-plan ingest-docs</code> completed: 7,312 files processed, 66 holons created, 823 STAMP refs found, 0 errors, 37,636 total holons in KMS.</li>
+      <li>Current pass records planner and route checks as unavailable rather than claiming fresh live links.</li>
+      <li>Second pass adds dedicated link-validation and task-management integration references to prevent future ambiguous handoffs.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Risk Register</h2>
+    <div class="callout critical">
+      <strong>Highest-risk item:</strong> Gemini files currently contain Claude-oriented text in sampled diffs. Treat this as a semantic mirror bug until proven intentional.
+    </div>
+    <div class="callout">
+      <strong>Second-risk item:</strong> nested Rust vault work must pass the new <code>fp-core = "0.1.9"</code> mandate before any Rust commit.
+    </div>
+  </section>
+
+  <section>
+    <h2>Recommended Next Passes</h2>
+    <ol>
+      <li>Validate and commit generated pi-mono model registry separately.</li>
+      <li>Repair Gemini mirror identity drift.</li>
+      <li>Slice vault/IAM/FerrisKey work into security-reviewed commits.</li>
+      <li>Run nested C3I daemon fp-core compliance pass before Rust commit.</li>
+      <li>Clean or ignore runtime logs, DB sidecars, and generated temporary artifacts.</li>
+    </ol>
+  </section>
+
+  <footer>
+    Generated as the HTML companion to <code>20260510-functional-runtime-governance-dirty-worktree-audit-journal.md</code>.
+  </footer>
+</main>
+</body>
+</html>
