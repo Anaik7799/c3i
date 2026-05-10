@@ -48,7 +48,7 @@ pub fn every_role_has_mapping_test() {
 
 pub fn no_role_maps_to_empty_layer_set_test() {
   canonical_role_layer_map()
-  |> list.all(fn(pair) { list.length(pair.1) > 0 })
+  |> list.all(fn(pair) { pair.1 != [] })
   |> should.be_true()
 }
 

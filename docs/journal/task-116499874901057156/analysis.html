@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FP-Rust Stack Adoption Analysis — Task 116499874901057156</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --card: #141922;
+    --text: #e0e6ed;
+    --accent: #00d4aa;
+    --p0: #ff4757;
+    --p1: #ffa502;
+    --p2: #2ed573;
+    --muted: #7a8fa6;
+    --border: #1e2a3a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  code, pre {
+    font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+    font-size: 13px;
+  }
+  .tailscale {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--accent);
+    word-break: break-all;
+  }
+  h1 { color: var(--accent); margin-top: 0; font-size: 24px; }
+  h2 { color: var(--accent); margin-top: 28px; border-bottom: 1px solid var(--border); padding-bottom: 6px; font-size: 18px; }
+  h3 { color: var(--text); margin-top: 18px; font-size: 15px; }
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 10px 0;
+    font-size: 13px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #1a2030; color: var(--accent); font-weight: 600; }
+  tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  code {
+    background: rgba(0, 212, 170, 0.08);
+    color: var(--accent);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  pre {
+    background: #0d1320;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 12px;
+    overflow-x: auto;
+  }
+  pre code { background: none; color: var(--text); padding: 0; }
+  .p0 { color: var(--p0); font-weight: 600; }
+  .p1 { color: var(--p1); font-weight: 600; }
+  .p2 { color: var(--p2); font-weight: 600; }
+  .muted { color: var(--muted); }
+  .grid-fractal {
+    display: grid;
+    grid-template-columns: 60px repeat(12, 1fr);
+    gap: 2px;
+    margin: 12px 0;
+    font-size: 11px;
+  }
+  .grid-fractal .label { color: var(--muted); padding: 4px; text-align: right; }
+  .grid-fractal .cell {
+    padding: 4px;
+    text-align: center;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .star { background: #00d4aa; color: #0a0e17; }
+  .full { background: #2ed573; color: #0a0e17; }
+  .partial { background: #ffa502; color: #0a0e17; }
+  .none { background: #1e2a3a; color: var(--muted); }
+  .no { background: #ff4757; color: var(--text); }
+  footer {
+    margin-top: 32px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+  }
+  @media (min-width: 768px) { body { padding: 24px; max-width: 1100px; margin: 0 auto; } }
+  @media (min-width: 1024px) { body { padding: 32px; } }
+  @media (min-width: 1400px) { body { max-width: 1280px; } }
+  @media print {
+    body { background: white; color: black; max-width: none; }
+    .panel, table, pre { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="tailscale">Tailscale: https://vm-1.tail55d152.ts.net:4200/task-id/116499874901057156/analysis.html</div>
+
+<h1>FP-Rust Stack Adoption Analysis</h1>
+<p class="muted">Task urn:c3i:task:misc:116499874901057156 — 2026-05-01</p>
+
+<h2>1. Executive Summary</h2>
+<div class="panel">
+<p><code>fp-core.rs</code> is dead (last release 2019). Replaced with a 12-library FP stack:
+<code>frunk</code>, <code>rpds+archery</code>, <code>winnow</code>, <code>tower</code>, <code>derive_more</code>,
+<code>nutype</code>, <code>recursion</code>, <code>proptest</code>, <code>kani-verifier</code>,
+<code>itertools</code>, <code>rayon</code>, <code>either</code>. New constraint family
+<strong>SC-FP-RUST-001..020</strong> + <strong>AOR-FP-RUST-001..015</strong>.
+12 mathematical KPIs (FP-1..FP-12) with composite <code>FP_TOTAL</code> /
+<code>FP_VAULT</code> / <code>FP_HOTPATH</code> / <code>FP_DRIFT</code> scores. 5-pass adoption sequence
+covers planning_daemon (full stack), c3i_nif (sync subset), rusty_vault_nif (proof-only subset),
+scripts_nif (lightweight subset).</p>
+</div>
+
+<h2>2. The 12-Library Stack</h2>
+<table>
+<thead><tr><th>Library</th><th>Version</th><th>What it gives</th><th>Where it lands in C3I</th></tr></thead>
+<tbody>
+<tr><td><code>frunk</code></td><td>0.4.x</td><td>HList, Coproduct, Validated, Generic</td><td>planning_daemon ingest validators, cortex tier dispatch</td></tr>
+<tr><td><code>rpds</code> + <code>archery</code></td><td>1.x / 1.x</td><td>Persistent HashTrieMap/List/Vec; Arc/Rc abstraction</td><td>ConversationHistory, semantic-cache snapshots, OODA state</td></tr>
+<tr><td><code>winnow</code></td><td>0.6.x</td><td>Streaming combinator parser</td><td>PROJECT_TODOLIST.md round-trip, markdown intent extractor</td></tr>
+<tr><td><code>tower</code></td><td>0.5.x</td><td>Service/Layer abstraction (req → fut → resp)</td><td>Cortex hedged inference cascade, gateway fan-out, retry/CB layers</td></tr>
+<tr><td><code>derive_more</code></td><td>1.x</td><td>Display/From/Into/AsRef/Add for newtypes</td><td>TaskUrn, RunId, ProcUrn, planning_daemon types.rs</td></tr>
+<tr><td><code>nutype</code></td><td>0.5.x</td><td>Refined types with validators</td><td>Priority, Status, OodaPhase, all SC-VALUE-GUARD enums</td></tr>
+<tr><td><code>recursion</code></td><td>0.5.x</td><td>Stack-safe Collapsible / Expandable</td><td>ruliology causal graph, FMEA fault tree</td></tr>
+<tr><td><code>proptest</code></td><td>1.x</td><td>Quantified property tests + shrinking</td><td>pii.rs, vault sealed invariant, dispatcher registry</td></tr>
+<tr><td><code>kani-verifier</code></td><td>0.55.x</td><td>Bounded model-check (CBMC backend)</td><td>rusty_vault_nif sealed-at-boot proof, fail-safe paths</td></tr>
+<tr><td><code>itertools</code></td><td>0.13.x</td><td>Lazy iterator combinators (cartesian_product, group_by, dedup)</td><td>simulator.rs (400 scenarios), telemetry rollups</td></tr>
+<tr><td><code>rayon</code></td><td>1.10.x</td><td>Data-parallel iteration (offline only)</td><td>fixture regen, batch ingestion, build-time only</td></tr>
+<tr><td><code>either</code></td><td>1.13.x</td><td>Either&lt;L,R&gt; with iterator-friendly impls</td><td>cache hit vs fresh inference, Smriti vs Zenoh fallback</td></tr>
+</tbody>
+</table>
+
+<h2>3. Confirmed Gaps (DO NOT author replacements)</h2>
+<div class="panel">
+<p>The Rust ecosystem has <strong>no production-grade equivalents</strong> for:</p>
+<ul>
+<li><strong>Optics (lens/prism/traversal)</strong> — only experimental crates; pattern-match + struct-update is acceptable.</li>
+<li><strong>Algebraic effects</strong> — no <code>Eff</code>-style; use <code>tower::Layer</code> for cross-cutting.</li>
+<li><strong>Software Transactional Memory</strong> — no <code>stm</code>; use <code>rpds</code> + atomic swap.</li>
+<li><strong>Free monads / tagless final</strong> — type system can't express; use traits + <code>tower::Service</code>.</li>
+</ul>
+<p class="p1">Authoring our own replacements is FORBIDDEN. Workarounds above are the canonical paths.</p>
+</div>
+
+<h2>4. The 12 KPIs</h2>
+<table>
+<thead><tr><th>ID</th><th>KPI</th><th>Formula</th><th>Threshold</th><th>Surface</th><th>Library</th></tr></thead>
+<tbody>
+<tr><td>FP-1</td><td>Pure-fn ratio</td><td>pure_fns / total_fns</td><td>≥ 0.55</td><td>planning_daemon</td><td>—</td></tr>
+<tr><td>FP-2</td><td>Refined-newtype coverage</td><td>refined / value_domain_fields</td><td>≥ 0.90</td><td>all crates</td><td><code>nutype</code></td></tr>
+<tr><td>FP-3</td><td>Newtype derive density</td><td>derive_more_uses / pub_struct_count</td><td>≥ 0.40</td><td>all crates</td><td><code>derive_more</code></td></tr>
+<tr><td>FP-4</td><td>Validated multi-error use</td><td>validated_call_sites / multi_err_sites</td><td>≥ 0.70</td><td>ingest paths</td><td><code>frunk::Validated</code></td></tr>
+<tr><td>FP-5</td><td>Persistent state ratio</td><td>rpds_state / long_lived_state</td><td>≥ 0.50</td><td>cortex, vault</td><td><code>rpds</code></td></tr>
+<tr><td>FP-6</td><td>Service-shaped ops</td><td>tower_services / async_ops</td><td>≥ 0.60</td><td>cortex, gateway</td><td><code>tower</code></td></tr>
+<tr><td>FP-7</td><td>Combinator parsers</td><td>winnow_parsers / hand_parsers</td><td>≥ 0.80</td><td>todolist, markdown</td><td><code>winnow</code></td></tr>
+<tr><td>FP-8</td><td>Stack-safe recursion</td><td>recursion_uses / recursive_fns</td><td>≥ 0.70</td><td>ruliology, FMEA</td><td><code>recursion</code></td></tr>
+<tr><td>FP-9</td><td>Hot-path alloc delta</td><td>(allocs_now − allocs_baseline)/baseline</td><td>≤ +0.20</td><td>cortex hot path</td><td>—</td></tr>
+<tr><td>FP-10</td><td>Property-test density</td><td>proptest_props / pub_pure_fns</td><td>≥ 0.30</td><td>safety-critical</td><td><code>proptest</code></td></tr>
+<tr><td>FP-11</td><td>Bounded-proof coverage</td><td>kani_harnesses / fail_safe_paths</td><td>≥ 0.60</td><td>vault NIF</td><td><code>kani</code></td></tr>
+<tr><td>FP-12</td><td>Either fan-in usage</td><td>either_returns / dual_path_returns</td><td>≥ 0.50</td><td>cortex, fallback</td><td><code>either</code></td></tr>
+</tbody>
+</table>
+
+<h2>5. Composite KPIs</h2>
+<table>
+<thead><tr><th>Composite</th><th>Formula</th><th>Threshold</th></tr></thead>
+<tbody>
+<tr><td><code>FP_TOTAL</code></td><td>weighted mean of FP-1..FP-12 across full codebase</td><td>≥ 0.80</td></tr>
+<tr><td><code>FP_VAULT</code></td><td>FP-2, FP-3, FP-10, FP-11 over rusty_vault_nif</td><td>≥ 0.90</td></tr>
+<tr><td><code>FP_HOTPATH</code></td><td>FP-5, FP-6, FP-9, FP-12 over cortex hot path</td><td>≥ 0.75</td></tr>
+<tr><td><code>FP_DRIFT</code></td><td>λ = (FP_TOTAL[t] − FP_TOTAL[t−3]) / 3</td><td>≥ 0</td></tr>
+</tbody>
+</table>
+
+<h2>6. Fractal × Library Coverage Matrix</h2>
+<p class="muted">Legend: ★ primary | ● full | ○ partial | — N/A | ✗ forbidden</p>
+
+<svg viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;background:#0d1320;border:1px solid var(--border);border-radius:6px;">
+  <style>
+    .lay { fill: #7a8fa6; font: 11px monospace; }
+    .lib { fill: #7a8fa6; font: 9px monospace; }
+    .star { fill: #00d4aa; }
+    .full { fill: #2ed573; }
+    .partial { fill: #ffa502; }
+    .none { fill: #1e2a3a; }
+    .no { fill: #ff4757; }
+    .cell-text { font: 10px monospace; fill: #0a0e17; text-anchor: middle; font-weight: 700; }
+  </style>
+  <!-- Library headers -->
+  <text x="60" y="14" class="lib">frunk</text>
+  <text x="115" y="14" class="lib">rpds</text>
+  <text x="170" y="14" class="lib">winnow</text>
+  <text x="225" y="14" class="lib">tower</text>
+  <text x="280" y="14" class="lib">deriv_m</text>
+  <text x="335" y="14" class="lib">nutype</text>
+  <text x="390" y="14" class="lib">recurs</text>
+  <text x="445" y="14" class="lib">proptst</text>
+  <text x="500" y="14" class="lib">kani</text>
+  <text x="555" y="14" class="lib">itertls</text>
+  <text x="610" y="14" class="lib">rayon</text>
+  <text x="665" y="14" class="lib">either</text>
+
+  <!-- L0 -->
+  <text x="0" y="40" class="lay">L0</text>
+  <rect x="55" y="22" width="50" height="22" class="none"/><text x="80" y="37" class="cell-text">—</text>
+  <rect x="110" y="22" width="50" height="22" class="full"/><text x="135" y="37" class="cell-text">●</text>
+  <rect x="165" y="22" width="50" height="22" class="none"/><text x="190" y="37" class="cell-text">—</text>
+  <rect x="220" y="22" width="50" height="22" class="none"/><text x="245" y="37" class="cell-text">—</text>
+  <rect x="275" y="22" width="50" height="22" class="full"/><text x="300" y="37" class="cell-text">●</text>
+  <rect x="330" y="22" width="50" height="22" class="star"/><text x="355" y="37" class="cell-text">★</text>
+  <rect x="385" y="22" width="50" height="22" class="none"/><text x="410" y="37" class="cell-text">—</text>
+  <rect x="440" y="22" width="50" height="22" class="full"/><text x="465" y="37" class="cell-text">●</text>
+  <rect x="495" y="22" width="50" height="22" class="star"/><text x="520" y="37" class="cell-text">★</text>
+  <rect x="550" y="22" width="50" height="22" class="none"/><text x="575" y="37" class="cell-text">—</text>
+  <rect x="605" y="22" width="50" height="22" class="no"/><text x="630" y="37" class="cell-text">✗</text>
+  <rect x="660" y="22" width="50" height="22" class="partial"/><text x="685" y="37" class="cell-text">○</text>
+
+  <!-- L1 -->
+  <text x="0" y="68" class="lay">L1</text>
+  <rect x="55" y="50" width="50" height="22" class="partial"/><text x="80" y="65" class="cell-text">○</text>
+  <rect x="110" y="50" width="50" height="22" class="none"/><text x="135" y="65" class="cell-text">—</text>
+  <rect x="165" y="50" width="50" height="22" class="none"/><text x="190" y="65" class="cell-text">—</text>
+  <rect x="220" y="50" width="50" height="22" class="no"/><text x="245" y="65" class="cell-text">✗</text>
+  <rect x="275" y="50" width="50" height="22" class="star"/><text x="300" y="65" class="cell-text">★</text>
+  <rect x="330" y="50" width="50" height="22" class="full"/><text x="355" y="65" class="cell-text">●</text>
+  <rect x="385" y="50" width="50" height="22" class="none"/><text x="410" y="65" class="cell-text">—</text>
+  <rect x="440" y="50" width="50" height="22" class="full"/><text x="465" y="65" class="cell-text">●</text>
+  <rect x="495" y="50" width="50" height="22" class="none"/><text x="520" y="65" class="cell-text">—</text>
+  <rect x="550" y="50" width="50" height="22" class="full"/><text x="575" y="65" class="cell-text">●</text>
+  <rect x="605" y="50" width="50" height="22" class="no"/><text x="630" y="65" class="cell-text">✗</text>
+  <rect x="660" y="50" width="50" height="22" class="full"/><text x="685" y="65" class="cell-text">●</text>
+
+  <!-- L2 -->
+  <text x="0" y="96" class="lay">L2</text>
+  <rect x="55" y="78" width="50" height="22" class="full"/><text x="80" y="93" class="cell-text">●</text>
+  <rect x="110" y="78" width="50" height="22" class="partial"/><text x="135" y="93" class="cell-text">○</text>
+  <rect x="165" y="78" width="50" height="22" class="full"/><text x="190" y="93" class="cell-text">●</text>
+  <rect x="220" y="78" width="50" height="22" class="partial"/><text x="245" y="93" class="cell-text">○</text>
+  <rect x="275" y="78" width="50" height="22" class="star"/><text x="300" y="93" class="cell-text">★</text>
+  <rect x="330" y="78" width="50" height="22" class="star"/><text x="355" y="93" class="cell-text">★</text>
+  <rect x="385" y="78" width="50" height="22" class="partial"/><text x="410" y="93" class="cell-text">○</text>
+  <rect x="440" y="78" width="50" height="22" class="full"/><text x="465" y="93" class="cell-text">●</text>
+  <rect x="495" y="78" width="50" height="22" class="partial"/><text x="520" y="93" class="cell-text">○</text>
+  <rect x="550" y="78" width="50" height="22" class="full"/><text x="575" y="93" class="cell-text">●</text>
+  <rect x="605" y="78" width="50" height="22" class="none"/><text x="630" y="93" class="cell-text">—</text>
+  <rect x="660" y="78" width="50" height="22" class="full"/><text x="685" y="93" class="cell-text">●</text>
+
+  <!-- L3 -->
+  <text x="0" y="124" class="lay">L3</text>
+  <rect x="55" y="106" width="50" height="22" class="star"/><text x="80" y="121" class="cell-text">★</text>
+  <rect x="110" y="106" width="50" height="22" class="full"/><text x="135" y="121" class="cell-text">●</text>
+  <rect x="165" y="106" width="50" height="22" class="star"/><text x="190" y="121" class="cell-text">★</text>
+  <rect x="220" y="106" width="50" height="22" class="full"/><text x="245" y="121" class="cell-text">●</text>
+  <rect x="275" y="106" width="50" height="22" class="star"/><text x="300" y="121" class="cell-text">★</text>
+  <rect x="330" y="106" width="50" height="22" class="star"/><text x="355" y="121" class="cell-text">★</text>
+  <rect x="385" y="106" width="50" height="22" class="partial"/><text x="410" y="121" class="cell-text">○</text>
+  <rect x="440" y="106" width="50" height="22" class="full"/><text x="465" y="121" class="cell-text">●</text>
+  <rect x="495" y="106" width="50" height="22" class="none"/><text x="520" y="121" class="cell-text">—</text>
+  <rect x="550" y="106" width="50" height="22" class="star"/><text x="575" y="121" class="cell-text">★</text>
+  <rect x="605" y="106" width="50" height="22" class="partial"/><text x="630" y="121" class="cell-text">○</text>
+  <rect x="660" y="106" width="50" height="22" class="star"/><text x="685" y="121" class="cell-text">★</text>
+
+  <!-- L4 -->
+  <text x="0" y="152" class="lay">L4</text>
+  <rect x="55" y="134" width="50" height="22" class="full"/><text x="80" y="149" class="cell-text">●</text>
+  <rect x="110" y="134" width="50" height="22" class="full"/><text x="135" y="149" class="cell-text">●</text>
+  <rect x="165" y="134" width="50" height="22" class="partial"/><text x="190" y="149" class="cell-text">○</text>
+  <rect x="220" y="134" width="50" height="22" class="star"/><text x="245" y="149" class="cell-text">★</text>
+  <rect x="275" y="134" width="50" height="22" class="full"/><text x="300" y="149" class="cell-text">●</text>
+  <rect x="330" y="134" width="50" height="22" class="full"/><text x="355" y="149" class="cell-text">●</text>
+  <rect x="385" y="134" width="50" height="22" class="none"/><text x="410" y="149" class="cell-text">—</text>
+  <rect x="440" y="134" width="50" height="22" class="full"/><text x="465" y="149" class="cell-text">●</text>
+  <rect x="495" y="134" width="50" height="22" class="none"/><text x="520" y="149" class="cell-text">—</text>
+  <rect x="550" y="134" width="50" height="22" class="full"/><text x="575" y="149" class="cell-text">●</text>
+  <rect x="605" y="134" width="50" height="22" class="full"/><text x="630" y="149" class="cell-text">●</text>
+  <rect x="660" y="134" width="50" height="22" class="full"/><text x="685" y="149" class="cell-text">●</text>
+
+  <!-- L5 -->
+  <text x="0" y="180" class="lay">L5</text>
+  <rect x="55" y="162" width="50" height="22" class="star"/><text x="80" y="177" class="cell-text">★</text>
+  <rect x="110" y="162" width="50" height="22" class="star"/><text x="135" y="177" class="cell-text">★</text>
+  <rect x="165" y="162" width="50" height="22" class="partial"/><text x="190" y="177" class="cell-text">○</text>
+  <rect x="220" y="162" width="50" height="22" class="star"/><text x="245" y="177" class="cell-text">★</text>
+  <rect x="275" y="162" width="50" height="22" class="full"/><text x="300" y="177" class="cell-text">●</text>
+  <rect x="330" y="162" width="50" height="22" class="full"/><text x="355" y="177" class="cell-text">●</text>
+  <rect x="385" y="162" width="50" height="22" class="star"/><text x="410" y="177" class="cell-text">★</text>
+  <rect x="440" y="162" width="50" height="22" class="full"/><text x="465" y="177" class="cell-text">●</text>
+  <rect x="495" y="162" width="50" height="22" class="none"/><text x="520" y="177" class="cell-text">—</text>
+  <rect x="550" y="162" width="50" height="22" class="star"/><text x="575" y="177" class="cell-text">★</text>
+  <rect x="605" y="162" width="50" height="22" class="partial"/><text x="630" y="177" class="cell-text">○</text>
+  <rect x="660" y="162" width="50" height="22" class="star"/><text x="685" y="177" class="cell-text">★</text>
+
+  <!-- L6 -->
+  <text x="0" y="208" class="lay">L6</text>
+  <rect x="55" y="190" width="50" height="22" class="partial"/><text x="80" y="205" class="cell-text">○</text>
+  <rect x="110" y="190" width="50" height="22" class="full"/><text x="135" y="205" class="cell-text">●</text>
+  <rect x="165" y="190" width="50" height="22" class="partial"/><text x="190" y="205" class="cell-text">○</text>
+  <rect x="220" y="190" width="50" height="22" class="star"/><text x="245" y="205" class="cell-text">★</text>
+  <rect x="275" y="190" width="50" height="22" class="full"/><text x="300" y="205" class="cell-text">●</text>
+  <rect x="330" y="190" width="50" height="22" class="full"/><text x="355" y="205" class="cell-text">●</text>
+  <rect x="385" y="190" width="50" height="22" class="none"/><text x="410" y="205" class="cell-text">—</text>
+  <rect x="440" y="190" width="50" height="22" class="partial"/><text x="465" y="205" class="cell-text">○</text>
+  <rect x="495" y="190" width="50" height="22" class="none"/><text x="520" y="205" class="cell-text">—</text>
+  <rect x="550" y="190" width="50" height="22" class="full"/><text x="575" y="205" class="cell-text">●</text>
+  <rect x="605" y="190" width="50" height="22" class="partial"/><text x="630" y="205" class="cell-text">○</text>
+  <rect x="660" y="190" width="50" height="22" class="full"/><text x="685" y="205" class="cell-text">●</text>
+
+  <!-- L7 -->
+  <text x="0" y="236" class="lay">L7</text>
+  <rect x="55" y="218" width="50" height="22" class="full"/><text x="80" y="233" class="cell-text">●</text>
+  <rect x="110" y="218" width="50" height="22" class="full"/><text x="135" y="233" class="cell-text">●</text>
+  <rect x="165" y="218" width="50" height="22" class="partial"/><text x="190" y="233" class="cell-text">○</text>
+  <rect x="220" y="218" width="50" height="22" class="full"/><text x="245" y="233" class="cell-text">●</text>
+  <rect x="275" y="218" width="50" height="22" class="full"/><text x="300" y="233" class="cell-text">●</text>
+  <rect x="330" y="218" width="50" height="22" class="full"/><text x="355" y="233" class="cell-text">●</text>
+  <rect x="385" y="218" width="50" height="22" class="none"/><text x="410" y="233" class="cell-text">—</text>
+  <rect x="440" y="218" width="50" height="22" class="full"/><text x="465" y="233" class="cell-text">●</text>
+  <rect x="495" y="218" width="50" height="22" class="none"/><text x="520" y="233" class="cell-text">—</text>
+  <rect x="550" y="218" width="50" height="22" class="full"/><text x="575" y="233" class="cell-text">●</text>
+  <rect x="605" y="218" width="50" height="22" class="partial"/><text x="630" y="233" class="cell-text">○</text>
+  <rect x="660" y="218" width="50" height="22" class="full"/><text x="685" y="233" class="cell-text">●</text>
+</svg>
+
+<h2>7. VSM Mapping</h2>
+<table>
+<thead><tr><th>VSM</th><th>Function</th><th>Primary FP libraries</th></tr></thead>
+<tbody>
+<tr><td>S1 Operations</td><td>primary activities</td><td><code>itertools</code>, <code>either</code>, <code>derive_more</code></td></tr>
+<tr><td>S2 Coordination</td><td>conflict resolution</td><td><code>tower</code>, <code>frunk::Coproduct</code></td></tr>
+<tr><td>S3 Control</td><td>resource allocation</td><td><code>rpds</code>, <code>nutype</code></td></tr>
+<tr><td>S4 Intelligence</td><td>adaptation</td><td><code>winnow</code>, <code>recursion</code></td></tr>
+<tr><td>S5 Policy</td><td>identity / direction</td><td><code>kani</code>, <code>proptest</code>, <code>nutype</code></td></tr>
+<tr><td>S6 Recursion</td><td>fractal self-similarity (L0..L7)</td><td>full stack composes per layer</td></tr>
+</tbody>
+</table>
+
+<h2>8. RETE-UL Domain 14 — fp_discipline rules</h2>
+<table>
+<thead><tr><th>Rule</th><th>Salience</th><th>When</th><th>Then</th></tr></thead>
+<tbody>
+<tr><td><code>FpVaultBelowFloor</code></td><td>100</td><td>FP_VAULT &lt; 0.75</td><td><span class="p0">P0</span> block release; open RCA task</td></tr>
+<tr><td><code>FpTotalRedline</code></td><td>95</td><td>FP_TOTAL &lt; 0.65</td><td><span class="p0">P0</span> halt new feature commits</td></tr>
+<tr><td><code>FpHotpathAllocSpike</code></td><td>90</td><td>FP-9 &gt; +0.20</td><td><span class="p1">P1</span> bench bisect; revert candidate</td></tr>
+<tr><td><code>FpDriftNegative</code></td><td>85</td><td>λ &lt; 0 over 3 passes</td><td><span class="p1">P1</span> halt feature; force discipline pass</td></tr>
+<tr><td><code>FpProptestMissing</code></td><td>80</td><td>new pub fn in safety-critical mod &amp;&amp; FP-10 &lt; 0.30</td><td><span class="p1">P1</span> require proptest before merge</td></tr>
+<tr><td><code>FpRefinedTypeMissing</code></td><td>70</td><td>new value-domain field &amp;&amp; not nutype</td><td><span class="p2">P2</span> warn; suggest <code>nutype</code> wrap</td></tr>
+</tbody>
+</table>
+
+<h2>9. FMEA — Top Rows</h2>
+<table>
+<thead><tr><th>Failure mode</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Mitigation</th></tr></thead>
+<tbody>
+<tr><td>rayon used inside tokio runtime → BEAM thread starvation</td><td>9</td><td>4</td><td>7</td><td class="p0">252</td><td>SC-FP-RUST-009 ban; cargo-deny rule on tokio crates</td></tr>
+<tr><td>nutype validator silently accepts via direct field construction</td><td>8</td><td>5</td><td>6</td><td class="p0">240</td><td><code>#[nutype(derive_unsafe = false)]</code>; lint pass</td></tr>
+<tr><td>kani harness drift after fail-safe path edit</td><td>9</td><td>3</td><td>8</td><td class="p0">216</td><td>weekly cron <code>cargo kani</code>; FP-11 gate</td></tr>
+<tr><td>proptest shrinking masks heisenbug</td><td>7</td><td>4</td><td>7</td><td>196</td><td>capture seeds; replay on CI</td></tr>
+<tr><td>tower Layer ordering swapped (timeout outside retry)</td><td>7</td><td>4</td><td>6</td><td>168</td><td>canonical stack in cortex.rs; doc comment</td></tr>
+<tr><td>rpds Arc cycle leak</td><td>6</td><td>3</td><td>7</td><td>126</td><td>archery weak refs; valgrind on bench</td></tr>
+<tr><td>winnow grammar regression on PROJECT_TODOLIST.md</td><td>6</td><td>3</td><td>5</td><td>90</td><td>round-trip proptest</td></tr>
+<tr><td>derive_more Display impl leaks PII</td><td>8</td><td>2</td><td>4</td><td>64</td><td>SC-SEC-003 + pii.rs scrubber</td></tr>
+</tbody>
+</table>
+<p class="muted">Action threshold: RPN ≥ 200 → immediate. 3 rows above threshold; all mitigated by SC-FP-RUST and cargo-deny gates.</p>
+
+<h2>10. Pass-1..5 Sequencing</h2>
+<table>
+<thead><tr><th>Pass</th><th>Scope</th><th>Libraries introduced</th><th>KPI delta</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>planning_daemon types.rs</td><td><code>derive_more</code>, <code>nutype</code>, <code>either</code></td><td>FP-2 +0.50, FP-3 +0.30, FP-12 +0.30</td></tr>
+<tr><td>2</td><td>planning_daemon ingest + cortex</td><td><code>frunk</code>, <code>itertools</code>, <code>winnow</code></td><td>FP-1 +0.10, FP-4 +0.40, FP-7 +0.50</td></tr>
+<tr><td>3</td><td>cortex hot path</td><td><code>tower</code>, <code>rpds</code></td><td>FP-5 +0.40, FP-6 +0.45, FP-9 stable</td></tr>
+<tr><td>4</td><td>rusty_vault_nif</td><td><code>proptest</code>, <code>kani-verifier</code></td><td>FP-10 +0.25, FP-11 +0.50, FP_VAULT 0.92</td></tr>
+<tr><td>5</td><td>ruliology + fixture regen</td><td><code>recursion</code>, <code>rayon</code></td><td>FP-8 +0.50, build time −35%</td></tr>
+</tbody>
+</table>
+
+<h2>11. Vault Attack-Surface Budget</h2>
+<div class="panel">
+<p>Per <strong>SC-VAULT-CRYPTO-001</strong> + <strong>SC-FP-RUST-014</strong>:
+<code>rusty_vault_nif</code> is allowed <strong>only 4</strong> FP libraries:</p>
+<ul>
+<li><code>derive_more</code> — newtype wrappers (no Display on secret bytes)</li>
+<li><code>nutype</code> — refined types for KEK chain inputs</li>
+<li><code>proptest</code> — sealed-state property tests</li>
+<li><code>kani-verifier</code> — bounded proof of <code>Sealed → ¬PlaintextAccessible</code></li>
+</ul>
+<p class="p0">FORBIDDEN in vault: <code>tower</code>, <code>rayon</code>, <code>winnow</code>, <code>recursion</code>, <code>rpds</code>, <code>frunk</code>, <code>itertools</code>, <code>either</code>.
+Each FP-VAULT crate audited via <code>cargo tree</code> — no transitive bring-in of forbidden deps.</p>
+</div>
+
+<h2>12. OODA-as-Tower Service Stack</h2>
+<svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;background:#0d1320;border:1px solid var(--border);border-radius:6px;">
+  <style>
+    .layer-box { fill: #141922; stroke: #00d4aa; stroke-width: 1.5; }
+    .core-box { fill: #1a2030; stroke: #ffa502; stroke-width: 2; }
+    .layer-text { fill: #e0e6ed; font: 12px monospace; text-anchor: middle; }
+    .arrow { stroke: #00d4aa; stroke-width: 1.5; fill: none; marker-end: url(#arr); }
+  </style>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#00d4aa"/>
+    </marker>
+  </defs>
+  <text x="400" y="20" class="layer-text" style="fill:#00d4aa;font-size:14px;">Cortex hedged inference cascade — tower::Service stack</text>
+  <rect x="40"  y="40"  width="120" height="40" class="layer-box"/>
+  <text x="100" y="65" class="layer-text">Observe</text>
+  <rect x="40"  y="90"  width="120" height="30" class="layer-box"/>
+  <text x="100" y="110" class="layer-text">RateLimit</text>
+  <rect x="40"  y="130" width="120" height="30" class="layer-box"/>
+  <text x="100" y="150" class="layer-text">Timeout</text>
+  <rect x="40"  y="170" width="120" height="30" class="layer-box"/>
+  <text x="100" y="190" class="layer-text">CircuitBreak</text>
+
+  <rect x="200" y="40"  width="160" height="160" class="core-box"/>
+  <text x="280" y="70"  class="layer-text" style="font-size:13px;">Hedge Tier 1+2</text>
+  <text x="280" y="95"  class="layer-text">Gemini Direct</text>
+  <text x="280" y="115" class="layer-text">|| OpenRouter</text>
+  <text x="280" y="145" class="layer-text" style="fill:#7a8fa6;">tokio::join!</text>
+  <text x="280" y="175" class="layer-text" style="fill:#ffa502;font-size:11px;">first wins</text>
+
+  <rect x="400" y="40"  width="160" height="160" class="core-box"/>
+  <text x="480" y="70"  class="layer-text" style="font-size:13px;">Fallback Tiers</text>
+  <text x="480" y="95"  class="layer-text">3 mistral.rs</text>
+  <text x="480" y="115" class="layer-text">4 Ollama g4</text>
+  <text x="480" y="135" class="layer-text">5 Ollama g3</text>
+  <text x="480" y="155" class="layer-text">6 RETE-UL</text>
+  <text x="480" y="175" class="layer-text">7 static ack</text>
+
+  <rect x="600" y="40"  width="160" height="40" class="layer-box"/>
+  <text x="680" y="65" class="layer-text">PII scrub</text>
+  <rect x="600" y="90"  width="160" height="30" class="layer-box"/>
+  <text x="680" y="110" class="layer-text">Cache write</text>
+  <rect x="600" y="130" width="160" height="30" class="layer-box"/>
+  <text x="680" y="150" class="layer-text">OTel emit</text>
+  <rect x="600" y="170" width="160" height="30" class="layer-box"/>
+  <text x="680" y="190" class="layer-text">Gateway broadcast</text>
+
+  <path d="M160,60 L200,60" class="arrow"/>
+  <path d="M360,120 L400,120" class="arrow"/>
+  <path d="M560,120 L600,120" class="arrow"/>
+</svg>
+
+<h2>13. Constraint-Family Interactions</h2>
+<table>
+<thead><tr><th>Existing family</th><th>Strengthened by</th><th>Mechanism</th></tr></thead>
+<tbody>
+<tr><td>SC-VAULT-001..025</td><td>SC-FP-RUST-014</td><td>Vault crate budget shrinks attack surface</td></tr>
+<tr><td>SC-VALUE-GUARD-001..008</td><td>SC-FP-RUST-002 (FP-2)</td><td><code>nutype</code> makes invalid value-domain unrepresentable</td></tr>
+<tr><td>SC-WIRE-001..007</td><td>SC-FP-RUST-003 (FP-3)</td><td><code>derive_more</code> newtypes carry richer compile-time signal</td></tr>
+<tr><td>SC-CPIG-001..015</td><td>SC-FP-RUST family</td><td>Adds FP_VAULT/FP_TOTAL as new gate columns</td></tr>
+<tr><td>SC-MUDA-001</td><td>SC-FP-RUST-008 (FP-8)</td><td><code>recursion</code> eliminates ad-hoc trampolines (waste)</td></tr>
+</tbody>
+</table>
+
+<h2>14. Verification Pyramid Integration</h2>
+<table>
+<thead><tr><th>Layer</th><th>Tooling</th><th>FP library plug-in</th></tr></thead>
+<tbody>
+<tr><td>Unit (Gleam)</td><td>gleeunit</td><td>—</td></tr>
+<tr><td>Unit (Rust)</td><td>cargo test</td><td><code>derive_more</code> Eq/Hash; <code>nutype</code> validator tests</td></tr>
+<tr><td>Property</td><td>proptest</td><td><code>proptest</code>, <code>frunk::Validated</code> generators</td></tr>
+<tr><td>Bench / regression</td><td>criterion</td><td>FP-9 alloc tracker; <code>rayon</code> offline only</td></tr>
+<tr><td>Bounded model-check</td><td>kani</td><td><code>kani-verifier</code> harnesses on vault</td></tr>
+<tr><td>Symbolic / temporal</td><td>TLA+ (TLC, Apalache)</td><td>spec mirrors <code>nutype</code> domains</td></tr>
+<tr><td>Type-level proof</td><td>Agda</td><td>vault state machine encoded as refined sums</td></tr>
+<tr><td>Behavioural</td><td>Allium</td><td>contracts cite tower Service shapes</td></tr>
+</tbody>
+</table>
+
+<h2>15. Files Produced (this closure pack)</h2>
+<ul>
+<li><code>docs/journal/task-116499874901057156/analysis.html</code> — this file</li>
+<li><code>docs/journal/task-116499874901057156/user-guide.md</code> — agent how-to</li>
+<li><code>docs/journal/task-116499874901057156/way-of-working.md</code> — OODA + cadence</li>
+</ul>
+
+<footer>
+Generated 2026-05-01. Task urn:c3i:task:misc:116499874901057156. ZK ingestion: pending Stop hook. Email: pending sa-plan-daemon send-email.
+</footer>
+
+</body>
+</html>

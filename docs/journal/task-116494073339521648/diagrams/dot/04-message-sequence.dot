@@ -1,0 +1,37 @@
+digraph MessageSequence {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [fontname="Inter", fontcolor="#e0e6ed", color="#1e2a3a", style="filled", fillcolor="#141922", shape="box"];
+  edge [color="#7a8fa6", fontcolor="#3dd68c", fontname="Inter", fontsize=10];
+
+  op [label="Operator", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  cli [label="sa-plan vault put"];
+  daemon [label="sa-plan-daemon\n(Rust cortex)"];
+  beam [label="BEAM (cepaf_gleam)"];
+  vault_nif [label="rusty_vault_nif\n(Rustler dirty-IO)"];
+  rv [label="RustyVault\ncore::Core"];
+  storage [label="smriti_vault.db\n(SQLite WAL)"];
+  audit [label="smriti_vault_audit.log\n(append-only)"];
+  zenoh [label="Zenoh router\n:7447"];
+  sync_actor [label="vault_sync_actor\n(OTP gen_server)"];
+  gcp_sm [label="GCP Secret Manager\neurope-north1"];
+  gcp_kms [label="Cloud KMS CMEK\nc3i-secrets/secrets-cmek"];
+  audit_log [label="planning_daemon\naudit_log.rs\nimmutable register"];
+
+  op -> cli [label="1. put(name, value, policy)"];
+  cli -> daemon [label="2. CLI dispatch"];
+  daemon -> beam [label="3. invoke vault.put"];
+  beam -> vault_nif [label="4. NIF call\n(dirty-IO)"];
+  vault_nif -> rv [label="5. core::write_kv"];
+  rv -> storage [label="6. encrypt with master key\n7. INSERT version"];
+  rv -> audit [label="8. append audit"];
+  vault_nif -> zenoh [label="9. publish\nindrajaal/l0/secret/access/<name>"];
+  vault_nif -> beam [label="10. {:ok, version}", color="#3dd68c"];
+  beam -> cli [label="11. Result(VersionInfo)", color="#3dd68c"];
+  cli -> op [label="12. ok: v=N", color="#3dd68c"];
+
+  zenoh -> audit_log [label="13. tail subscribe", style=dashed];
+  zenoh -> sync_actor [label="14. notify (background)", style=dashed];
+  sync_actor -> gcp_sm [label="15. addVersion (later, +5min)", style=dashed, color="#f5a623"];
+  gcp_sm -> gcp_kms [label="16. CMEK encrypt", color="#f5a623"];
+}

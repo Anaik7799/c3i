@@ -21,25 +21,25 @@ import gleeunit/should
 
 pub fn reload_ok_carries_module_name_test() {
   let result = ReloadOk("cepaf_gleam@ha@hot_reload")
-  let assert ReloadOk(name) = result
+  let ReloadOk(name) = result
   name |> string.contains("hot_reload") |> should.be_true()
 }
 
 pub fn reload_fresh_load_carries_module_name_test() {
   let result = ReloadFreshLoad("cepaf_gleam@ha@freshness_monitor")
-  let assert ReloadFreshLoad(name) = result
+  let ReloadFreshLoad(name) = result
   name |> string.contains("freshness_monitor") |> should.be_true()
 }
 
 pub fn reload_changed_carries_bytecode_flag_test() {
   let result = ReloadChanged("some_module", True)
-  let assert ReloadChanged(_, changed) = result
+  let ReloadChanged(_, changed) = result
   changed |> should.be_true()
 }
 
 pub fn reload_error_carries_reason_test() {
   let result = ReloadError("module not found on code path")
-  let assert ReloadError(reason) = result
+  let ReloadError(reason) = result
   reason |> string.contains("not found") |> should.be_true()
 }
 

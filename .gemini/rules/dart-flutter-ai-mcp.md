@@ -1,4 +1,3 @@
-<!-- Mirror of .claude/rules/dart-flutter-ai-mcp.md; governance parity per SC-SYNC-DOC-007. -->
 # Dart + Flutter AI/MCP Integration (SC-DART-MCP)
 
 > Companion to `.claude/rules/marionette-mcp-flutter-testing.md` and `.claude/rules/patrol-mcp-zenoh.md`. Where those govern the *runtime UI* surface, this rule governs the *dev-tooling* MCP surface and the *in-app* AI toolkit. ZK refs: [zk-bb4de67d97f807ac], [zk-3e3c45be5cbff3ba], [zk-15fdb070d421e38b].

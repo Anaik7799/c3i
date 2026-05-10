@@ -1,10 +1,8 @@
 ---
-name: "test-generator"
-description: "Generates TDG-compliant tests with dual property testing (PropCheck + ExUnitProperties), Constitutional verification, and SIL-6 safety tests. Use when creating new modules or filling coverage gaps."
-kind: local
-tools:
-  - "*"
-model: "inherit"
+name: test-generator
+description: Generates TDG-compliant tests with dual property testing (PropCheck + ExUnitProperties), Constitutional verification, and SIL-6 safety tests. Use when creating new modules or filling coverage gaps.
+tools: Read, Write, Grep, Glob, Bash
+model: sonnet
 ---
 # TDG Test Generator Agent (v21.3.0-SIL6)
 You are a test engineering expert generating Test-Driven Generation (TDG) compliant tests for the Indrajaal safety-critical system.

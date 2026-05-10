@@ -378,5 +378,71 @@ pub fn get_tool_definitions() -> List(ToolDefinition) {
         #("properties", json.object([])),
       ]),
     ),
+    // ─── Secrets Vault (SC-VAULT-001..025, task 116494073339521648) ───
+    // Per ZK [zk-c065c63bc60c618a] MCP-via-Zenoh + [zk-5a9aa96b449baa7b] OODA-MCP-Zenoh
+    // Pass-8: vault tools registered for AI-agent discovery via MCP.
+    ToolDefinition(
+      name: "vault_status",
+      description: "Get secrets vault status: sealed/active state, last sync age, per-secret freshness counts (fresh/soft-stale/hard-stale), dashboard color (green/amber/red). Returns same shape as GET /api/v1/secret-status.",
+      input_schema: json.object([
+        #("type", json.string("object")),
+        #("properties", json.object([])),
+      ]),
+    ),
+    ToolDefinition(
+      name: "vault_list_secrets",
+      description: "List secret names + metadata (version, fetched_at, ttl_seconds, max_ttl_seconds, sensitivity L0/L3/L7) WITHOUT plaintext values. Safe for AI advisory.",
+      input_schema: json.object([
+        #("type", json.string("object")),
+        #("properties", json.object([])),
+      ]),
+    ),
+    ToolDefinition(
+      name: "vault_policy_get",
+      description: "Get policy for a named secret (TTL, MaxTTL, RotationDays, Sensitivity). Per SC-VAULT-013 — operator-tunable policy table.",
+      input_schema: json.object([
+        #("type", json.string("object")),
+        #(
+          "properties",
+          json.object([
+            #(
+              "name",
+              json.object([
+                #("type", json.string("string")),
+                #("description", json.string("Secret name (e.g., anthropic_api_key)")),
+              ]),
+            ),
+          ]),
+        ),
+        #("required", json.array(["name"], json.string)),
+      ]),
+    ),
+    ToolDefinition(
+      name: "vault_audit_tail",
+      description: "Read recent audit entries since timestamp (timestamps + operation + caller + result, NOT plaintext). For Cloud Audit reconciliation per SC-VAULT-016.",
+      input_schema: json.object([
+        #("type", json.string("object")),
+        #(
+          "properties",
+          json.object([
+            #(
+              "since_ts",
+              json.object([
+                #("type", json.string("integer")),
+                #("description", json.string("Unix seconds; 0 for full history")),
+              ]),
+            ),
+          ]),
+        ),
+      ]),
+    ),
+    ToolDefinition(
+      name: "vault_health",
+      description: "Composite vault health: SC-VAULT-CRYPTO-001 audit (Tongsuo absent), KEK chain status, audit log gap, sync circuit breaker state, formal-spec last-check timestamp. Maps to RETE-UL vault_integrity domain.",
+      input_schema: json.object([
+        #("type", json.string("object")),
+        #("properties", json.object([])),
+      ]),
+    ),
   ]
 }

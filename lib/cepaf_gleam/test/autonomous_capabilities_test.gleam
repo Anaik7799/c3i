@@ -150,7 +150,7 @@ pub fn all_7_subsystems_covered_test() {
   ]
   let all_covered =
     list.all(subsystems, fn(s) {
-      list.length(ac.by_subsystem(inv, s)) > 0
+      ac.by_subsystem(inv, s) != []
     })
   all_covered |> should.be_true()
 }
@@ -238,8 +238,4 @@ pub fn functional_plus_production_above_90pct_test() {
 pub fn missing_below_5_test() {
   let inv = ac.build_inventory()
   { inv.missing_count < 5 } |> should.be_true()
-}
-
-fn int_to_float(n: Int) -> Float {
-  int.to_float(n)
 }

@@ -250,10 +250,10 @@ cd lib/cepaf_gleam && gleam test     # Test
 
 # 17.0 Agentic UI Evolution Cross-References (v22.7.0-PLANNING)
 **NEW**: Every page MUST implement the full agentic responsive pattern. See:
-- **Master Prompt**: `.gemini/commands/c3i-page-evolution.md` — 8 phases, 15 verification checks
-- **Rule**: `.gemini/rules/agentic-ui-responsive-design.md` — SC-AGUI-UI-001..015, 14 sections
-- **Skill**: `.gemini/commands/agentic-ui-evolve.md` — 10 phases with verification criteria
-- **Agent**: `.gemini/agents/agentic-ui-designer.md` — Autonomous page evolution workflow
+- **Master Prompt**: `.claude/commands/c3i-page-evolution.md` — 8 phases, 15 verification checks
+- **Rule**: `.claude/rules/agentic-ui-responsive-design.md` — SC-AGUI-UI-001..015, 14 sections
+- **Skill**: `.claude/commands/agentic-ui-evolve.md` — 10 phases with verification criteria
+- **Agent**: `.claude/agents/agentic-ui-designer.md` — Autonomous page evolution workflow
 - **Spec**: `docs/architecture/planning-page-specification.md` — Reference implementation
 - **Journal**: `docs/journal/20260411-planning-page-evolution.md` — Patterns & anti-patterns
 - **Rust E2E**: `test/planning_e2e_rust.rs` — 179-test verification binary

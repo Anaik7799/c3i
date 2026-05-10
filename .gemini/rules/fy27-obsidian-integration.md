@@ -1,7 +1,7 @@
 # FY27 Obsidian Integration Protocol (SC-FY27-OBS)
 
 ## Mandate
-**The FY27-Plan folder IS the Obsidian vault. All markdown files created by Gemini are simultaneously Obsidian notes and ZK-importable documents. One folder, three consumers: Obsidian (visual), FY27-ZK (search), C3I-ZK (engineering context).**
+**The FY27-Plan folder IS the Obsidian vault. All markdown files created by Claude are simultaneously Obsidian notes and ZK-importable documents. One folder, three consumers: Obsidian (visual), FY27-ZK (search), C3I-ZK (engineering context).**
 
 ## Architecture
 ```
@@ -37,10 +37,10 @@ Every markdown file in FY27-Plan/ serves three purposes simultaneously:
 ## Sync Flow
 ```
 User edits in Obsidian -> saves .md file -> gdrive FUSE syncs
-Gemini edits via Write tool -> .md file on disk -> Obsidian auto-reloads
+Claude edits via Write tool -> .md file on disk -> Obsidian auto-reloads
 Either -> run $ZK import .. -> FY27-ZK updated
 Either -> run knowledge_ingest MCP -> C3I-ZK updated
 ```
 
 ## Daily Notes Integration
-Obsidian daily notes create files in activities/ with format YYYY-MM-DD-activity-log.md -- same format as /fy27-log command output. Both Gemini and Obsidian write to the same files.
+Obsidian daily notes create files in activities/ with format YYYY-MM-DD-activity-log.md -- same format as /fy27-log command output. Both Claude and Obsidian write to the same files.

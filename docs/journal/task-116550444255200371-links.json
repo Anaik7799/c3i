@@ -1,0 +1,73 @@
+{
+  "task_id": "116550444255200371",
+  "urn": "urn:c3i:task:misc:116550444255200371",
+  "title": "Full symbiotic integration detailed journal artifact pass",
+  "generated_at_utc": "2026-05-10T13:12:53Z",
+  "recipient": "abhijit.naik@bountytek.com",
+  "gdrive": {
+    "touched": false,
+    "status": "skipped"
+  },
+  "sa_plan": {
+    "task_status": "completed",
+    "queue_snapshot_recorded": true,
+    "oban_job_id": 9538,
+    "oban_worker": "echo",
+    "oban_state": "completed",
+    "project_todolist_synced": true
+  },
+  "delivery": {
+    "zk_ingest": {
+      "status": "completed",
+      "files_processed": 7341,
+      "holons_created": 36,
+      "stamp_refs_found": 2,
+      "errors": 0
+    },
+    "email": {
+      "status": "completed",
+      "attachments": 6,
+      "recipient": "abhijit.naik@bountytek.com"
+    },
+    "scripts_gleam": {
+      "saplan_smoke": "completed",
+      "symbiosis_smoke": "pass=5/5"
+    }
+  },
+  "artifacts": {
+    "journal": "docs/journal/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-journal.md",
+    "analysis": "docs/journal/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-analysis.html",
+    "deck": "docs/journal/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-deck.html",
+    "zk": "docs/journal/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-zk.md",
+    "email": "docs/journal/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-email.md",
+    "index": "docs/journal/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-index.html"
+  },
+  "nested_artifacts": {
+    "journal": "sub-projects/c3i/docs/journal/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-journal.md",
+    "analysis": "sub-projects/c3i/docs/journal/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-analysis.html",
+    "deck": "sub-projects/c3i/docs/journal/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-deck.html",
+    "zk": "sub-projects/c3i/docs/journal/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-zk.md",
+    "email": "sub-projects/c3i/docs/journal/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-email.md",
+    "index": "sub-projects/c3i/docs/journal/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-index.html"
+  },
+  "routes": {
+    "http_base": "http://vm-1.tail55d152.ts.net:4200/task-id/116550444255200371/",
+    "https_base": "https://vm-1.tail55d152.ts.net:8443/task-id/116550444255200371/",
+    "status": "checked_unavailable_2026-05-10T13:13Z",
+    "checks": [
+      {
+        "url": "http://127.0.0.1:4200/task-id/116550444255200371/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-analysis.html",
+        "status": "unavailable"
+      },
+      {
+        "url": "https://vm-1.tail55d152.ts.net:8443/task-id/116550444255200371/20260510-131253-task-116550444255200371-full-symbiosis-detailed-pass-analysis.html",
+        "status": "unavailable"
+      }
+    ]
+  },
+  "fractal_coverage": {
+    "layers": ["L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7"],
+    "component_families": ["rules", "skills", "agents", "hooks", "tasks", "jobs", "journals", "zk", "email", "git"],
+    "analysis_types": ["RETE-UL", "ruliological", "STAMP", "FMEA/FEMA"]
+  }
+}

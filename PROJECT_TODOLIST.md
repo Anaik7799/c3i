@@ -154,7 +154,7 @@
 [~] 116446613351372842 - IMPL: Pi-Mono 7-Phase Integration — 570 LOC TypeScript across 7 modules (P0) [IN_PROGRESS]
 [~] 116458000669595366 - Fix ZK semantic search Ollama connection + embedding coverage hardening (P1) [IN_PROGRESS]
 [~] 116480247290237220 - Marionette MCP full-stack integration — pass 3 (HTML, deck, ZK, email, diagrams) (P1) [IN_PROGRESS]
-[ ] 116480384653721215 - [Marionette A1] Wire LoggingLogCollector in FluffyChat lib/main.dart (SC-MARIONETTE-002) (P0) [PENDING]
+[x] 116480384653721215 - [Marionette A1] Wire LoggingLogCollector in FluffyChat lib/main.dart (SC-MARIONETTE-002) (P0) [COMPLETED]
 [ ] 116480384655260627 - [Marionette A2] Author TLA+ stub specs/tla/MarionetteSession.tla (DiscoveryBeforeDrive + EvidenceForFailure) (P1) [PENDING]
 [ ] 116480384656289636 - [Marionette A3] Mirror rule to .gemini/rules/marionette-mcp-flutter-testing.md (SC-SYNC-DOC-007) (P1) [PENDING]
 [ ] 116480384657772451 - [Marionette A4] CI runner via marionette_cli with Zenoh envelopes (SC-MARIONETTE-008) (P1) [PENDING]
@@ -264,3 +264,4 @@
 [x] 116483724200473592 - P22-MASTER-JOURNAL: Pass-22 13-section journal (P0) [COMPLETED]
 [x] 116483724201788498 - P22-DIAGRAMS: g36 hedge race + g37 cortex deep stack (P1) [COMPLETED]
 [x] 116483724203113596 - P22-DASHBOARD-EMAIL: index/deck update + closure email (P0) [COMPLETED]
+[x] 116499874901057156 - FP-Rust stack evaluation: 12-library functional-programming mandate + KPI framework + fractal integration + journal closure pack (P1) [COMPLETED]

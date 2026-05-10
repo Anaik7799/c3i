@@ -1,0 +1,55 @@
+digraph KeyStorage {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [fontname="Inter", fontcolor="#e0e6ed", color="#1e2a3a", style="filled", fillcolor="#141922"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Inter"];
+
+  subgraph cluster_root {
+    label="Root of trust hierarchy";
+    fontcolor="#00d4aa"; color="#00d4aa"; style="rounded";
+
+    tpm [label="TPM 2.0\nPCR 7 (Secure Boot)\nhardware key", fillcolor="#1a2230", shape="box3d"];
+    pass [label="Operator passphrase\nargon2id\n(memory=64MB, t=3, p=4)", fillcolor="#1a2230"];
+    kms [label="Cloud KMS DR\nc3i-secrets-dr/kek-cmek\nHSM-protected (FIPS 140-2)", fillcolor="#2a2418", shape="box3d"];
+  }
+
+  subgraph cluster_kek {
+    label="KEK (Key Encryption Key) — sealed at rest, in RAM only when unsealed";
+    fontcolor="#f5a623"; color="#f5a623"; style="rounded";
+
+    kek_sealed [label="smriti_kek.sealed\n(disk, sealed by TPM)", fillcolor="#2a1f1f"];
+    kek_kms [label="smriti_kek.kms-sealed\n(disk, ciphertext from KMS)\n+ gs://c3i-backups/...", fillcolor="#2a1f1f"];
+    kek_ram [label="KEK (256-bit)\nin RAM, zeroized on seal", fillcolor="#2a1f2a", shape="ellipse"];
+  }
+
+  subgraph cluster_master {
+    label="RustyVault master key — internal";
+    fontcolor="#3dd68c"; color="#3dd68c"; style="rounded";
+
+    master [label="Vault master key\n(256-bit, never leaves NIF)", fillcolor="#1a2a1a", shape="ellipse"];
+    transit_dek [label="Transit DEK\nper-secret AES-256-GCM\nderived from master", fillcolor="#1a2a1a"];
+  }
+
+  subgraph cluster_data {
+    label="Data layer";
+    fontcolor="#4d96ff"; color="#4d96ff"; style="rounded";
+
+    vault_db [label="smriti_vault.db\n(WAL, encrypted rows)", fillcolor="#1a2530"];
+    secret_row [label="ciphertext blob\n+ nonce + version\n+ fetched_at", fillcolor="#1a2530"];
+  }
+
+  tpm -> kek_sealed [label="seals (PCR 7 policy)", style=dashed];
+  pass -> kek_ram [label="argon2id derive", style=dashed];
+  kms -> kek_kms [label="KMS Encrypt", style=dashed];
+
+  kek_sealed -> kek_ram [label="boot path 1: TPM unseal"];
+  pass -> kek_ram [label="boot path 2"];
+  kek_kms -> kek_ram [label="boot path 3 (DR only)"];
+
+  kek_ram -> master [label="decrypt master\non vault_unseal"];
+  master -> transit_dek [label="HKDF derive"];
+  transit_dek -> secret_row [label="AES-GCM encrypt"];
+  vault_db -> secret_row [label="contains"];
+
+  master -> kek_ram [label="re-encrypted on seal()", style=dotted, color="#ff4757"];
+}

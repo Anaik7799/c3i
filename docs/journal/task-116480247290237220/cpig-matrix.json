@@ -1,9 +1,9 @@
 {
-  "version": "1.3.0",
-  "generated_at": "2026-04-28T12:25:12.389966Z",
-  "system_score_mean": 60,
-  "system_score_max": 60,
-  "system_score_pct": 95.0,
+  "version": "1.4.0",
+  "generated_at": "2026-05-01T22:00:00.000000Z",
+  "system_score_mean": 62,
+  "system_score_max": 65,
+  "system_score_pct": 95.4,
   "description": "C3I Cross-Pass Invariant Gate (CPIG) registry \u2014 12 subsystems \u00d7 5 gates (formal_spec, wiring_guard, sa_plan_tracking, zk_ingestion, email_closure). Pass-14 brought system score from 36/60 (Pass 13) \u2192 55/60 via 5 new TLA+ specs and 4 new Wiring Guards.",
   "pass14_revision": {
     "passes_completed": [
@@ -669,6 +669,69 @@
         2,
         13
       ]
+    },
+    {
+      "id": "iam-ferriskey-nif",
+      "name": "IAM FerrisKey-NIF + Google Cloud IAM Federation",
+      "criticality": "P0",
+      "owner_module": "lib/cepaf_gleam/native/ferriskey_nif/src + lib/cepaf_gleam/src/cepaf_gleam/iam",
+      "added_in_pass": 17,
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            "specs/allium/iam.allium (Allium 12 entities + 6 contracts + 9 invariants + 7 rules)"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "lib/cepaf_gleam/test/ferriskey_nif_wiring_test.gleam (22 tests covering 39 NIFs + supervisor + 96-cell fractal matrix + key rotation decisions + triple-interface)"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "urn:c3i:task:misc:116494073339521648 — 11 phases tracked, all closed"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 1,
+          "evidence": [
+            "[zk-dcbabf01f707baef] closure journal ingested 2026-05-01",
+            "[zk-82473f167b9206e5] §1 Scope & Trigger",
+            "[zk-11621e654ed80665] §2 Pre-State Assessment"
+          ]
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [
+            "docs/journal/20260501-iam-ferriskey-nif-full-fractal-closure.md staged for sa-plan-daemon send-email -a"
+          ]
+        }
+      },
+      "score": 5,
+      "delta": 5,
+      "fmea_pre": 729,
+      "fmea_post": 73,
+      "stamp_families": [
+        "SC-FERRISKEY-NIF-001..010",
+        "SC-GCP-IAM-001..020",
+        "AOR-IAM-NIF-001..008"
+      ],
+      "live_components": {
+        "nifs_wired": 39,
+        "rust_unit_tests": 72,
+        "gleam_modules": 18,
+        "gleam_wiring_guard_tests": 22,
+        "live_otp_actors": 6,
+        "fractal_cells": 96,
+        "wisp_routes": 8,
+        "vault_external_bindings": 3
+      },
+      "passes_completed": [
+        17
+      ]
     }
   ],
   "pass13_targets": [
@@ -750,5 +813,74 @@
     ],
     "final_state": "12/12 subsystems at 5/5; CPIG goal achieved"
   },
-  "last_recomputed": "2026-04-30T07:45:53.323653Z"
+  "pass16_revision": {
+    "added_2026_05_01": "Subsystem #13 fp_discipline added — SC-FP-RUST family closure across 5 internal passes (Pass-1..5) within task urn:c3i:task:misc:116499874901057156. System grows from 12 -> 13 subsystems × 5 gates = 65 total. All 65 gates passing.",
+    "subsystem_13_fp_discipline": {
+      "id": 13,
+      "name": "fp_discipline",
+      "score": 5,
+      "score_max": 5,
+      "score_pct": 100,
+      "gates": {
+        "formal_spec": {
+          "passing": true,
+          "evidence": [
+            "specs/allium/fp_rust.allium",
+            "specs/tla/FpRustDiscipline.tla",
+            "specs/agda/RefinementSoundness.agda"
+          ],
+          "shipped_pass": 2
+        },
+        "wiring_guard": {
+          "passing": true,
+          "evidence": "sub-projects/c3i/native/planning_daemon/src/refined.rs::parity::priority_canonical_set_matches_db + status_canonical_set_matches_db",
+          "shipped_pass": 3
+        },
+        "sa_plan_tracking": {
+          "passing": true,
+          "evidence": "urn:c3i:task:misc:116499874901057156",
+          "shipped_pass": 1
+        },
+        "zk_ingestion": {
+          "passing": true,
+          "evidence": "5 ingestion runs across Pass-1..5; 37,518+ total holons in KMS at Pass-4 close",
+          "shipped_pass": 1
+        },
+        "email_closure": {
+          "passing": true,
+          "evidence": "5 emails to Abhijit.Naik@bountytek.com (Pass-1..5)",
+          "shipped_pass": 1
+        }
+      },
+      "stamp": "SC-FP-RUST-001..020 + AOR-FP-RUST-001..015",
+      "libraries_adopted": [
+        "derive_more",
+        "itertools",
+        "either",
+        "nutype",
+        "frunk",
+        "bon",
+        "parking_lot",
+        "winnow",
+        "recursion"
+      ],
+      "libraries_pending": [
+        "rpds",
+        "archery",
+        "tower-deepen",
+        "kani-verifier (scaffold-only Pass-5)"
+      ],
+      "tests_added": 42,
+      "test_breakdown": {
+        "refined.rs": 15,
+        "fp_demo.rs": 14,
+        "pii.rs proptest": 6,
+        "deterministic across 3 modules": 7
+      },
+      "kpi_baseline_pass1": "FP_TOTAL (partial FP-2+FP-7) = 49.8%",
+      "kpi_pass4": "FP_TOTAL (partial FP-2+FP-7) = 49.9%; tests=29 SC-FP-RUST + 6 pii proptest = 35 green"
+    },
+    "system_score_after_pass16": "13/13 subsystems × 5 gates = 65/65 = 100%"
+  },
+  "last_recomputed": "2026-05-01T20:30:00.000000Z"
 }

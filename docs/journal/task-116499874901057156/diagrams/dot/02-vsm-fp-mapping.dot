@@ -1,0 +1,35 @@
+digraph VsmFpMapping {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [shape=box, style="rounded,filled", fontname="JetBrains Mono", fontsize=10, fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontsize=9];
+  label="VSM S1-S5 + S6 Recursion → FP Library Owners";
+  labelloc="t"; fontcolor="#00d4aa"; fontname="JetBrains Mono"; fontsize=14;
+
+  S1 [label="S1 Operations\nPrimary value\ncortex.rs per-intent", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  S2 [label="S2 Coordination\nConflict resolution\nrule_engine.rs 52 GRL", fillcolor="#4d96ff"];
+  S3 [label="S3 Control\nResource alloc\nhealth_orchestra.rs", fillcolor="#9b59b6"];
+  S3a [label="S3* Audit\nDeep checks\nFMEA + Sentinel", fillcolor="#7a3a8a"];
+  S4 [label="S4 Intelligence\nOutside scanning\nmcp_inference.rs", fillcolor="#f39c12", fontcolor="#0a0e17"];
+  S5 [label="S5 Policy\nIdentity\nGuardian + errors.rs", fillcolor="#ff4757"];
+  S6 [label="S6 Recursion\nEvery subsystem is itself a VSM\n(8 fractal layers × all 6)", fillcolor="#00d4aa", fontcolor="#0a0e17", shape=ellipse];
+
+  L_iter   [label="itertools\nrayon (offline)\neither\nderive_more", fillcolor="#1e2a3a"];
+  L_tower2 [label="tower Layer\nrpds snapshot diff\nrecursion (RETE)", fillcolor="#1e2a3a"];
+  L_frunk3 [label="frunk Validated\nproptest gates\nitertools rollup", fillcolor="#1e2a3a"];
+  L_kani3a [label="kani-verifier\nproptest sporadic\nfrunk Validated", fillcolor="#1e2a3a"];
+  L_tower4 [label="tower 6-tier cascade\nrecursion ruliology\neither cache hit", fillcolor="#1e2a3a"];
+  L_nutype5[label="nutype refinement\nkani Psi-proof\nfrunk Coproduct", fillcolor="#1e2a3a"];
+
+  S1 -> L_iter;
+  S2 -> L_tower2;
+  S3 -> L_frunk3;
+  S3a -> L_kani3a;
+  S4 -> L_tower4;
+  S5 -> L_nutype5;
+  S6 -> S1 [label="recurses"];
+  S6 -> S2 [label="recurses"];
+  S6 -> S3 [label="recurses"];
+  S6 -> S4 [label="recurses"];
+  S6 -> S5 [label="recurses"];
+}

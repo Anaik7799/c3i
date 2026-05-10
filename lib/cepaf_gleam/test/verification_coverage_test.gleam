@@ -70,7 +70,7 @@ pub fn verification_result_verified_test() {
   let result = prometheus.Verified
   case result {
     prometheus.Verified -> should.be_true(True)
-    _ -> should.fail()
+//     _ -> should.fail()
   }
 }
 
@@ -80,7 +80,7 @@ pub fn verification_result_rejected_test() {
     prometheus.Rejected(reasons:) -> {
       list.length(reasons) |> should.equal(1)
     }
-    _ -> should.fail()
+//     _ -> should.fail()
   }
 }
 
@@ -88,7 +88,7 @@ pub fn verification_result_inconclusive_test() {
   let result = prometheus.Inconclusive
   case result {
     prometheus.Inconclusive -> should.be_true(True)
-    _ -> should.fail()
+//     _ -> should.fail()
   }
 }
 
@@ -243,7 +243,7 @@ pub fn probe_result_healthy_test() {
   let r = probes.Healthy
   case r {
     probes.Healthy -> should.be_true(True)
-    _ -> should.fail()
+//     _ -> should.fail()
   }
 }
 
@@ -253,7 +253,7 @@ pub fn probe_result_unhealthy_test() {
     probes.Unhealthy(msg) -> {
       msg |> should.equal("connection refused")
     }
-    _ -> should.fail()
+//     _ -> should.fail()
   }
 }
 

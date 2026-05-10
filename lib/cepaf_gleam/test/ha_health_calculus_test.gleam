@@ -18,7 +18,7 @@
 ///   C12 — trend_to_string labels
 
 import cepaf_gleam/ha/health_calculus.{
-  AcceleratingDecline, Declining, HealthCalculus, Improving, Recovering, Stable,
+  AcceleratingDecline, Declining, Improving, Recovering, Stable,
 }
 import gleam/float
 import gleam/string

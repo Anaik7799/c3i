@@ -1,0 +1,43 @@
+digraph TowerKleisli {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [shape=box, style="rounded,filled", fontname="JetBrains Mono", fontsize=10, fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontsize=9];
+  label="OODA-as-Tower-Service-Stack — 6-Tier Hedged Inference";
+  labelloc="t"; fontcolor="#00d4aa"; fontname="JetBrains Mono"; fontsize=14;
+
+  Intent [label="Intent\n(ChatId, Body, Topic)", fillcolor="#1e2a3a", fontcolor="#00d4aa", shape=ellipse];
+
+  L_PII   [label="Layer<PIIScrub>\npii.rs regex sweep", fillcolor="#9b59b6"];
+  L_Cache [label="Layer<SemanticCache>\n24h TTL SQLite", fillcolor="#4d96ff"];
+  L_Rate  [label="Layer<RateLimit>\n20/min per chat", fillcolor="#f39c12", fontcolor="#0a0e17"];
+  L_Tmout [label="Layer<Timeout>\nper-tier budget", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  L_Retry [label="Layer<Retry>\nexponential backoff", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  L_CB    [label="Layer<CircuitBreaker>\n3 fail / 60s cooldown", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+
+  Hedged  [label="Buffer + Steer\ntokio::join! Tier1+Tier2", fillcolor="#1e2a3a", fontcolor="#00d4aa"];
+
+  T1 [label="Tier 1 Service\nGemini Direct\n~900ms", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  T2 [label="Tier 2 Service\nOpenRouter\n~1.1s", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  T3 [label="Tier 3 Service\nmistralrs gemma4 in-process\n~500ms (no HTTP)", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  T4 [label="Tier 4 Service\nOllama gemma4\n~4s", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  T5 [label="Tier 5 Service\nOllama gemma3\n~10s", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  T6 [label="Tier 6 Service\nRETE-UL fallback\n<1ms", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  T7 [label="Tier 7 Service\nStatic ack\n<1ms", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+
+  Reply [label="Reply\n(Body, Trace, Cost)", fillcolor="#1e2a3a", fontcolor="#00d4aa", shape=ellipse];
+
+  Intent -> L_PII -> L_Cache -> L_Rate -> L_Tmout -> L_Retry -> L_CB -> Hedged;
+  Hedged -> T1 [label="join!"];
+  Hedged -> T2 [label="join!"];
+  T1 -> Reply [label="first wins"];
+  T2 -> Reply [label="first wins"];
+  Hedged -> T3 [label="fallback", style=dashed];
+  T3 -> T4 [label="fallback", style=dashed];
+  T4 -> T5 [label="fallback", style=dashed];
+  T5 -> T6 [label="fallback", style=dashed];
+  T6 -> T7 [label="last resort", style=dashed];
+  T7 -> Reply;
+
+  Note [label="Each Layer = a Kleisli arrow\nLayer composition = monadic bind\nCircuitBreaker is uniform across all 7 tiers", shape=note, fillcolor="#1e2a3a", fontcolor="#7a8fa6"];
+}

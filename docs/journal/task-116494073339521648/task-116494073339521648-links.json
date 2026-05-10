@@ -1,0 +1,162 @@
+{
+  "task_id": "116494073339521648",
+  "urn": "urn:c3i:task:misc:116494073339521648",
+  "priority": "P1",
+  "title": "Secrets vault — RustyVault NIF + GCP-DR + 1-week offline tolerance",
+  "operator": "abhijit.naik@bountytek.com",
+  "created_at": "2026-04-30",
+  "tailscale_base": "https://vm-1.tail55d152.ts.net:8443/task-id/116494073339521648/",
+  "artifacts": {
+    "journal": "journal.md",
+    "analysis_html": "analysis.html",
+    "deck_html": "deck.html",
+    "rca": "5-level-fractal-rca.md",
+    "tps": "tps-countermeasures.md",
+    "fractal_matrix": "fractal-criticality-matrix.md",
+    "test_plan_index": "test-plan/README.md",
+    "links_manifest": "task-116494073339521648-links.json"
+  },
+  "test_plan": {
+    "phase_1_unit": "test-plan/phase-1-unit.md",
+    "phase_2_integration": "test-plan/phase-2-integration.md",
+    "phase_3_property": "test-plan/phase-3-property.md",
+    "phase_4_formal": "test-plan/phase-4-formal.md",
+    "phase_5_e2e_offline": "test-plan/phase-5-e2e-offline.md",
+    "phase_6_chaos": "test-plan/phase-6-chaos.md",
+    "phase_7_ux_flows": "test-plan/phase-7-ux-flows.md"
+  },
+  "diagrams": {
+    "01_architecture": "diagrams/png/01-architecture.png",
+    "02_control_flow": "diagrams/png/02-control-flow.png",
+    "03_data_flow": "diagrams/png/03-data-flow.png",
+    "04_message_sequence": "diagrams/png/04-message-sequence.png",
+    "05_key_storage": "diagrams/png/05-key-storage.png",
+    "06_offline_1week": "diagrams/png/06-offline-1week.png",
+    "07_state_machine_vault": "diagrams/png/07-state-machine-vault.png",
+    "08_state_machine_secret": "diagrams/png/08-state-machine-secret.png",
+    "09_fractal_layers": "diagrams/png/09-fractal-layers.png",
+    "10_rete_ul_rule_graph": "diagrams/png/10-rete-ul-rule-graph.png",
+    "11_ux_operator_flows": "diagrams/png/11-ux-operator-flows.png",
+    "12_critical_path_boot": "diagrams/png/12-critical-path-boot.png"
+  },
+  "sa_plan_tasks": {
+    "slice_a_vendor": {
+      "id": "116494258501316658",
+      "title": "Vault Slice A: vendor RustyVault subtree + scrub Tongsuo patch + cargo tree audit",
+      "priority": "P0",
+      "status": "completed",
+      "rpn": 378
+    },
+    "slice_b_nif": {
+      "id": "116494259017971447",
+      "title": "Vault Slice B: rusty_vault_nif crate (10 NIFs)",
+      "priority": "P0",
+      "status": "pending",
+      "rpn": 180
+    },
+    "slice_c_kek_chain": {
+      "id": "116494259021299827",
+      "title": "Vault Slice C: KEK chain + boot unseal",
+      "priority": "P1",
+      "status": "pending",
+      "rpn": 160
+    },
+    "slice_d_sync": {
+      "id": "116494259024062400",
+      "title": "Vault Slice D: GCP sync actor",
+      "priority": "P1",
+      "status": "pending",
+      "rpn": 175
+    },
+    "slice_e_caller_flip": {
+      "id": "116494259026350434",
+      "title": "Vault Slice E: caller flip + .pi placeholder + Wisp REST",
+      "priority": "P0",
+      "status": "pending",
+      "rpn": 288
+    },
+    "slice_f_closure": {
+      "id": "116494259028115525",
+      "title": "Vault Slice F: governance + tests + formal specs + doc pack closure",
+      "priority": "P0",
+      "status": "pending",
+      "rpn": 168
+    },
+    "rca_tps": {
+      "id": "116494259704460565",
+      "title": "5-Level Fractal RCA + TPS countermeasures journal",
+      "priority": "P1",
+      "status": "completed"
+    },
+    "formal_stack": {
+      "id": "116494259706964617",
+      "title": "TLA+ + Apalache + Agda + Allium formal stack",
+      "priority": "P1",
+      "status": "pending"
+    },
+    "diagrams": {
+      "id": "116494259708691666",
+      "title": "12 graphviz diagrams DOT+PNG",
+      "priority": "P2",
+      "status": "completed"
+    },
+    "test_plan": {
+      "id": "116494259710729749",
+      "title": "7-phase test plan + 200+ initial tests",
+      "priority": "P0",
+      "status": "in_progress"
+    },
+    "pre_commit_hook": {
+      "id": "116494259712597823",
+      "title": "Pre-commit secret-scan hook (Jidoka)",
+      "priority": "P0",
+      "status": "pending"
+    },
+    "audit_reconcile": {
+      "id": "116494259714520936",
+      "title": "Cloud Audit reconciliation cron (Kaizen)",
+      "priority": "P1",
+      "status": "pending"
+    },
+    "dashboard_tile": {
+      "id": "116494259716793828",
+      "title": "Cockpit dashboard tile 30s freshness refresh (Andon)",
+      "priority": "P2",
+      "status": "pending"
+    },
+    "anthropic_rotation": {
+      "id": "116494259719342353",
+      "title": "Anthropic key rotation (operator manual; deferred)",
+      "priority": "P0",
+      "status": "pending"
+    }
+  },
+  "stamp_constraints": [
+    "SC-VAULT-001..025 (25 IDs) — see .claude/rules/secrets-vault.md",
+    "SC-VAULT-CRYPTO-001 — Tongsuo absence gate",
+    "AOR-VAULT-001..015 — operator action rules",
+    "extends SC-SEC-049, SC-KMS-001..023, SC-ARCH-SPLIT, SC-PD-RUST-ONLY-001..010"
+  ],
+  "rete_ul_rules": [
+    "secret_freshness domain (7): SecretFresh, SecretSoftStale, SecretSoftStaleOffline, SecretHardStale, SecretRotationDue, SecretLeaseExpiringSoon, SecretBootUnsealFailed",
+    "vault_integrity domain (5): VaultSealedAtBoot, VaultUnsealAttemptFailed, VaultStorageCorrupt, VaultAuditGap, VaultTongsuoLinked"
+  ],
+  "files_modified_this_turn": [
+    "sub-projects/rusty_vault_vendored/ (new vendored tree, 67 MB, license: Apache-2.0)",
+    "sub-projects/rusty_vault_vendored/Cargo.toml (modified: [patch.crates-io] block scrubbed)",
+    "sub-projects/rusty_vault_vendored/VENDORING_NOTES.md (new)",
+    ".claude/rules/secrets-vault.md (new, SC-VAULT-001..025)",
+    ".gemini/rules/secrets-vault.md (parity)",
+    "docs/journal/task-116494073339521648/* (full doc pack: journal, analysis, deck, RCA, TPS, fractal matrix, 7-phase test plan, 12 DOT + 12 PNG diagrams, links manifest)"
+  ],
+  "verification_status": {
+    "vendoring": "complete",
+    "tongsuo_patch_scrubbed": "verified by grep",
+    "doc_pack": "complete (12 diagrams + journal + 4 analysis docs + 7 test phase docs)",
+    "sa_plan_tasks": "14 created, 1 completed (Slice A), 1 in-progress (test-plan), 12 pending",
+    "stamp_registration": "SC-VAULT-001..025 + SC-VAULT-CRYPTO-001 in .claude/.gemini/rules/",
+    "binary_audit_cargo_tree": "deferred to Slice B (depends on NIF crate creation)",
+    "1_week_offline_simulation": "deferred to Phase 5 of test plan"
+  },
+  "next_session_starts": "Slice B — rusty_vault_nif crate + 10 NIFs + vault.gleam typed wrapper"
+}

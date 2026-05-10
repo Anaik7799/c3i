@@ -246,8 +246,8 @@ Step 9 → Accept if all gates pass; else add tests
 | FSI | SC-HMI-011 (8×8 matrix coverage) | Self-similarity across 8 layers |
 ---
 # Reference Documents
-- Gold standard: `.gemini/rules/fractal-coverage-gold-standard.md`
+- Gold standard: `.claude/rules/fractal-coverage-gold-standard.md`
 - COV constraints: GEMINI.md §5.0 SC-COV-001 to SC-COV-022
-- FMEA methodology: `.gemini/rules/reconciled-p2-domain-critical.md`
+- FMEA methodology: `.claude/rules/reconciled-p2-domain-critical.md`
 - Mathematical disciplines: SC-MATH-001 to SC-MATH-004 (GEMINI.md)
 - Information theory baseline: constraint-sync-mandatory.md §8.0 (KL, H, MI reference)

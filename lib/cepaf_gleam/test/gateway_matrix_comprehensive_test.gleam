@@ -197,7 +197,7 @@ pub fn decode_login_response_invalid_test() {
 pub fn decode_versions_test() {
   let body = "{\"versions\":[\"v1.1\",\"v1.18\"],\"unstable_features\":{}}"
   case codec.decode_versions(body) {
-    Ok(vs) -> { list.length(vs) > 0 } |> should.be_true()
+    Ok(vs) -> { vs != [] } |> should.be_true()
     Error(_) -> should.fail()
   }
 }

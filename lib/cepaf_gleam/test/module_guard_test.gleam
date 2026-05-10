@@ -2,8 +2,8 @@
 //// सार्वभौमिक रक्षक परीक्षण
 
 import cepaf_gleam/ha/module_guard.{
-  FailedCorrupted, FailedEmpty, FailedMissingField, FailedTooShort,
-  GuardFailed, GuardPassed, Passed,
+   FailedEmpty, FailedMissingField, FailedTooShort,
+   Passed,
 }
 import gleam/string
 import gleeunit/should

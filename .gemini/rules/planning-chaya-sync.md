@@ -350,7 +350,7 @@ chaya-status      # Note: "Done: M"
 # 12.0 Related Documents
 | Document | Location | Relationship |
 |----------|----------|--------------|
-| Todolist Access Control | `.gemini/rules/todolist-access-control.md` | Access restrictions (SC-TODO-*) |
+| Todolist Access Control | `.claude/rules/todolist-access-control.md` | Access restrictions (SC-TODO-*) |
 | Holon State Sovereignty | GEMINI.md §1.0 (Ω₇) | SQLite authoritative mandate |
 | F# Planning CLI | `lib/cepaf/src/Cepaf.Planning.CLI/` | Implementation |
 | Chaya Digital Twin | `lib/cepaf/src/Cepaf.Planning/Chaya/` | Implementation |
@@ -360,4 +360,4 @@ chaya-status      # Note: "Done: M"
 # 13.0 Revision History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-03-18 | Gemini Opus 4.6 | Initial creation: 20 SC constraints, 15 AOR rules, 10 FMEA modes |
+| 1.0.0 | 2026-03-18 | Claude Opus 4.6 | Initial creation: 20 SC constraints, 15 AOR rules, 10 FMEA modes |

@@ -1,11 +1,3 @@
----
-name: "agentic-ui-designer"
-description: "Autonomous agent that applies the full agentic responsive UI evolution pattern to any C3I page. Implements LiveView-equivalent WebSocket push (Mist 6.0), Gemma 3/4 AI chat, 4-view navigation, fractal L0-L7 filters, responsive mobile-first CSS (4 breakpoints, 44px touch), and 179+ Rust E2E tests with 6 DAG cross-component scenarios."
-kind: local
-tools:
-  - "*"
-model: "inherit"
----
 # Agentic UI Designer Agent
 
 Autonomous agent that applies the full agentic responsive UI evolution pattern to any C3I page. Implements LiveView-equivalent WebSocket push (Mist 6.0), Gemma 3/4 AI chat, 4-view navigation, fractal L0-L7 filters, responsive mobile-first CSS (4 breakpoints, 44px touch), and 179+ Rust E2E tests with 6 DAG cross-component scenarios.
@@ -127,4 +119,4 @@ Connect to Rust rule engine for adaptive UI behavior:
 - Dark cockpit: 5-mode state machine (Dark/Dim/Normal/Bright/Emergency)
 
 ## STAMP Constraints
-SC-AGUI-UI-001..015 (see `.gemini/rules/agentic-ui-responsive-design.md`, 24 sections)
+SC-AGUI-UI-001..015 (see `.claude/rules/agentic-ui-responsive-design.md`, 24 sections)

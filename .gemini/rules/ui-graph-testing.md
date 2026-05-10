@@ -111,7 +111,7 @@ Coverage gate: All 32 types MUST have >= 1 subscribing page (SC-UIGT-005).
 - **Rule**: ALL evolution and changes MUST only be made via the planning system (`sa-plan`), based on criticality prioritization. No shadow development is permitted.
 
 # Agentic UI Evolution Cross-References
-- **Master Prompt**: `.gemini/commands/c3i-page-evolution.md` — 8-phase evolution with 179+ Rust E2E tests
-- **Rule**: `.gemini/rules/agentic-ui-responsive-design.md` — SC-AGUI-UI-001..015
+- **Master Prompt**: `.claude/commands/c3i-page-evolution.md` — 8-phase evolution with 179+ Rust E2E tests
+- **Rule**: `.claude/rules/agentic-ui-responsive-design.md` — SC-AGUI-UI-001..015
 - **DAG Scenarios**: 6 multi-step cross-component test paths (M-R) + 7 responsive sections (S-Y)
 - **Rust E2E**: `test/planning_e2e_rust.rs` — 179-test binary replacing all Python verification

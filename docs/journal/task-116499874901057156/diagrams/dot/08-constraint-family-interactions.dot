@@ -1,0 +1,68 @@
+digraph ConstraintInteractions {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [shape=box, style="rounded,filled", fontname="JetBrains Mono", fontsize=10, fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontsize=9];
+  label="SC-FP-RUST-001..020 — Existing Constraint Family Interactions (16 families, 0 conflicts)";
+  labelloc="t"; fontcolor="#00d4aa"; fontname="JetBrains Mono"; fontsize=14;
+
+  FpRust [label="SC-FP-RUST-001..020\n(NEW)\n+ AOR-FP-RUST-001..015", fillcolor="#00d4aa", fontcolor="#0a0e17", shape=ellipse, style="rounded,filled,bold"];
+
+  subgraph cluster_strengthens {
+    label="STRENGTHENS (12 families)"; color="#3dd68c"; fontcolor="#3dd68c";
+    S1 [label="SC-VAULT\n001..025", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    S2 [label="SC-VALUE-GUARD\n001..008", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    S3 [label="SC-MUDA-001", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    S4 [label="SC-INFER-RUST-API\n001..008", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    S5 [label="SC-PD-RUST-ONLY\n001..010", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    S6 [label="SC-DISP-REGISTRY\n001..010", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    S7 [label="SC-OODA-ACCEL\n001..007", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    S8 [label="SC-PARALLEL\n001..005", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    S9 [label="SC-SAFETY\n(Psi alignment)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    S10[label="SC-FUNC-001..008", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    S11[label="SC-MATH-COV-001\n(Shannon H)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    S12[label="SC-WIRE\n001..007", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+
+  subgraph cluster_compatible {
+    label="COMPATIBLE w/ sister-rule update (3)"; color="#f39c12"; fontcolor="#f39c12";
+    C1 [label="SC-WIRE-002\n(wiring guard\nupdated per newtype)", fillcolor="#f39c12", fontcolor="#0a0e17"];
+    C2 [label="SC-PI-AUTO-002\n(federation count\n93 -> 97)", fillcolor="#f39c12", fontcolor="#0a0e17"];
+    C3 [label="SC-NOTIFY-JOURNAL\n001..004\n(per-pass email)", fillcolor="#f39c12", fontcolor="#0a0e17"];
+  }
+
+  subgraph cluster_orthogonal {
+    label="ORTHOGONAL (1)"; color="#7a8fa6"; fontcolor="#7a8fa6";
+    O1 [label="SC-EFFECT-TS\n001..007\n(browser TS, not Rust)", fillcolor="#7a8fa6"];
+  }
+
+  subgraph cluster_cpig {
+    label="CPIG INTEGRATION"; color="#9b59b6"; fontcolor="#9b59b6";
+    CP [label="SC-CPIG-001..015\nnew subsystem #13:\nfp_discipline\n(G1..G5 gates)", fillcolor="#9b59b6"];
+    CP2 [label="System CPIG total:\n13 subsystems x 5 gates\n= 65 (was 60)\nPass-15 target rises to 65/65", fillcolor="#1e2a3a", fontcolor="#9b59b6"];
+  }
+
+  FpRust -> S1 [label="nutype enforces\n001/002/006 at type level"];
+  FpRust -> S2 [label="nutype subsumes\nruntime whitelist"];
+  FpRust -> S3 [label="reduces dead code,\ncomplexity, mutation"];
+  FpRust -> S4 [label="tower wraps\nmistralrs Service stack"];
+  FpRust -> S5 [label="proptest + kani\nfully Rust"];
+  FpRust -> S6 [label="enum_dispatch makes\nregistry compile-time"];
+  FpRust -> S7 [label="tower Layer stack\naccelerates OODA"];
+  FpRust -> S8 [label="rayon + tokio\nexplicit separation"];
+  FpRust -> S9 [label="kani proves Psi\ninvariants"];
+  FpRust -> S10 [label="Result + ? chain\ndepth"];
+  FpRust -> S11 [label="FP-11 stack-usage\nentropy gate"];
+  FpRust -> S12 [label="newtype derives\nrequire wiring update"];
+
+  FpRust -> C1 [label="must update", style=dashed, color="#f39c12"];
+  FpRust -> C2 [label="must update", style=dashed, color="#f39c12"];
+  FpRust -> C3 [label="must trigger", style=dashed, color="#f39c12"];
+
+  FpRust -> O1 [label="no interaction", style=dotted, color="#7a8fa6"];
+
+  FpRust -> CP [label="adds subsystem #13"];
+  CP -> CP2;
+
+  Verdict [label="VERDICT\n12 STRENGTHENS\n3 COMPATIBLE\n1 ORTHOGONAL\n0 CONFLICTS\n\nPure additive governance.", shape=note, fillcolor="#1e2a3a", fontcolor="#00d4aa"];
+}

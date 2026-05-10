@@ -13,27 +13,24 @@ import cepaf_gleam/planning/domain.{
   DatabaseError, InvalidTransition, RemoteError, TaskNotFound, ValidationError,
 }
 import cepaf_gleam/planning/graph_verification.{
-  Edge, Graph, Node, new_graph,
+  Edge, Node, new_graph,
 }
 import cepaf_gleam/planning/math_optimization.{
-  ContainerDef, CpmResult, Created, Degraded, Failed, Healthy, Lameduck,
-  NotCreated, Removed, Running, Starting, Stopped, Stopping, Unhealthy,
+  ContainerDef, CpmResult, Created, Failed, Healthy,
+  NotCreated, Removed, Running, Starting, Stopped,
 }
 import cepaf_gleam/planning/ooda.{
-  type Pattern, Assessment, ContainerFailure, Critical, Decision,
-  DependencyFailure, EmergencyStop, HealthDegradation, Info, NetworkIssue,
+  Assessment, ContainerFailure, Critical, Decision,
+  EmergencyStop, HealthDegradation, Info, NetworkIssue,
   NoAction, Observation, ResourceExhaustion, RestartContainer, SecurityViolation,
-  SingleContainer, StopContainer, System, UnknownPattern, Warning, WaitAndRetry,
+  SingleContainer, System, UnknownPattern, Warning, WaitAndRetry,
 }
 import cepaf_gleam/planning/parser
 import cepaf_gleam/planning/safety_kernel.{
-  type SafetyCheck, type SafetyResult, ExistenceInvariant, Fail, GuardianApproval,
-  HistoryPreservation, OperationProposal, Pass, State, Truthfulness,
+  State,
 }
 import gleam/dict
 import gleam/list
-import gleam/option.{None, Some}
-import gleam/set
 import gleeunit/should
 
 // =============================================================================
@@ -44,7 +41,6 @@ pub fn planning_error_invalid_transition_test() {
   let err = InvalidTransition(from: types.Pending, to: types.Completed)
   case err {
     InvalidTransition(_, _) -> should.be_true(True)
-    _ -> should.fail()
   }
 }
 
@@ -52,7 +48,6 @@ pub fn planning_error_task_not_found_test() {
   let err = TaskNotFound(id: "TASK-001")
   case err {
     TaskNotFound(id: id) -> id |> should.equal("TASK-001")
-    _ -> should.fail()
   }
 }
 
@@ -60,7 +55,6 @@ pub fn planning_error_database_error_test() {
   let err = DatabaseError(reason: "connection refused")
   case err {
     DatabaseError(reason: r) -> r |> should.equal("connection refused")
-    _ -> should.fail()
   }
 }
 
@@ -68,7 +62,6 @@ pub fn planning_error_validation_error_test() {
   let err = ValidationError(message: "title is empty")
   case err {
     ValidationError(message: m) -> m |> should.equal("title is empty")
-    _ -> should.fail()
   }
 }
 
@@ -76,7 +69,6 @@ pub fn planning_error_remote_error_test() {
   let err = RemoteError(reason: "timeout")
   case err {
     RemoteError(reason: r) -> r |> should.equal("timeout")
-    _ -> should.fail()
   }
 }
 

@@ -199,7 +199,7 @@ pub fn cross_domain_search_finds_similar_source_test() {
   let m = two_domain_memory()
   let candidates = learning.cross_domain_search(m, "target", 0.9)
   // src1 is nearly identical to tgt1 → should appear
-  { list.length(candidates) > 0 } |> should.be_true
+  { candidates != [] } |> should.be_true
   let first = case candidates {
     [c, ..] -> c
     [] -> panic as "expected at least one candidate"

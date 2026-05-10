@@ -1,0 +1,35 @@
+digraph ControlFlow {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [fontname="Inter", fontcolor="#e0e6ed", color="#1e2a3a", style="filled", fillcolor="#141922", shape="box"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Inter"];
+
+  start [label="Caller invokes\nsa-plan get-pref --category secrets <key>", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  authz [label="Authz check\n(L0 Guardian for L0 secrets;\nopen for L3+)"];
+  cache_hit [label="Cache lookup\nin Smriti.encrypted_secrets", shape="diamond", fillcolor="#2a2418"];
+  fresh [label="age < 5min?", shape="diamond"];
+  return_hot [label="Return cached value\n(decrypt with in-RAM DEK)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  network [label="Network reachable?\n(probe Cloud KMS in 200ms)", shape="diamond"];
+  refresh_sm [label="Fetch from Secret Manager\n(europe-north1)\nupdate cache + version"];
+  ttl_check [label="age < 7 days?", shape="diamond", fillcolor="#2a2418"];
+  return_stale [label="Return stale cached value\n+ emit OTel:degraded", fillcolor="#f5a623", fontcolor="#0a0e17"];
+  fail_closed [label="FAIL CLOSED\nreturn error\n+ P0 alarm to Zenoh\nindrajaal/l0/secret/expired", fillcolor="#ff4757", fontcolor="#ffffff"];
+  rotate_check [label="Rotation flag set?", shape="diamond"];
+  rewrap [label="Rewrap with\nnew CMEK version"];
+
+  start -> authz;
+  authz -> cache_hit [label="ok"];
+  authz -> fail_closed [label="deny", style="dashed", color="#ff4757"];
+  cache_hit -> fresh [label="hit"];
+  cache_hit -> network [label="miss"];
+  fresh -> return_hot [label="yes"];
+  fresh -> network [label="no"];
+  network -> refresh_sm [label="online"];
+  network -> ttl_check [label="offline"];
+  refresh_sm -> rotate_check;
+  rotate_check -> rewrap [label="yes"];
+  rotate_check -> return_hot [label="no"];
+  rewrap -> return_hot;
+  ttl_check -> return_stale [label="yes (within 7d)"];
+  ttl_check -> fail_closed [label="no (> 7d)"];
+}

@@ -16,7 +16,7 @@ WHAT: Technical approach
 Layer: L1-CODE(N), L3-SYSTEM(N)
 STAMP: SC-XXX-NNN
 Task: SNN-TNNN
-Co-Authored-By: Gemini Opus 4.6 <noreply@anthropic.com>
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 ```
 **Examples** (em-dash context channel):
 ```
@@ -52,7 +52,7 @@ git commit -m "$(cat <<'EOF'
 fix(scope): description — context
 WHY: cause | WHAT: approach
 Layer: L1-CODE(N) | STAMP: SC-XXX-NNN | Task: SNN-TNNN
-Co-Authored-By: Gemini Opus 4.6 <noreply@anthropic.com>
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 EOF
 )"
 ```

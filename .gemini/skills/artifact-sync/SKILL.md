@@ -1,9 +1,9 @@
 ---
 name: artifact-sync
-description: Daily synchronization of .gemini and .gemini artifacts to OpenCode. Uses Rust binary for automated sync. Maintains rules, agents, skills, and AGENTS.md with fractal layer mappings. Runs daily without prompting.
+description: Daily synchronization of .gemini and .claude artifacts to OpenCode. Uses Rust binary for automated sync. Maintains rules, agents, skills, and AGENTS.md with fractal layer mappings. Runs daily without prompting.
 ---
 # Artifact Sync Skill
-This skill performs daily synchronization of all Gemini and Gemini artifacts to OpenCode using the Rust binary, ensuring OpenCode has access to the complete system context without manual prompting.
+This skill performs daily synchronization of all Gemini and Claude artifacts to OpenCode using the Rust binary, ensuring OpenCode has access to the complete system context without manual prompting.
 # Core Mandates
 1.  **Daily Automation**: Run automatically at session start to sync all artifacts
 2.  **Rust Binary**: Use `~/.config/opencode/bin/artifact-sync` for reliable sync
@@ -36,8 +36,8 @@ This skill performs daily synchronization of all Gemini and Gemini artifacts to 
 |--------|----------|-------|
 | `.gemini/GEMINI.md` | `~/.gemini/` | 1 |
 | Skills | `dev/ver/c3i/.gemini/skills/` | 10 |
-| Rules | `dev/ver/c3i/.gemini/rules/` | 42 |
-| Agents | `dev/ver/c3i/.gemini/agents/` | 27 |
+| Rules | `dev/ver/c3i/.claude/rules/` | 42 |
+| Agents | `dev/ver/c3i/.claude/agents/` | 27 |
 # Target Locations (OpenCode Global)
 | Target | Location |
 |--------|----------|

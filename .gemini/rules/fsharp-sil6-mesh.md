@@ -246,5 +246,5 @@ SmokeTestOrchestrator.printSummary state
 - `lib/cepaf/src/Cepaf/Mesh/SmokeTestPublisher.fs` - Smoke test Zenoh publisher
 - `lib/cepaf/src/Cepaf/Mesh/SIL6BiomorphicOrchestrator.fs` - Unified SIL-6 orchestrator
 - `lib/cepaf/src/Cepaf/Mesh/ZenohCheckpoints.fs` - Boot checkpoint messaging
-- `.gemini/rules/zenoh-telemetry-mandatory.md` - Zenoh constraints
+- `.claude/rules/zenoh-telemetry-mandatory.md` - Zenoh constraints
 - `GEMINI.md` - Master system specification

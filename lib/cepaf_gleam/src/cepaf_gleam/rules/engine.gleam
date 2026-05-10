@@ -897,3 +897,129 @@ pub fn evaluate_data_quality(
     Fact("Dq.PayloadOversize", bool_str(payload_oversize)),
   ])
 }
+
+// ============================================================================
+// SECRETS VAULT — secret_freshness + vault_integrity domains (12 rules)
+// SC-VAULT-001..025 + SC-VAULT-CRYPTO-001 enforcement at runtime.
+// Pass-3 of task 116494073339521648.
+// ============================================================================
+
+/// GRL rules for the secret_freshness domain (7 rules).
+/// Pass-18 fix: changed `== "true"` (string) → `== true` (bool literal) to
+/// match the GRL parser convention used by working OODA rules.
+/// Per [zk-3346fc607a1ef9e6] Stub-That-Lies anti-pattern caught in Pass-17.
+fn secret_freshness_rules() -> String {
+  "
+  rule \"SecretFresh\" salience 100 {
+    when SecretFresh.AgeBelowTtl == true
+    then SecretFresh.Decision = \"Allow\"; SecretFresh.Reason = \"hot path, fresh\";
+  }
+
+  rule \"SecretSoftStale\" salience 95 {
+    when SecretFresh.AgeBelowTtl == false &&
+         SecretFresh.AgeBelowMaxTtl == true &&
+         SecretFresh.Online == true
+    then SecretFresh.Decision = \"TriggerSync\"; SecretFresh.Reason = \"soft-stale online\";
+  }
+
+  rule \"SecretSoftStaleOffline\" salience 90 {
+    when SecretFresh.AgeBelowTtl == false &&
+         SecretFresh.AgeBelowMaxTtl == true &&
+         SecretFresh.Online == false
+    then SecretFresh.Decision = \"DegradedMode\"; SecretFresh.Reason = \"soft-stale offline\";
+  }
+
+  rule \"SecretHardStale\" salience 100 {
+    when SecretFresh.AgeBelowMaxTtl == false
+    then SecretFresh.Decision = \"FailClosed\"; SecretFresh.Reason = \"hard-stale, P0 alarm\";
+  }
+
+  rule \"SecretRotationDue\" salience 80 {
+    when SecretFresh.RotationDue == true
+    then SecretFresh.Decision = \"ProposeRotation\"; SecretFresh.Reason = \"rotation cadence reached\";
+  }
+
+  rule \"SecretLeaseExpiringSoon\" salience 75 {
+    when SecretFresh.LeaseExpirySeconds == \"under60\"
+    then SecretFresh.Decision = \"RenewLease\"; SecretFresh.Reason = \"lease near expiry\";
+  }
+
+  rule \"SecretBootUnsealFailed\" salience 100 {
+    when SecretFresh.UnsealError == true
+    then SecretFresh.Decision = \"HaltAgents\"; SecretFresh.Reason = \"unseal failed, P0\";
+  }
+  "
+}
+
+/// GRL rules for the vault_integrity domain (5 rules).
+/// Pass-18 fix: same string→bool literal change as secret_freshness rules.
+fn vault_integrity_rules() -> String {
+  "
+  rule \"VaultSealedAtBoot\" salience 100 {
+    when Vault.UptimeOver30s == true && Vault.Sealed == true
+    then Vault.Decision = \"P0Alarm\"; Vault.Reason = \"sealed > 30s after start\";
+  }
+
+  rule \"VaultUnsealAttemptFailed\" salience 100 {
+    when Vault.AllKekPathsFailed == true
+    then Vault.Decision = \"HaltAll\"; Vault.Reason = \"3 KEK paths exhausted, P0\";
+  }
+
+  rule \"VaultStorageCorrupt\" salience 100 {
+    when Vault.IntegrityCheckFailed == true
+    then Vault.Decision = \"ReadOnlyFallback\"; Vault.Reason = \"integrity_check failed, fallback to GCS\";
+  }
+
+  rule \"VaultAuditGap\" salience 90 {
+    when Vault.AuditGapOver5s == true
+    then Vault.Decision = \"P1Investigate\"; Vault.Reason = \"audit gap detected\";
+  }
+
+  rule \"VaultTongsuoLinked\" salience 100 {
+    when Vault.TongsuoInDepTree == true
+    then Vault.Decision = \"BlockRelease\"; Vault.Reason = \"SC-VAULT-CRYPTO-001 violation\";
+  }
+  "
+}
+
+/// Evaluate secret_freshness against per-secret facts.
+pub fn evaluate_secret_freshness(
+  age_below_ttl: Bool,
+  age_below_max_ttl: Bool,
+  online: Bool,
+  rotation_due: Bool,
+  lease_under_60s: Bool,
+  unseal_error: Bool,
+) -> RuleResult {
+  let lease_str = case lease_under_60s {
+    True -> "under60"
+    False -> "over60"
+  }
+  evaluate("SecretFresh", secret_freshness_rules(), [
+    Fact("SecretFresh.AgeBelowTtl", bool_str(age_below_ttl)),
+    Fact("SecretFresh.AgeBelowMaxTtl", bool_str(age_below_max_ttl)),
+    Fact("SecretFresh.Online", bool_str(online)),
+    Fact("SecretFresh.RotationDue", bool_str(rotation_due)),
+    Fact("SecretFresh.LeaseExpirySeconds", lease_str),
+    Fact("SecretFresh.UnsealError", bool_str(unseal_error)),
+  ])
+}
+
+/// Evaluate vault_integrity. Drives SC-VAULT-CRYPTO-001 build gate.
+pub fn evaluate_vault_integrity(
+  uptime_over_30s: Bool,
+  sealed: Bool,
+  all_kek_paths_failed: Bool,
+  integrity_check_failed: Bool,
+  audit_gap_over_5s: Bool,
+  tongsuo_in_dep_tree: Bool,
+) -> RuleResult {
+  evaluate("Vault", vault_integrity_rules(), [
+    Fact("Vault.UptimeOver30s", bool_str(uptime_over_30s)),
+    Fact("Vault.Sealed", bool_str(sealed)),
+    Fact("Vault.AllKekPathsFailed", bool_str(all_kek_paths_failed)),
+    Fact("Vault.IntegrityCheckFailed", bool_str(integrity_check_failed)),
+    Fact("Vault.AuditGapOver5s", bool_str(audit_gap_over_5s)),
+    Fact("Vault.TongsuoInDepTree", bool_str(tongsuo_in_dep_tree)),
+  ])
+}

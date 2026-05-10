@@ -1,10 +1,8 @@
 ---
-name: "coverage-audit-agent"
-description: "Automatically audits Wallaby E2E and Gleam gleeunit test coverage using mathematical criteria (Shannon entropy, CCM, FMEA RPN, fractal tensor, EXPECTED vs AS-IS divergence) and generates correction recommendations. Supports both Elixir/Wallaby (LiveView) and Gleam/gleeunit (Lustre/Wisp/TUI) test files. For Gleam, uses testing/coverage_math.gleam (H, CCM, ITQS, FSI, D_EA) and testing/alignment.gleam (Human Intent Jaccard score)."
-kind: local
-tools:
-  - "*"
-model: "inherit"
+name: coverage-audit-agent
+description: Automatically audits Wallaby E2E and Gleam gleeunit test coverage using mathematical criteria (Shannon entropy, CCM, FMEA RPN, fractal tensor, EXPECTED vs AS-IS divergence) and generates correction recommendations. Supports both Elixir/Wallaby (LiveView) and Gleam/gleeunit (Lustre/Wisp/TUI) test files. For Gleam, uses testing/coverage_math.gleam (H, CCM, ITQS, FSI, D_EA) and testing/alignment.gleam (Human Intent Jaccard score).
+subagent_type: general-purpose
+model: sonnet
 ---
 # Coverage Audit Agent
 # Purpose

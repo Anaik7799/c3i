@@ -1,0 +1,60 @@
+digraph DataControlInfoFlow {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [shape=box, style="rounded,filled", fontname="JetBrains Mono", fontsize=10, fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontsize=9];
+  label="3-Flow Integration (Data + Control + Info) Through 12-Library FP Stack";
+  labelloc="t"; fontcolor="#00d4aa"; fontname="JetBrains Mono"; fontsize=14;
+
+  subgraph cluster_data {
+    label="DATA FLOW (ingress -> cortex -> egress)"; color="#4d96ff"; fontcolor="#4d96ff";
+    D_in    [label="Ingress\nTelegram poll / GChat\nraw String", fillcolor="#1e2a3a", fontcolor="#4d96ff"];
+    D_bytes [label="bytes::Bytes\ncompact_str::CompactString\nnutype: ChatId / Topic", fillcolor="#4d96ff"];
+    D_class [label="cortex.classify\nwinnow parser ->\nfrunk::Coproduct\n(SimpleQuery, ComplexInfer,\nToolCall, Refusal)", fillcolor="#4d96ff"];
+    D_rag   [label="RAG inject\nrpds::Vector<Holon>\n(snapshot for trace)", fillcolor="#4d96ff"];
+    D_tower [label="tower::ServiceBuilder\n[Timeout][Retry][CB][Hedge]\n6-tier inference cascade", fillcolor="#4d96ff"];
+    D_trace [label="trace.rs PipelineTracer\nrpds::List forkable\n(hedged tiers each fork)", fillcolor="#4d96ff"];
+    D_egress[label="Egress\ntower::Steer per channel\nTelegram / GChat / Zenoh", fillcolor="#1e2a3a", fontcolor="#4d96ff"];
+  }
+
+  subgraph cluster_control {
+    label="CONTROL FLOW (OODA cycle)"; color="#3dd68c"; fontcolor="#3dd68c";
+    C_obs   [label="OBSERVE\nService<Zenoh telemetry>\ninput layer", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    C_orient[label="ORIENT\nLayer<RAG context inject>\ncontext-aware xform", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    C_decide[label="DECIDE\nService<RuleEngine + LLM>\nrule_engine.evaluate_decision", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    C_act   [label="ACT\nService<Dispatch>\ngateway + NIF call", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    C_verify[label="VERIFY\nLayer<post-condition>\nproptest at runtime\n+ Zenoh emit", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+
+  subgraph cluster_info {
+    label="INFORMATION FLOW (ZK + RAG)"; color="#f39c12"; fontcolor="#f39c12";
+    I_zk    [label="ZK hooks\nUserPromptSubmit\nSessionStart / Stop", fillcolor="#f39c12", fontcolor="#0a0e17"];
+    I_rag   [label="RAG inject\nimmutable rpds prompt-history\nshared concurrent OODA", fillcolor="#f39c12", fontcolor="#0a0e17"];
+    I_cite  [label="Holon citation\nregex zk-[0-9a-f]{16}\nproptest: parse + exists in Smriti", fillcolor="#f39c12", fontcolor="#0a0e17"];
+    I_smriti[label="Smriti.db\n37,417 holons\nFTS5 + semantic embed", fillcolor="#f39c12", fontcolor="#0a0e17"];
+  }
+
+  subgraph cluster_zenoh {
+    label="ZENOH OTel BACKPLANE (SC-ZMOF)"; color="#9b59b6"; fontcolor="#9b59b6";
+    Z_data  [label="indrajaal/l3/data/**", fillcolor="#9b59b6"];
+    Z_ctrl  [label="indrajaal/l5/cog/ooda/**", fillcolor="#9b59b6"];
+    Z_info  [label="indrajaal/l5/cog/zk/**", fillcolor="#9b59b6"];
+    Z_fp    [label="indrajaal/l5/cog/fp/{kpi}/**\n(NEW: 12 KPI topics)", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  }
+
+  D_in -> D_bytes -> D_class -> D_rag -> D_tower -> D_trace -> D_egress;
+  C_obs -> C_orient -> C_decide -> C_act -> C_verify -> C_obs [style=dashed, label="cycle"];
+  I_zk -> I_rag -> I_cite -> I_smriti;
+
+  D_class -> C_orient [label="enriches context", style=dotted, color="#3dd68c"];
+  C_decide -> D_tower [label="invokes Service", style=dotted, color="#4d96ff"];
+  I_rag -> C_orient [label="ZK context", style=dotted, color="#f39c12"];
+  C_verify -> I_smriti [label="ingest", style=dotted, color="#f39c12"];
+
+  D_tower -> Z_data;
+  C_decide -> Z_ctrl;
+  I_smriti -> Z_info;
+  C_verify -> Z_fp [label="FP KPI emit", color="#00d4aa"];
+
+  Note [label="Every Layer = Kleisli arrow.\nLayer stack = monadic bind.\nrpds snapshot = audit substrate.\nproptest property = runtime invariant.\nkani proof = compile-time invariant.\nZenoh = single transport (SC-ZMOF-001).", shape=note, fillcolor="#1e2a3a", fontcolor="#00d4aa"];
+}

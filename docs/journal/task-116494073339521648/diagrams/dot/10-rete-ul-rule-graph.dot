@@ -1,0 +1,44 @@
+digraph ReteULRules {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [fontname="Inter", fontcolor="#e0e6ed", color="#1e2a3a", style="filled", fillcolor="#141922"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Inter", fontsize=10];
+
+  subgraph cluster_freshness {
+    label="domain: secret_freshness (7 rules)"; fontcolor="#3dd68c"; color="#3dd68c"; style="rounded";
+
+    r_fresh [label="SecretFresh\nsalience 100\nage < ttl", fillcolor="#1a2a1a"];
+    r_soft_on [label="SecretSoftStale\nsalience 95\nttl ≤ age < max_ttl ∧ online", fillcolor="#1a2530"];
+    r_soft_off [label="SecretSoftStaleOffline\nsalience 90\nttl ≤ age < max_ttl ∧ offline", fillcolor="#2a2418"];
+    r_hard [label="SecretHardStale\nsalience 100\nage ≥ max_ttl", fillcolor="#2a1f1f"];
+    r_rot [label="SecretRotationDue\nsalience 80\nrotated > rotation_days", fillcolor="#1a2530"];
+    r_lease [label="SecretLeaseExpiringSoon\nsalience 75\nlease.expiry - now < 60s", fillcolor="#1a2530"];
+    r_unseal [label="SecretBootUnsealFailed\nsalience 100\nunseal returned err", fillcolor="#2a1f1f"];
+  }
+
+  subgraph cluster_integrity {
+    label="domain: vault_integrity (5 rules)"; fontcolor="#f5a623"; color="#f5a623"; style="rounded";
+
+    r_sealed [label="VaultSealedAtBoot\nsalience 100\nuptime > 30s ∧ sealed", fillcolor="#2a1f1f"];
+    r_attempt [label="VaultUnsealAttemptFailed\nsalience 100\nall 3 KEK paths failed", fillcolor="#2a1f1f"];
+    r_corrupt [label="VaultStorageCorrupt\nsalience 100\nintegrity_check fail", fillcolor="#2a1f1f"];
+    r_audit [label="VaultAuditGap\nsalience 90\nNIF call w/o audit < 5s", fillcolor="#1a2530"];
+    r_tongsuo [label="VaultTongsuoLinked\nsalience 100\ncargo tree finds tongsuo", fillcolor="#2a1f1f"];
+  }
+
+  decision [label="Decision dispatcher\n(rules/dispatcher.gleam)", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+
+  r_fresh -> decision [label="Allow (hot path)"];
+  r_soft_on -> decision [label="TriggerSync"];
+  r_soft_off -> decision [label="DegradedMode"];
+  r_hard -> decision [label="FailClosed P0"];
+  r_rot -> decision [label="ProposeRotation"];
+  r_lease -> decision [label="RenewLease"];
+  r_unseal -> decision [label="HaltAgents P0"];
+
+  r_sealed -> decision [label="P0Alarm"];
+  r_attempt -> decision [label="HaltAll P0"];
+  r_corrupt -> decision [label="ReadOnlyFallback P0"];
+  r_audit -> decision [label="P1Investigate"];
+  r_tongsuo -> decision [label="BlockRelease"];
+}

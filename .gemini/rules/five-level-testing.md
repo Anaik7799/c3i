@@ -57,7 +57,7 @@ alias StreamData, as: SD
 - **C8 Dual Verification**: Every action button tested for BOTH status change AND flash (SC-COV-016)
 - **Two-Step Commit**: arm→confirm→cancel test sequences for SC-SAFETY-001 pages (SC-COV-019)
 - **Coverage Entropy**: H ≥ 2.5 bits per file (balanced across 8 categories, AOR-COV-012)
-- **See**: `.gemini/rules/fractal-coverage-gold-standard.md` for full 8-category specification
+- **See**: `.claude/rules/fractal-coverage-gold-standard.md` for full 8-category specification
 # AOR Rules (Coverage)
 | ID | Rule |
 |----|------|

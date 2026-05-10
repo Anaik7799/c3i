@@ -1,27 +1,27 @@
-# Autonomous OODA Enforcement (SC-OODA-GEMINI)
+# Autonomous OODA Enforcement (SC-OODA-CLAUDE)
 # स्वायत्त ऊडा प्रवर्तन
 
 ## MANDATE
-**Gemini MUST operate in continuous OODA loops. Every action follows: Observe -> Orient -> Decide -> Act -> Verify.**
-This is NOT optional. The hooks ENFORCE observation. The rules ENFORCE orientation. Gemini DECIDES and ACTS.
+**Claude MUST operate in continuous OODA loops. Every action follows: Observe -> Orient -> Decide -> Act -> Verify.**
+This is NOT optional. The hooks ENFORCE observation. The rules ENFORCE orientation. Claude DECIDES and ACTS.
 
 ## STAMP Constraints
 | ID | Constraint | Severity |
 |----|------------|----------|
-| SC-OODA-GEMINI-001 | Gemini MUST observe system state before acting (SessionStart hook) | CRITICAL |
-| SC-OODA-GEMINI-002 | Gemini MUST orient via Zettelkasten recall (UserPromptSubmit hook) | CRITICAL |
-| SC-OODA-GEMINI-003 | Gemini MUST decide using NIF compute, not manual reasoning | HIGH |
-| SC-OODA-GEMINI-004 | Gemini MUST act autonomously on non-L0 changes (Gita protocol) | HIGH |
-| SC-OODA-GEMINI-005 | Gemini MUST verify via gleam test after every change | CRITICAL |
-| SC-OODA-GEMINI-006 | Gemini MUST learn — ingest findings to Zettelkasten (Stop hook) | CRITICAL |
+| SC-OODA-CLAUDE-001 | Claude MUST observe system state before acting (SessionStart hook) | CRITICAL |
+| SC-OODA-CLAUDE-002 | Claude MUST orient via Zettelkasten recall (UserPromptSubmit hook) | CRITICAL |
+| SC-OODA-CLAUDE-003 | Claude MUST decide using NIF compute, not manual reasoning | HIGH |
+| SC-OODA-CLAUDE-004 | Claude MUST act autonomously on non-L0 changes (Gita protocol) | HIGH |
+| SC-OODA-CLAUDE-005 | Claude MUST verify via gleam test after every change | CRITICAL |
+| SC-OODA-CLAUDE-006 | Claude MUST learn — ingest findings to Zettelkasten (Stop hook) | CRITICAL |
 
 ## OODA Budget (per cycle)
 | Phase | Budget | Tool | Enforcement |
 |-------|--------|------|-------------|
 | Observe | <3s | SessionStart hook + /observe | AUTOMATIC |
 | Orient | <5s | UserPromptSubmit hook (ZK search) | AUTOMATIC |
-| Decide | <2s | Gleam NIF compute | Gemini must call |
-| Act | varies | Code changes | Gemini executes |
+| Decide | <2s | Gleam NIF compute | Claude must call |
+| Act | varies | Code changes | Claude executes |
 | Verify | <30s | PostToolUse hook (build+test) | AUTOMATIC |
 | Learn | <10s | Stop hook (ingest) | AUTOMATIC |
 
@@ -41,7 +41,7 @@ This is NOT optional. The hooks ENFORCE observation. The rules ENFORCE orientati
 | Push to remote | ASK | Shared state |
 
 ## Biomorphic Properties
-| Property | How Gemini Exhibits It |
+| Property | How Claude Exhibits It |
 |----------|----------------------|
 | Homeostasis | Dark Cockpit — suppress noise when healthy |
 | Metabolism | Context window = energy. Compact = digest. ZK = store fat. |

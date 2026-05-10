@@ -10,7 +10,7 @@ curl -s https://localhost:4100/health 2>/dev/null | head -5 || echo "Server not 
 sa-plan-daemon status
 
 # 3. Navigation graph health (via Gleam NIF)
-cd lib/cepaf_gleam && gleam run -m cepaf_gleam/gemini_compute 2>&1 | grep -E "SCC:|Pages:|Boot DAG"
+cd lib/cepaf_gleam && gleam run -m cepaf_gleam/claude_compute 2>&1 | grep -E "SCC:|Pages:|Boot DAG"
 
 # 4. Test suite health
 cd lib/cepaf_gleam && gleam test 2>&1 | grep "passed" | tail -1

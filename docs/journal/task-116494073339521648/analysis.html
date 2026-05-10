@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Secrets Vault Analysis — Task 116494073339521648</title>
+<style>
+  :root { --bg:#0a0e17; --card:#141922; --border:#1e2a3a; --text:#e0e6ed; --muted:#7a8fa6; --accent:#00d4aa; --warn:#f5a623; --crit:#ff4757; --ok:#3dd68c; }
+  * { box-sizing:border-box }
+  body { margin:0; padding:32px; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,sans-serif; line-height:1.55; max-width:1400px; margin:0 auto; }
+  h1 { color:var(--accent); border-bottom:1px solid var(--border); padding-bottom:12px }
+  h2 { color:var(--accent); margin-top:32px }
+  h3 { color:var(--text); }
+  a { color:var(--accent) }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:20px; margin:16px 0 }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)) }
+  .badge { display:inline-block; padding:4px 10px; border-radius:4px; font-size:12px; font-weight:bold; margin-right:6px }
+  .b-p0 { background:#ff4757; color:white }
+  .b-p1 { background:#ffa502; color:white }
+  .b-p2 { background:#2ed573; color:white }
+  .b-done { background:var(--ok); color:#0a0e17 }
+  .b-pending { background:var(--muted); color:#0a0e17 }
+  .b-progress { background:var(--warn); color:#0a0e17 }
+  table { width:100%; border-collapse:collapse; margin:12px 0 }
+  th,td { border:1px solid var(--border); padding:8px 12px; text-align:left }
+  th { background:rgba(0,212,170,0.1); color:var(--accent) }
+  pre { background:#0e1320; padding:12px; border-radius:6px; overflow-x:auto; border:1px solid var(--border) }
+  code { background:#0e1320; padding:2px 6px; border-radius:3px; color:var(--accent) }
+  img { max-width:100%; border-radius:6px; border:1px solid var(--border); margin:8px 0 }
+  .weather { padding:16px; border-radius:8px; background:linear-gradient(135deg,rgba(0,212,170,0.15),rgba(245,166,35,0.15)); border:1px solid var(--border); margin-bottom:24px }
+  .metric { display:inline-block; min-width:120px; padding:8px 12px; margin:4px; background:rgba(0,212,170,0.1); border-radius:6px }
+  .metric strong { display:block; font-size:24px; color:var(--accent) }
+  .crit { color:var(--crit); font-weight:bold }
+  .ok { color:var(--ok); font-weight:bold }
+  .warn { color:var(--warn); font-weight:bold }
+</style>
+</head>
+<body>
+<div class="weather">
+  <h1 style="margin-top:0;border:0">🔐 Secrets Vault — Local-first RustyVault NIF + GCP-DR root</h1>
+  <p>Operator handoff for task <code>urn:c3i:task:misc:116494073339521648</code> (P1)</p>
+  <div>
+    <span class="metric"><strong>14</strong>sa-plan tasks</span>
+    <span class="metric"><strong>1/14</strong>completed (Slice A)</span>
+    <span class="metric"><strong>12</strong>diagrams</span>
+    <span class="metric"><strong>25+1</strong>STAMP constraints</span>
+    <span class="metric"><strong>12</strong>RETE-UL rules</span>
+    <span class="metric"><strong>7</strong>test phases</span>
+    <span class="metric"><strong>67 MB</strong>vendored</span>
+  </div>
+</div>
+
+<h2>Why this exists</h2>
+<div class="card">
+  <p><strong>Triggering finding</strong>: pass-31 hygiene sweep found a live <code>sk-ant-api03-…</code> Anthropic API key
+  in <code>.pi/config.json</code> AND <code>.pi/config.example.json</code>, plus 8 plaintext secrets in
+  <code>UserPreferences[secrets]</code> SQLite rows.</p>
+  <p><strong>Single root cause</strong>: vault primitive missing. Every other finding is downstream.</p>
+  <p>See <a href="5-level-fractal-rca.md">5-level-fractal-rca.md</a> for full RCA.</p>
+</div>
+
+<h2>Architecture (PNG)</h2>
+<div class="card">
+  <img src="diagrams/png/01-architecture.png" alt="architecture">
+  <p class="muted">Local-first design: hot path never touches network. Cloud KMS is boot-DR only.</p>
+</div>
+
+<h2>1-week offline timeline</h2>
+<div class="card">
+  <img src="diagrams/png/06-offline-1week.png" alt="1-week offline timeline">
+  <p>Per-secret hard-TTL: 5min/7d for hot keys (Anthropic, OpenRouter, Gemini); 30d/90d for stable keys (Telegram, Gmail, GChat). Long-TTL secrets continue working past 7 days. Hot-TTL secrets fail-closed at MaxTTL with operator alarm 24h before.</p>
+</div>
+
+<h2>Critical-path slice plan</h2>
+<table>
+<tr><th>Slice</th><th>Action</th><th>FMEA RPN</th><th>Status</th></tr>
+<tr><td><strong>A</strong></td><td>Vendor RustyVault + scrub Tongsuo patch + crypto audit</td><td><span class="crit">378</span></td><td><span class="badge b-done">DONE</span></td></tr>
+<tr><td><strong>B</strong></td><td>NIF crate (10 NIFs, 600 LOC Rust) + vault.gleam wrapper</td><td>180</td><td><span class="badge b-pending">tracked</span></td></tr>
+<tr><td><strong>C</strong></td><td>Boot KEK chain (TPM/passphrase/KMS)</td><td>160</td><td><span class="badge b-pending">tracked</span></td></tr>
+<tr><td><strong>E</strong></td><td>Caller flip + .pi placeholder + Wisp REST</td><td>288</td><td><span class="badge b-pending">tracked</span></td></tr>
+<tr><td><strong>D</strong></td><td>GCP sync actor + Secret Manager pull/push</td><td>175</td><td><span class="badge b-pending">tracked</span></td></tr>
+<tr><td><strong>F</strong></td><td>Governance + tests + formal stack + doc pack closure</td><td>168</td><td><span class="badge b-pending">tracked</span></td></tr>
+</table>
+
+<h2>Storage co-location with Smriti.db</h2>
+<div class="card">
+<p>Per operator amendment "use smriti.db if possible":</p>
+<pre>sub-projects/c3i/data/kms/
+├── smriti.db                 (existing — operational metadata, secret_policy table)
+├── smriti_vault.db           (NEW — RustyVault sealed K/V; only RustyVault touches)
+├── smriti_vault_audit.log    (NEW — append-only audit)
+├── smriti_kek.sealed         (NEW — TPM-sealed KEK ciphertext)
+└── smriti_kek.kms-sealed     (NEW — Cloud KMS DR ciphertext)</pre>
+<p>Reuses existing <code>backup.rs</code> Critical-tier backup (no new GCS upload code) and SQLite WAL config.</p>
+</div>
+
+<h2>The Tongsuo gotcha (and the fix)</h2>
+<div class="card">
+<p>RustyVault's upstream <code>Cargo.toml</code> contains:</p>
+<pre>[features]
+default = ["crypto_adaptor_openssl"]   # ← name says OpenSSL
+
+[patch.crates-io]
+openssl     = { git = "...", branch = "tongsuo" }   # ← but actual openssl crate redirects to Tongsuo's fork
+openssl-sys = { git = "...", branch = "tongsuo" }   # ← which adds SM2/SM3/SM4 to the OpenSSL build</pre>
+<p><span class="warn">Default feature name lies.</span> Tongsuo fork adds Chinese national crypto algorithms (SM2/SM3/SM4) to the OpenSSL build at link time, regardless of which feature flag you select.</p>
+<p><strong>Fix shipped this turn (Slice A)</strong>: vendor + scrub the <code>[patch.crates-io]</code> block. New rule <code>SC-VAULT-CRYPTO-001</code> enforces empty <code>cargo tree | grep -i tongsuo</code> as a build-blocking gate.</p>
+</div>
+
+<h2>GCP alignment</h2>
+<div class="grid">
+<div class="card"><h3>Secret Manager</h3><p>europe-north1<br>versioned k→v<br>CMEK-encrypted</p></div>
+<div class="card"><h3>Cloud KMS (CMEK)</h3><p>europe-north1<br>HSM-protected<br>encrypts Secret Manager at rest</p></div>
+<div class="card"><h3>Cloud KMS (DR keyring)</h3><p>separate keyring<br>seals KEK for disaster recovery only<br>never on hot path</p></div>
+<div class="card"><h3>Cloud Storage</h3><p>existing daily backup of <code>data/kms/</code><br>vault DB rides along automatically</p></div>
+</div>
+
+<h2>Operator UX flows</h2>
+<div class="card">
+<img src="diagrams/png/11-ux-operator-flows.png" alt="UX flows">
+<p>4 operator workflows: stale-secret reload, key rotation with Guardian gate, network outage countdown, TPM PCR mismatch recovery.</p>
+</div>
+
+<h2>RETE-UL rule graph</h2>
+<div class="card">
+<img src="diagrams/png/10-rete-ul-rule-graph.png" alt="RETE-UL rules">
+<p>12 rules across 2 domains. Existing 52 rules + 12 new = 64 total in 14 domains.</p>
+</div>
+
+<h2>State machines</h2>
+<div class="grid">
+<div class="card"><img src="diagrams/png/07-state-machine-vault.png" alt="vault FSM"><p>Vault: sealed/unsealing/active/sealing/corrupt/halted</p></div>
+<div class="card"><img src="diagrams/png/08-state-machine-secret.png" alt="secret FSM"><p>Secret: born/fresh/soft-stale/hard-stale/destroyed/rotation-due</p></div>
+</div>
+
+<h2>Critical-path boot timing</h2>
+<div class="card">
+<img src="diagrams/png/12-critical-path-boot.png" alt="boot DAG">
+<p><strong>TPM happy path</strong>: 370ms. <strong>KMS DR fallback</strong>: 600ms. Both under SC-VER-041 OODA cycle budget.</p>
+</div>
+
+<h2>Documentation pack</h2>
+<table>
+<tr><th>File</th><th>Description</th></tr>
+<tr><td><a href="journal.md">journal.md</a></td><td>13-section per SC-JOURNAL</td></tr>
+<tr><td><a href="5-level-fractal-rca.md">5-level-fractal-rca.md</a></td><td>L1-L5 RCA + Wolfram ruliology + FMEA</td></tr>
+<tr><td><a href="tps-countermeasures.md">tps-countermeasures.md</a></td><td>7 TPS pillars: Jidoka/Andon/Kaizen/Heijunka/Poka-yoke/Genchi Genbutsu/Standardized Work</td></tr>
+<tr><td><a href="fractal-criticality-matrix.md">fractal-criticality-matrix.md</a></td><td>L0-L7 × 10 components × {STAMP, RETE-UL, FMEA RPN}; ΣRPN 2,847 → target &lt; 600</td></tr>
+<tr><td><a href="test-plan/README.md">test-plan/README.md</a></td><td>7-phase test plan: unit/integration/property/formal/E2E-offline/chaos/UX</td></tr>
+<tr><td><a href="task-116494073339521648-links.json">links.json</a></td><td>link manifest</td></tr>
+</table>
+
+<h2>Verification</h2>
+<table>
+<tr><th>Gate</th><th>Status</th></tr>
+<tr><td>RustyVault vendored to <code>sub-projects/rusty_vault_vendored/</code></td><td><span class="ok">✓</span></td></tr>
+<tr><td><code>[patch.crates-io]</code> block scrubbed</td><td><span class="ok">✓</span></td></tr>
+<tr><td>Vendoring notes documented</td><td><span class="ok">✓</span></td></tr>
+<tr><td>14 sa-plan tasks created</td><td><span class="ok">✓</span></td></tr>
+<tr><td>12 graphviz diagrams rendered</td><td><span class="ok">✓</span></td></tr>
+<tr><td>13-section journal written</td><td><span class="ok">✓</span></td></tr>
+<tr><td>5-level RCA + TPS countermeasures</td><td><span class="ok">✓</span></td></tr>
+<tr><td>Fractal criticality matrix</td><td><span class="ok">✓</span></td></tr>
+<tr><td>7-phase test plan</td><td><span class="ok">✓</span></td></tr>
+<tr><td>SC-VAULT-001..025 + SC-VAULT-CRYPTO-001 rule registered</td><td><span class="ok">✓</span></td></tr>
+<tr><td>.gemini parity</td><td><span class="ok">✓</span></td></tr>
+<tr><td>Slices B-F implementation</td><td><span class="warn">⏳ tracked</span></td></tr>
+<tr><td>Tongsuo absence binary audit (cargo tree)</td><td><span class="warn">⏳ Slice B</span></td></tr>
+<tr><td>1-week offline E2E simulation</td><td><span class="warn">⏳ Phase 5</span></td></tr>
+</table>
+
+<p style="margin-top:48px;color:var(--muted);font-size:13px">
+Operator: abhijit.naik@bountytek.com · Generated 2026-04-30 ·
+<a href="https://vm-1.tail55d152.ts.net:8443/task-id/116494073339521648/">Tailscale handoff index</a>
+</p>
+</body></html>

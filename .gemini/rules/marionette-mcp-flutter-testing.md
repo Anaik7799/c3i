@@ -1,4 +1,3 @@
-<!-- Mirror of .claude/rules/marionette-mcp-flutter-testing.md; governance parity per SC-SYNC-DOC-007. -->
 # Marionette MCP Flutter Testing Protocol (SC-MARIONETTE)
 
 > Companion to `.claude/rules/patrol-mcp-zenoh.md`. That rule treats Marionette as a sidekick to Patrol and undercounts the tool surface; this rule is the authoritative spec for Marionette-driven Flutter testing across the C3I mesh.

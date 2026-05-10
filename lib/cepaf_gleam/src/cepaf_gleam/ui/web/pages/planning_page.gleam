@@ -15,7 +15,7 @@ import cepaf_gleam/ui/web/page_helpers.{
 }
 import gleam/float
 import gleam/int
-import gleam/list
+// import gleam/list
 import gleam/string
 import lustre/attribute
 import lustre/element.{type Element}

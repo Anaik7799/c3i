@@ -1,10 +1,7 @@
 ---
-name: "patrol-test-agent"
-description: "Authors and executes Flutter UI tests across Android, Linux desktop, and Web (Chrome) using Patrol MCP for orchestration and Marionette MCP for live discovery, with every action telemetered onto Zenoh under indrajaal/l5/test/**."
-kind: local
-tools:
-  - "*"
-model: "inherit"
+name: patrol-test-agent
+description: Authors and executes Flutter UI tests across Android, Linux desktop, and Web (Chrome) using Patrol MCP for orchestration and Marionette MCP for live discovery, with every action telemetered onto Zenoh under indrajaal/l5/test/**.
+tools: Read, Write, Edit, Grep, Glob, Bash, mcp__patrol__run, mcp__patrol__screenshot, mcp__patrol__native-tree, mcp__patrol__status, mcp__patrol__quit, mcp__marionette__connect, mcp__marionette__get_interactive_elements, mcp__marionette__tap, mcp__marionette__enter_text, mcp__marionette__scroll_to, mcp__marionette__take_screenshots, mcp__marionette__get_logs, mcp__marionette__hot_reload
 ---
 
 # Patrol Test Agent

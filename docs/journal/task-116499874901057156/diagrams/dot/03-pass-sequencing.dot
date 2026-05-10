@@ -1,0 +1,31 @@
+digraph PassSequencing {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [shape=box, style="rounded,filled", fontname="JetBrains Mono", fontsize=10, fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontsize=9];
+  label="5-Pass FP Adoption Sequence — KPI Deltas";
+  labelloc="t"; fontcolor="#00d4aa"; fontname="JetBrains Mono"; fontsize=14;
+
+  P0 [label="Pass 0\nBaseline\nFP_TOTAL≈0.45\nFP_VAULT≈0.35\nFP_HOTPATH≈0.50", fillcolor="#1e2a3a"];
+  P1 [label="Pass 1 (LOW risk)\nderive_more + itertools + either\nΔFP_TOTAL +0.10\nNo behavior change", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  P2 [label="Pass 2 (HIGH leverage)\nnutype (vault first) + frunk\n+ bon + parking_lot\nΔFP_TOTAL +0.20\nΔFP_VAULT +0.30", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  P3 [label="Pass 3 (HIGH risk)\nrpds + arc_swap\n+ bytes formalize\nΔFP_TOTAL +0.15\nΔFP_HOTPATH +0.20\n(criterion gates)", fillcolor="#f39c12", fontcolor="#0a0e17"];
+  P4 [label="Pass 4 (MED)\ntower + winnow + recursion\n+ rayon offline + snafu\nΔFP_TOTAL +0.15", fillcolor="#9b59b6"];
+  P5 [label="Pass 5 (PROOF)\nkani-verifier + proptest deepen\nΔFP_TOTAL +0.10\nΔFP_VAULT +0.15\n(first kani run finds bugs)", fillcolor="#ff4757"];
+  PFinal [label="Closing\nFP_TOTAL ≥ 0.85\nFP_VAULT ≥ 0.92\nFP_HOTPATH ≥ 0.78\nALL GATES MET", fillcolor="#1e2a3a", fontcolor="#00d4aa"];
+
+  P0 -> P1 [label="confirm"];
+  P1 -> P2 [label="vault first"];
+  P2 -> P3 [label="criterion baseline"];
+  P3 -> P4 [label="rayon offline only"];
+  P4 -> P5 [label="harness vault"];
+  P5 -> PFinal [label="all gates"];
+
+  Gate1 [label="GATE 1\nλ ≥ 0\nWiring guard updated", shape=diamond, fillcolor="#1e2a3a", fontcolor="#00d4aa"];
+  Gate2 [label="GATE 2\nVault tongsuo grep empty\nFP_VAULT ≥ 0.75", shape=diamond, fillcolor="#1e2a3a", fontcolor="#00d4aa"];
+  Gate3 [label="GATE 3\nLatency ≤ +2%\nFP_HOTPATH ≥ 0.70", shape=diamond, fillcolor="#1e2a3a", fontcolor="#00d4aa"];
+
+  P1 -> Gate1 [style=dashed];
+  P2 -> Gate2 [style=dashed];
+  P3 -> Gate3 [style=dashed];
+}

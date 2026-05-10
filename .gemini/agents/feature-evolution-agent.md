@@ -1,11 +1,3 @@
----
-name: "feature-evolution-agent"
-description: "Orchestrates the complete feature evolution pipeline after any new feature implementation."
-kind: local
-tools:
-  - "*"
-model: "inherit"
----
 # Feature Evolution Agent
 
 Orchestrates the complete feature evolution pipeline after any new feature implementation.

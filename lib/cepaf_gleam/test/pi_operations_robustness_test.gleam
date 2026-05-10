@@ -529,10 +529,10 @@ pub fn zenoh_topics_no_collision_between_namespaces_test() {
 /// L0 Constitutional: GuardianRequired gate applies to L0 tools (SC-PI-002).
 pub fn fractal_l0_guardian_gate_type_exists_test() {
   let l0_tools = pi_tools.tools_by_layer(0)
-  { list.length(l0_tools) > 0 } |> should.be_true()
+  { l0_tools != [] } |> should.be_true()
 
   let guardian_tools = pi_tools.tools_requiring_guardian()
-  { list.length(guardian_tools) > 0 } |> should.be_true()
+  { guardian_tools != [] } |> should.be_true()
 }
 
 /// L1 Atomic/Debug: tools exist at layer 1 for OTel/compute (gleam_compute).
@@ -542,7 +542,7 @@ pub fn fractal_l1_otel_span_topic_defined_test() {
   |> should.be_true()
 
   let l1_tools = pi_tools.tools_by_layer(1)
-  { list.length(l1_tools) > 0 } |> should.be_true()
+  { l1_tools != [] } |> should.be_true()
 }
 
 /// L2 Component: TypeBox schema bridge type ClaudeCodeTool is constructible.
@@ -573,7 +573,7 @@ pub fn fractal_l3_session_persistence_types_test() {
 /// L4 System: Pod management tools exist at fractal_layer 4 in the registry.
 pub fn fractal_l4_pod_management_tools_exist_test() {
   let l4_tools = pi_tools.tools_by_layer(4)
-  { list.length(l4_tools) > 0 } |> should.be_true()
+  { l4_tools != [] } |> should.be_true()
 }
 
 /// L5 Cognitive: 6-tier OODA inference cascade in pi_provider with rete-ul-rules.

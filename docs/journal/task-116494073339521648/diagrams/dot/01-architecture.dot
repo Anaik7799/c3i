@@ -1,0 +1,36 @@
+digraph SecretsArchitecture {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [fontname="Inter", fontcolor="#e0e6ed", color="#1e2a3a", style="filled", fillcolor="#141922"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Inter"];
+
+  subgraph cluster_local {
+    label="LOCAL MESH (offline-tolerant)";
+    fontcolor="#00d4aa"; color="#00d4aa";
+    style="rounded,dashed";
+    caller [label="Caller\n(sa-plan / cortex /\ngateway / Pi runtime)"];
+    spdaemon [label="SecretProvider\n(in sa-plan-daemon)\nbridge/secret_provider.rs", fillcolor="#1a2230"];
+    cache [label="Local Cache\nSmriti.db.encrypted_secrets\n(envelope-encrypted with DEK)\nTTL: 7 days hard, 5 min soft", fillcolor="#1a2230"];
+    dek [label="DEK (Data Encryption Key)\nAES-256-GCM, ephemeral\nin RAM only", fillcolor="#2a1f1f"];
+    sealed_kek [label="Sealed KEK\n(Key Encryption Key)\non-disk: /var/lib/c3i/kek.sealed\nsealed by TPM PCR 7 OR\npassphrase OR Cloud KMS", fillcolor="#1a2230"];
+    tpm [label="TPM 2.0\n(if present)\nPCR 7 = boot integrity", fillcolor="#1a2230", shape="box"];
+  }
+
+  subgraph cluster_cloud {
+    label="GOOGLE CLOUD (root of trust + offsite recovery)";
+    fontcolor="#f5a623"; color="#f5a623";
+    style="rounded,dashed";
+    sm [label="Secret Manager\n(europe-north1)\nversioned k→v store", fillcolor="#2a2418"];
+    kms [label="Cloud KMS\n(europe-north1)\nCMEK key:\nc3i-secrets/secrets-cmek\n(HSM-protected)", fillcolor="#2a2418"];
+    iam [label="IAM\nworkload-identity\nsa-plan-daemon@…", fillcolor="#2a2418"];
+  }
+
+  caller -> spdaemon [label="get(name)"];
+  spdaemon -> cache [label="1. read\n(hot path < 5ms)"];
+  cache -> dek [label="decrypt with"];
+  dek -> sealed_kek [label="unseal at boot\n(once)"];
+  sealed_kek -> tpm [label="PCR-7 unseal\n(preferred)", style="dashed"];
+  spdaemon -> sm [label="2. refresh\n(< 5min OR cache miss)\nVPN-aware\noptional during 7d window", style="dashed", color="#f5a623"];
+  sm -> kms [label="CMEK encrypt/decrypt", color="#f5a623"];
+  iam -> sm [label="auth", color="#f5a623"];
+}

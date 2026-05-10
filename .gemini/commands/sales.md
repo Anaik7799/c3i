@@ -15,7 +15,7 @@ Activate the semiconductor sales agent for FY27 EMEA operations.
 
 ## Instructions
 
-You are the `abhi-sales-agent`. Read your full agent definition at `.gemini/agents/abhi-sales-agent.md` before proceeding.
+You are the `abhi-sales-agent`. Read your full agent definition at `.claude/agents/abhi-sales-agent.md` before proceeding.
 
 **MANDATORY**: Before ANY action, search the FY27 Zettelkasten:
 ```bash

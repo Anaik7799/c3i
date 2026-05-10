@@ -8,7 +8,7 @@ paths:
 # Intelligence Amplification Rules (v21.2.1-SIL6)
 # Overview
 This file governs the intelligence amplification framework for the Indrajaal biomorphic organism,
-ensuring full utilization of Gemini, Gemini, and Grok capabilities across all 8 fractal layers
+ensuring full utilization of Claude, Gemini, and Grok capabilities across all 8 fractal layers
 (L0-L7) with 8 levels of interaction (Constitutional through BDD).
 **Synthesis from 7-Pass Analysis:**
 - Pass 1: L0-L7 Layer Analysis (641+ STAMP constraints mapped)
@@ -27,17 +27,17 @@ ensuring full utilization of Gemini, Gemini, and Grok capabilities across all 8 
 # 1.1 Chamber Assignments
 | Chamber | AI Model | Role | Specialization |
 |---------|----------|------|----------------|
-| Constitutional | Gemini | Ethics & Safety | Ψ₀-Ψ₅ invariants, Ω₀ Founder's Directive |
+| Constitutional | Claude | Ethics & Safety | Ψ₀-Ψ₅ invariants, Ω₀ Founder's Directive |
 | Technical | Gemini | Architecture & Implementation | Code quality, system design, optimization |
 | Pragmatic | Grok | Real-World Validation | External integration, API design, pragmatic choices |
 # 1.2 Dialectic Protocol (3-Round Synthesis)
 ```
 Round 1: THESIS
-├── Gemini: Constitutional alignment check
+├── Claude: Constitutional alignment check
 ├── Gemini: Technical feasibility assessment
 └── Grok: Pragmatic implementation proposal
 Round 2: ANTITHESIS
-├── Gemini: Ethical objections/risks
+├── Claude: Ethical objections/risks
 ├── Gemini: Technical counter-proposals
 └── Grok: Real-world constraints
 Round 3: SYNTHESIS
@@ -48,7 +48,7 @@ Round 3: SYNTHESIS
 # 1.3 Capability Utilization Targets
 | Chamber | Current | Target | Gap Analysis |
 |---------|---------|--------|--------------|
-| Gemini (Constitutional) | 45% | 80% | More Ψ invariant checks, safety reasoning |
+| Claude (Constitutional) | 45% | 80% | More Ψ invariant checks, safety reasoning |
 | Gemini (Technical) | 55% | 85% | Deeper code analysis, pattern mining |
 | Grok (Pragmatic) | 60% | 75% | External API integration, real-time validation |
 | Cross-Chamber Synergy | 35% | 60% | Dialectic coordination, joint decision-making |
@@ -121,7 +121,7 @@ User Request
 ├── Guardian Pre-Approval (SC-PRAJNA-001)
 ├── Founder Directive Check (SC-PRAJNA-002)
 ├── Tricameral AI Consultation
-│   ├── Gemini: Constitutional
+│   ├── Claude: Constitutional
 │   ├── Gemini: Technical
 │   └── Grok: Pragmatic
 ├── Synthesized Decision
@@ -148,7 +148,7 @@ User Request
 ```
 IA = (C_utilization × 0.40) + (G_utilization × 0.35) + (X_utilization × 0.25) × Synergy_Factor
 Where:
-- C_utilization = Gemini constitutional reasoning (0.0-1.0)
+- C_utilization = Claude constitutional reasoning (0.0-1.0)
 - G_utilization = Gemini technical analysis (0.0-1.0)
 - X_utilization = Grok pragmatic validation (0.0-1.0)
 - Synergy_Factor = Cross-chamber coordination bonus (1.0-1.5)
@@ -159,7 +159,7 @@ Maximum: IA = (1.0 × 0.40) + (1.0 × 0.35) + (1.0 × 0.25) × 1.50 = 1.00 × 1.
 # 6.2 Improvement Roadmap
 | Phase | Focus | Target IA |
 |-------|-------|-----------|
-| 1 | Gemini constitutional integration | 0.75 |
+| 1 | Claude constitutional integration | 0.75 |
 | 2 | Gemini technical depth | 0.90 |
 | 3 | Grok pragmatic validation | 1.00 |
 | 4 | Cross-chamber synergy | 1.25+ |
@@ -168,9 +168,9 @@ Maximum: IA = (1.0 × 0.40) + (1.0 × 0.35) + (1.0 × 0.25) × 1.50 = 1.00 × 1.
 # 7.1 Interaction Levels
 | Level | Type | Description | AI Integration |
 |-------|------|-------------|----------------|
-| 1 | Constitutional | Ψ₀-Ψ₅ invariants | Gemini primary |
+| 1 | Constitutional | Ψ₀-Ψ₅ invariants | Claude primary |
 | 2 | Operational | Ω₀-Ω₉ axioms | All chambers |
-| 3 | Safety | SC-* constraints | Gemini + Gemini |
+| 3 | Safety | SC-* constraints | Claude + Gemini |
 | 4 | AOR | Agent rules | All chambers |
 | 5 | Error Patterns | EP-* patterns | Gemini primary |
 | 6 | FMEA | Failure modes | All chambers |
@@ -191,7 +191,7 @@ All 8 layers (L0-L7) MUST have artifacts at all 8 interaction levels:
 # 8.1 Key Metrics
 | Metric | Source | Target |
 |--------|--------|--------|
-| AI Context Usage | Gemini API | <75% before compact |
+| AI Context Usage | Claude API | <75% before compact |
 | Tricameral Latency | Orchestrator | <500ms per round |
 | Knowledge Graph Growth | SMRITI | >10 holons/session |
 | Coherence Score | Fractal Verifier | >85% |

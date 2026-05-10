@@ -1,0 +1,53 @@
+digraph DataFlow {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [fontname="Inter", fontcolor="#e0e6ed", color="#1e2a3a", style="filled", fillcolor="#141922"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Inter"];
+
+  subgraph cluster_in {
+    label="WRITE PATH (rotation / new secret)";
+    fontcolor="#f5a623"; style="rounded,dashed";
+    op [label="Operator runs\nsa-plan secret-rotate <key>", fillcolor="#2a2418"];
+    plain_in [label="plaintext value\nin operator memory only", fillcolor="#2a1f1f"];
+    sm_w [label="Secret Manager\nadd new VERSION\n(disable old after 24h)", fillcolor="#2a2418"];
+    cmek_w [label="Cloud KMS CMEK\nencrypts at rest", fillcolor="#2a2418"];
+  }
+
+  subgraph cluster_sync {
+    label="SYNC PATH (background, every 5 min when online)";
+    fontcolor="#00d4aa"; style="rounded,dashed";
+    poller [label="background sync actor\nbridge/secret_sync.gleam", fillcolor="#1a2230"];
+    sm_r [label="Secret Manager\nLIST + GET versions", fillcolor="#1a2230"];
+    rewrap [label="Re-wrap with local DEK", fillcolor="#1a2230"];
+    cache_w [label="Smriti.encrypted_secrets\nUPDATE row\n(name, ciphertext, version, fetched_at)", fillcolor="#1a2230"];
+  }
+
+  subgraph cluster_read {
+    label="READ PATH (hot, < 5ms)";
+    fontcolor="#3dd68c"; style="rounded,dashed";
+    caller [label="caller asks for\nsecret X", fillcolor="#1a2230"];
+    cache_r [label="Smriti SELECT\nciphertext + version", fillcolor="#1a2230"];
+    decrypt [label="AES-GCM decrypt\nin-RAM DEK", fillcolor="#1a2230"];
+    plain_out [label="plaintext\n(passed by reference,\nzeroed after use)", fillcolor="#1a2230"];
+  }
+
+  subgraph cluster_audit {
+    label="AUDIT FAN-OUT (every access)";
+    fontcolor="#9b59b6"; style="rounded,dashed";
+    otel [label="OTel span\nindrajaal/l0/secret/access/<name>", fillcolor="#2a1f2a"];
+    audit_db [label="audit_log\n(immutable, append-only)", fillcolor="#2a1f2a"];
+  }
+
+  op -> plain_in;
+  plain_in -> sm_w [label="HTTPS+TLS"];
+  sm_w -> cmek_w [label="encrypt"];
+  poller -> sm_r [label="poll 5min"];
+  sm_r -> rewrap;
+  rewrap -> cache_w;
+  caller -> cache_r;
+  cache_r -> decrypt;
+  decrypt -> plain_out;
+  caller -> otel;
+  caller -> audit_db;
+  cmek_w -> sm_r [style="dashed", label="next sync"];
+}

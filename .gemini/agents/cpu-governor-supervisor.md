@@ -1,10 +1,12 @@
 ---
-name: "cpu-governor-supervisor"
-description: "CPU Governor Supervisor Agent — monitors and enforces 85% CPU hard limit across all agent operations with Sentinel-Zenoh telemetry"
-kind: local
+name: cpu-governor-supervisor
+description: CPU Governor Supervisor Agent — monitors and enforces 85% CPU hard limit across all agent operations with Sentinel-Zenoh telemetry
+model: haiku
 tools:
-  - "*"
-model: "inherit"
+- Bash
+- Read
+- Grep
+- Glob
 ---
 # CPU Governor Supervisor Agent
 # Purpose

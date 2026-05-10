@@ -1,0 +1,279 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main", "v0.2" ]
+    paths-ignore:
+      - "docs/**"
+      - ".github/workflows/website.yml"
+      - ".github/workflows/deploy-website.yml"
+  pull_request:
+    branches: [ "main" ]
+    paths-ignore:
+      - "docs/**"
+      - ".github/workflows/website.yml"
+      - ".github/workflows/deploy-website.yml"
+
+env:
+  CARGO_TERM_COLOR: always
+  TONGSUO_VERSION: 8.4.0
+
+jobs:
+  unix-default-test:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{matrix.os}}
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        components: clippy, rustfmt
+        override: true
+    - name: Run cargo fmt --all -- --check
+      run: cargo fmt --all -- --check
+    - name: Build
+      run: cargo build --verbose
+    - name: ulimit -n
+      run: ulimit -n 65535
+    - name: Run tests
+      run: cargo test --verbose
+    - name: Run tests with sync_handler features
+      run: cargo test --features sync_handler --verbose
+    - name: Run Clippy
+      run: cargo clippy -- -D warnings
+    - name: Install tarpaulin
+      run: cargo install cargo-tarpaulin
+    - name: Generate coverage report
+      run: CARGO_BIN_NAME=rvault cargo tarpaulin --out Lcov
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: wa5i/RustyVault
+
+  unix-tongsuo-test:
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+    runs-on: ${{matrix.os}}
+
+    steps:
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        components: clippy, rustfmt
+        override: true
+    - name: Build Tongsuo
+      run: |
+        wget "https://github.com/Tongsuo-Project/Tongsuo/archive/refs/tags/${TONGSUO_VERSION}.tar.gz"
+        tar zxf "${TONGSUO_VERSION}.tar.gz"
+        pushd "Tongsuo-${TONGSUO_VERSION}"
+        ./config --prefix=${RUNNER_TEMP}/tongsuo --libdir=${RUNNER_TEMP}/tongsuo/lib
+        make -j4
+        make install
+        popd
+    - uses: actions/checkout@v3
+    - name: Build
+      run : |
+        export LD_LIBRARY_PATH=${RUNNER_TEMP}/tongsuo/lib
+        OPENSSL_DIR=${RUNNER_TEMP}/tongsuo RUSTFLAGS="-C link-args=-Wl,-rpath,${RUNNER_TEMP}/tongsuo/lib" cargo build --verbose --features crypto_adaptor_tongsuo --no-default-features
+    - name: Run tests
+      run : |
+        export LD_LIBRARY_PATH=${RUNNER_TEMP}/tongsuo/lib
+        OPENSSL_DIR=${RUNNER_TEMP}/tongsuo RUSTFLAGS="-C link-args=-Wl,-rpath,${RUNNER_TEMP}/tongsuo/lib" cargo test --verbose --features crypto_adaptor_tongsuo --no-default-features
+    - name: Run tests with sync_handler features
+      run : |
+        export LD_LIBRARY_PATH=${RUNNER_TEMP}/tongsuo/lib
+        OPENSSL_DIR=${RUNNER_TEMP}/tongsuo RUSTFLAGS="-C link-args=-Wl,-rpath,${RUNNER_TEMP}/tongsuo/lib" cargo test --verbose --features crypto_adaptor_tongsuo --features sync_handler --no-default-features
+
+  unix-mysql-test:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{matrix.os}}
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        components: clippy, rustfmt
+        override: true
+    - uses: shogo82148/actions-setup-mysql@v1
+      with:
+        mysql-version: "5.7"
+        root-password: "password"
+        my-cnf: |
+          skip-ssl
+          port=3306
+    - name: install diesel_cli
+      run: cargo install diesel_cli --no-default-features --features mysql
+    - name: init database
+      run: diesel setup --database-url mysql://root:password@127.0.0.1:3306/vault
+    - name: ulimit -n
+      run: ulimit -n 65535
+    - name: Run tests for macOS
+      if: runner.os == 'macOS'
+      run: cargo test --features storage_mysql --lib --bins --tests --verbose
+    - name: Run tests for non-macOS
+      if: runner.os != 'macOS'
+      run: cargo test --features storage_mysql --verbose
+    - name: Build crate doc
+      run: cargo doc --no-deps
+
+  unix-sqlx-mysql-test:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{matrix.os}}
+    env:
+      CARGO_TEST_MYSQL_PASSWORD: password
+
+    steps:
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        components: clippy, rustfmt
+        override: true
+    - uses: actions/checkout@v3
+    - uses: shogo82148/actions-setup-mysql@v1
+      with:
+        mysql-version: "5.7"
+        root-password: "password"
+        my-cnf: |
+          skip-ssl
+          port=3306
+    - name: ulimit -n
+      run: ulimit -n 65535
+    - name: Run tests for macOS
+      if: runner.os == 'macOS'
+      run: cargo test --features storage_sqlx --lib --bins --tests --verbose
+    - name: Run tests for non-macOS
+      if: runner.os != 'macOS'
+      run: cargo test --features storage_sqlx --verbose
+    - name: Build crate doc
+      run: cargo doc --no-deps
+
+  windows-default-test:
+    strategy:
+      matrix:
+        os:
+          - windows-latest
+    runs-on: ${{matrix.os}}
+
+    steps:
+    - uses: actions/checkout@v3
+    - run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+    - name: install openssl
+      run: vcpkg install openssl:x64-windows-static-md
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
+    - name: Run tests with sync_handler features
+      run: cargo test --features sync_handler --verbose
+
+  windows-mysql-test:
+    strategy:
+      matrix:
+        os:
+          - windows-latest
+    runs-on: ${{matrix.os}}
+
+    steps:
+    - uses: actions/checkout@v3
+    - run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+    - name: install openssl
+      run: vcpkg install openssl:x64-windows-static-md
+    - name: Download MySQL Connector/C
+      run: |
+        Invoke-WebRequest -Uri "https://cdn.mysql.com/Downloads/Connector-C/mysql-connector-c-6.1.11-winx64.msi" -OutFile "mysql-connector.msi"
+    - name: Install MySQL Connector/C
+      run: |
+        Start-Process msiexec.exe -ArgumentList '/i', 'mysql-connector.msi', '/quiet', '/norestart' -NoNewWindow -Wait
+    - name: Set MySQLCLIENT_LIB_DIR
+      run: echo "MYSQLCLIENT_LIB_DIR=C:\Program Files\MySQL\MySQL Connector C 6.1\lib\vs14" | Out-File -FilePath $env:GITHUB_ENV -Append
+    - name: Set MYSQLCLIENT_VERSION
+      run: echo "MYSQLCLIENT_VERSION=8.4.0" | Out-File -FilePath $env:GITHUB_ENV -Append
+    - uses: shogo82148/actions-setup-mysql@v1
+      with:
+        mysql-version: "5.7"
+        root-password: "password"
+        my-cnf: |
+          skip-ssl
+          port=3306
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+    - name: install diesel_cli
+      run: cargo install diesel_cli --no-default-features --features mysql
+    - name: init database
+      run: diesel setup --database-url mysql://root:password@127.0.0.1:3306/vault
+    - name: Build
+      run: cargo build --features storage_mysql --verbose
+    - name: Run tests
+      run: cargo test --features storage_mysql --verbose
+    - name: Build crate doc
+      run: cargo doc --no-deps
+
+  windows-sqlx-mysql-test:
+    strategy:
+      matrix:
+        os:
+          - windows-latest
+    runs-on: ${{matrix.os}}
+    env:
+      CARGO_TEST_MYSQL_PASSWORD: password
+
+    steps:
+    - uses: actions/checkout@v3
+    - run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+    - name: install openssl
+      run: vcpkg install openssl:x64-windows-static-md
+    - name: Download MySQL Connector/C
+      run: |
+        Invoke-WebRequest -Uri "https://cdn.mysql.com/Downloads/Connector-C/mysql-connector-c-6.1.11-winx64.msi" -OutFile "mysql-connector.msi"
+    - name: Install MySQL Connector/C
+      run: |
+        Start-Process msiexec.exe -ArgumentList '/i', 'mysql-connector.msi', '/quiet', '/norestart' -NoNewWindow -Wait
+    - name: Set MySQLCLIENT_LIB_DIR
+      run: echo "MYSQLCLIENT_LIB_DIR=C:\Program Files\MySQL\MySQL Connector C 6.1\lib\vs14" | Out-File -FilePath $env:GITHUB_ENV -Append
+    - name: Set MYSQLCLIENT_VERSION
+      run: echo "MYSQLCLIENT_VERSION=8.4.0" | Out-File -FilePath $env:GITHUB_ENV -Append
+    - uses: shogo82148/actions-setup-mysql@v1
+      with:
+        mysql-version: "5.7"
+        root-password: "password"
+        my-cnf: |
+          skip-ssl
+          port=3306
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+    - name: Build
+      run: cargo build --features storage_sqlx --verbose
+    - name: Run tests
+      run: cargo test --features storage_sqlx --verbose
+    - name: Build crate doc
+      run: cargo doc --no-deps

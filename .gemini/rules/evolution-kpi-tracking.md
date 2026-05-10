@@ -75,11 +75,11 @@ Before implementing ANY evolution, document:
 | NIF count | 14 | NIFs | c3i_nif.so |
 | MCP tools | 73 | tools | sa-plan-daemon + Gleam |
 
-### Gemini Productivity KPIs
+### Claude Productivity KPIs
 | KPI | Value | Unit | Measurement |
 |-----|-------|------|-------------|
-| Rules count | 65 | files | `ls .gemini/rules/ \| wc -l` |
-| Commands count | 6 | files | `ls .gemini/commands/ \| wc -l` |
+| Rules count | 65 | files | `ls .claude/rules/ \| wc -l` |
+| Commands count | 6 | files | `ls .claude/commands/ \| wc -l` |
 | Memory files | 13 | files | `ls memory/ \| wc -l` |
 | Auto-build hook | active | boolean | settings.json PostToolUse |
 | Auto-test hook | active (async) | boolean | settings.json PostToolUse |

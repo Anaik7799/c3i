@@ -1,0 +1,52 @@
+digraph OperatorUXFlows {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [fontname="Inter", fontcolor="#e0e6ed", color="#1e2a3a", style="filled", fillcolor="#141922"];
+  edge [color="#7a8fa6", fontcolor="#3dd68c", fontname="Inter"];
+
+  subgraph cluster_a {
+    label="UX Flow A: Reload stale secret"; fontcolor="#00d4aa"; color="#00d4aa"; style="rounded";
+    a1 [label="Operator sees\namber tile on dashboard\n'openrouter_api_key: stale 4h'"];
+    a2 [label="Click 'Refresh'"];
+    a3 [label="Wisp endpoint\nPOST /api/v1/vault/secret/<name>/refresh"];
+    a4 [label="vault_sync_actor\ntriggered immediate sync"];
+    a5 [label="GCP Secret Manager\nreturns latest version"];
+    a6 [label="vault.put writes new ciphertext\nfetched_at = now"];
+    a7 [label="Dashboard tile turns green\nwithin 30s refresh", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    a1 -> a2 -> a3 -> a4 -> a5 -> a6 -> a7;
+  }
+
+  subgraph cluster_b {
+    label="UX Flow B: Rotate Anthropic key"; fontcolor="#00d4aa"; color="#00d4aa"; style="rounded";
+    b1 [label="Operator revokes old key\nat console.anthropic.com"];
+    b2 [label="Operator runs\nsa-plan vault put\nanthropic_api_key sk-ant-NEW"];
+    b3 [label="Guardian 2oo3 gate\nL0 secret rotation\n(SC-SIL4-006)"];
+    b4 [label="vault.put with policy\n(ttl=300, max=604800)"];
+    b5 [label="sync_actor pushes to\nGCP Secret Manager v=N+1"];
+    b6 [label="All callers next read\nget new key (within 5min)", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    b1 -> b2 -> b3 -> b4 -> b5 -> b6;
+  }
+
+  subgraph cluster_c {
+    label="UX Flow C: Network outage / countdown"; fontcolor="#f5a623"; color="#f5a623"; style="rounded";
+    c1 [label="Network drops\nsync_actor circuit opens\n3 fail / 60s cooldown"];
+    c2 [label="Dashboard tile turns amber\nshow MaxTTL countdown\nper secret"];
+    c3 [label="At MaxTTL - 24h\nP1 alert email to operator"];
+    c4 [label="At MaxTTL - 1h\nP0 alarm Zenoh + Telegram"];
+    c5 [label="At MaxTTL\nFAIL-CLOSED that secret\nred tile + lock icon", fillcolor="#ff4757", fontcolor="#ffffff"];
+    c6 [label="Reconnect:\nsync_actor resumes\ngreen within 5min", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    c1 -> c2 -> c3 -> c4 -> c5;
+    c5 -> c6 [label="when network restored"];
+  }
+
+  subgraph cluster_d {
+    label="UX Flow D: TPM PCR mismatch after kernel update"; fontcolor="#f5a623"; color="#f5a623"; style="rounded";
+    d1 [label="VM kernel updated\nnext reboot"];
+    d2 [label="Boot: TPM unseal fails\n(PCR 7 changed)"];
+    d3 [label="Fallback chain:\npassphrase → KMS → halt"];
+    d4 [label="If passphrase set:\noperator types passphrase\nat boot"];
+    d5 [label="Operator runs\nsa-plan vault re-seal-tpm\nto re-bind to new PCR"];
+    d6 [label="Next boot: TPM unseal works\n✓ unattended boot restored", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    d1 -> d2 -> d3 -> d4 -> d5 -> d6;
+  }
+}

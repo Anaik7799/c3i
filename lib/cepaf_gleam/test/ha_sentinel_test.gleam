@@ -8,7 +8,7 @@
 /// अभयं सत्त्वसंशुद्धिर् — Fearlessness and purity of truth (Gita 16.1)
 
 import cepaf_gleam/ha/sentinel.{
-  type PageInfo, type SentinelAction, CircuitComplete, PageInfo, SentinelOk,
+  CircuitComplete, PageInfo, SentinelOk,
   all_pages, alarm_pages, check_page, init, patrol_health, patrol_next,
   summary,
 }

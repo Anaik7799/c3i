@@ -1,0 +1,27 @@
+digraph VaultStateMachine {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [fontname="Inter", fontcolor="#e0e6ed", color="#1e2a3a", style="filled", fillcolor="#141922"];
+  edge [color="#7a8fa6", fontcolor="#3dd68c", fontname="Inter", fontsize=10];
+
+  start [label="boot", shape=circle, fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  sealed [label="Sealed\nmaster key absent from RAM\nALL reads fail with VaultError::Sealed", fillcolor="#2a1f1f"];
+  unsealing [label="Unsealing\nKEK chain attempt in progress\n(TPM → passphrase → KMS)", fillcolor="#1a2230"];
+  active [label="Active\nmaster key in RAM\nreads/writes ok\nleases tracked", fillcolor="#1a2a1a"];
+  sealing [label="Sealing\nzeroizing master\nflushing WAL\ndraining leases", fillcolor="#2a2418"];
+  corrupt [label="Corrupt\nintegrity_check failed\n→ read-only fallback to GCS snapshot\nP0 alarm", fillcolor="#2a1f1f", fontcolor="#ff4757"];
+  halted [label="Halted\nP0 condition\noperator intervention required", shape=doubleoctagon, fillcolor="#ff4757", fontcolor="#ffffff"];
+
+  start -> sealed [label="vault_init\n(if first boot)"];
+  start -> sealed [label="restart\n(if vault.db exists)"];
+  sealed -> unsealing [label="vault_unseal(master_key)"];
+  unsealing -> active [label="✓ unseal succeeded\nlog to immutable register"];
+  unsealing -> sealed [label="✗ wrong key\nVaultUnsealAttemptFailed rule"];
+  active -> sealing [label="vault_seal()\nor SIGTERM"];
+  sealing -> sealed [label="✓ master zeroized"];
+  active -> corrupt [label="storage integrity_check fail\nVaultStorageCorrupt rule"];
+  corrupt -> halted [label="auto-restore from GCS attempted but failed"];
+  unsealing -> halted [label="all 3 KEK paths failed\nVaultUnsealAttemptFailed P0"];
+
+  legend [label="State invariants:\n* NoPlaintextAtRest holds in {Sealed, Sealing, Corrupt, Halted}\n* HotPathWorks holds only in {Active}\n* Audit emitted on every state transition", fillcolor="#1a2230", shape=note];
+}

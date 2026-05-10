@@ -1,0 +1,57 @@
+digraph McpViaZenoh {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [fontname="Inter", fontcolor="#e0e6ed", color="#1e2a3a", style="filled", fillcolor="#141922", shape="box"];
+  edge [color="#7a8fa6", fontcolor="#3dd68c", fontname="Inter", fontsize=10];
+
+  subgraph cluster_remote {
+    label="Remote AI Agent (Claude / Pi / Gemini / Cross-mesh)";
+    fontcolor="#00d4aa"; color="#00d4aa"; style="rounded";
+    agent [label="AI agent\nwith MCP client", fillcolor="#1a2230"];
+    moz_pub [label="MoZ JSON-RPC publish\nindrajaal/mcp/req/vault/<tool>/<id>", fillcolor="#1a2230"];
+    moz_sub [label="MoZ response listen\nindrajaal/mcp/res/<id>", fillcolor="#1a2230"];
+  }
+
+  subgraph cluster_zenoh {
+    label="Zenoh Mesh";
+    fontcolor="#9b59b6"; color="#9b59b6"; style="rounded";
+    zenoh [label="zenoh-router\n:7447", fillcolor="#2a1f2a", shape="cylinder"];
+  }
+
+  subgraph cluster_local {
+    label="Local C3I Mesh — Vault Endpoint";
+    fontcolor="#3dd68c"; color="#3dd68c"; style="rounded";
+    moz_handler [label="moz/vault.gleam handler\n(actor subscribes to mcp/req/vault/**)", fillcolor="#1a2a1a"];
+    mcp_dispatch [label="MCP catalog dispatch\nmcp/tools.gleam (5 vault tools)", fillcolor="#1a2a1a"];
+    vault_g [label="vault.gleam typed wrapper", fillcolor="#1a2a1a"];
+    nif [label="rusty_vault_nif (10 NIFs)\n+ audit emission to Zenoh", fillcolor="#1a2a1a"];
+    storage [label="smriti_vault.db\n(sealed K/V)", fillcolor="#1a2530", shape="cylinder"];
+  }
+
+  subgraph cluster_audit {
+    label="Audit Fan-out (every call)";
+    fontcolor="#f5a623"; color="#f5a623"; style="rounded";
+    a_topic [label="indrajaal/l0/secret/access/<name>", fillcolor="#2a2418"];
+    a_log [label="smriti_vault_audit.log", fillcolor="#2a2418", shape="note"];
+    a_imm [label="immutable register\n(audit_log.rs)", fillcolor="#2a2418", shape="cylinder"];
+  }
+
+  agent -> moz_pub [label="1. {jsonrpc:'2.0', method:'vault_status', id:'req-001'}"];
+  moz_pub -> zenoh [label="2. publish"];
+  zenoh -> moz_handler [label="3. subscriber match"];
+  moz_handler -> mcp_dispatch [label="4. resolve tool"];
+  mcp_dispatch -> vault_g [label="5. typed call (e.g. vault.status())"];
+  vault_g -> nif [label="6. dirty-IO NIF"];
+  nif -> storage [label="7. read sealed state"];
+  nif -> a_topic [label="8. emit access envelope", color="#f5a623"];
+  a_topic -> a_log [label="audit fan-out", color="#f5a623"];
+  a_topic -> a_imm [label="audit fan-out", color="#f5a623"];
+  nif -> vault_g [label="9. typed Result"];
+  vault_g -> mcp_dispatch [label="10. JSON encode"];
+  mcp_dispatch -> moz_handler [label="11. response build"];
+  moz_handler -> zenoh [label="12. publish indrajaal/mcp/res/req-001"];
+  zenoh -> moz_sub [label="13. deliver"];
+  moz_sub -> agent [label="14. {jsonrpc:'2.0', result:{...}, id:'req-001'}"];
+
+  legend [label="Discovery patterns:\n  agent subscribes mcp_tools/list →\n    sees 5 vault tools (vault_status, vault_list_secrets,\n    vault_policy_get, vault_audit_tail, vault_health)\n  agent subscribes indrajaal/**/vault/** →\n    sees all vault telemetry\n  agent subscribes indrajaal/l0/secret/access/** →\n    consumes audit stream", fillcolor="#1a2230", shape="note"];
+}

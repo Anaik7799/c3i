@@ -140,3 +140,10 @@ sub-projects/c3i/
 sub-projects/pi-mono/
 sub-projects/openclaw/
 sub-projects/marionette_mcp/
+
+# Local work/build trees and one-off helper output
+sub-projects/work/
+sub-projects/ferriskey-vendored/
+fix_gleam_warnings.py
+lib/cepaf_gleam/build_warnings.log
+lib/cepaf_gleam/test_output.log

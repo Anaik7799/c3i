@@ -1,0 +1,341 @@
+-- allium: 3
+--
+-- C3I IAM behavioral specification.
+-- Tracked by sa-plan task: ferriskey-nif foundation (Phase 1).
+-- Plan: /home/an/.claude/plans/integrate-iam-feeriskey-golden-pebble.md
+--
+-- Models the full L0-L7 × all-objects fractal integration of the
+-- FerrisKey-NIF subsystem federated with Google Cloud IAM.
+
+config {
+  jwks_cache_ttl_seconds:        Integer = 300       -- SC-FERRISKEY-NIF-004
+  jwks_soft_refresh_pct:         Integer = 80
+  signing_key_rotation_days:     Integer = 90        -- SC-FERRISKEY-NIF-008
+  signing_key_overlap_days:      Integer = 7
+  gcp_sts_cache_max_seconds:     Integer = 3300      -- SC-GCP-IAM-003 (55 min)
+  gcp_region:                    String  = "europe-north1"  -- SC-GCP-IAM-005
+  jwt_validate_p99_ms:           Integer = 2         -- SC-FERRISKEY-NIF-005
+  emergency_stop_p99_seconds:    Integer = 5         -- SC-GCP-IAM-013
+  scim_outbound_max_attempts:    Integer = 3         -- SC-GCP-IAM-008
+  scim_token_bucket_rpm:         Integer = 60        -- SC-GCP-IAM-009
+}
+
+-- =============================================================================
+-- Entities
+-- =============================================================================
+
+entity Realm {
+  id:           String
+  issuer_url:   String
+  gcp_binding:  Optional<GcpBinding>
+}
+
+entity GcpBinding {
+  project_id:   String
+  region:       String                       -- must equal config.gcp_region
+  wif_pool:     String
+}
+
+entity User {
+  id:            String
+  realm:         Realm
+  sub:           String
+  username:      String
+  email:         String
+  mfa_enrolled:  Boolean
+  status:        active | disabled | deleted
+  transitions status {
+    active   -> disabled
+    disabled -> active
+    active   -> deleted
+    disabled -> deleted
+    terminal: deleted
+  }
+}
+
+entity Group {
+  id:           String
+  realm:        Realm
+  name:         String
+  display_name: Optional<String>
+}
+
+entity Role {
+  id:           String
+  realm:        Realm
+  name:         String
+  layer_mask:   Integer       -- 8-bit fractal layer mask, see roles seed
+  requires_mfa: Boolean
+}
+
+entity Token {
+  jti:          String
+  realm:        Realm
+  subject:      User
+  alg:          RS256 | ES256 | EdDSA
+  kid:          String
+  issued_at:    Timestamp
+  expires_at:   Timestamp
+  status:       active | expired | revoked
+  transitions status {
+    active  -> expired
+    active  -> revoked
+    terminal: expired
+    terminal: revoked
+  }
+}
+
+entity SigningKey {
+  kid:          String
+  realm:        Realm
+  alg:          RS256 | ES256 | EdDSA
+  status:       current | rotating | retired
+  transitions status {
+    current  -> rotating
+    rotating -> retired
+    terminal: retired
+  }
+}
+
+entity Jwks {
+  realm:    Realm
+  keys:     List<SigningKey>     -- current + rotating, never retired
+  ttl_ms:   Integer
+}
+
+entity AccessToken {
+  cache_key:    String           -- sha256(jwt_sub | scope | sa)
+  sa_principal: String
+  expires_at:   Timestamp
+}
+
+entity ScimOp {
+  schema_urn:    String          -- urn:ietf:params:scim:schemas:core:2.0:*
+  resource_type: User | Group
+  op:            create | update | delete | replace
+  source:        google_cloud_identity | local_admin
+  outcome:       ok | denied | error
+}
+
+entity AuditEvent {
+  ts:        Timestamp
+  realm:     Optional<Realm>
+  actor:     String
+  action:    String
+  target:    Optional<String>
+  outcome:   ok | denied | error
+}
+
+entity GcpPolicy {
+  resource:  String
+  etag:      String
+  bindings:  List<GcpBinding2>   -- role → principals
+}
+
+entity GcpBinding2 {
+  role:        String            -- predefined or custom; never basic role
+  principals:  List<String>
+  condition:   Optional<String>  -- CEL
+}
+
+entity GcpRecommendation {
+  id:           String
+  resource:     String
+  current_role: String
+  suggested_role: String
+  applied:      Boolean
+}
+
+entity OrgPolicy {
+  constraint:  String
+  rules:       List<String>
+}
+
+-- =============================================================================
+-- Contracts
+-- =============================================================================
+
+contract IdentityProvider {
+  issue_token:    (User, Realm) -> Token
+  validate_token: (String) -> Result<Token, ValidationError>
+  refresh_jwks:   (Realm) -> Jwks
+  rotate_signing_key: (Realm, SigningKey.alg) -> SigningKey
+  @invariant ValidateLatency  -- p99 ≤ config.jwt_validate_p99_ms
+  @invariant KidUniqueness    -- no two SigningKey share kid in any Realm
+}
+
+contract GcpFederation {
+  sts_exchange:           (Token, audience: String, scope: String) -> AccessToken
+  impersonate:            (target_sa: String, scopes: List<String>) -> AccessToken
+  iam_policy_get:         (resource: String) -> GcpPolicy
+  iam_policy_set:         (resource: String, GcpPolicy) -> Result<GcpPolicy, EtagConflict>
+  deny_policy_apply:      (target: String, rules: List<String>) -> Boolean
+  recommender_list:       (project: String) -> List<GcpRecommendation>
+  policy_troubleshoot:    (principal: String, resource: String, permission: String) -> TroubleshootResult
+  @invariant RegionPinned     -- every call goes to config.gcp_region
+  @invariant EtagRequired     -- iam_policy_set fails closed without etag
+}
+
+contract ScimServer {
+  inbound_apply:  (ScimOp) -> Result<String, ScimError>
+  outbound_push:  (ScimOp, target: String) -> ScimOp
+  schemas:        () -> List<String>
+  resource_types: () -> List<String>
+  @invariant DestructiveGated -- delete ops MUST be 2oo3 Guardian-gated
+  @invariant FilterAstSafe    -- filter parser MUST NOT string-concat to SQL
+}
+
+contract VaultBridge {
+  get:        (path: String) -> Result<SecretValue, VaultError>
+  rotate_due: () -> List<RotationDue>
+  @invariant NoPlaintextLeak  -- SecretValue never crosses module boundary
+}
+
+contract Auditor {
+  emit:       (action: String, payload: JsonValue) -> Unit
+  query:      (filter: AuditFilter) -> List<AuditEvent>
+  @invariant AppendOnly       -- audit_log MUST NOT support UPDATE/DELETE
+  @invariant CloudExportLag   -- Cloud Logging mirror lag p95 ≤ 60 s
+}
+
+contract SupervisorTree {
+  start:      () -> Pid
+  child_spec: () -> SupervisorSpec
+  @invariant TwoLevel          -- root → IamSupervisor → 6 workers
+  @invariant OneForAllOnIam    -- JWKS crash invalidates STS cache
+}
+
+-- =============================================================================
+-- Invariants (always-true predicates)
+-- =============================================================================
+
+invariant SigningKeyRotation {
+  for sk in SigningKeys:
+    (sk.status == retired) || (now - sk.created_at <= config.signing_key_rotation_days)
+}
+
+invariant JwksOverlap {
+  for r in Realms:
+    |Jwks(r).keys.where(k => k.status in [current, rotating])| >= 1
+}
+
+invariant TokenExpiry {
+  for t in Tokens:
+    t.expires_at > t.issued_at
+}
+
+invariant GcpRegionPinned {
+  for call in GcpFederation.calls:
+    call.endpoint.region == config.gcp_region
+}
+
+invariant NoBasicGcpRole {
+  for b in GcpPolicy.bindings:
+    b.role not in ["roles/owner", "roles/editor", "roles/viewer"]
+}
+
+invariant LayerMaskExhaustive {
+  for r in Roles:
+    r.name == "c3i-admin"    => r.layer_mask == 0b11111111
+    r.name == "c3i-operator" => r.layer_mask == 0b11111110
+    r.name == "c3i-viewer"   => r.layer_mask == 0b11110000
+    r.name == "c3i-service"  => r.layer_mask == 0b01111000
+}
+
+invariant MfaForL0 {
+  for u in Users, r in u.roles:
+    (r.layer_mask & 0b00000001 != 0) => u.mfa_enrolled == true
+}
+
+invariant AuditAppendOnly {
+  for e in AuditEvents:
+    !exists e2 in AuditEvents where e2.id == e.id && e2.ts != e.ts
+}
+
+invariant ScimDestructiveGated {
+  for op in ScimOps where op.op == delete:
+    op.guardian_quorum >= 2
+}
+
+-- =============================================================================
+-- Rules
+-- =============================================================================
+
+rule IssueToken {
+  when:     iss: IdentityProvider.issue_token(u: User, r: Realm)
+  requires: u.status == active && u.realm == r
+  ensures:  result.subject == u && result.kid in Jwks(r).keys.kids
+}
+
+rule ValidateToken {
+  when:     iss: IdentityProvider.validate_token(jwt: String)
+  ensures:  result.is_ok => result.value.expires_at > now
+  @guidance Hot path; latency p99 ≤ config.jwt_validate_p99_ms; uses cached JWKS only.
+}
+
+rule SetIamPolicyEtagRequired {
+  when:     gcp: GcpFederation.iam_policy_set(resource, p: GcpPolicy)
+  requires: p.etag != ""
+  ensures:  result.is_ok || result.error == EtagConflict
+}
+
+rule EmergencyStopDenyPolicy {
+  when:     gcp: GcpFederation.deny_policy_apply(target, rules)
+  ensures:  applied_within_seconds <= config.emergency_stop_p99_seconds
+  @guidance Canonical emergency-stop path per SC-GCP-IAM-013 + SC-SAFETY-022.
+}
+
+rule RotateSigningKeyOnAge {
+  when:     sk: SigningKey.status == current && now - sk.created_at >= config.signing_key_rotation_days
+  ensures:  exists sk2 where sk2.realm == sk.realm && sk2.alg == sk.alg && sk2.status == current
+            && sk.status transitions_to rotating
+}
+
+rule ScimDestructiveGuardian {
+  when:     op: ScimOp.op == delete
+  requires: op.guardian_quorum >= 2
+  ensures:  op.outcome != denied || op.outcome.reason == "guardian_quorum_insufficient"
+}
+
+-- =============================================================================
+-- Surfaces (UIs that observe / drive the IAM contracts)
+-- =============================================================================
+
+surface OperatorDashboard {
+  contracts: [IdentityProvider, ScimServer, GcpFederation, Auditor]
+  presents:  [Realms, Users, Groups, Roles, Tokens, AuditEvents, GcpPolicies]
+  layers:    [L5_COGNITIVE]
+  @triple-interface  -- Lustre + Wisp + TUI per SC-GLM-UI-001
+}
+
+surface SecurityAuditor {
+  contracts: [Auditor, GcpFederation]
+  presents:  [AuditEvents, GcpRecommendations, OrgPolicies]
+  layers:    [L7_FEDERATION]
+}
+
+surface ZenohMeshBus {
+  contracts: [IdentityProvider, ScimServer, GcpFederation, Auditor, VaultBridge]
+  emits:     ["indrajaal/l0/iam/**", "indrajaal/otel/spans/iam/**"]
+  layers:    [L6_ECOSYSTEM]
+}
+
+-- =============================================================================
+-- Open questions (resolved before Phase 7 close)
+-- =============================================================================
+
+@open-question Q1 "WIF attribute_condition CEL drift detection"
+  resolution-by: phase-4
+  proposal: weekly Apalache check on specs/tla/WorkloadIdentityFederation.tla
+
+@open-question Q2 "Workforce Identity Federation (Google Workspace SSO via FerrisKey)"
+  resolution-by: future-pass
+  proposal: SC-IAM-010 deferred to v2; v1 stays internal-facing
+
+@open-question Q3 "Kanidm sidecar fallback if FerrisKey ES256 + WebAuthn lag"
+  resolution-by: phase-3
+  proposal: ES256 + WebAuthn must land in vendored fork; revisit only on miss
+
+@open-question Q4 "Multi-region failover (eu-north-1 outage)"
+  resolution-by: future-pass
+  proposal: GCP IAM allow-policy can cite a second WIF pool in eu-west-1

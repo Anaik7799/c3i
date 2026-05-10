@@ -20,7 +20,6 @@ import cepaf_gleam/zettelkasten/rules
 import cepaf_gleam/zettelkasten/search
 import cepaf_gleam/zettelkasten/trust
 import cepaf_gleam/zettelkasten/types.{
-  type Holon, type HolonEdge,
   Anecdote, Atomic, Axiom, DocumentSource, Ecosystem, Evidence, Fast, Holon,
   HolonEdge, Hypothesis, Medium, Molecular, Organism, Slow, Wiki,
 }

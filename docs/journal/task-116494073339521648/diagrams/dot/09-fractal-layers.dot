@@ -1,0 +1,66 @@
+digraph FractalLayers {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [fontname="Inter", fontcolor="#e0e6ed", color="#1e2a3a", style="filled", fillcolor="#141922"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Inter"];
+
+  subgraph cluster_l0 {
+    label="L0 Constitutional"; fontcolor="#ff6b6b"; color="#ff6b6b"; style="rounded";
+    l0_a [label="Guardian seal/unseal\nKEK chain"];
+    l0_b [label="Ψ-2 reversibility\nΨ-3 verification"];
+  }
+  subgraph cluster_l1 {
+    label="L1 Atomic / NIF"; fontcolor="#ffd93d"; color="#ffd93d"; style="rounded";
+    l1_a [label="rusty_vault_nif\n10 NIFs (dirty-IO)"];
+    l1_b [label="zeroize crate\nRAII guards"];
+  }
+  subgraph cluster_l2 {
+    label="L2 Component"; fontcolor="#6bcb77"; color="#6bcb77"; style="rounded";
+    l2_a [label="vault.gleam\ntyped wrapper"];
+    l2_b [label="Result(_, VaultError)"];
+  }
+  subgraph cluster_l3 {
+    label="L3 Transaction"; fontcolor="#4d96ff"; color="#4d96ff"; style="rounded";
+    l3_a [label="K/V v2 versioned"];
+    l3_b [label="smriti_vault.db\nWAL + integrity_check"];
+    l3_c [label="transit engine\nAES-256-GCM"];
+  }
+  subgraph cluster_l4 {
+    label="L4 System"; fontcolor="#9b59b6"; color="#9b59b6"; style="rounded";
+    l4_a [label="vault_sync_actor\nOTP gen_server"];
+    l4_b [label="Cloud KMS DR fallback"];
+    l4_c [label="circuit breaker\n3 fail / 60s"];
+  }
+  subgraph cluster_l5 {
+    label="L5 Cognitive"; fontcolor="#00d4aa"; color="#00d4aa"; style="rounded";
+    l5_a [label="OODA freshness rules\n7 GRL in secret_freshness domain"];
+    l5_b [label="hsm_vault.gleam\npolicy decisions"];
+  }
+  subgraph cluster_l6 {
+    label="L6 Ecosystem"; fontcolor="#e74c3c"; color="#e74c3c"; style="rounded";
+    l6_a [label="version vector CRDT\nmesh-wide consistency"];
+    l6_b [label="Zenoh: indrajaal/l6/eco/vault/**"];
+  }
+  subgraph cluster_l7 {
+    label="L7 Federation"; fontcolor="#f39c12"; color="#f39c12"; style="rounded";
+    l7_a [label="Cloud KMS CMEK\n(europe-north1)"];
+    l7_b [label="GCP Secret Manager\nroot of truth"];
+    l7_c [label="Cross-mesh attestation\nEd25519"];
+  }
+
+  l0_a -> l1_a [label="invoke unseal NIF"];
+  l1_a -> l2_a [label="erlang term"];
+  l2_a -> l3_a [label="ABI"];
+  l3_a -> l3_b [label="storage"];
+  l3_a -> l3_c [label="encrypt"];
+  l3_a -> l4_a [label="sync trigger"];
+  l4_a -> l4_b [label="DR fallback"];
+  l4_a -> l4_c [label="resilience"];
+  l5_a -> l3_a [label="freshness check"];
+  l5_b -> l5_a [label="policy decisions"];
+  l4_a -> l6_a [label="version vector"];
+  l6_a -> l6_b [label="publish"];
+  l4_a -> l7_b [label="HTTPS sync"];
+  l7_b -> l7_a [label="CMEK encrypt"];
+  l6_a -> l7_c [label="federate"];
+}

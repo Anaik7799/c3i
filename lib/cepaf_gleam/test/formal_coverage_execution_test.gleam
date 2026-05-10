@@ -22,7 +22,7 @@
 //// — not stub literals.
 
 import cepaf_gleam/testing/coverage_math.{
-  type FileCoverage, FileCoverage, P0, P1, ccm, ccm_raw, fsi, itqs,
+  type FileCoverage, FileCoverage, P0, P1, ccm_raw, fsi, itqs,
   shannon_entropy, shannon_entropy_normalized,
 }
 import gleam/list

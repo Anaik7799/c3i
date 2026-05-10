@@ -6,51 +6,62 @@ description: Verify Pi symbiosis integration — run after every feature
 
 Run the complete Pi x C3I symbiosis verification suite.
 
-## Steps
+## Required flow
 
-1. **Build verification**:
+1. **Pi build verification**
+   ```bash
+   cd /home/an/dev/ver/c3i/sub-projects/pi-mono && npm run build
+   ```
+
+2. **Gleam build verification**
    ```bash
    cd /home/an/dev/ver/c3i/lib/cepaf_gleam && gleam build
    ```
-   Must compile with 0 errors including all 5 Pi bridge modules.
+   Must compile with 0 errors/warnings including Pi bridge modules.
 
-2. **Pi integration tests**:
+3. **Pi integration tests**
    ```bash
-   gleam test -- --module pi_integration
+   cd /home/an/dev/ver/c3i/lib/cepaf_gleam && gleam test -- --module pi_integration
    ```
-   Must pass all 55+ tests across 14 groups.
 
-3. **Full regression**:
+4. **Full regression (as required by feature scope)**
    ```bash
-   gleam test
+   cd /home/an/dev/ver/c3i/lib/cepaf_gleam && gleam test
    ```
-   Must pass 8700+ tests with 0 failures.
 
-4. **Bridge module inventory**:
+5. **Bridge module inventory (6/6)**
    Verify these files exist and compile:
    - `bridge/pi_agent.gleam` (L6, event bridge)
    - `bridge/pi_zenoh.gleam` (L6, Zenoh publisher)
    - `bridge/pi_tools.gleam` (L3, tool federation)
    - `bridge/pi_session.gleam` (L3, session bridge)
    - `bridge/pi_provider.gleam` (L5, provider bridge)
+   - `bridge/pi_claude_code.gleam` (bidirectional Pi↔AG-UI bridge)
 
-5. **KPI update**:
-   Update dashboard at `docs/presentations/pi-symbiosis-dashboard.html` with latest metrics.
+6. **Federation + event parity checks**
+   - Tool federation target: 93 total (6 Claude + 14 Pi + 73 C3I MCP) unless documented change
+   - Event mapping parity validated (Pi events ↔ AG-UI)
 
-6. **ZK ingest**:
+7. **Safety + transport checks**
+   - Guardian gating for L0/privileged operations
+   - Circuit breakers active for Pi LLM calls
+   - Smriti.db persistence intact (prod path)
+   - MoZ + Zenoh publish path intact
+   - AG-UI + A2UI payload validation intact
+
+8. **KPI + observability update**
+   Update Pi dashboard artifact with latest metrics and verify Pi OTel spans are published.
+
+9. **ZK ingest**
    ```bash
    cd /home/an/dev/ver/c3i && ./sub-projects/c3i/target/release/sa-plan-daemon ingest-docs
    ```
 
-7. **Email notification**:
-   ```bash
-   sa-plan-daemon send-email --to Abhijit.Naik@bountytek.com --subject "Pi Verify: [result]" --body "[summary]"
-   ```
-
-## Success Criteria
-- gleam build: 0 errors
-- Pi integration tests: 55+ passed, 0 failures
-- Full tests: 8700+ passed, 0 failures
-- Bridge modules: 5/5 present and compiling
-- ZK: ingested
-- Dashboard: updated
+## Success criteria
+- `npm run build` in pi-mono: PASS
+- `gleam build`: 0 errors/warnings
+- `gleam test -- --module pi_integration`: PASS
+- Bridge modules: 6/6 present and compiling
+- Tool/event parity checks: PASS
+- Safety/transport checks: PASS
+- ZK ingest: PASS

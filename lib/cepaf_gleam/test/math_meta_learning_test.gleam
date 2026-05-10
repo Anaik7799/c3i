@@ -15,7 +15,7 @@
 ///   select/2 dispatcher for each SelectionPolicy       (META-10)
 
 import cepaf_gleam/math/meta_learning.{
-  BestFitness, EpsilonGreedy, Strategy, StrategyPool, ThompsonSampling, UCB1,
+  BestFitness, Strategy, ThompsonSampling, UCB1,
   best_fitness_select, epsilon_greedy_select, pool_new, prune_underperformers,
   record_outcome, select, summary, thompson_sample, top_k, ucb1_score,
 }

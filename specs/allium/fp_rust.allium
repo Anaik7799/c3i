@@ -1,0 +1,269 @@
+-- allium: 3
+-- SC-FP-RUST-001..020 — Functional Programming Rust Mandate
+-- Spec lineage:
+--   .claude/rules/functional-programming-rust.md
+--   docs/journal/task-116499874901057156/
+--   ZK [zk-3346fc607a1ef9e6] Stub-That-Lies, [zk-bb4de67d97f807ac] selector-guessing,
+--   [zk-c14e1d23afff486c] implicit-invariant
+--
+-- Status: Pass-2 stub. Entities + transitions defined; rules + invariants + contracts
+-- elaborated alongside Pass-2..5 library adoptions. Closes CPIG subsystem #13 G1 gate.
+
+config {
+  fp_total_floor:    Float = 0.70    -- SC-FP-RUST-020 hard block
+  fp_total_target:   Float = 0.80    -- Pass-5 close
+  fp_vault_target:   Float = 0.90
+  fp_hotpath_target: Float = 0.75
+  fp_drift_min:      Float = 0.0     -- Lyapunov gate over 3-pass window
+  shannon_h_min:     Float = 2.5     -- bits, mirrors SC-MATH-COV-001
+  pass_count:        Integer = 5
+  vault_lib_budget:  Integer = 4     -- derive_more + nutype + proptest + kani only
+}
+
+-- Entities
+
+entity FpStack {
+  pass:           Integer            -- 1..5
+  status:         draft | adopted | gated | rejected
+  libraries:      [String]           -- crate names from the 12-library mandate
+  surfaces:       [Surface]          -- which Rust surfaces have adopted
+
+  transitions status {
+    draft   -> adopted
+    adopted -> gated
+    gated   -> draft     -- if KPI regression, revert
+    gated   -> adopted   -- when next pass advances
+    terminal: rejected
+  }
+}
+
+entity Surface {
+  name:        planning_daemon | c3i_nif | rusty_vault_nif | scripts_nif
+  loc:         Integer
+  pure_ratio:  Float                 -- FP-1
+  mut_density: Float                 -- FP-2 (per kLOC)
+  newtype_cov: Float                 -- FP-4
+}
+
+entity RefinedType {
+  name:           String             -- e.g. SecretName, Ttl, Priority, Status
+  surface:        Surface
+  validator_kind: regex | predicate | range | len | custom
+  proven_total:   Boolean            -- true iff proptest both-ways gate passes
+
+  -- Refinement is parse-don't-validate: only path to a value is the constructor.
+  @invariant ConstructorIsTheOnlyPath
+}
+
+entity KleisliService {
+  name:    String
+  layers:  [String]                  -- timeout / retry / circuit-breaker / rate-limit
+  surface: Surface
+  -- vault MUST NOT contain KleisliService instances per SC-FP-RUST-011
+  @invariant NotInVault
+}
+
+entity PersistentSnapshot {
+  surface:       Surface
+  collection:    HashTrieMap | HashTrieSet | RbtMap | List | Vector | Stack | Queue
+  shared_kind:   RcK | ArcK
+  -- snapshots preserve old maps via structural sharing — Psi-2 reversibility substrate
+  @invariant ReversibleByPointerComparison
+}
+
+entity Catamorphism {
+  name:       String
+  surface:    Surface
+  stack_safe: Boolean   -- must be true; uses recursion::Collapsible
+}
+
+entity KaniHarness {
+  name:    String
+  proves:  [String]            -- list of invariants (e.g. "vault sealed at boot")
+  surface: Surface             -- must be planning_daemon, rusty_vault_nif, or NIFs
+  result:  unverified | passing | counterexample
+  -- counter-example outcome blocks merge per SC-FP-RUST-009
+  @invariant CounterexampleHaltsMerge
+}
+
+entity Kpi {
+  id:        String        -- FP-1 .. FP-12
+  surface:   Surface
+  value:     Float         -- 0.0 .. 1.0
+  threshold: Float
+  passing:   Boolean
+}
+
+entity KpiCompositeFpTotal {
+  -- FP_TOTAL = mean(FP-1..FP-7, FP-10, FP-12) across surfaces
+  value:     Float
+  threshold: Float = 0.80
+  drift:     Float       -- Lyapunov lambda over 3-pass window
+
+  @invariant Lyapunov drift >= 0
+}
+
+-- Rules (RETE-UL Domain 14 fp_discipline mirror)
+
+rule FpPurityBelowFloor {
+  when: total: KpiCompositeFpTotal where total.value < 0.70
+  then: action = "Block release; emit [SC-FP-RUST-020 VIOLATION]; open P0 task"
+  @salience 100
+}
+
+rule FpVaultBelowFloor {
+  when: vault: Kpi where vault.id = "FP_VAULT" and vault.value < 0.85
+  then: action = "Halt vault feature merges; P0 task; page operator"
+  @salience 100
+}
+
+rule FpDriftNegative {
+  when: total: KpiCompositeFpTotal where total.drift < 0.0
+  then: action = "P1 RCA task; pause new FP-stack adoptions"
+  @salience 95
+}
+
+rule FpKaniCounterexample {
+  when: harness: KaniHarness where harness.result = counterexample
+  then: action = "P0; halt merge of harness module; open RCA task"
+  @salience 100
+}
+
+rule RefinementBeforeStorage {
+  when: t: RefinedType
+  ensures: t.proven_total = true
+  -- proptest property required before merge: valid → Ok AND invalid → Err
+  @guidance Predicate-asserted-both-ways per [zk-139840e16ed2b21e]
+}
+
+rule KleisliComposesWithRetry {
+  when: s: KleisliService
+  requires: "Timeout" in s.layers
+  requires: "Retry" in s.layers
+  requires: "CircuitBreaker" in s.layers
+  @guidance Replaces hand-coded tokio::select! per AOR-FP-RUST-012
+}
+
+rule RayonNotInTokioPath {
+  when: s: KleisliService where "rayon" in s.layers
+  ensures: false
+  -- rayon is offline-only per SC-FP-RUST-010; NEVER inside tokio path
+  @salience 100
+}
+
+rule VaultAttackSurfaceBudget {
+  when: stack: FpStack where stack.surfaces contains "rusty_vault_nif"
+  ensures: stack.libraries subset_of ["derive_more", "nutype", "proptest", "kani-verifier"]
+  @guidance SC-FP-RUST-011 hard cap; verified by `cargo tree | grep -iE 'tongsuo|sm[234]'` empty
+}
+
+-- Contracts
+
+contract Verifier {
+  measure: (surface: Surface) -> [Kpi]
+  composite: ([Kpi]) -> KpiCompositeFpTotal
+  publish: (kpi: Kpi) -> Zenoh        -- indrajaal/l5/cog/fp/{kpi}/**
+  @invariant Pass1HasFp2AndFp7        -- already enforced by fp_purity.gleam
+}
+
+contract LibraryAdoption {
+  add_dep:     (lib: String, surface: Surface) -> FpStack
+  cargo_check: (surface: Surface) -> Result Compiled FailedBuild
+  vault_grep:  (surface: Surface) -> Boolean   -- must be empty for vault
+  @invariant CompileBeforeAdopted
+  @invariant VaultGrepEmptyAfterAdopt
+}
+
+contract WiringGuardParity {
+  -- SC-WIRE-002 sister rule for FP newtypes crossing BEAM boundary
+  newtype_added: (t: RefinedType) -> Result WiringGuardUpdated DriftDetected
+  @invariant SameCommitOrBlock
+}
+
+-- Invariants (system-level)
+
+invariant FpTotalNeverNaN {
+  for total: KpiCompositeFpTotal: total.value >= 0.0 and total.value <= 1.0
+}
+
+invariant FpDriftMonotonicAcrossPasses {
+  for window: SlidingWindow(KpiCompositeFpTotal, 3): window.lambda >= 0.0
+}
+
+invariant KaniProofImpliesProptestExists {
+  for h: KaniHarness:
+    h.result = passing implies exists p: ProptestProperty where p.surface = h.surface
+}
+
+invariant NewtypeConstructorTotality {
+  for t: RefinedType: t.proven_total = true
+}
+
+invariant VaultBudgetCardinality {
+  cardinality({ lib | lib in vault_stack.libraries }) <= config.vault_lib_budget
+}
+
+-- Surfaces
+
+surface OperatorDashboard {
+  url:   "https://vm-1.tail55d152.ts.net:4100/fp-kpi"
+  shows: [FpStack, Surface, Kpi, KpiCompositeFpTotal]
+  -- triple-interface per SC-GLM-UI-001 (Lustre + Wisp + TUI), Pass-3 deliverable
+}
+
+surface KpiZenohTopics {
+  family: "indrajaal/l5/cog/fp/{kpi}/**"
+  events: [Kpi, KpiCompositeFpTotal, KaniHarness]
+}
+
+surface McpFederation {
+  tool: "fp_score(scope: planning_daemon|c3i_nif|rusty_vault_nif|scripts_nif|composite)"
+  -- federation count rises 93 -> 97 per SC-PI-AUTO-003
+}
+
+-- Math structures
+
+math FpTotalAggregation {
+  formula: "FP_TOTAL = mean(FP-1, FP-2, ..., FP-7, FP-10, FP-12) across surfaces"
+}
+
+math FpFractalGeometricMean {
+  formula: "FP_FRACTAL = (Product over i in 1..8 of L_i) ^ (1/8)"
+  -- geometric mean penalizes single-layer collapse vs arithmetic mean
+}
+
+math LyapunovDrift {
+  formula: "lambda(t) = (FP_TOTAL[t] - FP_TOTAL[t-3]) / 3"
+}
+
+math ShannonStackEntropy {
+  formula: "H = -sum_i (p_i * log2(p_i)) over 12 libs x 4 surfaces import distribution"
+  threshold: ">= 2.5 bits"
+}
+
+-- Ruliology (Wolfram CA classification)
+
+ruliology Rule110_PassMonotonicity {
+  condition: "FP_TOTAL increases pass-over-pass iff all 5 CPIG gates fire per pass"
+  detection: "regression within <= 3 passes when even one gate skipped"
+}
+
+ruliology Rule30_AllocChaos {
+  condition: "rolling Shannon entropy of FP-9 alloc count over 50 hot-path samples"
+  threshold: "< 1.5 bits = chaos detected"
+  action:    "block PR; require revert"
+}
+
+-- Open questions (resolved by Pass-3..5)
+
+@open_question {
+  q: "Should rpds use ArcK or RcK for cortex ConversationHistory?"
+  resolution_pass: 3
+  hypothesis: "ArcK — concurrent OODA tasks read without lock"
+}
+
+@open_question {
+  q: "Which kani harnesses land first?"
+  resolution_pass: 5
+  candidates: ["vault sealed-on-boot", "ha_election no-split-brain", "apoptosis dying-gasp ordering"]
+}

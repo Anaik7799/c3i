@@ -1,10 +1,10 @@
 # Learn Rule — Create a new rule from session findings
 
-When Gemini discovers a pattern or anti-pattern during work, create a new rule:
+When Claude discovers a pattern or anti-pattern during work, create a new rule:
 
 1. Identify the pattern: What happened? What was the root cause?
 2. Classify: Is this a PATTERN (repeat) or ANTI-PATTERN (avoid)?
-3. Create the rule file at `.gemini/rules/<name>.md` with:
+3. Create the rule file at `.claude/rules/<name>.md` with:
    - STAMP constraint ID
    - Severity
    - What to do / what NOT to do
@@ -13,5 +13,5 @@ When Gemini discovers a pattern or anti-pattern during work, create a new rule:
 
 Pattern: "$ARGUMENTS"
 
-This is SC-ZK-GEMINI-005: Gemini MUST create rules from session learnings.
+This is SC-ZK-CLAUDE-005: Claude MUST create rules from session learnings.
 The system literally gets smarter with each session.

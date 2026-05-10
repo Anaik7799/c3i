@@ -1,0 +1,80 @@
+digraph KekChainSequence {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [fontname="Inter", fontcolor="#e0e6ed", color="#1e2a3a", style="filled", fillcolor="#141922", shape="box"];
+  edge [color="#7a8fa6", fontcolor="#3dd68c", fontname="Inter", fontsize=10];
+
+  start [label="Process start\n(systemd / podman exec)", shape=circle, fillcolor="#00d4aa", fontcolor="#0a0e17"];
+
+  read_kek [label="1. read smriti_kek.sealed\n(disk I/O)\nfile mode 0600"];
+  probe_tpm [label="2. probe /dev/tpm0\nls /dev/tpm0", shape="diamond", fillcolor="#1a2230"];
+
+  subgraph cluster_path1 {
+    label="Path 1: TPM 2.0 PCR 7 (preferred, offline-capable)";
+    fontcolor="#3dd68c"; color="#3dd68c"; style="rounded";
+    tpm_unseal [label="3a. tss_esapi::Context::unseal_with_policy\nPCR 7 = SHA256(boot integrity)\n~50ms", fillcolor="#1a2a1a"];
+    tpm_ok [label="✓ master key", fillcolor="#1a2a1a", shape="ellipse"];
+    tpm_pcr_changed [label="✗ PCR 7 changed\n(kernel updated)", fillcolor="#2a1f1f"];
+  }
+
+  subgraph cluster_path2 {
+    label="Path 2: argon2id passphrase (fallback, offline-capable)";
+    fontcolor="#f5a623"; color="#f5a623"; style="rounded";
+    pass_input [label="3b. read C3I_VAULT_PASSPHRASE env\n(systemd-creds OR operator interactive)", fillcolor="#2a2418"];
+    pass_derive [label="3b.1 argon2id derive\nmemory=64MB, t=3, p=4\n~50ms compute", fillcolor="#2a2418"];
+    pass_ok [label="✓ master key", fillcolor="#2a2418", shape="ellipse"];
+    pass_no_input [label="✗ no passphrase set", fillcolor="#2a1f1f"];
+    pass_wrong [label="✗ wrong passphrase\n→ vault.unseal returns WrongKey\n→ retry or fall through", fillcolor="#2a1f1f"];
+  }
+
+  subgraph cluster_path3 {
+    label="Path 3: Cloud KMS DR (network-required, last resort)";
+    fontcolor="#ff4757"; color="#ff4757"; style="rounded";
+    net_probe [label="3c. tcp probe cloudkms.googleapis.com:443\n200ms timeout", shape="diamond", fillcolor="#2a1f1f"];
+    adc [label="3c.1 ADC token\n(reuse backup.rs pattern)", fillcolor="#2a1f1f"];
+    kms_call [label="3c.2 POST .../kek-cmek:decrypt\n5s timeout, retries=0", fillcolor="#2a1f1f"];
+    kms_ok [label="✓ master key", fillcolor="#1a2a1a", shape="ellipse"];
+    net_unreach [label="✗ network unreachable\n(intentional offline)", fillcolor="#2a1f1f"];
+    iam_revoked [label="✗ IAM revoked / quota", fillcolor="#2a1f1f"];
+  }
+
+  subgraph cluster_outcome {
+    label="Outcome";
+    fontcolor="#00d4aa"; color="#00d4aa"; style="rounded";
+    nif_unseal [label="4. NIF vault_unseal(handle, master_key)\n+ audit log: kek_attempt + source", fillcolor="#1a2a1a"];
+    audit_emit [label="5. Zenoh emit\nindrajaal/l0/secret/kek_attempt/<source>", fillcolor="#1a2a1a"];
+    success [label="6. Vault state: Active\nspawn vault_sync_actor (lazy +60s)", shape="doublecircle", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    fail_closed [label="7. ChainFailed\n→ VaultUnsealAttemptFailed rule (sal 100)\n→ P0 alarm: indrajaal/l0/secret/unseal_failed\n→ halt all OODA loops", shape="octagon", fillcolor="#ff4757", fontcolor="#ffffff"];
+  }
+
+  start -> read_kek;
+  read_kek -> probe_tpm;
+  probe_tpm -> tpm_unseal [label="present"];
+  probe_tpm -> pass_input [label="absent"];
+  tpm_unseal -> tpm_ok [label="✓"];
+  tpm_unseal -> tpm_pcr_changed [label="✗"];
+  tpm_pcr_changed -> pass_input [label="fall through"];
+
+  pass_input -> pass_derive [label="env set"];
+  pass_input -> pass_no_input [label="empty"];
+  pass_no_input -> net_probe [label="fall through"];
+  pass_derive -> pass_ok [label="✓"];
+  pass_derive -> pass_wrong [label="✗"];
+  pass_wrong -> net_probe [label="fall through"];
+
+  net_probe -> adc [label="reachable"];
+  net_probe -> net_unreach [label="offline"];
+  net_unreach -> fail_closed [label="all paths exhausted", color="#ff4757"];
+  adc -> kms_call;
+  kms_call -> kms_ok [label="✓"];
+  kms_call -> iam_revoked [label="✗"];
+  iam_revoked -> fail_closed [color="#ff4757"];
+
+  tpm_ok -> nif_unseal [label="path 1"];
+  pass_ok -> nif_unseal [label="path 2"];
+  kms_ok -> nif_unseal [label="path 3 (DR)"];
+  nif_unseal -> audit_emit;
+  audit_emit -> success;
+
+  legend [label="SC-VAULT-007 ordering: TPM → passphrase → KMS\nSC-VAULT-002: master key in RAM only (zeroized on seal)\nSC-VAULT-015: every attempt logged to immutable register\nTimings: TPM ~70ms, passphrase ~50ms, KMS ~250ms\nCritical-path boot (TPM happy): 370ms", fillcolor="#1a2230", shape="note"];
+}

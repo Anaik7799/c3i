@@ -1,0 +1,60 @@
+digraph KpiFlow {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [shape=box, style="rounded,filled", fontname="JetBrains Mono", fontsize=10, fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontsize=9];
+  label="FP-1..FP-12 → Composite Scores → Zenoh → Dashboard → RETE Domain 14 → Action";
+  labelloc="t"; fontcolor="#00d4aa"; fontname="JetBrains Mono"; fontsize=14;
+
+  subgraph cluster_atoms {
+    label="12 Atomic KPIs"; color="#1e2a3a"; fontcolor="#00d4aa";
+    A1 [label="FP-1\nPure ratio", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A2 [label="FP-2\nMutation density", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A3 [label="FP-3\n? chain depth", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A4 [label="FP-4\nNewtype coverage", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A5 [label="FP-5\nPersistent ratio", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A6 [label="FP-6\nCata coverage", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A7 [label="FP-7\nProptest coverage", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A8 [label="FP-8\nKleisli stack", fillcolor="#7a8fa6", fontcolor="#0a0e17"];
+    A9 [label="FP-9\nAlloc/pure call", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A10[label="FP-10\nCyclomatic", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A11[label="FP-11\nShannon H", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A12[label="FP-12\nKani coverage", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+
+  subgraph cluster_comp {
+    label="4 Composites"; color="#00d4aa"; fontcolor="#00d4aa";
+    C1 [label="FP_TOTAL\n≥ 0.80", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+    C2 [label="FP_VAULT\n≥ 0.90", fillcolor="#ff4757"];
+    C3 [label="FP_HOTPATH\n≥ 0.75", fillcolor="#f39c12", fontcolor="#0a0e17"];
+    C4 [label="FP_DRIFT λ\n≥ 0", fillcolor="#9b59b6"];
+  }
+
+  Verifier [label="scripts/verify/fp_purity.gleam\n(daily cron)", fillcolor="#4d96ff"];
+  Bench    [label="benches/fp_kpi.rs\n(criterion per-PR)", fillcolor="#4d96ff"];
+
+  Zenoh [label="indrajaal/l5/cog/fp/{kpi}/**\nOTel spans", fillcolor="#1e2a3a", fontcolor="#00d4aa", shape=ellipse];
+
+  Dash  [label="/fp-kpi dashboard\nLustre + Wisp + TUI\n(SC-GLM-UI-001)", fillcolor="#9b59b6"];
+  MCP   [label="MCP fp_score(scope)\n(federation 93→97)", fillcolor="#f39c12", fontcolor="#0a0e17"];
+
+  RETE  [label="RETE-UL Domain 14\nfp_discipline (6 rules)", fillcolor="#ff4757"];
+
+  Action[label="Action\n• Block PR\n• P0 task\n• Halt vault merge\n• RCA escalation", fillcolor="#ff4757", shape=octagon];
+
+  A1 -> C1; A2 -> C1; A3 -> C1; A4 -> C1; A5 -> C1; A6 -> C1; A7 -> C1; A10 -> C1; A12 -> C1;
+  A4 -> C2; A7 -> C2; A12 -> C2; A1 -> C2;
+  A2 -> C3; A3 -> C3; A9 -> C3;
+  C1 -> C4 [label="3-pass slope"];
+
+  Verifier -> A1 [style=dashed];
+  Verifier -> A4 [style=dashed];
+  Verifier -> A7 [style=dashed];
+  Bench    -> A9 [style=dashed];
+
+  C1 -> Zenoh; C2 -> Zenoh; C3 -> Zenoh; C4 -> Zenoh;
+  Zenoh -> Dash;
+  Zenoh -> MCP;
+  Zenoh -> RETE;
+  RETE -> Action;
+}

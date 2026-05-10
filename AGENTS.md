@@ -16,6 +16,10 @@ All TypeScript generated or modified by users/agents MUST use Effect (`effect`) 
 
 All Rust generated or modified by users/agents MUST use functional style and `fp-core` (`fp-core = "0.1.9"`) where applicable. Follow `.claude/rules/fp-core-rust-universal.md` / `.gemini/rules/fp-core-rust-universal.md`. Touched Rust logic must target >=95% functional style, isolate IO/FFI/runtime boundaries, and avoid new `unwrap`, `expect`, or `panic!` paths.
 
+## Safe Rust X-Safety Rule
+
+All Rust generated or modified by users/agents MUST be safe-by-construction. Follow `.claude/rules/safe-rust-x-safety.md` / `.gemini/rules/safe-rust-x-safety.md` and route detailed work through `.claude/skills/safe-rust-x-safety/SKILL.md`, `.gemini/skills/safe-rust-x-safety/SKILL.md`, or `.agents/skills/safe-rust-x-safety/SKILL.md`. Apply the Netstack3/RustConf X-safety loop: define invariants, enforce them at boundaries, and consume them through type-proven APIs.
+
 ## Functional Runtime Supervisor Rule
 
 For cross-language or cross-agent runtime changes, route through `.claude/agents/functional-runtime-supervisor.md` / `.gemini/agents/functional-runtime-supervisor.md` and `.agents/skills/functional-runtime-supervisor/SKILL.md`. This supervisor keeps Effect TS, Effect IIFE JavaScript, fp-core Rust, pi-mono, Codex/GPT memories, hooks, and rule mirrors synchronized.

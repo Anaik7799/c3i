@@ -22,6 +22,13 @@
 //// RULE: After ANY Model/Msg type change, update this file FIRST.
 //// SC-WIRE-001: Wiring guard must compile before any other test.
 
+import cepaf_gleam/ui/domain.{
+  type Page, Agents, Auth, Bicameral, Biomorphic, Bridge, Cockpit,
+  ComponentDemo, Config, Dashboard, Database, Evolution, Federation, Git,
+  HealthGrid, Holon, HomeostasisPage, Immune, Integrity, Kms, Knowledge,
+  Mcp, Metabolic, Planning, PlanningDashboard, Podman, Prajna, Singularity,
+  Smriti, Substrate, Telemetry, Verification, Zenoh,
+}
 import cepaf_gleam/actors/pi_subscriber
 import cepaf_gleam/agui/events
 import cepaf_gleam/agui/tools
@@ -59,6 +66,7 @@ import cepaf_gleam/ui/lustre/planning
 import cepaf_gleam/ui/lustre/podman
 import cepaf_gleam/ui/lustre/prajna
 import cepaf_gleam/ui/lustre/ruliology
+import cepaf_gleam/ui/lustre/secrets_vault
 import cepaf_gleam/ui/lustre/simulator
 import cepaf_gleam/ui/lustre/singularity
 import cepaf_gleam/ui/lustre/smriti
@@ -114,6 +122,8 @@ pub fn verify_all_inits() -> Int {
   let _ = podman.init()
   let _ = prajna.init()
   let _ = ruliology.init()
+  // SC-WIRE-005 + SC-VAULT-009: secrets vault Andon tile (Wave 16, W4)
+  let _ = secrets_vault.init()
   let _ = simulator.init()
   let _ = singularity.init()
   let _ = smriti.init()
@@ -130,7 +140,7 @@ pub fn verify_all_inits() -> Int {
   // (auth page will be added when lustre/auth.gleam is created)
 
   // Return page count — if this changes, nav_graph needs updating
-  36
+  37
 }
 
 /// Verify cortex state construction (most complex, most fragile).
@@ -406,6 +416,79 @@ pub fn verify_auth_wiring() -> Bool {
   }
 }
 
+/// SC-PAGE-SPEC-005 — every Page enum variant MUST have a page-spec checker name.
+/// Exhaustive pattern match: Gleam compiler refuses to build if a new Page
+/// variant is added without updating this mapping. Twin guard for
+/// `router::page_spec_dynamic` — adding a Page variant forces both edits in
+/// the same commit (mirrors SC-WIRE-002 for Model fields).
+pub fn page_spec_name(p: Page) -> String {
+  case p {
+    Planning -> "planning"
+    Dashboard -> "dashboard"
+    Immune -> "immune"
+    Knowledge -> "knowledge"
+    Verification -> "verification"
+    Zenoh -> "zenoh"
+    Cockpit -> "cockpit"
+    Agents -> "agents"
+    Telemetry -> "telemetry"
+    Metabolic -> "metabolic"
+    Mcp -> "mcp"
+    Podman -> "podman"
+    Config -> "config"
+    Git -> "git"
+    Holon -> "holon"
+    Kms -> "kms"
+    Smriti -> "smriti"
+    Prajna -> "prajna"
+    Bridge -> "bridge"
+    Federation -> "federation"
+    Singularity -> "singularity"
+    Evolution -> "evolution"
+    Bicameral -> "bicameral"
+    Biomorphic -> "biomorphic"
+    HomeostasisPage -> "homeostasis"
+    Integrity -> "integrity"
+    HealthGrid -> "health-grid"
+    Substrate -> "substrate"
+    Database -> "database"
+    ComponentDemo -> "component-demo"
+    PlanningDashboard -> "planning-dashboard"
+    Auth -> "auth"
+  }
+}
+
+/// Verify all 32 Page variants have a non-empty page-spec name.
+/// Returns count of verified mappings; panics if any name is empty.
+pub fn verify_page_spec_coverage() -> Int {
+  let pages = [
+    Planning, Dashboard, Immune, Knowledge, Verification, Zenoh,
+    Cockpit, Agents, Telemetry, Metabolic, Mcp, Podman, Config, Git,
+    Holon, Kms, Smriti, Prajna, Bridge, Federation, Singularity,
+    Evolution, Bicameral, Biomorphic, HomeostasisPage, Integrity,
+    HealthGrid, Substrate, Database, ComponentDemo, PlanningDashboard,
+    Auth,
+  ]
+  let count = list_count(pages)
+  case count {
+    32 -> count
+    _ -> panic as "SC-PAGE-SPEC-005: page list size != 32 (Page enum changed?)"
+  }
+}
+
+fn list_count(pages: List(Page)) -> Int {
+  case pages {
+    [] -> 0
+    [p, ..rest] -> {
+      let name = page_spec_name(p)
+      case name {
+        "" -> panic as "SC-PAGE-SPEC-005: page-spec name is empty"
+        _ -> 1 + list_count(rest)
+      }
+    }
+  }
+}
+
 /// Master verification — call from tests.
 /// Returns total verified connection count.
 pub fn verify_all() -> Int {
@@ -425,10 +508,12 @@ pub fn verify_all() -> Int {
   let _ = verify_auth_wiring()
 
   let pi = verify_pi_runtime_wiring()
+  let page_specs = verify_page_spec_coverage()
 
   // Total verified connections
-  // 36 pages + 32 events + 6 models + 21 roundtrips + 3 strict + 9 ultra + 1 auth + pi = 108 + pi
-  pages + events + 6 + roundtrips + 3 + ultra + 1 + pi
+  // 37 pages + 32 events + 6 models + 21 roundtrips + 3 strict + 9 ultra
+  // + 1 auth + pi + 32 page-specs (Wave 16: secrets_vault added)
+  pages + events + 6 + roundtrips + 3 + ultra + 1 + pi + page_specs
 }
 
 // =============================================================================

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FP-Rust Stack Adoption Evaluation</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --slide-bg: #141922;
+    --accent: #00d4aa;
+    --p0: #ff4757;
+    --p1: #ffa502;
+    --p2: #2ed573;
+    --text: #e0e6ed;
+    --muted: #7a8fa6;
+    --border: #1e2a3a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.55;
+    font-size: 15px;
+  }
+  code, pre, .mono { font-family: "JetBrains Mono", "SF Mono", Consolas, monospace; }
+  code { color: var(--accent); background: rgba(0, 212, 170, 0.08); padding: 1px 5px; border-radius: 3px; font-size: 0.92em; }
+  .banner {
+    background: linear-gradient(90deg, #0d1421, #141922);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 24px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .banner a { color: var(--accent); text-decoration: none; }
+  .slide {
+    min-height: 100vh;
+    background: var(--slide-bg);
+    padding: 56px 72px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+  .slide-num {
+    position: absolute;
+    top: 24px;
+    right: 32px;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+  }
+  h1 { font-size: 44px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 14px; color: var(--text); }
+  h2 { font-size: 30px; font-weight: 600; margin-bottom: 22px; color: var(--accent); }
+  h3 { font-size: 19px; font-weight: 600; margin: 18px 0 10px; color: var(--text); }
+  p { margin-bottom: 12px; }
+  ul, ol { margin: 10px 0 14px 22px; }
+  li { margin-bottom: 7px; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  thead th {
+    text-align: left;
+    padding: 10px 12px;
+    background: #0d1421;
+    color: var(--accent);
+    border-bottom: 2px solid var(--border);
+    font-weight: 600;
+  }
+  tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: rgba(0, 212, 170, 0.03); }
+  .glass {
+    background: rgba(20, 25, 34, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 36px 40px;
+    margin: 30px 0;
+  }
+  .title-card {
+    margin-top: 80px;
+    background: rgba(20, 25, 34, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 60px 50px;
+    text-align: center;
+  }
+  .subtitle { color: var(--muted); font-size: 18px; margin-top: 8px; }
+  .meta { color: var(--muted); font-size: 13px; margin-top: 28px; font-family: "JetBrains Mono", monospace; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .badge-p0 { background: var(--p0); color: #fff; }
+  .badge-p1 { background: var(--p1); color: #1a1a1a; }
+  .badge-p2 { background: var(--p2); color: #1a1a1a; }
+  .badge-acc { background: var(--accent); color: #0a0e17; }
+  .pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin: 2px 4px 2px 0;
+  }
+  .grid-matrix {
+    display: grid;
+    grid-template-columns: 110px repeat(12, 1fr);
+    gap: 2px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    margin: 12px 0;
+  }
+  .grid-matrix .cell {
+    padding: 6px 2px;
+    text-align: center;
+    background: #0d1421;
+    border-radius: 2px;
+  }
+  .grid-matrix .head { background: #1a2231; color: var(--accent); font-weight: 600; }
+  .grid-matrix .row-label { background: #1a2231; color: var(--muted); text-align: left; padding-left: 8px; font-weight: 600; }
+  .glyph-star { color: var(--p2); font-weight: 700; }
+  .glyph-fill { color: var(--accent); }
+  .glyph-circ { color: var(--p1); }
+  .glyph-x    { color: var(--p0); }
+  .glyph-dash { color: var(--muted); }
+  .pipeline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin: 16px 0;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+  }
+  .pipeline .stage {
+    background: #0d1421;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 10px;
+  }
+  .pipeline .arrow { color: var(--accent); font-weight: 700; }
+  .pipeline .tier { background: rgba(46, 213, 115, 0.12); border-color: var(--p2); }
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: rgba(0, 212, 170, 0.06);
+    padding: 12px 18px;
+    margin: 14px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout.warn { border-left-color: var(--p0); background: rgba(255, 71, 87, 0.06); }
+  .footer-note { color: var(--muted); font-size: 12px; margin-top: 24px; font-style: italic; }
+  hr { border: none; border-top: 1px solid var(--border); }
+  @media print {
+    .slide { page-break-after: always; min-height: 100vh; }
+    body { background: #fff; color: #000; }
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  Tailscale: <a href="https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/slide-deck.html">https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/slide-deck.html</a>
+</div>
+
+<!-- SLIDE 1 -->
+<section class="slide">
+  <div class="slide-num">Slide 1 / 16</div>
+  <div class="title-card">
+    <h1>FP-Rust Stack Adoption Evaluation</h1>
+    <p class="subtitle">From <code>fp-core.rs</code> (dead) to a 12-library curated stack</p>
+    <p class="meta">Task urn:c3i:task:misc:116499874901057156 &middot; 2026-05-01</p>
+    <p class="meta">Operator: Abhijit Naik &middot; Author: Claude Opus 4.7 (1M context)</p>
+  </div>
+</section>
+<hr>
+
+<!-- SLIDE 2 -->
+<section class="slide">
+  <div class="slide-num">Slide 2 / 16</div>
+  <h2>The 7-Turn Arc</h2>
+  <p>Each operator prompt and the outcome it triggered:</p>
+  <ol>
+    <li><strong>"Get fp-core.rs, create rules, mathematical benchmarks for KPIs"</strong> &mdash; triggered initial library evaluation.</li>
+    <li><strong>"Other libraries with similar functionality?"</strong> &mdash; tier-1/2/3 alternatives surveyed.</li>
+    <li><strong>"Deeper and wider search"</strong> &mdash; live crates.io verification dispatch.</li>
+    <li><strong>"Deeper and wider &mdash; details, key functionality, why each fits"</strong> &mdash; 4000-word procurement-grade report.</li>
+    <li><strong>"Evaluate all system aspects, full fractal integration"</strong> &mdash; 96-cell fractal &times; library matrix + VSM + cross-cutting.</li>
+    <li><strong>"Detailed journal, HTML, diagrams, examples, user guide, way of working, email, ZK"</strong> &mdash; 9-file closure pack shipped.</li>
+    <li><strong>"Full session history in journal, HTML, slides, diagrams, email, ZK, lose no information"</strong> &mdash; this slide deck + session history (current turn).</li>
+  </ol>
+  <p class="footer-note">The arc demonstrates the operator's pattern of recursive refinement: each prompt deepens the previous one's frame.</p>
+</section>
+<hr>
+
+<!-- SLIDE 3 -->
+<section class="slide">
+  <div class="slide-num">Slide 3 / 16</div>
+  <h2>The Foundational Pivot</h2>
+  <div class="callout warn">
+    <strong><code>fp-core.rs</code> is dormant since 2019.</strong>
+  </div>
+  <ul>
+    <li>Last release <code>0.1.9</code> &rarr; 2019-10-02</li>
+    <li>7.7K monthly downloads &mdash; mostly transitive, no new adoption</li>
+    <li>Vendoring it would propagate the Stub-That-Lies anti-pattern <code>[zk-3346fc607a1ef9e6]</code></li>
+  </ul>
+  <div class="callout">
+    <strong>DECISION:</strong> reject the surface request. Honor the operator's deeper intent ("maximize FP discipline") with a curated 12-library stack instead.
+  </div>
+  <p class="footer-note">This is the inflection point of the entire evaluation: a generic FP wrapper crate would have added a maintenance liability without the discipline gains.</p>
+</section>
+<hr>
+
+<!-- SLIDE 4 -->
+<section class="slide">
+  <div class="slide-num">Slide 4 / 16</div>
+  <h2>The 12-Library Stack</h2>
+  <table>
+    <thead>
+      <tr><th>Library</th><th>Latest</th><th>Role</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>frunk</code></td><td>0.4.4</td><td>HList / Coproduct / Validated / Semigroup / Monoid</td></tr>
+      <tr><td><code>rpds</code> + <code>archery</code></td><td>1.2.0 / 1.2.2</td><td>Persistent collections + atomicity strategy</td></tr>
+      <tr><td><code>winnow</code></td><td>1.0.2</td><td>Combinator parsers (1.0 stable Apr 2026)</td></tr>
+      <tr><td><code>tower</code></td><td>0.5.3</td><td>Service trait = Kleisli arrow</td></tr>
+      <tr><td><code>derive_more</code></td><td>2.1.1</td><td>Newtype boilerplate</td></tr>
+      <tr><td><code>nutype</code></td><td>0.7.0</td><td>Refinement types ("parse don't validate")</td></tr>
+      <tr><td><code>recursion</code></td><td>0.5.4</td><td>Stack-safe catamorphisms</td></tr>
+      <tr><td><code>proptest</code></td><td>1.11.0</td><td>Property testing with shrinking</td></tr>
+      <tr><td><code>kani-verifier</code></td><td>0.67.0</td><td>Bounded model checking (CBMC)</td></tr>
+      <tr><td><code>itertools</code></td><td>0.14.0</td><td>Lazy iterator combinators</td></tr>
+      <tr><td><code>rayon</code></td><td>1.12.0</td><td>Data-parallel pipelines (offline only)</td></tr>
+      <tr><td><code>either</code></td><td>1.15.0</td><td><code>Either&lt;L,R&gt;</code> ADT</td></tr>
+    </tbody>
+  </table>
+</section>
+<hr>
+
+<!-- SLIDE 5 -->
+<section class="slide">
+  <div class="slide-num">Slide 5 / 16</div>
+  <h2>Confirmed Ecosystem Gaps (Do Not Author)</h2>
+  <p>Four real gaps in the Rust FP ecosystem, each with a recommended workaround:</p>
+  <ul>
+    <li><strong>Optics</strong> (<code>lens-rs</code>/<code>pl-lens</code> dead) &rarr; use <code>frunk::LabelledGeneric</code> + <code>derive_more</code></li>
+    <li><strong>Algebraic effects</strong> (<code>effing-mad</code>/<code>eff</code> hobbyist) &rarr; use <code>tower::Layer</code> + <code>tracing</code></li>
+    <li><strong>STM</strong> (<code>stm</code> crate from 2018, abandoned) &rarr; use SQLite WAL (<code>SC-VAULT-012</code> already mandates this)</li>
+    <li><strong>Free monads / tagless final</strong> &rarr; use closed enums + handlers (idiomatic Rust)</li>
+  </ul>
+  <div class="callout">
+    C3I gains more from leaning on existing constraint families (<code>SC-WIRE</code>, <code>SC-VALUE-GUARD</code>, <code>SC-VAULT</code>, <code>SC-CPIG</code>) than from authoring generic FP libraries.
+  </div>
+</section>
+<hr>
+
+<!-- SLIDE 6 -->
+<section class="slide">
+  <div class="slide-num">Slide 6 / 16</div>
+  <h2>12 Atomic KPIs</h2>
+  <table>
+    <thead>
+      <tr><th>ID</th><th>KPI</th><th>Threshold</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>FP-1</code></td><td>Pure-fn ratio</td><td>&ge; 0.70 daemon, &ge; 0.85 vault, &ge; 0.50 NIFs</td></tr>
+      <tr><td><code>FP-2</code></td><td>Mutation density (<code>&amp;mut</code>/1k LOC)</td><td>&le; 30</td></tr>
+      <tr><td><code>FP-3</code></td><td><code>?</code> chain depth (mean)</td><td>&ge; 2.0</td></tr>
+      <tr><td><code>FP-4</code></td><td>Newtype coverage</td><td>&ge; 0.80 vault, &ge; 0.60 daemon</td></tr>
+      <tr><td><code>FP-5</code></td><td>Persistent ratio</td><td>&ge; 0.50 cortex</td></tr>
+      <tr><td><code>FP-6</code></td><td>Catamorphism coverage</td><td>&ge; 0.50</td></tr>
+      <tr><td><code>FP-7</code></td><td>Property-test coverage</td><td>&ge; 0.30 safety</td></tr>
+      <tr><td><code>FP-8</code></td><td>Kleisli stack depth</td><td>tracked</td></tr>
+      <tr><td><code>FP-9</code></td><td>Alloc per pure call</td><td>criterion regression +20% blocks PR</td></tr>
+      <tr><td><code>FP-10</code></td><td>Cyclomatic in pure fns</td><td>&le; 10</td></tr>
+      <tr><td><code>FP-11</code></td><td>Shannon entropy of stack usage</td><td>&ge; 2.5 bits</td></tr>
+      <tr><td><code>FP-12</code></td><td>Kani proof coverage</td><td>&ge; 0.80 vault</td></tr>
+    </tbody>
+  </table>
+</section>
+<hr>
+
+<!-- SLIDE 7 -->
+<section class="slide">
+  <div class="slide-num">Slide 7 / 16</div>
+  <h2>4 Composite KPIs</h2>
+  <div class="glass">
+    <h3 style="color: var(--accent);">FP_TOTAL</h3>
+    <p class="mono">mean(FP-1..FP-7, FP-10, FP-12) &ge; 0.80</p>
+    <p class="footer-note">Whole-system FP discipline floor.</p>
+  </div>
+  <div class="glass">
+    <h3 style="color: var(--accent);">FP_VAULT</h3>
+    <p class="mono">FP-4&middot;0.30 + FP-7&middot;0.20 + FP-12&middot;0.30 + FP-1&middot;0.20 &ge; 0.90</p>
+    <p class="footer-note">L0 constitutional threshold. Refinement + property + proof + purity.</p>
+  </div>
+  <div class="glass">
+    <h3 style="color: var(--accent);">FP_HOTPATH</h3>
+    <p class="mono">(inv FP-2 + FP-9 trend + FP-3) &ge; 0.75</p>
+    <p class="footer-note">Inference cascade allocation discipline.</p>
+  </div>
+  <div class="glass">
+    <h3 style="color: var(--accent);">FP_DRIFT</h3>
+    <p class="mono">&lambda; over 3-pass window &ge; 0</p>
+    <p class="footer-note">Lyapunov non-regression (mirrors <code>SC-CPIG-008</code>).</p>
+  </div>
+</section>
+<hr>
+
+<!-- SLIDE 8 -->
+<section class="slide">
+  <div class="slide-num">Slide 8 / 16</div>
+  <h2>Fractal &times; Library 96-Cell Matrix</h2>
+  <div class="grid-matrix">
+    <div class="cell head">Layer\Lib</div>
+    <div class="cell head">frunk</div>
+    <div class="cell head">rpds</div>
+    <div class="cell head">winnow</div>
+    <div class="cell head">tower</div>
+    <div class="cell head">derive</div>
+    <div class="cell head">nutype</div>
+    <div class="cell head">recur</div>
+    <div class="cell head">proptest</div>
+    <div class="cell head">kani</div>
+    <div class="cell head">iter</div>
+    <div class="cell head">rayon</div>
+    <div class="cell head">either</div>
+
+    <div class="cell row-label">L0 Const</div>
+    <div class="cell glyph-fill">&#9679;</div><div class="cell glyph-dash">&mdash;</div><div class="cell glyph-x">&#10005;</div><div class="cell glyph-dash">&mdash;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-dash">&mdash;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-x">&#10005;</div><div class="cell glyph-fill">&#9679;</div>
+
+    <div class="cell row-label">L1 Atomic</div>
+    <div class="cell glyph-fill">&#9679;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-x">&#10005;</div><div class="cell glyph-dash">&mdash;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-dash">&mdash;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-x">&#10005;</div><div class="cell glyph-fill">&#9679;</div>
+
+    <div class="cell row-label">L2 Comp</div>
+    <div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-dash">&mdash;</div><div class="cell glyph-star">&#9733;</div>
+
+    <div class="cell row-label">L3 Txn</div>
+    <div class="cell glyph-fill">&#9679;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-star">&#9733;</div>
+
+    <div class="cell row-label">L4 System</div>
+    <div class="cell glyph-fill">&#9679;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-fill">&#9679;</div>
+
+    <div class="cell row-label">L5 Cog</div>
+    <div class="cell glyph-fill">&#9679;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-star">&#9733;</div>
+
+    <div class="cell row-label">L6 Eco</div>
+    <div class="cell glyph-fill">&#9679;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-fill">&#9679;</div>
+
+    <div class="cell row-label">L7 Fed</div>
+    <div class="cell glyph-fill">&#9679;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-dash">&mdash;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-star">&#9733;</div><div class="cell glyph-circ">&#9675;</div><div class="cell glyph-fill">&#9679;</div><div class="cell glyph-x">&#10005;</div><div class="cell glyph-fill">&#9679;</div>
+  </div>
+  <p class="footer-note">
+    <span class="glyph-star">&#9733;</span> primary &middot;
+    <span class="glyph-fill">&#9679;</span> secondary &middot;
+    <span class="glyph-circ">&#9675;</span> abstain &middot;
+    <span class="glyph-x">&#10005;</span> rejected &middot;
+    <span class="glyph-dash">&mdash;</span> N/A
+  </p>
+  <p>78 &#9733;/&#9679;/&#9675; adoptions + 13 &#10005;/&mdash; rejections + 5 abstain. Every cell decided.</p>
+</section>
+<hr>
+
+<!-- SLIDE 9 -->
+<section class="slide">
+  <div class="slide-num">Slide 9 / 16</div>
+  <h2>VSM S1-S5 + S6 Recursion</h2>
+  <table>
+    <thead>
+      <tr><th>VSM</th><th>Function</th><th>FP owners</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>S1 Operations</strong></td><td>Primary value</td><td><code>itertools</code>, <code>rayon</code> (offline), <code>either</code>, <code>derive_more</code></td></tr>
+      <tr><td><strong>S2 Coordination</strong></td><td>Conflict resolution</td><td><code>tower</code>, <code>rpds</code>, <code>recursion</code></td></tr>
+      <tr><td><strong>S3 Control</strong></td><td>Resource alloc</td><td><code>frunk</code> Validated, <code>proptest</code>, <code>itertools</code></td></tr>
+      <tr><td><strong>S3* Audit</strong></td><td>Deep checks</td><td><code>kani</code>, <code>proptest</code>, <code>frunk</code></td></tr>
+      <tr><td><strong>S4 Intelligence</strong></td><td>Future scanning</td><td><code>tower</code> (LLM cascade), <code>recursion</code> (ruliology), <code>either</code></td></tr>
+      <tr><td><strong>S5 Policy</strong></td><td>Identity</td><td><code>nutype</code>, <code>kani</code>, <code>frunk</code> Coproduct</td></tr>
+      <tr><td><strong>S6 Recursion</strong></td><td colspan="2">Every subsystem is itself a VSM at its scale &mdash; the whole stack repeats fractally.</td></tr>
+    </tbody>
+  </table>
+</section>
+<hr>
+
+<!-- SLIDE 10 -->
+<section class="slide">
+  <div class="slide-num">Slide 10 / 16</div>
+  <h2>OODA as Tower Service Stack</h2>
+  <div class="pipeline">
+    <span class="stage">Intent</span><span class="arrow">&rarr;</span>
+    <span class="stage">Layer&lt;PIIScrub&gt;</span><span class="arrow">&rarr;</span>
+    <span class="stage">Layer&lt;SemanticCache&gt;</span><span class="arrow">&rarr;</span>
+    <span class="stage">Layer&lt;RateLimit&gt;</span><span class="arrow">&rarr;</span>
+    <span class="stage">Layer&lt;Timeout&gt;</span><span class="arrow">&rarr;</span>
+    <span class="stage">Layer&lt;Retry&gt;</span><span class="arrow">&rarr;</span>
+    <span class="stage">Layer&lt;CircuitBreaker&gt;</span><span class="arrow">&rarr;</span>
+    <span class="stage">Buffer + Steer</span>
+  </div>
+  <div class="pipeline">
+    <span class="arrow">&darr;</span>
+    <span class="stage tier">Tier 1: GeminiDirect</span>
+    <span class="mono" style="color: var(--accent);">&#8214;</span>
+    <span class="stage tier">Tier 2: OpenRouter</span>
+    <span class="arrow">&rarr;</span>
+    <span class="stage">fallback chain</span>
+    <span class="arrow">&rarr;</span>
+    <span class="stage">Reply</span>
+  </div>
+  <div class="callout">
+    Each <code>Layer</code> = a Kleisli arrow. Composition = monadic bind. Replaces hand-coded <code>tokio::select!</code>.
+  </div>
+</section>
+<hr>
+
+<!-- SLIDE 11 -->
+<section class="slide">
+  <div class="slide-num">Slide 11 / 16</div>
+  <h2>RETE-UL Domain 14: <code>fp_discipline</code></h2>
+  <p>6 new rules salience 70-100:</p>
+  <table>
+    <thead>
+      <tr><th>Rule</th><th>Sal.</th><th>Trigger</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>FpPurityBelowFloor</code></td><td><span class="badge badge-p0">100</span></td><td><code>FP_TOTAL &lt; 0.70</code></td><td>hard block release</td></tr>
+      <tr><td><code>FpVaultBelowFloor</code></td><td><span class="badge badge-p0">100</span></td><td><code>FP_VAULT &lt; 0.85</code></td><td>P0 task; halt vault feature merges</td></tr>
+      <tr><td><code>FpDriftNegative</code></td><td><span class="badge badge-p1">95</span></td><td><code>&lambda; &lt; 0</code> over 3 passes</td><td>P1 RCA task</td></tr>
+      <tr><td><code>FpHotpathRegression</code></td><td><span class="badge badge-p1">95</span></td><td>criterion alloc &Delta; &gt; +20%</td><td>block PR</td></tr>
+      <tr><td><code>FpKaniCounterexample</code></td><td><span class="badge badge-p0">100</span></td><td>kani returns counter-example</td><td>P0; halt merge</td></tr>
+      <tr><td><code>FpNutypeRejectStorm</code></td><td><span class="badge badge-p2">80</span></td><td>refinement rejects &gt; 100/min</td><td>P2 advisory</td></tr>
+    </tbody>
+  </table>
+  <p class="footer-note">Joins existing 52 GRL rules &rarr; 58 rules across 14 domains.</p>
+</section>
+<hr>
+
+<!-- SLIDE 12 -->
+<section class="slide">
+  <div class="slide-num">Slide 12 / 16</div>
+  <h2>5-Pass Adoption Sequence</h2>
+  <table>
+    <thead>
+      <tr><th>Pass</th><th>Risk</th><th>Adds</th><th>Delta</th><th>Effort</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Pass 1</strong></td><td><span class="badge badge-p2">LOW</span></td>
+        <td><code>derive_more</code> + <code>itertools</code> + <code>either</code></td>
+        <td>&Delta;FP_TOTAL +0.10</td><td>1-2 days</td>
+      </tr>
+      <tr>
+        <td><strong>Pass 2</strong></td><td><span class="badge badge-acc">HIGH leverage</span></td>
+        <td><code>nutype</code> (vault) + <code>frunk</code> + <code>bon</code> + <code>parking_lot</code></td>
+        <td>&Delta;FP_TOTAL +0.20, &Delta;FP_VAULT +0.30</td><td><strong><code>SC-VALUE-GUARD</code> lifts to type level</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Pass 3</strong></td><td><span class="badge badge-p0">HIGHEST risk</span></td>
+        <td><code>rpds</code> + <code>arc-swap</code> + <code>bytes</code> formalize</td>
+        <td>&Delta;FP_TOTAL +0.15, &Delta;FP_HOTPATH +0.20</td><td>criterion gates inference latency &le; +2%</td>
+      </tr>
+      <tr>
+        <td><strong>Pass 4</strong></td><td><span class="badge badge-p1">MED</span></td>
+        <td><code>tower</code> + <code>winnow</code> + <code>recursion</code> + <code>rayon</code> (offline) + <code>snafu</code></td>
+        <td>&Delta;FP_TOTAL +0.15</td><td>OODA cascade refactor</td>
+      </tr>
+      <tr>
+        <td><strong>Pass 5</strong></td><td><span class="badge badge-acc">PROOF</span></td>
+        <td><code>kani-verifier</code> + deepen <code>proptest</code></td>
+        <td>&Delta;FP_TOTAL +0.10</td><td>first kani run will surface 1-3 real bugs &mdash; the value</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <strong>Final:</strong> FP_TOTAL &asymp; 0.85, FP_VAULT &asymp; 0.92, FP_HOTPATH &asymp; 0.78
+  </div>
+</section>
+<hr>
+
+<!-- SLIDE 13 -->
+<section class="slide">
+  <div class="slide-num">Slide 13 / 16</div>
+  <h2>Vault Attack-Surface Budget</h2>
+  <div class="callout warn">
+    Vault is L0 constitutional. Every dep is a CVE risk.
+  </div>
+  <h3 style="color: var(--p2);">Allowed in <code>rusty_vault_nif</code></h3>
+  <ul>
+    <li><code>derive_more</code> &mdash; newtype boilerplate</li>
+    <li><code>nutype</code> &mdash; <code>Ttl</code>, <code>SecretName</code>, <code>Region</code> refinement</li>
+    <li><code>proptest</code> &mdash; state machine property tests</li>
+    <li><code>kani-verifier</code> &mdash; sealed-on-boot proof</li>
+  </ul>
+  <h3 style="color: var(--p0);">Rejected (defer until proven needed)</h3>
+  <p>
+    <span class="pill">tower</span>
+    <span class="pill">rayon</span>
+    <span class="pill">winnow</span>
+    <span class="pill">recursion</span>
+    <span class="pill">rpds</span>
+  </p>
+  <h3 style="color: var(--accent);">Gate</h3>
+  <p class="mono">cargo tree | grep -iE 'tongsuo|sm[234]'</p>
+  <p>MUST stay empty after every add (<code>SC-VAULT-CRYPTO-001</code>).</p>
+</section>
+<hr>
+
+<!-- SLIDE 14 -->
+<section class="slide">
+  <div class="slide-num">Slide 14 / 16</div>
+  <h2>Constraint Family Interactions</h2>
+  <div class="callout">
+    <strong>Zero conflicts with existing 16 families.</strong>
+  </div>
+  <table>
+    <thead>
+      <tr><th>Relationship</th><th>Count</th><th>Families</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p2">STRENGTHENS</span></td>
+        <td>12</td>
+        <td><code>SC-VAULT</code>, <code>SC-VALUE-GUARD</code>, <code>SC-MUDA</code>, <code>SC-INFER-RUST-API</code>, <code>SC-PD-RUST-ONLY</code>, <code>SC-DISP-REGISTRY</code>, <code>SC-OODA-ACCEL</code>, <code>SC-PARALLEL</code>, ...</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">COMPATIBLE w/ update</span></td>
+        <td>3</td>
+        <td><code>SC-WIRE-002</code> (wiring guard), <code>SC-PI-AUTO-002</code> (federation count), <code>SC-NOTIFY-JOURNAL-001</code> (email)</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-acc">ORTHOGONAL</span></td>
+        <td>1</td>
+        <td><code>SC-EFFECT-TS</code> (browser TS, not Rust)</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">CONFLICTS</span></td>
+        <td>0</td>
+        <td>&mdash;</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+<hr>
+
+<!-- SLIDE 15 -->
+<section class="slide">
+  <div class="slide-num">Slide 15 / 16</div>
+  <h2>Deliverables Shipped</h2>
+  <p>9 files in <code>docs/journal/task-116499874901057156/</code>:</p>
+  <ul>
+    <li><code>journal.md</code> &mdash; 24 KB, 13 sections</li>
+    <li><code>analysis.html</code> &mdash; 33 KB, 15 sections, embedded SVG</li>
+    <li><code>user-guide.md</code> &mdash; 10 KB, decision tree + 10 examples + checklist</li>
+    <li><code>way-of-working.md</code> &mdash; 7 KB, OODA + cadence + governance</li>
+    <li><code>session-history.md</code> &mdash; this turn</li>
+    <li><code>slide-deck.html</code> &mdash; this slide</li>
+    <li><code>task-...-links.json</code></li>
+    <li>5+ rendered diagrams (PNG)</li>
+    <li>email dispatched, ZK ingested</li>
+  </ul>
+  <div class="callout">
+    All artefacts addressable via Tailscale at <code>https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/</code>
+  </div>
+</section>
+<hr>
+
+<!-- SLIDE 16 -->
+<section class="slide">
+  <div class="slide-num">Slide 16 / 16</div>
+  <h2>Next: Pass-1 Execution</h2>
+  <p>On operator confirmation:</p>
+  <ol>
+    <li>Write <code>.claude/rules/functional-programming-rust.md</code> (<code>SC-FP-RUST-001..020</code>)</li>
+    <li>Write <code>.gemini/rules/functional-programming-rust.md</code> (parity)</li>
+    <li>Update <code>CLAUDE.md</code> &sect;29 + constraint-registry delta</li>
+    <li>Add <code>derive_more</code> + <code>itertools</code> + <code>either</code> to <code>planning_daemon/Cargo.toml</code></li>
+    <li>Write <code>scripts/verify/fp_purity.gleam</code> Gleam KPI verifier</li>
+    <li>Write <code>benches/fp_kpi.rs</code> criterion baseline</li>
+    <li>Register CPIG subsystem #13 <code>fp_discipline</code> (G1..G5 = 1/5 &rarr; 5/5 by Pass-5)</li>
+  </ol>
+  <div class="callout">
+    <strong>Operator action requested:</strong> confirm 12-library stack + vault-only-4-libs budget.
+  </div>
+  <p class="footer-note" style="margin-top: 60px; text-align: center;">
+    End of deck &middot; 16 slides &middot; <code>urn:c3i:task:misc:116499874901057156</code>
+  </p>
+</section>
+
+</body>
+</html>

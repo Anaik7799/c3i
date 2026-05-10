@@ -21,9 +21,9 @@
 // =============================================================================
 
 import cepaf_gleam/ha/workflow_patterns.{
-  type WorkflowQuery, type WorkflowSignal, Cancel, CancellationScope, Custom,
+  Cancel, Custom,
   CustomQuery, GetProgress, GetResult, GetStatus, Pause, QueryResult, Resume,
-  SagaCompensated, SagaCompleted, SagaFailed, SagaPending, SagaState, SagaStep,
+  SagaCompensated, SagaCompleted, SagaFailed, SagaPending, SagaStep,
   add_cleanup, advance_saga, all_cleanup_done, apply_signal, cancel,
   cancellation_summary, cancellation_to_json, complete_cleanup, compensate_step,
   execute_query, fail_saga, init_cancellation, init_saga, is_cancelled,

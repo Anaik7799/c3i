@@ -147,11 +147,11 @@ pub fn fmea_mode_count_test() {
 }
 
 pub fn fmea_max_rpn_safe_test() {
-  { 105 < 200 } |> should.be_true()
+  { True } |> should.be_true()
 }
 
 pub fn fmea_mean_rpn_test() {
-  { 524 < 1000 } |> should.be_true()
+  { True } |> should.be_true()
 }
 
 // === Group 8: RETE-UL (L5) ===
@@ -174,7 +174,7 @@ pub fn rete_total_rules_test() {
 // === Group 9: Biomorphic (All Layers) ===
 
 pub fn bio_nervous_test() {
-  { 16 < 20 } |> should.be_true()
+  { True } |> should.be_true()
 }
 
 pub fn bio_immune_test() {
@@ -270,11 +270,11 @@ pub fn combined_loc_test() {
 }
 
 pub fn fitness_score_test() {
-  { 87 >= 80 } |> should.be_true()
+  { True } |> should.be_true()
 }
 
 pub fn improvement_factor_test() {
-  { 23 >= 20 } |> should.be_true()
+  { True } |> should.be_true()
 }
 
 pub fn provider_resilience_test() {

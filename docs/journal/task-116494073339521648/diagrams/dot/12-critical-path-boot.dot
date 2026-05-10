@@ -1,0 +1,37 @@
+digraph CriticalPathBoot {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [fontname="Inter", fontcolor="#e0e6ed", color="#1e2a3a", style="filled", fillcolor="#141922", shape="box"];
+  edge [color="#7a8fa6", fontcolor="#3dd68c", fontname="Inter", fontsize=10];
+
+  start [label="t=0\nprocess start", shape=circle, fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  read_kek [label="t=10ms\nread smriti_kek.sealed\n(disk I/O ~5ms)"];
+  tpm_probe [label="t=20ms\nls /dev/tpm0\nprobe present"];
+  tpm_unseal [label="t=70ms\ntpm2_unseal\nPCR 7 policy\n(~50ms)", fillcolor="#1a2a1a"];
+  pass_path [label="t=10s\nargon2id derive\n(~50ms compute, blocks on operator input)", style=dashed, fillcolor="#2a2418"];
+  kms_path [label="t=300ms\nCloud KMS Decrypt\n(~250ms HTTPS)", style=dashed, fillcolor="#2a2418"];
+  master_in_ram [label="t=70ms\nmaster key in RAM\n(zeroize-tracked)", fillcolor="#1a2a1a"];
+  vault_init [label="t=170ms\nvault_init NIF\n(open SQLite WAL ~100ms)"];
+  vault_unseal [label="t=370ms\nvault_unseal NIF\n(transit DEK derive ~200ms)"];
+  vault_active [label="t=370ms\nVault ACTIVE\nhot path ready", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  spawn_sync [label="t=380ms\nspawn vault_sync_actor\n(idle 60s before first sync)"];
+  service_ready [label="t=400ms\nC3I services may start\nrequesting secrets", shape=doublecircle, fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  first_sync [label="t=60.4s\nfirst sync to GCP Secret Manager\n(if online)", style=dashed];
+
+  start -> read_kek;
+  read_kek -> tpm_probe;
+  tpm_probe -> tpm_unseal [label="✓ /dev/tpm0 present"];
+  tpm_probe -> pass_path [label="✗ no TPM, fall through"];
+  pass_path -> kms_path [label="✗ no passphrase, fall through"];
+  tpm_unseal -> master_in_ram [label="critical path"];
+  pass_path -> master_in_ram [style=dashed];
+  kms_path -> master_in_ram [style=dashed];
+  master_in_ram -> vault_init;
+  vault_init -> vault_unseal;
+  vault_unseal -> vault_active;
+  vault_active -> spawn_sync;
+  spawn_sync -> service_ready;
+  service_ready -> first_sync [style=dashed];
+
+  legend [label="CRITICAL PATH (TPM happy path):\n10 + 10 + 50 + 100 + 200 = 370ms\n+ 30ms supervisor overhead = 400ms\n\nSlowest path (KMS DR):\n10 + 10 + 250 + 100 + 200 = 570ms\n+ 30ms = 600ms\n\nAll paths under SC-VER-041 (OODA cycle < 100ms)\nat steady state — boot is one-shot anyway.", fillcolor="#1a2230", shape=note];
+}

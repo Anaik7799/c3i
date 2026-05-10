@@ -1,0 +1,109 @@
+{
+  "task_id": "116549436589205923",
+  "task_urn": "urn:c3i:task:misc:116549436589205923",
+  "title": "Safe Rust X-safety research, rules, skills, journal, ZK, email",
+  "date": "2026-05-10",
+  "operator": "Abhijit Naik",
+  "priority": "P1",
+  "status": "completed",
+  "tailscale_base_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116549436589205923",
+  "customer_base_https": "https://vm-1.tail55d152.ts.net/c3i/task-id/116549436589205923",
+  "localhost_base_http": "http://127.0.0.1:4200/task-id/116549436589205923",
+  "local_base": "/home/an/dev/ver/c3i/docs/journal",
+  "artifacts": [
+    {
+      "name": "journal",
+      "path": "/home/an/dev/ver/c3i/docs/journal/20260510-safe-rust-xsafety-netstack3-governance-journal.md",
+      "relative_href": "20260510-safe-rust-xsafety-netstack3-governance-journal.md",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-journal.md",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-journal.md",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-journal.md",
+      "exists_local": true,
+      "route_status": "expected_not_live_verified"
+    },
+    {
+      "name": "analysis_html",
+      "path": "/home/an/dev/ver/c3i/docs/journal/20260510-safe-rust-xsafety-netstack3-governance-analysis.html",
+      "relative_href": "20260510-safe-rust-xsafety-netstack3-governance-analysis.html",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-analysis.html",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-analysis.html",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-analysis.html",
+      "exists_local": true,
+      "route_status": "expected_not_live_verified"
+    },
+    {
+      "name": "deck_html",
+      "path": "/home/an/dev/ver/c3i/docs/journal/20260510-safe-rust-xsafety-netstack3-governance-deck.html",
+      "relative_href": "20260510-safe-rust-xsafety-netstack3-governance-deck.html",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-deck.html",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-deck.html",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-deck.html",
+      "exists_local": true,
+      "route_status": "expected_not_live_verified"
+    },
+    {
+      "name": "email",
+      "path": "/home/an/dev/ver/c3i/docs/journal/20260510-safe-rust-xsafety-netstack3-governance-email.md",
+      "relative_href": "20260510-safe-rust-xsafety-netstack3-governance-email.md",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-email.md",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-email.md",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-email.md",
+      "exists_local": true,
+      "route_status": "expected_not_live_verified"
+    },
+    {
+      "name": "index",
+      "path": "/home/an/dev/ver/c3i/docs/journal/20260510-safe-rust-xsafety-netstack3-governance-index.html",
+      "relative_href": "20260510-safe-rust-xsafety-netstack3-governance-index.html",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-index.html",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-index.html",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116549436589205923/20260510-safe-rust-xsafety-netstack3-governance-index.html",
+      "exists_local": true,
+      "route_status": "expected_not_live_verified"
+    },
+    {
+      "name": "safe_rust_source_map",
+      "path": "/home/an/dev/ver/c3i/docs/rust-safety/safe-rust-x-safety-source-map.md",
+      "relative_href": "../rust-safety/safe-rust-x-safety-source-map.md",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116549436589205923/../rust-safety/safe-rust-x-safety-source-map.md",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116549436589205923/../rust-safety/safe-rust-x-safety-source-map.md",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116549436589205923/../rust-safety/safe-rust-x-safety-source-map.md",
+      "exists_local": true,
+      "route_status": "local_only_reference"
+    }
+  ],
+  "sources_reviewed": [
+    "https://www.youtube.com/watch?v=qd3x5MCUrhw",
+    "https://joshlf.com/files/talks/Safety%20in%20an%20Unsafe%20World.pdf",
+    "https://lwn.net/Articles/995814/",
+    "https://2024.rustconf.com/programs/",
+    "https://fuchsia.dev/fuchsia-src/contribute/roadmap/2021/netstack3",
+    "https://fuchsia.dev/fuchsia-src/contribute/contributing-to-netstack/netstack3",
+    "https://fuchsia.googlesource.com/fuchsia/+/refs/heads/main/src/connectivity/network/netstack3/docs/",
+    "https://doc.rust-lang.org/reference/unsafe-keyword.html",
+    "https://doc.rust-lang.org/reference/behavior-considered-undefined.html",
+    "https://doc.rust-lang.org/nomicon/exception-safety.html",
+    "https://rust-lang.github.io/api-guidelines/documentation.html",
+    "https://github.com/rust-lang/miri/",
+    "https://model-checking.github.io/kani/",
+    "https://rustsec.org/",
+    "https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/"
+  ],
+  "sa_plan": {
+    "add": "./sa-plan add \"Safe Rust X-safety research, rules, skills, journal, ZK, email\" P1",
+    "update_in_progress": "./sa-plan update 116549436589205923 in_progress",
+    "sync": "./sa-plan sync",
+    "ingest_dry_run": "./sa-plan ingest-docs --dry-run",
+    "ingest": "./sa-plan ingest-docs",
+    "send_email": "rustc --edition=2021 tools/safe_rust_xsafety_finalizer.rs -o /tmp/c3i_safe_rust_finalize && /tmp/c3i_safe_rust_finalize send-email"
+  },
+  "validation": {
+    "local_paths_checked": true,
+    "json_checked": true,
+    "html_relative_links_checked": true,
+    "rust_fmt_check": "passed in /home/an/dev/ver/work",
+    "rust_gateway_tests": "passed: 6 tests, 0 failed",
+    "zk_ingested": true,
+    "email_sent": true
+  }
+}

@@ -1,0 +1,69 @@
+digraph FractalCoverage {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [shape=box, style="rounded,filled", fontname="JetBrains Mono", fontsize=10, fontcolor="#e0e6ed", color="#1e2a3a"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontsize=9];
+
+  label = "Fractal Coverage — 12 FP Libraries × 8 Layers (96 cells)";
+  labelloc = "t";
+  fontcolor="#00d4aa";
+  fontname="JetBrains Mono";
+  fontsize=14;
+
+  subgraph cluster_L0 { label="L0 Constitutional"; color="#ff4757"; fontcolor="#ff4757";
+    L0_kani  [label="kani★\nProof-prove Psi", fillcolor="#ff4757"];
+    L0_pt    [label="proptest★\n∀ Psi-tests", fillcolor="#ff4757"];
+    L0_nutype[label="nutype★\nRefine Psi/Omega", fillcolor="#ff4757"];
+    L0_frunk [label="frunk●\nValidated guardian", fillcolor="#7a3a4a"];
+  }
+  subgraph cluster_L1 { label="L1 Atomic / NIF"; color="#ffd93d"; fontcolor="#ffd93d";
+    L1_dm    [label="derive_more★\nNIF newtypes", fillcolor="#ffd93d", fontcolor="#0a0e17"];
+    L1_nutype[label="nutype★\nNIF input gate", fillcolor="#ffd93d", fontcolor="#0a0e17"];
+    L1_pt    [label="proptest★\nBoundary contracts", fillcolor="#ffd93d", fontcolor="#0a0e17"];
+    L1_either[label="either★\nResult variants", fillcolor="#ffd93d", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_L2 { label="L2 Component"; color="#6bcb77"; fontcolor="#6bcb77";
+    L2_frunk [label="frunk★\nCoproduct sums", fillcolor="#6bcb77", fontcolor="#0a0e17"];
+    L2_dm    [label="derive_more★\nA2UI specs", fillcolor="#6bcb77", fontcolor="#0a0e17"];
+    L2_iter  [label="itertools★\nCatalog enum", fillcolor="#6bcb77", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_L3 { label="L3 Transaction"; color="#4d96ff"; fontcolor="#4d96ff";
+    L3_frunk [label="frunk★\nValidated all-errors", fillcolor="#4d96ff", fontcolor="#0a0e17"];
+    L3_nutype[label="nutype★\nSC-VALUE-GUARD", fillcolor="#4d96ff", fontcolor="#0a0e17"];
+    L3_rpds  [label="rpds★\nSemanticCache", fillcolor="#4d96ff", fontcolor="#0a0e17"];
+    L3_winnow[label="winnow★\nmarkdown roundtrip", fillcolor="#4d96ff", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_L4 { label="L4 System"; color="#9b59b6"; fontcolor="#9b59b6";
+    L4_tower [label="tower★\n6-tier hedged", fillcolor="#9b59b6"];
+    L4_rpds  [label="rpds★\nCortex state", fillcolor="#9b59b6"];
+    L4_dm    [label="derive_more★\nContainerId", fillcolor="#9b59b6"];
+    L4_either[label="either★\nrunning vs absent", fillcolor="#9b59b6"];
+  }
+  subgraph cluster_L5 { label="L5 Cognitive"; color="#00d4aa"; fontcolor="#00d4aa";
+    L5_tower [label="tower★\nOODA Service stack", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+    L5_rpds  [label="rpds★\nObs→Orient→Decide", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+    L5_recur [label="recursion★\nruliology cata", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+    L5_iter  [label="itertools★\n400 scenarios", fillcolor="#00d4aa", fontcolor="#0a0e17"];
+  }
+  subgraph cluster_L6 { label="L6 Ecosystem"; color="#e74c3c"; fontcolor="#e74c3c";
+    L6_tower [label="tower★\nGateway Steer", fillcolor="#e74c3c"];
+    L6_iter  [label="itertools★\nMesh aggregation", fillcolor="#e74c3c"];
+    L6_dm    [label="derive_more★\nZenoh URN newtypes", fillcolor="#e74c3c"];
+    L6_either[label="either★\nTG vs GChat", fillcolor="#e74c3c"];
+  }
+  subgraph cluster_L7 { label="L7 Federation"; color="#f39c12"; fontcolor="#f39c12";
+    L7_rpds  [label="rpds★\nCRDT state mirror", fillcolor="#f39c12", fontcolor="#0a0e17"];
+    L7_iter  [label="itertools★\nFederation rollup", fillcolor="#f39c12", fontcolor="#0a0e17"];
+    L7_pt    [label="proptest★\neventual consistency", fillcolor="#f39c12", fontcolor="#0a0e17"];
+    L7_dm    [label="derive_more★\nRegionId/EpochId", fillcolor="#f39c12", fontcolor="#0a0e17"];
+  }
+
+  L0_kani -> L1_pt [label="proves"];
+  L1_pt -> L2_frunk [label="boundary→ADT"];
+  L2_frunk -> L3_frunk [label="ADT→Validated"];
+  L3_frunk -> L4_tower [label="Result→Service"];
+  L4_tower -> L5_tower [label="Service→OODA"];
+  L5_recur -> L6_iter [label="cata→aggregate"];
+  L6_iter -> L7_iter [label="local→federated"];
+  L7_pt -> L0_kani [label="∀-tests↔proofs", style=dashed, color="#00d4aa"];
+}

@@ -1,5 +1,5 @@
-/// Module coverage — imports all uncovered modules.
-/// Jidoka-verified: every function call confirmed from source.
+//// Module coverage — imports all uncovered modules.
+//// Jidoka-verified: every function call confirmed from source.
 
 // TUI renders with page init() — verified render(init()) paths
 import cepaf_gleam/ui/lustre/agents
@@ -71,7 +71,6 @@ import cepaf_gleam/planning/orchestration
 import cepaf_gleam/podman/uds_client
 import cepaf_gleam/testing/rca
 import cepaf_gleam/ui/lustre/markdown
-import cepaf_gleam/ui/tui/markdown_view as tui_md
 import cepaf_gleam/mcp/tools as mcp_tools
 import cepaf_gleam/knowledge/duckdb as kduck
 import gleam/string
@@ -172,7 +171,7 @@ pub fn tui_zenoh_browser_render_test() {
   { string.length(r) > 0 } |> should.be_true()
 }
 pub fn tui_markdown_render_test() {
-  let r = tui_md.render("# Hello\n\nWorld")
+  let r = markdown_view.render("# Hello\n\nWorld")
   { string.length(r) > 0 } |> should.be_true()
 }
 pub fn tui_health_render_test() {
@@ -183,39 +182,39 @@ pub fn tui_health_render_test() {
 // ═══════════ Wisp API JSON tests ═══════════
 
 pub fn wisp_conversation_json_test() {
-  let j = conversation_api.messages_json(conversation.init())
+  let _j = conversation_api.messages_json(conversation.init())
   { True } |> should.be_true()
 }
 pub fn wisp_email_json_test() {
-  let j = email_api.compose_json(email_compose.init())
+  let _j = email_api.compose_json(email_compose.init())
   { True } |> should.be_true()
 }
 pub fn wisp_fmea_json_test() {
-  let j = fmea_api.report_json(fmea_report.init())
+  let _j = fmea_api.report_json(fmea_report.init())
   { True } |> should.be_true()
 }
 pub fn wisp_inference_json_test() {
-  let j = inference_api.status_json(inference_tier.init())
+  let _j = inference_api.status_json(inference_tier.init())
   { True } |> should.be_true()
 }
 pub fn wisp_pipeline_json_test() {
-  let j = pipeline_api.traces_json([])
+  let _j = pipeline_api.traces_json([])
   { True } |> should.be_true()
 }
 pub fn wisp_ruliology_json_test() {
-  let j = ruliology_api.status_json(ruliology.init())
+  let _j = ruliology_api.status_json(ruliology.init())
   { True } |> should.be_true()
 }
 pub fn wisp_simulator_json_test() {
-  let j = simulator_api.status_json(simulator.init())
+  let _j = simulator_api.status_json(simulator.init())
   { True } |> should.be_true()
 }
 pub fn wisp_voice_json_test() {
-  let j = voice_api.status_json(voice_pipeline.init())
+  let _j = voice_api.status_json(voice_pipeline.init())
   { True } |> should.be_true()
 }
 pub fn wisp_zenoh_browser_json_test() {
-  let j = zenoh_browser_api.status_json(zenoh_browser.init())
+  let _j = zenoh_browser_api.status_json(zenoh_browser.init())
   { True } |> should.be_true()
 }
 
@@ -266,7 +265,7 @@ pub fn knowledge_duckdb_store_test() {
   True |> should.be_true()
 }
 pub fn math_optimization_state_string_test() {
-  let s = math_optimization.state_to_string(math_optimization.Running)
+  let _s = math_optimization.state_to_string(math_optimization.Running)
   True |> should.be_true()
 }
 
@@ -282,10 +281,10 @@ import cepaf_gleam/ui/wisp/auth
 import cepaf_gleam/ui/wisp/health_api
 import cepaf_gleam/ui/wisp/planning_routes
 import cepaf_gleam/ui/web/page_views
-import cepaf_gleam/planning/orchestration as plan_orch
+// // import cepaf_gleam/planning/orchestration as plan_orch
 
 pub fn cybernetic_legacy_hierarchy_test() {
-  let h = cybernetic_legacy.initialize_hierarchy()
+  let _h = cybernetic_legacy.initialize_hierarchy()
   True |> should.be_true()
 }
 pub fn immune_patterns_test() {
@@ -297,7 +296,7 @@ pub fn sparql_parse_test() {
   True |> should.be_true()
 }
 pub fn chaya_status_map_test() {
-  let s = chaya.map_chaya_status_back("pending")
+  let _s = chaya.map_chaya_status_back("pending")
   True |> should.be_true()
 }
 pub fn file_system_read_test() {
@@ -349,8 +348,8 @@ import cepaf_gleam/knowledge/repository
 import cepaf_gleam/planning/manager
 import cepaf_gleam/planning/repository as plan_repo
 import cepaf_gleam/substrate/boot
-import cepaf_gleam/substrate/file_system as fs
-import cepaf_gleam/testing/coverage as test_cov
+// import cepaf_gleam/substrate/file_system as fs
+// import cepaf_gleam/testing/coverage as test_cov
 
 // No-arg views
 pub fn lustre_chat_history_view_test() {
@@ -457,7 +456,7 @@ pub fn substrate_boot_test() {
   True |> should.be_true()
 }
 pub fn substrate_fs_test() {
-  let _r = fs.read_file("/nonexistent")
+  let _r = file_system.read_file("/nonexistent")
   True |> should.be_true()
 }
 

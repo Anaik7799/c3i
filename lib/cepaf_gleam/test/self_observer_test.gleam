@@ -25,7 +25,7 @@ import cepaf_gleam/ui/state.{
   CockpitBright, CockpitDark, OodaDecide, OodaObserve, SharedMeshState,
   ThreatCritical, ThreatElevated, ThreatLow, ThreatNominal, ThreatNone,
   ThreatSevere, default_state,
-} as state
+}
 import gleam/string
 import gleeunit/should
 

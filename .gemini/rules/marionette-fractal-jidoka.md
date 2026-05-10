@@ -1,4 +1,3 @@
-<!-- Mirror of .claude/rules/marionette-fractal-jidoka.md; governance parity per SC-SYNC-DOC-007. -->
 # Marionette Fractal Jidoka (SC-MARIONETTE-JIDOKA)
 
 > Companion to `marionette-mcp-flutter-testing.md` and `dart-flutter-ai-mcp.md`. This rule mandates that the Marionette MCP integration be **continuously self-validated** in TPS Jidoka style: any drift in rules / agents / skills / scripts / hooks / settings / artefacts MUST stop the line and surface a P0 task.

@@ -1,0 +1,23 @@
+digraph Offline1Week {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [fontname="Inter", fontcolor="#e0e6ed", color="#1e2a3a", style="filled", fillcolor="#141922", shape="box"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="Inter"];
+
+  t0 [label="t = 0\nONLINE\nfetched_at = now\n✓ all secrets fresh", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  t_disconnect [label="t = 1 min\nNETWORK PARTITION\nsync_actor circuit-breaker opens\n3 fail / 60s cooldown"];
+  t_1d [label="t = 1 day\nOFFLINE\nall secrets still fresh\nhot path uninterrupted\nOTel: nominal"];
+  t_5min_after_ttl [label="t = TTL+ε (5 min for hot keys)\nSecretSoftStaleOffline rule fires\ndashboard amber\nOTel: degraded\nhot path STILL WORKS", fillcolor="#f5a623", fontcolor="#0a0e17"];
+  t_6d [label="t = 6 days\nOFFLINE\nall secrets soft-stale\ndashboard amber\nhot path STILL WORKS"];
+  t_7d [label="t = MaxTTL (7 days for hot keys)\nSecretHardStale rule fires\nFAIL-CLOSED for that secret\nP0 alarm:\nindrajaal/l0/secret/expired/openrouter_api_key\nlong-TTL secrets (90d) still fresh", fillcolor="#ff4757", fontcolor="#ffffff"];
+  t_reconnect [label="t = reconnect\nnetwork probe succeeds\nsync_actor resumes\npull from GCP Secret Manager\ncache rehydrated\nfetched_at = now\n✓ nominal within 5 min", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+
+  t0 -> t_disconnect [label="iptables drop"];
+  t_disconnect -> t_1d [label="hot path unaffected"];
+  t_1d -> t_5min_after_ttl [label="time advances"];
+  t_5min_after_ttl -> t_6d [label="degraded continues"];
+  t_6d -> t_7d [label="MaxTTL crossed"];
+  t_7d -> t_reconnect [label="iptables -D"];
+
+  legend [label="LEGEND\nGreen: hot path works\nAmber: works but degraded\nRed: fail-closed for affected secrets\n\nSCALE: per-secret\n5-min keys hit hard-stale at 7d\n90-day keys still fresh", fillcolor="#1a2230", shape="note"];
+}

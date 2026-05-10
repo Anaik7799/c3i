@@ -3,9 +3,8 @@
 //// Anti-Stub-That-Lies guard ([zk-3346fc607a1ef9e6]): tests assert real
 //// arithmetic on `StatusCounts` records, real HTML/ANSI output strings
 //// containing the expected counts, and the All-chip == sum invariant.
-
 import cepaf_gleam/ui/lustre/status_filter_chips.{
-  type ActiveFilter, type Chip, type StatusCounts, AllStatuses, Chip,
+  type StatusCounts, AllStatuses, Chip,
   OnlyBlocked, OnlyCompleted, OnlyInProgress, OnlyPending, StatusCounts,
   active_chip, build_chips, chip_page_url, chip_url, filter_to_key, has_any,
   invariant_holds, parse_active, render_ansi, render_html, shows_empty,

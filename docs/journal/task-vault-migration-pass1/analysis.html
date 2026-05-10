@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><title>Vault Migration Pass-1 Analysis</title>
+<style>
+body{font-family:system-ui;max-width:1100px;margin:2em auto;padding:0 1em;background:#0a0e17;color:#e0e6ed;line-height:1.55}
+h1,h2,h3{color:#00d4aa;border-bottom:1px solid #1e2a3a;padding-bottom:.3em}
+h1{font-size:1.8em} h2{font-size:1.3em;margin-top:2em} h3{font-size:1.1em;color:#3dd68c}
+table{border-collapse:collapse;width:100%;margin:1em 0;background:#141922}
+th,td{border:1px solid #1e2a3a;padding:.5em .8em;text-align:left;vertical-align:top}
+th{background:#1e2a3a;color:#00d4aa}
+code{background:#1e2a3a;padding:.1em .4em;border-radius:3px;color:#3dd68c;font-family:JetBrains Mono,monospace}
+pre{background:#1e2a3a;padding:1em;border-radius:5px;overflow-x:auto;color:#e0e6ed;font-size:.85em}
+.ok{color:#3dd68c} .warn{color:#f5a623} .err{color:#ff4757}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1em;margin:1em 0}
+.metric{background:#141922;border:1px solid #1e2a3a;border-radius:5px;padding:1em}
+.metric-val{font-size:2em;color:#00d4aa;font-weight:bold} .metric-label{color:#7a8fa6;font-size:.9em}
+.tag{display:inline-block;padding:.1em .5em;border-radius:3px;background:#1e2a3a;color:#00d4aa;font-size:.85em;margin-right:.3em}
+header{background:linear-gradient(90deg,#00d4aa22,#3dd68c11);padding:1em;border-radius:5px;margin-bottom:1em}
+</style></head><body>
+<header>
+<h1>Vault Migration Pass-1</h1>
+<div class="tag">SC-VAULT-001..009</div><div class="tag">Ω-0</div><div class="tag">Ψ-3</div>
+<p><strong>Date</strong>: 2026-05-02 ~22:30 CEST · <strong>Task</strong>: <code>vault-migration-pass1</code><br>
+<strong>Tailscale</strong>: <a href="https://vm-1.tail55d152.ts.net:8443/c3i/docs/journal/task-vault-migration-pass1/">handoff index</a></p>
+</header>
+
+<h2>Headline Result</h2>
+<div class="metric-grid">
+<div class="metric"><div class="metric-val">1 → 8</div><div class="metric-label">Secrets in vault</div></div>
+<div class="metric"><div class="metric-val">0 → 7</div><div class="metric-label">Vault CLI subcommands</div></div>
+<div class="metric"><div class="metric-val">100%</div><div class="metric-label">Vault-first resolution for migrated secrets</div></div>
+<div class="metric"><div class="metric-val">~395</div><div class="metric-label">Rust LOC added</div></div>
+<div class="metric"><div class="metric-val">2m42s</div><div class="metric-label">Release build</div></div>
+<div class="metric"><div class="metric-val">7</div><div class="metric-label">Audit-log rows written</div></div>
+</div>
+
+<h2>Operator Directive Sequence</h2>
+<ol>
+<li>"make sure all the components of the system using keys and login passwords should read it from key vault — pi, openrouter, gemini etc"</li>
+<li>"do all 4" (referring to my 4-step migration plan)</li>
+<li>"do all 4, provide gleam, rust, mcp and zenoh full API access to the vault"</li>
+<li>"yes. add journal entry, html, slides, email"</li>
+</ol>
+
+<h2>What Was Shipped</h2>
+<table><thead><tr><th>Step</th><th>Artifact</th><th>Status</th></tr></thead><tbody>
+<tr><td>1. KEK provisioning</td><td><code>~/.config/c3i/vault.kek</code> + <code>vault.env</code> sourceable loader</td><td class="ok">✅</td></tr>
+<tr><td>2. Rust write API</td><td><code>encrypt_envelope</code> + <code>Vault::open_or_create_rw</code> + <code>Vault::put</code></td><td class="ok">✅</td></tr>
+<tr><td>3. CLI surface</td><td><code>sa-plan-daemon vault {list,status,get,locate,put,migrate-from-prefs,env}</code></td><td class="ok">✅</td></tr>
+<tr><td>4. Zenoh telemetry</td><td><code>indrajaal/l0/secret/access/&lt;name&gt;</code> on every put/migrate</td><td class="ok">✅</td></tr>
+<tr><td>5. Migration</td><td>7 secrets pipe-migrated (<code>get-pref | vault put -</code>) — no transit through agent</td><td class="ok">✅</td></tr>
+<tr><td>—</td><td>Audit log row per migrated secret (SC-VAULT-008)</td><td class="ok">✅</td></tr>
+</tbody></table>
+
+<h2>Production Resolution Chain — Before vs After</h2>
+<pre>
+BEFORE (gemini_api_key):
+  1. vault             : ❌ missing
+  2. smriti.db pref    : ✅ FOUND (legacy fallback)
+  3. env $GEMINI_API_KEY: ❌ unset
+  → Resolves from smriti.db preference (LEGACY — should migrate)
+
+AFTER:
+  1. vault             : ✅ FOUND          ← migrated this turn
+  2. smriti.db pref    : ✅ FOUND (kept as safety net)
+  3. env $GEMINI_API_KEY: ❌ unset
+  → Resolves from VAULT (SC-VAULT-003 compliant)
+</pre>
+
+<h2>The 8 Secrets Now in Vault</h2>
+<table><thead><tr><th>#</th><th>Name</th><th>Source</th><th>Resolves from</th></tr></thead><tbody>
+<tr><td>1</td><td>anthropic_api_key</td><td>pre-existing</td><td class="ok">vault</td></tr>
+<tr><td>2</td><td>gchat_webhook</td><td>migrated this turn</td><td class="ok">vault</td></tr>
+<tr><td>3</td><td>gemini_api_key</td><td>migrated this turn</td><td class="ok">vault</td></tr>
+<tr><td>4</td><td>gemini_api_key_live</td><td>migrated this turn</td><td class="ok">vault</td></tr>
+<tr><td>5</td><td>gmail_app_password</td><td>migrated this turn</td><td class="ok">vault</td></tr>
+<tr><td>6</td><td>google_client_secret</td><td>migrated this turn</td><td class="ok">vault</td></tr>
+<tr><td>7</td><td>openrouter_api_key</td><td>migrated this turn</td><td class="ok">vault</td></tr>
+<tr><td>8</td><td>telegram_token</td><td>migrated this turn</td><td class="ok">vault</td></tr>
+</tbody></table>
+
+<h2>5-Why Root Cause</h2>
+<ol>
+<li><strong>Why was production reading legacy?</strong> Vault contained 1 of 9 policy-registered secrets.</li>
+<li><strong>Why near-empty?</strong> No operator migration tooling existed.</li>
+<li><strong>Why no tooling?</strong> Gleam <code>vault.put</code> stubbed; Rust had no write API; direct sqlite3 needed envelope crypto.</li>
+<li><strong>Why Gleam stubbed?</strong> Slice B was scoped against rusty_vault_nif having <code>put_secret/4</code> — separate workstream.</li>
+<li><strong>Root</strong>: SC-VAULT-009 envisioned single-writer (Gleam NIF), but path never wired AND no parallel Rust writer authorized — system shipped read-side compliant, write-side unimplementable, silent prod fallback.</li>
+</ol>
+
+<h2>Architectural Trade-offs</h2>
+<h3>SC-VAULT-009 (single-source-of-truth writer)</h3>
+<p>Pass-1 added a Rust writer that produces envelopes interop-compatible with the Gleam-NIF writer (same KEK file, same AES-256-GCM with random nonce, same wire format). <strong>Both writers can coexist iff KEK is the contract.</strong> Documented in <code>vault.rs::encrypt_envelope</code>.</p>
+
+<h3>SC-VAULT-002 (KEK never plaintext on disk)</h3>
+<p>Sidecar file is plaintext bytes — mitigated by 0600 perms + Zeroize on memory. <strong>Production needs TPM PCR-7 unseal per SC-VAULT-007</strong> (deferred to Pass-4, hardware-gated).</p>
+
+<h2>Anti-Patterns Caught</h2>
+<table><thead><tr><th>Anti-pattern</th><th>Status</th><th>Mitigation</th></tr></thead><tbody>
+<tr><td><span class="warn">silent-prod-fallback-as-success</span> [NEW]</td><td>Mitigated</td><td><code>vault locate</code> surfaces resolution path; recommend SC-VAULT-029 to log fallback in production</td></tr>
+<tr><td><span class="warn">two-Smriti-DBs ambiguity</span> [NEW]</td><td>Flagged</td><td>Pass-3 unification candidate</td></tr>
+<tr><td><span class="ok">Stub-That-Lies</span> [zk-bd82645aedcb5ef4]</td><td>Avoided</td><td>Every claim mechanically verified via vault list/locate output</td></tr>
+<tr><td><span class="ok">Cargo.toml-add-without-journal</span> [zk-dfb89ad90f3cf722]</td><td>Avoided</td><td>This journal entry</td></tr>
+<tr><td><span class="ok">value-transit-through-agent</span></td><td>Avoided</td><td>Pipe-based migration: get-pref | vault put -</td></tr>
+</tbody></table>
+
+<h2>Remaining Gaps (Next Passes)</h2>
+<table><thead><tr><th>Gap</th><th>Pass</th><th>Effort</th></tr></thead><tbody>
+<tr><td>Elixir <code>Indrajaal.Vault</code> FFI module + 15-site retrofit</td><td>Pass-2</td><td>~150 LOC</td></tr>
+<tr><td>Pi-mono explicit vault client (replace eval-injection)</td><td>Pass-3</td><td>medium</td></tr>
+<tr><td>MCP tools <code>vault_get/list/status</code></td><td>Pass-2</td><td>~50 LOC</td></tr>
+<tr><td>Gleam <code>vault.put</code> wire (Slice B)</td><td>Pass-2</td><td>now unblocked by Rust reference</td></tr>
+<tr><td>TPM PCR-7 unseal (production KEK)</td><td>Pass-4</td><td>hardware-gated</td></tr>
+<tr><td>Two-Smriti-DBs unification</td><td>Pass-3</td><td>large refactor</td></tr>
+</tbody></table>
+
+<h2>Operator Cheat-Sheet</h2>
+<pre>
+# Restore KEK env in any shell:
+source ~/.config/c3i/vault.env
+
+# Audit:
+sa-plan-daemon vault status              # gap analysis
+sa-plan-daemon vault locate gemini_api_key  # per-secret resolution chain
+sa-plan-daemon vault list                # name inventory
+
+# Add a new secret:
+echo "secret-value" | sa-plan-daemon vault put my_new_key -
+
+# Bridge to legacy env-var consumers:
+eval "$(sa-plan-daemon vault env --names gemini_api_key,openrouter_api_key,anthropic_api_key)"
+
+# Re-migrate (idempotent — skips already-in-vault):
+sa-plan-daemon vault migrate-from-prefs --dry-run    # preview
+sa-plan-daemon vault migrate-from-prefs              # commit
+</pre>
+
+<footer style="margin-top:3em;padding-top:1em;border-top:1px solid #1e2a3a;color:#7a8fa6;font-size:.85em">
+ZK lineage: [zk-1eed80e0ca21da5f] [zk-d29d26d5a30bfc60] [zk-bd87b1d7ba5ab593] [zk-0791afa8e42cef38] [zk-c0a48556e50c92dd] [zk-87d56c7f5eed5cb7] [zk-bd82645aedcb5ef4] [zk-69783e4b5df9cc48]
+</footer>
+</body></html>

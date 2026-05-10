@@ -72,7 +72,7 @@ pub fn no_action_constructor_test() {
 
 pub fn warn_log_carries_message_test() {
   let action = WarnLog("pipeline stale — 1 failure")
-  let assert WarnLog(msg) = action
+  let WarnLog(msg) = action
   msg |> string.contains("pipeline") |> should.be_true()
 }
 
@@ -83,13 +83,13 @@ pub fn attempt_reload_constructor_test() {
 
 pub fn escalate_emergency_carries_reason_test() {
   let action = EscalateEmergency("3 stale checks after reload")
-  let assert EscalateEmergency(reason) = action
+  let EscalateEmergency(reason) = action
   reason |> string.contains("stale") |> should.be_true()
 }
 
 pub fn jidoka_halt_carries_reason_test() {
   let action = JidokaHalt("CRITICAL: 8 consecutive failures")
-  let assert JidokaHalt(reason) = action
+  let JidokaHalt(reason) = action
   reason |> string.contains("CRITICAL") |> should.be_true()
 }
 

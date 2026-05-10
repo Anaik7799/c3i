@@ -797,9 +797,9 @@ Every page evolution MUST be ingested into the Zettelkasten brain for institutio
 - **Rust E2E**: `test/planning_e2e_rust.rs` (584+ lines, 179 tests)
 - **Ruliology**: `native/planning_daemon/src/ruliology.rs` (929 lines)
 - **Rule engine**: `native/planning_daemon/src/rule_engine.rs` (961 lines, 52 GRL)
-- **Skill**: `.gemini/commands/agentic-ui-evolve.md`
-- **Master prompt**: `.gemini/commands/c3i-page-evolution.md`
-- **Agent**: `.gemini/agents/agentic-ui-designer.md`
+- **Skill**: `.claude/commands/agentic-ui-evolve.md`
+- **Master prompt**: `.claude/commands/c3i-page-evolution.md`
+- **Agent**: `.claude/agents/agentic-ui-designer.md`
 - **SOP**: §28 of this rule file
 - **Spec**: `docs/architecture/planning-page-specification.md` (674 lines)
 - **Journal**: `docs/journal/20260411-planning-page-evolution.md` (325 lines)
@@ -814,6 +814,6 @@ Every page evolution MUST be ingested into the Zettelkasten brain for institutio
 - **Rust E2E**: `test/planning_e2e_rust.rs` (584+ lines, 179 tests)
 - **Ruliology**: `native/planning_daemon/src/ruliology.rs` (929 lines)
 - **Rule engine**: `native/planning_daemon/src/rule_engine.rs` (961 lines, 52 GRL)
-- **Skill**: `.gemini/commands/agentic-ui-evolve.md`
-- **Master prompt**: `.gemini/commands/c3i-page-evolution.md`
-- **Agent**: `.gemini/agents/agentic-ui-designer.md`
+- **Skill**: `.claude/commands/agentic-ui-evolve.md`
+- **Master prompt**: `.claude/commands/c3i-page-evolution.md`
+- **Agent**: `.claude/agents/agentic-ui-designer.md`

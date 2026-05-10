@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html><head><title>Vault Pass-1 Deck</title>
+<style>
+body{margin:0;font-family:system-ui;background:#0a0e17;color:#e0e6ed}
+.slide{min-height:90vh;padding:3em 4em;border-bottom:2px solid #1e2a3a;page-break-after:always}
+.slide h1{color:#00d4aa;font-size:2.2em;margin:0 0 1em} .slide h2{color:#3dd68c;font-size:1.5em}
+.big{font-size:3em;color:#00d4aa;font-weight:bold;text-align:center;margin:1em 0}
+.subtitle{color:#7a8fa6;font-size:1.1em}
+ul li{margin:.6em 0;font-size:1.1em} .check{color:#3dd68c} .x{color:#ff4757} .warn{color:#f5a623}
+table{border-collapse:collapse;width:100%;font-size:1em}
+td,th{padding:.5em .8em;border:1px solid #1e2a3a;vertical-align:top} th{background:#1e2a3a;color:#00d4aa}
+code{background:#1e2a3a;padding:.1em .4em;border-radius:3px;color:#3dd68c}
+pre{background:#1e2a3a;padding:1em;border-radius:5px;font-size:.9em;overflow-x:auto}
+.center{text-align:center}
+</style></head><body>
+
+<section class="slide center">
+<h1>Vault Migration Pass-1</h1>
+<div class="big">1 → 8 secrets in vault</div>
+<p class="subtitle">2026-05-02 · sa-plan-daemon vault subcommand · Rust write API · Zenoh access events</p>
+<p style="margin-top:3em">SC-VAULT-001..009 · Ψ-3 verified · Ω-0 advanced</p>
+</section>
+
+<section class="slide">
+<h1>The Operator Asked</h1>
+<ol>
+<li>"make sure all components ... read from key vault — pi, openrouter, gemini etc"</li>
+<li>"do all 4" → 4-step migration plan</li>
+<li>"do all 4, provide gleam, rust, mcp and zenoh full API access to the vault"</li>
+<li>"yes. add journal entry, html, slides, email"</li>
+</ol>
+<h2>Pass-1 scope: Steps 1+2+3+5 + Zenoh; Steps 4 (Elixir/MCP/Gleam wire) deferred to Pass-2</h2>
+</section>
+
+<section class="slide">
+<h1>Pre-State (Pass-0 Audit)</h1>
+<table>
+<tr><th>Layer</th><th>Was</th></tr>
+<tr><td>Vault NIF</td><td>✅ deployed (684 KB)</td></tr>
+<tr><td>Vault contents</td><td><span class="x">❌ 1 of 9 secrets</span></td></tr>
+<tr><td>KEK provisioning</td><td><span class="x">❌ unset (vault sealed)</span></td></tr>
+<tr><td>Rust write API</td><td><span class="x">❌ none</span></td></tr>
+<tr><td>Operator CLI</td><td><span class="x">❌ no <code>vault</code> subcommand</span></td></tr>
+<tr><td>Zenoh telemetry</td><td><span class="x">❌ no access events</span></td></tr>
+<tr><td>Gleam <code>vault.put</code></td><td><span class="x">❌ stubbed "Slice B in progress"</span></td></tr>
+<tr><td>Production resolution</td><td><span class="warn">⚠️ silent legacy fallback for 8/9 secrets</span></td></tr>
+</table>
+</section>
+
+<section class="slide">
+<h1>What Was Shipped</h1>
+<table>
+<tr><th>Step</th><th>Deliverable</th></tr>
+<tr><td>1. KEK</td><td><code>~/.config/c3i/vault.kek</code> (32 bytes, 0600) + sourceable env loader</td></tr>
+<tr><td>2. Rust write</td><td><code>encrypt_envelope</code> + <code>open_or_create_rw</code> + <code>Vault::put</code></td></tr>
+<tr><td>3. CLI</td><td>7 subcommands: list, status, get, locate, put, migrate-from-prefs, env</td></tr>
+<tr><td>4. Zenoh</td><td>JSON publish to <code>indrajaal/l0/secret/access/&lt;name&gt;</code> on every put/migrate</td></tr>
+<tr><td>5. Migration</td><td>7 secrets pipe-migrated (no value transit through agent)</td></tr>
+</table>
+<p>Total: <strong>~395 LOC Rust</strong> · Build: <strong>2m42s</strong> clean release</p>
+</section>
+
+<section class="slide">
+<h1>Mechanical Verification (per [zk-bd82645aedcb5ef4])</h1>
+<pre>
+$ sa-plan-daemon vault list
+  anthropic_api_key
+  gchat_webhook
+  gemini_api_key
+  gemini_api_key_live
+  gmail_app_password
+  google_client_secret
+  openrouter_api_key
+  telegram_token
+
+8 secrets in vault (data/kms/smriti_vault.db)
+
+$ sa-plan-daemon vault locate gemini_api_key
+Resolution chain for 'gemini_api_key' (production order):
+  1. vault             : ✅ FOUND
+  2. smriti.db pref    : ✅ FOUND (legacy fallback)
+  3. env $GEMINI_API_KEY: ❌ unset
+→ Resolves from VAULT (SC-VAULT-003 compliant)
+</pre>
+</section>
+
+<section class="slide">
+<h1>5-Why Root Cause</h1>
+<ol>
+<li><strong>Why prod read legacy?</strong> Vault contained 1 of 9 secrets</li>
+<li><strong>Why empty?</strong> No operator migration tooling</li>
+<li><strong>Why no tooling?</strong> Gleam <code>vault.put</code> stubbed; Rust had no write API</li>
+<li><strong>Why Gleam stubbed?</strong> Slice B depends on rusty_vault_nif <code>put_secret/4</code></li>
+<li><strong>Root</strong>: SC-VAULT-009 envisioned single Gleam writer, never wired, no parallel Rust writer authorized — read-side compliant, write-side unimplementable, silent prod fallback</li>
+</ol>
+</section>
+
+<section class="slide">
+<h1>Architectural Trade-Off</h1>
+<h2>SC-VAULT-009 single-writer mandate</h2>
+<p>Pass-1 added a <strong>Rust writer</strong> that produces envelopes interop-compatible with the Gleam-NIF writer. Both can coexist iff they share the KEK file + AES-256-GCM wire format.</p>
+<h2>The contract</h2>
+<ul>
+<li>Same <code>C3I_VAULT_KEK_PATH</code> sidecar (32 raw bytes)</li>
+<li>Same wire envelope: <code>nonce(12) || ciphertext+tag</code></li>
+<li>Same <code>kv_entries</code> + <code>audit_log</code> schema</li>
+</ul>
+<p>Documented inline in <code>vault.rs::encrypt_envelope</code>. Future passes can deprecate the Rust writer if Slice B Gleam writer ships.</p>
+</section>
+
+<section class="slide">
+<h1>Anti-Patterns Caught</h1>
+<table>
+<tr><th>Anti-pattern</th><th>Status</th></tr>
+<tr><td><span class="warn">silent-prod-fallback-as-success</span> [NEW]</td><td>Mitigated via <code>vault locate</code></td></tr>
+<tr><td><span class="warn">two-Smriti-DBs ambiguity</span> [NEW]</td><td>Flagged for Pass-3</td></tr>
+<tr><td><span class="check">Stub-That-Lies</span> [zk-bd82645aedcb5ef4]</td><td>Avoided</td></tr>
+<tr><td><span class="check">Cargo.toml-add-without-journal</span> [zk-dfb89ad90f3cf722]</td><td>Avoided (this journal)</td></tr>
+<tr><td><span class="check">value-transit-through-agent</span></td><td>Avoided (pipe-based migration)</td></tr>
+</table>
+</section>
+
+<section class="slide">
+<h1>Remaining Gaps (Next Passes)</h1>
+<table>
+<tr><th>Gap</th><th>Pass</th></tr>
+<tr><td>Elixir <code>Indrajaal.Vault</code> FFI + 15 sites</td><td>Pass-2 (~150 LOC)</td></tr>
+<tr><td>Pi-mono explicit vault client</td><td>Pass-3</td></tr>
+<tr><td>MCP tools <code>vault_get/list/status</code></td><td>Pass-2 (~50 LOC)</td></tr>
+<tr><td>Gleam <code>vault.put</code> wire (Slice B)</td><td>Pass-2 (now unblocked)</td></tr>
+<tr><td>TPM PCR-7 unseal</td><td>Pass-4 (hardware-gated)</td></tr>
+<tr><td>Two-Smriti-DBs unification</td><td>Pass-3 (large refactor)</td></tr>
+</table>
+</section>
+
+<section class="slide center">
+<h1>Pass-1 Complete</h1>
+<div class="big">8 / 8 vault-resolved</div>
+<p>Production reads now go to vault first for all migrated secrets.</p>
+<p>SC-VAULT-001..009 mostly green; SC-VAULT-002 + SC-VAULT-007 future-pass scope.</p>
+<p style="margin-top:3em">Ready for Pass-2 — Elixir + MCP + Gleam wire</p>
+</section>
+
+</body></html>

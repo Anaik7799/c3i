@@ -117,6 +117,18 @@ Required constraints:
 - Use pure functions, iterator combinators, folds, `Option`/`Result`, `fp_core` traits/modules, and isolated IO/FFI boundaries
 - No new `unwrap`, `expect`, or `panic!` paths in generated runtime Rust
 
+## §3.7.1 Safe Rust X-Safety Mandate (Operator-Gated H-Risk)
+**Mandate**: all Rust generated or modified by users/agents MUST be safe-by-construction. Encode domain, protocol, concurrency, serialization, authorization, parsing, and resource-state invariants so invalid programs fail to compile wherever practical.
+
+Authoritative rule: `.claude/rules/safe-rust-x-safety.md`.
+
+Required constraints:
+- SRXS-001..012
+- Define invariants on types, traits, lifetimes, const generics, capability tokens, typestates, or sealed module boundaries
+- Enforce invariants at construction and mutation boundaries with private fields, smart constructors, checked conversions, RAII guards, exhaustive enums, and local unsafe wrappers
+- Consume invariants only through APIs whose signatures prove preconditions are satisfied
+- Treat new `unsafe` as a proof boundary requiring `SAFETY:` docs, safe wrappers, and focused tests or verification
+
 ## §3.8 Functional Runtime Supervisor (Operator-Gated H-Risk)
 **Mandate**: mixed TypeScript/Rust/runtime-governance work MUST use the multilayer supervisor state to keep Claude, Gemini, Pi-mono, Codex/GPT, rules, skills, agents, and hooks synchronized.
 

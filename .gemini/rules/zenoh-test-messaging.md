@@ -478,10 +478,10 @@ CP-BOOT-06 → CP-BOOT-07 ↗
 # 18.0 Revision History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-01-18 | Gemini Opus 4.5 | Initial creation |
-| 2.0.0 | 2026-01-18 | Gemini Opus 4.5 | Pass 1: Extended STAMP (012-020), Math foundations, TDG, FMEA, DAG rules |
-| 2.0.0 | 2026-01-18 | Gemini Opus 4.5 | Pass 2: Comprehensive FMEA (20 failure modes), extended AOR rules (001-015) |
-| 2.0.0 | 2026-01-18 | Gemini Opus 4.5 | Pass 3: Log-based fallback verification, dual-write strategy, verification procedures |
+| 1.0.0 | 2026-01-18 | Claude Opus 4.5 | Initial creation |
+| 2.0.0 | 2026-01-18 | Claude Opus 4.5 | Pass 1: Extended STAMP (012-020), Math foundations, TDG, FMEA, DAG rules |
+| 2.0.0 | 2026-01-18 | Claude Opus 4.5 | Pass 2: Comprehensive FMEA (20 failure modes), extended AOR rules (001-015) |
+| 2.0.0 | 2026-01-18 | Claude Opus 4.5 | Pass 3: Log-based fallback verification, dual-write strategy, verification procedures |
 ---
 # 19.0 Specification Documents
 # 19.1 Primary Specifications

@@ -6,7 +6,7 @@
 /// बहूनि मे व्यतीतानि जन्मानि — Many births have passed (Gita 4.5)
 
 import cepaf_gleam/ha/cell_architecture.{
-  Cell, CellGrid, Contained, Spreading, SystemWide,
+    Contained, Spreading,
 }
 import gleam/list
 import gleam/string

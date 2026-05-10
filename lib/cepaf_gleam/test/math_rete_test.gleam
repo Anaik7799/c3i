@@ -15,7 +15,7 @@
 import cepaf_gleam/math/rete
 import cepaf_gleam/math/statistics as stats
 import gleam/float
-import gleam/int
+// import gleam/int
 import gleam/list
 import gleeunit/should
 

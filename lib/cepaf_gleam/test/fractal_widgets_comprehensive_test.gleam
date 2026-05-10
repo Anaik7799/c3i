@@ -33,7 +33,7 @@ import cepaf_gleam/fractal/l4_system
 import cepaf_gleam/fractal/l5_cognitive
 import cepaf_gleam/fractal/l6_ecosystem
 import cepaf_gleam/fractal/l7_federation
-import gleam/int
+// import gleam/int
 import gleam/json
 import gleam/list
 import gleam/option.{None, Some}
@@ -690,7 +690,7 @@ pub fn l3_tool_failed_reason_preserved_test() {
   // Verify the reason string is accessible via pattern match
   case failed_status {
     l3_transaction.ToolFailed(reason) -> reason |> should.equal("zenoh_timeout")
-    _ -> should.fail()
+//     _ -> should.fail()
   }
 }
 

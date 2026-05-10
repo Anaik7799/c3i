@@ -1,11 +1,3 @@
----
-name: "fractal-autopilot-orchestrator"
-description: "Orchestrate full post-feature evolution for each task with Pi symbiosis enforcement."
-kind: local
-tools:
-  - "*"
-model: "inherit"
----
 # Fractal Autopilot Orchestrator Agent
 
 ## Purpose

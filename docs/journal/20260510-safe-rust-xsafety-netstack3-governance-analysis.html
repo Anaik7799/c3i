@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Safe Rust X-Safety Governance — Netstack3 Analysis</title>
+<style>
+:root{--bg:#0b1020;--panel:#111a33;--panel2:#162442;--text:#e7edf8;--muted:#a8b3c7;--accent:#7dd3fc;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--line:#2b3a5f}*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#0b1020,#111827);color:var(--text);font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}main{max-width:1180px;margin:auto;padding:28px}h1,h2,h3{line-height:1.15}h1{font-size:34px;margin:0 0 8px}h2{border-bottom:1px solid var(--line);padding-bottom:8px;margin-top:34px}.meta,.grid{display:grid;gap:14px}.meta{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:22px 0}.card{background:rgba(17,26,51,.9);border:1px solid var(--line);border-radius:14px;padding:16px}.grid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}.badge{display:inline-block;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:700}.ok{background:#064e3b;color:#bbf7d0}.warn{background:#78350f;color:#fde68a}.bad{background:#7f1d1d;color:#fecaca}a{color:var(--accent)}code{background:#0f172a;border:1px solid #26334f;border-radius:5px;padding:2px 5px;color:#c4b5fd}pre{background:#050816;border:1px solid var(--line);border-radius:12px;padding:14px;overflow:auto}table{width:100%;border-collapse:collapse;margin:12px 0 22px}th,td{border:1px solid var(--line);padding:9px;text-align:left;vertical-align:top}th{background:#14213d}.hero{background:linear-gradient(135deg,#172554,#0f766e);border:1px solid #38bdf8;border-radius:18px;padding:22px;margin-bottom:22px}.small{color:var(--muted);font-size:13px}.risk-high{color:#fecaca}.risk-med{color:#fde68a}.risk-low{color:#bbf7d0}.toc a{display:block;margin:6px 0}</style>
+</head>
+<body><main>
+<section class="hero">
+<h1>Safe Rust X-Safety Governance</h1>
+<p>Netstack3/RustConf research translated into C3I rules, skills, RETE-UL governance, STAMP constraints, FMEA risks, ZK ingestion, and operator email handoff.</p>
+<div class="meta">
+<div class="card"><strong>Task</strong><br><code>116549436589205923</code><br><span class="small">urn:c3i:task:misc:116549436589205923</span></div>
+<div class="card"><strong>Status</strong><br><span class="badge ok">Implemented rules/skills</span> <span class="badge warn">ZK/email evidence in closure</span></div>
+<div class="card"><strong>Primary Method</strong><br>Definition → Enforcement → Consumption</div>
+<div class="card"><strong>Operator</strong><br>Abhijit Naik<br><span class="small">abhijit.naik@bountytek.com</span></div>
+</div>
+</section>
+
+<section class="card toc">
+<h2>Artifact Links</h2>
+<a href="20260510-safe-rust-xsafety-netstack3-governance-journal.md">Markdown journal</a>
+<a href="20260510-safe-rust-xsafety-netstack3-governance-deck.html">Slide deck</a>
+<a href="20260510-safe-rust-xsafety-netstack3-governance-email.md">Email draft</a>
+<a href="20260510-safe-rust-xsafety-netstack3-governance-index.html">Operator index</a>
+<a href="task-116549436589205923-links.json">Links manifest</a>
+</section>
+
+<h2>Executive Summary</h2>
+<div class="grid">
+<div class="card"><h3>Learning</h3><p>Safe Rust is broader than memory safety. The Netstack3 lesson is to encode arbitrary safety properties as compile-time evidence.</p></div>
+<div class="card"><h3>Rule</h3><p>All Rust generated or modified by agents must be safe-by-construction and follow SRXS-001..012.</p></div>
+<div class="card"><h3>Skill</h3><p>Added Claude, Gemini, and provider-neutral skills that guide invariant discovery, parser boundaries, unsafe contracts, and verification.</p></div>
+<div class="card"><h3>Codegen</h3><p>Future Rust codegen must define, enforce, and consume invariants through types, not comments or late validation.</p></div>
+</div>
+
+<h2>Reviewed Source Corpus</h2>
+<table><thead><tr><th>Source</th><th>Why It Matters</th><th>Status</th></tr></thead><tbody>
+<tr><td><a href="https://www.youtube.com/watch?v=qd3x5MCUrhw">Safety in an Unsafe World</a></td><td>Primary RustConf X-safety talk.</td><td><span class="badge ok">reviewed</span></td></tr>
+<tr><td><a href="https://joshlf.com/files/talks/Safety%20in%20an%20Unsafe%20World.pdf">Talk slides</a></td><td>Definition/enforcement/consumption structure.</td><td><span class="badge ok">reviewed</span></td></tr>
+<tr><td><a href="https://lwn.net/Articles/995814/">LWN: Safety in an unsafe world</a></td><td>Netstack3 lock-ordering and production evidence.</td><td><span class="badge ok">reviewed</span></td></tr>
+<tr><td><a href="https://fuchsia.dev/fuchsia-src/contribute/roadmap/2021/netstack3">Fuchsia Netstack3 roadmap</a></td><td>Rust-based networking stack goals and risks.</td><td><span class="badge ok">reviewed</span></td></tr>
+<tr><td><a href="https://fuchsia.dev/fuchsia-src/contribute/contributing-to-netstack/netstack3">Contributing to Netstack3</a></td><td>Platform-agnostic core and cargo workflow.</td><td><span class="badge ok">reviewed</span></td></tr>
+<tr><td><a href="https://fuchsia.googlesource.com/fuchsia/+/refs/heads/main/src/connectivity/network/netstack3/docs/">Netstack3 docs</a></td><td>Static typing, parsing, serialization, socket and IP design references.</td><td><span class="badge ok">reviewed</span></td></tr>
+<tr><td><a href="https://doc.rust-lang.org/reference/unsafe-keyword.html">Rust Reference unsafe</a></td><td>Unsafe marks extra safety obligations.</td><td><span class="badge ok">reviewed</span></td></tr>
+<tr><td><a href="https://model-checking.github.io/kani/">Kani</a>, <a href="https://github.com/rust-lang/miri/">Miri</a>, <a href="https://rustsec.org/">RustSec</a></td><td>Verification and supply-chain gates.</td><td><span class="badge ok">reviewed</span></td></tr>
+</tbody></table>
+
+<h2>Rules Implemented</h2>
+<table><thead><tr><th>ID</th><th>Control</th><th>Severity</th></tr></thead><tbody>
+<tr><td>SRXS-001</td><td>Define important invariants on Rust objects.</td><td class="risk-high">HIGH</td></tr>
+<tr><td>SRXS-002</td><td>Enforce invariants with constructors, private fields, checked conversions, typestate, RAII, enums.</td><td class="risk-high">HIGH</td></tr>
+<tr><td>SRXS-003</td><td>Consume invariants through signatures; avoid raw values in core logic.</td><td class="risk-high">HIGH</td></tr>
+<tr><td>SRXS-004</td><td>No new production panic/unwrap/expect/todo/unreachable/unchecked indexing.</td><td class="risk-high">HIGH</td></tr>
+<tr><td>SRXS-006</td><td>New unsafe requires local proof boundary, SAFETY docs, safe wrapper, verification.</td><td class="risk-high">CRITICAL</td></tr>
+<tr><td>SRXS-011</td><td>Secret serialization/debug derives require redaction review.</td><td class="risk-high">CRITICAL</td></tr>
+</tbody></table>
+
+<h2>RETE-UL Salience</h2>
+<table><thead><tr><th>Rule</th><th>Salience</th><th>Action</th></tr></thead><tbody>
+<tr><td>ProductionPanicAdded</td><td>100</td><td>Block closure unless type-proven and documented.</td></tr>
+<tr><td>UnsafeBoundaryAdded</td><td>100</td><td>Require safety contract, safe wrapper, tests/Miri/Kani as applicable.</td></tr>
+<tr><td>RustInvariantMissing</td><td>100</td><td>Require newtype, typestate, smart constructor, or sealed boundary.</td></tr>
+<tr><td>SecretDebugLeak</td><td>95</td><td>Remove or redact debug/serialization.</td></tr>
+<tr><td>AsyncLockAwait</td><td>90</td><td>Refactor lock scope or primitive.</td></tr>
+</tbody></table>
+
+<h2>STAMP + FMEA</h2>
+<table><thead><tr><th>Hazard</th><th>Unsafe Control Action</th><th>Control</th></tr></thead><tbody>
+<tr><td>Protocol-invalid state</td><td>Agent keeps raw JSON/string state after validation.</td><td>Parser boundary returns domain type.</td></tr>
+<tr><td>Deadlock</td><td>Agent introduces lock inversion or guard across await.</td><td>Lock hierarchy or type-level ordering.</td></tr>
+<tr><td>Unsafe unsoundness</td><td>Safe caller can trigger UB through wrapper.</td><td>Local unsafe proof boundary + safe wrapper tests.</td></tr>
+<tr><td>Production panic</td><td>Runtime error crashes service.</td><td>Total functions and typed errors.</td></tr>
+</tbody></table>
+
+<h2>Implemented Files</h2>
+<pre><code>docs/rust-safety/safe-rust-x-safety-source-map.md
+.claude/rules/safe-rust-x-safety.md
+.gemini/rules/safe-rust-x-safety.md
+.claude/skills/safe-rust-x-safety/SKILL.md
+.gemini/skills/safe-rust-x-safety/SKILL.md
+.agents/skills/safe-rust-x-safety/SKILL.md
+CLAUDE.md
+GEMINI.md
+AGENTS.md</code></pre>
+
+<h2>Verification Evidence</h2>
+<ul>
+<li><code>cargo fmt --check</code> passed in <code>/home/an/dev/ver/work</code>.</li>
+<li><code>cargo test gateway -- --nocapture</code> passed: 6 tests, 0 failures.</li>
+<li>Production panic audit found only test-only <code>expect</code> usage in <code>src/gateway.rs</code>.</li>
+<li>JSON/link/ZK/email checks are recorded in the links manifest and final handoff.</li>
+</ul>
+
+<h2>Conclusion</h2>
+<p>The new safe-Rust rule and skill convert the Netstack3 lesson into C3I governance: future Rust code must not merely be memory-safe; it must encode the domain’s safety properties so the compiler can reject invalid states and invalid flows.</p>
+</main></body></html>

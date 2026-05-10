@@ -2,7 +2,7 @@
 # सत्र प्रारम्भ प्रोतोकॉल
 
 ## Mandate (आदेश)
-**Every Gemini session MUST bootstrap with Zettelkasten recall + Gleam compute verification.**
+**Every Claude session MUST bootstrap with Zettelkasten recall + Gleam compute verification.**
 Memory-first, Zettelkasten-second, compute-third, act-fourth.
 
 ## STAMP Constraints
@@ -30,7 +30,7 @@ sa-plan-daemon status
 # 4. Build check
 cd lib/cepaf_gleam && gleam build
 # 5. Nav graph health via Gleam NIF
-gleam run -m cepaf_gleam/gemini_compute
+gleam run -m cepaf_gleam/claude_compute
 # Output: SCC=1 (all pages reachable), PageRank, boot DAG
 ```
 

@@ -33,6 +33,7 @@ import cepaf_gleam/ha/guard_grid
 import cepaf_gleam/otp_app
 import cepaf_gleam/planning/safety_kernel
 import cepaf_gleam/ui/wisp/router
+import cepaf_gleam/ui/wisp/secret_api as vault_secret_api
 import gleam/bytes_tree
 import gleam/erlang/process
 import gleam/http
@@ -44,6 +45,7 @@ import gleam/json
 import gleam/list
 import gleam/option.{None}
 import gleam/result
+import gleam/string
 import mist
 
 // ---------------------------------------------------------------------------
@@ -1186,53 +1188,38 @@ pub fn start(port: Int) -> Result(Nil, String) {
 
       // Normal HTTP request
       False -> {
-        // Phase 2: Bearer Token RBAC Middleware for L5_Operator
-        let is_authorized = case req.method {
-          http.Post | http.Put | http.Delete | http.Patch -> {
-            let auth_ok = case request.get_header(req, "authorization") {
-              Ok("Bearer " <> _token) -> True
-              _ -> False
+        // SC-VAULT-009 + SC-VAULT-025 (Wave 11): intercept GET /api/v1/secret/<name>
+        // BEFORE generic RBAC middleware. This endpoint has its own bearer
+        // gate against pi_session.token via secret_api.handle_get_secret.
+        // We deliberately exclude /api/v1/secret-status and /api/v1/secret-policy-audit
+        // (no slash after "secret"), which remain on the wisp router path.
+        let secret_name = case req.method {
+          http.Get ->
+            case req.path {
+              "/api/v1/secret/" <> n ->
+                case string.contains(n, "/") || string.is_empty(n) {
+                  True -> ""
+                  False -> n
+                }
+              _ -> ""
             }
-            let proof_ok = case request.get_header(req, "x-proof-token") {
-              Ok(token) ->
-                safety_kernel.validate_proof_token(
-                  token, "mutation", "L5_Operator", "", 1000,
-                )
-                |> result.is_ok()
-              _ -> False
-            }
-            auth_ok && proof_ok
-          }
-          _ -> True
+          _ -> ""
         }
-
-        case is_authorized {
-          False ->
-            response.new(401)
-            |> response.set_body(
-              mist.Bytes(bytes_tree.from_string(
-                "{\"error\": \"Unauthorized\"}",
-              )),
-            )
+        case secret_name != "" {
+          True -> {
+            let authz = case request.get_header(req, "authorization") {
+              Ok(v) -> v
+              Error(_) -> ""
+            }
+            let #(status, body) =
+              vault_secret_api.handle_get_secret(authz, secret_name)
+            response.new(status)
+            |> response.set_body(mist.Bytes(bytes_tree.from_string(body)))
             |> response.set_header("content-type", "application/json")
             |> response.set_header("access-control-allow-origin", "*")
-          True -> {
-            let wisp_response =
-              router.handle_request(request.set_body(req, ""))
-            let resp =
-              response.new(wisp_response.status)
-              |> response.set_body(
-                mist.Bytes(bytes_tree.from_string(wisp_response.body)),
-              )
-            list.fold(wisp_response.headers, resp, fn(acc, header) {
-              response.set_header(acc, header.0, header.1)
-            })
-            |> response.set_header("access-control-allow-origin", "*")
-            |> response.set_header(
-              "access-control-allow-methods",
-              "GET, POST, OPTIONS",
-            )
+            |> response.set_header("cache-control", "no-store")
           }
+          False -> handle_normal_http(req)
         }
       }
     }
@@ -1286,6 +1273,66 @@ pub fn start(port: Int) -> Result(Nil, String) {
       io.println("  [tls] TLS failed, HTTP-only mode on port " <> int.to_string(port))
       process.sleep_forever()
       Ok(Nil)
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Wave 11: extracted normal-HTTP path. The handler in start(port) intercepts
+// GET /api/v1/secret/<name> first; everything else falls through to here for
+// the standard RBAC + wisp router dispatch.
+// ---------------------------------------------------------------------------
+
+fn handle_normal_http(
+  req: request.Request(mist.Connection),
+) -> response.Response(mist.ResponseData) {
+  // Phase 2: Bearer Token RBAC Middleware for L5_Operator
+  let is_authorized = case req.method {
+    http.Post | http.Put | http.Delete | http.Patch -> {
+      let auth_ok = case request.get_header(req, "authorization") {
+        Ok("Bearer " <> _token) -> True
+        _ -> False
+      }
+      let proof_ok = case request.get_header(req, "x-proof-token") {
+        Ok(token) ->
+          safety_kernel.validate_proof_token(
+            token,
+            "mutation",
+            "L5_Operator",
+            "",
+            1000,
+          )
+          |> result.is_ok()
+        _ -> False
+      }
+      auth_ok && proof_ok
+    }
+    _ -> True
+  }
+
+  case is_authorized {
+    False ->
+      response.new(401)
+      |> response.set_body(
+        mist.Bytes(bytes_tree.from_string("{\"error\": \"Unauthorized\"}")),
+      )
+      |> response.set_header("content-type", "application/json")
+      |> response.set_header("access-control-allow-origin", "*")
+    True -> {
+      let wisp_response = router.handle_request(request.set_body(req, ""))
+      let resp =
+        response.new(wisp_response.status)
+        |> response.set_body(
+          mist.Bytes(bytes_tree.from_string(wisp_response.body)),
+        )
+      list.fold(wisp_response.headers, resp, fn(acc, header) {
+        response.set_header(acc, header.0, header.1)
+      })
+      |> response.set_header("access-control-allow-origin", "*")
+      |> response.set_header(
+        "access-control-allow-methods",
+        "GET, POST, OPTIONS",
+      )
     }
   }
 }

@@ -10,7 +10,7 @@
 /// अहिंसा परमो धर्मः — Non-harm is the highest duty (immune blocks harm)
 
 import cepaf_gleam/ha/immune_learning.{
-  type ImmuneMemory, type LearningAction, BlockPattern, NoLearning,
+  BlockPattern, NoLearning,
   RequestApproval, SynthesizeRule, active_rules, approve_antibody,
   block_pattern, generate_grl_rule, init, is_blocked, learned_count,
   observe_attack, pending_count, reject_antibody, summary,

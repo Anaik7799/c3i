@@ -94,5 +94,5 @@ sa-logs            # View logs
 | Version | 21.2.1-SIL6 |
 | Created | 2026-01-03 |
 | Last Updated | 2026-03-19 |
-| Author | Gemini Opus 4.6 |
+| Author | Claude Opus 4.6 |
 | STAMP | SC-GA-001 to SC-GA-010, SC-CMD-001 to SC-CMD-029, 641+ constraints total |

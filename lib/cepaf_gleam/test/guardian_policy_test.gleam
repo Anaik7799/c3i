@@ -3,7 +3,7 @@
 // SC-PI-002, SC-SAFETY-001, SC-SIL4-006
 
 import cepaf_gleam/bridge/pi_tools.{
-  type FederatedTool, type GateDecision, type GuardianMode, type GuardianPolicy,
+  type FederatedTool,
   Allowed, AllowedWithAudit, AuditOnly, Blocked, C3iTool, ConsensusRequired,
   EnforceAll, EnforceNonL0, FederatedTool, GuardianPolicy, GuardianRequired,
   Lockdown, NoGate, Permissive, PiTool, check_gate, default_guardian_policy,

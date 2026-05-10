@@ -1,0 +1,127 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Vault — slide deck</title>
+<style>
+  body { margin:0; background:#0a0e17; color:#e0e6ed; font-family:system-ui,sans-serif; }
+  .slide { min-height:100vh; padding:48px 64px; border-bottom:2px solid #1e2a3a; display:flex; flex-direction:column; justify-content:center; }
+  h1 { color:#00d4aa; font-size:42px; margin:0 0 16px }
+  h2 { color:#00d4aa; font-size:28px; margin:0 0 12px }
+  p, li { font-size:18px; line-height:1.6; max-width:1100px }
+  .accent { color:#00d4aa }
+  .crit { color:#ff4757 }
+  .warn { color:#f5a623 }
+  .ok { color:#3dd68c }
+  img { max-width:90%; max-height:60vh; border-radius:8px; border:1px solid #1e2a3a }
+  table { border-collapse:collapse; margin:12px 0 }
+  th,td { border:1px solid #1e2a3a; padding:8px 14px }
+  th { background:rgba(0,212,170,0.12); color:#00d4aa }
+  pre { background:#0e1320; padding:14px; border-radius:6px; max-width:900px }
+  .num { color:#7a8fa6; font-size:14px; position:absolute; top:24px; right:32px }
+</style></head><body>
+
+<section class="slide"><span class="num">1 / 12</span>
+  <h1>Secrets Vault</h1>
+  <h2>RustyVault NIF · 1-week offline · western crypto · GCP-DR</h2>
+  <p style="margin-top:32px;color:#7a8fa6">Task <code>116494073339521648</code> · 2026-04-30 · operator: abhijit.naik@bountytek.com</p>
+  <p style="color:#7a8fa6">https://vm-1.tail55d152.ts.net:8443/task-id/116494073339521648/</p>
+</section>
+
+<section class="slide"><span class="num">2 / 12</span>
+  <h2>The problem</h2>
+  <ul>
+    <li><span class="crit">Live Anthropic API key</span> in <code>.pi/config.json</code> + <code>.pi/config.example.json</code></li>
+    <li><span class="crit">8 plaintext secrets</span> in <code>UserPreferences[secrets]</code> SQLite rows</li>
+    <li>No encryption at rest, no audit trail, no rotation API, no granular IAM, no TTL</li>
+    <li><strong>Single root cause:</strong> vault primitive missing — every other finding downstream</li>
+  </ul>
+</section>
+
+<section class="slide"><span class="num">3 / 12</span>
+  <h2>Architecture: hot path never touches network</h2>
+  <img src="diagrams/png/01-architecture.png">
+</section>
+
+<section class="slide"><span class="num">4 / 12</span>
+  <h2>1-week offline timeline</h2>
+  <img src="diagrams/png/06-offline-1week.png">
+  <p>Per-secret Hard-TTL: 5min/7d hot keys, 30d/90d stable. Long-TTL secrets work past 7 days.</p>
+</section>
+
+<section class="slide"><span class="num">5 / 12</span>
+  <h2>The Tongsuo gotcha — and the fix</h2>
+  <pre>[features]
+default = ["crypto_adaptor_openssl"]   <span class="ok"># ← name says OpenSSL</span>
+
+[patch.crates-io]
+openssl     = { git = "...", branch = "tongsuo" }   <span class="crit"># ← but actual openssl crate redirects</span>
+openssl-sys = { git = "...", branch = "tongsuo" }   <span class="crit"># ← to Tongsuo (adds SM2/SM3/SM4)</span></pre>
+  <p>Default feature name <span class="warn">lies</span>. Vendored + scrubbed in Slice A. <code>SC-VAULT-CRYPTO-001</code> enforces empty <code>cargo tree | grep tongsuo</code>.</p>
+</section>
+
+<section class="slide"><span class="num">6 / 12</span>
+  <h2>Critical-path slices (FMEA-RPN ordered)</h2>
+  <table>
+  <tr><th>Slice</th><th>Action</th><th>RPN</th><th>Status</th></tr>
+  <tr><td><strong>A</strong></td><td>Vendor + scrub</td><td class="crit">378</td><td class="ok">DONE</td></tr>
+  <tr><td>E</td><td>Caller flip + .pi placeholder</td><td>288</td><td>tracked</td></tr>
+  <tr><td>B</td><td>NIF + Gleam wrapper</td><td>180</td><td>tracked</td></tr>
+  <tr><td>D</td><td>GCP sync actor</td><td>175</td><td>tracked</td></tr>
+  <tr><td>F</td><td>Governance + tests + formal</td><td>168</td><td>tracked</td></tr>
+  <tr><td>C</td><td>Boot KEK chain</td><td>160</td><td>tracked</td></tr>
+  </table>
+</section>
+
+<section class="slide"><span class="num">7 / 12</span>
+  <h2>Vault state machine</h2>
+  <img src="diagrams/png/07-state-machine-vault.png">
+</section>
+
+<section class="slide"><span class="num">8 / 12</span>
+  <h2>RETE-UL rules — 12 in 2 domains</h2>
+  <img src="diagrams/png/10-rete-ul-rule-graph.png">
+</section>
+
+<section class="slide"><span class="num">9 / 12</span>
+  <h2>Operator UX flows</h2>
+  <img src="diagrams/png/11-ux-operator-flows.png">
+</section>
+
+<section class="slide"><span class="num">10 / 12</span>
+  <h2>5-Level Fractal RCA + TPS countermeasures</h2>
+  <ul>
+    <li><strong>L1</strong> Pi-mono wrote JSON → vault primitive missing</li>
+    <li><strong>L2</strong> gitignore-after-the-fact → no canonical place</li>
+    <li><strong>L3</strong> no scanner caught it → no pre-commit hook</li>
+    <li><strong>L4</strong> each subsystem invents own → no shared primitive</li>
+    <li><strong>L5</strong> SC-SEC-049 was aspirational → no enforcement</li>
+  </ul>
+  <p><strong>7 TPS pillars</strong>: Jidoka (5 prevention + 3 detection) · Andon (30s dashboard) · Kaizen (5 crons) · Heijunka (Slurm fairshare) · Poka-yoke (wiring guard, type system) · Genchi Genbutsu (TLA+/Apalache/Agda) · Standardized Work (8 canonical operations).</p>
+</section>
+
+<section class="slide"><span class="num">11 / 12</span>
+  <h2>Test plan — 7 phases</h2>
+  <table>
+  <tr><th>Phase</th><th>Coverage</th><th>Gate</th></tr>
+  <tr><td>1. Unit</td><td>200+ tests</td><td>H ≥ 2.5, CCM ≥ 0.90, ITQS ≥ 0.85</td></tr>
+  <tr><td>2. Integration</td><td>50+ tests</td><td>0 failures</td></tr>
+  <tr><td>3. Property</td><td>5 props × 1000 cases</td><td>0 counter-examples</td></tr>
+  <tr><td>4. Formal</td><td>TLA+ + Apalache + Agda</td><td>9 invariants green</td></tr>
+  <tr><td>5. E2E offline</td><td>iptables + clock advance</td><td>no fail-open</td></tr>
+  <tr><td>6. Chaos</td><td>8 scenarios</td><td>graceful or fail-closed</td></tr>
+  <tr><td>7. UX (Playwright)</td><td>4 flows × 3 platforms</td><td>screenshots + video</td></tr>
+  </table>
+</section>
+
+<section class="slide"><span class="num">12 / 12</span>
+  <h2>Status</h2>
+  <ul>
+    <li class="ok">✓ Slice A shipped (vendor + scrub + audit notes)</li>
+    <li class="ok">✓ 14 sa-plan tasks created for Slices B-F + governance</li>
+    <li class="ok">✓ 12 diagrams + journal + RCA + TPS + fractal matrix + 7-phase test plan</li>
+    <li class="ok">✓ SC-VAULT-001..025 + SC-VAULT-CRYPTO-001 rule registered + .gemini parity</li>
+    <li class="warn">⏳ Slices B-F: ~2,800 LOC code + 1,800 LOC formal/spec, across 4-6 follow-up sessions</li>
+    <li class="warn">⏳ Anthropic key rotation deferred per operator (tracked sa-plan 116494259719342353)</li>
+  </ul>
+  <p style="margin-top:32px"><strong>Next</strong>: Slice B (NIF crate + 10 NIFs + Gleam typed wrapper).</p>
+</section>
+
+</body></html>

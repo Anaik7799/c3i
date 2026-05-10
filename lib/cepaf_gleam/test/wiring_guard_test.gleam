@@ -10,7 +10,7 @@ import gleeunit/should
 
 pub fn all_page_inits_compile_test() {
   wiring_guard.verify_all_inits()
-  |> should.equal(36)
+  |> should.equal(37)
 }
 
 pub fn cortex_state_wired_test() {
@@ -69,7 +69,8 @@ pub fn inference_tier_invariants_test() {
 }
 
 pub fn full_wiring_verification_test() {
-  // 36 pages + 32 events + 6 models + 21 roundtrips + 3 strict + 9 ultra + 1 auth + 6 pi = 114
+  // 37 pages + 32 events + 6 models + 21 roundtrips + 3 strict + 9 ultra
+  // + 1 auth + 6 pi + 32 page-specs = 147 (SC-PAGE-SPEC-005, SC-VAULT-009)
   wiring_guard.verify_all()
-  |> should.equal(114)
+  |> should.equal(147)
 }

@@ -5,14 +5,14 @@
 
 import cepaf_gleam/a2ui/catalog
 import cepaf_gleam/a2ui/lustre_renderer
-import cepaf_gleam/a2ui/schema.{ComponentProposal, L0Constitutional, L2Component, L5Cognitive}
+import cepaf_gleam/a2ui/schema.{ComponentProposal, L0Constitutional, L5Cognitive}
 import cepaf_gleam/a2ui/validator
 import cepaf_gleam/agui/events
 import cepaf_gleam/agui/sse
 import cepaf_gleam/agui/state
 import cepaf_gleam/agui/tools
 import cepaf_gleam/c3i/nif
-import cepaf_gleam/fractal/l5_cognitive
+// import cepaf_gleam/fractal/l5_cognitive
 import cepaf_gleam/moz/client as moz
 import cepaf_gleam/rules/engine.{Fact}
 import cepaf_gleam/ui/lustre/app
@@ -33,7 +33,7 @@ import cepaf_gleam/ui/lustre/zenoh_browser
 import gleam/json
 import gleam/option
 import gleam/string
-import gleam/list
+// import gleam/list
 import gleeunit/should
 
 // ═══════════════════════════════════════════════════════════════
@@ -156,7 +156,7 @@ pub fn tool_new_registry_test() {
 }
 
 pub fn tool_start_call_test() {
-  let r = tools.new_registry([]) |> tools.start_call("tc1", "plan_list")
+  let _r = tools.new_registry([]) |> tools.start_call("tc1", "plan_list")
   { True } |> should.be_true()
 }
 
@@ -199,7 +199,7 @@ pub fn tool_reject_test() {
 }
 
 pub fn tool_set_result_test() {
-  let r = tools.new_registry([])
+  let _r = tools.new_registry([])
   |> tools.start_call("tc1", "plan_list")
   |> tools.set_result("tc1", "{\"ok\":true}")
   { True } |> should.be_true()
@@ -494,7 +494,7 @@ pub fn moz_new_test() {
 }
 
 pub fn moz_record_failure_test() {
-  let m = moz.new() |> moz.record_failure() |> moz.record_failure() |> moz.record_failure()
+  let _m = moz.new() |> moz.record_failure() |> moz.record_failure() |> moz.record_failure()
   { True } |> should.be_true()
 }
 
@@ -551,7 +551,7 @@ pub fn page_inference_tier_roundtrip_test() {
 
 pub fn page_pipeline_tracer_roundtrip_test() {
   let m = pipeline_tracer.init()
-  let m2 = pipeline_tracer.update(m, pipeline_tracer.SelectTrace("abc"))
+  let _m2 = pipeline_tracer.update(m, pipeline_tracer.SelectTrace("abc"))
   { True } |> should.be_true()
 }
 

@@ -1,5 +1,5 @@
 import cepaf_gleam/ha/health_derivative.{
-  Accelerating, CriticalPredicted, Declining, HealthSample, Stable,
+     HealthSample, Stable,
   Critical,
 }
 import gleeunit/should

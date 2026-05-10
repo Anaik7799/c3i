@@ -92,4 +92,4 @@ If Δ ≥ T_threshold:
 | `test/data_freshness_wiring_test.gleam` | 27 automated wiring tests | 230 |
 | `planning-grid.js` | Client staleness monitor + visual banner | +80 |
 | `router.gleam` | `/api/v1/health/freshness` endpoint | +20 |
-| `.gemini/rules/truth-freshness-safety.md` | This rule — INVIOLABLE | — |
+| `.claude/rules/truth-freshness-safety.md` | This rule — INVIOLABLE | — |

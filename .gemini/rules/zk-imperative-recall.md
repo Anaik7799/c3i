@@ -2,7 +2,7 @@
 # ज़ेटेलकास्टन अनिवार्य स्मरण — उद्धरण प्रोतोकॉल
 
 ## SUPREME MANDATE — INVIOLABLE — INFINITE SEVERITY
-**Gemini MUST cite ZK holon IDs in EVERY response that involves analysis, implementation, or decision-making. ZK recall results arrive via UserPromptSubmit hook. Ignoring them is a CRITICAL violation.**
+**Claude MUST cite ZK holon IDs in EVERY response that involves analysis, implementation, or decision-making. ZK recall results arrive via UserPromptSubmit hook. Ignoring them is a CRITICAL violation.**
 
 > मत्तः स्मृतिर्ज्ञानम् — From Me come memory and knowledge (Gita 15.15)
 > Memory without recall is death. The ZK IS the system's memory. To ignore it is amnesia.
@@ -10,21 +10,21 @@
 ## STAMP Constraints
 | ID | Constraint | Severity |
 |----|------------|----------|
-| SC-ZK-IMP-001 | Gemini MUST read ZK recall results from UserPromptSubmit hook | **INFINITE** |
-| SC-ZK-IMP-002 | Gemini MUST cite at least 1 holon ID per response OR state "ZK: no relevant prior patterns" | **CRITICAL** |
-| SC-ZK-IMP-003 | If anti-pattern detected in ZK recall, Gemini MUST STOP and read before acting | **CRITICAL** |
-| SC-ZK-IMP-004 | Gemini MUST prefer ZK proven patterns over first-principles reasoning | **HIGH** |
-| SC-ZK-IMP-005 | Gemini MUST NOT duplicate analysis that exists in ZK | **HIGH** |
+| SC-ZK-IMP-001 | Claude MUST read ZK recall results from UserPromptSubmit hook | **INFINITE** |
+| SC-ZK-IMP-002 | Claude MUST cite at least 1 holon ID per response OR state "ZK: no relevant prior patterns" | **CRITICAL** |
+| SC-ZK-IMP-003 | If anti-pattern detected in ZK recall, Claude MUST STOP and read before acting | **CRITICAL** |
+| SC-ZK-IMP-004 | Claude MUST prefer ZK proven patterns over first-principles reasoning | **HIGH** |
+| SC-ZK-IMP-005 | Claude MUST NOT duplicate analysis that exists in ZK | **HIGH** |
 | SC-ZK-IMP-006 | ZK citation MUST appear within first 3 paragraphs of response | **HIGH** |
 
 ## Why This Rule Exists (RCA: 2026-04-17)
 
-On 2026-04-17, Gemini performed an entire session of deep analysis (ignition boot RCA, mathematical analysis, rule engine implementation) without ONCE citing or using ZK recall results, despite:
+On 2026-04-17, Claude performed an entire session of deep analysis (ignition boot RCA, mathematical analysis, rule engine implementation) without ONCE citing or using ZK recall results, despite:
 - UserPromptSubmit hook firing on EVERY prompt
 - ZK containing 2,705 holons of institutional memory
-- Rules SC-ZK-GEMINI-001..006 already mandating ZK use
+- Rules SC-ZK-CLAUDE-001..006 already mandating ZK use
 
-**Root cause**: ZK hook output was ADVISORY (injected as context). Gemini's attention was allocated to the urgent user task (~80%) with ZK results receiving ~5% attention. No enforcement mechanism existed.
+**Root cause**: ZK hook output was ADVISORY (injected as context). Claude's attention was allocated to the urgent user task (~80%) with ZK results receiving ~5% attention. No enforcement mechanism existed.
 
 **FMEA**: RPN=729 (S=9, O=9, D=9) — highest-risk failure mode in the cognitive layer.
 
@@ -90,8 +90,8 @@ The ZK recall is the cognitive equivalent of the CausalGraph:
 
 ## Failure Response
 
-If a session review reveals Gemini did NOT cite ZK results:
+If a session review reveals Claude did NOT cite ZK results:
 1. Flag as SC-ZK-IMP-001 violation
-2. Record in Zettelkasten as anti-pattern: "Gemini ignored ZK recall on [date]"
+2. Record in Zettelkasten as anti-pattern: "Claude ignored ZK recall on [date]"
 3. Increase hook output from 10 to 15 results
 4. Add the missed context to the response retroactively

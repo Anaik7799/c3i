@@ -1,0 +1,218 @@
+{
+  "task_id": "116499874901057156",
+  "task_urn": "urn:c3i:task:misc:116499874901057156",
+  "title": "FP-Rust stack evaluation: 12-library functional-programming mandate + KPI framework + fractal integration + journal closure pack",
+  "priority": "P1",
+  "date": "2026-05-01",
+  "tailscale_base": "https://vm-1.tail55d152.ts.net:4200/task-id/116499874901057156",
+  "tailscale_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156",
+  "closure_passes": [
+    {"pass": 6, "label": "initial closure (Turn 6)", "date": "2026-05-01T15:05Z"},
+    {"pass": 7, "label": "session history closure (Turn 7)", "date": "2026-05-01T17:25Z"}
+  ],
+  "deliverables": {
+    "journal": {
+      "path": "docs/journal/task-116499874901057156/journal.md",
+      "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/journal.md",
+      "size_kb": 24,
+      "sections": 13,
+      "role": "primary-narrative"
+    },
+    "session_history": {
+      "path": "docs/journal/task-116499874901057156/session-history.md",
+      "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/session-history.md",
+      "size_kb": 30,
+      "role": "complete-7-turn-conversational-archive",
+      "preserves": ["all-7-verbatim-prompts", "12-library-deep-dive", "15-adjacent-libs", "4-ecosystem-gaps", "12+4-KPIs", "96-cell-fractal-matrix", "VSM-S1-S6", "RETE-domain14", "FMEA-10-rows", "constraint-interactions-16-families", "Tailscale-URLs", "ZK-19-holons-cited"]
+    },
+    "analysis_html": {
+      "path": "docs/journal/task-116499874901057156/analysis.html",
+      "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/analysis.html",
+      "size_kb": 33,
+      "sections": 15,
+      "role": "operator-facing-html"
+    },
+    "slide_deck": {
+      "path": "docs/journal/task-116499874901057156/slide-deck.html",
+      "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/slide-deck.html",
+      "size_kb": 30,
+      "slides": 16,
+      "role": "presentation-deck"
+    },
+    "user_guide": {
+      "path": "docs/journal/task-116499874901057156/user-guide.md",
+      "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/user-guide.md",
+      "size_kb": 10,
+      "role": "practical-howto",
+      "contents": ["decision-tree", "10-code-examples", "anti-patterns", "10-item-daily-checklist"]
+    },
+    "way_of_working": {
+      "path": "docs/journal/task-116499874901057156/way-of-working.md",
+      "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/way-of-working.md",
+      "size_kb": 7,
+      "role": "daily-cadence",
+      "contents": ["OODA-integration", "per-pass-cadence", "per-surface-workflow", "14-step-governance", "conflict-resolution", "kpi-thresholds", "operator-surfaces"]
+    },
+    "diagrams": [
+      {
+        "id": "01-fractal-coverage-matrix",
+        "dot": "diagrams/dot/01-fractal-coverage-matrix.dot",
+        "png": "diagrams/png/01-fractal-coverage-matrix.png",
+        "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/diagrams/png/01-fractal-coverage-matrix.png",
+        "topic": "8 fractal layers x 12 FP libraries = 96 cells, color-coded",
+        "size_kb": 289,
+        "added_pass": 6
+      },
+      {
+        "id": "02-vsm-fp-mapping",
+        "dot": "diagrams/dot/02-vsm-fp-mapping.dot",
+        "png": "diagrams/png/02-vsm-fp-mapping.png",
+        "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/diagrams/png/02-vsm-fp-mapping.png",
+        "topic": "VSM S1-S5 + S6 recursion -> library owners",
+        "size_kb": 181,
+        "added_pass": 6
+      },
+      {
+        "id": "03-pass-sequencing",
+        "dot": "diagrams/dot/03-pass-sequencing.dot",
+        "png": "diagrams/png/03-pass-sequencing.png",
+        "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/diagrams/png/03-pass-sequencing.png",
+        "topic": "5-pass adoption sequence with KPI deltas + 3 go/no-go gates",
+        "size_kb": 225,
+        "added_pass": 6
+      },
+      {
+        "id": "04-tower-kleisli-cascade",
+        "dot": "diagrams/dot/04-tower-kleisli-cascade.dot",
+        "png": "diagrams/png/04-tower-kleisli-cascade.png",
+        "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/diagrams/png/04-tower-kleisli-cascade.png",
+        "topic": "OODA-as-tower-Service-stack with 7-tier hedged inference",
+        "size_kb": 205,
+        "added_pass": 6
+      },
+      {
+        "id": "05-kpi-flow",
+        "dot": "diagrams/dot/05-kpi-flow.dot",
+        "png": "diagrams/png/05-kpi-flow.png",
+        "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/diagrams/png/05-kpi-flow.png",
+        "topic": "12 atomic KPIs -> 4 composites -> Zenoh -> dashboard -> RETE Domain 14 -> action",
+        "size_kb": 284,
+        "added_pass": 6
+      },
+      {
+        "id": "06-conversation-arc",
+        "dot": "diagrams/dot/06-conversation-arc.dot",
+        "png": "diagrams/png/06-conversation-arc.png",
+        "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/diagrams/png/06-conversation-arc.png",
+        "topic": "7-turn conversation arc with pivot point at Turn 2-3 (fp-core.rs rejection)",
+        "size_kb": 323,
+        "added_pass": 7
+      },
+      {
+        "id": "07-ecosystem-gap-landscape",
+        "dot": "diagrams/dot/07-ecosystem-gap-landscape.dot",
+        "png": "diagrams/png/07-ecosystem-gap-landscape.png",
+        "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/diagrams/png/07-ecosystem-gap-landscape.png",
+        "topic": "Rust FP ecosystem live vs dead vs gaps, with workaround mapping",
+        "size_kb": 387,
+        "added_pass": 7
+      },
+      {
+        "id": "08-constraint-family-interactions",
+        "dot": "diagrams/dot/08-constraint-family-interactions.dot",
+        "png": "diagrams/png/08-constraint-family-interactions.png",
+        "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/diagrams/png/08-constraint-family-interactions.png",
+        "topic": "SC-FP-RUST-001..020 interactions with 16 existing constraint families (12 strengthens, 3 compatible, 1 orthogonal, 0 conflicts)",
+        "size_kb": 446,
+        "added_pass": 7
+      },
+      {
+        "id": "09-data-control-info-flow",
+        "dot": "diagrams/dot/09-data-control-info-flow.dot",
+        "png": "diagrams/png/09-data-control-info-flow.png",
+        "url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/116499874901057156/diagrams/png/09-data-control-info-flow.png",
+        "topic": "3-flow integration (data + control + info) through 12-library FP stack with Zenoh OTel backplane",
+        "size_kb": 370,
+        "added_pass": 7
+      }
+    ]
+  },
+  "constraints": {
+    "satisfied": ["SC-JOURNAL-001..006", "SC-ZK-IMP-001..006", "SC-FRAC-RRF-001..010", "SC-AVP-001..010", "SC-MUDA-001", "SC-FUNC-001..008", "SC-TODO-001", "SC-NOTIFY-JOURNAL-001..004", "SC-ZETTEL-001..008"],
+    "pending_pass1": ["SC-FP-RUST-001..020", "AOR-FP-RUST-001..015", "SC-SYNC-DOC-007"]
+  },
+  "stack_decision": {
+    "rejected": "fp-core.rs (dormant since 2019, last release 0.1.9, 7.7K monthly DLs)",
+    "adopted": ["frunk", "rpds", "archery", "winnow", "tower", "derive_more", "nutype", "recursion", "proptest", "kani-verifier", "itertools", "rayon", "either"],
+    "adjacent_adopt": ["arbitrary", "arbtest", "arc-swap", "bytes", "compact_str", "parking_lot", "enum_dispatch", "bon", "snafu", "miette", "self_cell", "async-trait", "trait-variant"],
+    "adjacent_watch": ["dashmap", "ouroboros", "error-stack", "typenum", "generic-array"],
+    "vault_attack_surface_budget": ["derive_more", "nutype", "proptest", "kani-verifier"],
+    "ecosystem_gaps_confirmed_no_replacement": ["optics", "algebraic-effects", "STM", "free-monads"]
+  },
+  "kpi_framework": {
+    "atomic": 12,
+    "composite": 4,
+    "ids": ["FP-1..FP-12", "FP_TOTAL", "FP_VAULT", "FP_HOTPATH", "FP_DRIFT"],
+    "lyapunov_gate": "lambda(FP_TOTAL) >= 0 over 3-pass window",
+    "shannon_gate": "H_fp >= 2.5 bits (mirrors SC-MATH-COV-001)",
+    "geometric_mean": "FP_FRACTAL = (Pi L_i)^(1/8) >= 0.83 Pass-5 close"
+  },
+  "rete_domain_14": {
+    "name": "fp_discipline",
+    "rules": 6,
+    "salience_range": "70-100",
+    "rules_listed": ["FpPurityBelowFloor (100)", "FpVaultBelowFloor (100)", "FpDriftNegative (95)", "FpHotpathRegression (95)", "FpKaniCounterexample (100)", "FpNutypeRejectStorm (80)"]
+  },
+  "fmea": {
+    "rows_evaluated": 10,
+    "rpn_above_200": 2,
+    "highest_rpn": 210,
+    "highest_rpn_failure_mode": "rayon steals BEAM scheduler thread, latency spike (L4)",
+    "sigma_rpn_before": 1840,
+    "sigma_rpn_after_pass5": 740,
+    "reduction_pct": 60
+  },
+  "constraint_interactions": {
+    "strengthens": 12,
+    "compatible_with_sister_update": 3,
+    "orthogonal": 1,
+    "conflicts": 0
+  },
+  "zk_lineage": [
+    "zk-3346fc607a1ef9e6 Stub-That-Lies",
+    "zk-bb4de67d97f807ac selector-guessing",
+    "zk-c14e1d23afff486c implicit-invariant",
+    "zk-0f895e0a7dc05db8 fractal-evaluation pattern",
+    "zk-e301bd08cc49fec3 fractal-evaluation pattern",
+    "zk-d88a58e54ef8a08f closure-pack pattern",
+    "zk-01fc45b2edaf6f71 closure-pack pattern",
+    "zk-a97c474c58e95bd8 closure-pack pattern",
+    "zk-90eeda9991729f57 parallel-non-overlapping",
+    "zk-139840e16ed2b21e predicate-both-ways",
+    "zk-42230e7bb1049f52 cold-start-anti-pattern",
+    "zk-46d49ca326aad979 NASA-power-of-ten",
+    "zk-0cdda962d1a2d7bb library-evaluation-pattern",
+    "zk-2f0c8c547ccb1520 think-deeper-pattern",
+    "zk-2593c3b12a97a00a wider-elements",
+    "zk-f9aa4ffd612a1c5b service-evaluation-pattern",
+    "zk-567c3ea818969938 depth-coverage-standard",
+    "zk-c963c873a34a81a4 dynamic-aspects",
+    "zk-7dae382017aabdfa reconcile-vision-implementation",
+    "zk-3b32a0637bc76ed6 detailed-journal-pattern",
+    "zk-5c17727be8175db6 success-criteria",
+    "zk-116ff26db56cc3d8 mission-accomplished"
+  ],
+  "next_pass": {
+    "pass": 1,
+    "actions": [
+      "write .claude/rules/functional-programming-rust.md (SC-FP-RUST-001..020)",
+      "write .gemini/rules/functional-programming-rust.md (parity)",
+      "update CLAUDE.md ss29 + constraint-registry delta",
+      "add derive_more + itertools + either to planning_daemon/Cargo.toml",
+      "1-2 reference call sites in planning_daemon/src/",
+      "write sub-projects/scripts-gleam/src/scripts/verify/fp_purity.gleam",
+      "write sub-projects/c3i/native/planning_daemon/benches/fp_kpi.rs (criterion baseline)",
+      "register CPIG subsystem #13 fp_discipline (G1..G5 currently 1/5)"
+    ]
+  }
+}

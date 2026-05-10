@@ -6,8 +6,8 @@
 import cepaf_gleam/a2ui/catalog
 import cepaf_gleam/agui/events
 import cepaf_gleam/bridge/pi_claude_code
-import cepaf_gleam/bridge/pi_tools
-import gleam/int
+// import cepaf_gleam/bridge/pi_tools
+// import gleam/int
 import gleam/list
 import gleam/string
 import gleeunit/should

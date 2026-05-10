@@ -15,9 +15,9 @@ cd /home/an/dev/ver/c3i/sub-projects/work/gdrive/1-Work/FY27-Plan/zettelkasten &
 
 ## 3. Also re-import any new agents, rules, commands
 ```bash
-$ZK import /home/an/dev/ver/c3i/.gemini/agents/
-$ZK import /home/an/dev/ver/c3i/.gemini/commands/
-$ZK import /home/an/dev/ver/c3i/.gemini/rules/
+$ZK import /home/an/dev/ver/c3i/.claude/agents/
+$ZK import /home/an/dev/ver/c3i/.claude/commands/
+$ZK import /home/an/dev/ver/c3i/.claude/rules/
 ```
 
 ## 4. Verify
@@ -31,4 +31,4 @@ Report for BOTH databases:
 $ZK stats
 ```
 
-This is SC-ZK-GEMINI-002: Gemini MUST ingest documents after completing work.
+This is SC-ZK-CLAUDE-002: Claude MUST ingest documents after completing work.

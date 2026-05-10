@@ -1,0 +1,65 @@
+digraph EcosystemGapLandscape {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [shape=box, style="rounded,filled", fontname="JetBrains Mono", fontsize=10, fontcolor="#e0e6ed"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontsize=9];
+  label="Rust FP Ecosystem Landscape — Live (May 2026) vs Dead vs Confirmed Gaps";
+  labelloc="t"; fontcolor="#00d4aa"; fontname="JetBrains Mono"; fontsize=14;
+
+  subgraph cluster_alive {
+    label="ALIVE (active 2024-2026)"; color="#3dd68c"; fontcolor="#3dd68c";
+    A1 [label="frunk 0.4.4\n2025-06\n1.36M DLs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A2 [label="rpds 1.2.0\n2025-11\n2.86M DLs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A3 [label="archery 1.2.2\n2025-10", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A4 [label="winnow 1.0.2\n2026-04 (1.0!)\n129.8M DLs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A5 [label="tower 0.5.3\n2026-01\n101.4M DLs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A6 [label="derive_more 2.1.1\n2025-12\n71M DLs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A7 [label="nutype 0.7.0\n2026-04\n318K DLs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A8 [label="recursion 0.5.4\n2025-06\n1.09M DLs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A9 [label="proptest 1.11\n2026-03\n28.4M DLs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A10[label="kani 0.67\n2026-01\n64K DLs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A11[label="itertools 0.14\n2024-12\n209M DLs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A12[label="rayon 1.12\n2026-04\n66.9M DLs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+    A13[label="either 1.15\n2025-03\n127M DLs", fillcolor="#3dd68c", fontcolor="#0a0e17"];
+  }
+
+  subgraph cluster_dead {
+    label="DEAD / DORMANT — DO NOT USE"; color="#ff4757"; fontcolor="#ff4757";
+    D1 [label="fp-core 0.1.9\n2019\n7.7K", fillcolor="#ff4757"];
+    D2 [label="im 15.1.0\n2022 dormant\n2.99M (transitive)", fillcolor="#7a3a4a"];
+    D3 [label="lens-rs 0.3.2\n2021", fillcolor="#ff4757"];
+    D4 [label="pl-lens 1.0.1\n2020", fillcolor="#ff4757"];
+    D5 [label="effing-mad\n2023 hobbyist", fillcolor="#ff4757"];
+    D6 [label="eff 0.1.0\n2019", fillcolor="#ff4757"];
+    D7 [label="stm 0.4.0\n2018", fillcolor="#ff4757"];
+    D8 [label="hkt 0.0.3\n2015", fillcolor="#ff4757"];
+    D9 [label="lazy_static\nlegacy\nuse OnceLock", fillcolor="#7a3a4a"];
+    D10[label="nougat 0.2.4\n2022\n(GATs absorbed)", fillcolor="#7a3a4a"];
+  }
+
+  subgraph cluster_gaps {
+    label="CONFIRMED GAPS — DO NOT AUTHOR"; color="#f39c12"; fontcolor="#f39c12";
+    G1 [label="Optics\n(Van-Laarhoven\nlens / prism / traversal)", fillcolor="#f39c12", fontcolor="#0a0e17"];
+    G2 [label="Algebraic Effects\n(effect rows,\nfree monads)", fillcolor="#f39c12", fontcolor="#0a0e17"];
+    G3 [label="STM\n(software\ntransactional memory)", fillcolor="#f39c12", fontcolor="#0a0e17"];
+    G4 [label="Tagless Final /\nFree Monad", fillcolor="#f39c12", fontcolor="#0a0e17"];
+  }
+
+  subgraph cluster_workaround {
+    label="C3I WORKAROUNDS"; color="#9b59b6"; fontcolor="#9b59b6";
+    W1 [label="frunk::LabelledGeneric\n+ derive_more\n(80% case)", fillcolor="#9b59b6"];
+    W2 [label="tower::Layer\n+ tracing\n(60% case)", fillcolor="#9b59b6"];
+    W3 [label="SQLite WAL\n(SC-VAULT-012\nalready mandates)", fillcolor="#9b59b6"];
+    W4 [label="Closed enum\n+ handler fn\n(idiomatic Rust)", fillcolor="#9b59b6"];
+  }
+
+  D1 -> A1 [label="REPLACED BY", color="#ff4757", style=dashed];
+  D2 -> A2 [label="SUPERSEDED BY", color="#ff4757", style=dashed];
+  D3 -> W1 [label="WORKAROUND", color="#f39c12", style=dashed];
+  D5 -> W2 [label="WORKAROUND", color="#f39c12", style=dashed];
+  D7 -> W3 [label="WORKAROUND", color="#f39c12", style=dashed];
+
+  G1 -> W1; G2 -> W2; G3 -> W3; G4 -> W4;
+
+  Verdict [label="VERDICT\nDo NOT author optics / effects / STM / free-monad libs.\nC3I existing constraint families (SC-WIRE, SC-VALUE-GUARD, SC-VAULT, SC-CPIG)\nare SIL-6-shaped equivalents — better adapted than generic FP libraries.", shape=note, fillcolor="#1e2a3a", fontcolor="#00d4aa"];
+}
