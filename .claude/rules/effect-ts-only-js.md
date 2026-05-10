@@ -1,8 +1,10 @@
-# Effect TypeScript Mandatory for All Browser JS (SC-EFFECT-TS-001..005)
+# Effect TypeScript Mandatory for All Browser JS (SC-EFFECT-TS-001..007)
 
 ## Mandate
 
 **Per operator directive 2026-04-30 (operator-gated H-risk)**: all browser/runtime JavaScript and TypeScript code across C3I (not only `/planning`) MUST use [Effect TypeScript](https://effect.website/) (`effect` package, MIT licence) and MUST ship as bundled IIFE outputs via `esbuild`.
+
+This browser/IIFE rule is paired with the 2026-05-09 universal TypeScript mandate in `.claude/rules/effect-ts-universal.md`. All generated or modified TypeScript must use Effect, not `fp-ts`.
 
 This is a **full IIFE collapse policy**:
 - No new raw browser `.js` modules.
@@ -69,6 +71,7 @@ the prior `.claude/scripts/effect-ts-guard.sh` was removed.
 
 ## Cross-references
 
+- `.claude/rules/effect-ts-universal.md` (SC-EFFECT-TS-008..020) — all TypeScript
 - `.claude/rules/agentic-ui-responsive-design.md` (SC-AGUI-UI-*) — UI evolution
 - `.claude/rules/page-spec-checker.md` (SC-PAGE-SPEC-*) — runtime conformance
 - `docs/plans/20260430-1040-ui-refactor-roadmap-4-p1-items.md` §6 — Phase 4 IIFE split

@@ -30,7 +30,7 @@ For every change touching browser JS, verify:
 6. **Error tracking via Cause** — error logs use `Cause.pretty` not bare strings (AOR-EFFECT-TS-005).
 7. **Build pipeline** — `priv/web-build/package.json` lists `effect` and `esbuild`; `npm run build` produces the bundle deterministically.
 8. **Legacy migration** — if existing `.js` was touched, the diff includes migration delta toward Effect-TS (SC-EFFECT-TS-007).
-9. **Universal Effect** — any generated/modified TS follows `.claude/rules/effect-ts-universal.md` (SC-EFFECT-TS-008..020) and contains no new `fp-ts`.
+9. **Universal Effect** — any generated/modified TS follows `.gemini/rules/effect-ts-universal.md` (SC-EFFECT-TS-008..020) and contains no new `fp-ts`.
 
 ## Failure response
 
@@ -54,7 +54,7 @@ On any violation, the agent:
 ## STAMP & ZK refs
 
 - `.claude/rules/effect-ts-only-js.md` (SC-EFFECT-TS-001..007)
-- `.claude/rules/effect-ts-universal.md` (SC-EFFECT-TS-008..020)
+- `.gemini/rules/effect-ts-universal.md` (SC-EFFECT-TS-008..020)
 - [zk-3346fc607a1ef9e6] anti-Stub-That-Lies
 - [zk-c14e1d23afff486c] structured concurrency
 - [zk-bb4de67d97f807ac] selector-guessing

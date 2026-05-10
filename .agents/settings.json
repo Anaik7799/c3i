@@ -1,0 +1,46 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "name": "agents-effect-ts-universal-pre",
+            "description": "Warns on TS/JS edits so .agents-compatible runtimes apply Effect TS and IIFE rules.",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case $f in *.ts|*.tsx) echo '{\"systemMessage\":\".agents Effect mandate: generated/modified TypeScript must use Effect (`effect`), Schema, Option, Schedule, Layer/Context; do not add fp-ts.\"}' ;; *.js) echo '{\"systemMessage\":\".agents IIFE mandate: browser/runtime JS must be generated from Effect TypeScript IIFE output unless explicitly waived.\"}' ;; esac; }",
+            "timeout": 10000
+          },
+          {
+            "type": "command",
+            "name": "agents-fp-core-rust-pre",
+            "description": "Warns on Rust edits so .agents-compatible runtimes apply fp-core functional Rust rules.",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case $f in *.rs|*/Cargo.toml|Cargo.toml) echo '{\"systemMessage\":\".agents fp-core mandate: generated/modified Rust must use fp-core (`fp-core = 0.1.9`) where applicable, target >=95% functional style, and avoid new unwrap/expect/panic paths.\"}' ;; esac; }",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "name": "agents-effect-ts-universal-post",
+            "description": "Post-edit Effect TS reminder for .agents-compatible runtimes.",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case $f in *.ts|*.tsx|*.js) echo '{\"systemMessage\":\".agents Effect post-check: verify Effect imports, no fp-ts/TaskEither, Schema for external data, Option for absence, and IIFE source discipline for JS.\"}' ;; esac; }",
+            "timeout": 10000
+          },
+          {
+            "type": "command",
+            "name": "agents-fp-core-rust-post",
+            "description": "Post-edit fp-core Rust reminder for .agents-compatible runtimes.",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case $f in *.rs|*/Cargo.toml|Cargo.toml) echo '{\"systemMessage\":\".agents Rust post-check: verify fp-core usage, Result/Option flow, folds/iterators/composition, isolated boundaries, and no new panic paths.\"}' ;; esac; }",
+            "timeout": 10000
+          }
+        ]
+      }
+    ]
+  }
+}

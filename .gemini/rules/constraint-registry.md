@@ -8,6 +8,12 @@ Individual constraint details live in code; this registry tracks families and ra
 | SC-NIF-LOAD | 006-010 | 5 | NIF/FFI panic guard mandate — every NIF or `extern "C" fn` in a crate that pulls `zenoh + tokio` MUST wrap entry-point bodies in `catch_unwind(AssertUnwindSafe(...))` to convert latent zenoh-rs/tokio panics from BEAM SIGSEGV (signal 11) into recoverable `{:error, "<nif> panic: <msg>"}` terms. See `.gemini/rules/nif-ffi-panic-guard.md`. Live-verified Pass-4 2026-05-02. Tracked by task `urn:c3i:task:misc:116503330407891617`. |
 | AOR-NIF-LOAD | 001-005 | 5 | NEVER add new `#[rustler::nif]` to zenoh_nif without ffi_guard_*; NEVER add `extern "C" fn` to zenoh_ffi without ffi_guard! macro; NEVER let panic="unwind" silently bypass guard; ALWAYS test new guarded NIFs with live BEAM probe; NEVER introduce DISABLE_*_NIF env-var bypasses. |
 
+## Delta (2026-05-09 — fp-core Rust operator mandate)
+| Family | IDs | # | Description |
+|---|---|---|---|
+| SC-FP-RUST | 001-020 | 20 | Functional Programming Rust mandate — `fp-core = "0.1.9"` primary baseline plus supporting 12-library stack (frunk, rpds+archery, winnow, tower, derive_more, nutype, recursion, proptest, kani-verifier, itertools, rayon, either). 12 atomic KPIs (FP-1..FP-12) + 4 composites (FP_TOTAL ≥ 0.80, FP_VAULT ≥ 0.90, FP_HOTPATH ≥ 0.75, FP_DRIFT λ ≥ 0). 5-pass adoption sequence with go/no-go gates. Vault attack-surface budget: derive_more + nutype + proptest + kani only. RETE-UL Domain 14 fp_discipline (6 rules salience 70-100). CPIG subsystem #13 fp_discipline. See `.gemini/rules/functional-programming-rust.md` and `.gemini/rules/fp-core-rust-universal.md`. |
+| AOR-FP-RUST | 001-015 | 15 | ALWAYS allow `fp-core = "0.1.9"` for touched functional Rust; NEVER add lens-rs/effing-mad/eff/stm legacy crates; NEVER use Box<dyn Trait> where enum_dispatch fits; NEVER author effects/STM/free-monad libs; ALWAYS adopt nutype on vault FIRST; ALWAYS run criterion bench before rpds on hot path; ALWAYS test refinement validators with proptest both ways; ALWAYS update pi_claude_code.gleam federation count; ALWAYS run cargo-tree tongsuo grep after every dep change; ALWAYS write closure pack per pass. |
+
 ## Delta (2026-04-21)
 | Family | IDs | # | Description |
 |---|---|---|---|

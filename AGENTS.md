@@ -8,6 +8,18 @@ C3I operates a 25-agent biomorphic swarm organized in 2 supervision layers. This
 covers agents relevant to Gleam UI development, testing, and coverage. For the full agent
 inventory see `.gemini/agents/`.
 
+## Universal Effect TypeScript Rule
+
+All TypeScript generated or modified by users/agents MUST use Effect (`effect`) as the functional runtime and standard library. Follow `.claude/rules/effect-ts-universal.md` / `.gemini/rules/effect-ts-universal.md`; browser/runtime JS also follows `.claude/rules/effect-ts-only-js.md` / `.gemini/rules/effect-ts-only-js.md`. Do not introduce `fp-ts` in generated or agent-authored TypeScript.
+
+## Universal fp-core Rust Rule
+
+All Rust generated or modified by users/agents MUST use functional style and `fp-core` (`fp-core = "0.1.9"`) where applicable. Follow `.claude/rules/fp-core-rust-universal.md` / `.gemini/rules/fp-core-rust-universal.md`. Touched Rust logic must target >=95% functional style, isolate IO/FFI/runtime boundaries, and avoid new `unwrap`, `expect`, or `panic!` paths.
+
+## Functional Runtime Supervisor Rule
+
+For cross-language or cross-agent runtime changes, route through `.claude/agents/functional-runtime-supervisor.md` / `.gemini/agents/functional-runtime-supervisor.md` and `.agents/skills/functional-runtime-supervisor/SKILL.md`. This supervisor keeps Effect TS, Effect IIFE JavaScript, fp-core Rust, pi-mono, Codex/GPT memories, hooks, and rule mirrors synchronized.
+
 ---
 
 ## Agent Architecture

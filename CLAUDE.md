@@ -92,14 +92,41 @@ Every new page, dashboard, or interactive component MUST be implemented THREE ti
 See `.claude/rules/muda-waste-reduction.md` for the 7 Wastes of Software Engineering and the exact enforcement constraints.
 
 ## §3.6 Effect TypeScript + Full IIFE Collapse (Operator-Gated H-Risk)
-**Mandate**: all browser/runtime JavaScript behavior MUST be authored in Effect TypeScript and shipped via IIFE bundles.
+**Mandate**: all TypeScript generated or modified by users/agents MUST use Effect (`effect`) as the functional runtime and standard library. Browser/runtime JavaScript behavior MUST be authored in Effect TypeScript and shipped via IIFE bundles.
 
-Authoritative rule: `.claude/rules/effect-ts-only-js.md`.
+Authoritative rules:
+- `.claude/rules/effect-ts-universal.md` — all TypeScript, all agents
+- `.claude/rules/effect-ts-only-js.md` — browser/runtime JS + IIFE collapse
 
 Required constraints:
 - SC-EFFECT-TS-001..007
+- SC-EFFECT-TS-008..020
+- No `fp-ts` for generated/agent-authored TypeScript; migrate touched `fp-ts` to Effect
+- Internal async/IO must stay in `Effect.Effect<A, E, R>` until compatibility edges
 - Full IIFE collapse for H-risk paths
 - No new raw `.js` logic; legacy JS is migration-only and must trend toward Effect TS
+
+## §3.7 fp-core Rust Functional Mandate (Operator-Gated H-Risk)
+**Mandate**: all Rust generated or modified by users/agents MUST use `fp-core` functional abstractions where applicable and target >=95% functional style in touched Rust logic.
+
+Authoritative rule: `.claude/rules/fp-core-rust-universal.md`.
+
+Required constraints:
+- SC-FP-RUST-001..020
+- Add `fp-core = "0.1.9"` to touched Rust crates when functional Rust logic is modified and dependency addition is allowed
+- Use pure functions, iterator combinators, folds, `Option`/`Result`, `fp_core` traits/modules, and isolated IO/FFI boundaries
+- No new `unwrap`, `expect`, or `panic!` paths in generated runtime Rust
+
+## §3.8 Functional Runtime Supervisor (Operator-Gated H-Risk)
+**Mandate**: mixed TypeScript/Rust/runtime-governance work MUST use the multilayer supervisor state to keep Claude, Gemini, Pi-mono, Codex/GPT, rules, skills, agents, and hooks synchronized.
+
+Authoritative supervisor: `.claude/agents/functional-runtime-supervisor.md`.
+
+Required constraints:
+- Use `.claude/skills/effect-ts-architect/SKILL.md` for Effect TypeScript design
+- Use `.claude/skills/fp-core-rust-architect/SKILL.md` for fp-core Rust design
+- Use `.agents/skills/functional-runtime-supervisor/SKILL.md` for OpenCode/Codex-compatible routing
+- Keep `.gemini`, `.claude`, `.agents`, `/home/an/.codex`, and `sub-projects/pi-mono` mirrors in parity
 
 ---
 
@@ -301,7 +328,46 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 
 Full constraint registry (2,257 SC-* / 480 AOR-* at parity): `.claude/rules/constraint-registry.md`
 
-Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6) SC-HMI(80) SC-VER(79) SC-FRACTAL(8) SC-PROM(7) SC-GLM-ZEN(3) SC-GLM-TST(2) SC-PI-AUTO(8) SC-VERIFY-VISUAL(6)
+Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6) SC-HMI(80) SC-VER(79) SC-FRACTAL(8) SC-PROM(7) SC-GLM-ZEN(3) SC-GLM-TST(2) SC-PI-AUTO(8) SC-VERIFY-VISUAL(6) **SC-VAULT(25)** **SC-VAULT-CRYPTO(1)** **AOR-VAULT(15)**
+
+### Secrets Vault (SC-VAULT family — task `urn:c3i:task:misc:116494073339521648`)
+
+RustyVault NIF inside `lib/cepaf_gleam/native/rusty_vault_nif/` providing local-first sealed K/V vault with western crypto only (no Tongsuo SM2/SM3/SM4), variable per-secret TTL via `secret_policy` table in Smriti.db, GCP Secret Manager + Cloud KMS as cloud DR root, 1-week internet-outage tolerance.
+
+| Constraint | Severity | Purpose |
+|---|---|---|
+| SC-VAULT-001 | INFINITE | Vault sealed at process start |
+| SC-VAULT-002 | INFINITE | KEK never plaintext on disk |
+| SC-VAULT-003 | INFINITE | Reads via vault.gleam typed wrapper only |
+| SC-VAULT-004 | INFINITE | No plaintext API-key shapes in committed files (pre-commit hook ARMED) |
+| SC-VAULT-005 | INFINITE | Hot path no network calls |
+| SC-VAULT-006 | INFINITE | Hard-stale (age >= max_ttl) MUST fail-closed |
+| SC-VAULT-CRYPTO-001 | INFINITE | No Tongsuo / SM2/SM3/SM4 in dependency tree (`cargo tree | grep -i tongsuo` empty) |
+| SC-VAULT-007..025 | CRITICAL/HIGH | KEK chain, audit, sync, region, IAM, rotation policy |
+
+**RETE-UL rules**: 12 across 2 domains (`secret_freshness` 7, `vault_integrity` 5) in `lib/cepaf_gleam/src/cepaf_gleam/rules/engine.gleam`.
+
+**Formal specs**:
+- `specs/tla/RustyVaultIntegration.tla` (170 LOC) — 7 invariants + 2 liveness
+- `specs/agda/VaultStateMachine.agda` (140 LOC) — type-level proof: Sealed → ¬PlaintextAccessible
+- `specs/allium/secrets_vault.allium` (270 LOC) — 8 entities + 12 rules + 5 contracts + 7 invariants
+
+**Oban schedules** (4): `vault_sync` (5min), `vault_audit_reconcile` (daily 02:00), `vault_kek_rotation_check` (weekly Sun 03:00), `vault_policy_audit` (daily 04:00).
+
+**Triple-interface** (per SC-GLM-UI-001):
+- Lustre: `ui/lustre/secrets_vault.gleam` (Andon dashboard tile, 30s refresh)
+- Wisp REST: `ui/wisp/secret_api.gleam` + `/api/v1/secret-status` route
+- TUI: `ui/tui/secrets_vault_view.gleam` (ANSI box-drawn)
+
+**Pre-commit hook** (Jidoka): `.claude/scripts/vault-precommit-secret-scan.sh` chained into `.git/hooks/pre-commit`. 7 API-key shape regexes; placeholder skip works.
+
+**Doc pack**: `docs/journal/task-116494073339521648/` (12 PNG diagrams + journal + 5-level RCA + TPS countermeasures + fractal criticality matrix + 7-phase test plan + 5 slice continuation plans + analysis HTML + slide deck + links manifest).
+
+**Rule**: `.claude/rules/secrets-vault.md` + `.gemini/rules/secrets-vault.md` parity.
+
+**Pass-1 (2026-05-02) — Operator vault tooling LIVE**: `sa-plan-daemon vault {list,status,get,locate,put,migrate-from-prefs,env}` (7 subcommands). Rust write API in `vault.rs` (`encrypt_envelope` + `Vault::open_or_create_rw` + `Vault::put`) — interop-compatible with Gleam-NIF writer via shared `C3I_VAULT_KEK_PATH` sidecar contract. **8/9 secrets now in vault** (anthropic + gchat_webhook + gemini_api_key{,_live} + gmail_app_password + google_client_secret + openrouter_api_key + telegram_token); `google_oauth_refresh` still legacy. Production `read_secret()` resolves vault-first per `sa-plan-daemon vault locate <name>` mechanical evidence. Zenoh access events on `indrajaal/l0/secret/access/<name>` per SC-VAULT-009. KEK at `~/.config/c3i/vault.kek` (sourceable env at `~/.config/c3i/vault.env`). Pi-mono / Elixir bridge via `eval $(sa-plan-daemon vault env --names ...)` (no Pi-mono code change needed). Doc pack: `docs/journal/task-vault-migration-pass1/` (journal + analysis.html + deck.html). Pass-2 scope: Elixir `Indrajaal.Vault` FFI + 15-site retrofit + MCP `vault_get/list/status` tools + Gleam `vault.put` wire (Slice B now unblocked).
+
+
 
 ### Wiring Guard Protocol (SC-WIRE — MANDATORY)
 

@@ -89,7 +89,44 @@ Every new page, dashboard, or interactive component MUST be implemented THREE ti
 
 ## §3.5 Muda Waste Reduction Protocol (NEW)
 **Mandate**: SC-MUDA-001 — The system MUST be maintained with zero compilation warnings and active elimination of "Muda" (waste).
-See `.gemini/rules/muda-waste-reduction.md` for the 7 Wastes of Software Engineering and the exact enforcement constraints.
+See `.claude/rules/muda-waste-reduction.md` for the 7 Wastes of Software Engineering and the exact enforcement constraints.
+
+## §3.6 Effect TypeScript + Full IIFE Collapse (Operator-Gated H-Risk)
+**Mandate**: all TypeScript generated or modified by users/agents MUST use Effect (`effect`) as the functional runtime and standard library. Browser/runtime JavaScript behavior MUST be authored in Effect TypeScript and shipped via IIFE bundles.
+
+Authoritative rules:
+- `.gemini/rules/effect-ts-universal.md` — all TypeScript, all agents
+- `.gemini/rules/effect-ts-only-js.md` — browser/runtime JS + IIFE collapse
+
+Required constraints:
+- SC-EFFECT-TS-001..007
+- SC-EFFECT-TS-008..020
+- No `fp-ts` for generated/agent-authored TypeScript; migrate touched `fp-ts` to Effect
+- Internal async/IO must stay in `Effect.Effect<A, E, R>` until compatibility edges
+- Full IIFE collapse for H-risk paths
+- No new raw `.js` logic; legacy JS is migration-only and must trend toward Effect TS
+
+## §3.7 fp-core Rust Functional Mandate (Operator-Gated H-Risk)
+**Mandate**: all Rust generated or modified by users/agents MUST use `fp-core` functional abstractions where applicable and target >=95% functional style in touched Rust logic.
+
+Authoritative rule: `.gemini/rules/fp-core-rust-universal.md`.
+
+Required constraints:
+- SC-FP-RUST-001..020
+- Add `fp-core = "0.1.9"` to touched Rust crates when functional Rust logic is modified and dependency addition is allowed
+- Use pure functions, iterator combinators, folds, `Option`/`Result`, `fp_core` traits/modules, and isolated IO/FFI boundaries
+- No new `unwrap`, `expect`, or `panic!` paths in generated runtime Rust
+
+## §3.8 Functional Runtime Supervisor (Operator-Gated H-Risk)
+**Mandate**: mixed TypeScript/Rust/runtime-governance work MUST use the multilayer supervisor state to keep Claude, Gemini, Pi-mono, Codex/GPT, rules, skills, agents, and hooks synchronized.
+
+Authoritative supervisor: `.gemini/agents/functional-runtime-supervisor.md`.
+
+Required constraints:
+- Use `.gemini/skills/effect-ts-architect/SKILL.md` for Effect TypeScript design
+- Use `.gemini/skills/fp-core-rust-architect/SKILL.md` for fp-core Rust design
+- Use `.agents/skills/functional-runtime-supervisor/SKILL.md` for OpenCode/Codex-compatible routing
+- Keep `.gemini`, `.claude`, `.agents`, `/home/an/.codex`, and `sub-projects/pi-mono` mirrors in parity
 
 ---
 
@@ -236,7 +273,7 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 
 | Metric | Value | Threshold | Status |
 |--------|-------|-----------|--------|
-| Total Tests | 8,817 passed, 3 pre-existing | — | PASS |
+| Total Tests | 9,055 passed, 1 pre-existing | — | PASS |
 | Shannon Entropy H | 2.67 bits (weighted mean) | ≥ 2.5 bits | PASS |
 | CCM | 0.770 | ≥ 0.90 | IMPROVING |
 | ITQS | 0.736 | ≥ 0.85 | IMPROVING |
@@ -280,16 +317,55 @@ All Gleam UI code MUST achieve **8-category gold standard coverage**:
 | Podman modules | 7 | 1,304 | `lib/cepaf_gleam/src/cepaf_gleam/podman/*.gleam` |
 | Pi-mono bridge | 6 | 1,500+ | `lib/cepaf_gleam/src/cepaf_gleam/bridge/pi_*.gleam` |
 | Pi-mono (TypeScript) | 7 pkg | 106,577 | `sub-projects/pi-mono/packages/` |
+| Pi runtime bridge | 2 | 700+ | `lib/cepaf_gleam/src/cepaf_gleam/bridge/pi_runtime.gleam`, `pi_rpc.gleam` |
+| Pi runtime tests | 1 | 350+ | `lib/cepaf_gleam/test/pi_runtime_test.gleam` |
 | Video recording | 1 | 200+ | `scripts/xvfb-record.sh` |
-| **TOTAL** | **290+** | **~42,000+ Gleam + 106K TS** | — |
+| **TOTAL** | **293+** | **~43,000+ Gleam + 106K TS** | — |
 
 ---
 
 ## §10.0 Active Constraints Cross-Reference
 
-Full constraint registry (2,257 SC-* / 480 AOR-* at parity): `.gemini/rules/constraint-registry.md`
+Full constraint registry (2,257 SC-* / 480 AOR-* at parity): `.claude/rules/constraint-registry.md`
 
-Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6) SC-HMI(80) SC-VER(79) SC-FRACTAL(8) SC-PROM(7) SC-GLM-ZEN(3) SC-GLM-TST(2) SC-PI-AUTO(8) SC-VERIFY-VISUAL(6)
+Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6) SC-HMI(80) SC-VER(79) SC-FRACTAL(8) SC-PROM(7) SC-GLM-ZEN(3) SC-GLM-TST(2) SC-PI-AUTO(8) SC-VERIFY-VISUAL(6) **SC-VAULT(25)** **SC-VAULT-CRYPTO(1)** **AOR-VAULT(15)**
+
+### Secrets Vault (SC-VAULT family — task `urn:c3i:task:misc:116494073339521648`)
+
+RustyVault NIF inside `lib/cepaf_gleam/native/rusty_vault_nif/` providing local-first sealed K/V vault with western crypto only (no Tongsuo SM2/SM3/SM4), variable per-secret TTL via `secret_policy` table in Smriti.db, GCP Secret Manager + Cloud KMS as cloud DR root, 1-week internet-outage tolerance.
+
+| Constraint | Severity | Purpose |
+|---|---|---|
+| SC-VAULT-001 | INFINITE | Vault sealed at process start |
+| SC-VAULT-002 | INFINITE | KEK never plaintext on disk |
+| SC-VAULT-003 | INFINITE | Reads via vault.gleam typed wrapper only |
+| SC-VAULT-004 | INFINITE | No plaintext API-key shapes in committed files (pre-commit hook ARMED) |
+| SC-VAULT-005 | INFINITE | Hot path no network calls |
+| SC-VAULT-006 | INFINITE | Hard-stale (age >= max_ttl) MUST fail-closed |
+| SC-VAULT-CRYPTO-001 | INFINITE | No Tongsuo / SM2/SM3/SM4 in dependency tree (`cargo tree | grep -i tongsuo` empty) |
+| SC-VAULT-007..025 | CRITICAL/HIGH | KEK chain, audit, sync, region, IAM, rotation policy |
+
+**RETE-UL rules**: 12 across 2 domains (`secret_freshness` 7, `vault_integrity` 5) in `lib/cepaf_gleam/src/cepaf_gleam/rules/engine.gleam`.
+
+**Formal specs**:
+- `specs/tla/RustyVaultIntegration.tla` (170 LOC) — 7 invariants + 2 liveness
+- `specs/agda/VaultStateMachine.agda` (140 LOC) — type-level proof: Sealed → ¬PlaintextAccessible
+- `specs/allium/secrets_vault.allium` (270 LOC) — 8 entities + 12 rules + 5 contracts + 7 invariants
+
+**Oban schedules** (4): `vault_sync` (5min), `vault_audit_reconcile` (daily 02:00), `vault_kek_rotation_check` (weekly Sun 03:00), `vault_policy_audit` (daily 04:00).
+
+**Triple-interface** (per SC-GLM-UI-001):
+- Lustre: `ui/lustre/secrets_vault.gleam` (Andon dashboard tile, 30s refresh)
+- Wisp REST: `ui/wisp/secret_api.gleam` + `/api/v1/secret-status` route
+- TUI: `ui/tui/secrets_vault_view.gleam` (ANSI box-drawn)
+
+**Pre-commit hook** (Jidoka): `.claude/scripts/vault-precommit-secret-scan.sh` chained into `.git/hooks/pre-commit`. 7 API-key shape regexes; placeholder skip works.
+
+**Doc pack**: `docs/journal/task-116494073339521648/` (12 PNG diagrams + journal + 5-level RCA + TPS countermeasures + fractal criticality matrix + 7-phase test plan + 5 slice continuation plans + analysis HTML + slide deck + links manifest).
+
+**Rule**: `.claude/rules/secrets-vault.md` + `.gemini/rules/secrets-vault.md` parity.
+
+
 
 ### Wiring Guard Protocol (SC-WIRE — MANDATORY)
 
@@ -304,7 +380,7 @@ Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(
 
 **Verified connections**: 95 (33 page inits + 32 events + 6 models + 21 roundtrips + 3 strict invariants)
 **File**: `testing/wiring_guard.gleam` | **Tests**: `test/wiring_guard_test.gleam` (13 tests)
-**Rule**: `.gemini/rules/wiring-guard.md`
+**Rule**: `.claude/rules/wiring-guard.md`
 
 ### New STAMP Constraints (v22.5.0-CORTEX)
 
@@ -334,13 +410,38 @@ Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(
 **Bridge**: `lib/cepaf_gleam/src/cepaf_gleam/bridge/pi_claude_code.gleam` (300+ lines)
 **Test**: `lib/cepaf_gleam/test/pi_claude_code_test.gleam` (30 tests)
 **Dashboard**: `https://vm-1.tail55d152.ts.net:4200/pi-symbiosis`
-**Tool Federation**: 93 total = 6 Gemini (Read/Write/Edit/Bash/Grep/Glob) + 14 Pi + 73 C3I MCP
+**Tool Federation**: 93 total = 6 Claude (Read/Write/Edit/Bash/Grep/Glob) + 14 Pi + 73 C3I MCP
 **Event Bridge**: 29 Pi events ↔ 32 AG-UI events (bidirectional)
 **Video Recording**: `scripts/xvfb-record.sh` (Xvfb + ffmpeg + xdotool)
-**Rule**: `.gemini/rules/pi-symbiosis-automation.md` (SC-PI-AUTO-001..008)
-**Rule**: `.gemini/rules/video-screenshot-verification.md` (SC-VERIFY-VISUAL-001..006)
-**Skill**: `.gemini/commands/pi-symbiosis-evolve.md`
+**Rule**: `.claude/rules/pi-symbiosis-automation.md` (SC-PI-AUTO-001..008)
+**Rule**: `.claude/rules/pi-runtime-activation.md` (SC-PI-RUNTIME-001..008)
+**Rule**: `.claude/rules/video-screenshot-verification.md` (SC-VERIFY-VISUAL-001..006)
+**Skill**: `.claude/commands/pi-symbiosis-evolve.md`
+**User Guide**: `docs/PI_RUNTIME_USER_GUIDE.md`
 
+### Pi Runtime Activation (v22.10.2-PI-RUNTIME)
+
+Pi-mono Node.js runtime is activatable from the BEAM mesh:
+- **Runtime Manager**: `bridge/pi_runtime.gleam` — process lifecycle, circuit breaker (3 fail → 60s), auto-restart (max 5x)
+- **RPC Client**: `bridge/pi_rpc.gleam` — JSONL protocol, 15 command types, 15 providers
+- **Subscriber Actor**: `actors/pi_subscriber.gleam` — OTP actor, event processing, health probes
+- **Tests**: `test/pi_runtime_test.gleam` — 42 tests (lifecycle, circuit breaker, RPC serialization)
+- **Wiring Guard**: 111 verified connections (was 107, +4 Pi runtime)
+- **Providers**: 15 (google, anthropic, openai, ollama, bedrock, mistralai, openrouter, groq, deepseek, xai, cerebras, qwen, sambanova, fireworks, together)
+
+**Quick Start**:
+```bash
+# One-shot (fastest)
+source sub-projects/pi-mono/load-env.sh
+node sub-projects/pi-mono/packages/coding-agent/dist/cli.js \
+  --provider google --model gemini-2.5-flash --print "Your prompt"
+
+# RPC daemon (persistent, for C3I integration)
+node sub-projects/pi-mono/packages/coding-agent/dist/cli.js \
+  --provider google --model gemini-2.5-flash --mode rpc
+```
+
+**See** `docs/PI_RUNTIME_USER_GUIDE.md` for comprehensive documentation.
 **See** `docs/GLEAM_UI_DEVELOPMENT_PROMPT.md` for development session prompt.
 
 ---
@@ -352,8 +453,8 @@ Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(
 - **Spec**: `specs/allium/ignition.allium` (1,923 lines, 26 sections)
 - **Template**: `specs/allium/TEMPLATE.allium` (26-section standard)
 - **Checklist**: `specs/allium/CHECKLIST.md`
-- **Skill**: `.gemini/commands/allium.md` + `.agents/skills/allium/` (official JUXT)
-- **Rule**: `.gemini/rules/allium-behavioral-specs.md` (SC-ALLIUM-001..008)
+- **Skill**: `.claude/commands/allium.md` + `.agents/skills/allium/` (official JUXT)
+- **Rule**: `.claude/rules/allium-behavioral-specs.md` (SC-ALLIUM-001..008)
 - **Guide**: `docs/allium-user-guide.md`
 
 | Allium Construct | Count | Coverage |
@@ -459,19 +560,21 @@ Telegram/GChat → long-poll → Zenoh intent → CLASSIFY
   └→ GATEWAY broadcast → Telegram + GChat (retry x1)
 ```
 
-### 6-Tier Inference Cascade
+### 7-Tier Inference Cascade
 
 | Tier | Model | Latency | Cost | Transport |
 |------|-------|---------|------|-----------|
 | 1 | Gemini Direct (gemini-3.1-flash-lite-preview) | ~900ms | Free | HTTPS |
 | 2 | OpenRouter (gemini-3-flash-preview) | ~1.1s | $0.000009 | HTTPS |
-| 3 | Ollama gemma4 (port 11435) | ~4s | Free | HTTP |
-| 4 | Ollama gemma3 (port 11434) | ~10s | Free | HTTP |
-| 5 | RETE-UL rule engine | <1ms | Free | In-process |
-| 6 | Static ack | <1ms | Free | In-process |
+| 3 | **mistral.rs gemma4 (in-process)** | **~500ms** | **Free** | **In-process (zero HTTP)** |
+| 4 | Ollama gemma4 (port 11435, fallback) | ~4s | Free | HTTP |
+| 5 | Ollama gemma3 (port 11434, last resort) | ~10s | Free | HTTP |
+| 6 | RETE-UL rule engine | <1ms | Free | In-process |
+| 7 | Static ack | <1ms | Free | In-process |
 
 **Hedged Parallel**: Tiers 1+2 fire simultaneously via `tokio::join!`. First success wins.
-**Circuit Breakers**: 4 independent `CircuitBreaker` instances (3 failures → 60s cooldown).
+**mistral.rs Primary Local**: Tier 3 uses `TextModelBuilder` with `google/gemma-4-4b-it` — zero HTTP overhead, ~10x faster than Ollama.
+**Circuit Breakers**: 5 independent `CircuitBreaker` instances (3 failures → 60s cooldown).
 **Persistent HTTP**: `OnceLock<reqwest::Client>` with 30s keepalive pinger eliminates TLS cold-start.
 **No-Blackhole Guarantee**: 7 mechanisms ensure every message gets a response.
 
@@ -572,6 +675,10 @@ Every intent is traced end-to-end via `PipelineTracer`:
 
 ---
 
+**Version**: 22.10.1-PI-SYMBIOSIS
+**Last Updated**: 2026-04-20
+**Status**: Gleam-first platform operational — unified c3i_nif (14 NIFs), 93 federated tools (6 Claude + 14 Pi + 73 C3I), 233 A2UI components, 31-module Rust cortex (9,104 LOC), 6-tier hedged inference, 5-tier voice cascade, PipelineTracer, RAG, semantic cache, ZMOF active, Muda source-clean (0 src warnings), sa-plan-daemon authoritative, OpenClaw & HA integrated, Pi-mono symbiosis (106K LOC, 29↔32 event bridge), Xvfb video recording
+
 ## §18.0 Gemini CLI Symbiosis & Cybernetic Architect
 
 The Gemini CLI operates as the **Cybernetic Architect**, a formal system role defined by deep integration with the fractal mesh.
@@ -613,7 +720,3 @@ To maximize the unique capabilities of the Gemini CLI, the following architectur
 - **Pattern**: When working with fast-evolving Gleam libraries (Lustre/Wisp), Gemini should use `firecrawl-scrape` on official documentation URLs to ensure API accuracy.
 
 ---
-
-**Version**: 22.10.1-PI-SYMBIOSIS
-**Last Updated**: 2026-04-20
-**Status**: Gleam-first platform operational — unified c3i_nif (14 NIFs), 93 federated tools (6 Gemini + 14 Pi + 73 C3I), 233 A2UI components, 31-module Rust cortex (9,104 LOC), 6-tier hedged inference, 5-tier voice cascade, PipelineTracer, RAG, semantic cache, ZMOF active, Muda source-clean (0 src warnings), sa-plan-daemon authoritative, OpenClaw & HA integrated, Pi-mono symbiosis (106K LOC, 29↔32 event bridge), Xvfb video recording

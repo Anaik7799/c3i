@@ -300,9 +300,21 @@
             "command": "P=$(jq -r '.tool_input.file_path // empty'); case \"$P\" in *lib/cepaf_gleam/priv/static/*.js) cd /home/an/dev/ver/c3i/sub-projects/scripts-gleam && gleam run -m scripts/verify/effect_ts_guard ;; *) exit 0 ;; esac",
             "timeout": 30,
             "statusMessage": "SC-EFFECT-TS-001 guard..."
-          }
-        ]
-      }
+          },
+        {
+          "type": "command",
+          "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case $f in *.ts|*.tsx) echo '{\"systemMessage\":\"SC-EFFECT-TS-008..020 active: generated/modified TypeScript must use Effect (`effect`), Schema for external data, Option for absence, Schedule for retry, Layer/Context for services; do not add fp-ts.\"}' ;; *.js) echo '{\"systemMessage\":\"SC-EFFECT-TS-001/017 active: raw browser/runtime JS is prohibited unless it is generated IIFE output from Effect TypeScript.\"}' ;; esac; }",
+          "timeout": 10,
+          "statusMessage": "Effect TS universal guard"
+        },
+        {
+          "type": "command",
+          "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case $f in *.rs|*/Cargo.toml|Cargo.toml) echo '{\"systemMessage\":\"SC-FP-RUST-001..020 active: generated/modified Rust must use fp-core (`fp-core = 0.1.9`) where applicable, target >=95% functional style, isolate IO/FFI, and avoid new unwrap/expect/panic paths.\"}' ;; esac; }",
+          "timeout": 10,
+          "statusMessage": "fp-core Rust universal guard"
+        }
+      ]
+    }
     ],
     "UserPromptSubmit": [
       {
@@ -374,14 +386,20 @@
             "async": true,
             "statusMessage": "Jidoka: running tests in background"
           },
-          {
-            "type": "command",
-            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case $f in *.js|*.ts) if [ \"${f##*.}\" = \"js\" ]; then echo '{\"systemMessage\":\"SC-EFFECT-TS-001 VIOLATION: raw .js edit detected. Use Effect TypeScript + IIFE bundle only (operator-gated H-risk).\"}'; else echo '{\"systemMessage\":\"Effect-TS check: ensure SC-EFFECT-TS-001..007 and full IIFE collapse for JS/TS changes.\"}'; fi ;; esac; }",
-            "timeout": 10,
-            "statusMessage": "Effect-TS / IIFE guard"
-          }
-        ]
-      },
+        {
+          "type": "command",
+          "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case $f in *.js|*.ts|*.tsx) if [ \"${f##*.}\" = \"js\" ]; then echo '{\"systemMessage\":\"SC-EFFECT-TS-001/017 VIOLATION RISK: raw .js edit detected. Use Effect TypeScript + IIFE bundle only unless this is generated output with waiver.\"}'; else echo '{\"systemMessage\":\"Effect-TS check: enforce SC-EFFECT-TS-001..020, import from effect/@effect, no fp-ts, Schema for external data, Option for absence, Schedule for retry, Layer/Context for services.\"}'; fi ;; esac; }",
+          "timeout": 10,
+          "statusMessage": "Effect-TS universal/IIFE guard"
+        },
+        {
+          "type": "command",
+          "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case $f in *.rs|*/Cargo.toml|Cargo.toml) echo '{\"systemMessage\":\"fp-core Rust check: enforce SC-FP-RUST-001..020, use fp_core traits/modules where applicable, keep errors in Result/Option, use folds/iterators/trait composition, no new unwrap/expect/panic in runtime Rust.\"}' ;; esac; }",
+          "timeout": 10,
+          "statusMessage": "fp-core Rust universal guard"
+        }
+      ]
+    },
       {
         "matcher": "Bash",
         "hooks": [
