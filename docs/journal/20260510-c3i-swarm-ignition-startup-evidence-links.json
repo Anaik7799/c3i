@@ -1,0 +1,52 @@
+{
+  "artifact_set": "20260510-c3i-swarm-ignition-startup-evidence",
+  "created_at": "2026-05-10T21:07:24+02:00",
+  "task": {
+    "id": "116551830430799289",
+    "title": "C3I process and daemon startup evidence pack",
+    "status": "in_progress"
+  },
+  "operation_constraint": "live operations after directive used cepaf_gleam only",
+  "ignition": {
+    "module": "lib/cepaf_gleam/src/cepaf_gleam/ignition_launch_request.gleam",
+    "command": "gleam run -m cepaf_gleam/ignition_launch_request",
+    "request_id": "177844040259472E536C9B529267B5491",
+    "request_topic": "indrajaal/l5/cog/mcp/req/ignition_launch/177844040259472E536C9B529267B5491",
+    "response_topic": "indrajaal/l5/cog/mcp/res/177844040259472E536C9B529267B5491",
+    "zenoh_open_status": "connected",
+    "zenoh_put_status": "ok"
+  },
+  "validation": [
+    {
+      "command": "gleam build",
+      "result": "pass"
+    },
+    {
+      "command": "gleam run mesh-status",
+      "result": "pass",
+      "observed": "Healthy Containers: 16/16 after corrected ignition_launch publish; post-launch uptimes around 12-36 seconds"
+    }
+  ],
+  "artifacts": {
+    "journal": "docs/journal/20260510-c3i-swarm-ignition-startup-evidence-journal.md",
+    "html": "docs/journal/20260510-c3i-swarm-ignition-startup-evidence-analysis.html",
+    "slides": "docs/journal/20260510-c3i-swarm-ignition-startup-evidence-slides.html",
+    "zk": "docs/journal/20260510-c3i-swarm-ignition-startup-evidence-zk.md",
+    "email": "docs/journal/20260510-c3i-swarm-ignition-startup-evidence-email.md"
+  },
+  "zk": {
+    "id": "zk-9d47c2a8f31e0b65",
+    "status": "file-backed-pending-ingest",
+    "cites": [
+      "zk-3346fc607a1ef9e6",
+      "zk-bb4de67d97f807ac"
+    ]
+  },
+  "residual_gaps": [
+    "Earlier host-scope verification was 15/18 and NonCompliant.",
+    "c3i-ferriskey.service remained blocked by image resolution/access.",
+    "Legacy app HTTP probes rejected missing ProofToken.",
+    "data/logs/ignition_capture.log shows duplicate container name and port/network errors during ignition launch; mesh recovered healthy but launch idempotence is not clean.",
+    "Email was drafted but not sent because live SMTP dispatch is Rust-owned and the current pass was cepaf-only."
+  ]
+}

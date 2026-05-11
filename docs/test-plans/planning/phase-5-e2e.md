@@ -12,7 +12,7 @@
 |---|---|---|
 | A.1 | Boot | HTTP 200 + 0 console errors |
 | A.2 | Title | live counts in title (e.g. `19 blocked · 53 active · 3082 total`) |
-| A.3 | DOM | required IDs present (`*-section`, `task-detail-panel`, `planning-grid.js`) |
+| A.3 | DOM | required IDs present (`*-section`, `task-detail-panel`, `planning-grid.bundled.js`) |
 | B.1..B.4 | View toggle | each click → only matching `*-section` visible |
 | C.1..C.3 | Live data | NIF status, freshness, pages list match invariants |
 | D | WebSocket | connect + ping + first frame < 200 ms |

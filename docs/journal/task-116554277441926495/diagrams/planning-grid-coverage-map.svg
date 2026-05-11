@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="720" viewBox="0 0 1180 720" role="img" aria-labelledby="title desc">
+  <title id="title">Planning grid coverage map</title>
+  <desc id="desc">Coverage map for the C3I planning grid Agentic UI audit.</desc>
+  <defs>
+    <style>
+      .bg { fill:#f7f9fb; }
+      .panel { fill:#ffffff; stroke:#cbd5df; stroke-width:2; rx:12; }
+      .head { fill:#102a43; }
+      .txt { font:16px system-ui, sans-serif; fill:#172026; }
+      .small { font:13px system-ui, sans-serif; fill:#4b5563; }
+      .white { font:17px system-ui, sans-serif; fill:#ffffff; font-weight:700; }
+      .ok { fill:#dcfce7; stroke:#86efac; }
+      .warn { fill:#fef3c7; stroke:#fbbf24; }
+      .line { stroke:#64748b; stroke-width:2; fill:none; marker-end:url(#arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1180" height="720"/>
+  <rect class="head" x="0" y="0" width="1180" height="78"/>
+  <text class="white" x="32" y="48">Planning Grid Agentic UI Coverage Map</text>
+
+  <rect class="panel" x="42" y="120" width="220" height="118"/>
+  <text class="txt" x="64" y="153">Route and Shell</text>
+  <text class="small" x="64" y="181">HTTP 200, query params</text>
+  <text class="small" x="64" y="204">No 404 shell</text>
+
+  <rect class="panel" x="332" y="120" width="220" height="118"/>
+  <text class="txt" x="354" y="153">Effect IIFE Runtime</text>
+  <text class="small" x="354" y="181">Hydration, controls</text>
+  <text class="small" x="354" y="204">History, ARIA state</text>
+
+  <rect class="panel" x="622" y="120" width="220" height="118"/>
+  <text class="txt" x="644" y="153">Wisp APIs</text>
+  <text class="small" x="644" y="181">Planning page data</text>
+  <text class="small" x="644" y="204">Freshness, page spec</text>
+
+  <rect class="panel" x="912" y="120" width="220" height="118"/>
+  <text class="txt" x="934" y="153">NIF Truth</text>
+  <text class="small" x="934" y="181">3168 total tasks</text>
+  <text class="small" x="934" y="204">Status counts verified</text>
+
+  <path class="line" d="M262 179 H332"/>
+  <path class="line" d="M552 179 H622"/>
+  <path class="line" d="M842 179 H912"/>
+
+  <rect class="ok" x="72" y="306" width="205" height="96" rx="10"/>
+  <text class="txt" x="94" y="338">View Modes</text>
+  <text class="small" x="94" y="366">Grid, kanban, timeline, analytics</text>
+
+  <rect class="ok" x="347" y="306" width="205" height="96" rx="10"/>
+  <text class="txt" x="369" y="338">Status Chips</text>
+  <text class="small" x="369" y="366">Counts match NIF API</text>
+
+  <rect class="ok" x="622" y="306" width="205" height="96" rx="10"/>
+  <text class="txt" x="644" y="338">Fractal L0-L7</text>
+  <text class="small" x="644" y="366">Chip/matrix equivalence</text>
+
+  <rect class="ok" x="897" y="306" width="205" height="96" rx="10"/>
+  <text class="txt" x="919" y="338">Details and ZK</text>
+  <text class="small" x="919" y="366">STAMP, FMEA, search</text>
+
+  <rect class="ok" x="72" y="468" width="205" height="96" rx="10"/>
+  <text class="txt" x="94" y="500">WebSocket</text>
+  <text class="small" x="94" y="528">Server tick verified</text>
+
+  <rect class="ok" x="347" y="468" width="205" height="96" rx="10"/>
+  <text class="txt" x="369" y="500">AG-UI/A2UI</text>
+  <text class="small" x="369" y="528">Positive contracts pass</text>
+
+  <rect class="ok" x="622" y="468" width="205" height="96" rx="10"/>
+  <text class="txt" x="644" y="500">Cross Browser</text>
+  <text class="small" x="644" y="528">Chromium, Firefox, WebKit</text>
+
+  <rect class="warn" x="897" y="468" width="205" height="96" rx="10"/>
+  <text class="txt" x="919" y="500">Next Coverage</text>
+  <text class="small" x="919" y="528">Restart, writes, negative schemas</text>
+
+  <text class="small" x="42" y="660">Evidence: live audit 48/48, Playwright 85 pass / 5 opt-in skip, Gleam 9752 pass, page spec 100 percent aligned.</text>
+</svg>

@@ -9,7 +9,7 @@
 | `c3i_nif` (NIF binding wrapper, Gleam side) | `plan_status`, `plan_list`, `plan_search`, `plan_add`, `plan_update`, `plan_get` |
 | `ui/domain.gleam` | `Page` enum, `FractalLayer` enum, `HealthStatus`, `Task`, type encoders |
 | `ui/wisp/router.gleam` (parse helpers) | `parse_status_filter`, `parse_search_query`, `decode_priority` |
-| `priv/static/planning-grid.js` (jest-equivalent in `test/js/*.gleam` shims) | `classifyFractalLayer`, `taskAge`, `truncate`, `fmtPercent`, `priColors` |
+| `priv/web-build/src/planning-grid.ts` → `priv/static/planning-grid.bundled.js` (TypeScript type check + bundle smoke) | `classifyFractalLayer`, `taskAge`, `truncate`, `fmtPercent`, `priColors` |
 
 ## Test cases (sample shape)
 

@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1220" height="820" viewBox="0 0 1220 820" role="img" aria-labelledby="title desc">
+  <title id="title">Planning grid fractal Playwright expansion plan</title>
+  <desc id="desc">L0-L7 fractal plan for expanding Agentic UI Playwright coverage.</desc>
+  <defs>
+    <style>
+      .bg { fill:#f8fafc; }
+      .top { fill:#102a43; }
+      .title { font:700 22px system-ui, sans-serif; fill:white; }
+      .lane { fill:white; stroke:#cbd5df; stroke-width:2; rx:12; }
+      .l0 { fill:#fee2e2; stroke:#fca5a5; }
+      .l1 { fill:#ffedd5; stroke:#fdba74; }
+      .l2 { fill:#fef3c7; stroke:#fbbf24; }
+      .l3 { fill:#dcfce7; stroke:#86efac; }
+      .l4 { fill:#dbeafe; stroke:#93c5fd; }
+      .l5 { fill:#e0e7ff; stroke:#a5b4fc; }
+      .l6 { fill:#f3e8ff; stroke:#d8b4fe; }
+      .l7 { fill:#f1f5f9; stroke:#cbd5e1; }
+      .txt { font:14px system-ui, sans-serif; fill:#172026; }
+      .small { font:12px system-ui, sans-serif; fill:#4b5563; }
+      .head { font:700 15px system-ui, sans-serif; fill:#172026; }
+      .line { stroke:#64748b; stroke-width:2; fill:none; marker-end:url(#arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1220" height="820"/>
+  <rect class="top" width="1220" height="76"/>
+  <text class="title" x="34" y="47">Agentic UI Playwright Expansion: L0-L7 Fractal Plan</text>
+
+  <rect class="lane" x="40" y="112" width="260" height="610"/>
+  <text class="head" x="64" y="146">Assurance Layers</text>
+  <rect class="l0" x="64" y="174" width="212" height="54" rx="8"/>
+  <text class="txt" x="78" y="196">L0 Constitutional</text>
+  <text class="small" x="78" y="216">Allowlists, safe claims</text>
+  <rect class="l1" x="64" y="242" width="212" height="54" rx="8"/>
+  <text class="txt" x="78" y="264">L1 Atomic</text>
+  <text class="small" x="78" y="284">Controls, rows, ARIA</text>
+  <rect class="l2" x="64" y="310" width="212" height="54" rx="8"/>
+  <text class="txt" x="78" y="332">L2 Component</text>
+  <text class="small" x="78" y="352">Grid, detail, search</text>
+  <rect class="l3" x="64" y="378" width="212" height="54" rx="8"/>
+  <text class="txt" x="78" y="400">L3 Transaction</text>
+  <text class="small" x="78" y="420">History and workflows</text>
+  <rect class="l4" x="64" y="446" width="212" height="54" rx="8"/>
+  <text class="txt" x="78" y="468">L4 System</text>
+  <text class="small" x="78" y="488">NIF, Wisp, WebSocket</text>
+  <rect class="l5" x="64" y="514" width="212" height="54" rx="8"/>
+  <text class="txt" x="78" y="536">L5 Cognitive</text>
+  <text class="small" x="78" y="556">ZK, AG-UI, A2UI</text>
+  <rect class="l6" x="64" y="582" width="212" height="54" rx="8"/>
+  <text class="txt" x="78" y="604">L6 Ecosystem</text>
+  <text class="small" x="78" y="624">Browsers and CI</text>
+  <rect class="l7" x="64" y="650" width="212" height="54" rx="8"/>
+  <text class="txt" x="78" y="672">L7 Federation</text>
+  <text class="small" x="78" y="692">Reports, links, email</text>
+
+  <rect class="lane" x="360" y="112" width="360" height="610"/>
+  <text class="head" x="384" y="146">Playwright Expansion Suites</text>
+  <rect class="l0" x="384" y="178" width="312" height="70" rx="8"/>
+  <text class="txt" x="402" y="204">P0 Operational Safety</text>
+  <text class="small" x="402" y="226">Restart, mutations, freshness degradation</text>
+  <rect class="l5" x="384" y="274" width="312" height="86" rx="8"/>
+  <text class="txt" x="402" y="300">P1 Resilience and Contracts</text>
+  <text class="small" x="402" y="322">Debounce, WS reconnect, malformed payloads</text>
+  <text class="small" x="402" y="342">Negative AG-UI/A2UI schema coverage</text>
+  <rect class="l6" x="384" y="386" width="312" height="86" rx="8"/>
+  <text class="txt" x="402" y="412">P2 UX Quality and Scale</text>
+  <text class="small" x="402" y="434">Visual, performance, mobile touch, multi-tab</text>
+  <text class="small" x="402" y="454">Deep-link normalization</text>
+  <rect class="l7" x="384" y="498" width="312" height="70" rx="8"/>
+  <text class="txt" x="402" y="524">P3 Publication Governance</text>
+  <text class="small" x="402" y="546">Dashboard, route validation, email evidence</text>
+
+  <rect class="lane" x="780" y="112" width="360" height="610"/>
+  <text class="head" x="804" y="146">Operator Improvements</text>
+  <rect class="l3" x="804" y="178" width="312" height="70" rx="8"/>
+  <text class="txt" x="822" y="204">Verified Command Surface</text>
+  <text class="small" x="822" y="226">Create, edit, status changes with NIF truth</text>
+  <rect class="l4" x="804" y="274" width="312" height="70" rx="8"/>
+  <text class="txt" x="822" y="300">Runtime Recovery</text>
+  <text class="small" x="822" y="322">Reconnects after restart and socket drops</text>
+  <rect class="l5" x="804" y="370" width="312" height="70" rx="8"/>
+  <text class="txt" x="822" y="396">Safe Agentic UI</text>
+  <text class="small" x="822" y="418">Generated UI rejected unless allowlisted</text>
+  <rect class="l6" x="804" y="466" width="312" height="70" rx="8"/>
+  <text class="txt" x="822" y="492">Stable Experience</text>
+  <text class="small" x="822" y="514">Visual, mobile, performance budgets</text>
+  <rect class="l7" x="804" y="562" width="312" height="70" rx="8"/>
+  <text class="txt" x="822" y="588">Auditable Handoff</text>
+  <text class="small" x="822" y="610">Dashboard, docs, routes, email evidence</text>
+
+  <path class="line" d="M300 400 H360"/>
+  <path class="line" d="M720 400 H780"/>
+  <text class="small" x="40" y="772">Exit target: zero default Playwright failures, restart lane isolated, mutation postconditions checked against NIF/API truth, positive and negative AG-UI/A2UI contracts, visual and performance budgets, served evidence links.</text>
+</svg>

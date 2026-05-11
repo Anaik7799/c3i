@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="760" viewBox="0 0 1180 760" role="img" aria-labelledby="title desc">
+  <title id="title">Planning grid recommended test roadmap</title>
+  <desc id="desc">Prioritized roadmap for additional Playwright tests on the C3I planning grid.</desc>
+  <defs>
+    <style>
+      .bg { fill:#f7f9fb; }
+      .titlebar { fill:#102a43; }
+      .title { font:700 22px system-ui, sans-serif; fill:white; }
+      .lane { fill:white; stroke:#cbd5df; stroke-width:2; rx:12; }
+      .p0 { fill:#fee2e2; stroke:#fca5a5; }
+      .p1 { fill:#fef3c7; stroke:#fbbf24; }
+      .p2 { fill:#dbeafe; stroke:#93c5fd; }
+      .p3 { fill:#e5e7eb; stroke:#cbd5e1; }
+      .txt { font:15px system-ui, sans-serif; fill:#172026; }
+      .small { font:12px system-ui, sans-serif; fill:#4b5563; }
+      .prio { font:700 16px system-ui, sans-serif; fill:#172026; }
+      .line { stroke:#64748b; stroke-width:2; fill:none; marker-end:url(#arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1180" height="760"/>
+  <rect class="titlebar" x="0" y="0" width="1180" height="80"/>
+  <text class="title" x="34" y="49">Planning Grid Test Expansion Roadmap</text>
+
+  <rect class="lane" x="44" y="122" width="248" height="520"/>
+  <text class="prio" x="68" y="158">P0: Operational Safety</text>
+  <rect class="p0" x="68" y="188" width="200" height="86" rx="10"/>
+  <text class="txt" x="84" y="218">Controlled restart</text>
+  <text class="small" x="84" y="244">Verify WS recovery and state</text>
+  <rect class="p0" x="68" y="306" width="200" height="86" rx="10"/>
+  <text class="txt" x="84" y="336">Mutation flows</text>
+  <text class="small" x="84" y="362">Create, edit, status writes</text>
+
+  <rect class="lane" x="324" y="122" width="248" height="520"/>
+  <text class="prio" x="348" y="158">P1: Resilience</text>
+  <rect class="p1" x="348" y="188" width="200" height="86" rx="10"/>
+  <text class="txt" x="364" y="218">Search debounce</text>
+  <text class="small" x="364" y="244">Latest query wins</text>
+  <rect class="p1" x="348" y="306" width="200" height="86" rx="10"/>
+  <text class="txt" x="364" y="336">WS reconnect</text>
+  <text class="small" x="364" y="362">No duplicate listeners</text>
+  <rect class="p1" x="348" y="424" width="200" height="86" rx="10"/>
+  <text class="txt" x="364" y="454">Bad payloads</text>
+  <text class="small" x="364" y="480">Malformed data and XSS</text>
+
+  <rect class="lane" x="604" y="122" width="248" height="520"/>
+  <text class="prio" x="628" y="158">P1/P2: Contracts</text>
+  <rect class="p1" x="628" y="188" width="200" height="86" rx="10"/>
+  <text class="txt" x="644" y="218">Negative AG-UI</text>
+  <text class="small" x="644" y="244">Reject malformed events</text>
+  <rect class="p1" x="628" y="306" width="200" height="86" rx="10"/>
+  <text class="txt" x="644" y="336">Negative A2UI</text>
+  <text class="small" x="644" y="362">Reject invalid components</text>
+  <rect class="p2" x="628" y="424" width="200" height="86" rx="10"/>
+  <text class="txt" x="644" y="454">Deep links</text>
+  <text class="small" x="644" y="480">Normalize invalid params</text>
+
+  <rect class="lane" x="884" y="122" width="248" height="520"/>
+  <text class="prio" x="908" y="158">P2: UX Quality</text>
+  <rect class="p2" x="908" y="188" width="200" height="86" rx="10"/>
+  <text class="txt" x="924" y="218">Visual regression</text>
+  <text class="small" x="924" y="244">Grid and detail baselines</text>
+  <rect class="p2" x="908" y="306" width="200" height="86" rx="10"/>
+  <text class="txt" x="924" y="336">Performance budgets</text>
+  <text class="small" x="924" y="362">Hydration and filter time</text>
+  <rect class="p2" x="908" y="424" width="200" height="86" rx="10"/>
+  <text class="txt" x="924" y="454">Multi-tab behavior</text>
+  <text class="small" x="924" y="480">Sync or isolation semantics</text>
+  <rect class="p3" x="908" y="542" width="200" height="70" rx="10"/>
+  <text class="txt" x="924" y="570">Route/email gates</text>
+  <text class="small" x="924" y="594">Verify before claim</text>
+
+  <path class="line" d="M268 232 H348"/>
+  <path class="line" d="M268 350 H348"/>
+  <path class="line" d="M548 350 H628"/>
+  <path class="line" d="M828 350 H908"/>
+  <text class="small" x="44" y="700">Outcome: expand from healthy default-flow coverage to mutation, restart, contract rejection, visual, performance, and multi-context assurance.</text>
+</svg>

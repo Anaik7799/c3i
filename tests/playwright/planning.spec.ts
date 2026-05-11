@@ -3,13 +3,42 @@
 //            SC-AGUI-UI-012 (DAG-Q triple-transport parity), SC-PAGE-SPEC-002.
 import { test, expect, Page } from '@playwright/test';
 
+async function waitForPlanningReady(page: Page) {
+  await expect(page).toHaveTitle(/C3I — Planning/);
+  await page.waitForFunction(() =>
+    Boolean((window as any).__c3iPlanning) &&
+    document.querySelectorAll('[data-view]').length >= 4 &&
+    document.querySelectorAll('.chip[data-status]').length >= 5 &&
+    document.querySelectorAll('.fractal-chip[data-layer]').length >= 9,
+    undefined,
+    { timeout: 15_000 },
+  );
+  await expect(page.locator('#grid-status')).toContainText('Loaded', { timeout: 15_000 });
+}
+
+async function expectOnlyView(page: Page, view: string) {
+  const sections: Record<string, string> = {
+    grid: '#grid-section',
+    kanban: '#kanban-section',
+    timeline: '#timeline-section',
+    analytics: '#analytics-section',
+  };
+  for (const [name, selector] of Object.entries(sections)) {
+    if (name === view) {
+      await expect(page.locator(selector), `${view} section visible`).toBeVisible();
+    } else {
+      await expect(page.locator(selector), `${name} section hidden while ${view} active`).toBeHidden();
+    }
+  }
+}
+
 // Helper: read structural state of /planning via in-page eval.
 async function structuralState(page: Page) {
   return page.evaluate(() => {
     const ids = ['all-grid', 'blocked-grid', 'active-grid', 'task-detail-panel',
                  'grid-section', 'kanban-section', 'timeline-section', 'analytics-section'];
     const presence = Object.fromEntries(ids.map((id) => [id, !!document.getElementById(id)]));
-    presence['planning-grid.js'] = !!document.querySelector('script[src*="planning-grid.js"]');
+    presence['planning-grid.bundled.js'] = !!document.querySelector('script[src*="planning-grid.bundled.js"]');
     presence['sw-register.js']   = !!document.querySelector('script[src*="sw-register.js"]');
     presence['fractal_chip_count'] = (document.querySelectorAll('[data-fractal-layer], [data-layer]').length as any);
     presence['view_buttons'] = (document.querySelectorAll('[data-view]').length as any);
@@ -34,8 +63,7 @@ test.describe('/planning structural', () => {
     const resp = await page.goto('/planning');
     expect(resp?.status()).toBe(200);
     await expect(page).toHaveTitle(/C3I — Planning/);
-    // Allow JS-rendered fractal chips + view buttons to populate
-    await page.waitForTimeout(2500);
+    await waitForPlanningReady(page);
     const s = await structuralState(page);
     expect(s['all-grid']).toBe(true);
     expect(s['blocked-grid']).toBe(true);
@@ -45,19 +73,28 @@ test.describe('/planning structural', () => {
     expect(s['kanban-section']).toBe(true);
     expect(s['timeline-section']).toBe(true);
     expect(s['analytics-section']).toBe(true);
-    expect(s['planning-grid.js']).toBe(true);
+    expect(s['planning-grid.bundled.js']).toBe(true);
     // sw-register.js may or may not be reachable depending on browser/protocol — soft check
     expect(s['fractal_chip_count']).toBeGreaterThanOrEqual(8);
     expect(s['view_buttons']).toBeGreaterThanOrEqual(4);
     expect(errors, errors.join('\n')).toEqual([]);
   });
 
+  test('query-param view route renders planning grid, not 404 shell', async ({ page }) => {
+    const resp = await page.goto('/planning?view=grid');
+    expect(resp?.status()).toBe(200);
+    await waitForPlanningReady(page);
+    await expect(page.locator('#grid-section')).toBeVisible();
+    await expect(page.locator('#all-grid')).toBeVisible();
+    await expect(page.locator('body')).not.toContainText('No route matched');
+  });
+
   test('view-mode mutual exclusion (closes ZK[zk-741220214a931009])', async ({ page }) => {
     await page.goto('/planning');
-    await page.waitForTimeout(2500);
+    await waitForPlanningReady(page);
     for (const view of ['kanban', 'timeline', 'analytics', 'grid']) {
-      await page.evaluate((v) => (document.querySelector(`[data-view="${v}"]`) as HTMLElement)?.click(), view);
-      await page.waitForTimeout(400);
+      await page.locator(`[data-view="${view}"]`).click();
+      await expectOnlyView(page, view);
       const visibility = await page.evaluate(() => {
         const visible = (id: string) => {
           const e = document.getElementById(id);
@@ -74,13 +111,18 @@ test.describe('/planning structural', () => {
       });
       const visibleCount = Object.values(visibility).filter(Boolean).length;
       expect(visibleCount, `view=${view} → ${JSON.stringify(visibility)}`).toBe(1);
-      expect((visibility as any)[view]).toBe(true);
+      expect((visibility as any)[view], `view=${view} → ${JSON.stringify(visibility)}`).toBe(true);
+      await expect.poll(async () => page.evaluate(() =>
+          [...document.querySelectorAll('[data-view].active, [data-view].view-btn-active')]
+            .map((e) => (e as HTMLElement).getAttribute('data-view'))),
+        { message: `view=${view} active button` },
+      ).toEqual([view]);
     }
   });
 
   test('triple-transport parity (DAG-Q): WS, SSE? and HTTP agree on total', async ({ page }) => {
     await page.goto('/planning');
-    await page.waitForTimeout(1000);
+    await waitForPlanningReady(page);
     const result = await page.evaluate(async () => {
       const http = await fetch('/api/v1/plan/status').then((r) => r.json()).catch(() => null);
       const ws = await new Promise<any>((resolve) => {
@@ -116,7 +158,7 @@ test.describe('/planning structural', () => {
 
   test('freshness reports fresh and all wiring functional', async ({ page }) => {
     await page.goto('/planning');
-    await page.waitForTimeout(500);
+    await waitForPlanningReady(page);
     const f = await page.evaluate(() => fetch('/api/v1/health/freshness').then((r) => r.json()));
     expect(f.staleness).toBe('fresh');
     expect(f.all_wiring_functional).toBe(true);
@@ -128,7 +170,7 @@ test.describe('/planning structural', () => {
     for (const [w, h] of [[375, 812], [768, 1024], [1400, 900]] as const) {
       await page.setViewportSize({ width: w, height: h });
       await page.goto('/planning');
-      await page.waitForTimeout(1500);
+      await waitForPlanningReady(page);
       const bodyText = await page.evaluate(() => document.body.innerText);
       expect(bodyText).toMatch(/Total|tasks|Planning/i);
       const h44 = await page.evaluate(() => {

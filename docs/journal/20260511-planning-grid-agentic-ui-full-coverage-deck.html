@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Planning Grid Agentic UI Coverage Deck</title>
+  <style>
+    :root { color-scheme: light; --ink:#16202a; --muted:#53616f; --line:#cbd5df; --bg:#eef3f7; --panel:#ffffff; --accent:#0f766e; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:18px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; }
+    section { min-height:92vh; padding:48px; border-bottom:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column; justify-content:center; }
+    section:nth-child(even) { background:#f8fafc; }
+    h1 { font-size:42px; margin:0 0 16px; letter-spacing:0; }
+    h2 { font-size:32px; margin:0 0 18px; letter-spacing:0; }
+    p { max-width:980px; margin:8px 0; }
+    ul { max-width:980px; }
+    li { margin:8px 0; }
+    table { width:100%; max-width:1050px; border-collapse:collapse; font-size:15px; }
+    th, td { border:1px solid var(--line); padding:8px 10px; vertical-align:top; text-align:left; }
+    th { background:#e7edf3; }
+    code { background:#e7edf3; padding:2px 5px; border-radius:4px; }
+    .kicker { color:var(--accent); font-weight:700; text-transform:uppercase; font-size:14px; letter-spacing:.08em; }
+    .metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; max-width:1000px; }
+    .metric { border:1px solid var(--line); border-radius:8px; padding:16px; background:white; }
+    .metric strong { display:block; font-size:34px; color:#166534; }
+    img { max-width:100%; border:1px solid var(--line); border-radius:8px; background:white; }
+  </style>
+</head>
+<body>
+  <section>
+    <div class="kicker">Task 116554277441926495</div>
+    <h1>Planning Grid Agentic UI Full Coverage</h1>
+    <p>Bundle slug: <code>20260511-planning-grid-agentic-ui-full-coverage</code></p>
+    <p>Route status: verified over localhost, customer Tailscale, and internal HTTPS. Local static artifact validation passed.</p>
+  </section>
+
+  <section>
+    <h2>Artifact Inventory</h2>
+    <ul>
+      <li>Markdown journal with all 13 required C3I journal sections.</li>
+      <li>Full L0-L7 fractal Agentic UI Playwright expansion plan.</li>
+      <li>Operator HTML report and handoff index.</li>
+      <li>Scrollable HTML slide deck with no JavaScript.</li>
+      <li>Coverage and roadmap diagrams.</li>
+      <li>ZK note and email artifact sent through `sa-plan send-email` to abhijit.naik@bountytek.com.</li>
+      <li>Links manifest for local paths and expected routes.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Task Management</h2>
+    <table>
+      <tr><th>Command</th><th>Observed result</th></tr>
+      <tr><td><code>./sa-plan add "Planning grid agentic UI audit journal" P2</code></td><td>Created task <code>116554277441926495</code>.</td></tr>
+      <tr><td><code>./sa-plan update 116554277441926495 in_progress</code></td><td>Task moved to <code>in_progress</code>.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Validation Evidence</h2>
+    <div class="metrics">
+      <div class="metric"><span>Live audit</span><strong>48/48</strong><span>passed</span></div>
+      <div class="metric"><span>Playwright</span><strong>85</strong><span>passed</span></div>
+      <div class="metric"><span>Browser matrix</span><strong>5/5</strong><span>projects</span></div>
+      <div class="metric"><span>Gleam</span><strong>9752</strong><span>tests passed</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What Is Already Covered</h2>
+    <p>Route rendering, runtime hydration, grid/kanban/timeline/analytics switching, NIF-backed status chip counts, L0-L7 fractal filtering, task detail actions, ZK search, WebSocket server tick, same-origin links, AG-UI/A2UI endpoints, responsive behavior, and WebKit execution.</p>
+  </section>
+
+  <section>
+    <h2>Coverage Map</h2>
+    <img src="task-116554277441926495/diagrams/planning-grid-coverage-map.svg" alt="Planning grid coverage map">
+  </section>
+
+  <section>
+    <h2>Recommended Test Expansion</h2>
+    <img src="task-116554277441926495/diagrams/planning-grid-test-roadmap.svg" alt="Planning grid test roadmap">
+  </section>
+
+  <section>
+    <h2>Why These Tests Are Required</h2>
+    <table>
+      <tr><th>Area</th><th>Reason</th><th>Improvement</th></tr>
+      <tr><td>Restart/reconnect</td><td>Live backends churn.</td><td>No manual page refresh under daemon restart or socket drop.</td></tr>
+      <tr><td>Mutations</td><td>Read-only tests do not prove operational edits.</td><td>Task creation and status changes become verified workflows.</td></tr>
+      <tr><td>Malformed data</td><td>Unsafe data can break or compromise rendering.</td><td>Safer detail panels and search results.</td></tr>
+      <tr><td>Visual/performance</td><td>Selector tests miss scanability and latency drift.</td><td>Faster, more stable command-center UI.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Risk Register</h2>
+    <ul>
+      <li>Controlled restart test is intentionally skipped unless `PLANNING_ENABLE_SERVICE_RESTART=1` is set.</li>
+      <li>Email send command completed with absolute attachments accepted; SMTP delivery receipt is not exposed by the CLI.</li>
+      <li>Served routes are verified for all bundle artifacts in the active route environment.</li>
+      <li>Stage only this bundle if staging is requested; the repo already has unrelated dirty files.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Next Actions</h2>
+    <ol>
+      <li>Run local and route validation for this artifact bundle.</li>
+      <li>Add the P0 Playwright tests: controlled restart and mutation flows.</li>
+      <li>Add P1 resilience tests: debounce, reconnect, malformed payloads, and negative contracts.</li>
+      <li>Add P2 quality gates: visual regression, performance budgets, multi-tab semantics, and bad deep links.</li>
+    </ol>
+  </section>
+</body>
+</html>

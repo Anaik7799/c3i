@@ -141,7 +141,7 @@ pub fn default_registry() -> List(PageSpec) {
     PageSpec(
       page: "/planning",
       required_sections: [
-        "all-grid", "blocked-grid", "active-grid", "planning-grid.js",
+        "all-grid", "blocked-grid", "active-grid", "planning-grid.bundled.js",
         "task-detail-panel",
       ],
       required_endpoints: ["/api/v1/planning"],

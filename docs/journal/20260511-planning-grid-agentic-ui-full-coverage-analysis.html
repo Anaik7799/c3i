@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Planning Grid Agentic UI Full Coverage Report</title>
+  <style>
+    :root { color-scheme: light; --ink:#172026; --muted:#5b6670; --line:#cbd5df; --bg:#f7f9fb; --panel:#ffffff; --accent:#0f766e; --warn:#b45309; --bad:#b91c1c; --ok:#166534; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:14px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; color:var(--ink); background:var(--bg); }
+    header { padding:28px 36px; background:#102a43; color:white; }
+    header h1 { margin:0 0 8px; font-size:28px; letter-spacing:0; }
+    header p { margin:4px 0; color:#d9e2ec; }
+    main { max-width:1180px; margin:0 auto; padding:28px; }
+    section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px; margin:0 0 18px; }
+    h2 { margin:0 0 12px; font-size:19px; }
+    h3 { margin:18px 0 8px; font-size:15px; }
+    table { width:100%; border-collapse:collapse; margin:10px 0; }
+    th, td { border:1px solid var(--line); padding:8px 10px; vertical-align:top; text-align:left; }
+    th { background:#eef3f7; }
+    code { background:#edf2f7; padding:2px 4px; border-radius:4px; }
+    pre { background:#0b1720; color:#e6edf3; padding:14px; border-radius:8px; overflow:auto; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; }
+    .metric { border:1px solid var(--line); border-radius:8px; padding:14px; background:#fbfdff; }
+    .metric strong { display:block; font-size:24px; color:#0f5132; }
+    .tag { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:3px 9px; margin:2px 4px 2px 0; background:#f8fafc; }
+    .ok { color:var(--ok); font-weight:700; }
+    .warn { color:var(--warn); font-weight:700; }
+    .bad { color:var(--bad); font-weight:700; }
+    img { max-width:100%; border:1px solid var(--line); border-radius:8px; background:white; }
+    a { color:#075985; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Planning Grid Agentic UI Full Coverage Report</h1>
+    <p>Task: <code>116554277441926495</code> | URN: <code>urn:c3i:task:misc:116554277441926495</code> | Status: <code>completed</code></p>
+    <p>Bundle: <code>20260511-planning-grid-agentic-ui-full-coverage</code> | Route status: verified over localhost, customer Tailscale, and internal HTTPS</p>
+  </header>
+  <main>
+    <section>
+      <h2>Executive Summary</h2>
+      <p>The planning grid audit found the page operationally healthy across static rendering, dynamic interactions, NIF-backed status, AG-UI/A2UI contracts, WebSocket behavior, responsive layout, and cross-browser execution including WebKit. This bundle preserves the evidence and turns the remaining recommendations into a prioritized implementation roadmap.</p>
+      <div class="grid">
+        <div class="metric"><span>Live audit</span><strong>48/48</strong><span>passed</span></div>
+        <div class="metric"><span>Playwright full</span><strong>85</strong><span>passed, 5 opt-in skipped</span></div>
+        <div class="metric"><span>Browser matrix</span><strong>5/5</strong><span>projects passed</span></div>
+        <div class="metric"><span>Gleam tests</span><strong>9752</strong><span>passed</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Bundle Inventory</h2>
+      <table>
+        <tr><th>Artifact</th><th>Path</th><th>Purpose</th></tr>
+        <tr><td>Journal</td><td><a href="20260511-planning-grid-agentic-ui-full-coverage-journal.md">20260511-planning-grid-agentic-ui-full-coverage-journal.md</a></td><td>13-section institutional record.</td></tr>
+        <tr><td>Fractal plan</td><td><a href="20260511-planning-grid-agentic-ui-playwright-fractal-plan.md">20260511-planning-grid-agentic-ui-playwright-fractal-plan.md</a></td><td>L0-L7 Agentic UI Playwright expansion plan.</td></tr>
+        <tr><td>Deck</td><td><a href="20260511-planning-grid-agentic-ui-full-coverage-deck.html">20260511-planning-grid-agentic-ui-full-coverage-deck.html</a></td><td>Operator slide summary.</td></tr>
+        <tr><td>ZK note</td><td><a href="20260511-planning-grid-agentic-ui-full-coverage-zk.md">20260511-planning-grid-agentic-ui-full-coverage-zk.md</a></td><td>Retrieval-ready knowledge note.</td></tr>
+        <tr><td>Email</td><td><a href="20260511-planning-grid-agentic-ui-full-coverage-email.md">20260511-planning-grid-agentic-ui-full-coverage-email.md</a></td><td>Notification sent through sa-plan to abhijit.naik@bountytek.com with command-level completion evidence.</td></tr>
+        <tr><td>Index</td><td><a href="20260511-planning-grid-agentic-ui-full-coverage-index.html">20260511-planning-grid-agentic-ui-full-coverage-index.html</a></td><td>Handoff navigation and verification commands.</td></tr>
+        <tr><td>Links manifest</td><td><a href="task-116554277441926495-links.json">task-116554277441926495-links.json</a></td><td>Machine-readable artifact map.</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Coverage Map</h2>
+      <p>The current suite covers the main operator path and backend truth checks. The roadmap adds restart, mutation, malformed data, reconnection, visual, performance, and multi-tab coverage.</p>
+      <p><a href="task-116554277441926495/diagrams/planning-grid-coverage-map.svg">Open coverage map diagram</a></p>
+      <img src="task-116554277441926495/diagrams/planning-grid-coverage-map.svg" alt="Planning grid coverage map">
+      <p><a href="task-116554277441926495/diagrams/planning-grid-fractal-expansion-plan.svg">Open fractal expansion diagram</a></p>
+      <img src="task-116554277441926495/diagrams/planning-grid-fractal-expansion-plan.svg" alt="Planning grid fractal expansion plan">
+    </section>
+
+    <section>
+      <h2>Recommended Tests and Page Improvements</h2>
+      <table>
+        <tr><th>Recommendation</th><th>Why required</th><th>Additional functionality validated</th><th>Page improvement</th></tr>
+        <tr><td>Controlled restart</td><td>Live systems restart.</td><td>WS reconnect and state recovery.</td><td>Operators keep live planning during daemon churn.</td></tr>
+        <tr><td>Mutation flows</td><td>Read-only tests do not prove writes.</td><td>Create, edit, status changes, NIF count updates.</td><td>Grid is verified as an operational editor.</td></tr>
+        <tr><td>Search debounce</td><td>Rapid typing can create stale results.</td><td>Latest query wins, old results suppressed.</td><td>ZK search becomes trustworthy under speed.</td></tr>
+        <tr><td>WS forced reconnect</td><td>Network drops happen.</td><td>Retry without duplicate listeners.</td><td>No manual refresh required for live updates.</td></tr>
+        <tr><td>Malformed/XSS payloads</td><td>Data can be corrupt or hostile.</td><td>Escaping and fallback handling.</td><td>Safer rendering and fewer broken panels.</td></tr>
+        <tr><td>Negative AG-UI/A2UI</td><td>Generated UI must be allowlisted.</td><td>Invalid events/components rejected.</td><td>Agentic UI remains constrained and predictable.</td></tr>
+        <tr><td>Visual regression</td><td>Selectors miss layout drift.</td><td>Screenshot thresholds across views.</td><td>Preserves scanability and control placement.</td></tr>
+        <tr><td>Performance budgets</td><td>Task volume can grow.</td><td>Hydration, filter, view switch timing.</td><td>Keeps grid fast under load.</td></tr>
+        <tr><td>Multi-tab behavior</td><td>Operators open several views.</td><td>Cross-context isolation or sync semantics.</td><td>Defines realistic command-center use.</td></tr>
+        <tr><td>Deep-link normalization</td><td>Shared URLs can be malformed.</td><td>Safe defaults for bad params.</td><td>Prevents blank states from bad links.</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Risk Register</h2>
+      <table>
+        <tr><th>Risk</th><th>Status</th><th>Action</th></tr>
+        <tr><td>Restart test skipped by default</td><td class="warn">Known gap</td><td>Add controlled CI job with restart env enabled.</td></tr>
+        <tr><td>Email delivery receipt</td><td class="warn">Command-level only</td><td>Corrected send completed with attachments accepted; no SMTP delivery receipt was exposed by the CLI.</td></tr>
+        <tr><td>Artifact routes</td><td class="ok">Verified</td><td>Localhost, customer Tailscale, and internal HTTPS checks passed.</td></tr>
+        <tr><td>Unrelated dirty worktree entries</td><td class="warn">Existing</td><td>Stage only this bundle if staging is requested.</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Verification Commands</h2>
+      <pre><code>cd /home/an/dev/ver/c3i
+jq empty docs/journal/task-116554277441926495-links.json
+test -f docs/journal/20260511-planning-grid-agentic-ui-full-coverage-journal.md
+test -f docs/journal/20260511-planning-grid-agentic-ui-full-coverage-analysis.html
+test -f docs/journal/20260511-planning-grid-agentic-ui-full-coverage-deck.html
+test -f docs/journal/20260511-planning-grid-agentic-ui-full-coverage-zk.md
+test -f docs/journal/20260511-planning-grid-agentic-ui-full-coverage-email.md
+test -f docs/journal/20260511-planning-grid-agentic-ui-full-coverage-index.html
+./sa-plan status
+./sa-plan sync
+./sa-plan ingest-docs --dry-run</code></pre>
+    </section>
+  </main>
+</body>
+</html>

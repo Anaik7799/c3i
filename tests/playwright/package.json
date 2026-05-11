@@ -4,7 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "preflight": "node ./planning-preflight.mjs",
+    "test:planning": "npm run preflight && playwright test planning.spec.ts",
+    "test:planning-full": "npm run preflight && playwright test planning.spec.ts planning-full-functionality.spec.js",
+    "test:planning-webkit": "npm run preflight && playwright test planning.spec.ts planning-full-functionality.spec.js --project=webkit --project=mobile-webkit",
+    "test:planning-all": "npm run preflight && playwright test planning.spec.ts planning-full-functionality.spec.js",
+    "test:planning-robust": "PLAYWRIGHT_WORKERS=1 npm run test:planning-full",
+    "setup:webkit": "./setup-webkit-libs.sh"
   },
   "devDependencies": {
     "@playwright/test": "1.54.1",

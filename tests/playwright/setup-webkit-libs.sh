@@ -24,6 +24,23 @@ if [[ ! -d "$WEBKIT_ROOT" ]]; then
   exit 1
 fi
 
+verify_under_wrapper() {
+  local LIBDIR="$1"
+  local BIN="$2"
+  local SYS="$LIBDIR/../sys/lib"
+  LD_LIBRARY_PATH="$LIBDIR:$SYS" ldd "$BIN" 2>&1 | grep -c "not found" || true
+}
+
+if [[ -x "$WEBKIT_ROOT/minibrowser-wpe/bin/MiniBrowser" &&
+      -x "$WEBKIT_ROOT/minibrowser-gtk/bin/MiniBrowser" ]]; then
+  PRE_MISSING_WPE=$(verify_under_wrapper "$WEBKIT_ROOT/minibrowser-wpe/lib" "$WEBKIT_ROOT/minibrowser-wpe/bin/MiniBrowser")
+  PRE_MISSING_GTK=$(verify_under_wrapper "$WEBKIT_ROOT/minibrowser-gtk/lib" "$WEBKIT_ROOT/minibrowser-gtk/bin/MiniBrowser")
+  if [[ "$PRE_MISSING_WPE" == "0" && "$PRE_MISSING_GTK" == "0" ]]; then
+    echo "OK — WebKit already ready for Playwright runs."
+    exit 0
+  fi
+fi
+
 echo "Building Nix dependency closure (cached after first run)..."
 ICU=$(nix-build '<nixpkgs>' -A icu74 --no-out-link 2>/dev/null | tail -1)
 LIBXML2=$(nix-build '<nixpkgs>' -A libxml2_13.out --no-out-link 2>/dev/null | tail -1)
@@ -32,6 +49,7 @@ LIBEVENT=$(nix-build '<nixpkgs>' -A libevent --no-out-link 2>/dev/null | tail -1
 LIBAVIF=$(nix-build '<nixpkgs>' -A libavif --no-out-link 2>/dev/null | tail -1)
 LIBMANETTE=$(nix-build '<nixpkgs>' -A libmanette --no-out-link 2>/dev/null | tail -1)
 GST=$(nix-build '<nixpkgs>' -A gst_all_1.gst-plugins-bad --no-out-link 2>/dev/null | tail -1)
+WOFF2=$(nix-build '<nixpkgs>' -A woff2.lib --no-out-link 2>/dev/null | tail -1)
 
 echo "ICU=$ICU"
 echo "LIBXML2=$LIBXML2"
@@ -40,6 +58,7 @@ echo "LIBEVENT=$LIBEVENT"
 echo "LIBAVIF=$LIBAVIF"
 echo "LIBMANETTE=$LIBMANETTE"
 echo "GST=$GST"
+echo "WOFF2=$WOFF2"
 
 link_into() {
   local LIBDIR="$1"
@@ -52,18 +71,14 @@ link_into() {
   ln -sf "$LIBEVENT/lib/libevent-2.1.so.7" "$LIBDIR/libevent-2.1.so.7"
   ln -sf "$LIBMANETTE/lib/libmanette-0.2.so.0" "$LIBDIR/libmanette-0.2.so.0"
   ln -sf "$GST/lib/libgstcodecparsers-1.0.so.0" "$LIBDIR/libgstcodecparsers-1.0.so.0"
+  ln -sf "$WOFF2/lib/libwoff2common.so.1.0.2" "$LIBDIR/libwoff2common.so.1.0.2"
+  ln -sf "$WOFF2/lib/libwoff2dec.so.1.0.2" "$LIBDIR/libwoff2dec.so.1.0.2"
 }
 
 link_into "$WEBKIT_ROOT/minibrowser-wpe/lib"
 link_into "$WEBKIT_ROOT/minibrowser-gtk/lib"
 
 echo "Verifying ldd (using the same LD_LIBRARY_PATH the wrapper sets)..."
-verify_under_wrapper() {
-  local LIBDIR="$1"
-  local BIN="$2"
-  local SYS="$LIBDIR/../sys/lib"
-  LD_LIBRARY_PATH="$LIBDIR:$SYS" ldd "$BIN" 2>&1 | grep -c "not found" || true
-}
 MISSING_WPE=$(verify_under_wrapper "$WEBKIT_ROOT/minibrowser-wpe/lib" "$WEBKIT_ROOT/minibrowser-wpe/bin/MiniBrowser")
 MISSING_GTK=$(verify_under_wrapper "$WEBKIT_ROOT/minibrowser-gtk/lib" "$WEBKIT_ROOT/minibrowser-gtk/bin/MiniBrowser")
 echo "WPE missing libs: $MISSING_WPE"

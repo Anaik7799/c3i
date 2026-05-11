@@ -1,0 +1,51 @@
+{
+  "artifact_set": "20260511-c3i-cepaf-ignition-swarm-evidence",
+  "created_at": "2026-05-11",
+  "operation_constraint": "only cepaf_gleam or ignition operations",
+  "ignition": {
+    "command": "gleam run -m cepaf_gleam/ignition_launch_request",
+    "request_id": "1778470697947DD3EF4E739E64A766743",
+    "request_topic": "indrajaal/l5/cog/mcp/req/ignition_launch/1778470697947DD3EF4E739E64A766743",
+    "response_topic": "indrajaal/l5/cog/mcp/res/1778470697947DD3EF4E739E64A766743",
+    "zenoh_open_status": "connected",
+    "zenoh_put_status": "ok"
+  },
+  "verification": [
+    {
+      "command": "gleam build",
+      "result": "pass"
+    },
+    {
+      "command": "gleam run mesh-status",
+      "result": "pass",
+      "observed": "final read: all 16 containers up; Healthy Containers: 16/16"
+    }
+  ],
+  "email": {
+    "command": "gleam run -m cepaf_gleam/email_artifact_notify",
+    "intent_id": "17784707995685E1D598E7DD39DE23826",
+    "topic": "indrajaal/l5/cog/intent/email/17784707995685E1D598E7DD39DE23826",
+    "zenoh_put_status": "ok",
+    "delivery_boundary": "transport acceptance only; SMTP receipt not observed"
+  },
+  "artifacts": {
+    "journal": "docs/journal/20260511-c3i-cepaf-ignition-swarm-evidence-journal.md",
+    "html": "docs/journal/20260511-c3i-cepaf-ignition-swarm-evidence-analysis.html",
+    "slides": "docs/journal/20260511-c3i-cepaf-ignition-swarm-evidence-slides.html",
+    "zk": "docs/journal/20260511-c3i-cepaf-ignition-swarm-evidence-zk.md",
+    "email": "docs/journal/20260511-c3i-cepaf-ignition-swarm-evidence-email.md"
+  },
+  "zk": {
+    "id": "zk-178470697947dd3e",
+    "status": "file-backed-pending-ingest",
+    "cites": [
+      "zk-3346fc607a1ef9e6",
+      "zk-bb4de67d97f807ac"
+    ]
+  },
+  "residual_risks": [
+    "Early post-launch reads showed transient stopping states before final recovery.",
+    "Email notification was accepted by Zenoh, but SMTP delivery was not acknowledged through a cepaf/ignition-only path.",
+    "This pass does not close historical full-verification gaps outside the requested scope."
+  ]
+}

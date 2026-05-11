@@ -1,0 +1,158 @@
+{
+  "task_id": "116554277441926495",
+  "task_urn": "urn:c3i:task:misc:116554277441926495",
+  "title": "Planning grid Agentic UI full coverage journal",
+  "date": "2026-05-11T07:25:33+02:00",
+  "operator": "Codex",
+  "priority": "P2",
+  "status": "completed",
+  "bundle_slug": "20260511-planning-grid-agentic-ui-full-coverage",
+  "tailscale_base_https": "https://vm-1.tail55d152.ts.net:8443",
+  "customer_base_https": "https://vm-1.tail55d152.ts.net/c3i",
+  "localhost_base_http": "http://127.0.0.1:4200",
+  "local_base": "/home/an/dev/ver/c3i/docs/journal",
+  "artifacts": [
+    {
+      "name": "journal",
+      "path": "/home/an/dev/ver/c3i/docs/journal/20260511-planning-grid-agentic-ui-full-coverage-journal.md",
+      "relative_href": "20260511-planning-grid-agentic-ui-full-coverage-journal.md",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-journal.md",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-journal.md",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-journal.md",
+      "exists_local": true,
+      "route_status": "verified_current_pass"
+    },
+    {
+      "name": "fractal_playwright_plan",
+      "path": "/home/an/dev/ver/c3i/docs/journal/20260511-planning-grid-agentic-ui-playwright-fractal-plan.md",
+      "relative_href": "20260511-planning-grid-agentic-ui-playwright-fractal-plan.md",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116554277441926495/20260511-planning-grid-agentic-ui-playwright-fractal-plan.md",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116554277441926495/20260511-planning-grid-agentic-ui-playwright-fractal-plan.md",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116554277441926495/20260511-planning-grid-agentic-ui-playwright-fractal-plan.md",
+      "exists_local": true,
+      "route_status": "verified_current_pass"
+    },
+    {
+      "name": "analysis",
+      "path": "/home/an/dev/ver/c3i/docs/journal/20260511-planning-grid-agentic-ui-full-coverage-analysis.html",
+      "relative_href": "20260511-planning-grid-agentic-ui-full-coverage-analysis.html",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-analysis.html",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-analysis.html",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-analysis.html",
+      "exists_local": true,
+      "route_status": "verified_current_pass"
+    },
+    {
+      "name": "deck",
+      "path": "/home/an/dev/ver/c3i/docs/journal/20260511-planning-grid-agentic-ui-full-coverage-deck.html",
+      "relative_href": "20260511-planning-grid-agentic-ui-full-coverage-deck.html",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-deck.html",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-deck.html",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-deck.html",
+      "exists_local": true,
+      "route_status": "verified_current_pass"
+    },
+    {
+      "name": "zk",
+      "path": "/home/an/dev/ver/c3i/docs/journal/20260511-planning-grid-agentic-ui-full-coverage-zk.md",
+      "relative_href": "20260511-planning-grid-agentic-ui-full-coverage-zk.md",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-zk.md",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-zk.md",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-zk.md",
+      "exists_local": true,
+      "route_status": "verified_current_pass"
+    },
+    {
+      "name": "email",
+      "path": "/home/an/dev/ver/c3i/docs/journal/20260511-planning-grid-agentic-ui-full-coverage-email.md",
+      "relative_href": "20260511-planning-grid-agentic-ui-full-coverage-email.md",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-email.md",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-email.md",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-email.md",
+      "exists_local": true,
+      "route_status": "verified_current_pass"
+    },
+    {
+      "name": "index",
+      "path": "/home/an/dev/ver/c3i/docs/journal/20260511-planning-grid-agentic-ui-full-coverage-index.html",
+      "relative_href": "20260511-planning-grid-agentic-ui-full-coverage-index.html",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-index.html",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-index.html",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116554277441926495/20260511-planning-grid-agentic-ui-full-coverage-index.html",
+      "exists_local": true,
+      "route_status": "verified_current_pass"
+    },
+    {
+      "name": "links_manifest",
+      "path": "/home/an/dev/ver/c3i/docs/journal/task-116554277441926495-links.json",
+      "relative_href": "task-116554277441926495-links.json",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116554277441926495/task-116554277441926495-links.json",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116554277441926495/task-116554277441926495-links.json",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116554277441926495/task-116554277441926495-links.json",
+      "exists_local": true,
+      "route_status": "verified_current_pass"
+    },
+    {
+      "name": "coverage_diagram",
+      "path": "/home/an/dev/ver/c3i/docs/journal/task-116554277441926495/diagrams/planning-grid-coverage-map.svg",
+      "relative_href": "task-116554277441926495/diagrams/planning-grid-coverage-map.svg",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116554277441926495/task-116554277441926495/diagrams/planning-grid-coverage-map.svg",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116554277441926495/task-116554277441926495/diagrams/planning-grid-coverage-map.svg",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116554277441926495/task-116554277441926495/diagrams/planning-grid-coverage-map.svg",
+      "exists_local": true,
+      "route_status": "verified_current_pass"
+    },
+    {
+      "name": "roadmap_diagram",
+      "path": "/home/an/dev/ver/c3i/docs/journal/task-116554277441926495/diagrams/planning-grid-test-roadmap.svg",
+      "relative_href": "task-116554277441926495/diagrams/planning-grid-test-roadmap.svg",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116554277441926495/task-116554277441926495/diagrams/planning-grid-test-roadmap.svg",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116554277441926495/task-116554277441926495/diagrams/planning-grid-test-roadmap.svg",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116554277441926495/task-116554277441926495/diagrams/planning-grid-test-roadmap.svg",
+      "exists_local": true,
+      "route_status": "verified_current_pass"
+    },
+    {
+      "name": "fractal_expansion_diagram",
+      "path": "/home/an/dev/ver/c3i/docs/journal/task-116554277441926495/diagrams/planning-grid-fractal-expansion-plan.svg",
+      "relative_href": "task-116554277441926495/diagrams/planning-grid-fractal-expansion-plan.svg",
+      "localhost_url": "http://127.0.0.1:4200/task-id/116554277441926495/task-116554277441926495/diagrams/planning-grid-fractal-expansion-plan.svg",
+      "customer_url": "https://vm-1.tail55d152.ts.net/c3i/task-id/116554277441926495/task-116554277441926495/diagrams/planning-grid-fractal-expansion-plan.svg",
+      "internal_url": "https://vm-1.tail55d152.ts.net:8443/task-id/116554277441926495/task-116554277441926495/diagrams/planning-grid-fractal-expansion-plan.svg",
+      "exists_local": true,
+      "route_status": "verified_current_pass"
+    }
+  ],
+  "sa_plan": {
+    "commands_run": [
+      "./sa-plan add \"Planning grid agentic UI audit journal\" P2",
+      "./sa-plan update 116554277441926495 in_progress",
+      "./sa-plan status",
+      "./sa-plan sync",
+      "./sa-plan ingest-docs --dry-run",
+      "./sa-plan update 116554277441926495 completed",
+      "./sa-plan sync",
+      "./sa-plan status",
+      "./sa-plan send-email --to abhijit.naik@bountytek.com --subject \"Planning grid Agentic UI coverage journal and recommended Playwright expansion\" --body <email-file-body> -a <relative-attachments>",
+      "./sa-plan send-email --to abhijit.naik@bountytek.com --subject \"Planning grid Agentic UI coverage journal and recommended Playwright expansion\" --body <email-file-body> -a <absolute-attachments>",
+      "./sa-plan send-email --to abhijit.naik@bountytek.com --subject \"Planning grid Agentic UI fractal Playwright expansion plan\" --body <updated-email-file-body> -a <absolute-updated-attachments>"
+    ],
+    "status_result": "Planning.db has 3169 tasks; active=56; pending=1822; completed=1291",
+    "sync_result": "PROJECT_TODOLIST.md synchronized with SQLite database",
+    "ingest_docs_dry_run_result": "Files processed=7505; holons_created=0; errors=0; total_holons_in_kms=37759"
+  },
+  "validation": {
+    "local_files": "verified_current_pass",
+    "relative_links": "verified_current_pass",
+    "json": "verified_current_pass",
+    "localhost_route": "verified_current_pass",
+    "customer_route": "verified_current_pass",
+    "internal_route": "verified_current_pass",
+    "email_send": "updated_plan_send_command_completed_current_pass_absolute_attachments_accepted_no_smtp_delivery_receipt",
+    "email_recipient": "abhijit.naik@bountytek.com",
+    "email_first_attempt": "command_exited_0_but_relative_attachment_paths_not_readable",
+    "email_corrected_attempt": "command_exited_0_absolute_attachments_accepted_by_mail_helper_no_smtp_delivery_receipt",
+    "email_updated_plan_attempt": "command_exited_0_absolute_attachments_accepted_by_mail_helper_including_fractal_plan_and_svg_no_smtp_delivery_receipt",
+    "gdrive_upload": "not_requested"
+  }
+}

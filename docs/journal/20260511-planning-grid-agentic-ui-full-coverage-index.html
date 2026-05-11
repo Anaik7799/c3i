@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Planning Grid Agentic UI Coverage Handoff</title>
+  <style>
+    :root { color-scheme: light; --ink:#172026; --muted:#5b6670; --line:#cbd5df; --bg:#f7f9fb; --panel:#ffffff; --accent:#0f766e; }
+    * { box-sizing:border-box; }
+    body { margin:0; font:14px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; color:var(--ink); background:var(--bg); }
+    header { padding:26px 34px; background:#102a43; color:white; }
+    header h1 { margin:0 0 8px; font-size:26px; letter-spacing:0; }
+    header p { margin:4px 0; color:#d9e2ec; }
+    main { max-width:1100px; margin:0 auto; padding:28px; }
+    .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:14px; }
+    .card, section { background:white; border:1px solid var(--line); border-radius:8px; padding:18px; }
+    section { margin:18px 0; }
+    h2 { margin:0 0 12px; font-size:18px; }
+    h3 { margin:0 0 8px; font-size:16px; }
+    a { color:#075985; font-weight:700; }
+    code { background:#edf2f7; padding:2px 4px; border-radius:4px; }
+    pre { background:#0b1720; color:#e6edf3; padding:14px; border-radius:8px; overflow:auto; }
+    table { width:100%; border-collapse:collapse; margin:10px 0; }
+    th, td { border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+    th { background:#eef3f7; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Planning Grid Agentic UI Coverage Handoff</h1>
+    <p>Task: <code>116554277441926495</code> | URN: <code>urn:c3i:task:misc:116554277441926495</code> | Status: <code>completed</code></p>
+    <p>Staging/commit state: not staged and not committed. Route status: verified over localhost, customer Tailscale, and internal HTTPS.</p>
+  </header>
+  <main>
+    <section>
+      <h2>Bundle Navigation</h2>
+      <div class="cards">
+        <div class="card"><h3>Journal</h3><p><a href="20260511-planning-grid-agentic-ui-full-coverage-journal.md">Open markdown journal</a></p></div>
+        <div class="card"><h3>Fractal Plan</h3><p><a href="20260511-planning-grid-agentic-ui-playwright-fractal-plan.md">Open Playwright expansion plan</a></p></div>
+        <div class="card"><h3>Analysis</h3><p><a href="20260511-planning-grid-agentic-ui-full-coverage-analysis.html">Open HTML report</a></p></div>
+        <div class="card"><h3>Slides</h3><p><a href="20260511-planning-grid-agentic-ui-full-coverage-deck.html">Open slide deck</a></p></div>
+        <div class="card"><h3>ZK</h3><p><a href="20260511-planning-grid-agentic-ui-full-coverage-zk.md">Open ZK note</a></p></div>
+        <div class="card"><h3>Email</h3><p><a href="20260511-planning-grid-agentic-ui-full-coverage-email.md">Open email draft</a></p></div>
+        <div class="card"><h3>Manifest</h3><p><a href="task-116554277441926495-links.json">Open links manifest</a></p></div>
+        <div class="card"><h3>Coverage Diagram</h3><p><a href="task-116554277441926495/diagrams/planning-grid-coverage-map.svg">Open diagram</a></p></div>
+        <div class="card"><h3>Roadmap Diagram</h3><p><a href="task-116554277441926495/diagrams/planning-grid-test-roadmap.svg">Open diagram</a></p></div>
+        <div class="card"><h3>Fractal Diagram</h3><p><a href="task-116554277441926495/diagrams/planning-grid-fractal-expansion-plan.svg">Open diagram</a></p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Local Verification Commands</h2>
+      <pre><code>cd /home/an/dev/ver/c3i
+jq empty docs/journal/task-116554277441926495-links.json
+test -f docs/journal/20260511-planning-grid-agentic-ui-full-coverage-journal.md
+test -f docs/journal/20260511-planning-grid-agentic-ui-playwright-fractal-plan.md
+test -f docs/journal/20260511-planning-grid-agentic-ui-full-coverage-analysis.html
+test -f docs/journal/20260511-planning-grid-agentic-ui-full-coverage-deck.html
+test -f docs/journal/20260511-planning-grid-agentic-ui-full-coverage-zk.md
+test -f docs/journal/20260511-planning-grid-agentic-ui-full-coverage-email.md
+test -f docs/journal/20260511-planning-grid-agentic-ui-full-coverage-index.html
+test -f docs/journal/task-116554277441926495/diagrams/planning-grid-coverage-map.svg
+test -f docs/journal/task-116554277441926495/diagrams/planning-grid-test-roadmap.svg
+test -f docs/journal/task-116554277441926495/diagrams/planning-grid-fractal-expansion-plan.svg</code></pre>
+    </section>
+
+    <section>
+      <h2>Route Status</h2>
+      <table>
+        <tr><th>Route class</th><th>Status</th><th>Notes</th></tr>
+        <tr><td>Local files</td><td>Verified</td><td>Artifacts exist in <code>docs/journal</code>.</td></tr>
+        <tr><td>Relative links</td><td>Verified</td><td>Bundle links resolve to local artifact files.</td></tr>
+        <tr><td>Localhost route</td><td>Verified</td><td><code>http://127.0.0.1:4200/task-id/116554277441926495/...</code> returned success for all artifacts.</td></tr>
+        <tr><td>Customer route</td><td>Verified</td><td><code>https://vm-1.tail55d152.ts.net/c3i/task-id/116554277441926495/...</code> returned success for all artifacts.</td></tr>
+        <tr><td>Internal HTTPS route</td><td>Verified</td><td><code>https://vm-1.tail55d152.ts.net:8443/task-id/116554277441926495/...</code> returned success for all artifacts with TLS verification disabled for the self-signed route.</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>sa-plan Status, Sync, Ingest</h2>
+      <p>Task created, moved to <code>in_progress</code>, then completed after validation. Status, sync, and ingest dry-run completed successfully:</p>
+      <pre><code>./sa-plan status
+./sa-plan sync
+./sa-plan ingest-docs --dry-run</code></pre>
+    </section>
+
+    <section>
+      <h2>Email And Upload Gates</h2>
+      <p>Email was sent through <code>sa-plan send-email</code> to <code>abhijit.naik@bountytek.com</code>. The first attempt used relative attachments and produced attachment-read warnings; the corrected attempt used absolute paths, accepted all attachments, and exited 0. No SMTP delivery receipt was exposed by the CLI. GDrive/upload was not requested and no <code>gdrive/</code> path is touched.</p>
+    </section>
+  </main>
+</body>
+</html>

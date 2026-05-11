@@ -663,19 +663,33 @@ fn page_spec_dynamic(page: String) -> String {
     ])
     // Pass-25: remaining 25 pages — baseline check (system_health + plan_status).
     // Each page that renders MUST have at least these two NIF feeds reachable.
+    "root" ->
+      generic_page_spec_check("root", "/", [
+        #("system_health", c3i_nif.system_health()),
+        #("plan_status", c3i_nif.plan_status()),
+      ])
     "cockpit" | "agents" | "telemetry" | "metabolic" | "mcp"
     | "podman" | "config" | "git" | "holon" | "kms"
     | "smriti" | "prajna" | "bridge" | "federation" | "singularity"
     | "evolution" | "bicameral" | "biomorphic" | "homeostasis"
     | "integrity" | "health-grid" | "substrate" | "database"
-    | "component-demo" | "planning-dashboard" | "auth" ->
+    | "component-demo" | "components" | "planning-dashboard" | "auth" ->
       generic_page_spec_check(page, "/" <> page, [
         #("system_health", c3i_nif.system_health()),
         #("plan_status", c3i_nif.plan_status()),
       ])
-    _ -> "{\"error\":\"unknown_page\",\"page\":\""
-      <> page
-      <> "\",\"hint\":\"Try /api/v1/page-spec for the registry\"}"
+    _ ->
+      case string.starts_with(page, "allium") {
+        True ->
+          generic_page_spec_check(page, "/" <> page, [
+            #("system_health", c3i_nif.system_health()),
+            #("plan_status", c3i_nif.plan_status()),
+          ])
+        False ->
+          "{\"error\":\"unknown_page\",\"page\":\""
+          <> page
+          <> "\",\"hint\":\"Try /api/v1/page-spec for the registry\"}"
+      }
   }
 }
 
@@ -2452,18 +2466,10 @@ pub fn handle_request(req: HttpRequest(String)) -> HttpResponse(String) {
 }
 
 fn handle_get(path: String) -> HttpResponse(String) {
-  // SC-AGUI-UI / audit P3 #21 fix — strip cache-bust ?v=… for /static/ routes
-  // so `asset_cachebust_id()` query strings don't break exact-match routing.
-  // Live regression caught 2026-04-30 via Playwright probe: /static/planning-grid.js?v=… returned HTML 404.
-  let path = case string.starts_with(path, "/static/") {
-    True ->
-      case string.split_once(path, "?") {
-        Ok(#(base, _q)) -> base
-        Error(_) -> path
-      }
-    False -> path
-  }
-  case path {
+  // Browser route dispatch must ignore query strings while API handlers still
+  // receive the full path so query parameters remain available to route().
+  let route_path = path_without_query(path)
+  case route_path {
     "/ag-ui/events" ->
       sse_response(agui_sse.create_sse_stream_for_agent(
         "default",
@@ -2527,14 +2533,25 @@ fn handle_get(path: String) -> HttpResponse(String) {
     "/static/sw-register.js" -> serve_static_file("priv/static/sw-register.js", "application/javascript")
     // Telegram Mini App routes — mobile-optimized SSR HTML (SC-OPENCLAW-001)
     _ ->
-      case mini_app_routes.is_mini_app_path(path) {
-        True -> html_response(mini_app_routes.route(path))
+      case is_safe_static_asset_path(route_path) {
+        True -> serve_static_asset(route_path)
         False ->
-          case is_api_path(path) {
-            True -> json_response(route(path), 200)
-            False -> html_response(route_html(path))
+          case mini_app_routes.is_mini_app_path(route_path) {
+            True -> html_response(mini_app_routes.route(route_path))
+            False ->
+              case is_api_path(route_path) {
+                True -> json_response(route(path), 200)
+                False -> html_response(route_html(route_path))
+              }
           }
       }
+  }
+}
+
+fn path_without_query(path: String) -> String {
+  case string.split_once(path, "?") {
+    Ok(#(route_path, _query)) -> route_path
+    Error(_) -> path
   }
 }
 
@@ -2563,6 +2580,48 @@ fn serve_static_file(path: String, content_type: String) -> HttpResponse(String)
       response.new(404)
       |> response.set_body("{\"error\":\"file not found\"}")
       |> response.set_header("content-type", "application/json")
+  }
+}
+
+fn is_safe_static_asset_path(path: String) -> Bool {
+  let lower = string.lowercase(path)
+  string.starts_with(path, "/static/")
+  && !string.contains(path, "..")
+  && !string.contains(path, "\\")
+  && !string.contains(lower, "%2e")
+  && !string.contains(lower, "%2f")
+  && !string.contains(lower, "%5c")
+}
+
+fn serve_static_asset(path: String) -> HttpResponse(String) {
+  let rel = string.drop_start(path, 8)
+  serve_static_file("priv/static/" <> rel, static_asset_content_type(path))
+}
+
+fn static_asset_content_type(path: String) -> String {
+  case string.ends_with(path, ".js") {
+    True -> "application/javascript"
+    False ->
+      case string.ends_with(path, ".css") {
+        True -> "text/css"
+        False ->
+          case string.ends_with(path, ".html") {
+            True -> "text/html; charset=utf-8"
+            False ->
+              case string.ends_with(path, ".svg") {
+                True -> "image/svg+xml"
+                False ->
+                  case string.ends_with(path, ".png") {
+                    True -> "image/png"
+                    False ->
+                      case string.ends_with(path, ".json") {
+                        True -> "application/json"
+                        False -> "application/octet-stream"
+                      }
+                  }
+              }
+          }
+      }
   }
 }
 

@@ -28,6 +28,10 @@ pub fn view(state: SharedMeshState) -> Element(msg) {
 
   // Parse live counts from NIF status for dynamic progress rings
   let pending_count = count_in_json(status_raw, "pending")
+  let in_progress_count = case count_in_json(status_raw, "in_progress") {
+    0 -> count_in_json(status_raw, "active")
+    n -> n
+  }
   let completed_count = count_in_json(status_raw, "completed")
   let total_count = count_in_json(status_raw, "total")
   let completion_pct = case total_count > 0 {
@@ -184,7 +188,7 @@ pub fn view(state: SharedMeshState) -> Element(msg) {
       ),
     ]),
     // ── Mini Chart (stacked bar rendered by JS) ──
-    html.div([attribute.id("grid-minichart")], []),
+    html.div([attribute.id("planning-status-minichart")], []),
     // प्रथमं कार्यम् — First things first
     // ── Task Explorer — Multi-View Agentic Data Grid ──
     shell.section("Task Explorer — Agentic Data Grid", [
@@ -257,7 +261,17 @@ pub fn view(state: SharedMeshState) -> Element(msg) {
               attribute.id("fractal-filter-chips"),
               attribute.attribute("style", "flex:1"),
             ],
-            [],
+            [
+              fractal_chip("all", "Layers"),
+              fractal_chip("L0", "Guardian"),
+              fractal_chip("L1", "Atomic"),
+              fractal_chip("L2", "Component"),
+              fractal_chip("L3", "Transaction"),
+              fractal_chip("L4", "System"),
+              fractal_chip("L5", "Cognitive"),
+              fractal_chip("L6", "Ecosystem"),
+              fractal_chip("L7", "Federation"),
+            ],
           ),
         ],
       ),
@@ -299,7 +313,33 @@ pub fn view(state: SharedMeshState) -> Element(msg) {
         ],
         [],
       ),
-      html.div([attribute.id("task-detail-panel")], []),
+      html.div(
+        [
+          attribute.id("fractal-component-matrix"),
+          attribute.attribute("data-component", "fractal-sil6-matrix"),
+        ],
+        [],
+      ),
+      html.div(
+        [
+          attribute.id("task-detail-panel"),
+          attribute.attribute("data-component", "sil6-task-detail-panel"),
+        ],
+        [
+          detail_component_card(
+            "SIL-6 Guard",
+            "L0 Guardian, STAMP control, FMEA risk, RETE-UL rule, and ruliological lineage are computed for the selected task.",
+          ),
+          detail_component_card(
+            "STAMP + FMEA",
+            "Loss scenario, unsafe control action, severity, occurrence, detection, and RPN are rendered from live task metadata.",
+          ),
+          detail_component_card(
+            "RETE-UL",
+            "Rule predicates bind status, priority, fractal layer, blocked state, and Guardian escalation.",
+          ),
+        ],
+      ),
       html.div(
         [
           attribute.id("grid-status"),
@@ -334,7 +374,7 @@ pub fn view(state: SharedMeshState) -> Element(msg) {
             status_filter_chips.build_chips(
               status_filter_chips.StatusCounts(
                 pending: pending_count,
-                in_progress: count_in_json(status_raw, "in_progress"),
+                in_progress: in_progress_count,
                 blocked: count_in_json(status_raw, "blocked"),
                 completed: completed_count,
               ),
@@ -833,3 +873,41 @@ pub fn view(state: SharedMeshState) -> Element(msg) {
   ])
 }
 
+fn fractal_chip(layer: String, label: String) -> Element(msg) {
+  html.button(
+    [
+      attribute.class("fractal-chip"),
+      attribute.attribute("data-layer", layer),
+      attribute.attribute("aria-label", "Filter planning tasks by " <> label),
+      attribute.attribute(
+        "style",
+        "min-height:44px;margin:0 6px 8px 0;padding:8px 12px;border-radius:8px;border:1px solid rgba(0,212,170,0.35);background:rgba(10,14,23,0.65);color:var(--text,#e0e6ed);cursor:pointer",
+      ),
+    ],
+    [element.text(layer <> " " <> label)],
+  )
+}
+
+fn detail_component_card(title: String, body: String) -> Element(msg) {
+  html.div(
+    [
+      attribute.class("fractal-detail-card"),
+      attribute.attribute(
+        "style",
+        "border:1px solid rgba(30,42,58,0.8);background:rgba(10,14,23,0.58);border-radius:8px;padding:10px;margin:8px 0",
+      ),
+    ],
+    [
+      html.strong([], [element.text(title)]),
+      html.p(
+        [
+          attribute.attribute(
+            "style",
+            "margin:6px 0 0;color:var(--muted,#9fb0c3);font-size:0.86rem",
+          ),
+        ],
+        [element.text(body)],
+      ),
+    ],
+  )
+}

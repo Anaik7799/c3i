@@ -36,7 +36,7 @@ pub fn registry() -> List(#(String, String, List(String))) {
   [
     #("/", "Root", ["page-title"]),
     #("/planning", "Planning", [
-      "all-grid", "blocked-grid", "active-grid", "planning-grid.js", "task-detail-panel",
+      "all-grid", "blocked-grid", "active-grid", "planning-grid.bundled.js", "task-detail-panel",
     ]),
     #("/dashboard", "Dashboard", ["page-title", "Indrajaal Swarm Dashboard"]),
     #("/cockpit", "Cockpit", ["page-title", "Cockpit"]),

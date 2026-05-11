@@ -124,6 +124,8 @@ data/tls/
 
 # Playwright runtime
 tests/playwright/test-results/
+tests/playwright/cross-browser-report.json
+tests/playwright/preflight-report.json
 tests/playwright/node_modules/
 tests/playwright/package-lock.json
 
