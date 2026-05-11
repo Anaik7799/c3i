@@ -1083,6 +1083,7 @@ const program = Effect.gen(function* () {
   yield* exposeNamespace
   yield* ensureRuntimeStyles
   yield* renderFractalChips
+  yield* setActiveStatusChip(new URL(window.location.href).searchParams.get("status") || "all")
   yield* loadPlanningData.pipe(Effect.catchAllCause((c) =>
     Effect.logWarning(`[planning] initial grid load failed: ${Cause.pretty(c)}`)))
   yield* Effect.all([
