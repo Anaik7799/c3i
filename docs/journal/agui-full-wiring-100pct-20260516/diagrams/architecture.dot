@@ -1,0 +1,24 @@
+digraph agui {
+  rankdir=TB; bgcolor="#0a0e17"; node [shape=box, style=filled, fontname="JetBrains Mono", color="#1e2a3a", fontcolor="#e0e6ed", fillcolor="#141922"]; edge [color="#7a8fa6", fontcolor="#e0e6ed"];
+
+  browser [label="Browser × 32 pages\nhttp://vm-1...:4100/*", fillcolor="#1a2030"];
+  chrome [label="agui-chrome.js\n(6 JS signatures)", fillcolor="#0d3a2e", fontcolor="#3dd68c"];
+  pages [label="Lustre SSR\n24 page modules\nshared page_header()", fillcolor="#1a2030"];
+  wisp [label="Wisp REST\n/api/v1/* (110 routes)\n/static/* (CSS+JS)\n/ws/* (8 endpoints)", fillcolor="#1a2030"];
+  cortex [label="Rust cortex\n6-tier hedged inference\nmistral.rs + ollama", fillcolor="#1a2030"];
+  smriti [label="Smriti.db\n37,973 holons\nFTS5 + embeddings\n6 perf indexes", fillcolor="#1a2030"];
+  zenoh [label="Zenoh OTel\nindrajaal/**\n8 fractal layers", fillcolor="#1a2030"];
+  validators [label="7 validators\nhealthcheck ring", fillcolor="#0d3a2e", fontcolor="#3dd68c"];
+
+  browser -> pages [label="GET /page"];
+  browser -> chrome [label="GET /static/agui-chrome.js"];
+  chrome -> wisp [label="POST /api/v1/ai/chat\nGET /api/v1/page-spec/*"];
+  pages -> wisp [label="render"];
+  wisp -> cortex [label="hedged infer"];
+  wisp -> smriti [label="search/ingest"];
+  cortex -> zenoh [label="OTel spans"];
+  cortex -> smriti [label="cache"];
+  validators -> smriti [label="cpig_consistency"];
+  validators -> chrome [label="agui_js_depth"];
+  validators -> pages [label="agui_conformance"];
+}

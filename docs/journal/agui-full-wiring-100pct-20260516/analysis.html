@@ -1,0 +1,79 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>AGUI Full-Wiring Verification — 32 Pages × 100% CPIG</title>
+<style>
+body{font:14px/1.5 system-ui;max-width:980px;margin:24px auto;padding:0 20px;background:#0a0e17;color:#e0e6ed}
+h1,h2{color:#00d4aa}h1{border-bottom:1px solid #1e2a3a;padding-bottom:8px}
+table{border-collapse:collapse;width:100%;margin:12px 0}th,td{border:1px solid #1e2a3a;padding:6px 10px;text-align:left}
+th{background:#141922;color:#00d4aa}.ok{color:#3dd68c;font-weight:bold}.warn{color:#f5a623}.bad{color:#ff4757}
+code{background:#141922;padding:2px 6px;border-radius:3px;color:#f5a623}
+img{max-width:100%;border:1px solid #1e2a3a;border-radius:4px;margin:12px 0}
+.metric{display:inline-block;padding:8px 14px;background:#141922;border:1px solid #1e2a3a;border-radius:6px;margin:4px}
+.metric strong{display:block;color:#00d4aa;font-size:24px}
+</style>
+
+<h1>AGUI Full-Wiring Verification — 32 Pages × 100% CPIG</h1>
+<p><em>2026-05-16 · Pass 28 · Operator: "check each page, full wiring 100% working, identify how to evolve significantly"</em></p>
+
+<div>
+  <div class="metric"><strong>32/32</strong>pages HTTP 200</div>
+  <div class="metric"><strong>32/32</strong>spec-aligned</div>
+  <div class="metric"><strong>32/32</strong>evolved-tier</div>
+  <div class="metric"><strong>9752</strong>tests pass</div>
+  <div class="metric"><strong>70/70</strong>CPIG = 100%</div>
+  <div class="metric"><strong>7/7</strong>validators ✓</div>
+</div>
+
+<h2>1. Live evidence (mechanical, anti-Stub-That-Lies)</h2>
+<table>
+<tr><th>Check</th><th>Method</th><th>Result</th></tr>
+<tr><td>HTTP 200 × 32 pages</td><td><code>curl -w %{http_code}</code> × 32</td><td class="ok">32/32</td></tr>
+<tr><td>Page-spec alignment</td><td><code>scripts/verify/page_checker</code></td><td class="ok">pass=32/32 5xx=0 4xx=0 drift=0</td></tr>
+<tr><td>HTML conformance (11 components)</td><td><code>scripts/verify/agui_conformance</code></td><td class="ok">32 evolved · 0 partial · 0 sparse</td></tr>
+<tr><td>JS wiring depth (6 signatures)</td><td><code>scripts/verify/agui_js_depth</code></td><td class="ok">6/6 present</td></tr>
+<tr><td>Gleam test suite</td><td><code>gleam test</code></td><td class="ok">9752 passed · 0 failures</td></tr>
+<tr><td>Learn-loop healthcheck (7 validators)</td><td><code>scripts/verify/learn_loop_healthcheck</code></td><td class="ok">all homeostasis</td></tr>
+<tr><td>Validator meta-tests (5 detectors)</td><td><code>scripts/verify/validators_meta_test</code></td><td class="ok">5/5 trip on bad input</td></tr>
+<tr><td>CPIG matrix (14 × 5)</td><td><code>jq + cpig_consistency</code></td><td class="ok">70/70 = 100% · summary cross-checked</td></tr>
+<tr><td><code>/api/v1/ai/chat</code></td><td>POST + curl</td><td class="warn">401 (auth-protected, real response)</td></tr>
+<tr><td><code>/static/agui-chrome.js</code></td><td>GET + curl</td><td class="ok">200</td></tr>
+<tr><td><code>/api/v1/page-spec/all</code></td><td>GET + curl</td><td class="ok">200</td></tr>
+</table>
+
+<h2>2. Architecture</h2>
+<img src="diagrams/architecture.png" alt="architecture">
+
+<h2>3. Significant-improvement plan (10 gaps, top-3 priorities)</h2>
+<table>
+<tr><th>#</th><th>Gap</th><th>Severity</th><th>Improvement</th></tr>
+<tr><td>1</td><td>change-log feed was empty on every page</td><td class="warn">HIGH</td><td><strong>SHIPPED THIS PASS</strong> — agui-chrome.js now seeds page-load event + polls /api/v1/page-spec/ every 30s</td></tr>
+<tr><td>2</td><td>agui-chrome.js is vanilla JS, not Effect-TS</td><td class="warn">MEDIUM</td><td>Migrate to <code>priv/web-build/src/agui-chrome.ts</code> per SC-EFFECT-TS-001..007</td></tr>
+<tr><td>3</td><td>Per-page LTS specs absent for 27/32 pages</td><td class="warn">HIGH</td><td>Codegen Allium spec stubs from each Lustre Model/Msg ADT</td></tr>
+<tr><td>4</td><td>Playwright/E2E coverage only on /planning</td><td class="warn">HIGH</td><td>Generate baseline tests for 31 pages from page-checker rules</td></tr>
+<tr><td>5</td><td>AI search filters DOM text, not semantic</td><td>MEDIUM</td><td>Wire to <code>/api/v1/knowledge_search</code> FTS5+embeddings</td></tr>
+<tr><td>6</td><td>Fractal-filter needs data-layer on all sections</td><td>LOW</td><td>Sweep page_helpers/section() to emit data-layer</td></tr>
+<tr><td>7</td><td>UI-005 chat passes via substring (not structural)</td><td>LOW</td><td>Strengthen validator to require chat-panel-form element</td></tr>
+<tr><td>8</td><td>No live WS heartbeat indicator on most pages</td><td>LOW</td><td>Per-page heartbeat badge in shared chrome</td></tr>
+<tr><td>9</td><td>Drill-down has no per-page-aware default</td><td>LOW</td><td>Inject status preview on page load</td></tr>
+<tr><td>10</td><td>Gemma chat shows 401 without auth UI</td><td>LOW</td><td>Inline anonymous-fallback or auth prompt</td></tr>
+</table>
+
+<h2>4. Math gates</h2>
+<table>
+<tr><th>Gate</th><th>Current</th><th>Target</th><th>Status</th></tr>
+<tr><td>Shannon Entropy H</td><td>2.67 bits</td><td>≥ 2.5</td><td class="ok">PASS</td></tr>
+<tr><td>CCM (coverage composite)</td><td>0.770</td><td>≥ 0.90</td><td class="warn">IMPROVING (+0.13 to close)</td></tr>
+<tr><td>ITQS (test quality)</td><td>0.736</td><td>≥ 0.85</td><td class="warn">IMPROVING (+0.11 to close)</td></tr>
+<tr><td>D_EA (expected/actual divergence)</td><td>TBD</td><td>≤ 0.10</td><td class="warn">measure</td></tr>
+</table>
+
+<h2>5. Pass-N roadmap</h2>
+<ol>
+<li><strong>Pass 29</strong>: change-log WS wiring (incremental — already poll-based, swap to /ws per page)</li>
+<li><strong>Pass 30</strong>: Effect-TS chrome migration (SC-EFFECT-TS compliance)</li>
+<li><strong>Pass 31</strong>: Allium spec auto-gen for 27 pages (SC-UIGT-003 coverage)</li>
+<li><strong>Pass 32</strong>: Playwright baseline for 27 pages (CCM 0.77 → 0.85+)</li>
+<li><strong>Pass 33</strong>: Semantic AI search wiring (UI-003 textContent → FTS5)</li>
+</ol>
+
+<p><em>Anti-Stub-That-Lies discipline: <code>[zk-bd82645aedcb5ef4]</code> · two-step collapse <code>[zk-50657feb899e0a2f]</code> · measure-don't-assert <code>[zk-426c4adf07d076ad]</code> · implicit-invariant gap <code>[zk-c14e1d23afff486c]</code>.</em></p>
