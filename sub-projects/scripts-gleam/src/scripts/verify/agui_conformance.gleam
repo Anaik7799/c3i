@@ -1,7 +1,7 @@
 //// scripts/verify/agui_conformance — SC-AGUI-UI-CONFORMANCE validator.
 ////
 //// Probes every page at http://vm-1.tail55d152.ts.net:4100/ and scores it
-//// against 10 HTML-detectable SC-AGUI-UI-* components. Produces a per-page
+//// against 11 HTML-detectable SC-AGUI-UI-* components. Produces a per-page
 //// report card so operators can prioritize page-evolution work.
 ////
 //// Anti-Stub-That-Lies per [zk-bd82645aedcb5ef4]: fetches the live HTML
@@ -49,6 +49,7 @@ const checks: List(#(String, List(String))) = [
   #("responsive-css (UI-008)", ["@media", "768px", "1024px"]),
   #("touch-targets (UI-009)", ["min-height:44px", "min-height: 44px", "touch-target"]),
   #("glassmorphism (UI-015)", ["backdrop-filter", "blur(", "glass"]),
+  #("agui-js-wired (UI-002/003/009)", ["agui-chrome.js"]),
 ]
 
 @external(erlang, "scripts_sh_ffi", "run_capture")
@@ -65,7 +66,7 @@ pub fn main() -> Nil {
   io.println("══ SC-AGUI-UI Conformance Validator ══")
   io.println("base: " <> base)
   io.println(
-    "checks: 10 HTML-detectable components (UI-001..009 + UI-015)",
+    "checks: 11 HTML-detectable components (UI-001..009 + UI-015 + UI-WIRED)",
   )
   io.println("")
 
@@ -75,21 +76,36 @@ pub fn main() -> Nil {
   io.println(
     "══ Report — sorted by score (ascending = most sparse first) ══",
   )
+  let max_score = list.length(checks)
+  // Tier thresholds scaled to actual check count: evolved >=90%, partial >=50%.
+  let evolved_thresh = max_score * 9 / 10
+  let partial_thresh = max_score / 2
   let sorted = list.sort(results, fn(a, b) { int.compare(a.1, b.1) })
   list.each(sorted, fn(r) {
     let #(path, score) = r
     let tier = case score {
-      n if n >= 9 -> "✓ evolved "
-      n if n >= 5 -> "○ partial "
+      n if n >= evolved_thresh -> "✓ evolved "
+      n if n >= partial_thresh -> "○ partial "
       _ -> "△ sparse  "
     }
-    io.println("  " <> tier <> int.to_string(score) <> "/10  " <> path)
+    io.println(
+      "  "
+      <> tier
+      <> int.to_string(score)
+      <> "/"
+      <> int.to_string(max_score)
+      <> "  "
+      <> path,
+    )
   })
 
-  let evolved = list.length(list.filter(results, fn(r) { r.1 >= 9 }))
+  let evolved =
+    list.length(list.filter(results, fn(r) { r.1 >= evolved_thresh }))
   let partial =
-    list.length(list.filter(results, fn(r) { r.1 >= 5 && r.1 < 9 }))
-  let sparse = list.length(list.filter(results, fn(r) { r.1 < 5 }))
+    list.length(list.filter(results, fn(r) {
+      r.1 >= partial_thresh && r.1 < evolved_thresh
+    }))
+  let sparse = list.length(list.filter(results, fn(r) { r.1 < partial_thresh }))
   io.println("")
   io.println(
     "summary: "
