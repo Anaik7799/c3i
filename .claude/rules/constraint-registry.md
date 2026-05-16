@@ -2,6 +2,23 @@
 All SC-*/AOR-* constraint families. CLAUDE.md + .claude/rules/ is the authoritative superset.
 Individual constraint details live in code; this registry tracks families and ranges.
 
+## Delta (2026-05-16 — Learn-loop hardening arc, 12 passes)
+Six mechanical guards on the institutional-memory loop + 1 aggregator + 1 meta-test + 1 closure journal + 1 handoff pack. Arc commits b82723fe..59545b4a on origin/main. Source-of-truth pack: `docs/journal/learn-loop-hardening-20260516/`.
+
+| Family | IDs | # | Description |
+|---|---|---|---|
+| SC-CPIG-CONSISTENCY | 001-005 | 5 | Matrix score↔evidence parity. Validator `scripts/verify/cpig_consistency` scans 13×5 gates; flags any score=1 with empty evidence. Prevents Pass-15 dishonesty class. See `.claude/rules/cpig-consistency.md`. |
+| SC-CORPUS-INDEX | 001-006 | 6 | Smriti.db MUST carry 6 perf indexes (`idx_holons_content_hash` + ingest_state.mtime + 4 baseline). Validator queries `sqlite_master`. Locks in 2,777× Phase A speedup. See `.claude/rules/corpus-index.md`. |
+| SC-STOP-HOOK-TELE | 001-006 | 6 | Stop-hook MUST append one JSONL row per invocation to `data/logs/stop-hook-timing.log`. Emitter in `stop_hook.gleam`. See `.claude/rules/stop-hook-telemetry.md`. |
+| SC-STOP-HOOK-LYAPUNOV | 001-006 | 6 | Consumer for SC-STOP-HOOK-TELE feed. 4-tier classify (P0 ≥30s, P1 ≥3 high samples, P2 1-2 high, ✓). See `.claude/rules/stop-hook-lyapunov.md`. |
+| SC-FY27-PEER-OPTIONAL | 001-006 | 6 | FY27-ZK binary is PERMANENTLY OPTIONAL peer. Codifies Phase A.2 graceful-absence handling (rc=127 → fy27=absent). See `.claude/rules/fy27-peer-optional.md`. |
+| SC-DISK-TREND | 001-006 | 6 | Reads `df -P /`, appends JSONL to `data/logs/disk-trend.log`, 4-tier classify (P0 ≥95%, P1 ≥90%, P2 ≥80%, ✓). See `.claude/rules/disk-trend.md`. |
+| SC-DISK-LYAPUNOV | 001-005 | 5 | Consumer for SC-DISK-TREND feed. Catches Δ ≥ 5% climb across 10 samples. See `.claude/rules/disk-lyapunov.md`. |
+| SC-LEARN-LOOP-HEALTHCHECK | 001-005 | 5 | One-command aggregator running all 6 validators (including meta-test). Live: ✓ 6/6 homeostasis. Scheduled hourly via sa-plan-daemon. See `.claude/rules/learn-loop-healthcheck.md`. |
+| SC-VALIDATORS-META-TEST | 001-005 | 5 | Anti-Stub-That-Lies for detectors themselves. Feeds synthetic bad input; asserts `--priority P0` hint. Caught Latin-1 charlist decoding bug mid-pass. See `.claude/rules/validators-meta-test.md`. |
+
+Total: **9 new SC-* families · 50 STAMP IDs · 6 Gleam validators · 1 emitter · 9 Gemini mirrors · 1 hourly cron**.
+
 ## Delta (2026-05-02 — NIF/FFI panic guard parity)
 | Family | IDs | # | Description |
 |---|---|---|---|
