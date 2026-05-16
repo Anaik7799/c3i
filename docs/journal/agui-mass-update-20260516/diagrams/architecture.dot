@@ -1,0 +1,59 @@
+digraph architecture {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [shape=box, style="rounded,filled", fontname="system-ui", fontcolor="#e0e6ed", color="#1e2a3a"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="system-ui", fontsize=10];
+
+  subgraph cluster_browser {
+    label="Browser (mobile / tablet / desktop)"; color="#1e2a3a"; fontcolor="#00d4aa";
+    UI [label="32 pages\nat http://vm-1.tail55d152.ts.net:4100/*", fillcolor="#141922"];
+  }
+
+  subgraph cluster_server {
+    label="BEAM (gleam run --serve)"; color="#1e2a3a"; fontcolor="#00d4aa";
+    Router [label="ui/wisp/router.gleam\nroute dispatch", fillcolor="#141922"];
+    PageHelpers [label="ui/web/page_helpers.gleam\npage_header() + agui_chrome\n(SHARED)", fillcolor="#1a2030", fontcolor="#00d4aa"];
+    SystemViews [label="ui/web/system_views.gleam\n10 pages, local page_header (DUP)", fillcolor="#251500", fontcolor="#ffb000"];
+    DashboardViews [label="ui/web/dashboard_views.gleam\n3 pages, local page_header (DUP)", fillcolor="#251500", fontcolor="#ffb000"];
+    SpecialViews [label="ui/web/special_views.gleam\n12 pages, local page_header (DUP)", fillcolor="#251500", fontcolor="#ffb000"];
+    PerPage [label="ui/web/pages/*.gleam (10 modules)", fillcolor="#141922"];
+    NIF [label="c3i_nif (14 NIFs)\nplan_status, system_health, ...", fillcolor="#141922"];
+    Smriti [label="Smriti.db\n37,969 holons · WAL · 6 indexes", fillcolor="#141922"];
+  }
+
+  subgraph cluster_static {
+    label="Static (priv/static/)"; color="#1e2a3a"; fontcolor="#00d4aa";
+    CSS [label="material.css 451 lines\n+ 27 lines AGUI chrome", fillcolor="#1a2030", fontcolor="#00d4aa"];
+  }
+
+  subgraph cluster_validators {
+    label="Validators (scripts-gleam)"; color="#1e2a3a"; fontcolor="#00d4aa";
+    PageChecker [label="page_checker\nSC-PAGE-SPEC", fillcolor="#141922"];
+    Conformance [label="agui_conformance\nSC-AGUI-UI-CONFORMANCE\n10 components × 32 pages", fillcolor="#1a2030", fontcolor="#00d4aa"];
+    HealthCheck [label="learn_loop_healthcheck\n(6 validators aggregated)", fillcolor="#141922"];
+  }
+
+  UI -> Router [label="GET /immune\nGET /podman\n..."];
+  Router -> PerPage [label="10 pages"];
+  Router -> SystemViews [label="10 pages"];
+  Router -> DashboardViews [label="3 pages"];
+  Router -> SpecialViews [label="12 pages"];
+  PerPage -> PageHelpers [label="page_header()"];
+  SystemViews -> SystemViews [label="local page_header()", color="#ffb000"];
+  DashboardViews -> DashboardViews [label="local page_header()", color="#ffb000"];
+  SpecialViews -> SpecialViews [label="local page_header()", color="#ffb000"];
+  PerPage -> NIF;
+  SystemViews -> NIF;
+  DashboardViews -> NIF;
+  SpecialViews -> NIF;
+  NIF -> Smriti;
+  UI -> CSS [label="GET material.css"];
+  PageChecker -> UI [label="probe HTTP 200 + spec match", style=dashed, color="#3dd68c"];
+  Conformance -> UI [label="grep agui-chrome\ngrep fractal-l0..l7", style=dashed, color="#3dd68c"];
+  HealthCheck -> Conformance [style=dashed, color="#3dd68c"];
+
+  Note [label="Architectural Muda:\n4× page_header duplicates (SC-MUDA-001)\nLogged as next-pass refactor", shape=note, fillcolor="#251500", fontcolor="#ffb000"];
+  Note -> SystemViews [style=dashed, color="#ffb000"];
+  Note -> DashboardViews [style=dashed, color="#ffb000"];
+  Note -> SpecialViews [style=dashed, color="#ffb000"];
+}

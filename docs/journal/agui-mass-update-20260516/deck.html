@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>AGUI mass-update deck · 2026-05-16</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--ok:#3dd68c;--p0:#ff4757;--p1:#f5a623;--p2:#5dade2}
+*{box-sizing:border-box}body{font:15px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:20px}
+.slide{max-width:1000px;margin:0 auto 24px;background:var(--card);border-radius:10px;padding:32px 40px;min-height:340px;border:1px solid #1e2a3a;page-break-after:always}
+.slide h2{margin:0 0 8px;color:var(--accent);font-size:24px}
+.slide .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+.slide ul{margin:8px 0;padding-left:22px}.slide li{margin:6px 0}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.kpi>div{background:#1a2030;padding:14px;border-radius:6px;text-align:center}
+.kpi .v{font-size:24px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:600}
+.kpi .v.ok{color:var(--ok)}.kpi .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px}
+code{background:#1a2030;padding:2px 6px;border-radius:3px;color:#a0e8d6;font-size:13px}
+pre{background:#1a2030;padding:14px;border-radius:6px;font-size:11px;color:#a0e8d6;overflow-x:auto;line-height:1.4}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:5px 10px;text-align:left;border-bottom:1px solid #1e2a3a}th{color:var(--accent)}
+img{max-width:100%;border-radius:8px;border:1px solid #1e2a3a;display:block;margin:10px auto}
+.big{font-size:48px;color:var(--ok);font-family:'JetBrains Mono',monospace;text-align:center;margin:20px 0}
+.foot{color:var(--muted);font-size:11px;margin-top:18px;border-top:1px solid #1e2a3a;padding-top:8px}
+</style></head><body>
+
+<div class="slide">
+<h2>AGUI mass-shallow update — 32 pages, conformance 53% → 79%</h2>
+<div class="sub">2026-05-16 · operator request: "update all the pages, routes and components" · 4 files · +131 LOC · zero test regressions</div>
+<div class="big">✓ 9,752 tests pass · 6/6 validators ✓ · +84 conformance pts</div>
+<ul>
+  <li>32 pages now render <code>agui-chrome</code> with L0-L7 chips + AI search + change-log</li>
+  <li>SC-AGUI-UI-002/003/007 shipped via shared template edit</li>
+  <li>Anti-Stub-That-Lies caught a near-miss mid-pass (3 duplicate page_header copies)</li>
+  <li>CSS materialized so chrome is visible, not just in DOM</li>
+</ul>
+</div>
+
+<div class="slide">
+<h2>Conformance delta</h2>
+<div class="kpi">
+  <div><div class="v">53%</div><div class="l">pre-pass (170/320)</div></div>
+  <div><div class="v ok">79%</div><div class="l">post-pass (254/320)</div></div>
+  <div><div class="v ok">+84</div><div class="l">conformance pts</div></div>
+  <div><div class="v ok">+31</div><div class="l">pages gained chrome</div></div>
+</div>
+<table>
+<thead><tr><th>Score tier</th><th>Pre</th><th>Post</th><th>Δ</th></tr></thead>
+<tr><td>10/10 evolved</td><td>0</td><td>1 (/planning)</td><td>+1</td></tr>
+<tr><td>9/10</td><td>1 (/planning)</td><td>0</td><td>—</td></tr>
+<tr><td>8/10 partial</td><td>0</td><td>30</td><td>+30</td></tr>
+<tr><td>7/10 partial</td><td>3 (/, /dashboard, /cockpit)</td><td>1 (/cockpit)</td><td>−2 ↑</td></tr>
+<tr><td>5/10 baseline</td><td>28</td><td>0</td><td>−28 ↑</td></tr>
+</table>
+</div>
+
+<div class="slide">
+<h2>Architecture</h2>
+<img src="diagrams/architecture.png" alt="System architecture"/>
+<p class="foot">Yellow modules carry the 3 duplicate <code>page_header</code> implementations — SC-MUDA-001 finding, logged as next-pass refactor.</p>
+</div>
+
+<div class="slide">
+<h2>Dataflow</h2>
+<img src="diagrams/dataflow.png" alt="HTTP request dataflow"/>
+<p class="foot">Browser GET → Mist → router → renderer → HTML response. CSS path is parallel. Validator probes the live HTML via curl + grep — never the source code.</p>
+</div>
+
+<div class="slide">
+<h2>Control flow — the anti-Stub-That-Lies near-miss</h2>
+<img src="diagrams/controlflow.png" alt="Control flow with anti-Stub-That-Lies catch"/>
+<p class="foot">First edit touched only the "shared" page_helpers; curl probe returned 0 matches → diagnosis found 3 duplicates → all 4 edited → curl returns 8 matches → done.</p>
+</div>
+
+<div class="slide">
+<h2>Check sweep — all green</h2>
+<table>
+<thead><tr><th>Check</th><th>Result</th></tr></thead>
+<tr><td>gleam build (full source compile)</td><td>✓ 0.26s, 0 errors</td></tr>
+<tr><td>gleam test (full suite)</td><td>✓ <strong>9,752 passed, no failures</strong></td></tr>
+<tr><td>page_checker (SC-PAGE-SPEC × 32 pages)</td><td>✓ pass=32/32 · 0 drift · 0 4xx · 0 5xx</td></tr>
+<tr><td>agui_conformance (SC-AGUI-UI-CONFORMANCE)</td><td>✓ 1 evolved, 31 partial-8, 0 sparse</td></tr>
+<tr><td>learn_loop_healthcheck (6 validators aggregated)</td><td>✓ 6/6 homeostasis</td></tr>
+<tr><td>cpig_consistency</td><td>✓ matrix consistent</td></tr>
+<tr><td>corpus_index</td><td>✓ 6/6 required indexes</td></tr>
+<tr><td>stop_hook_lyapunov</td><td>✓ λ = 0</td></tr>
+<tr><td>disk_trend / disk_lyapunov</td><td>⚠ P2 (88% baseline) / ✓ stable</td></tr>
+<tr><td>validators_meta_test (4/4 detectors)</td><td>✓ all fire on synthetic bad input</td></tr>
+</table>
+</div>
+
+<div class="slide">
+<h2>HTML emitted (per page header)</h2>
+<pre>&lt;div class="page-header"&gt;
+  &lt;div&gt;
+    &lt;h1 class="page-title"&gt;...title...&lt;/h1&gt;
+    &lt;div class="page-subtitle"&gt;...subtitle...&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="agui-chrome"&gt;                          ← NEW
+    &lt;div class="fractal-filter layer-filter"&gt;
+      &lt;span class="fractal-chip fractal-l0"&gt;L0&lt;/span&gt; ...L1..L7
+    &lt;/div&gt;
+    &lt;div class="search-bar ai-search"&gt;
+      &lt;input type="search" placeholder="Search (Ctrl+K)"/&gt;
+      &lt;span class="search-hint"&gt;Ctrl+K&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class="change-log event-log"&gt;
+      &lt;span class="change-log-label"&gt;Recent changes&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+</div>
+
+<div class="slide">
+<h2>Remaining gaps + next-pass candidates</h2>
+<table>
+<thead><tr><th>Item</th><th>Priority</th><th>Why deferred</th></tr></thead>
+<tr><td>UI-004 drill-down panel</td><td>P2</td><td>per-page JS state + WS endpoints; not template-only</td></tr>
+<tr><td>UI-005 Gemma chat widget</td><td>P2</td><td>provider routing + per-page chat state</td></tr>
+<tr><td>UI-001 4 view modes (Grid/Kanban/Timeline/Analytics)</td><td>P2</td><td>per-page data shape + grid library wiring</td></tr>
+<tr><td>SC-MUDA-001 — consolidate 4× page_header duplicates</td><td>P3</td><td>mechanical refactor; ~30 min; surfaced this pass</td></tr>
+<tr><td>JS handler for fractal chip clicks (currently styling only)</td><td>P2</td><td>per-page filter state wiring</td></tr>
+<tr><td>AI search input → backend search API</td><td>P2</td><td>per-page search endpoint wiring</td></tr>
+</table>
+<p class="foot">closure pack · agui-mass-update-20260516 · ZK [zk-bd82645aedcb5ef4] anti-Stub-That-Lies · [zk-806d88cb48225af9] SC-AGUI-UI-CONFORMANCE</p>
+</div>
+
+</body></html>

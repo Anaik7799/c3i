@@ -1,0 +1,30 @@
+digraph dataflow {
+  rankdir=LR;
+  bgcolor="#0a0e17";
+  node [shape=box, style="rounded,filled", fontname="system-ui", fontcolor="#e0e6ed", color="#1e2a3a", fillcolor="#141922"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="system-ui", fontsize=10];
+
+  ClientGet [label="Browser\nGET /immune", fillcolor="#1a2030"];
+  Mist [label="Mist HTTP server\nport 4100"];
+  Router [label="router.gleam\nhandle_request"];
+  Renderer [label="system_views.immune\npage_header(title, sub)"];
+  AGUIChrome [label="agui-chrome <div>\n+ L0-L7 chips\n+ search bar\n+ change-log", fillcolor="#1a2030", fontcolor="#00d4aa"];
+  HTML [label="HTML response\n34805 bytes\nbody"];
+  CSSGet [label="Browser\nGET /static/material.css", fillcolor="#1a2030"];
+  CSS [label="material.css\n+ chrome styles\n(fractal-chip colors L0..L7)", fillcolor="#1a2030", fontcolor="#00d4aa"];
+  Render [label="Browser\nrenders chrome", fillcolor="#1a2030"];
+
+  ClientGet -> Mist;
+  Mist -> Router;
+  Router -> Renderer;
+  Renderer -> AGUIChrome [label="emit"];
+  AGUIChrome -> HTML;
+  HTML -> Render;
+  CSSGet -> CSS;
+  CSS -> Render [label="style"];
+
+  Curl [label="curl + grep\n(anti-Stub-That-Lies probe)", fillcolor="#251500", fontcolor="#3dd68c"];
+  Conformance [label="agui_conformance.gleam\nscore /immune = 8/10", fillcolor="#251500", fontcolor="#3dd68c"];
+  HTML -> Curl [style=dashed, color="#3dd68c"];
+  Curl -> Conformance [style=dashed, color="#3dd68c"];
+}

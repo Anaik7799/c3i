@@ -1,0 +1,40 @@
+digraph controlflow {
+  rankdir=TB;
+  bgcolor="#0a0e17";
+  node [shape=box, style="rounded,filled", fontname="system-ui", fontcolor="#e0e6ed", color="#1e2a3a", fillcolor="#141922"];
+  edge [color="#7a8fa6", fontcolor="#7a8fa6", fontname="system-ui", fontsize=10];
+
+  Start [label="Operator: update all pages", shape=ellipse, fillcolor="#1a2030", fontcolor="#00d4aa"];
+  Audit [label="Run agui_conformance\n→ 1 evolved, 3 partial-7, 28 partial-5"];
+  D1 [shape=diamond, label="Honest scope?", fillcolor="#251500", fontcolor="#ffb000"];
+  Reject [label="Full evolution × 28\n= 30K LOC + 3K tests\n= 5-10 sessions\nREJECT this turn", fillcolor="#2a1a00", fontcolor="#ff8a94"];
+  Choose [label="Mass-shallow:\n3 of 5 missing components\nvia shared template edit", fillcolor="#1a2030", fontcolor="#3dd68c"];
+  Edit1 [label="Edit page_helpers.gleam\n(thought to be shared)"];
+  Probe1 [label="curl /immune | grep fractal-l0\n→ 0 matches", fillcolor="#251500", fontcolor="#ff8a94"];
+  D2 [shape=diamond, label="Stub-That-Lies?", fillcolor="#251500", fontcolor="#ff8a94"];
+  Diag [label="grep -rn '^fn page_header'\n→ 4 implementations found\n(3 local duplicates)"];
+  Edit4 [label="Edit all 4: page_helpers,\nsystem_views, dashboard_views,\nspecial_views"];
+  Build [label="gleam build → 0.27s"];
+  Restart [label="pkill + nohup gleam run --serve"];
+  Probe2 [label="curl /immune | grep fractal-l0\n→ 8 matches (L0..L7)"];
+  CSS [label="Append AGUI chrome CSS\nto material.css\n(+27 lines)"];
+  Final [label="Re-run agui_conformance\n→ 1 evolved + 31 partial-8\n+84 conformance points"];
+  Closure [label="Closure pack\njournal + analysis.html + diagrams"];
+
+  Start -> Audit;
+  Audit -> D1;
+  D1 -> Reject [label="full evolve no"];
+  D1 -> Choose [label="mass-shallow yes"];
+  Reject -> Choose [style=dashed];
+  Choose -> Edit1;
+  Edit1 -> Probe1;
+  Probe1 -> D2;
+  D2 -> Diag [label="yes — caught"];
+  Diag -> Edit4;
+  Edit4 -> Build;
+  Build -> Restart;
+  Restart -> Probe2;
+  Probe2 -> CSS;
+  CSS -> Final;
+  Final -> Closure;
+}

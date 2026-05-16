@@ -422,3 +422,30 @@ code, .mono, .id { font-family: var(--md-font-mono); font-size: 0.8125rem; }
 .theme-amber  { --md-primary: #ffb000; --md-surface: #1a1000; --md-on-surface: #ffb000; --md-surface-container: #251500; }
 .theme-solaris{ --md-primary: #005fb8; --md-surface: #f0f4f8; --md-on-surface: #1a2a3a; --md-surface-container: #ffffff; }
 .theme-forest { --md-primary: #4e9a06; --md-surface: #081008; --md-on-surface: #a0c0a0; --md-surface-container: #122012; }
+
+/* ─── SC-AGUI-UI-002/003/007 chrome (mass-shallow update 2026-05-16) ─── */
+.agui-chrome { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; padding: 10px 14px; background: rgba(20, 25, 34, 0.6); border: 1px solid #1e2a3a; border-radius: 8px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.fractal-filter { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.fractal-chip { display: inline-flex; align-items: center; justify-content: center; min-height: 28px; padding: 4px 10px; border-radius: 14px; font: 600 11px 'JetBrains Mono', monospace; cursor: pointer; user-select: none; transition: all 0.15s ease; border: 1px solid transparent; }
+.fractal-chip.fractal-l0 { background: rgba(255, 107, 107, 0.18); color: #ff6b6b; border-color: rgba(255, 107, 107, 0.4); }
+.fractal-chip.fractal-l1 { background: rgba(255, 217, 61, 0.18); color: #ffd93d; border-color: rgba(255, 217, 61, 0.4); }
+.fractal-chip.fractal-l2 { background: rgba(107, 203, 119, 0.18); color: #6bcb77; border-color: rgba(107, 203, 119, 0.4); }
+.fractal-chip.fractal-l3 { background: rgba(77, 150, 255, 0.18); color: #4d96ff; border-color: rgba(77, 150, 255, 0.4); }
+.fractal-chip.fractal-l4 { background: rgba(155, 89, 182, 0.18); color: #b876d1; border-color: rgba(155, 89, 182, 0.4); }
+.fractal-chip.fractal-l5 { background: rgba(0, 212, 170, 0.18); color: #00d4aa; border-color: rgba(0, 212, 170, 0.4); }
+.fractal-chip.fractal-l6 { background: rgba(231, 76, 60, 0.18); color: #ff7a6a; border-color: rgba(231, 76, 60, 0.4); }
+.fractal-chip.fractal-l7 { background: rgba(243, 156, 18, 0.18); color: #f5a623; border-color: rgba(243, 156, 18, 0.4); }
+.fractal-chip:hover { transform: translateY(-1px); filter: brightness(1.2); }
+.fractal-chip.active { box-shadow: 0 0 0 2px currentColor; }
+
+.search-bar.ai-search { display: flex; align-items: center; gap: 6px; flex: 1; max-width: 360px; min-width: 200px; }
+.search-bar.ai-search .ai-search-input { flex: 1; min-height: 32px; padding: 6px 10px; border: 1px solid #1e2a3a; border-radius: 6px; background: rgba(10, 14, 23, 0.6); color: #e0e6ed; font: 13px system-ui, sans-serif; }
+.search-bar.ai-search .ai-search-input:focus { outline: none; border-color: #00d4aa; box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2); }
+.search-bar.ai-search .ai-search-input::placeholder { color: #7a8fa6; }
+.search-bar.ai-search .search-hint { padding: 3px 8px; border-radius: 4px; background: #1a2030; color: #7a8fa6; font: 600 10px 'JetBrains Mono', monospace; letter-spacing: 0.5px; }
+
+.change-log.event-log { display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 6px; background: rgba(10, 14, 23, 0.4); }
+.change-log.event-log .change-log-label { color: #7a8fa6; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+.change-log.event-log .change-log-feed { display: flex; gap: 4px; font: 11px 'JetBrains Mono', monospace; color: #00d4aa; }
+
+@media (max-width: 768px) { .agui-chrome { padding: 8px 10px; gap: 8px; } .fractal-filter { gap: 4px; } .fractal-chip { padding: 3px 8px; font-size: 10px; min-height: 26px; } .search-bar.ai-search { max-width: 100%; min-width: 0; flex: 1 1 100%; } }
