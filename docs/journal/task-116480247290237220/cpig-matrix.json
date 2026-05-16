@@ -2,11 +2,17 @@
   "version": "1.5.0",
   "generated_at": "2026-05-01T22:00:00.000000Z",
   "last_updated": "2026-05-16T10:40:00Z",
-  "system_score_mean": 70,
-  "system_score_max": 70,
+  "system_score_mean": 75,
+  "system_score_max": 75,
   "system_score_pct": 100.0,
   "milestone_100pct_reached_at": "2026-05-16T10:35:00Z",
   "milestone_100pct_pass": 27,
+  "subsystem_count_extension_at_pass36": {
+    "added_subsystem": "agui-chrome-three-layer-defense",
+    "rationale": "Codified runtime governance for the 3-layer chrome defense across 32 pages (pass-28..pass-36 arc)",
+    "new_total": 15,
+    "preserves_100pct": true
+  },
   "description": "C3I Cross-Pass Invariant Gate (CPIG) registry \u2014 12 subsystems \u00d7 5 gates (formal_spec, wiring_guard, sa_plan_tracking, zk_ingestion, email_closure). Pass-14 brought system score from 36/60 (Pass 13) \u2192 55/60 via 5 new TLA+ specs and 4 new Wiring Guards.",
   "pass14_revision": {
     "passes_completed": [
@@ -826,6 +832,84 @@
       "passes_completed": [
         "pass-1..pass-13"
       ]
+    },
+    {
+      "id": "agui-chrome-three-layer-defense",
+      "name": "AGUI Chrome Three-Layer Defense (HTML class + DOM ID + JS handler)",
+      "criticality": "P0",
+      "owner_module": "lib/cepaf_gleam/priv/static/agui-chrome.js + lib/cepaf_gleam/src/cepaf_gleam/ui/web/page_helpers.gleam + sub-projects/scripts-gleam/src/scripts/verify/agui_{conformance,chrome_presence,js_depth}.gleam",
+      "added_in_pass": "pass-36 (2026-05-16)",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            ".claude/rules/{agui-conformance,agui-js-depth,agui-chrome-presence}.md (3 layered rules, 19 STAMP IDs)",
+            ".gemini/rules/ parity mirrors per SC-SYNC-DOC-007"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "scripts/verify/agui_conformance.gleam (32 pages × 11 components substring)",
+            "scripts/verify/agui_chrome_presence.gleam (32 pages × 5 IDs + ≥9 chips structural)",
+            "scripts/verify/agui_js_depth.gleam (10 JS handler signatures)",
+            "validators_meta_test.gleam test_agui_js_depth + test_agui_chrome_presence (2/2 prove detectors fire)"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "SC-AGUI-UI-001..015, SC-AGUI-CONFORM-001..006, SC-AGUI-UI-WIRING-DEPTH-001..005, SC-AGUI-UI-CHROME-PRESENCE-001..008"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 1,
+          "evidence": [
+            "docs/journal/agui-mass-update-20260516/journal.md (pass-1 mass update)",
+            "docs/journal/agui-full-wiring-100pct-20260516/{journal.md,analysis.html,improvement-plan.md,diagrams/architecture.png} (pass-28 verification + 10-item improvement plan)",
+            "sa-plan ingest-docs 2026-05-16 → 38,043 holons in KMS"
+          ]
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [
+            "sa-plan-daemon send-email --to Abhijit.Naik@bountytek.com sent 2026-05-16 08:38 UTC (pass-28), 4 attachments (126,860 bytes: journal.md + analysis.html + improvement-plan.md + architecture.png)"
+          ]
+        }
+      },
+      "score": 5,
+      "delta": 5,
+      "fmea_pre": 504,
+      "fmea_post": 24,
+      "stamp_families": [
+        "SC-AGUI-UI-CONFORMANCE(6)",
+        "SC-AGUI-UI-WIRING-DEPTH(5)",
+        "SC-AGUI-UI-CHROME-PRESENCE(8)"
+      ],
+      "evolution_arc_passes": [28, 29, 30, 31, 32, 33, 34, 35, 36],
+      "improvements_closed": [
+        "#1 change-log seeding (pass-28)",
+        "#6 fractal-filter data-layer auto-classifier (pass-29)",
+        "#5 AI semantic search /api/v1/plan/search (pass-30)",
+        "#8 heartbeat indicator (pass-31)",
+        "#9 drill-down per-page preview (pass-31)",
+        "#7 structural UI-005 gate (pass-32)",
+        "#10 chat 401 inline (pass-32)",
+        "#3 Allium skeleton codegen — 55 specs (pass-33)",
+        "#4 chrome structural validator (pass-34)"
+      ],
+      "improvements_pending": [
+        "#2 Effect-TS migration (operator-gated H-risk per SC-EFFECT-TS-001..007)"
+      ],
+      "live_evidence": {
+        "pages_http_200": "32/32",
+        "pages_spec_aligned": "32/32",
+        "pages_evolved_tier": "32/32",
+        "structural_id_coverage": "32/32 × 5 IDs + ≥9 chips",
+        "js_handler_signatures": "10/10",
+        "validators_in_ring": "8/8 ✓ homeostasis",
+        "meta_tests": "6/6 detectors proven not-Stub-That-Lies"
+      }
     }
   ],
   "pass13_targets": [
