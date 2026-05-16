@@ -43,7 +43,9 @@ const checks: List(#(String, List(String))) = [
   #("fractal-filter (UI-002)", ["fractal-l0", "fractal-l1", "layer-filter"]),
   #("ai-search (UI-003)", ["search-bar", "ctrl+k", "Ctrl+K", "ai-search"]),
   #("drill-down (UI-004)", ["detail-panel", "drill-down", "task-detail"]),
-  #("gemma-chat (UI-005)", ["gemma", "chat-widget", "chat-panel"]),
+  // UI-005: require BOTH class AND structural form/input element (per
+  // SC-AGUI-CONFORM-003, improvement-plan #7: prevent decorative-class stub).
+  #("gemma-chat (UI-005)", ["chat-panel-form"]),
   #("websocket (UI-006)", ["ws://", "/ws/", "WebSocket"]),
   #("change-log (UI-007)", ["change-log", "event-log", "mutation-log"]),
   #("responsive-css (UI-008)", ["@media", "768px", "1024px"]),
