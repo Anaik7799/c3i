@@ -17,12 +17,13 @@
 ////
 //// Exit 0 if all signatures present, 1 if any missing.
 
+import argv
 import gleam/erlang/charlist
 import gleam/io
 import gleam/list
 import gleam/string
 
-const url: String = "http://vm-1.tail55d152.ts.net:4100/static/agui-chrome.js"
+const default_url: String = "http://vm-1.tail55d152.ts.net:4100/static/agui-chrome.js"
 
 const signatures: List(#(String, String)) = [
   #("UI-002 fractal-filter handler", "applyFractalFilter"),
@@ -44,6 +45,10 @@ fn cl(s: String) -> charlist.Charlist {
 }
 
 pub fn main() -> Nil {
+  let url = case argv.load().arguments {
+    [u, ..] -> u
+    [] -> default_url
+  }
   io.println("══ SC-AGUI-UI-WIRING-DEPTH (JS signatures) ══")
   io.println("source: " <> url)
   let #(out, _rc) =

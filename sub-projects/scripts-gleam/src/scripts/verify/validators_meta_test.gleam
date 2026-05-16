@@ -56,6 +56,7 @@ pub fn main() -> Nil {
     test_disk_lyapunov(),
     test_cpig_consistency(),
     test_corpus_index(),
+    test_agui_js_depth(),
   ]
 
   io.println("")
@@ -207,6 +208,39 @@ fn test_cpig_consistency() -> #(String, Bool) {
   // ASCII-safe — "SC-CPIG-CONSISTENCY violations:" always emitted on bad input
   let pass = string.contains(raw, "SC-CPIG-CONSISTENCY violations")
   io.println("  → contains 'SC-CPIG-CONSISTENCY violations': " <> bool_to_str(pass))
+  #(name, pass)
+}
+
+fn test_agui_js_depth() -> #(String, Bool) {
+  let name = "agui_js_depth · synthetic JS missing signatures → expect P0"
+  io.println("\n── " <> name <> " ──")
+
+  let tmp_js = "/tmp/agui-meta-test.js"
+  // Synthetic file with NO required signatures — should trip all 6.
+  let _ =
+    sh(cl("sh"), [
+      cl("-c"),
+      cl("printf '%s' 'function nothing() { return 0 }' > " <> tmp_js),
+    ])
+
+  let #(out, _rc) =
+    sh_in(
+      cl("gleam"),
+      [
+        cl("run"),
+        cl("-m"),
+        cl("scripts/verify/agui_js_depth"),
+        cl("--"),
+        cl("file://" <> tmp_js),
+      ],
+      cl(repo_root),
+    )
+  let _ = sh(cl("sh"), [cl("-c"), cl("rm -f " <> tmp_js)])
+
+  let raw = charlist.to_string(out)
+  // Validator emits "--priority P0" hint (ASCII-safe) when signatures missing.
+  let pass = string.contains(raw, "--priority P0")
+  io.println("  → contains '--priority P0' hint: " <> bool_to_str(pass))
   #(name, pass)
 }
 
