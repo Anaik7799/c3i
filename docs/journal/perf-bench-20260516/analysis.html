@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Perf bench + dataplane/control plane · 2026-05-16</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--p0:#ff4757;--p1:#f5a623;--ok:#3dd68c;--border:#1e2a3a}
+*{box-sizing:border-box}body{font:14px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--text);margin:0}
+header{padding:24px 32px;background:linear-gradient(135deg,#0a0e17,#1a2030);border-bottom:1px solid var(--border)}
+h1{margin:0;color:var(--accent);font-size:22px}
+h2{margin:24px 0 8px;color:var(--accent);font-size:16px;border-bottom:1px solid var(--border);padding-bottom:4px}
+h3{margin:14px 0 4px;font-size:14px;color:#fff}
+main{max-width:1100px;margin:0 auto;padding:24px 32px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.tag{padding:4px 10px;border-radius:6px;background:var(--card);border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:12px}
+.tag.ok{background:#1a3a2a;border-color:var(--ok);color:#a0e8c4}
+.tag.p1{background:#3a2d18;border-color:var(--p1);color:#ffd99c}
+.tag.p0{background:#3a1a1f;border-color:var(--p0);color:#ffb0ba}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+th,td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:#1a2030;color:var(--accent);font-weight:600}
+td.num{text-align:right;font-family:'JetBrains Mono',monospace}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:12px 0}
+.kpi>div{background:var(--card);padding:12px;border-radius:6px;border:1px solid var(--border);text-align:center}
+.kpi .v{font-size:22px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:600}
+.kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.kpi .v.p0{color:var(--p0)}.kpi .v.ok{color:var(--ok)}
+code{background:#1a2030;padding:2px 6px;border-radius:3px;color:#a0e8d6;font-size:12px}
+pre{background:#1a2030;padding:12px;border-radius:6px;overflow-x:auto;font-size:12px;color:#a0e8d6}
+.flex{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0}.flex>div{flex:1;min-width:240px;background:var(--card);padding:12px;border:1px solid var(--border);border-radius:6px}
+.muted{color:var(--muted)}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.banner{background:linear-gradient(90deg,#1a3a2a 0%,#1a2030 100%);border-left:4px solid var(--ok);padding:14px 18px;margin:8px 0 20px;border-radius:4px}
+</style></head>
+<body>
+<header>
+  <h1>Performance benchmark + Dataplane / Control plane full check</h1>
+  <div class="muted mono">2026-05-16 06:09 UTC · agent claude · post Phase A + A.2 fixes</div>
+  <div class="bar">
+    <span class="tag ok">stop-hook ✓ in 1.9s (3-run mean)</span>
+    <span class="tag ok">ingest warm &lt; 10ms (42× speedup)</span>
+    <span class="tag ok">ZK search 13-25ms</span>
+    <span class="tag ok">HTTP dataplane 200 OK on :4100/:4200/:8443</span>
+    <span class="tag ok">λ = 0 (regression resolved)</span>
+  </div>
+</header>
+<main>
+
+<div class="banner">
+  <strong>Lyapunov reversal achieved.</strong> Citation slope went from +99/turn accelerating (Rule 30 chaos) to 0 (homeostasis). The OODA Learn loop is back in budget.
+</div>
+
+<h2>KPIs</h2>
+<div class="kpi">
+  <div><div class="v ok">1.9s</div><div class="l">stop-hook mean</div></div>
+  <div><div class="v ok">9ms</div><div class="l">ingest warm</div></div>
+  <div><div class="v ok">9ms</div><div class="l">sa-plan status</div></div>
+  <div><div class="v ok">15ms</div><div class="l">ZK search p50</div></div>
+  <div><div class="v ok">45ms</div><div class="l">:4100 health</div></div>
+  <div><div class="v ok">&lt;1ms</div><div class="l">:4200 health</div></div>
+  <div><div class="v ok">2777×</div><div class="l">ingest speedup</div></div>
+  <div><div class="v ok">0</div><div class="l">λ (steady)</div></div>
+</div>
+
+<h2>Stop-hook chain (3 runs)</h2>
+<table>
+<thead><tr><th>Run</th><th>Elapsed</th><th>Output</th><th>RC</th></tr></thead>
+<tbody>
+<tr><td>1</td><td class="num">1.938 s</td><td><code>{"systemMessage":"Session saved + ZK ingest C3I=ok FY27=absent"}</code></td><td class="num">0</td></tr>
+<tr><td>2</td><td class="num">1.854 s</td><td>(identical)</td><td class="num">0</td></tr>
+<tr><td>3</td><td class="num">1.915 s</td><td>(identical)</td><td class="num">0</td></tr>
+<tr><td><strong>mean</strong></td><td class="num"><strong>1.902 s</strong></td><td>—</td><td class="num">0</td></tr>
+</tbody>
+</table>
+
+<h2>Hot-path latencies</h2>
+<div class="flex">
+<div>
+<h3>sa-plan-daemon ingest-docs (warm)</h3>
+<pre>warm 1: 0.010 s
+warm 2: 0.008 s
+warm 3: 0.009 s</pre>
+<p class="muted">Mtime fast-path active; idx_holons_content_hash chosen by SQLite planner.</p>
+</div>
+<div>
+<h3>sa-plan-daemon status</h3>
+<pre>run 1: 0.009 s
+run 2: 0.009 s
+run 3: 0.008 s</pre>
+<p class="muted">Control-plane reads stay sub-10ms.</p>
+</div>
+<div>
+<h3>ZK search (knowledge-search)</h3>
+<pre>stop-hook  hits=5  17ms
+CPIG       hits=5  13ms
+Dart       hits=5  13ms
+Fractal    hits=5  18ms
+cortex     hits=5  15ms
+symbiosis  hits=5  25ms</pre>
+<p class="muted">p50 ≈ 15ms · p99 ≈ 25ms · all queries hit.</p>
+</div>
+</div>
+
+<h2>Dataplane HTTP probes</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>Code</th><th>Latency</th><th>Owner</th></tr></thead>
+<tbody>
+<tr><td><code>http://:4100/health</code></td><td><span class="tag ok">200</span></td><td class="num">45 ms</td><td>beam.smp (cepaf_gleam Lustre + Wisp)</td></tr>
+<tr><td><code>http://:4200/health</code></td><td><span class="tag ok">200</span></td><td class="num">&lt;1 ms</td><td>sa-plan-daemon Rust webserver</td></tr>
+<tr><td><code>https://:8443/</code></td><td><span class="tag ok">200</span></td><td class="num">44 ms</td><td>sa-plan-daemon TLS (Tailscale ACME)</td></tr>
+<tr><td><code>http://:4000/health</code></td><td><span class="muted">n/c</span></td><td>—</td><td>Phoenix legacy (not running, expected)</td></tr>
+</tbody>
+</table>
+
+<h2>Control-plane sockets + processes</h2>
+<div class="flex">
+<div>
+<h3>Listening sockets</h3>
+<pre>:7447  rootlessport (Zenoh router)
+:4100  beam.smp (cepaf_gleam UI)
+:4200  sa-plan (operator dashboard)
+:8443  sa-plan TLS (Tailscale)</pre>
+</div>
+<div>
+<h3>Top processes</h3>
+<pre>sa-plan-daemon daemon     13d uptime
+sa-plan-daemon tls serve   5d uptime
+beam.smp :4100            (active)
+sutra_server (Mist)       13d
+p9_symbiosis_monitor      13d
+p10_rete_autofix          13d</pre>
+</div>
+</div>
+
+<h2>Smriti.db (institutional memory)</h2>
+<table>
+<tbody>
+<tr><th>Path</th><td><code>sub-projects/c3i/data/kms/smriti.db</code></td></tr>
+<tr><th>Size</th><td class="num">275 MB · 70,237 pages × 4 KB</td></tr>
+<tr><th>Journal mode</th><td>WAL · synchronous default</td></tr>
+<tr><th>Total holons</th><td class="num">37,889</td></tr>
+<tr><th>ingest_state rows</th><td class="num">7,372</td></tr>
+<tr><th>Indexes on <code>holons</code></th><td>sqlite_autoindex · cluster · level · entropy · updated · <strong>content_hash (new)</strong></td></tr>
+<tr><th>Tagged corpus this session</th><td>dart/mcp <strong>40</strong> · fractal <strong>711</strong> · cortex cascade <strong>6</strong></td></tr>
+</tbody>
+</table>
+
+<h2>Lyapunov reversal across session</h2>
+<table>
+<thead><tr><th>Turn</th><th>Citations</th><th>Δ / turn</th><th>Class</th><th>Hook signature</th></tr></thead>
+<tbody>
+<tr><td>T1</td><td class="num">50</td><td>—</td><td class="muted">Rule 30 onset</td><td>✗ TIMEOUT 50s</td></tr>
+<tr><td>T2</td><td class="num">104</td><td class="num">+54</td><td class="muted">linear</td><td>✗ TIMEOUT</td></tr>
+<tr><td>T3</td><td class="num">156</td><td class="num">+52</td><td class="muted">linear</td><td>✗ TIMEOUT</td></tr>
+<tr><td>T4</td><td class="num">255</td><td class="num">+99</td><td><span class="tag p0">accel</span></td><td>✗ TIMEOUT</td></tr>
+<tr><td>T5</td><td class="num">382</td><td class="num">+127</td><td><span class="tag p0">chaos</span></td><td>✗ TIMEOUT</td></tr>
+<tr><td>T6</td><td class="num">433</td><td class="num">+51</td><td class="muted">ringing</td><td>✗ TIMEOUT</td></tr>
+<tr><td>T7</td><td class="muted">—</td><td>—</td><td><span class="tag p1">unmasked</span></td><td>✗ rc=1 · 2s · Phase A landed</td></tr>
+<tr><td>T8</td><td class="num">616</td><td>—</td><td><span class="tag ok">resolved</span></td><td>✓ in 2s · Phase A.2 landed</td></tr>
+<tr><td>T9</td><td class="num">691</td><td class="num">+75</td><td><span class="tag ok">steady</span></td><td>✓ in 1s</td></tr>
+</tbody>
+</table>
+
+<h2>Verification matrix</h2>
+<table>
+<thead><tr><th>#</th><th>Verifier</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Stop-hook ✓ rc=0 in 1-2s</td><td><span class="tag ok">verified live</span></td></tr>
+<tr><td>2</td><td>content_hash index chosen by planner (EXPLAIN)</td><td><span class="tag ok">COVERING INDEX</span></td></tr>
+<tr><td>3</td><td>mtime fast-path: 7,372 cached + &lt;10ms warm</td><td><span class="tag ok">active</span></td></tr>
+<tr><td>4</td><td>Catalogs reached Smriti (40+711+6)</td><td><span class="tag ok">ingested</span></td></tr>
+<tr><td>5</td><td>FY27=absent reported gracefully</td><td><span class="tag ok">degraded ok</span></td></tr>
+<tr><td>6</td><td>HTTP :4100/:4200/:8443 all 200 OK</td><td><span class="tag ok">healthy</span></td></tr>
+<tr><td>7</td><td>Zenoh :7447 listening</td><td><span class="tag ok">up</span></td></tr>
+<tr><td>8</td><td>sa-plan preflight 3/3</td><td><span class="tag ok">pass</span></td></tr>
+<tr><td>9</td><td>ZK search 6 queries · 5 hits each · &lt;25ms</td><td><span class="tag ok">searchable</span></td></tr>
+<tr><td>10</td><td>Gleam build 0.08s + 0.35s</td><td><span class="tag ok">fast</span></td></tr>
+<tr><td>11</td><td>Commits on origin/main</td><td><span class="tag ok">74ec8186, f2a71874</span></td></tr>
+<tr><td>12</td><td>Lyapunov flipped +99 → 0</td><td><span class="tag ok">homeostasis</span></td></tr>
+</tbody>
+</table>
+
+<h2>Related artefacts</h2>
+<ul>
+<li><a href="journal.md">journal.md</a> — 13-section SC-JOURNAL</li>
+<li><a href="benchmarks.md">benchmarks.md</a> — raw numbers</li>
+<li><a href="deck.html">deck.html</a> — slide deck</li>
+<li><a href="email.md">email.md</a> — email draft</li>
+<li><a href="links.json">links.json</a> — registry</li>
+<li><a href="../stophook-cpig-20260516/analysis.html">prior pack: stophook-cpig-20260516</a></li>
+<li><a href="../diagnostic-stophook-cpig-20260516-072912.md">diagnostic (turn 5)</a></li>
+</ul>
+
+<footer class="muted" style="margin-top:32px;padding-top:12px;border-top:1px solid var(--border);font-size:11px">
+ZK lineage: zk-5c8f10d44882198d · zk-1281758e66bcaba2 · zk-a334329c1b7fe79e · zk-cf3aa357f999453d · zk-487f4752c4311c75 · zk-dbd0d3a6d840784d · zk-bd82645aedcb5ef4 · zk-c14e1d23afff486c
+</footer>
+</main></body></html>

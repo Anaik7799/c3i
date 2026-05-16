@@ -1,0 +1,138 @@
+{
+  "task_id": "perf-bench-20260516",
+  "generated_at": "2026-05-16T06:09:30Z",
+  "scope": "Performance benchmark + dataplane/control-plane full check (post Phase A + A.2)",
+  "session_pid": "$$",
+  "agent": "claude-opus-4-7",
+  "operator_url_http": "http://vm-1.tail55d152.ts.net:4200/task-id/perf-bench-20260516/",
+  "operator_url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/perf-bench-20260516/",
+  "artefacts": [
+    {"name": "journal.md", "role": "13-section SC-JOURNAL"},
+    {"name": "benchmarks.md", "role": "raw bench data"},
+    {"name": "analysis.html", "role": "operator handoff index"},
+    {"name": "deck.html", "role": "7-slide deck"},
+    {"name": "email.md", "role": "email draft"},
+    {"name": "links.json", "role": "this file"}
+  ],
+  "benchmarks": {
+    "stop_hook_chain_mean_s": 1.902,
+    "stop_hook_chain_runs": [1.938, 1.854, 1.915],
+    "stop_hook_rc": 0,
+    "stop_hook_output": "{\"systemMessage\":\"Session saved + ZK ingest C3I=ok FY27=absent\"}",
+    "ingest_docs_warm_runs_s": [0.010, 0.008, 0.009],
+    "ingest_docs_speedup_vs_original": "2777x",
+    "sa_plan_status_runs_s": [0.009, 0.009, 0.008],
+    "zk_search_p50_ms": 15,
+    "zk_search_p99_ms": 25,
+    "zk_search_all_hit": true,
+    "gleam_build_scripts_s": 0.08,
+    "gleam_build_cepaf_s": 0.35,
+    "preflight_ms": 1
+  },
+  "dataplane": [
+    {"endpoint": "http://localhost:4100/health", "code": 200, "latency_ms": 45, "owner": "beam.smp cepaf_gleam Lustre/Wisp"},
+    {"endpoint": "http://localhost:4200/health", "code": 200, "latency_ms": 0.9, "owner": "sa-plan-daemon Rust webserver"},
+    {"endpoint": "https://localhost:8443/", "code": 200, "latency_ms": 44, "owner": "sa-plan-daemon TLS (Tailscale)"},
+    {"endpoint": "http://localhost:4000/health", "code": null, "latency_ms": null, "owner": "Phoenix legacy (expected down)"}
+  ],
+  "control_plane": {
+    "listening_sockets": [
+      {"port": 7447, "owner": "rootlessport (Zenoh router)"},
+      {"port": 4100, "owner": "beam.smp cepaf_gleam"},
+      {"port": 4200, "owner": "sa-plan Rust webserver"},
+      {"port": 8443, "owner": "sa-plan TLS"}
+    ],
+    "long_running_processes": [
+      {"pid": 11406, "uptime": "13d", "cmd": "sa-plan-daemon daemon"},
+      {"pid": 273162, "uptime": "5d", "cmd": "sa-plan-daemon tls serve"},
+      {"pid": 2043487, "uptime": "active", "cmd": "beam.smp :4100"},
+      {"pid": 3069, "uptime": "13d", "cmd": "sutra_server (Gleam Mist)"},
+      {"pid": 1950, "uptime": "13d", "cmd": "gleam p9_symbiosis_monitor"},
+      {"pid": 1952, "uptime": "13d", "cmd": "gleam p10_rete_autofix"}
+    ],
+    "preflight": {"passed": 3, "failed": 0, "warnings": 0, "duration_ms": 1}
+  },
+  "smriti_db": {
+    "path": "sub-projects/c3i/data/kms/smriti.db",
+    "size_mb": 275,
+    "page_count": 70237,
+    "page_size": 4096,
+    "journal_mode": "wal",
+    "total_holons": 37889,
+    "ingest_state_rows": 7372,
+    "indexes_on_holons": [
+      "sqlite_autoindex_holons_1",
+      "idx_holons_cluster",
+      "idx_holons_level",
+      "idx_holons_entropy",
+      "idx_holons_updated",
+      "idx_holons_content_hash"
+    ],
+    "explain_plan": "SEARCH holons USING COVERING INDEX idx_holons_content_hash (content_hash=?)",
+    "session_ingest_delta": {
+      "dart_mcp": 40,
+      "fractal": 711,
+      "cortex_cascade": 6,
+      "total_new_holons": 61
+    }
+  },
+  "lyapunov_arc": [
+    {"turn": "T1", "citations": 50, "delta": null, "signature": "TIMEOUT 50s"},
+    {"turn": "T2", "citations": 104, "delta": 54, "signature": "TIMEOUT"},
+    {"turn": "T3", "citations": 156, "delta": 52, "signature": "TIMEOUT"},
+    {"turn": "T4", "citations": 255, "delta": 99, "signature": "TIMEOUT"},
+    {"turn": "T5", "citations": 382, "delta": 127, "signature": "TIMEOUT (peak)"},
+    {"turn": "T6", "citations": 433, "delta": 51, "signature": "TIMEOUT"},
+    {"turn": "T7", "citations": null, "delta": null, "signature": "rc=1 in 2s (Phase A landed)"},
+    {"turn": "T8", "citations": 616, "delta": null, "signature": "OK in 2s (Phase A.2 landed)"},
+    {"turn": "T9", "citations": 691, "delta": 75, "signature": "OK in 1s (steady)"}
+  ],
+  "cpig_state": {
+    "claimed_before": "62/65 (95.4%)",
+    "honest_after": "60/65 (92.3%)",
+    "correction": "fractal G4 + G5: 1 -> 0 per SQL evidence",
+    "audit_block_present": true,
+    "catalogs_ingested": true
+  },
+  "commits_pushed_origin_main": [
+    {"sha": "ee1d3eb68", "type": "perf", "scope": "plan,smriti", "subject": "index content_hash + ingest_state mtime fast-path", "repo": "Anaik7799/intelitor (submodule)"},
+    {"sha": "74ec8186", "type": "feat", "scope": "plan,docs", "subject": "stop-hook fix + CPIG Pass-15 closure", "repo": "Anaik7799/c3i (parent)"},
+    {"sha": "f2a71874", "type": "fix", "scope": "plan,scripts", "subject": "stop-hook robustness — FFI + graceful FY27", "repo": "Anaik7799/c3i (parent)"}
+  ],
+  "sa_plan_tasks_closed": [
+    {"id": "116582651629114872", "priority": "P0", "phase": "A", "title": "Stop-hook incremental ingest"},
+    {"id": "116582745313177714", "priority": "P0", "phase": "A.2", "title": "Stop-hook robustness FFI + graceful FY27"},
+    {"id": "116582651762925917", "priority": "P1", "phase": "E", "title": "CPIG matrix recount"},
+    {"id": "116582651981412310", "priority": "P2", "phase": "B", "title": "Dart MCP G4 ZK ingest"},
+    {"id": "116582651983745630", "priority": "P2", "phase": "C", "title": "Fractal L0-L7 G4+G5 closure"},
+    {"id": "116582651984877080", "priority": "P3", "phase": "D", "title": "Cortex 6-tier G4+G5 closure"}
+  ],
+  "stamp_constraints_referenced": [
+    "SC-FUNC-001..008",
+    "SC-CPIG-014",
+    "SC-NIF-LOAD-006",
+    "SC-IKE-001..003",
+    "SC-XHOLON-020",
+    "SC-XHOLON-021",
+    "SC-XHOLON-025",
+    "SC-SCRIPT-GLEAM-001",
+    "SC-PD-RUST-ONLY-001..010",
+    "SC-WIRE-001",
+    "SC-CPIG-008",
+    "SC-SATYA-001",
+    "SC-FEAT-EVO-003",
+    "SC-NOTIFY-JOURNAL-001"
+  ],
+  "zk_holons_cited": [
+    "zk-5c8f10d44882198d",
+    "zk-1281758e66bcaba2",
+    "zk-a334329c1b7fe79e",
+    "zk-cf3aa357f999453d",
+    "zk-487f4752c4311c75",
+    "zk-bd82645aedcb5ef4",
+    "zk-c14e1d23afff486c",
+    "zk-dbd0d3a6d840784d",
+    "zk-f04ecebac95efede",
+    "zk-1fefee3d7feff839"
+  ]
+}

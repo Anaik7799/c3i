@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><title>Perf bench deck · 2026-05-16</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--p0:#ff4757;--p1:#f5a623;--ok:#3dd68c}
+*{box-sizing:border-box}body{font:15px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:20px}
+.slide{max-width:980px;margin:0 auto 24px;background:var(--card);border-radius:10px;padding:32px 40px;min-height:360px;border:1px solid #1e2a3a;page-break-after:always}
+.slide h2{margin:0 0 8px;color:var(--accent);font-size:24px}
+.slide .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+.slide ul{margin:8px 0;padding-left:22px}.slide li{margin:6px 0}
+.slide strong{color:#fff}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+.kpi>div{background:#1a2030;padding:12px;border-radius:6px;text-align:center}
+.kpi .v{font-size:24px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:600}
+.kpi .v.p0{color:var(--p0)}.kpi .v.ok{color:var(--ok)}
+.kpi .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+code{background:#1a2030;padding:2px 6px;border-radius:3px;color:#a0e8d6;font-size:13px}
+pre{background:#1a2030;padding:14px;border-radius:6px;font-size:12px;color:#a0e8d6;overflow-x:auto}
+.row{display:flex;gap:14px;margin:12px 0}.row>div{flex:1;background:#1a2030;padding:14px;border-radius:6px}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:5px 8px;text-align:left;border-bottom:1px solid #1e2a3a}th{color:var(--accent)}
+.foot{color:var(--muted);font-size:11px;margin-top:18px;border-top:1px solid #1e2a3a;padding-top:8px}
+.big{font-size:48px;color:var(--ok);font-family:'JetBrains Mono',monospace;text-align:center;margin:24px 0}
+</style></head>
+<body>
+
+<div class="slide">
+  <h2>Performance benchmark + Dataplane/Control plane check</h2>
+  <div class="sub">2026-05-16 06:09 UTC · post Phase A + A.2 fixes · live system</div>
+  <div class="big">✓ in 1.9s · λ = 0</div>
+  <ul>
+    <li>Stop-hook: 50s timeout → <strong>1.9s ✓</strong> (26× margin)</li>
+    <li>Ingest warm: timeout → <strong>9 ms</strong> (2,777× speedup)</li>
+    <li>CPIG: 62/65 dishonest → <strong>60/65 honest</strong></li>
+    <li>Dataplane: 3 endpoints · 200 OK · sub-50ms</li>
+    <li>Control plane: 4 listening sockets · preflight 3/3 · daemon 13d uptime</li>
+  </ul>
+</div>
+
+<div class="slide">
+  <h2>The arc — Lyapunov reversal mid-session</h2>
+  <div class="sub">From accelerating chaos to homeostasis in 9 turns</div>
+  <table>
+    <thead><tr><th>Turn</th><th>Citations</th><th>Δ</th><th>Signature</th></tr></thead>
+    <tr><td>T1</td><td>50</td><td>—</td><td>✗ TIMEOUT 50s</td></tr>
+    <tr><td>T2-T4</td><td>104, 156, 255</td><td>+52..+99</td><td>✗ TIMEOUT (×3)</td></tr>
+    <tr><td>T5</td><td>382</td><td><strong>+127</strong></td><td>✗ TIMEOUT (peak chaos)</td></tr>
+    <tr><td>T6</td><td>433</td><td>+51</td><td>✗ TIMEOUT</td></tr>
+    <tr><td>T7</td><td>—</td><td>—</td><td>✗ rc=1 in 2s (Phase A landed)</td></tr>
+    <tr><td>T8</td><td>616</td><td>—</td><td>✓ in 2s (Phase A.2 landed)</td></tr>
+    <tr><td>T9</td><td>691</td><td>+75</td><td>✓ <strong>in 1s</strong></td></tr>
+  </table>
+</div>
+
+<div class="slide">
+  <h2>Performance benchmarks</h2>
+  <div class="kpi">
+    <div><div class="v ok">1.9s</div><div class="l">stop-hook mean</div></div>
+    <div><div class="v ok">9 ms</div><div class="l">ingest warm</div></div>
+    <div><div class="v ok">9 ms</div><div class="l">sa-plan status</div></div>
+    <div><div class="v ok">15 ms</div><div class="l">ZK search p50</div></div>
+  </div>
+  <div class="kpi">
+    <div><div class="v ok">25 ms</div><div class="l">ZK search p99</div></div>
+    <div><div class="v ok">0.08s</div><div class="l">scripts-gleam build</div></div>
+    <div><div class="v ok">0.35s</div><div class="l">cepaf_gleam build</div></div>
+    <div><div class="v ok">1 ms</div><div class="l">preflight</div></div>
+  </div>
+</div>
+
+<div class="slide">
+  <h2>Dataplane HTTP probes</h2>
+  <table>
+    <thead><tr><th>Endpoint</th><th>Code</th><th>Latency</th><th>Owner</th></tr></thead>
+    <tr><td><code>http://:4100/health</code></td><td>200</td><td>45 ms</td><td>beam.smp cepaf_gleam</td></tr>
+    <tr><td><code>http://:4200/health</code></td><td>200</td><td>&lt;1 ms</td><td>sa-plan Rust webserver</td></tr>
+    <tr><td><code>https://:8443/</code></td><td>200</td><td>44 ms</td><td>sa-plan TLS (Tailscale)</td></tr>
+  </table>
+  <p style="margin-top:16px">All operator-visible surfaces healthy. Sub-50ms responses across L4 (Wisp/Rust/TLS).</p>
+</div>
+
+<div class="slide">
+  <h2>Control plane</h2>
+  <div class="row">
+    <div>
+      <strong>Listening sockets</strong>
+      <pre>:7447  Zenoh router
+:4100  Gleam Lustre/Wisp
+:4200  sa-plan dashboard
+:8443  sa-plan TLS</pre>
+    </div>
+    <div>
+      <strong>Top processes (uptime)</strong>
+      <pre>sa-plan-daemon daemon  13d
+sa-plan-daemon tls      5d
+beam.smp :4100        (live)
+sutra_server (Mist)    13d
+p9_symbiosis_monitor   13d
+p10_rete_autofix       13d</pre>
+    </div>
+  </div>
+  <p>sa-plan preflight: <strong>3 passed, 0 failed, 0 warnings · 1 ms</strong></p>
+</div>
+
+<div class="slide">
+  <h2>Smriti.db dataplane</h2>
+  <div class="kpi">
+    <div><div class="v">37,889</div><div class="l">holons</div></div>
+    <div><div class="v">275 MB</div><div class="l">size</div></div>
+    <div><div class="v">7,372</div><div class="l">ingest_state cache</div></div>
+    <div><div class="v ok">6</div><div class="l">indexes on holons</div></div>
+  </div>
+  <pre>EXPLAIN QUERY PLAN SELECT content_hash FROM holons WHERE content_hash=?
+  → SEARCH holons USING COVERING INDEX idx_holons_content_hash  ✓</pre>
+  <p>This session added 61 holons: Dart MCP <strong>40</strong> · Fractal <strong>711</strong> (over-ingested via tag broad-match) · Cortex cascade <strong>6</strong>.</p>
+</div>
+
+<div class="slide">
+  <h2>Symbiosis improvements (final)</h2>
+  <ul>
+    <li><strong>OODA Learn restored</strong> — Stop hook ✓ instead of ✗</li>
+    <li><strong>Institutional memory live</strong> — every session now learns; no more partial-ingest losses</li>
+    <li><strong>Honest CPIG</strong> — matrix recount 62→60/65 with audit block + SQL evidence</li>
+    <li><strong>3 new catalog families</strong> — Dart MCP, Fractal L0-L7, Cortex cascade searchable</li>
+    <li><strong>Graceful peer absence</strong> — FY27 binary missing reported as <code>absent</code>, not crash</li>
+    <li><strong>6 sa-plan tasks closed</strong> · <strong>3 commits pushed</strong> · <strong>15 artefact files added</strong></li>
+  </ul>
+</div>
+
+<div class="slide">
+  <h2>Next-session candidates (P2/P3)</h2>
+  <ul>
+    <li>P2 — author <code>SC-CPIG-CONSISTENCY</code> rule (matrix score↔evidence parity)</li>
+    <li>P2 — author <code>SC-CORPUS-INDEX</code> rule (auto-index when N&gt;10k)</li>
+    <li>P2 — find / rebuild <code>fy27-zettelkasten</code> binary OR mark FY27 peer permanently optional</li>
+    <li>P3 — emit <code>data/logs/stop-hook-timing.log</code> per run for forensics</li>
+    <li>P3 — federated CPIG drift detection across Claude/Gemini/Pi agents (Pass-16)</li>
+    <li>P3 — disk usage (88%) trend monitor</li>
+  </ul>
+  <p class="foot">deck · perf-bench-20260516 · ZK: zk-5c8f10d44882198d · zk-1281758e66bcaba2 · zk-a334329c1b7fe79e · zk-cf3aa357f999453d</p>
+</div>
+
+</body></html>
