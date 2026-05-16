@@ -62,7 +62,7 @@ pub fn page_header(title: String, subtitle: String) -> Element(msg) {
       html.h1([attribute.class("page-title")], [element.text(title)]),
       html.div([attribute.class("page-subtitle")], [element.text(subtitle)]),
     ]),
-    html.div([attribute.class("agui-chrome")], [agui_filter_chips(), agui_search_bar(), agui_change_log()]),
+    html.div([attribute.class("agui-chrome")], [agui_filter_chips(), agui_search_bar(), agui_change_log(), agui_drill_down()]),
   ])
 }
 
@@ -73,7 +73,33 @@ pub fn agui_chrome_block() -> Element(msg) {
     agui_filter_chips(),
     agui_search_bar(),
     agui_change_log(),
+    agui_drill_down(),
   ])
+}
+
+/// SC-AGUI-UI-004 — drill-down detail panel.
+/// Wired by agui-chrome.js: clicking a `.card` or `.section` populates this
+/// with the element's text content. Not Stub-That-Lies — JS event handler exists.
+fn agui_drill_down() -> Element(msg) {
+  html.aside(
+    [
+      attribute.class("detail-panel drill-down task-detail"),
+      attribute.attribute("data-state", "empty"),
+      attribute.attribute("aria-live", "polite"),
+    ],
+    [
+      html.div([attribute.class("detail-panel-label")], [
+        element.text("Detail panel"),
+      ]),
+      html.div(
+        [
+          attribute.class("detail-panel-body"),
+          attribute.attribute("id", "agui-detail-body"),
+        ],
+        [element.text("Click any card or section to drill down.")],
+      ),
+    ],
+  )
 }
 
 /// SC-AGUI-UI-002 — L0-L7 fractal layer filter chips.
