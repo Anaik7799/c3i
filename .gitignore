@@ -149,3 +149,4 @@ sub-projects/ferriskey-vendored/
 fix_gleam_warnings.py
 lib/cepaf_gleam/build_warnings.log
 lib/cepaf_gleam/test_output.log
+data/logs/stop-hook-timing.log

@@ -13,10 +13,13 @@
 //// Entropy reduction: 800-char inline shell -> 80-char gleam call (per Pass 5 design).
 
 import gleam/erlang/charlist
+import gleam/int
 import gleam/io
 import gleam/string
 
 const repo_root = "/home/an/dev/ver/c3i"
+
+const timing_log = "/home/an/dev/ver/c3i/data/logs/stop-hook-timing.log"
 
 const sa_plan = "/home/an/dev/ver/c3i/sub-projects/c3i/target/release/sa-plan-daemon"
 
@@ -65,8 +68,46 @@ fn session_id() -> String {
 /// rc=124 indicates 60s FFI timeout (peer slow but reachable).
 /// rc=0 = ok. Any non-zero is tolerated; C3I-ZK ingest is required and any
 /// non-zero is reported in the systemMessage status field.
+/// SC-STOP-HOOK-TELE-001: epoch seconds for elapsed measurement.
+fn epoch_s() -> Int {
+  let #(out, _rc) = sh(cl("date"), cls(["+%s"]))
+  case int.parse(string.trim(charlist.to_string(out))) {
+    Ok(n) -> n
+    Error(_) -> 0
+  }
+}
+
+/// SC-STOP-HOOK-TELE-002: append one JSONL row per run (best-effort).
+fn append_timing(
+  sid: String,
+  elapsed_s: Int,
+  c3i_rc: Int,
+  fy27_rc: Int,
+  c3i_status: String,
+  fy27_status: String,
+) -> Nil {
+  let line =
+    "{\"at\":\""
+    <> sid
+    <> "\",\"elapsed_s\":"
+    <> int.to_string(elapsed_s)
+    <> ",\"c3i_rc\":"
+    <> int.to_string(c3i_rc)
+    <> ",\"fy27_rc\":"
+    <> int.to_string(fy27_rc)
+    <> ",\"c3i\":\""
+    <> c3i_status
+    <> "\",\"fy27\":\""
+    <> fy27_status
+    <> "\"}"
+  let _ =
+    sh(cl("sh"), cls(["-c", "printf '%s\n' '" <> line <> "' >> " <> timing_log]))
+  Nil
+}
+
 pub fn main() -> Nil {
   let sid = session_id()
+  let t0 = epoch_s()
 
   // 1. session-save (idempotent if previously saved)
   let #(_, _save_rc) =
@@ -113,4 +154,8 @@ pub fn main() -> Nil {
     <> fy27_status
     <> "\"}",
   )
+
+  // 5. SC-STOP-HOOK-TELE: append JSONL forensics for rolling Lyapunov analysis
+  let elapsed = epoch_s() - t0
+  append_timing(sid, elapsed, c3i_rc, fy27_rc, c3i_status, fy27_status)
 }
