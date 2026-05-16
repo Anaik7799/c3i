@@ -342,6 +342,8 @@ Full constraint registry (2,257 SC-* / 480 AOR-* at parity): `.claude/rules/cons
 
 Key Gleam UI families: SC-GLM-UI(10) SC-AGUI(10) SC-A2UI(8) SC-UIGT(10) SC-HINT(8) SC-MATH-COV(6) SC-HMI(80) SC-VER(79) SC-FRACTAL(8) SC-PROM(7) SC-GLM-ZEN(3) SC-GLM-TST(2) SC-PI-AUTO(8) SC-VERIFY-VISUAL(6) **SC-VAULT(25)** **SC-VAULT-CRYPTO(1)** **AOR-VAULT(15)**
 
+Learn-loop hardening arc families (2026-05-16, see `.claude/rules/constraint-registry.md` § Delta): **SC-CPIG-CONSISTENCY(5) SC-CORPUS-INDEX(6) SC-STOP-HOOK-TELE(6) SC-STOP-HOOK-LYAPUNOV(6) SC-FY27-PEER-OPTIONAL(6) SC-DISK-TREND(6) SC-DISK-LYAPUNOV(5) SC-LEARN-LOOP-HEALTHCHECK(5) SC-VALIDATORS-META-TEST(5)**. Operator one-command: `cd sub-projects/scripts-gleam && gleam run -m scripts/verify/learn_loop_healthcheck` → ✓ 6/6 homeostasis. Hourly cron via sa-plan-daemon `learn-loop-healthcheck` schedule. Source-of-truth pack: `docs/journal/learn-loop-hardening-20260516/`.
+
 ### Secrets Vault (SC-VAULT family — task `urn:c3i:task:misc:116494073339521648`)
 
 RustyVault NIF inside `lib/cepaf_gleam/native/rusty_vault_nif/` providing local-first sealed K/V vault with western crypto only (no Tongsuo SM2/SM3/SM4), variable per-secret TTL via `secret_policy` table in Smriti.db, GCP Secret Manager + Cloud KMS as cloud DR root, 1-week internet-outage tolerance.
