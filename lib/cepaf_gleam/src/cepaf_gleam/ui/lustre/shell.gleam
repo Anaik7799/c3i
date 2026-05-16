@@ -592,6 +592,14 @@ pub fn render_page(
           [attribute.attribute("src", "/static/sw-register.js?v=22.11.7")],
           [],
         ),
+        // SC-AGUI-UI-002/003 — wires fractal-chip clicks + ai-search input
+        // across all 32 pages. [zk-bd82645aedcb5ef4] anti-Stub-That-Lies:
+        // chrome was static (DOM-only) before this script.
+        element.element(
+          "script",
+          [attribute.attribute("src", "/static/agui-chrome.js?v=2026-05-16")],
+          [],
+        ),
       ]),
       html.body([], [
         render_nav(active_path),
