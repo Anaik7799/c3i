@@ -49,24 +49,75 @@ fn parse(body: String) -> Result(List(Violation), String) {
   }
   let sub_decoder = {
     use id <- decode.field("id", decode.string)
+    use score <- decode.field("score", decode.int)
     use gates_obj <- decode.field("gates", decode.dict(decode.string, gate_decoder))
-    decode.success(#(id, gates_obj))
+    decode.success(#(id, score, gates_obj))
   }
   let top_decoder = {
     use subs <- decode.field("subsystems", decode.list(sub_decoder))
-    decode.success(subs)
+    use claimed_mean <- decode.optional_field(
+      "system_score_mean",
+      0,
+      decode.int,
+    )
+    use claimed_max <- decode.optional_field("system_score_max", 0, decode.int)
+    decode.success(#(subs, claimed_mean, claimed_max))
   }
   case json.parse(body, top_decoder) {
     Error(_) -> Error("json decode failed")
-    Ok(subs) -> Ok(scan(subs))
+    Ok(#(subs, claimed_mean, claimed_max)) -> {
+      let gate_v = scan(subs)
+      let summary_v = scan_summary(subs, claimed_mean, claimed_max)
+      Ok(list.append(gate_v, summary_v))
+    }
   }
 }
 
+fn scan_summary(
+  subs: List(#(String, Int, dict.Dict(String, #(Int, List(String))))),
+  claimed_mean: Int,
+  claimed_max: Int,
+) -> List(Violation) {
+  let actual_sum =
+    list.fold(subs, 0, fn(acc, s) {
+      let #(_, score, _) = s
+      acc + score
+    })
+  let actual_max = list.length(subs) * 5
+  let mean_violation = case claimed_mean == 0 || claimed_mean == actual_sum {
+    True -> []
+    False -> [
+      Violation(
+        "<top-level>",
+        "system_score_mean",
+        "claims "
+          <> int.to_string(claimed_mean)
+          <> " but Σ(subsystem.score) = "
+          <> int.to_string(actual_sum),
+      ),
+    ]
+  }
+  let max_violation = case claimed_max == 0 || claimed_max == actual_max {
+    True -> []
+    False -> [
+      Violation(
+        "<top-level>",
+        "system_score_max",
+        "claims "
+          <> int.to_string(claimed_max)
+          <> " but |subsystems| × 5 = "
+          <> int.to_string(actual_max),
+      ),
+    ]
+  }
+  list.append(mean_violation, max_violation)
+}
+
 fn scan(
-  subs: List(#(String, dict.Dict(String, #(Int, List(String))))),
+  subs: List(#(String, Int, dict.Dict(String, #(Int, List(String))))),
 ) -> List(Violation) {
   list.flat_map(subs, fn(sub) {
-    let #(id, gates) = sub
+    let #(id, _, gates) = sub
     dict.to_list(gates)
     |> list.flat_map(fn(g) {
       let #(gname, #(score, evidence)) = g

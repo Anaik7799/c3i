@@ -1,9 +1,12 @@
 {
-  "version": "1.4.0",
+  "version": "1.5.0",
   "generated_at": "2026-05-01T22:00:00.000000Z",
-  "system_score_mean": 65,
-  "system_score_max": 65,
-  "system_score_pct": 92.9,
+  "last_updated": "2026-05-16T10:40:00Z",
+  "system_score_mean": 70,
+  "system_score_max": 70,
+  "system_score_pct": 100.0,
+  "milestone_100pct_reached_at": "2026-05-16T10:35:00Z",
+  "milestone_100pct_pass": 27,
   "description": "C3I Cross-Pass Invariant Gate (CPIG) registry \u2014 12 subsystems \u00d7 5 gates (formal_spec, wiring_guard, sa_plan_tracking, zk_ingestion, email_closure). Pass-14 brought system score from 36/60 (Pass 13) \u2192 55/60 via 5 new TLA+ specs and 4 new Wiring Guards.",
   "pass14_revision": {
     "passes_completed": [
