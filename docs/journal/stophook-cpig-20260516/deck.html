@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Stop-hook + CPIG · deck · 2026-05-16</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--p0:#ff4757;--p1:#f5a623;--ok:#3dd68c}
+*{box-sizing:border-box}body{font:15px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:20px}
+.slide{max-width:980px;margin:0 auto 24px;background:var(--card);border-radius:10px;padding:32px 40px;min-height:380px;border:1px solid #1e2a3a;page-break-after:always}
+.slide h2{margin:0 0 8px;color:var(--accent);font-size:24px}
+.slide .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+.slide ul{margin:8px 0;padding-left:22px}.slide li{margin:6px 0}
+.slide strong{color:#fff}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+.kpi>div{background:#1a2030;padding:12px;border-radius:6px;text-align:center}
+.kpi .v{font-size:24px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:600}
+.kpi .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.row{display:flex;gap:16px;margin:12px 0}.row>div{flex:1;background:#1a2030;padding:14px;border-radius:6px}
+code{background:#1a2030;padding:2px 6px;border-radius:3px;color:#a0e8d6;font-size:13px}
+.p0{color:var(--p0)}.p1{color:var(--p1)}.ok{color:var(--ok)}
+.lambda{font-size:32px;color:var(--p0);font-family:'JetBrains Mono',monospace}
+.foot{color:var(--muted);font-size:11px;margin-top:24px;border-top:1px solid #1e2a3a;padding-top:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:4px 8px;text-align:left;border-bottom:1px solid #1e2a3a}th{color:var(--accent)}
+@media print{body{background:white;color:black}.slide{background:white;border:1px solid #ccc;color:black}.slide h2{color:#006666}}
+</style></head>
+<body>
+
+<div class="slide">
+  <h2>Stop-hook degradation + CPIG Pass-15 readiness</h2>
+  <div class="sub">2026-05-16 · investigate-only diagnostic · no code changes</div>
+  <ul>
+    <li>Operator question: "improve symbiosis with the system"</li>
+    <li>4 rounds of investigation across plan-mode + execute</li>
+    <li>Stop-hook actively degrading mid-session: 50 → 255 citations</li>
+    <li>CPIG matrix overstates by 2 gates</li>
+    <li>Full fractal L0-L7 analysis + 7-artefact pack delivered</li>
+  </ul>
+  <div class="foot">ZK: zk-dbd0d3a6d840784d, zk-bf18d04e2ea3542f, zk-bd82645aedcb5ef4</div>
+</div>
+
+<div class="slide">
+  <h2>Active regression (Lyapunov accelerating)</h2>
+  <div class="sub">Wolfram Rule 30 chaos emergence on citation slope</div>
+  <div class="kpi">
+    <div><div class="v">50</div><div class="l">turn 1</div></div>
+    <div><div class="v">104</div><div class="l">turn 2 · +54</div></div>
+    <div><div class="v">156</div><div class="l">turn 3 · +52</div></div>
+    <div><div class="v p0">255</div><div class="l">turn 4 · +99</div></div>
+  </div>
+  <p>λ = d(citations)/d(turn) went from +53 → +99 — <strong class="p0">accelerating, not linear</strong>.</p>
+  <p class="lambda">λ &gt; 0 ⇒ active regression</p>
+  <p>Per <code>.claude/rules/cross-pass-invariant-gate.md</code> §8 — RETE-UL <code>CpigScoreDrift</code> (salience 100) eligibility: <strong>YES</strong>.</p>
+</div>
+
+<div class="slide">
+  <h2>Root cause — missing SQLite index</h2>
+  <div class="kpi">
+    <div><div class="v">37,828</div><div class="l">holons</div></div>
+    <div><div class="v">272 MB</div><div class="l">DB size</div></div>
+    <div><div class="v p0">0</div><div class="l">content_hash idx</div></div>
+    <div><div class="v">O(F·N)</div><div class="l">scan cost</div></div>
+  </div>
+  <p><code>ingest.rs:192-203</code> dedup query against unindexed column on 272 MB DB. Each Stop hook walks ~3,000-6,000 files, each triggers a full-table scan.</p>
+  <p>Section-level <code>INSERT OR REPLACE</code> per <code>##</code> header rewrites 14,854 journal sections every run.</p>
+  <p>C3I + FY27 ingest run <strong>sequentially</strong> in 88-line gleam orchestrator — no parallelism.</p>
+</div>
+
+<div class="slide">
+  <h2>CPIG matrix mechanical recount</h2>
+  <div class="sub">Score-evidence divergence in <code>cpig-matrix.json</code> v1.4.0</div>
+  <table>
+    <thead><tr><th>Gate</th><th>Matrix claim</th><th>SQL query</th><th>Truth</th></tr></thead>
+    <tr><td>Fractal G4</td><td>score 1, evidence "gap"</td><td>0 fractal-tagged holons</td><td class="p0">0</td></tr>
+    <tr><td>Fractal G5</td><td>score 1, evidence "gap"</td><td>no closure email</td><td class="p0">0</td></tr>
+    <tr><td>Dart MCP G4</td><td>score 0 (honest)</td><td>0 dart/mcp holons</td><td>0</td></tr>
+  </table>
+  <p style="margin-top:16px">System mean <span class="p0">62/65 (95.4 %) → 60/65 (92.3 %)</span></p>
+  <p>Pattern: CPIG needs a Wiring-Guard analogue. SC-WIRE protects type-domain, SC-VALUE-GUARD protects value-domain — score/evidence consistency is the third sibling.</p>
+</div>
+
+<div class="slide">
+  <h2>Fractal criticality matrix (P0 rows)</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Component</th><th>RPN</th><th>Mitigation</th></tr></thead>
+    <tr><td>L5</td><td>OODA Learn phase (Stop hook)</td><td class="p0">648</td><td>Option A removes failure mode</td></tr>
+    <tr><td>L3</td><td><code>ingest.rs::ensure_schema</code></td><td class="p0">576</td><td>add content_hash idx + ingest_state table</td></tr>
+    <tr><td>L4</td><td><code>stop_hook.gleam</code></td><td class="p0">441</td><td>parallel-port spawn C3I+FY27</td></tr>
+    <tr><td>L3</td><td><code>ingest.rs::ingest_document</code></td><td class="p0">432</td><td>mtime branch</td></tr>
+  </table>
+  <p>ΣRPN P0 = 2,097 → projected 206 post-Option-A (<strong class="ok">−90 %</strong>).</p>
+</div>
+
+<div class="slide">
+  <h2>Sequenced remediation</h2>
+  <div class="row">
+    <div><strong>A · Stop-hook fix</strong><br><span class="sub">~2-3h · L2-L3</span><br>idx + mtime + parallel</div>
+    <div><strong>E · Matrix recount</strong><br><span class="sub">~10 min · independent</span><br>62→60/65 (honest)</div>
+    <div><strong>B · Dart MCP G4</strong><br><span class="sub">~30 min · requires A</span><br>60→61/65</div>
+  </div>
+  <div class="row">
+    <div><strong>C · Fractal G4+G5</strong><br><span class="sub">~1.5h · requires A</span><br>61→63/65</div>
+    <div><strong>D · Cortex G4+G5</strong><br><span class="sub">~4h · requires A</span><br>63→65/65 (100%)</div>
+    <div><strong>Total path to 100%</strong><br><span class="sub">~8h</span><br>4 commits, 1 day</div>
+  </div>
+  <p style="margin-top:16px">Sequencing rule: B/C/D MUST follow A — otherwise their closure packs silently fail to ingest (Stub-That-Lies trap).</p>
+</div>
+
+<div class="slide">
+  <h2>Symbiosis improvements unlocked</h2>
+  <ul>
+    <li><strong class="ok">Reliable institutional memory</strong> — every session contributes to ZK, anti-patterns stop repeating</li>
+    <li><strong class="ok">Honest CPIG dashboard</strong> — matrix matches mechanical reality</li>
+    <li><strong class="ok">Faster session close</strong> — hook returns in &lt;5s vs current ✗ TIMEOUT</li>
+    <li><strong class="ok">Federated drift detection unblocked</strong> — Pass-16 SC-CPIG-FED becomes reachable when local subsystems are honest</li>
+    <li><strong class="ok">Pattern generalisable</strong> — corpus-vs-schema invariant becomes a new STAMP family</li>
+  </ul>
+</div>
+
+<div class="slide">
+  <h2>Next-session prompt</h2>
+  <pre style="background:#1a2030;padding:16px;border-radius:6px;font-size:13px;color:#a0e8d6;white-space:pre-wrap">Per docs/journal/stophook-cpig-20260516/journal.md, implement Option A
+(stop-hook incremental ingest):
+ - add content_hash index to ingest.rs::ensure_schema
+ - add ingest_state(path, mtime, sha256) table
+ - parallelise C3I+FY27 calls in stop_hook.gleam
+
+One commit per SC-CHG-INLINE. After green:
+ - run Option E (matrix recount)
+ - then Option B (Dart MCP G4)
+ - then C (Fractal G4+G5)
+ - then D (Cortex G4+G5)
+Target: CPIG 65/65 (100 %) by end of next session.</pre>
+  <p class="foot">deck · stophook-cpig-20260516 · ZK lineage in journal.md</p>
+</div>
+
+</body></html>

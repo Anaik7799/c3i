@@ -1,10 +1,10 @@
 {
   "version": "1.4.0",
   "generated_at": "2026-05-01T22:00:00.000000Z",
-  "system_score_mean": 62,
+  "system_score_mean": 60,
   "system_score_max": 65,
-  "system_score_pct": 95.4,
-  "description": "C3I Cross-Pass Invariant Gate (CPIG) registry \u2014 12 subsystems \u00d7 5 gates (formal_spec, wiring_guard, sa_plan_tracking, zk_ingestion, email_closure). Pass-14 brought system score from 36/60 (Pass 13) \u2192 55/60 via 5 new TLA+ specs and 4 new Wiring Guards.",
+  "system_score_pct": 92.3,
+  "description": "C3I Cross-Pass Invariant Gate (CPIG) registry — 12 subsystems × 5 gates (formal_spec, wiring_guard, sa_plan_tracking, zk_ingestion, email_closure). Pass-14 brought system score from 36/60 (Pass 13) → 55/60 via 5 new TLA+ specs and 4 new Wiring Guards.",
   "pass14_revision": {
     "passes_completed": [
       13,
@@ -108,7 +108,7 @@
         "formal_spec": {
           "score": 1,
           "evidence": [
-            "specs/tla/PiMonoSymbiosis.tla (Pass 14: lifecycle + circuit breaker + 29\u219432 event bridge)"
+            "specs/tla/PiMonoSymbiosis.tla (Pass 14: lifecycle + circuit breaker + 29↔32 event bridge)"
           ]
         },
         "wiring_guard": {
@@ -134,7 +134,7 @@
         "email_closure": {
           "score": 1,
           "evidence": [
-            "Pass 14 bulk closure email \u2014 Pi-specific section"
+            "Pass 14 bulk closure email — Pi-specific section"
           ]
         }
       },
@@ -344,7 +344,7 @@
         "email_closure": {
           "score": 1,
           "evidence": [
-            "Pass 14 bulk closure email \u2014 scripts-gleam section"
+            "Pass 14 bulk closure email — scripts-gleam section"
           ]
         }
       },
@@ -398,7 +398,7 @@
         "email_closure": {
           "score": 1,
           "evidence": [
-            "Pass 14 bulk closure email \u2014 Marionette section"
+            "Pass 14 bulk closure email — Marionette section"
           ]
         }
       },
@@ -650,17 +650,17 @@
           ]
         },
         "zk_ingestion": {
-          "score": 1,
+          "score": 0,
           "evidence": [],
           "gap": "L0-L7 widget catalog not ingested (Pass 15 target)"
         },
         "email_closure": {
-          "score": 1,
+          "score": 0,
           "evidence": [],
           "gap": "no closure email (Pass 15 target)"
         }
       },
-      "score": 5,
+      "score": 3,
       "delta": 2,
       "fmea_pre": 810,
       "fmea_post": 162,
@@ -882,5 +882,36 @@
     },
     "system_score_after_pass16": "13/13 subsystems × 5 gates = 65/65 = 100%"
   },
-  "last_recomputed": "2026-05-01T20:30:00.000000Z"
+  "last_recomputed": "2026-05-01T20:30:00.000000Z",
+  "pass15_revision_audit_2026_05_16": {
+    "audit_date": "2026-05-16",
+    "auditor": "Claude Opus 4.7",
+    "evidence_url": "docs/journal/stophook-cpig-20260516/journal.md",
+    "sql_evidence": "SELECT COUNT(*) FROM holons WHERE tags LIKE \"%fractal%\" = 0",
+    "corrections": [
+      {
+        "subsystem": "fractal-widgets-l0-l7",
+        "gate": "zk_ingestion",
+        "old_score": 1,
+        "new_score": 0,
+        "reason": "evidence string was \"gap\"; mechanical SQL confirms 0 fractal-tagged holons"
+      },
+      {
+        "subsystem": "fractal-widgets-l0-l7",
+        "gate": "email_closure",
+        "old_score": 1,
+        "new_score": 0,
+        "reason": "evidence string was \"gap\"; no closure email archive matched"
+      }
+    ],
+    "system_score_mean_old": 62,
+    "system_score_mean_new": 60,
+    "system_score_pct_old": 95.4,
+    "system_score_pct_new": 92.3,
+    "stamp": [
+      "SC-CPIG-008",
+      "SC-SATYA-001",
+      "SC-CPIG-CONSISTENCY (proposed)"
+    ]
+  }
 }

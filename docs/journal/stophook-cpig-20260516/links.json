@@ -1,0 +1,109 @@
+{
+  "task_id": "stophook-cpig-20260516",
+  "generated_at": "2026-05-16T07:29:12Z",
+  "scope": "investigate-only diagnostic + full fractal closure pack",
+  "operator_url_http": "http://vm-1.tail55d152.ts.net:4200/task-id/stophook-cpig-20260516/",
+  "operator_url_https": "https://vm-1.tail55d152.ts.net:4200/task-id/stophook-cpig-20260516/",
+  "artefacts": [
+    {
+      "name": "journal.md",
+      "role": "13-section SC-JOURNAL diagnostic",
+      "path": "docs/journal/stophook-cpig-20260516/journal.md",
+      "url_http": "http://vm-1.tail55d152.ts.net:4200/task-id/stophook-cpig-20260516/journal.md",
+      "url_https": "https://vm-1.tail55d152.ts.net:4200/task-id/stophook-cpig-20260516/journal.md"
+    },
+    {
+      "name": "analysis.html",
+      "role": "operator handoff index (per SC-NOTIFY-HANDOFF-001)",
+      "path": "docs/journal/stophook-cpig-20260516/analysis.html",
+      "url_http": "http://vm-1.tail55d152.ts.net:4200/task-id/stophook-cpig-20260516/analysis.html",
+      "url_https": "https://vm-1.tail55d152.ts.net:4200/task-id/stophook-cpig-20260516/analysis.html"
+    },
+    {
+      "name": "deck.html",
+      "role": "8-slide deck",
+      "path": "docs/journal/stophook-cpig-20260516/deck.html",
+      "url_http": "http://vm-1.tail55d152.ts.net:4200/task-id/stophook-cpig-20260516/deck.html",
+      "url_https": "https://vm-1.tail55d152.ts.net:4200/task-id/stophook-cpig-20260516/deck.html"
+    },
+    {
+      "name": "fractal-matrix.md",
+      "role": "L0-L7 × 10 components × STAMP × RETE-UL × FMEA per SC-FRAC-RRF",
+      "path": "docs/journal/stophook-cpig-20260516/fractal-matrix.md",
+      "url_http": "http://vm-1.tail55d152.ts.net:4200/task-id/stophook-cpig-20260516/fractal-matrix.md",
+      "url_https": "https://vm-1.tail55d152.ts.net:4200/task-id/stophook-cpig-20260516/fractal-matrix.md"
+    },
+    {
+      "name": "email.md",
+      "role": "email draft (not yet sent)",
+      "path": "docs/journal/stophook-cpig-20260516/email.md",
+      "url_http": "http://vm-1.tail55d152.ts.net:4200/task-id/stophook-cpig-20260516/email.md",
+      "url_https": "https://vm-1.tail55d152.ts.net:4200/task-id/stophook-cpig-20260516/email.md"
+    },
+    {
+      "name": "diagnostic.md",
+      "role": "prior-turn plan-mode diagnostic",
+      "path": "docs/journal/diagnostic-stophook-cpig-20260516-072912.md",
+      "url_http": "http://vm-1.tail55d152.ts.net:4200/task-id/diagnostic-stophook-cpig-20260516-072912.md",
+      "url_https": "https://vm-1.tail55d152.ts.net:4200/task-id/diagnostic-stophook-cpig-20260516-072912.md"
+    },
+    {
+      "name": "approved-plan.md",
+      "role": "Claude plan-mode artefact",
+      "path": "/home/an/.claude/plans/check-the-current-state-fluffy-crown.md",
+      "url_http": null,
+      "url_https": null
+    }
+  ],
+  "zk_holons_cited": [
+    "zk-dbd0d3a6d840784d",
+    "zk-bf18d04e2ea3542f",
+    "zk-bd82645aedcb5ef4",
+    "zk-c14e1d23afff486c",
+    "zk-5f7ea54b788cf845",
+    "zk-cb6a46df870c8f6c",
+    "zk-dea985fbed0f66e7"
+  ],
+  "stamp_constraints_referenced": [
+    "SC-ZK-IMP-001",
+    "SC-ZK-CLAUDE-002",
+    "SC-JOURNAL",
+    "SC-FEAT-EVO-003",
+    "SC-FEAT-EVO-005",
+    "SC-FEAT-EVO-010",
+    "SC-NOTIFY-JOURNAL-001",
+    "SC-NOTIFY-HANDOFF-001",
+    "SC-FRAC-RRF-001",
+    "SC-CPIG-001",
+    "SC-CPIG-014",
+    "SC-CHG-INLINE",
+    "SC-XHOLON-001",
+    "SC-IKE-001",
+    "SC-WIRE-001",
+    "SC-VALUE-GUARD-001",
+    "SC-SCRIPT-GLEAM-001",
+    "SC-GLM-ZEN-001"
+  ],
+  "metrics": {
+    "smriti_holons": 37828,
+    "smriti_db_size_mb": 272,
+    "fy27_db_size_mb": 248,
+    "content_hash_index_present": false,
+    "stop_hook_timeout_sec": 50,
+    "citation_growth": [50, 104, 156, 255],
+    "lambda_per_turn": [54, 52, 99],
+    "cpig_matrix_claimed": "62/65",
+    "cpig_matrix_corrected": "60/65",
+    "cpig_overstatement_gates": 2,
+    "sigma_rpn_pre": 3224,
+    "sigma_rpn_post_option_a": 1127
+  },
+  "next_session_recommended_order": [
+    "A: stop-hook incremental ingest (P0, ~2-3h)",
+    "E: CPIG matrix recount (P1, ~10 min, independent)",
+    "B: Dart MCP G4 (P2, ~30 min, requires A)",
+    "C: Fractal L0-L7 G4+G5 (P2, ~1.5h, requires A)",
+    "D: Cortex 6-tier G4+G5 (P3, ~4h, requires A)"
+  ],
+  "verified": "expected"
+}

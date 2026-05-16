@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Stop-hook + CPIG diagnostic · 2026-05-16</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--p0:#ff4757;--p1:#f5a623;--ok:#3dd68c;--border:#1e2a3a}
+*{box-sizing:border-box}body{font:14px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0}
+header{padding:24px 32px;background:linear-gradient(135deg,#0a0e17,#1a2030);border-bottom:1px solid var(--border)}
+h1{margin:0;color:var(--accent);font-size:22px}
+h2{margin:24px 0 8px;color:var(--accent);font-size:16px;border-bottom:1px solid var(--border);padding-bottom:4px}
+h3{margin:16px 0 4px;font-size:14px;color:#fff}
+main{max-width:1100px;margin:0 auto;padding:24px 32px}
+.bar{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
+.tag{padding:4px 10px;border-radius:6px;background:var(--card);border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:12px}
+.tag.p0{background:#3a1a1f;border-color:var(--p0);color:#ffb0ba}
+.tag.p1{background:#3a2d18;border-color:var(--p1);color:#ffd99c}
+.tag.ok{background:#1a3a2a;border-color:var(--ok);color:#a0e8c4}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+th,td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:#1a2030;color:var(--accent);font-weight:600}
+td.num{text-align:right;font-family:'JetBrains Mono',monospace}
+.card{background:var(--card);padding:16px;border-radius:8px;border:1px solid var(--border);margin:8px 0}
+.flex{display:flex;gap:16px;flex-wrap:wrap}.flex>div{flex:1;min-width:240px}
+code{background:#1a2030;padding:2px 6px;border-radius:3px;font-size:12px;color:#a0e8d6}
+pre{background:#1a2030;padding:12px;border-radius:6px;overflow-x:auto;font-size:12px;line-height:1.4}
+.alert{background:#3a1a1f;border-left:4px solid var(--p0);padding:12px 16px;margin:12px 0;border-radius:4px}
+.mono{font-family:'JetBrains Mono',monospace}
+.muted{color:var(--muted)}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.kpi>div{background:var(--card);padding:10px;border-radius:6px;border:1px solid var(--border);text-align:center}
+.kpi .v{font-size:22px;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+</style></head>
+<body>
+<header>
+  <h1>Stop-hook degradation + CPIG Pass-15 readiness</h1>
+  <div class="muted mono">2026-05-16 07:29 UTC · investigate-only diagnostic · no code changes</div>
+  <div class="bar">
+    <span class="tag p0">P0 active regression</span>
+    <span class="tag p1">CPIG matrix overstates by 2 gates</span>
+    <span class="tag ok">build clean</span>
+    <span class="tag ok">3,169 sa-plan tasks tracked</span>
+  </div>
+</header>
+<main>
+
+<div class="alert">
+  <strong>λ accelerating</strong> · this session's stop-hook citations: 50 → 104 → 156 → <strong>255</strong> · slope +53, +52, +99/turn. Classified as <strong>Wolfram Rule 30 chaos emergence</strong>. Recommended next-session action: implement <strong>Option A (incremental ingest)</strong> in one commit.
+</div>
+
+<h2>Key metrics</h2>
+<div class="kpi">
+  <div><div class="v">37,828</div><div class="l">Smriti holons</div></div>
+  <div><div class="v">272 MB</div><div class="l">C3I-ZK size</div></div>
+  <div><div class="v">248 MB</div><div class="l">FY27-ZK size</div></div>
+  <div><div class="v">0</div><div class="l">content_hash idx</div></div>
+  <div><div class="v">50s</div><div class="l">stop-hook timeout</div></div>
+  <div><div class="v">60/65</div><div class="l">CPIG actual (92.3%)</div></div>
+  <div><div class="v">62/65</div><div class="l">CPIG claimed (95.4%)</div></div>
+  <div><div class="v">−2</div><div class="l">gate overstatement</div></div>
+</div>
+
+<h2>Root cause (mechanical)</h2>
+<div class="card">
+<p><code>ingest.rs:192-203</code> dedup query queries <code>content_hash</code> column on a 272 MB SQLite DB. <strong>No index exists on <code>content_hash</code></strong> (only <code>cluster</code>, <code>level</code>, <code>entropy</code>, <code>updated_at</code>). Cost is O(F·N) per stop-hook run where N=37,828 and F=files-walked.</p>
+<pre>SELECT content_hash FROM holons WHERE content_hash = ?1  -- full table scan, no index</pre>
+<p>Compounded by section-level <code>INSERT OR REPLACE</code> (<code>ingest.rs:218-240</code>) and sequential C3I + FY27 ingest calls in <code>scripts/sysd/stop_hook.gleam</code> (88 LOC).</p>
+</div>
+
+<h2>CPIG matrix recount</h2>
+<table>
+<thead><tr><th>Subsystem · gate</th><th>matrix claim</th><th>SQL query result</th><th>corrected</th></tr></thead>
+<tbody>
+<tr><td>Fractal L0-L7 G4 (ZK ingest)</td><td>score 1 / evidence "gap"</td><td class="mono">0 holons tagged 'fractal'</td><td class="mono p0">0</td></tr>
+<tr><td>Fractal L0-L7 G5 (email closure)</td><td>score 1 / evidence "gap"</td><td class="mono">no closure email</td><td class="mono p0">0</td></tr>
+<tr><td>Dart MCP G4 (ZK ingest)</td><td>score 0 (honest)</td><td class="mono">0 holons tagged 'dart'/'mcp'</td><td class="mono">0</td></tr>
+<tr><td><strong>system mean</strong></td><td class="mono"><strong>62/65 (95.4%)</strong></td><td>—</td><td class="mono p0"><strong>60/65 (92.3%)</strong></td></tr>
+</tbody>
+</table>
+
+<h2>Fractal L0-L7 impact map</h2>
+<table>
+<thead><tr><th>Layer</th><th>Option A — stop-hook fix</th><th>Options B/C/D — CPIG closure</th><th>Max RPN</th><th>Criticality</th></tr></thead>
+<tbody>
+<tr><td>L0</td><td>—</td><td>—</td><td class="num">1</td><td>—</td></tr>
+<tr><td>L1 NIF</td><td>—</td><td>—</td><td class="num">—</td><td>—</td></tr>
+<tr><td>L2</td><td><code>zettelkasten/ingestion.gleam</code></td><td>catalog stubs</td><td class="num">48</td><td>P2</td></tr>
+<tr><td>L3</td><td><strong><code>ingest.rs::ensure_schema</code> + dedup</strong></td><td>bulk INSERTs</td><td class="num p0">576</td><td><span class="tag p0">P0</span></td></tr>
+<tr><td>L4</td><td><strong><code>stop_hook.gleam</code> parallel spawn</strong></td><td>—</td><td class="num p0">441</td><td><span class="tag p0">P0</span></td></tr>
+<tr><td>L5</td><td>OTel span ordering</td><td>—</td><td class="num p0">648</td><td><span class="tag p0">P0</span></td></tr>
+<tr><td>L6</td><td>Zenoh causality</td><td>—</td><td class="num p1">210</td><td><span class="tag p1">P1</span></td></tr>
+<tr><td>L7</td><td>—</td><td>federation drift detector (Pass-16)</td><td class="num p1">336</td><td><span class="tag p1">P1</span></td></tr>
+</tbody>
+</table>
+
+<p class="muted">ΣRPN pre-fix: 3,224 · projected ΣRPN post-Option-A: 1,127 · reduction ≥ 65 %.</p>
+
+<h2>Sequenced remediation</h2>
+<div class="flex">
+<div class="card"><h3>A · Stop-hook incremental ingest</h3><p>~2-3h · L2-L3 only · adds <code>content_hash</code> idx + <code>ingest_state</code> table + parallel-port spawn.</p><p><strong>Outcome:</strong> warm-run &lt;5s, no more timeouts.</p></div>
+<div class="card"><h3>E · Matrix recount</h3><p>~10 min · independent · honest scoring of Fractal G4/G5.</p><p><strong>Outcome:</strong> 62/65 → 60/65 (truth restored).</p></div>
+<div class="card"><h3>B · Dart MCP G4</h3><p>~30 min · requires A · ingest 16-tool catalog.</p><p><strong>Outcome:</strong> 60 → 61/65.</p></div>
+<div class="card"><h3>C · Fractal L0-L7 G4+G5</h3><p>~1.5h · requires A · 8 widget modules + email.</p><p><strong>Outcome:</strong> 61 → 63/65.</p></div>
+<div class="card"><h3>D · Cortex 6-tier G4+G5</h3><p>~4h · requires A · cascade architecture.</p><p><strong>Outcome:</strong> 63 → 65/65 (100%).</p></div>
+</div>
+
+<h2>Anti-patterns engaged</h2>
+<table>
+<thead><tr><th>Anti-pattern</th><th>Holon</th><th>Where it hit us</th></tr></thead>
+<tbody>
+<tr><td>Stub-That-Lies (RPN 729)</td><td>[zk-bd82645aedcb5ef4]</td><td>Stop hook reports "ingest may be partial" but proceeds; no P0 task created</td></tr>
+<tr><td>Implicit-invariant drift</td><td>[zk-c14e1d23afff486c]</td><td>Schema authored when N=O(10³); corpus grew to N=O(10⁴·⁵) without re-indexing</td></tr>
+<tr><td>Score-evidence divergence</td><td>(new pattern)</td><td>CPIG matrix score=1 + evidence="gap" coexist for same gate</td></tr>
+</tbody>
+</table>
+
+<h2>Related artefacts</h2>
+<ul>
+  <li><a href="journal.md">journal.md</a> — 13-section diagnostic per SC-JOURNAL</li>
+  <li><a href="fractal-matrix.md">fractal-matrix.md</a> — L0-L7 × 10 components × STAMP × RETE-UL × FMEA</li>
+  <li><a href="deck.html">deck.html</a> — slide deck</li>
+  <li><a href="email.md">email.md</a> — draft email payload</li>
+  <li><a href="links.json">links.json</a> — link registry</li>
+  <li><a href="../diagnostic-stophook-cpig-20260516-072912.md">diagnostic (turn 5 plan-mode output)</a></li>
+  <li><a href="/home/an/.claude/plans/check-the-current-state-fluffy-crown.md">approved plan</a></li>
+</ul>
+
+<footer class="muted" style="margin-top:32px;padding-top:12px;border-top:1px solid var(--border);font-size:11px">
+  Generated 2026-05-16 · investigation-only · ZK: zk-dbd0d3a6d840784d zk-bf18d04e2ea3542f zk-bd82645aedcb5ef4 zk-c14e1d23afff486c zk-5f7ea54b788cf845 zk-cb6a46df870c8f6c
+</footer>
+</main></body></html>
