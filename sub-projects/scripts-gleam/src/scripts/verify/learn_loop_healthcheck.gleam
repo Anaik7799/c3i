@@ -41,6 +41,10 @@ const validators: List(String) = [
   // actually trip on synthetic bad input (anti-Stub-That-Lies for the
   // detectors themselves). Last because it briefly swaps log files.
   "scripts/verify/validators_meta_test",
+  // SC-AGUI-UI-WIRING-DEPTH — proves agui-chrome.js carries the JS handler
+  // signatures backing each HTML-detectable chrome component. Sibling of
+  // SC-AGUI-UI-CONFORMANCE (substring → presence) at the wiring layer.
+  "scripts/verify/agui_js_depth",
 ]
 
 pub fn main() -> Nil {
