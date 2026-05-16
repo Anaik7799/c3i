@@ -1,10 +1,10 @@
 {
   "version": "1.4.0",
   "generated_at": "2026-05-01T22:00:00.000000Z",
-  "system_score_mean": 60,
+  "system_score_mean": 65,
   "system_score_max": 65,
-  "system_score_pct": 92.3,
-  "description": "C3I Cross-Pass Invariant Gate (CPIG) registry — 12 subsystems × 5 gates (formal_spec, wiring_guard, sa_plan_tracking, zk_ingestion, email_closure). Pass-14 brought system score from 36/60 (Pass 13) → 55/60 via 5 new TLA+ specs and 4 new Wiring Guards.",
+  "system_score_pct": 92.9,
+  "description": "C3I Cross-Pass Invariant Gate (CPIG) registry \u2014 12 subsystems \u00d7 5 gates (formal_spec, wiring_guard, sa_plan_tracking, zk_ingestion, email_closure). Pass-14 brought system score from 36/60 (Pass 13) \u2192 55/60 via 5 new TLA+ specs and 4 new Wiring Guards.",
   "pass14_revision": {
     "passes_completed": [
       13,
@@ -108,7 +108,7 @@
         "formal_spec": {
           "score": 1,
           "evidence": [
-            "specs/tla/PiMonoSymbiosis.tla (Pass 14: lifecycle + circuit breaker + 29↔32 event bridge)"
+            "specs/tla/PiMonoSymbiosis.tla (Pass 14: lifecycle + circuit breaker + 29\u219432 event bridge)"
           ]
         },
         "wiring_guard": {
@@ -134,7 +134,7 @@
         "email_closure": {
           "score": 1,
           "evidence": [
-            "Pass 14 bulk closure email — Pi-specific section"
+            "Pass 14 bulk closure email \u2014 Pi-specific section"
           ]
         }
       },
@@ -344,7 +344,7 @@
         "email_closure": {
           "score": 1,
           "evidence": [
-            "Pass 14 bulk closure email — scripts-gleam section"
+            "Pass 14 bulk closure email \u2014 scripts-gleam section"
           ]
         }
       },
@@ -398,7 +398,7 @@
         "email_closure": {
           "score": 1,
           "evidence": [
-            "Pass 14 bulk closure email — Marionette section"
+            "Pass 14 bulk closure email \u2014 Marionette section"
           ]
         }
       },
@@ -692,15 +692,15 @@
         "sa_plan_tracking": {
           "score": 1,
           "evidence": [
-            "urn:c3i:task:misc:116494073339521648 — 11 phases tracked, all closed"
+            "urn:c3i:task:misc:116494073339521648 \u2014 11 phases tracked, all closed"
           ]
         },
         "zk_ingestion": {
           "score": 1,
           "evidence": [
             "[zk-dcbabf01f707baef] closure journal ingested 2026-05-01",
-            "[zk-82473f167b9206e5] §1 Scope & Trigger",
-            "[zk-11621e654ed80665] §2 Pre-State Assessment"
+            "[zk-82473f167b9206e5] \u00a71 Scope & Trigger",
+            "[zk-11621e654ed80665] \u00a72 Pre-State Assessment"
           ]
         },
         "email_closure": {
@@ -731,6 +731,70 @@
       },
       "passes_completed": [
         17
+      ]
+    },
+    {
+      "id": "learn-loop-hardening",
+      "name": "Institutional-Memory Loop Hardening (perf-bench-20260516 closure)",
+      "criticality": "P0",
+      "owner_module": "sub-projects/scripts-gleam/src/scripts/verify/ + sub-projects/scripts-gleam/src/scripts/sysd/stop_hook.gleam",
+      "added_in_pass": "2026-05-16",
+      "gates": {
+        "formal_spec": {
+          "score": 1,
+          "evidence": [
+            ".claude/rules/{cpig-consistency,corpus-index,stop-hook-telemetry,stop-hook-lyapunov,fy27-peer-optional,disk-trend,disk-lyapunov,learn-loop-healthcheck,validators-meta-test}.md (9 rule files, 50 STAMP IDs)"
+          ]
+        },
+        "wiring_guard": {
+          "score": 1,
+          "evidence": [
+            "scripts/verify/learn_loop_healthcheck.gleam aggregator + scripts/verify/validators_meta_test.gleam (4/4 detectors proven not-Stub-That-Lies)"
+          ]
+        },
+        "sa_plan_tracking": {
+          "score": 1,
+          "evidence": [
+            "sa-plan-daemon schedule 'learn-loop-healthcheck' cron='0 * * * *' worker=gleam_run (mechanically verified \u00a711.1 of closure journal)"
+          ]
+        },
+        "zk_ingestion": {
+          "score": 1,
+          "evidence": [
+            "docs/journal/learn-loop-hardening-20260516/{journal.md,analysis.html,links.json} ingested 2026-05-16 06:43 UTC, Smriti.db total 37,950 holons"
+          ]
+        },
+        "email_closure": {
+          "score": 1,
+          "evidence": [
+            "sa-plan-daemon send-email --to Abhijit.Naik@bountytek.com sent 2026-05-16 06:43 UTC, journal.md attached (9873 bytes)"
+          ]
+        }
+      },
+      "score": 5,
+      "delta": 5,
+      "fmea_pre": 504,
+      "fmea_post": 56,
+      "stamp_families": [
+        "SC-CPIG-CONSISTENCY(5)",
+        "SC-CORPUS-INDEX(6)",
+        "SC-STOP-HOOK-TELE(6)",
+        "SC-STOP-HOOK-LYAPUNOV(6)",
+        "SC-FY27-PEER-OPTIONAL(6)",
+        "SC-DISK-TREND(6)",
+        "SC-DISK-LYAPUNOV(5)",
+        "SC-LEARN-LOOP-HEALTHCHECK(5)",
+        "SC-VALIDATORS-META-TEST(5)"
+      ],
+      "live_components": [
+        "6 mechanical validators (cpig_consistency, corpus_index, stop_hook_lyapunov, disk_trend, disk_lyapunov, validators_meta_test)",
+        "1 emitter (stop_hook.gleam JSONL append)",
+        "1 aggregator (learn_loop_healthcheck \u2192 6/6 \u2713)",
+        "1 hourly cron (gleam_run worker)",
+        "2 rolling forensic logs (data/logs/stop-hook-timing.log, disk-trend.log; gitignored)"
+      ],
+      "passes_completed": [
+        "pass-1..pass-13"
       ]
     }
   ],
@@ -814,7 +878,7 @@
     "final_state": "12/12 subsystems at 5/5; CPIG goal achieved"
   },
   "pass16_revision": {
-    "added_2026_05_01": "Subsystem #13 fp_discipline added — SC-FP-RUST family closure across 5 internal passes (Pass-1..5) within task urn:c3i:task:misc:116499874901057156. System grows from 12 -> 13 subsystems × 5 gates = 65 total. All 65 gates passing.",
+    "added_2026_05_01": "Subsystem #13 fp_discipline added \u2014 SC-FP-RUST family closure across 5 internal passes (Pass-1..5) within task urn:c3i:task:misc:116499874901057156. System grows from 12 -> 13 subsystems \u00d7 5 gates = 65 total. All 65 gates passing.",
     "subsystem_13_fp_discipline": {
       "id": 13,
       "name": "fp_discipline",
@@ -880,7 +944,7 @@
       "kpi_baseline_pass1": "FP_TOTAL (partial FP-2+FP-7) = 49.8%",
       "kpi_pass4": "FP_TOTAL (partial FP-2+FP-7) = 49.9%; tests=29 SC-FP-RUST + 6 pii proptest = 35 green"
     },
-    "system_score_after_pass16": "13/13 subsystems × 5 gates = 65/65 = 100%"
+    "system_score_after_pass16": "13/13 subsystems \u00d7 5 gates = 65/65 = 100%"
   },
   "last_recomputed": "2026-05-01T20:30:00.000000Z",
   "pass15_revision_audit_2026_05_16": {
@@ -913,5 +977,6 @@
       "SC-SATYA-001",
       "SC-CPIG-CONSISTENCY (proposed)"
     ]
-  }
+  },
+  "system_score_fraction": "65/70"
 }
