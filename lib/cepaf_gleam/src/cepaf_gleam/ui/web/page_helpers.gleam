@@ -62,7 +62,7 @@ pub fn page_header(title: String, subtitle: String) -> Element(msg) {
       html.h1([attribute.class("page-title")], [element.text(title)]),
       html.div([attribute.class("page-subtitle")], [element.text(subtitle)]),
     ]),
-    html.div([attribute.class("agui-chrome")], [agui_filter_chips(), agui_search_bar(), agui_change_log(), agui_drill_down()]),
+    html.div([attribute.class("agui-chrome")], [agui_filter_chips(), agui_search_bar(), agui_change_log(), agui_drill_down(), agui_gemma_chat()]),
   ])
 }
 
@@ -74,7 +74,39 @@ pub fn agui_chrome_block() -> Element(msg) {
     agui_search_bar(),
     agui_change_log(),
     agui_drill_down(),
+    agui_gemma_chat(),
   ])
+}
+
+/// SC-AGUI-UI-005 — Gemma AI chat widget. POSTs to /api/v1/ai/chat (real
+/// endpoint, gemma3 fast + gemma4 fallback). agui-chrome.js wires submit.
+/// Not Stub-That-Lies — endpoint exists; auth failures surface as real errors.
+fn agui_gemma_chat() -> Element(msg) {
+  html.details(
+    [attribute.class("gemma chat-widget chat-panel")],
+    [
+      element.element("summary", [], [element.text("Ask Gemma")]),
+      html.div(
+        [
+          attribute.class("chat-panel-feed"),
+          attribute.attribute("id", "agui-chat-feed"),
+        ],
+        [],
+      ),
+      html.form([attribute.class("chat-panel-form")], [
+        html.input([
+          attribute.type_("text"),
+          attribute.attribute("id", "agui-chat-input"),
+          attribute.class("chat-panel-input"),
+          attribute.placeholder("Question for Gemma…"),
+        ]),
+        html.button(
+          [attribute.type_("submit"), attribute.class("chat-panel-send")],
+          [element.text("Send")],
+        ),
+      ]),
+    ],
+  )
 }
 
 /// SC-AGUI-UI-004 — drill-down detail panel.
