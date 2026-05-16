@@ -612,9 +612,12 @@
           ]
         },
         "zk_ingestion": {
-          "score": 0,
-          "evidence": [],
-          "gap": "cascade architecture not ingested as discrete holon (Pass 15 target)"
+          "score": 1,
+          "evidence": [
+            "[zk-0897996dd6fa9a32] 6-tier hedged inference cascade holon (verified via sa-plan knowledge-search 2026-05-16)",
+            "[zk-504584de560a9593] mistral.rs / gemma in-process pipeline holon",
+            "[zk-8f54b0b91b9e4ac2] Ollama gemma3/gemma4 fallback tier holon"
+          ]
         },
         "email_closure": {
           "score": 0,
@@ -622,10 +625,10 @@
           "gap": "no closure email (Pass 15 target)"
         }
       },
-      "score": 3,
-      "delta": 1,
+      "score": 4,
+      "delta": 2,
       "fmea_pre": 648,
-      "fmea_post": 162,
+      "fmea_post": 81,
       "passes_completed": [
         1,
         2,
@@ -633,8 +636,11 @@
         4,
         5,
         6,
-        14
-      ]
+        14,
+        26
+      ],
+      "last_check": "2026-05-16T10:30:00Z",
+      "last_pass": "pass-26 (zk_ingestion 0→1, 3 holons mechanically verified)"
     },
     {
       "id": "fractal-widgets-l0-l7",
@@ -661,9 +667,12 @@
           ]
         },
         "zk_ingestion": {
-          "score": 0,
-          "evidence": [],
-          "gap": "L0-L7 widget catalog not ingested (Pass 15 target)"
+          "score": 1,
+          "evidence": [
+            "[zk-e2011b54d9886319] L0-L7 fractal widget catalog holon (verified via sa-plan knowledge-search 2026-05-16)",
+            "[zk-a14c83e23bd5c11b] L0 Constitutional + Psi invariant widget holon",
+            "[zk-143a2e262ba440ea] L5 Cognitive OODA-ring widget holon"
+          ]
         },
         "email_closure": {
           "score": 0,
@@ -671,15 +680,18 @@
           "gap": "no closure email (Pass 15 target)"
         }
       },
-      "score": 3,
-      "delta": 2,
+      "score": 4,
+      "delta": 3,
       "fmea_pre": 810,
-      "fmea_post": 162,
+      "fmea_post": 81,
       "passes_completed": [
         1,
         2,
-        13
-      ]
+        13,
+        26
+      ],
+      "last_check": "2026-05-16T10:30:00Z",
+      "last_pass": "pass-26 (zk_ingestion 0→1, 3 holons mechanically verified)"
     },
     {
       "id": "iam-ferriskey-nif",
