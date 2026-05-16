@@ -60,7 +60,7 @@ pub fn view(_state: SharedMeshState) -> Element(msg) {
     shell.section("Search Zettelkasten", [shell.zk_search_bar()]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/smriti-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=smriti")],
       [],
     ),
   ])

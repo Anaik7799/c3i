@@ -57,7 +57,7 @@ pub fn view(state: SharedMeshState) -> Element(msg) {
     shell.section("DB3 — OODA Cycle Trace", [shell.ooda_trace_viewer()]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/prajna-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=prajna")],
       [],
     ),
   ])

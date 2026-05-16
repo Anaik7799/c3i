@@ -87,7 +87,7 @@ pub fn view(state: SharedMeshState) -> Element(msg) {
     ]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/git-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=git")],
       [],
     ),
   ])

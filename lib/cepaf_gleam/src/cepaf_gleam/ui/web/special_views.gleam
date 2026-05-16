@@ -153,7 +153,7 @@ pub fn integrity_view(state: SharedMeshState) -> Element(msg) {
     ]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/integrity-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=integrity")],
       [],
     ),
   ])
@@ -253,7 +253,7 @@ pub fn evolution_view(state: SharedMeshState) -> Element(msg) {
     ]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/evolution-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=evolution")],
       [],
     ),
   ])
@@ -386,7 +386,7 @@ pub fn biomorphic_view(state: SharedMeshState) -> Element(msg) {
     ]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/biomorphic-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=biomorphic")],
       [],
     ),
   ])
@@ -487,7 +487,7 @@ pub fn homeostasis_view(state: SharedMeshState) -> Element(msg) {
     ]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/homeostasis-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=homeostasis")],
       [],
     ),
   ])
@@ -547,7 +547,7 @@ pub fn bicameral_view(state: SharedMeshState) -> Element(msg) {
     ]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/bicameral-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=bicameral")],
       [],
     ),
   ])
@@ -609,7 +609,7 @@ pub fn singularity_view(state: SharedMeshState) -> Element(msg) {
     ]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/singularity-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=singularity")],
       [],
     ),
   ])
@@ -684,7 +684,7 @@ pub fn federation_view(state: SharedMeshState) -> Element(msg) {
     ]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/federation-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=federation")],
       [],
     ),
   ])
@@ -842,7 +842,7 @@ pub fn health_grid_view(state: SharedMeshState) -> Element(msg) {
     shell.section("MO3 — Health Cascade Tree", [shell.health_cascade_tree()]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/health-grid-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=health-grid")],
       [],
     ),
   ])
@@ -1618,7 +1618,7 @@ pub fn component_demo_view(state: SharedMeshState) -> Element(msg) {
       [
         attribute.attribute(
           "src",
-          "/static/component-demo-grid.js?v=22.10.1",
+          "/static/page-grid.bundled.js?page=component-demo",
         ),
       ],
       [],

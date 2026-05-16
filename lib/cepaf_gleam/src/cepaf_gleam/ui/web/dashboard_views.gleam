@@ -2018,7 +2018,7 @@ pub fn planning_dashboard_view(state: SharedMeshState) -> Element(msg) {
       [
         attribute.attribute(
           "src",
-          "/static/planning-dashboard-grid.js?v=22.10.1",
+          "/static/page-grid.bundled.js?page=planning-dashboard",
         ),
       ],
       [],

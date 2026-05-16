@@ -383,7 +383,7 @@ pub fn metabolic_view(_state: SharedMeshState) -> Element(msg) {
     ]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/metabolic-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=metabolic")],
       [],
     ),
   ])
@@ -526,7 +526,7 @@ pub fn mcp_view(_state: SharedMeshState) -> Element(msg) {
     ]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/mcp-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=mcp")],
       [],
     ),
   ])
@@ -569,7 +569,7 @@ pub fn kms_view(_state: SharedMeshState) -> Element(msg) {
     ]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/kms-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=kms")],
       [],
     ),
   ])

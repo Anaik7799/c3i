@@ -73,7 +73,7 @@ pub fn view(state: SharedMeshState) -> Element(msg) {
     shell.section("System Controls", [shell.hot_reload_button()]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/config-grid.js?v=22.10.1")],
+      [attribute.attribute("src", "/static/page-grid.bundled.js?page=config")],
       [],
     ),
   ])
