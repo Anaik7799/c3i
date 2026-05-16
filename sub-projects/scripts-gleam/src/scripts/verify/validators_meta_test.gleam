@@ -57,6 +57,7 @@ pub fn main() -> Nil {
     test_cpig_consistency(),
     test_corpus_index(),
     test_agui_js_depth(),
+    test_agui_chrome_presence(),
   ]
 
   io.println("")
@@ -178,8 +179,9 @@ fn test_cpig_consistency() -> #(String, Bool) {
 
   // Synthesise a tiny matrix with a known-bad gate (score=1 but evidence=[]).
   // The validator only inspects score + evidence.length, not other fields.
+  // Subsystem `score` field is required by validator's parser since pass-27.
   let bad_matrix =
-    "{\"subsystems\":[{\"id\":\"meta-test-synth\",\"gates\":{\"formal_spec\":{\"score\":1,\"evidence\":[]}}}]}"
+    "{\"subsystems\":[{\"id\":\"meta-test-synth\",\"score\":1,\"gates\":{\"formal_spec\":{\"score\":1,\"evidence\":[]}}}]}"
 
   let _ =
     sh(cl("sh"), [
@@ -241,6 +243,34 @@ fn test_agui_js_depth() -> #(String, Bool) {
   // Validator emits "--priority P0" hint (ASCII-safe) when signatures missing.
   let pass = string.contains(raw, "--priority P0")
   io.println("  → contains '--priority P0' hint: " <> bool_to_str(pass))
+  #(name, pass)
+}
+
+fn test_agui_chrome_presence() -> #(String, Bool) {
+  let name = "agui_chrome_presence · synthetic base→JSON endpoint → expect gaps"
+  io.println("\n── " <> name <> " ──")
+
+  // Point validator at /api/v1/pages — every page-path becomes a 404 JSON
+  // body lacking the 5 required IDs + 9 fractal-chips. Validator should
+  // emit "with structural chrome gaps".
+  let synthetic_base = "http://vm-1.tail55d152.ts.net:4100/api/v1/pages"
+  let #(out, _rc) =
+    sh_in(
+      cl("gleam"),
+      [
+        cl("run"),
+        cl("-m"),
+        cl("scripts/verify/agui_chrome_presence"),
+        cl("--"),
+        cl(synthetic_base),
+      ],
+      cl(repo_root),
+    )
+
+  let raw = charlist.to_string(out)
+  // Validator emits "with structural chrome gaps" (ASCII-safe) on bad input
+  let pass = string.contains(raw, "structural chrome gaps")
+  io.println("  → contains 'structural chrome gaps': " <> bool_to_str(pass))
   #(name, pass)
 }
 

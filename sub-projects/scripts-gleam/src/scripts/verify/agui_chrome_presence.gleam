@@ -17,13 +17,14 @@
 //// substring grep on live curl output. A page with the class names but
 //// without the IDs would fail here, even if agui_conformance passes.
 
+import argv
 import gleam/erlang/charlist
 import gleam/int
 import gleam/io
 import gleam/list
 import gleam/string
 
-const base: String = "http://vm-1.tail55d152.ts.net:4100"
+const default_base: String = "http://vm-1.tail55d152.ts.net:4100"
 
 const pages: List(String) = [
   "/", "/dashboard", "/planning", "/cockpit", "/immune", "/knowledge",
@@ -54,7 +55,12 @@ fn cl(s: String) -> charlist.Charlist {
 }
 
 pub fn main() -> Nil {
+  let base = case argv.load().arguments {
+    [b, ..] -> b
+    [] -> default_base
+  }
   io.println("══ SC-AGUI-UI-CHROME-PRESENCE — Per-page structural probe ══")
+  io.println("base: " <> base)
 
   let results = list.map(pages, fn(path) {
     let url = base <> path
