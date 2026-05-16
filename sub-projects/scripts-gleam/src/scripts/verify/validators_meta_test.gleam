@@ -54,6 +54,7 @@ pub fn main() -> Nil {
   let results = [
     test_stop_hook_lyapunov(),
     test_disk_lyapunov(),
+    test_cpig_consistency(),
   ]
 
   io.println("")
@@ -130,6 +131,48 @@ fn test_disk_lyapunov() -> #(String, Bool) {
   // the detector emits a P0 verdict and is pure ASCII.
   let pass = string.contains(raw, "--priority P0")
   io.println("  → contains '✗ P0': " <> bool_to_str(pass))
+  #(name, pass)
+}
+
+fn test_cpig_consistency() -> #(String, Bool) {
+  let name = "cpig_consistency · synthetic score=1 evidence=[] → expect violation"
+  io.println("\n── " <> name <> " ──")
+
+  let matrix_path =
+    "/home/an/dev/ver/c3i/docs/journal/task-116480247290237220/cpig-matrix.json"
+
+  // Synthesise a tiny matrix with a known-bad gate (score=1 but evidence=[]).
+  // The validator only inspects score + evidence.length, not other fields.
+  let bad_matrix =
+    "{\"subsystems\":[{\"id\":\"meta-test-synth\",\"gates\":{\"formal_spec\":{\"score\":1,\"evidence\":[]}}}]}"
+
+  let _ =
+    sh(cl("sh"), [
+      cl("-c"),
+      cl("cp " <> matrix_path <> " " <> matrix_path <> ".bak"),
+    ])
+  let _ =
+    sh(cl("sh"), [
+      cl("-c"),
+      cl("printf '%s' '" <> bad_matrix <> "' > " <> matrix_path),
+    ])
+
+  let #(out, _rc) =
+    sh_in(
+      cl("gleam"),
+      [cl("run"), cl("-m"), cl("scripts/verify/cpig_consistency")],
+      cl(repo_root),
+    )
+  let _ =
+    sh(cl("sh"), [
+      cl("-c"),
+      cl("mv " <> matrix_path <> ".bak " <> matrix_path),
+    ])
+
+  let raw = charlist.to_string(out)
+  // ASCII-safe — "SC-CPIG-CONSISTENCY violations:" always emitted on bad input
+  let pass = string.contains(raw, "SC-CPIG-CONSISTENCY violations")
+  io.println("  → contains 'SC-CPIG-CONSISTENCY violations': " <> bool_to_str(pass))
   #(name, pass)
 }
 
