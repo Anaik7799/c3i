@@ -31,7 +31,7 @@
 import cepaf_gleam/agui/event_stream_widget
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ui/lustre/shell
-import cepaf_gleam/ui/web/page_helpers.{page_header}
+import cepaf_gleam/ui/web/page_helpers.{agui_chrome_block, page_header}
 import cepaf_gleam/ui/state.{
   type SharedMeshState, OodaAct, OodaDecide, OodaObserve, OodaOrient,
   OodaVerify, ThreatCritical, ThreatSevere, cockpit_mode_to_string,
@@ -1496,6 +1496,8 @@ pub fn cockpit_view(state: SharedMeshState) -> Element(msg) {
           ),
         ]),
       ]),
+      // AGUI chrome (SC-AGUI-UI-002/003/007) — fractal filter + AI search + change-log
+      agui_chrome_block(),
       // ── Row 1: Cockpit Mode Status (5-mode display) ──────────────────────
       shell.section("Dark Cockpit 5-Mode Status (SC-HMI-010)", [
         html.div([attribute.class("cockpit-mode-strip")], [

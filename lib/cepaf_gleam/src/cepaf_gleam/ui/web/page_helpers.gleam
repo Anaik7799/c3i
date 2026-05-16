@@ -66,6 +66,16 @@ pub fn page_header(title: String, subtitle: String) -> Element(msg) {
   ])
 }
 
+/// SC-AGUI-UI-002/003/007 — exported chrome block for pages with custom headers.
+/// Use this when page_header() can't be reused (e.g. cockpit_view custom header).
+pub fn agui_chrome_block() -> Element(msg) {
+  html.div([attribute.class("agui-chrome")], [
+    agui_filter_chips(),
+    agui_search_bar(),
+    agui_change_log(),
+  ])
+}
+
 /// SC-AGUI-UI-002 — L0-L7 fractal layer filter chips.
 fn agui_filter_chips() -> Element(msg) {
   html.div([attribute.class("fractal-filter layer-filter")], [
