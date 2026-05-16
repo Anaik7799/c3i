@@ -55,6 +55,7 @@ pub fn main() -> Nil {
     test_stop_hook_lyapunov(),
     test_disk_lyapunov(),
     test_cpig_consistency(),
+    test_corpus_index(),
   ]
 
   io.println("")
@@ -131,6 +132,39 @@ fn test_disk_lyapunov() -> #(String, Bool) {
   // the detector emits a P0 verdict and is pure ASCII.
   let pass = string.contains(raw, "--priority P0")
   io.println("  → contains '✗ P0': " <> bool_to_str(pass))
+  #(name, pass)
+}
+
+fn test_corpus_index() -> #(String, Bool) {
+  let name = "corpus_index · synthetic empty-index db → expect 6 violations"
+  io.println("\n── " <> name <> " ──")
+
+  let tmp_db = "/tmp/corpus-index-meta-test.db"
+  let _ = sh(cl("sh"), [cl("-c"), cl("rm -f " <> tmp_db)])
+  let _ =
+    sh(cl("sqlite3"), [
+      cl(tmp_db),
+      cl("CREATE TABLE holons(content_hash TEXT); CREATE TABLE ingest_state(path TEXT);"),
+    ])
+
+  let #(out, _rc) =
+    sh_in(
+      cl("gleam"),
+      [
+        cl("run"),
+        cl("-m"),
+        cl("scripts/verify/corpus_index"),
+        cl("--"),
+        cl(tmp_db),
+      ],
+      cl(repo_root),
+    )
+  let _ = sh(cl("sh"), [cl("-c"), cl("rm -f " <> tmp_db)])
+
+  let raw = charlist.to_string(out)
+  // Validator emits "SC-CORPUS-INDEX violations:" on any missing index (ASCII)
+  let pass = string.contains(raw, "SC-CORPUS-INDEX violations")
+  io.println("  → contains 'SC-CORPUS-INDEX violations': " <> bool_to_str(pass))
   #(name, pass)
 }
 
