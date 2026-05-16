@@ -223,3 +223,29 @@ Anti-Stub-That-Lies caught a near-miss mid-pass — editing the shared helper al
 The 2 remaining missing components (drill-down, Gemma chat) require per-page JS work, not template-only edits. Cleanly logged as P2 next-pass candidates.
 
 Cross-references: [zk-bd82645aedcb5ef4] Stub-That-Lies, [zk-c14e1d23afff486c] implicit-invariant family, [zk-806d88cb48225af9] SC-AGUI-UI-CONFORMANCE rule, [zk-df4ff2addb9bed8a] prior sparse-pages audit pattern.
+
+---
+
+## 14. Pass-2 closure (UI-002/003/007 → UI-004 → UI-005)
+
+Three follow-up passes drove all 32 pages from 9/11 baseline → 11/11.
+
+| Commit | Pass | Delivered | Conformance impact |
+|---|---|---|---|
+| `0ef58889` | cockpit chrome | Inject `agui_chrome_block()` into `cockpit_view`'s custom header | /cockpit 8/11 → 10/11 |
+| `b22abc8e` | drill-down (UI-004) | `agui_drill_down()` helper + click-handler in `agui-chrome.js` populates panel from `.card`/`.section` content | 30 pages 9/11 → 10/11, /cockpit 10 → 11/11 |
+| `6a7171d8` | Gemma chat (UI-005) | `agui_gemma_chat()` widget wired to real `POST /api/v1/ai/chat` endpoint (gemma3 + gemma4 fallback) | 30 pages 10/11 → 11/11 |
+
+Final state: **32 evolved · 0 partial · 0 sparse · all 11/11.**
+
+Anti-Stub-That-Lies discipline preserved across all three passes:
+- UI-004 drill-down — real `document.click` handler reads element text, populates panel, flips `data-state`. Not a decorative div.
+- UI-005 Gemma chat — endpoint pre-existed (`/api/v1/ai/chat` returns real responses; 401 auth failure surfaces as visible error). Not a fake form.
+
+Genuine remaining gaps (excluded from validator scope by SC-AGUI-CONFORM-003):
+- UI-010 Rust E2E test count — test-suite metric
+- UI-011 WS diff-detect push — server-side OTP actor
+- UI-013 6 DAG scenarios — test suite
+- UI-014 Gemma context enrichment — server-side prompt build
+
+Cross-refs added this pass: [zk-50657feb899e0a2f] two-step collapse — Pass-1 shipped enhancement alongside legacy chrome, Pass-2 closed the gaps incrementally without breaking the baseline.

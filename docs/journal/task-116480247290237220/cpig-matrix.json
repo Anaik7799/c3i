@@ -544,7 +544,8 @@
         "zk_ingestion": {
           "score": 1,
           "evidence": [
-            "31 page holons + agentic-ui rule ingested"
+            "31 page holons + agentic-ui rule ingested",
+            "docs/journal/agui-mass-update-20260516/journal.md §14 — mass-update arc (32 pages 11/11)"
           ]
         },
         "email_closure": {
@@ -569,11 +570,15 @@
         8,
         9,
         10,
-        14
+        14,
+        21,
+        22,
+        23,
+        24
       ],
-      "last_check": "2026-04-30T07:45:53.323594Z",
+      "last_check": "2026-05-16T10:15:00Z",
       "last_task": "urn:c3i:task:misc:116492319530224001",
-      "last_pass": "pass-2"
+      "last_pass": "pass-24 (UI-005 gemma chat — 32/32 × 11/11 SC-AGUI-UI-CONFORMANCE closure)"
     },
     {
       "id": "cortex-inference",
