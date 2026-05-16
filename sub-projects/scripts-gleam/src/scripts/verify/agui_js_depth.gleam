@@ -34,6 +34,7 @@ const signatures: List(#(String, String)) = [
   #("UI-005 gemma chat input id", "agui-chat-input"),
   #("UI-007 change-log feed populator", "appendFeed"),
   #("UI-003 semantic search endpoint", "/api/v1/plan/search"),
+  #("UI-006 heartbeat indicator", "agui-heartbeat"),
   #("meta wired-body marker", "data-agui-wired"),
 ]
 
