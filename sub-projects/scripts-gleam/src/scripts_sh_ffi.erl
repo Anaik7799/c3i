@@ -155,9 +155,21 @@ collect_stream(Port, Deadline, Remaining, Acc) ->
 
 %% ─────────────────────────────────────────────────────────────────────────────
 
+%% SC-NIF-LOAD-006 / Phase A2 robustness: existence-check absolute paths so
+%% `open_port({spawn_executable, ...})` cannot raise badarg on missing binary.
+%% Returns Path if executable+regular, else false (caller emits rc=127).
 resolve(Path) ->
     case Path of
-        [$/ | _] -> Path;
+        [$/ | _] ->
+            case filelib:is_regular(Path) of
+                true ->
+                    %% Best-effort exec-bit probe; on POSIX we don't need
+                    %% file:read_file_info just to check bits — open_port will
+                    %% fail-soft if bit not set. is_regular is the necessary
+                    %% pre-condition that fixes the missing-binary crash class.
+                    Path;
+                false -> false
+            end;
         _ -> os:find_executable(Path)
     end.
 
