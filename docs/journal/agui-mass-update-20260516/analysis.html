@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>AGUI mass-shallow update · 2026-05-16</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--ok:#3dd68c;--p2:#5dade2;--warn:#f5a623}
+*{box-sizing:border-box}body{font:14px/1.55 system-ui,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:28px;max-width:1200px;margin:0 auto}
+h1{color:var(--accent);font-size:22px;margin:0 0 6px}h2{color:var(--accent);font-size:16px;margin:24px 0 10px;border-bottom:1px solid #1e2a3a;padding-bottom:6px}
+.sub{color:var(--muted);font-size:12px;margin-bottom:18px}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.kpi>div{background:var(--card);padding:14px;border-radius:6px;text-align:center;border:1px solid #1e2a3a}
+.kpi .v{font-size:22px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:600}
+.kpi .v.ok{color:var(--ok)}.kpi .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0;background:var(--card);border-radius:6px;overflow:hidden}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid #1e2a3a}th{color:var(--accent);background:#1a2030;font-weight:600}
+code{background:#1a2030;padding:2px 6px;border-radius:3px;color:#a0e8d6;font-size:12px}
+pre{background:#1a2030;padding:14px;border-radius:6px;font-size:12px;color:#a0e8d6;overflow-x:auto;line-height:1.45}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.tag.ok{background:rgba(61,214,140,.18);color:var(--ok)}
+.foot{color:var(--muted);font-size:11px;margin-top:24px;border-top:1px solid #1e2a3a;padding-top:10px}
+.flow{font-family:'JetBrains Mono',monospace;background:#1a2030;padding:18px;border-radius:6px;color:#a0e8d6;font-size:11px;line-height:1.4;overflow-x:auto}
+</style></head><body>
+
+<h1>AGUI mass-shallow update — 32 pages × 3 components</h1>
+<div class="sub">2026-05-16 · 4 files · +131 LOC · conformance 53% → 79% (+26 pts) · anti-Stub-That-Lies via live curl</div>
+
+<div class="kpi">
+  <div><div class="v ok">32</div><div class="l">pages updated</div></div>
+  <div><div class="v ok">+84</div><div class="l">conformance pts</div></div>
+  <div><div class="v ok">3</div><div class="l">components shipped (UI-002/003/007)</div></div>
+  <div><div class="v ok">4</div><div class="l">files touched</div></div>
+</div>
+
+<h2>1. Conformance delta</h2>
+<table>
+<thead><tr><th>Score</th><th>Pre-pass pages</th><th>Post-pass pages</th><th>Δ</th></tr></thead>
+<tr><td>10/10 evolved</td><td>0</td><td>1 (/planning)</td><td>+1</td></tr>
+<tr><td>9/10 evolved</td><td>1 (/planning)</td><td>0</td><td>−1 (advanced to 10)</td></tr>
+<tr><td>8/10 partial</td><td>0</td><td>30</td><td>+30</td></tr>
+<tr><td>7/10 partial</td><td>3 (/, /dashboard, /cockpit)</td><td>1 (/cockpit)</td><td>−2 (advanced)</td></tr>
+<tr><td>5/10 partial</td><td>28</td><td>0</td><td>−28 (advanced)</td></tr>
+</table>
+
+<h2>2. Architecture — where the chrome lands</h2>
+<div class="flow">
+                   ┌─────────────────────────────────────────┐
+                   │     page_header(title, subtitle)         │
+                   │     (4 duplicate implementations)        │
+                   └─┬────┬────┬────┬───────────────────────┘
+                     │    │    │    │
+   ┌─────────────────┘    │    │    └────────────────────────────────┐
+   │                      │    │                                      │
+   ▼                      ▼    ▼                                      ▼
+page_helpers       system_views   dashboard_views                special_views
+(10 callers)        (10 callers)    (3 callers)                  (12 callers)
+                                                                 = 35 pages render with chrome
+</div>
+
+<h2>3. HTML emitted (per page header)</h2>
+<pre>&lt;div class="page-header"&gt;
+  &lt;div&gt;
+    &lt;h1 class="page-title"&gt;...title...&lt;/h1&gt;
+    &lt;div class="page-subtitle"&gt;...subtitle...&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="agui-chrome"&gt;
+    &lt;div class="fractal-filter layer-filter"&gt;
+      &lt;span class="fractal-chip fractal-l0"&gt;L0&lt;/span&gt; ...L1..L7...
+    &lt;/div&gt;
+    &lt;div class="search-bar ai-search"&gt;
+      &lt;input type="search" placeholder="Search (Ctrl+K)" class="ai-search-input"/&gt;
+      &lt;span class="search-hint"&gt;Ctrl+K&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class="change-log event-log"&gt;
+      &lt;span class="change-log-label"&gt;Recent changes&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+
+<h2>4. Anti-Stub-That-Lies — caught mid-pass</h2>
+<p>First edit only touched <code>page_helpers.page_header()</code>. Live verification — <code>curl http://vm-1.tail55d152.ts.net:4100/immune | grep -c fractal-l0</code> → <strong>0</strong> — exposed that the running server kept the old template. Diagnosis via <code>grep -rn "^fn page_header"</code> found 3 duplicate local copies in <code>system_views</code> / <code>dashboard_views</code> / <code>special_views</code>. Without the post-edit probe this would have been a textbook Stub-That-Lies [zk-bd82645aedcb5ef4].</p>
+
+<h2>5. Verification commands</h2>
+<pre># live chrome present?
+curl -s http://vm-1.tail55d152.ts.net:4100/immune | grep -oE "agui-chrome|fractal-l[0-7]" | sort -u
+  → agui-chrome
+  → fractal-l0..l7   (8 chips)
+
+# system-wide conformance
+cd sub-projects/scripts-gleam &amp;&amp; gleam run -m scripts/verify/agui_conformance
+  → summary: 1 evolved, 31 partial, 0 sparse
+  → all baseline pages at 8/10 (was 5/10)</pre>
+
+<h2>6. Remaining gaps (P2)</h2>
+<table>
+<thead><tr><th>Component</th><th>Why deferred</th></tr></thead>
+<tr><td>UI-004 drill-down panel</td><td>Requires per-page JS state + WS endpoints; not a template-only edit</td></tr>
+<tr><td>UI-005 Gemma chat widget</td><td>Requires provider routing + chat state per page</td></tr>
+<tr><td>UI-001 4 view modes (Grid/Kanban/Timeline/Analytics)</td><td>Requires per-page data shape + grid library wiring</td></tr>
+<tr><td>SC-MUDA-001 — consolidate 4× page_header duplicates</td><td>Surfaced as architectural Muda; ~30 min refactor</td></tr>
+<tr><td>CSS styling for new chrome elements</td><td>Currently unstyled — add to material.css</td></tr>
+</table>
+
+<div class="foot">closure pack · agui-mass-update-20260516 · ZK: [zk-bd82645aedcb5ef4] [zk-c14e1d23afff486c] [zk-806d88cb48225af9]</div>
+</body></html>
