@@ -154,13 +154,32 @@ L0 + L2 + L6 intentionally untouched — those layers already have wiring_guard 
 | Origin/main commits this arc | 0 | 9 (8 passes + closure) | **+9** |
 | Stop-hook elapsed (live) | 1.9s (post Phase A.2) | 1.97s | stable |
 | Disk usage trend log | absent | initialized (3 samples 88%/88%/88%) | **new** |
-| Learn-loop health verdict | manual | ✓ 5/5 homeostasis | **green** |
+| Learn-loop health verdict | manual | ✓ 6/6 homeostasis | **green** |
+| Hourly cron registration | absent | `learn-loop-healthcheck` cron=`0 * * * *` worker=`gleam_run` | **scheduled** |
+
+### 11.1 Post-cleanup cron verification (anti-Stub-That-Lies for the schedule itself)
+
+The schedule was registered via `sa-plan-daemon schedule-add`. Per [zk-bd82645aedcb5ef4] anti-Stub-That-Lies, "registered" ≠ "will fire correctly". Three mechanical invariants verified before claiming closure:
+
+| Invariant | Source | Status |
+|---|---|---|
+| Schedule in `workflow_schedules` table | `sa-plan-daemon schedule-list` → `[✓] learn-loop-healthcheck — gleam_run (cron: 0 * * * *, last: never)` | ✓ |
+| Worker name in `known_workers()` | `sub-projects/c3i/native/planning_daemon/src/workers.rs` line 8 (between `gleam_script` and `embed_refresh`) | ✓ |
+| Match arm in `dispatch()` | `workers.rs` `"gleam_run" => run_gleam_run(&args).await` | ✓ |
+
+Per SC-DISP-REGISTRY-001..010 all three must hold for a scheduled job to fire. They do. The 09:00 UTC tick will execute the aggregator without intervention. `last: never` becomes `last: 2026-05-16T09:00:00+00:00` at next fire.
+
+### 11.2 Final session tally — 13 ship-passes
+
+9 SC-* families · 50 STAMP IDs · 6 Gleam validators · 1 emitter · 9 Gemini parity mirrors · 1 hourly cron (mechanically verified) · 1 closure journal · 1 analysis.html · 1 links.json · 14 commits on origin/main (`b82723fe..0841d7bd`).
 
 ---
 
 ## 12. STAMP & Constitutional Alignment
 
-Rule families introduced (47 SC-IDs across 8 families): SC-CPIG-CONSISTENCY-001..005, SC-CORPUS-INDEX-001..006, SC-STOP-HOOK-TELE-001..006, SC-STOP-HOOK-LYAPUNOV-001..006, SC-FY27-PEER-OPTIONAL-001..006, SC-DISK-TREND-001..006, SC-DISK-LYAPUNOV-001..005, SC-LEARN-LOOP-HEALTHCHECK-001..005.
+Rule families introduced (50 SC-IDs across 9 families): SC-CPIG-CONSISTENCY-001..005, SC-CORPUS-INDEX-001..006, SC-STOP-HOOK-TELE-001..006, SC-STOP-HOOK-LYAPUNOV-001..006, SC-FY27-PEER-OPTIONAL-001..006, SC-DISK-TREND-001..006, SC-DISK-LYAPUNOV-001..005, SC-LEARN-LOOP-HEALTHCHECK-001..005, SC-VALIDATORS-META-TEST-001..005.
+
+Cross-references: SC-DISP-REGISTRY-001..010 (cron dispatch invariants verified §11.1), SC-SYNC-DOC-001/007/009 (registry + CLAUDE.md + Gemini parity satisfied).
 
 Aligned with:
 - Ψ-2 (Reversibility): every guard outputs a sa-plan hint, never blocks
