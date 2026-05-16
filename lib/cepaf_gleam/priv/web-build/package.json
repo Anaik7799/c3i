@@ -5,7 +5,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "npm run build:planning && npm run build:agui && npm run build:page",
+    "build": "npm run build:planning && npm run build:agui && npm run build:page && npm run build:sw-register && npm run build:planning-utils",
+    "build:sw-register": "esbuild src/sw-register.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/sw-register.bundled.js",
+    "build:planning-utils": "esbuild src/planning-utils.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/planning-utils.bundled.js",
     "build:planning": "esbuild src/planning-grid.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/planning-grid.bundled.js",
     "build:agui": "esbuild src/agui-chrome.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/agui-chrome.bundled.js",
     "build:page": "esbuild src/page-grid.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/page-grid.bundled.js",

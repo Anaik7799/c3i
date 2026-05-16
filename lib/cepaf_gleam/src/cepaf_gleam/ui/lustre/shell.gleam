@@ -589,7 +589,7 @@ pub fn render_page(
         // Pure registration — non-fatal on unsupported browsers / non-https.
         element.element(
           "script",
-          [attribute.attribute("src", "/static/sw-register.js?v=22.11.7")],
+          [attribute.attribute("src", "/static/sw-register.bundled.js?v=pass39")],
           [],
         ),
         // SC-AGUI-UI-002/003 — wires fractal-chip clicks + ai-search input
