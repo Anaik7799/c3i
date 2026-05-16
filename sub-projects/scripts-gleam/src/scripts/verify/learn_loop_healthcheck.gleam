@@ -45,6 +45,10 @@ const validators: List(String) = [
   // signatures backing each HTML-detectable chrome component. Sibling of
   // SC-AGUI-UI-CONFORMANCE (substring → presence) at the wiring layer.
   "scripts/verify/agui_js_depth",
+  // SC-AGUI-UI-CHROME-PRESENCE — per-page structural probe (IDs + chip count).
+  // Closes the conformance gap between class-name presence (substring) and
+  // element-id presence (structural). Sibling of agui_js_depth at HTML layer.
+  "scripts/verify/agui_chrome_presence",
 ]
 
 pub fn main() -> Nil {
