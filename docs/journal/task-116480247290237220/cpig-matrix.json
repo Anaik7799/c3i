@@ -494,9 +494,12 @@
           ]
         },
         "zk_ingestion": {
-          "score": 0,
-          "evidence": [],
-          "gap": "Dart MCP not ingested as holon (Pass 15 target)"
+          "score": 1,
+          "evidence": [
+            "[zk-d28123152e6c8e71] SC-DART-MCP STAMP constraints holon (verified via sa-plan knowledge-search 2026-05-16)",
+            "[zk-fa48bb6efecc6cd6] SC-DART-MCP STAMP constraints duplicate holon",
+            "[zk-40b4c8c9c8b33939] specs/tla/DartMcpServer.tla ingested with SC-DART-MCP-004/009 invariants"
+          ]
         },
         "email_closure": {
           "score": 1,
@@ -505,16 +508,19 @@
           ]
         }
       },
-      "score": 4,
-      "delta": 2,
+      "score": 5,
+      "delta": 3,
       "fmea_pre": 245,
-      "fmea_post": 49,
+      "fmea_post": 24,
       "passes_completed": [
         1,
         2,
         3,
-        14
-      ]
+        14,
+        25
+      ],
+      "last_check": "2026-05-16T10:25:00Z",
+      "last_pass": "pass-25 (zk_ingestion gate lifted — 3 holons verified live)"
     },
     {
       "id": "gleam-ui-triple",
