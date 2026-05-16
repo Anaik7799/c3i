@@ -29,6 +29,7 @@
 
 import cepaf_gleam/c3i/nif as c3i_nif
 import cepaf_gleam/ui/lustre/shell
+import cepaf_gleam/ui/web/page_helpers.{page_header}
 import cepaf_gleam/ui/state.{
   type SharedMeshState, ThreatCritical, ThreatElevated, ThreatNominal, ThreatNone,
   ThreatSevere,
@@ -626,34 +627,9 @@ pub fn telemetry_view(_state: SharedMeshState) -> Element(msg) {
 // Private helpers (duplicated from page_views — SC-MUDA-001 approved)
 // ---------------------------------------------------------------------------
 
-fn page_header(title: String, subtitle: String) -> Element(msg) {
-  // SC-AGUI-UI-002/003/007 chrome [zk-bd82645aedcb5ef4 anti-Stub-That-Lies]
-  html.div([attribute.class("page-header")], [
-    html.div([], [
-      html.h1([attribute.class("page-title")], [element.text(title)]),
-      html.div([attribute.class("page-subtitle")], [element.text(subtitle)]),
-    ]),
-    html.div([attribute.class("agui-chrome")], [
-      html.div([attribute.class("fractal-filter layer-filter")], [
-        html.span([attribute.class("fractal-chip fractal-l0")], [element.text("L0")]),
-        html.span([attribute.class("fractal-chip fractal-l1")], [element.text("L1")]),
-        html.span([attribute.class("fractal-chip fractal-l2")], [element.text("L2")]),
-        html.span([attribute.class("fractal-chip fractal-l3")], [element.text("L3")]),
-        html.span([attribute.class("fractal-chip fractal-l4")], [element.text("L4")]),
-        html.span([attribute.class("fractal-chip fractal-l5")], [element.text("L5")]),
-        html.span([attribute.class("fractal-chip fractal-l6")], [element.text("L6")]),
-        html.span([attribute.class("fractal-chip fractal-l7")], [element.text("L7")]),
-      ]),
-      html.div([attribute.class("search-bar ai-search")], [
-        html.input([attribute.type_("search"), attribute.placeholder("Search (Ctrl+K)"), attribute.class("ai-search-input")]),
-        html.span([attribute.class("search-hint")], [element.text("Ctrl+K")]),
-      ]),
-      html.div([attribute.class("change-log event-log")], [
-        html.span([attribute.class("change-log-label")], [element.text("Recent changes")]),
-      ]),
-    ]),
-  ])
-}
+// page_header — SC-MUDA-001 consolidated to page_helpers.page_header (single
+// source of truth across system_views / dashboard_views / special_views /
+// page_helpers; ZK [zk-50657feb899e0a2f] two-step collapse pattern).
 
 fn threat_label(level: state.ThreatLevel) -> String {
   case level {
