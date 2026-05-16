@@ -37,6 +37,10 @@ const validators: List(String) = [
   "scripts/verify/stop_hook_lyapunov",
   "scripts/verify/disk_trend",
   "scripts/verify/disk_lyapunov",
+  // SC-VALIDATORS-META-TEST — proves the Lyapunov detectors above
+  // actually trip on synthetic bad input (anti-Stub-That-Lies for the
+  // detectors themselves). Last because it briefly swaps log files.
+  "scripts/verify/validators_meta_test",
 ]
 
 pub fn main() -> Nil {
@@ -56,7 +60,12 @@ pub fn main() -> Nil {
   })
 
   case failures {
-    [] -> io.println("\n✓ all 5 validators report homeostasis")
+    [] ->
+      io.println(
+        "\n✓ all "
+        <> int.to_string(list.length(results))
+        <> " validators report homeostasis",
+      )
     _ ->
       io.println(
         "\n✗ "
@@ -84,15 +93,20 @@ fn run_one(module_path: String) -> #(String, String) {
 fn extract_verdict(raw: String) -> String {
   // Match the classification line shape ("✗ P0 —", "✗ P1 —", "⚠ P2 —"),
   // not the hint string (which always mentions the constraint name).
-  case string.contains(raw, "✗ P0") {
-    True -> "✗P0"
+  // Also handle the meta-test's failure shape ("✗ multiple meta-tests failed").
+  case string.contains(raw, "meta-tests failed") {
+    True -> "✗META"
     False ->
-      case string.contains(raw, "✗ P1") {
-        True -> "✗P1"
+      case string.contains(raw, "✗ P0") {
+        True -> "✗P0"
         False ->
-          case string.contains(raw, "⚠ P2") || string.contains(raw, "⚠ P1") {
-            True -> "⚠P2"
-            False -> "✓"
+          case string.contains(raw, "✗ P1") {
+            True -> "✗P1"
+            False ->
+              case string.contains(raw, "⚠ P2") || string.contains(raw, "⚠ P1") {
+                True -> "⚠P2"
+                False -> "✓"
+              }
           }
       }
   }
