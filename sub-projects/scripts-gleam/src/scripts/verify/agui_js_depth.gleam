@@ -23,16 +23,20 @@ import gleam/io
 import gleam/list
 import gleam/string
 
-const default_url: String = "http://vm-1.tail55d152.ts.net:4100/static/agui-chrome.js"
+const default_url: String = "http://vm-1.tail55d152.ts.net:4100/static/agui-chrome.bundled.js"
 
+// Bundle-survival note (pass-37): Effect-TS bundle is minified — internal
+// function names are mangled. Signatures use string literals + DOM identifiers
+// which survive minification. Per [zk-bd82645aedcb5ef4]: signatures still
+// prove genuine wiring because string literals are referenced by handlers.
 const signatures: List(#(String, String)) = [
-  #("UI-002 fractal-filter handler", "applyFractalFilter"),
-  #("UI-002 fractal-layer auto-classifier", "classifyLayer"),
+  #("UI-002 fractal-filter handler", "fractal-chip"),
+  #("UI-002 fractal-layer auto-classifier", "data-layer"),
   #("UI-003 ai-search binding", "ai-search-input"),
   #("UI-004 drill-down DOM target", "agui-detail-body"),
   #("UI-005 gemma chat fetch URL", "/api/v1/ai/chat"),
   #("UI-005 gemma chat input id", "agui-chat-input"),
-  #("UI-007 change-log feed populator", "appendFeed"),
+  #("UI-007 change-log feed populator", "change-log-entry"),
   #("UI-003 semantic search endpoint", "/api/v1/plan/search"),
   #("UI-006 heartbeat indicator", "agui-heartbeat"),
   #("meta wired-body marker", "data-agui-wired"),

@@ -5,8 +5,10 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "esbuild src/planning-grid.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/planning-grid.bundled.js",
-    "build:dev": "esbuild src/planning-grid.ts --bundle --format=iife --target=es2020 --sourcemap --outfile=../static/planning-grid.bundled.js"
+    "build": "npm run build:planning && npm run build:agui",
+    "build:planning": "esbuild src/planning-grid.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/planning-grid.bundled.js",
+    "build:agui": "esbuild src/agui-chrome.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/agui-chrome.bundled.js",
+    "build:dev": "esbuild src/planning-grid.ts --bundle --format=iife --target=es2020 --sourcemap --outfile=../static/planning-grid.bundled.js && esbuild src/agui-chrome.ts --bundle --format=iife --target=es2020 --sourcemap --outfile=../static/agui-chrome.bundled.js"
   },
   "devDependencies": {
     "esbuild": "^0.21.0",

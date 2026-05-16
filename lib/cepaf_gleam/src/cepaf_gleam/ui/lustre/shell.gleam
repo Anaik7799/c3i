@@ -597,7 +597,7 @@ pub fn render_page(
         // chrome was static (DOM-only) before this script.
         element.element(
           "script",
-          [attribute.attribute("src", "/static/agui-chrome.js?v=2026-05-16")],
+          [attribute.attribute("src", "/static/agui-chrome.bundled.js?v=2026-05-16-pass37")],
           [],
         ),
       ]),

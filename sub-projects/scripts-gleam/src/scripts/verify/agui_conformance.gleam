@@ -51,7 +51,8 @@ const checks: List(#(String, List(String))) = [
   #("responsive-css (UI-008)", ["@media", "768px", "1024px"]),
   #("touch-targets (UI-009)", ["min-height:44px", "min-height: 44px", "touch-target"]),
   #("glassmorphism (UI-015)", ["backdrop-filter", "blur(", "glass"]),
-  #("agui-js-wired (UI-002/003/009)", ["agui-chrome.js"]),
+  // Bundle migration pass-37: accept either legacy .js or Effect-TS .bundled.js
+  #("agui-js-wired (UI-002/003/009)", ["agui-chrome.bundled.js", "agui-chrome.js"]),
 ]
 
 @external(erlang, "scripts_sh_ffi", "run_capture")
