@@ -253,7 +253,7 @@ pub fn verification_view(state: SharedMeshState) -> Element(msg) {
     ]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/verification-grid.js?v=22.10.0")],
+      [attribute.attribute("src", "/static/verification-grid.bundled.js?v=pass40")],
       [],
     ),
   ])
