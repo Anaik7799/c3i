@@ -27,10 +27,12 @@ const default_url: String = "http://vm-1.tail55d152.ts.net:4100/static/agui-chro
 
 const signatures: List(#(String, String)) = [
   #("UI-002 fractal-filter handler", "applyFractalFilter"),
+  #("UI-002 fractal-layer auto-classifier", "classifyLayer"),
   #("UI-003 ai-search binding", "ai-search-input"),
   #("UI-004 drill-down DOM target", "agui-detail-body"),
   #("UI-005 gemma chat fetch URL", "/api/v1/ai/chat"),
   #("UI-005 gemma chat input id", "agui-chat-input"),
+  #("UI-007 change-log feed populator", "appendFeed"),
   #("meta wired-body marker", "data-agui-wired"),
 ]
 
@@ -69,7 +71,7 @@ pub fn main() -> Nil {
   })
   let missing = list.filter(results, fn(r) { !r.2 })
   case list.length(missing) {
-    0 -> io.println("\n✓ all 6 JS wiring signatures present — UI is not Stub-That-Lies")
+    0 -> io.println("\n✓ all JS wiring signatures present — UI is not Stub-That-Lies")
     n -> {
       io.println(
         "\n✗ P0 — "
