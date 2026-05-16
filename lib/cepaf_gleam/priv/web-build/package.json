@@ -9,6 +9,7 @@
     "build:sw-register": "esbuild src/sw-register.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/sw-register.bundled.js",
     "build:planning-utils": "esbuild src/planning-utils.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/planning-utils.bundled.js",
     "build:verification": "esbuild src/verification-grid.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/verification-grid.bundled.js",
+    "build:immune": "esbuild src/immune-grid.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/immune-grid.bundled.js",
     "build:planning": "esbuild src/planning-grid.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/planning-grid.bundled.js",
     "build:agui": "esbuild src/agui-chrome.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/agui-chrome.bundled.js",
     "build:page": "esbuild src/page-grid.ts --bundle --format=iife --target=es2020 --minify --outfile=../static/page-grid.bundled.js",

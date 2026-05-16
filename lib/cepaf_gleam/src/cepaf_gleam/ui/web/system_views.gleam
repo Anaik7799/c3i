@@ -95,7 +95,7 @@ pub fn immune_view(state: SharedMeshState) -> Element(msg) {
     ]),
     element.element(
       "script",
-      [attribute.attribute("src", "/static/immune-grid.js?v=22.10.0")],
+      [attribute.attribute("src", "/static/immune-grid.bundled.js?v=pass41")],
       [],
     ),
   ])
