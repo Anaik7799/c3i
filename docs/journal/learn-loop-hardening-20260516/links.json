@@ -1,0 +1,52 @@
+{
+  "task_id": "learn-loop-hardening-20260516",
+  "generated_at": "2026-05-16T06:50:00Z",
+  "scope": "8-pass closure of perf-bench-20260516 §10 gaps; institutional-memory loop hardened with 6 mechanical guards",
+  "agent": "claude-opus-4-7",
+  "predecessor": "docs/journal/perf-bench-20260516/",
+  "operator_url_https": "https://vm-1.tail55d152.ts.net:8443/task-id/learn-loop-hardening-20260516/",
+  "artefacts": [
+    {"name": "journal.md", "role": "13-section SC-JOURNAL", "size_bytes": 9873},
+    {"name": "analysis.html", "role": "operator handoff page"},
+    {"name": "links.json", "role": "this file"}
+  ],
+  "passes": [
+    {"n": 1, "rule": "SC-CPIG-CONSISTENCY",      "commit": "b82723fe", "layer": "L5", "validator": "scripts/verify/cpig_consistency"},
+    {"n": 2, "rule": "SC-CORPUS-INDEX",          "commit": "9bc9377c", "layer": "L3", "validator": "scripts/verify/corpus_index"},
+    {"n": 3, "rule": "SC-STOP-HOOK-TELE",        "commit": "5108bc17", "layer": "L1", "validator": "stop_hook.gleam (emitter)"},
+    {"n": 4, "rule": "SC-STOP-HOOK-LYAPUNOV",    "commit": "a769d117", "layer": "L5", "validator": "scripts/verify/stop_hook_lyapunov"},
+    {"n": 5, "rule": "SC-FY27-PEER-OPTIONAL",    "commit": "9bc6c726", "layer": "L7", "validator": "(policy rule)"},
+    {"n": 6, "rule": "SC-DISK-TREND",            "commit": "300d984d", "layer": "L4", "validator": "scripts/verify/disk_trend"},
+    {"n": 7, "rule": "SC-DISK-LYAPUNOV",         "commit": "7a6eb438", "layer": "L5", "validator": "scripts/verify/disk_lyapunov"},
+    {"n": 8, "rule": "SC-LEARN-LOOP-HEALTHCHECK","commit": "5ac908be", "layer": "L5", "validator": "scripts/verify/learn_loop_healthcheck"}
+  ],
+  "live_verdict": {
+    "command": "gleam run -m scripts/verify/learn_loop_healthcheck",
+    "result": "✓ all 5 validators report homeostasis",
+    "stop_hook_elapsed_s": 1.97,
+    "stop_hook_budget_s": 50,
+    "stop_hook_margin": "26×",
+    "disk_pct": 88,
+    "disk_tier": "P2 watch (perf-bench-20260516 baseline)"
+  },
+  "deltas": {
+    "mechanical_guards_added": 6,
+    "stamp_ids_added": 47,
+    "rule_md_added": 8,
+    "validator_gleam_added": 6,
+    "loc_added_approx": 750,
+    "commits_pushed": 9
+  },
+  "zk_lineage": [
+    "zk-bd82645aedcb5ef4",
+    "zk-c14e1d23afff486c",
+    "zk-426c4adf07d076ad",
+    "zk-f8f40cb7e63db61a",
+    "zk-ca8c05bebfcae93f"
+  ],
+  "remaining_gaps": [
+    {"item": "Federated CPIG drift", "priority": "P3", "disposition": "deferred — multi-mesh not present"},
+    {"item": "Hourly cron for learn_loop_healthcheck", "priority": "P3", "disposition": "manual invocation acceptable"},
+    {"item": "Synthetic-bad-input tests for the 5 validators", "priority": "P3", "disposition": "live ✓ green; follow-up safety pass"}
+  ]
+}

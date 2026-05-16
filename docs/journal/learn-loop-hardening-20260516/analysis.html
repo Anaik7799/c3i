@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><title>Learn-loop hardening arc · 2026-05-16</title>
+<style>
+:root{--bg:#0a0e17;--card:#141922;--text:#e0e6ed;--muted:#7a8fa6;--accent:#00d4aa;--ok:#3dd68c;--p0:#ff4757;--p1:#f5a623;--p2:#5dade2}
+*{box-sizing:border-box}body{font:14px/1.55 system-ui,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:28px;max-width:1200px;margin:0 auto}
+h1{color:var(--accent);font-size:22px;margin:0 0 6px}h2{color:var(--accent);font-size:16px;margin:24px 0 10px;border-bottom:1px solid #1e2a3a;padding-bottom:6px}
+.sub{color:var(--muted);font-size:12px;margin-bottom:18px}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.kpi>div{background:var(--card);padding:14px;border-radius:6px;text-align:center;border:1px solid #1e2a3a}
+.kpi .v{font-size:22px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:600}
+.kpi .v.ok{color:var(--ok)}.kpi .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0;background:var(--card);border-radius:6px;overflow:hidden}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid #1e2a3a}th{color:var(--accent);background:#1a2030;font-weight:600}
+code{background:#1a2030;padding:2px 6px;border-radius:3px;color:#a0e8d6;font-size:12px}
+pre{background:#1a2030;padding:14px;border-radius:6px;font-size:12px;color:#a0e8d6;overflow-x:auto;line-height:1.45}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.tag.ok{background:rgba(61,214,140,.18);color:var(--ok)}.tag.p2{background:rgba(245,166,35,.18);color:var(--p1)}
+.foot{color:var(--muted);font-size:11px;margin-top:24px;border-top:1px solid #1e2a3a;padding-top:10px}
+</style></head><body>
+
+<h1>Learn-loop hardening arc — operator handoff</h1>
+<div class="sub">2026-05-16 · 8 sequential passes · 6 mechanical guards · 47 STAMP IDs · 9 commits b82723fe..10682445 · <code>https://github.com/Anaik7799/c3i</code></div>
+
+<div class="kpi">
+  <div><div class="v ok">9</div><div class="l">commits pushed</div></div>
+  <div><div class="v ok">8</div><div class="l">rules shipped</div></div>
+  <div><div class="v ok">6</div><div class="l">mechanical validators</div></div>
+  <div><div class="v ok">✓ 5/5</div><div class="l">ring homeostasis</div></div>
+</div>
+
+<h2>1. Arc — 8 passes</h2>
+<table>
+<thead><tr><th>#</th><th>Rule</th><th>Commit</th><th>Layer</th><th>Validator</th><th>Live</th></tr></thead>
+<tr><td>1</td><td>SC-CPIG-CONSISTENCY</td><td><code>b82723fe</code></td><td>L5</td><td><code>cpig_consistency</code></td><td><span class="tag ok">✓</span></td></tr>
+<tr><td>2</td><td>SC-CORPUS-INDEX</td><td><code>9bc9377c</code></td><td>L3</td><td><code>corpus_index</code></td><td><span class="tag ok">✓</span></td></tr>
+<tr><td>3</td><td>SC-STOP-HOOK-TELE</td><td><code>5108bc17</code></td><td>L1</td><td>emitter (stop_hook.gleam)</td><td><span class="tag ok">✓</span></td></tr>
+<tr><td>4</td><td>SC-STOP-HOOK-LYAPUNOV</td><td><code>a769d117</code></td><td>L5</td><td><code>stop_hook_lyapunov</code></td><td><span class="tag ok">✓</span></td></tr>
+<tr><td>5</td><td>SC-FY27-PEER-OPTIONAL</td><td><code>9bc6c726</code></td><td>L7</td><td>policy (rule)</td><td><span class="tag ok">✓</span></td></tr>
+<tr><td>6</td><td>SC-DISK-TREND</td><td><code>300d984d</code></td><td>L4</td><td><code>disk_trend</code></td><td><span class="tag p2">⚠ 88% baseline</span></td></tr>
+<tr><td>7</td><td>SC-DISK-LYAPUNOV</td><td><code>7a6eb438</code></td><td>L5</td><td><code>disk_lyapunov</code></td><td><span class="tag ok">✓ Δ=0</span></td></tr>
+<tr><td>8</td><td>SC-LEARN-LOOP-HEALTHCHECK</td><td><code>5ac908be</code></td><td>L5</td><td><code>learn_loop_healthcheck</code></td><td><span class="tag ok">✓ 5/5</span></td></tr>
+</table>
+
+<h2>2. Fractal coverage</h2>
+<table>
+<thead><tr><th>Layer</th><th>Function</th><th>Rule</th></tr></thead>
+<tr><td>L1 Atomic</td><td>OODA Learn emit (JSONL/run)</td><td>SC-STOP-HOOK-TELE</td></tr>
+<tr><td>L3 Transaction</td><td>perf invariant (6 required indexes)</td><td>SC-CORPUS-INDEX</td></tr>
+<tr><td>L4 System</td><td>capacity emit (df → JSONL)</td><td>SC-DISK-TREND</td></tr>
+<tr><td>L5 Cognitive</td><td>governance, observability consumers, aggregator</td><td>SC-CPIG-CONSISTENCY · SC-STOP-HOOK-LYAPUNOV · SC-DISK-LYAPUNOV · SC-LEARN-LOOP-HEALTHCHECK</td></tr>
+<tr><td>L7 Federation</td><td>optional-peer policy</td><td>SC-FY27-PEER-OPTIONAL</td></tr>
+</table>
+
+<h2>3. Live verdict</h2>
+<pre>$ gleam run -m scripts/verify/learn_loop_healthcheck
+══ Learn-Loop Health Check (SC-LEARN-LOOP-HEALTHCHECK) ══
+✓  scripts/verify/cpig_consistency
+✓  scripts/verify/corpus_index
+✓  scripts/verify/stop_hook_lyapunov
+✓  scripts/verify/disk_trend
+✓  scripts/verify/disk_lyapunov
+
+✓ all 5 validators report homeostasis</pre>
+
+<h2>4. Pattern (anti-Stub-That-Lies)</h2>
+<p>Every validator <strong>parses real substrate</strong> (SQLite catalog, JSON file, df output) and exits non-zero on actual mismatch. None assert state. ZK lineage <code>[zk-bd82645aedcb5ef4]</code> Stub-That-Lies (RPN 729). The aggregator (Pass 8) itself caught a Pass-internal anti-pattern — initial verdict extractor matched the literal substring <code>P0</code> in <em>hint strings</em> rather than the classification line shape <code>✗ P0 —</code>, producing a 5/5 false-positive that was visible in stdout and fixed mid-pass.</p>
+
+<h2>5. Pre→Post delta</h2>
+<table>
+<thead><tr><th>Metric</th><th>Pre-arc</th><th>Post-arc</th></tr></thead>
+<tr><td>Mechanical guards on Learn loop</td><td>0</td><td><strong>6</strong></td></tr>
+<tr><td>Self-verifying via single command</td><td>no</td><td><strong>yes</strong></td></tr>
+<tr><td>STAMP constraints in family</td><td>0</td><td><strong>47</strong></td></tr>
+<tr><td>Origin/main commits in arc</td><td>0</td><td>9</td></tr>
+<tr><td>Stop-hook elapsed (live)</td><td>1.9 s</td><td>1.97 s (stable)</td></tr>
+<tr><td>Health verdict</td><td>manual</td><td><strong>✓ 5/5 homeostasis</strong></td></tr>
+</table>
+
+<h2>6. Cross-references</h2>
+<ul>
+<li><code>docs/journal/learn-loop-hardening-20260516/journal.md</code> — 13-section SC-JOURNAL</li>
+<li><code>docs/journal/perf-bench-20260516/journal.md</code> — predecessor pack (Phase A + A.2 root fix)</li>
+<li>ZK lineage: <code>[zk-bd82645aedcb5ef4]</code> Stub-That-Lies, <code>[zk-c14e1d23afff486c]</code> implicit-invariant family, <code>[zk-426c4adf07d076ad]</code> SC-STOP-HOOK-TELE</li>
+</ul>
+
+<div class="foot">operator handoff · learn-loop-hardening-20260516 · arc commits b82723fe..10682445 on origin/main</div>
+</body></html>
